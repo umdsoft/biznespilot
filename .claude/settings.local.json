@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(composer create-project:*)",
+      "Bash(composer require:*)",
+      "Bash(php artisan vendor:publish:*)",
+      "Bash(php artisan:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(ls:*)",
+      "Bash(mysql:*)",
+      "Bash(composer show:*)",
+      "Bash(pip install:*)",
+      "Bash(unzip:*)",
+      "Bash(python -c:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(find:*)",
+      "Bash(python fix_containers.py:*)",
+      "Bash(findstr:*)"
+    ]
+  }
+}

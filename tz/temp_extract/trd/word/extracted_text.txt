@@ -1,0 +1,500 @@
+Technical Requirements Document (TRD)
+Versiya:
+ 
+5.0 FINAL
+Sana:
+ 
+2024
+Loyiha:
+ 
+BiznesPilot AI — Marketing Intelligence Platform
+Stack:
+ 
+Laravel 12 + Vue 3 + MySQL + Redis
+Loyiha Haqida
+Nazariy Asos — 4 ta Kitob
+Arxitektura
+Texnologiya Stack
+Foydalanuvchi Tizimi
+Admin Panel
+Business Panel
+Tarif Tizimi
+9 ta Asosiy Modul
+Integratsiyalar
+Database Schema
+API Endpoints
+Xavfsizlik
+Deployment
+Roadmap
+1. LOYIHA HAQIDA
+1.1 Executive Summary
+BiznesPilot AI
+ 
+— O’zbekistondagi startaplar va kichik bizneslar uchun AI-powered marketing intelligence platformasi. Platforma 4 ta dunyo miqyosidagi marketing kitobidan olingan metodologiyalar asosida qurilgan.
+1.2 Muammo Tahlili
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    O&#39;ZBEKISTON STARTAPLARI MUAMMOLARI                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ❌ MUAMMO 1: Marketing xarajatlarini o&#39;lcholmaslik                  │   │
+│  │                                                                      │   │
+│  │  &quot;Instagram ga 5 mln so&#39;m sarfladik, lekin qancha mijoz keldi —     │   │
+│  │   bilmaymiz. Qaysi post ishladi, qaysi yo&#39;q — tushunmaymiz.&quot;       │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ❌ MUAMMO 2: Professional marketolog topish qiyinligi               │   │
+│  │                                                                      │   │
+│  │  &quot;Yaxshi marketolog oyiga 3-5 mln so&#39;m so&#39;raydi. Yomon marketolog   │   │
+│  │   esa pul sarflab, natija bermaydi.&quot;                                │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ❌ MUAMMO 3: &quot;Ko&#39;r-ko&#39;rona&quot; reklama qilish                          │   │
+│  │                                                                      │   │
+│  │  &quot;Raqobatchi nima qilayotganini bilmaymiz. Bozorda nima             │   │
+│  │   trend ekanini kuzatib borolmaymiz.&quot;                               │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ❌ MUAMMO 4: Mijozlarni yo&#39;qotish sababini bilmaslik                │   │
+│  │                                                                      │   │
+│  │  &quot;Mijozlar bir marta sotib oladi va qaytmaydi. Nega —               │   │
+│  │   tushunmaymiz. CLV ni hisoblamaymiz.&quot;                              │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ❌ MUAMMO 5: Ma&#39;lumotlarni yig&#39;ib, tahlil qilolmaslik               │   │
+│  │                                                                      │   │
+│  │  &quot;Excel, qog&#39;oz, xotira — hammasi alohida joyda.                    │   │
+│  │   Bir joyda ko&#39;rib, tahlil qilish imkoni yo&#39;q.&quot;                     │   │
+│  │                                                                      │   │
+│  │  ⏰ Natija: Haftalab vaqt sarflanadi data yig&#39;ishga                 │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ❌ MUAMMO 6: 24/7 mijozlarga javob berolmaslik                      │   │
+│  │                                                                      │   │
+│  │  &quot;Kechqurun yoki dam olish kunlari kelgan so&#39;rovlarga               │   │
+│  │   javob berolmaymiz. Mijoz ketib qoladi.&quot;                           │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+1.3 Yechim — BiznesPilot AI
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        BIZNESPILOT AI YECHIMLARI                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✅ YECHIM 1: Barcha kanallarni bir joyda kuzatish                   │   │
+│  │                                                                      │   │
+│  │  • Instagram, Telegram, Facebook, Google Ads, Website                │   │
+│  │  • Real-time metrikalar va grafiklar                                │   │
+│  │  • Avtomatik sync har 1 soatda                                      │   │
+│  │  • Kanal bo&#39;yicha ROI hisoblash                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✅ YECHIM 2: AI marketing maslahatchisi 24/7                        │   │
+│  │                                                                      │   │
+│  │  • Claude AI asosida aqlli tavsiyalar                               │   │
+│  │  • Kunlik, haftalik, oylik strategiya                               │   │
+│  │  • &quot;Nima qilish kerak?&quot; — aniq action items                         │   │
+│  │  • Biznesingizga moslashtirilgan maslahatlar                        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✅ YECHIM 3: Avtomatik sotuv chatboti                               │   │
+│  │                                                                      │   │
+│  │  • Telegram, Instagram, Facebook Messenger                          │   │
+│  │  • 24/7 mijozlarga javob beradi                                     │   │
+│  │  • Sales funnel bo&#39;yicha lead nurture qiladi                        │   │
+│  │  • Avtomatik lead yaratish va AmoCRM ga sync                        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✅ YECHIM 4: Raqobatchilarni avtomatik kuzatish                     │   │
+│  │                                                                      │   │
+│  │  • Instagram, Telegram da raqobatchilar monitoring                  │   │
+│  │  • Yangi aksiya, narx o&#39;zgarishi — alert                            │   │
+│  │  • AI tahlil va tavsiyalar                                          │   │
+│  │  • Haftalik raqobat hisoboti                                        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✅ YECHIM 5: AmoCRM integratsiyasi                                  │   │
+│  │                                                                      │   │
+│  │  • To&#39;liq bi-directional sync                                       │   │
+│  │  • Leadlar avtomatik yaratiladi                                     │   │
+│  │  • Pipeline status synced                                           │   │
+│  │  • Chatbot → AmoCRM real-time                                       │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✅ YECHIM 6: Ma&#39;lumotga asoslangan qarorlar                         │   │
+│  │                                                                      │   │
+│  │  • KPI Dashboard — real-time                                        │   │
+│  │  • CAC, CLV, ROAS, ROI — avtomatik hisob                            │   │
+│  │  • PDF/Excel hisobotlar                                             │   │
+│  │  • Maqsadlar va progress tracking                                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+1.4 Target Audience
+Segment
+Tavsif
+Hajmi
+Startaplar
+1-3 yillik, 2-20 xodim
+~5,000 O’zbekistonda
+Kichik biznes
+Retail, xizmatlar, HoReCa
+~50,000
+Digital agentliklar
+Marketing xizmatlari
+~500
+Freelance marketologlar
+Individual
+~2,000
+1.5 Competitive Advantage
+Raqobatchi
+Muammo
+BiznesPilot ustunligi
+HubSpot
+Qimmat ($800+/oy), murakkab
+Arzon, sodda, o’zbek tilida
+Bitrix24
+CRM focused, marketing zaif
+Marketing-first platforma
+AmoCRM
+Faqat CRM, analytics yo’q
+To’liq marketing + CRM sync
+Hootsuite
+Faqat social, AI yo’q
+AI insights + chatbot
+2. NAZARIY ASOS — 4 TA KITOB
+2.1 Kitoblar Umumiy Ko’rinishi
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    4 TA MARKETING KITOBIDAN FRAMEWORK                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                      │   │
+│  │      Alex Hormozi                 Sabri Suby                        │   │
+│  │                                                                      │   │
+│  │   • Grand Slam Offer           • Dream Buyer Avatar                 │   │
+│  │   • Value Equation             • 9 ta Savol                         │   │
+│  │   • Value Stack                • HVCO (Lead Magnet)                 │   │
+│  │   • Guarantee Types            • Magic Lantern                      │   │
+│  │   • Pricing Strategy           • Godfather Offer                    │   │
+│  │                                                                      │   │
+│  │   ═══════════════════════════════════════════════════════════════   │   │
+│  │                                                                      │   │
+│  │      Allan Dib                     Philip Kotler                    │   │
+│  │                                                                      │   │
+│  │   • 9-Square Canvas            • Segments of One                    │   │
+│  │   • USP yaratish               • Data Ecosystem                     │   │
+│  │   • Direct Response            • Predictive Marketing               │   │
+│  │   • Lifetime Value             • Agile Marketing                    │   │
+│  │   • Referral System            • Customer Journey                   │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+Grand Slam Offer Konsepti
+Maqsad:
+ 
+Taqqoslab bo’lmaydigan taklif yaratish — raqobatchilar bilan narx bo’yicha taqqoslab bo’lmaydi.
+Value Equation
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           VALUE EQUATION                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                                                                             │
+│              Dream Outcome  ×  Perceived Likelihood of Achievement          │
+│   VALUE = ─────────────────────────────────────────────────────────────     │
+│                    Time Delay  ×  Effort &amp; Sacrifice                        │
+│                                                                             │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                      │   │
+│  │  ORTIRISH KERAK (↑):                  KAMAYTIRISH KERAK (↓):        │   │
+│  │                                                                      │   │
+│  │  • Dream Outcome                      • Time Delay                   │   │
+│  │    Mijoz nimaga erishadi?               Qancha vaqt ketadi?         │   │
+│  │                                                                      │   │
+│  │  • Perceived Likelihood               • Effort &amp; Sacrifice          │   │
+│  │    Muvaffaqiyat ehtimoli                Qancha mehnat kerak?        │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  MISOL:                                                                     │
+│                                                                             │
+│  Oddiy taklif: &quot;Ingliz tili kursi&quot; — $200                                  │
+│                                                                             │
+│  Grand Slam: &quot;90 kunda IELTS 7.0 — yoki pulingizni qaytaramiz&quot;            │
+│              + 1:1 mentor                                                   │
+│              + Kunlik speaking practice                                     │
+│              + Guarantee: Natija yo&#39;q = 100% refund                        │
+│              — $997                                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+Value Stack Komponenetlari
+Komponent
+Tavsif
+Qiymat qo’shish
+Core Offer
+Asosiy mahsulot/xizmat
+Asosiy qiymat
+Bonus 1
+Qo’shimcha resurs
++30% qiymat
+Bonus 2
+Qo’shimcha xizmat
++30% qiymat
+Bonus 3
+Exclusive access
++20% qiymat
+Urgency
+Vaqt cheklovi
+FOMO yaratish
+Scarcity
+Miqdor cheklovi
+Qimmatlilik
+Guarantee
+Risk reversal
+Ishonch
+Guarantee Turlari
+Turi
+Tavsif
+Misol
+Risk Level
+Unconditional
+Shartsiz qaytarish
+“
+30 kun — sababsiz qaytaramiz
+”
+Yuqori
+Conditional
+Shartli qaytarish
+“
+Agar X qilsangiz va natija bo’lmasa
+”
+O’rta
+Performance
+Natijaga bog’liq
+“
+ROI 2x bo’lmasa — bepul
+”
+Juda yuqori
+Anti-guarantee
+Teskari kafolat
+“
+Bu hamma uchun emas
+”
+Past
+Implied
+Nazarda tutilgan
+“
+10 yillik tajriba
+”
+Juda past
+BiznesPilot da Qo’llanilishi
+Konsept
+Modul
+Funksiya
+Value Equation
+Offer Builder
+Value score calculator
+Value Stack
+Offer Builder
+Stack editor
+Guarantees
+Offer Builder
+Guarantee templates
+Pricing
+Offer Builder
+Pricing calculator
+Power 4% Prinsipi
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           POWER 4% PRINCIPLE                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                        ┌─────────────────┐                                 │
+│                        │   BOZOR (100%)  │                                 │
+│                        └────────┬────────┘                                 │
+│                                 │                                          │
+│            ┌────────────────────┴────────────────────┐                     │
+│            │                                         │                     │
+│            ▼                                         ▼                     │
+│     ┌─────────────┐                          ┌─────────────┐              │
+│     │   3% Now    │                          │  97% Later  │              │
+│     │  Buyers     │                          │  Buyers     │              │
+│     └─────────────┘                          └─────────────┘              │
+│            │                                         │                     │
+│            │                                         │                     │
+│   &quot;Hozir sotib olishga                      &quot;Hozir emas, lekin            │
+│    tayyor mijozlar&quot;                          kelajakda bo&#39;lishi            │
+│                                              mumkin&quot;                       │
+│            │                                         │                     │
+│            ▼                                         ▼                     │
+│     ┌─────────────┐                          ┌─────────────┐              │
+│     │ Direct Ads  │                          │Magic Lantern│              │
+│     │ Sales Team  │                          │    HVCO     │              │
+│     └─────────────┘                          │   Nurture   │              │
+│                                              └─────────────┘              │
+│                                                                             │
+│  ═══════════════════════════════════════════════════════════════════════   │
+│                                                                             │
+│                                                                             │
+│     → Shu 4% ni topish va ularga fokus qilish kerak                       │
+│     → Bu 4% = sizning DREAM BUYER                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+Dream Buyer Avatar — 9 ta Savol
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     DREAM BUYER — 9 TA SAVOL                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  1️⃣  QAYERDA VAQT O&#39;TKAZADI?                                        │   │
+│  │                                                                      │   │
+│  │     Online: Instagram, Telegram, YouTube, TikTok...                 │   │
+│  │     Offline: Kafeler, sport zallari, tadbirlar...                   │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  2️⃣  MA&#39;LUMOT OLISH UCHUN QAYERGA MUROJAAT QILADI?                  │   │
+│  │                                                                      │   │
+│  │     Google, YouTube, do&#39;stlar, ekspertlar, bloglar...               │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  3️⃣  ENG KATTA FRUSTRATSIYALARI VA QIYINCHILIKLARI?                 │   │
+│  │                                                                      │   │
+│  │     Nimadan bezor? Nima ishlamayapti? Nima qiynayapti?              │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  4️⃣  ORZULARI VA UMIDLARI?                                          │   │
+│  │                                                                      │   │
+│  │     Nimaga erishmoqchi? Qanday hayot istaydi?                       │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  5️⃣  ENG KATTA QO&#39;RQUVLARI?                                         │   │
+│  │                                                                      │   │
+│  │     Nimadan qo&#39;rqadi? Nima tashvish qiladi?                         │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  6️⃣  QAYSI KOMMUNIKATSIYA SHAKLINI AFZAL KO&#39;RADI?                   │   │
+│  │                                                                      │   │
+│  │     Telegram, WhatsApp, Email, Telefon, SMS...                      │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  7️⃣  QANDAY TIL VA JARGON ISHLATADI?                                │   │
+│  │                                                                      │   │
+│  │     Soha terminlari, slang, ifodalar...                             │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  8️⃣  KUNDALIK HAYOTI QANDAY?                                        │   │
+│  │                                                                      │   │
+│  │     Ertalab nima qiladi? Kechqurun? Hafta oxiri?                    │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  9️⃣  NIMA UNI BAXTLI QILADI?                                        │   │
+│  │                                                                      │   │
+│  │     Muvaffaqiyat qanday ko&#39;rinadi? Nima qilsa xursand bo&#39;ladi?      │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+HVCO (High Value Content Offer)
+Turi
+Tavsif
+Conversion Rate
+Misol
+Ebook
+Elektron kitob
+15-25%
+“
+10 ta Marketing Sirlari
+”
+Checklist
+Tekshirish ro’yxati
+20-35%
+“
+Launch Checklist
+”
+Video Course
+Mini video kurs
+25-40%
+“
+5 kunlik kurs
+”
+Webinar
+Jonli efir
+30-50%
+“
+Bepul masterclass
+”
+Template
+Tayyor shablon
+25-40%
+“
+Marketing Plan Template
+”
+Quiz
+Interaktiv test
+35-50%
+“
+Marketing IQ Test
+”
+Consultation
+Bepul maslahat
+40-60%
+“
+15 daqiqa bepul
+”
+Calculator
+Interaktiv kalkulyator
+30-45%
+“
+ROI Calculator
+”
+Magic Lantern Technique
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      MAGIC LANTERN TECHNIQUE                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Maqsad: 97% &quot;hozir emas&quot; mijozlarni sekin-asta sotuvga olib kelish       │
+│                                                                             │
+│                                                                             │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐            │
+│   │  HVCO    │───▶│  Email   │───▶│ Nurture  │───▶│  OFFER   │            │
+│   │ Download │    │ Sequence │    │ Content  │    │  (Sale)  │            │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘            │
+│                                                                             │
+│        │               │               │               │                   │
+│        ▼               ▼               ▼               ▼                   │
+│                                                                             │
+│   &quot;Bepul qiymat     &quot;Munosabat       &quot;Ishonch        &quot;Taklif              │
+│    bering&quot;           quring&quot;          yarating&quot;       qiling&quot;              │
