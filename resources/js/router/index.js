@@ -84,6 +84,11 @@ const routes = [
         name: 'settings',
         component: () => import('@/pages/settings/Index.vue'),
       },
+      {
+        path: '/onboarding',
+        name: 'onboarding',
+        component: () => import('@/Pages/Onboarding/Index.vue'),
+      },
     ],
   },
 ];

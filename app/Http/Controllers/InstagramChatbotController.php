@@ -11,6 +11,7 @@ use App\Models\InstagramAutomationTemplate;
 use App\Services\InstagramChatbotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -297,26 +298,34 @@ class InstagramChatbotController extends Controller
     }
 
     /**
-     * Get node types for flow builder
+     * Get node types for flow builder (cached for 1 hour)
      */
     public function getNodeTypes(): JsonResponse
     {
+        $nodeTypes = Cache::remember('instagram_node_types', 3600, function () {
+            return InstagramFlowNode::getNodeTypes();
+        });
+
         return response()->json([
-            'node_types' => InstagramFlowNode::getNodeTypes(),
+            'node_types' => $nodeTypes,
         ]);
     }
 
     /**
-     * Get templates
+     * Get templates (cached for 10 minutes)
      */
     public function getTemplates(): JsonResponse
     {
-        $templates = InstagramAutomationTemplate::active()->get();
+        $templates = Cache::remember('instagram_templates', 600, function () {
+            $dbTemplates = InstagramAutomationTemplate::active()->get();
 
-        // If no templates in DB, return defaults
-        if ($templates->isEmpty()) {
-            $templates = collect(InstagramAutomationTemplate::getDefaultTemplates());
-        }
+            // If no templates in DB, return defaults
+            if ($dbTemplates->isEmpty()) {
+                return collect(InstagramAutomationTemplate::getDefaultTemplates());
+            }
+
+            return $dbTemplates;
+        });
 
         return response()->json(['templates' => $templates]);
     }
@@ -546,7 +555,7 @@ class InstagramChatbotController extends Controller
     }
 
     /**
-     * Get selected Instagram account
+     * Get selected Instagram account (cached per request)
      */
     protected function getSelectedAccount(Request $request): ?InstagramAccount
     {
@@ -555,9 +564,14 @@ class InstagramChatbotController extends Controller
             return null;
         }
 
-        return InstagramAccount::where('business_id', $business->id)
-            ->where('is_primary', true)
-            ->first()
-            ?? InstagramAccount::where('business_id', $business->id)->first();
+        // Cache for 5 minutes to reduce DB queries
+        return Cache::remember(
+            "instagram_account_business_{$business->id}",
+            300,
+            fn() => InstagramAccount::where('business_id', $business->id)
+                ->where('is_primary', true)
+                ->first()
+                ?? InstagramAccount::where('business_id', $business->id)->first()
+        );
     }
 }

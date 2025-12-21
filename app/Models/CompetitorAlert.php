@@ -9,118 +9,146 @@ class CompetitorAlert extends Model
 {
     use BelongsToBusiness;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
-        'competitor_id',
         'business_id',
+        'competitor_id',
+        'activity_id',
         'type',
+        'alert_type',
         'severity',
         'title',
         'message',
-        'activity_id',
+        'description',
+        'source_url',
+        'detected_changes',
+        'old_value',
+        'new_value',
+        'old_price',
+        'new_price',
+        'price_change_percent',
+        'product_name',
+        'campaign_name',
+        'change_percent',
         'data',
+        'action_recommendation',
+        'requires_action',
+        'action_taken_at',
+        'action_notes',
         'status',
+        'new_status',
+        'is_important',
+        'is_active',
         'read_at',
         'archived_at',
         'notification_sent',
         'notification_sent_at',
+        'detected_at',
+        'screenshot_path',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
+        'detected_changes' => 'array',
         'data' => 'array',
+        'old_price' => 'decimal:2',
+        'new_price' => 'decimal:2',
+        'price_change_percent' => 'decimal:2',
+        'change_percent' => 'decimal:2',
+        'requires_action' => 'boolean',
+        'is_important' => 'boolean',
+        'is_active' => 'boolean',
+        'notification_sent' => 'boolean',
+        'detected_at' => 'datetime',
         'read_at' => 'datetime',
         'archived_at' => 'datetime',
-        'notification_sent' => 'boolean',
+        'action_taken_at' => 'datetime',
         'notification_sent_at' => 'datetime',
     ];
 
-    /**
-     * Get the competitor that owns the alert.
-     */
+    public function business()
+    {
+        return $this->belongsTo(Business::class);
+    }
+
     public function competitor()
     {
-        return $this->belongsTo(Competitor::class);
+        return $this->belongsTo(Competitor::class, 'competitor_id');
     }
 
-    /**
-     * Get the related activity (if any).
-     */
-    public function activity()
+    public function scopeNew($query)
     {
-        return $this->belongsTo(CompetitorActivity::class, 'activity_id');
+        return $query->where('status', 'new');
     }
 
-    /**
-     * Scope for unread alerts
-     */
-    public function scopeUnread($query)
+    public function scopeUnviewed($query)
     {
-        return $query->where('status', 'unread');
+        return $query->whereIn('status', ['new']);
     }
 
-    /**
-     * Scope for read alerts
-     */
-    public function scopeRead($query)
-    {
-        return $query->where('status', 'read');
-    }
-
-    /**
-     * Scope by severity
-     */
     public function scopeBySeverity($query, $severity)
     {
         return $query->where('severity', $severity);
     }
 
-    /**
-     * Scope by type
-     */
     public function scopeByType($query, $type)
     {
-        return $query->where('type', $type);
+        return $query->where('alert_type', $type);
     }
 
-    /**
-     * Mark as read
-     */
-    public function markAsRead()
+    public function scopeRecent($query, $days = 30)
     {
-        $this->update([
-            'status' => 'read',
-            'read_at' => now(),
-        ]);
+        return $query->where('detected_at', '>=', now()->subDays($days));
     }
 
-    /**
-     * Archive alert
-     */
-    public function archive()
+    public function markViewed()
     {
-        $this->update([
-            'status' => 'archived',
-            'archived_at' => now(),
-        ]);
+        if ($this->status === 'new') {
+            $this->update(['status' => 'viewed']);
+        }
     }
 
-    /**
-     * Mark notification as sent
-     */
-    public function markNotificationSent()
+    public function markActed()
     {
-        $this->update([
-            'notification_sent' => true,
-            'notification_sent_at' => now(),
-        ]);
+        $this->update(['status' => 'acted']);
+    }
+
+    public function dismiss()
+    {
+        $this->update(['status' => 'dismissed']);
+    }
+
+    public function getAlertTypeName()
+    {
+        return match ($this->alert_type) {
+            'price_change' => 'Narx o\'zgarishi',
+            'new_product' => 'Yangi mahsulot',
+            'campaign' => 'Yangi kampaniya',
+            'followers_surge' => 'Followerlar o\'sishi',
+            'content_viral' => 'Viral kontent',
+            'promotion' => 'Aksiya/Chegirma',
+            default => $this->alert_type,
+        };
+    }
+
+    public function getAlertTypeIcon()
+    {
+        return match ($this->alert_type) {
+            'price_change' => 'currency-dollar',
+            'new_product' => 'cube',
+            'campaign' => 'megaphone',
+            'followers_surge' => 'user-group',
+            'content_viral' => 'fire',
+            'promotion' => 'gift',
+            default => 'bell',
+        };
+    }
+
+    public function getSeverityColor()
+    {
+        return match ($this->severity) {
+            'high' => 'red',
+            'medium' => 'orange',
+            'low' => 'yellow',
+            default => 'gray',
+        };
     }
 }

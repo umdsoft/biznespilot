@@ -1,0 +1,266 @@
+<template>
+  <form @submit.prevent="handleSubmit" class="space-y-6">
+    <!-- Team Size -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Jamoa hajmi <span class="text-red-500">*</span>
+      </label>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+        <label
+          v-for="size in teamSizes"
+          :key="size.value"
+          :class="[
+            'relative flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all',
+            form.team_size === size.value
+              ? 'border-indigo-500 bg-indigo-50'
+              : 'border-gray-200 hover:border-gray-300'
+          ]"
+        >
+          <input
+            type="radio"
+            v-model="form.team_size"
+            :value="size.value"
+            class="sr-only"
+          />
+          <span class="font-medium text-gray-900">{{ size.label }}</span>
+        </label>
+      </div>
+      <p v-if="errors.team_size" class="mt-1 text-sm text-red-500">{{ errors.team_size }}</p>
+    </div>
+
+    <!-- Business Stage -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Biznes bosqichi <span class="text-red-500">*</span>
+      </label>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <label
+          v-for="stage in businessStages"
+          :key="stage.value"
+          :class="[
+            'relative flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all',
+            form.business_stage === stage.value
+              ? 'border-indigo-500 bg-indigo-50'
+              : 'border-gray-200 hover:border-gray-300'
+          ]"
+        >
+          <input
+            type="radio"
+            v-model="form.business_stage"
+            :value="stage.value"
+            class="sr-only"
+          />
+          <span class="font-medium text-gray-900">{{ stage.label }}</span>
+          <span class="text-xs text-gray-500 text-center mt-1">{{ stage.description }}</span>
+        </label>
+      </div>
+      <p v-if="errors.business_stage" class="mt-1 text-sm text-red-500">{{ errors.business_stage }}</p>
+    </div>
+
+    <!-- City -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Shahar <span class="text-red-500">*</span>
+        </label>
+        <select
+          v-model="form.city"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          :class="{ 'border-red-500': errors.city }"
+        >
+          <option value="">Shaharni tanlang</option>
+          <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
+        </select>
+        <p v-if="errors.city" class="mt-1 text-sm text-red-500">{{ errors.city }}</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Davlat
+        </label>
+        <input
+          v-model="form.country"
+          type="text"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="O'zbekiston"
+        />
+      </div>
+    </div>
+
+    <!-- Founding Date -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Tashkil etilgan sana
+      </label>
+      <input
+        v-model="form.founding_date"
+        type="date"
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <!-- Contact Info -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Web-sayt
+        </label>
+        <input
+          v-model="form.website"
+          type="url"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="https://example.com"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Telefon
+        </label>
+        <input
+          v-model="form.phone"
+          type="tel"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="+998 90 123 45 67"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Email
+      </label>
+      <input
+        v-model="form.email"
+        type="email"
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        placeholder="info@example.com"
+      />
+    </div>
+
+    <!-- Address -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Manzil
+      </label>
+      <textarea
+        v-model="form.address"
+        rows="2"
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        placeholder="To'liq manzil..."
+      ></textarea>
+    </div>
+
+    <!-- Submit -->
+    <div class="flex justify-end gap-3 pt-4">
+      <button
+        type="button"
+        @click="$emit('cancel')"
+        class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+      >
+        Bekor qilish
+      </button>
+      <button
+        type="submit"
+        :disabled="loading"
+        class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Saqlash va davom etish
+      </button>
+    </div>
+  </form>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue';
+import { useOnboardingStore } from '@/stores/onboarding';
+
+const store = useOnboardingStore();
+
+const props = defineProps({
+  business: {
+    type: Object,
+    default: () => ({})
+  }
+});
+
+const emit = defineEmits(['submit', 'cancel']);
+
+const loading = ref(false);
+const errors = reactive({});
+
+const form = reactive({
+  team_size: props.business?.team_size || '',
+  business_stage: props.business?.business_stage || '',
+  city: props.business?.city || '',
+  country: props.business?.country || 'O\'zbekiston',
+  founding_date: props.business?.founding_date || '',
+  website: props.business?.website || '',
+  phone: props.business?.phone || '',
+  email: props.business?.email || '',
+  address: props.business?.address || ''
+});
+
+const teamSizes = [
+  { value: '1', label: '1' },
+  { value: '2-5', label: '2-5' },
+  { value: '6-10', label: '6-10' },
+  { value: '11-25', label: '11-25' },
+  { value: '26-50', label: '26-50' },
+  { value: '50+', label: '50+' }
+];
+
+const businessStages = [
+  { value: 'idea', label: 'G\'oya', description: 'Boshlash oldidan' },
+  { value: 'startup', label: 'Startup', description: 'Yangi boshlangan' },
+  { value: 'growth', label: 'O\'sish', description: 'Rivojlanayotgan' },
+  { value: 'established', label: 'Barqaror', description: 'O\'rnatilgan' },
+  { value: 'scaling', label: 'Kengayish', description: 'Masshtablash' }
+];
+
+const cities = [
+  'Toshkent',
+  'Samarqand',
+  'Buxoro',
+  'Farg\'ona',
+  'Andijon',
+  'Namangan',
+  'Qarshi',
+  'Nukus',
+  'Jizzax',
+  'Termiz',
+  'Navoiy',
+  'Urganch',
+  'Guliston',
+  'Boshqa'
+];
+
+async function handleSubmit() {
+  // Clear errors
+  Object.keys(errors).forEach(key => delete errors[key]);
+
+  // Validate
+  if (!form.team_size) errors.team_size = 'Jamoa hajmi tanlanishi shart';
+  if (!form.city) errors.city = 'Shahar tanlanishi shart';
+  if (!form.business_stage) errors.business_stage = 'Biznes bosqichi tanlanishi shart';
+
+  if (Object.keys(errors).length > 0) return;
+
+  loading.value = true;
+
+  try {
+    await store.updateBusinessDetails(form);
+    emit('submit');
+  } catch (err) {
+    if (err.response?.data?.errors) {
+      Object.assign(errors, err.response.data.errors);
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+</script>

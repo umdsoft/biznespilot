@@ -15,6 +15,9 @@ use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\CompetitorController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiagnosticController;
+use App\Http\Controllers\StrategyController;
+use App\Http\Controllers\ContentCalendarController;
 use App\Http\Controllers\DreamBuyerController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\MarketingAnalyticsController;
@@ -32,6 +35,10 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\TargetAnalysisController;
 use App\Http\Controllers\InstagramAnalysisController;
 use App\Http\Controllers\InstagramChatbotController;
+use App\Http\Controllers\AlertController;
+use App\Http\Controllers\InsightController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -394,6 +401,172 @@ Route::middleware('auth')->prefix('business')->name('business.')->group(function
         Route::post('/flow-automations', [InstagramChatbotController::class, 'createFlowAutomation'])->name('flow-automations.create');
         Route::get('/flow-automations/{id}', [InstagramChatbotController::class, 'getFlowAutomation'])->name('flow-automations.show');
         Route::put('/flow-automations/{id}', [InstagramChatbotController::class, 'updateFlowAutomation'])->name('flow-automations.update');
+    });
+
+    // AI Diagnostic routes (FAZA 2)
+    Route::prefix('diagnostic')->name('diagnostic.')->group(function () {
+        Route::get('/', [DiagnosticController::class, 'index'])->name('index');
+        Route::get('/check-eligibility', [DiagnosticController::class, 'checkEligibility'])->name('check-eligibility');
+        Route::post('/start', [DiagnosticController::class, 'start'])->name('start');
+        Route::get('/history', [DiagnosticController::class, 'history'])->name('history');
+        Route::get('/{diagnostic}/status', [DiagnosticController::class, 'status'])->name('status');
+        Route::get('/{diagnostic}/processing', [DiagnosticController::class, 'processing'])->name('processing');
+        Route::get('/{diagnostic}', [DiagnosticController::class, 'show'])->name('show');
+        Route::get('/{diagnostic}/questions', [DiagnosticController::class, 'questions'])->name('questions');
+        Route::post('/questions/{question}/answer', [DiagnosticController::class, 'answerQuestion'])->name('questions.answer');
+        Route::get('/{diagnostic}/report/{type?}', [DiagnosticController::class, 'downloadReport'])->name('report');
+        Route::get('/{diagnostic1}/compare/{diagnostic2}', [DiagnosticController::class, 'compare'])->name('compare');
+    });
+
+    // Diagnostic API routes
+    Route::prefix('api/diagnostic')->name('api.diagnostic.')->group(function () {
+        Route::get('/latest', [DiagnosticController::class, 'apiLatest'])->name('latest');
+    });
+
+    // Strategy Building routes (FAZA 3)
+    Route::prefix('strategy')->name('strategy.')->group(function () {
+        // Dashboard
+        Route::get('/', [StrategyController::class, 'index'])->name('index');
+        Route::get('/wizard', [StrategyController::class, 'wizard'])->name('wizard');
+        Route::post('/build-complete', [StrategyController::class, 'buildComplete'])->name('build-complete');
+        Route::get('/templates', [StrategyController::class, 'templates'])->name('templates');
+
+        // Annual Strategy
+        Route::prefix('annual')->name('annual.')->group(function () {
+            Route::post('/', [StrategyController::class, 'createAnnual'])->name('store');
+            Route::get('/{annual}', [StrategyController::class, 'showAnnual'])->name('show');
+            Route::put('/{annual}', [StrategyController::class, 'updateAnnual'])->name('update');
+            Route::post('/{annual}/generate-quarters', [StrategyController::class, 'generateQuarters'])->name('generate-quarters');
+        });
+
+        // Quarterly Plan
+        Route::prefix('quarterly')->name('quarterly.')->group(function () {
+            Route::get('/{quarterly}', [StrategyController::class, 'showQuarterly'])->name('show');
+            Route::put('/{quarterly}', [StrategyController::class, 'updateQuarterly'])->name('update');
+            Route::post('/{quarterly}/generate-months', [StrategyController::class, 'generateMonths'])->name('generate-months');
+        });
+
+        // Monthly Plan
+        Route::prefix('monthly')->name('monthly.')->group(function () {
+            Route::get('/{monthly}', [StrategyController::class, 'showMonthly'])->name('show');
+            Route::put('/{monthly}', [StrategyController::class, 'updateMonthly'])->name('update');
+            Route::post('/{monthly}/generate-weeks', [StrategyController::class, 'generateWeeks'])->name('generate-weeks');
+        });
+
+        // Weekly Plan
+        Route::prefix('weekly')->name('weekly.')->group(function () {
+            Route::get('/{weekly}', [StrategyController::class, 'showWeekly'])->name('show');
+            Route::put('/{weekly}', [StrategyController::class, 'updateWeekly'])->name('update');
+            Route::post('/{weekly}/tasks', [StrategyController::class, 'addTask'])->name('add-task');
+            Route::post('/{weekly}/tasks/{taskId}/complete', [StrategyController::class, 'completeTask'])->name('complete-task');
+        });
+
+        // Approve and Complete actions
+        Route::post('/{type}/{id}/approve', [StrategyController::class, 'approve'])->name('approve');
+        Route::post('/{type}/{id}/complete', [StrategyController::class, 'complete'])->name('complete');
+
+        // KPI routes
+        Route::get('/{type}/{id}/kpis', [StrategyController::class, 'getKPIs'])->name('kpis');
+        Route::put('/kpi/{kpi}', [StrategyController::class, 'updateKPI'])->name('kpi.update');
+
+        // Budget routes
+        Route::get('/{type}/{id}/budget', [StrategyController::class, 'getBudget'])->name('budget');
+        Route::post('/budget/{allocation}/spending', [StrategyController::class, 'recordSpending'])->name('budget.spending');
+    });
+
+    // Content Calendar routes (FAZA 3)
+    Route::prefix('content-calendar')->name('content-calendar.')->group(function () {
+        Route::get('/', [ContentCalendarController::class, 'index'])->name('index');
+        Route::post('/', [ContentCalendarController::class, 'store'])->name('store');
+        Route::get('/analytics', [ContentCalendarController::class, 'analytics'])->name('analytics');
+
+        // Content item actions
+        Route::get('/{content}', [ContentCalendarController::class, 'show'])->name('show');
+        Route::put('/{content}', [ContentCalendarController::class, 'update'])->name('update');
+        Route::delete('/{content}', [ContentCalendarController::class, 'destroy'])->name('destroy');
+        Route::post('/{content}/move', [ContentCalendarController::class, 'move'])->name('move');
+        Route::post('/{content}/duplicate', [ContentCalendarController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{content}/approve', [ContentCalendarController::class, 'approve'])->name('approve');
+        Route::post('/{content}/schedule', [ContentCalendarController::class, 'schedule'])->name('schedule');
+        Route::post('/{content}/publish', [ContentCalendarController::class, 'publish'])->name('publish');
+        Route::put('/{content}/metrics', [ContentCalendarController::class, 'updateMetrics'])->name('metrics');
+        Route::post('/{content}/generate-ai', [ContentCalendarController::class, 'generateAI'])->name('generate-ai');
+
+        // Bulk actions
+        Route::post('/bulk-status', [ContentCalendarController::class, 'bulkUpdateStatus'])->name('bulk-status');
+
+        // Generate from plans
+        Route::post('/generate-monthly/{monthly}', [ContentCalendarController::class, 'generateMonthly'])->name('generate-monthly');
+        Route::post('/generate-weekly/{weekly}', [ContentCalendarController::class, 'generateWeekly'])->name('generate-weekly');
+    });
+
+    // ============================================
+    // FAZA 4: Dashboard, Alerts, Insights, Reports
+    // ============================================
+
+    // Dashboard API routes
+    Route::prefix('api/dashboard')->name('api.dashboard.')->group(function () {
+        Route::get('/data', [DashboardController::class, 'getData'])->name('data');
+        Route::get('/kpis', [DashboardController::class, 'getKPIs'])->name('kpis');
+        Route::get('/trends', [DashboardController::class, 'getTrends'])->name('trends');
+        Route::get('/funnel', [DashboardController::class, 'getFunnel'])->name('funnel');
+        Route::get('/channels', [DashboardController::class, 'getChannelComparison'])->name('channels');
+        Route::post('/widgets', [DashboardController::class, 'updateWidgets'])->name('widgets');
+        Route::post('/refresh', [DashboardController::class, 'refresh'])->name('refresh');
+    });
+
+    // Alerts routes (FAZA 4)
+    Route::prefix('alerts')->name('alerts.')->group(function () {
+        Route::get('/', [AlertController::class, 'index'])->name('index');
+        Route::get('/active', [AlertController::class, 'getActive'])->name('active');
+        Route::get('/rules', [AlertController::class, 'rules'])->name('rules');
+        Route::post('/rules', [AlertController::class, 'createRule'])->name('rules.store');
+        Route::put('/rules/{rule}', [AlertController::class, 'updateRule'])->name('rules.update');
+        Route::delete('/rules/{rule}', [AlertController::class, 'deleteRule'])->name('rules.destroy');
+        Route::get('/{alert}', [AlertController::class, 'show'])->name('show');
+        Route::post('/{alert}/acknowledge', [AlertController::class, 'acknowledge'])->name('acknowledge');
+        Route::post('/{alert}/resolve', [AlertController::class, 'resolve'])->name('resolve');
+        Route::post('/{alert}/snooze', [AlertController::class, 'snooze'])->name('snooze');
+        Route::post('/{alert}/dismiss', [AlertController::class, 'dismiss'])->name('dismiss');
+    });
+
+    // Insights routes (FAZA 4)
+    Route::prefix('insights')->name('insights.')->group(function () {
+        Route::get('/', [InsightController::class, 'index'])->name('index');
+        Route::get('/active', [InsightController::class, 'getActive'])->name('active');
+        Route::post('/regenerate', [InsightController::class, 'regenerate'])->name('regenerate');
+        Route::get('/category', [InsightController::class, 'getByCategory'])->name('category');
+        Route::get('/{insight}', [InsightController::class, 'show'])->name('show');
+        Route::post('/{insight}/viewed', [InsightController::class, 'markViewed'])->name('viewed');
+        Route::post('/{insight}/acted', [InsightController::class, 'markActed'])->name('acted');
+        Route::post('/{insight}/dismiss', [InsightController::class, 'dismiss'])->name('dismiss');
+    });
+
+    // Reports routes (FAZA 4) - extends existing reports
+    Route::prefix('generated-reports')->name('generated-reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/schedules', [ReportController::class, 'schedules'])->name('schedules');
+        Route::post('/schedules', [ReportController::class, 'createSchedule'])->name('schedules.store');
+        Route::put('/schedules/{schedule}', [ReportController::class, 'updateSchedule'])->name('schedules.update');
+        Route::delete('/schedules/{schedule}', [ReportController::class, 'deleteSchedule'])->name('schedules.destroy');
+        Route::post('/schedules/{schedule}/run', [ReportController::class, 'runSchedule'])->name('schedules.run');
+        Route::post('/generate/daily', [ReportController::class, 'generateDaily'])->name('generate.daily');
+        Route::post('/generate/weekly', [ReportController::class, 'generateWeekly'])->name('generate.weekly');
+        Route::post('/generate/monthly', [ReportController::class, 'generateMonthly'])->name('generate.monthly');
+        Route::post('/generate/quarterly', [ReportController::class, 'generateQuarterly'])->name('generate.quarterly');
+        Route::get('/{report}', [ReportController::class, 'show'])->name('show');
+        Route::get('/{report}/download', [ReportController::class, 'download'])->name('download');
+    });
+
+    // Notifications routes (FAZA 4)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread', [NotificationController::class, 'getUnread'])->name('unread');
+        Route::get('/count', [NotificationController::class, 'getCount'])->name('count');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/{notification}/clicked', [NotificationController::class, 'markAsClicked'])->name('clicked');
+        Route::delete('/{notification}', [NotificationController::class, 'delete'])->name('delete');
     });
 });
 

@@ -10,149 +10,176 @@ class AiInsight extends Model
 {
     use BelongsToBusiness, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
+    protected $table = 'ai_insights';
+
     protected $fillable = [
         'business_id',
         'type',
+        'insight_type',
+        'category',
         'title',
         'content',
         'priority',
         'sentiment',
+        'title_uz',
+        'title_en',
+        'description_uz',
+        'description_en',
+        'action_uz',
+        'action_en',
+        'data',
+        'data_points',
+        'metric_affected',
+        'expected_impact',
+        'confidence_score',
+        'ai_model',
+        'ai_prompt_context',
         'is_read',
         'is_actionable',
+        'is_active',
         'action_taken',
-        'data',
         'generated_at',
         'read_at',
+        'status',
+        'viewed_at',
+        'acted_at',
+        'action_result',
+        'expires_at',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
+        'data' => 'array',
+        'data_points' => 'array',
+        'confidence_score' => 'decimal:2',
         'is_read' => 'boolean',
         'is_actionable' => 'boolean',
-        'data' => 'array',
+        'is_active' => 'boolean',
         'generated_at' => 'datetime',
         'read_at' => 'datetime',
+        'viewed_at' => 'datetime',
+        'acted_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
-    /**
-     * Mark insight as read.
-     */
-    public function markAsRead(): void
+    public function business()
     {
-        $this->update([
-            'is_read' => true,
-            'read_at' => now(),
-        ]);
+        return $this->belongsTo(Business::class);
     }
 
-    /**
-     * Record action taken on insight.
-     */
-    public function recordAction(string $action): void
+    public function scopeActive($query)
     {
-        $this->update([
-            'action_taken' => $action,
-        ]);
+        return $query->whereIn('status', ['new', 'viewed']);
     }
 
-    /**
-     * Scope for unread insights.
-     */
-    public function scopeUnread($query)
+    public function scopeNew($query)
     {
-        return $query->where('is_read', false);
+        return $query->where('status', 'new');
     }
 
-    /**
-     * Scope for actionable insights.
-     */
-    public function scopeActionable($query)
+    public function scopeNotExpired($query)
     {
-        return $query->where('is_actionable', true);
+        return $query->where(function ($q) {
+            $q->whereNull('expires_at')
+              ->orWhere('expires_at', '>', now());
+        });
     }
 
-    /**
-     * Scope by priority.
-     */
-    public function scopeByPriority($query, string $priority)
+    public function scopeByPriority($query, $priority)
     {
         return $query->where('priority', $priority);
     }
 
-    /**
-     * Scope by type.
-     */
-    public function scopeByType($query, string $type)
+    public function scopeByCategory($query, $category)
     {
-        return $query->where('type', $type);
+        return $query->where('category', $category);
     }
 
-    /**
-     * Scope for urgent insights.
-     */
-    public function scopeUrgent($query)
+    public function getTitle($locale = 'uz')
     {
-        return $query->where('priority', 'urgent');
+        return $locale === 'en' && $this->title_en
+            ? $this->title_en
+            : $this->title_uz;
     }
 
-    /**
-     * Scope for high priority insights.
-     */
-    public function scopeHighPriority($query)
+    public function getDescription($locale = 'uz')
     {
-        return $query->whereIn('priority', ['urgent', 'high']);
+        return $locale === 'en' && $this->description_en
+            ? $this->description_en
+            : $this->description_uz;
     }
 
-    /**
-     * Get priority badge color.
-     */
-    public function getPriorityColorAttribute(): string
+    public function getAction($locale = 'uz')
     {
-        return match($this->priority) {
-            'urgent' => 'red',
+        return $locale === 'en' && $this->action_en
+            ? $this->action_en
+            : $this->action_uz;
+    }
+
+    public function markViewed()
+    {
+        if ($this->status === 'new') {
+            $this->update([
+                'status' => 'viewed',
+                'viewed_at' => now(),
+            ]);
+        }
+    }
+
+    public function markActed($result = null)
+    {
+        $this->update([
+            'status' => 'acted',
+            'acted_at' => now(),
+            'action_result' => $result,
+        ]);
+    }
+
+    public function dismiss()
+    {
+        $this->update([
+            'status' => 'dismissed',
+        ]);
+    }
+
+    public function isExpired()
+    {
+        return $this->expires_at && $this->expires_at < now();
+    }
+
+    public function getTypeIcon()
+    {
+        return match ($this->insight_type) {
+            'opportunity' => 'light-bulb',
+            'warning' => 'exclamation-triangle',
+            'recommendation' => 'sparkles',
+            'trend' => 'arrow-trending-up',
+            'anomaly' => 'exclamation-circle',
+            'celebration' => 'trophy',
+            default => 'information-circle',
+        };
+    }
+
+    public function getTypeColor()
+    {
+        return match ($this->insight_type) {
+            'opportunity' => 'green',
+            'warning' => 'orange',
+            'recommendation' => 'blue',
+            'trend' => 'purple',
+            'anomaly' => 'red',
+            'celebration' => 'yellow',
+            default => 'gray',
+        };
+    }
+
+    public function getPriorityColor()
+    {
+        return match ($this->priority) {
+            'critical' => 'red',
             'high' => 'orange',
             'medium' => 'yellow',
             'low' => 'gray',
             default => 'gray',
-        };
-    }
-
-    /**
-     * Get sentiment badge color.
-     */
-    public function getSentimentColorAttribute(): string
-    {
-        return match($this->sentiment) {
-            'positive' => 'green',
-            'neutral' => 'gray',
-            'negative' => 'red',
-            default => 'gray',
-        };
-    }
-
-    /**
-     * Get type icon.
-     */
-    public function getTypeIconAttribute(): string
-    {
-        return match($this->type) {
-            'marketing' => '📊',
-            'sales' => '💰',
-            'content' => '📝',
-            'product' => '📦',
-            'customer' => '👥',
-            'competitor' => '🎯',
-            'general' => 'ℹ️',
-            default => 'ℹ️',
         };
     }
 }

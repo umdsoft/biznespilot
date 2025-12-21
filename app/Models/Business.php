@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
@@ -23,6 +24,18 @@ class Business extends Model
         'name',
         'slug',
         'industry',
+        'industry_id',
+        'sub_industry_id',
+        'business_type',
+        'business_model',
+        'business_stage',
+        'founding_date',
+        'team_size',
+        'maturity_score',
+        'maturity_level',
+        'is_onboarding_completed',
+        'onboarding_completed_at',
+        'launched_at',
         'description',
         'logo',
         'website',
@@ -43,6 +56,10 @@ class Business extends Model
     protected $casts = [
         'uuid' => 'string',
         'settings' => 'array',
+        'founding_date' => 'date',
+        'is_onboarding_completed' => 'boolean',
+        'onboarding_completed_at' => 'datetime',
+        'launched_at' => 'datetime',
     ];
 
     /**
@@ -157,6 +174,72 @@ class Business extends Model
     public function campaigns(): HasMany
     {
         return $this->hasMany(Campaign::class);
+    }
+
+    // ==================== ONBOARDING RELATIONSHIPS ====================
+
+    /**
+     * Get the industry for the business.
+     */
+    public function industryRelation(): BelongsTo
+    {
+        return $this->belongsTo(Industry::class, 'industry_id');
+    }
+
+    /**
+     * Get the sub-industry for the business.
+     */
+    public function subIndustry(): BelongsTo
+    {
+        return $this->belongsTo(Industry::class, 'sub_industry_id');
+    }
+
+    /**
+     * Get the onboarding progress for the business.
+     */
+    public function onboardingProgress(): HasOne
+    {
+        return $this->hasOne(OnboardingProgress::class);
+    }
+
+    /**
+     * Get the onboarding steps for the business.
+     */
+    public function onboardingSteps(): HasMany
+    {
+        return $this->hasMany(OnboardingStep::class);
+    }
+
+    /**
+     * Get the maturity assessment for the business.
+     */
+    public function maturityAssessment(): HasOne
+    {
+        return $this->hasOne(BusinessMaturityAssessment::class);
+    }
+
+    /**
+     * Get the business problems.
+     */
+    public function problems(): HasMany
+    {
+        return $this->hasMany(BusinessProblem::class);
+    }
+
+    /**
+     * Get the market research for the business.
+     */
+    public function marketResearch(): HasMany
+    {
+        return $this->hasMany(MarketResearch::class);
+    }
+
+    /**
+     * Get the marketing hypotheses for the business.
+     */
+    public function hypotheses(): HasMany
+    {
+        return $this->hasMany(MarketingHypothesis::class);
     }
 
     /**
