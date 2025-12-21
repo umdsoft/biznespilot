@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstagramMessage extends Model
 {
+    use HasUuid;
     protected $fillable = [
         'conversation_id',
         'automation_id',

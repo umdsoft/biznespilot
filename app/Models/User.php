@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,8 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles, HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -77,7 +76,8 @@ class User extends Authenticatable
     public function teamBusinesses()
     {
         return $this->belongsToMany(\App\Models\Business::class, 'business_user')
-            ->withPivot('role', 'permissions', 'invited_at', 'accepted_at')
+            ->using(BusinessUser::class)
+            ->withPivot('id', 'role', 'permissions', 'invited_at', 'accepted_at')
             ->withTimestamps();
     }
 

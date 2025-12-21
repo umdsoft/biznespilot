@@ -213,7 +213,7 @@ onMounted(() => {
                             <div class="space-y-3">
                                 <div class="flex items-center">
                                     <input type="checkbox" v-model="config.use_dream_buyer_context" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500" />
-                                    <label class="ml-2 text-sm text-gray-700">Dream Buyer ma'lumotlaridan foydalanish</label>
+                                    <label class="ml-2 text-sm text-gray-700">Ideal Mijoz ma'lumotlaridan foydalanish</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input type="checkbox" v-model="config.use_offer_context" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500" />

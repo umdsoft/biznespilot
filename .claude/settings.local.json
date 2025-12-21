@@ -21,7 +21,12 @@
       "Bash(composer install:*)",
       "Bash(php -l:*)",
       "Bash(curl:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(brew services:*)",
+      "Bash(/opt/homebrew/bin/mysql:*)",
+      "Bash(/usr/local/opt/mysql/bin/mysql:*)",
+      "Bash(docker run:*)",
+      "Bash(composer dump-autoload:*)"
     ]
   }
 }

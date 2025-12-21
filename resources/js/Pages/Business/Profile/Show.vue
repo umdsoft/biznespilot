@@ -119,7 +119,7 @@
                 :href="route('business.dream-buyer.index')"
                 class="block w-full px-4 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
               >
-                Dream Buyer yaratish
+                Ideal Mijoz yaratish
               </Link>
               <Link
                 :href="route('business.marketing.index')"

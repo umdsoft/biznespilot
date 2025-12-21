@@ -96,7 +96,7 @@ return new class extends Migration
             $table->boolean('needs_human')->default(false);
             $table->timestamps();
 
-            $table->unique(['instagram_account_id', 'participant_id']);
+            $table->unique(['instagram_account_id', 'participant_id'], 'ig_conv_account_participant_unique');
             $table->index('status');
             $table->index('last_message_at');
         });

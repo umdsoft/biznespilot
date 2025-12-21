@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('scheduled_reports', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
 
             // Report Config
             $table->enum('report_type', [
@@ -42,8 +42,6 @@ return new class extends Migration
             $table->timestamp('next_scheduled_at')->nullable();
 
             $table->timestamps();
-
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
         });
     }
 

@@ -39,7 +39,7 @@ trait BelongsToBusiness
     /**
      * Scope a query to only include models for a specific business
      */
-    public function scopeForBusiness(Builder $query, int $businessId): Builder
+    public function scopeForBusiness(Builder $query, string $businessId): Builder
     {
         return $query->withoutGlobalScope('business')->where('business_id', $businessId);
     }

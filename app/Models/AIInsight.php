@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AiInsight extends Model
 {
-    use BelongsToBusiness, SoftDeletes;
+    use BelongsToBusiness, SoftDeletes, HasUuid;
 
     protected $table = 'ai_insights';
 

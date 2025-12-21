@@ -237,7 +237,7 @@ onMounted(() => {
                                         class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">
-                                        Dream Buyer ma'lumotlaridan foydalanish
+                                        Ideal Mijoz ma'lumotlaridan foydalanish
                                     </label>
                                 </div>
 

@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
 
     /**
      * The attributes that are mass assignable.

@@ -43,7 +43,7 @@ class DashboardController extends Controller
             : $user->businesses()->first();
 
         if (!$currentBusiness) {
-            return redirect()->route('business.index');
+            return redirect()->route('business.business.create');
         }
 
         // Date range (default: last 30 days)
@@ -112,7 +112,7 @@ class DashboardController extends Controller
 
         // AI Insights (so'nggi 3 ta)
         $aiInsights = AiInsight::where('business_id', $currentBusiness->id)
-            ->where('is_viewed', false)
+            ->whereNull('viewed_at')
             ->orderBy('created_at', 'desc')
             ->limit(3)
             ->get()
@@ -120,7 +120,7 @@ class DashboardController extends Controller
                 'id' => $insight->id,
                 'type' => $insight->type,
                 'title' => $insight->title,
-                'summary' => $insight->summary,
+                'summary' => $insight->content ?? $insight->description_uz,
                 'priority' => $insight->priority,
                 'created_at' => $insight->created_at->diffForHumans(),
             ]);

@@ -29,6 +29,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TwoFactorAuthController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\UnifiedInboxController;
+use App\Http\Controllers\OnboardingWebController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\BusinessManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\AlertController;
 use App\Http\Controllers\InsightController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -54,12 +56,17 @@ Route::middleware('guest')->group(function () {
 Route::get('/two-factor/verify', [AuthController::class, 'showTwoFactorVerify'])->name('two-factor.verify');
 Route::post('/two-factor/verify', [AuthController::class, 'verifyTwoFactor']);
 
-// Root redirect based on role
+// Root redirect based on role and business status
 Route::middleware('auth')->get('/', function () {
     $user = auth()->user();
 
     if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
         return redirect()->route('admin.dashboard');
+    }
+
+    // Check if user has a business
+    if (!$user->businesses()->exists()) {
+        return redirect()->route('welcome.index');
     }
 
     return redirect()->route('business.dashboard');
@@ -68,8 +75,22 @@ Route::middleware('auth')->get('/', function () {
 // Logout route (accessible from both panels)
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Business Panel Routes
-Route::middleware('auth')->prefix('business')->name('business.')->group(function () {
+// Welcome routes (for users without business)
+Route::middleware('auth')->prefix('welcome')->name('welcome.')->group(function () {
+    Route::get('/', [WelcomeController::class, 'index'])->name('index');
+    Route::get('/create-business', [WelcomeController::class, 'createBusiness'])->name('create-business');
+    Route::post('/create-business', [WelcomeController::class, 'storeBusiness'])->name('store-business');
+});
+
+// Onboarding routes (outside business prefix for cleaner URL, requires business)
+Route::middleware(['auth', 'has.business'])->prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::get('/', [OnboardingWebController::class, 'index'])->name('index');
+    Route::get('/step/{stepCode}', [OnboardingWebController::class, 'step'])->name('step');
+    Route::post('/complete', [OnboardingWebController::class, 'complete'])->name('complete');
+});
+
+// Business Panel Routes (requires business)
+Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.')->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 

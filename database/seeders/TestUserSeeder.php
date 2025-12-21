@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class TestUserSeeder extends Seeder
 {
@@ -13,31 +14,23 @@ class TestUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create a test admin user with super_admin role
-        $admin = User::firstOrCreate(
-            ['login' => 'admin'],
-            [
-                'name' => 'Test Admin',
-                'email' => 'admin@biznespilot.uz',
-                'phone' => '+998901234567',
-                'password' => Hash::make('password'),
-            ]
-        );
+        // Create super admin user
+        $admin = User::where('login', 'admin')->first();
+
+        if (!$admin) {
+            $admin = new User();
+            $admin->id = Str::uuid()->toString();
+            $admin->login = 'admin';
+            $admin->name = 'Super Admin';
+            $admin->email = 'admin@biznespilot.uz';
+            $admin->phone = '+998901234567';
+            $admin->password = Hash::make('admin123');
+            $admin->save();
+        }
 
         // Assign super_admin role for platform administration
         if (!$admin->hasRole('super_admin')) {
             $admin->assignRole('super_admin');
         }
-
-        // Create a regular test user
-        $user = User::firstOrCreate(
-            ['login' => 'user1'],
-            [
-                'name' => 'Ali Valiyev',
-                'email' => 'ali@example.uz',
-                'phone' => '+998901111111',
-                'password' => Hash::make('password'),
-            ]
-        );
     }
 }

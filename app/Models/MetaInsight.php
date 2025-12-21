@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MetaInsight extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
         'ad_account_id',

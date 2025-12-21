@@ -535,7 +535,7 @@ onMounted(() => {
                                 Umumiy Ko'rinish
                             </button>
                             <button @click="activeTab = 'dreambuyer'" :class="[activeTab === 'dreambuyer' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
-                                Dream Buyer
+                                Ideal Mijoz
                             </button>
                             <button @click="activeTab = 'segments'" :class="[activeTab === 'segments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
                                 Segmentatsiya
@@ -565,7 +565,7 @@ onMounted(() => {
                         <h2 class="text-xl font-bold text-gray-900 mb-3">Meta hisobingizni ulang</h2>
                         <p class="text-gray-600 mb-6 max-w-md mx-auto">
                             {{ activeTab === 'overview' ? 'Umumiy ko\'rinish' :
-                               activeTab === 'dreambuyer' ? 'Dream Buyer tahlili' :
+                               activeTab === 'dreambuyer' ? 'Ideal Mijoz tahlili' :
                                activeTab === 'segments' ? 'Segmentatsiya' :
                                activeTab === 'funnel' ? 'Voronka tahlili' :
                                'Churn tahlili' }}
@@ -864,14 +864,14 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- Dream Buyer Tab - Based on Meta Demographics -->
+                    <!-- Ideal Mijoz Tab - Based on Meta Demographics -->
                     <div v-show="activeTab === 'dreambuyer' && hasMetaAccount && metaDataLoaded" class="space-y-6">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Ideal Auditoriya Profili (Meta asosida)</h3>
                             <p class="text-gray-600 mb-6">Facebook/Instagram reklama ma'lumotlari asosida eng samarali auditoriya segmentlari</p>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Age Based Dream Buyer -->
+                                <!-- Age Based Ideal Mijoz -->
                                 <div class="border border-gray-200 rounded-lg p-4">
                                     <h4 class="font-semibold text-gray-900 mb-3">Yosh bo'yicha eng samarali</h4>
                                     <div v-if="metaDemographics.age?.length" class="space-y-2">
@@ -888,7 +888,7 @@ onMounted(() => {
                                     <p v-else class="text-gray-500 text-center py-4">Ma'lumot mavjud emas</p>
                                 </div>
 
-                                <!-- Platform Based Dream Buyer -->
+                                <!-- Platform Based Ideal Mijoz -->
                                 <div class="border border-gray-200 rounded-lg p-4">
                                     <h4 class="font-semibold text-gray-900 mb-3">Platforma bo'yicha</h4>
                                     <div v-if="metaPlacements.platforms?.length" class="space-y-2">

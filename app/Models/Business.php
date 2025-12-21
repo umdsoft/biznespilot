@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -19,10 +20,10 @@ class Business extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'uuid',
         'user_id',
         'name',
         'slug',
+        'category',
         'industry',
         'industry_id',
         'sub_industry_id',
@@ -31,10 +32,16 @@ class Business extends Model
         'business_stage',
         'founding_date',
         'team_size',
+        'employee_count',
+        'monthly_revenue',
+        'target_audience',
+        'main_goals',
         'maturity_score',
         'maturity_level',
         'is_onboarding_completed',
         'onboarding_completed_at',
+        'onboarding_status',
+        'onboarding_current_step',
         'launched_at',
         'description',
         'logo',
@@ -43,6 +50,7 @@ class Business extends Model
         'email',
         'address',
         'city',
+        'region',
         'country',
         'status',
         'settings',
@@ -54,8 +62,8 @@ class Business extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'uuid' => 'string',
         'settings' => 'array',
+        'main_goals' => 'array',
         'founding_date' => 'date',
         'is_onboarding_completed' => 'boolean',
         'onboarding_completed_at' => 'datetime',
@@ -76,7 +84,8 @@ class Business extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'business_user')
-            ->withPivot('role', 'joined_at')
+            ->using(BusinessUser::class)
+            ->withPivot('id', 'role', 'joined_at')
             ->withTimestamps();
     }
 
@@ -248,7 +257,8 @@ class Business extends Model
     public function teamMembers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'business_user')
-            ->withPivot('role', 'permissions', 'invited_at', 'accepted_at')
+            ->using(BusinessUser::class)
+            ->withPivot('id', 'role', 'permissions', 'invited_at', 'accepted_at')
             ->withTimestamps();
     }
 

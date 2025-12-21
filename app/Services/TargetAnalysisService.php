@@ -59,7 +59,7 @@ class TargetAnalysisService
     /**
      * Analyze how well customers match Dream Buyer profiles
      */
-    protected function analyzeDreamBuyerMatch(Business $business): array
+    public function analyzeDreamBuyerMatch(Business $business): array
     {
         $dreamBuyers = DreamBuyer::where('business_id', $business->id)
             ->where('is_active', true)
@@ -174,7 +174,7 @@ class TargetAnalysisService
     /**
      * Get customer segmentation analysis
      */
-    protected function getCustomerSegments(Business $business): array
+    public function getCustomerSegments(Business $business): array
     {
         $customers = Customer::where('business_id', $business->id)->get();
 
@@ -453,7 +453,7 @@ class TargetAnalysisService
     /**
      * Get top performing customers
      */
-    protected function getTopPerformingCustomers(Business $business, int $limit = 10): array
+    public function getTopPerformingCustomers(Business $business, int $limit = 10): array
     {
         return Customer::where('business_id', $business->id)
             ->where('status', 'active')
@@ -477,7 +477,7 @@ class TargetAnalysisService
     /**
      * Get churn risk analysis
      */
-    protected function getChurnRiskAnalysis(Business $business): array
+    public function getChurnRiskAnalysis(Business $business): array
     {
         $customers = Customer::where('business_id', $business->id)
             ->where('status', 'active')

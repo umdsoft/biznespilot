@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstagramMedia extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'instagram_media';
 

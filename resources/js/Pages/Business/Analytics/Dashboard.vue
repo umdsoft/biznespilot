@@ -287,9 +287,9 @@ const clearFilters = () => {
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Top Dream Buyer -->
+                        <!-- Top Ideal Mijoz -->
                         <div class="border border-gray-200 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 mb-2">TOP DREAM BUYER</p>
+                            <p class="text-xs font-semibold text-gray-500 mb-2">TOP IDEAL MIJOZ</p>
                             <div v-if="top_performers.top_dream_buyer">
                                 <p class="font-bold text-gray-900 mb-2">{{ top_performers.top_dream_buyer.dream_buyer_name }}</p>
                                 <div class="space-y-1 text-sm text-gray-600">

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use BelongsToBusiness, SoftDeletes;
+    use BelongsToBusiness, SoftDeletes, HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -18,7 +19,6 @@ class Order extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'uuid',
         'business_id',
         'customer_id',
         'order_number',
@@ -46,7 +46,6 @@ class Order extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'uuid' => 'string',
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'discount' => 'decimal:2',

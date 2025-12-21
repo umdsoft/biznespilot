@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('alerts', function (Blueprint $table) {
             // Add new columns for FAZA 4
-            $table->foreignUuid('alert_rule_id')->nullable()->after('user_id');
+            $table->foreignId('alert_rule_id')->nullable()->after('user_id')->constrained('alert_rules')->nullOnDelete();
             $table->string('alert_type')->nullable()->after('type'); // threshold, metric_change, trend, goal, competitor, system
             $table->string('alert_category')->nullable()->after('alert_type'); // revenue, leads, marketing, sales, content, funnel, competitor, system
             $table->string('metric_code')->nullable()->after('alert_category');
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->text('action_suggestion')->nullable()->after('message');
             $table->string('status')->default('new')->after('severity'); // new, acknowledged, resolved, snoozed, dismissed
             $table->timestamp('acknowledged_at')->nullable()->after('triggered_at');
-            $table->foreignUuid('acknowledged_by')->nullable()->after('acknowledged_at');
+            $table->unsignedBigInteger('acknowledged_by')->nullable()->after('acknowledged_at');
             $table->timestamp('resolved_at')->nullable()->after('acknowledged_by');
             $table->text('resolution_note')->nullable()->after('resolved_at');
             $table->timestamp('snoozed_until')->nullable()->after('resolution_note');

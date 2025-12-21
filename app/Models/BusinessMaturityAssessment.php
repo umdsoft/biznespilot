@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class BusinessMaturityAssessment extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
         'business_id',

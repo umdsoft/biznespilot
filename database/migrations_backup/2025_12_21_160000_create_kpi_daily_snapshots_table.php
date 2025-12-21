@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kpi_daily_snapshots', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->date('snapshot_date');
 
             // Revenue KPIs
@@ -72,7 +72,6 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
             $table->unique(['business_id', 'snapshot_date']);
             $table->index('snapshot_date');
         });

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('in_app_notifications', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('business_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
             // Notification type and priority
             $table->enum('type', ['alert', 'insight', 'report', 'system', 'celebration'])->default('system');
@@ -29,7 +29,7 @@ return new class extends Migration
 
             // Related entity
             $table->string('related_type')->nullable(); // alert, insight, report, etc.
-            $table->uuid('related_id')->nullable();
+            $table->unsignedBigInteger('related_id')->nullable();
 
             // Status
             $table->timestamp('read_at')->nullable();

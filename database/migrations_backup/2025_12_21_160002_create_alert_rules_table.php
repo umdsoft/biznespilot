@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('alert_rules', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id')->nullable(); // null = system default
+            $table->id();
+            $table->foreignId('business_id')->nullable()->constrained()->cascadeOnDelete();
 
             // Rule Definition
             $table->string('rule_code', 50)->unique();
@@ -42,8 +42,6 @@ return new class extends Migration
 
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
         });
     }
 

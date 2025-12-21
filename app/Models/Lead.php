@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Lead extends Model
 {
-    use BelongsToBusiness, SoftDeletes;
+    use BelongsToBusiness, SoftDeletes, HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -18,7 +19,6 @@ class Lead extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'uuid',
         'business_id',
         'source_id',
         'assigned_to',
@@ -41,7 +41,6 @@ class Lead extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'uuid' => 'string',
         'estimated_value' => 'decimal:2',
         'data' => 'array',
         'last_contacted_at' => 'datetime',

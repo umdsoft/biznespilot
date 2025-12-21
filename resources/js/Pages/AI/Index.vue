@@ -26,7 +26,7 @@
 
     <!-- AI Features Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-      <!-- Dream Buyer Analysis -->
+      <!-- Ideal Mijoz Analysis -->
       <Card class="hover:shadow-lg transition-shadow cursor-pointer" @click="activeFeature = 'dream-buyer'">
         <div class="flex items-start">
           <div class="flex-shrink-0">
@@ -37,9 +37,9 @@
             </div>
           </div>
           <div class="ml-4">
-            <h3 class="text-lg font-semibold text-gray-900">Dream Buyer Tahlili</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Ideal Mijoz Tahlili</h3>
             <p class="text-sm text-gray-600 mt-1">Ideal mijozingizni chuqur tahlil qiling va marketing strategiyalari oling</p>
-            <p class="text-xs text-gray-500 mt-2">{{ stats.dream_buyers }} ta Dream Buyer</p>
+            <p class="text-xs text-gray-500 mt-2">{{ stats.dream_buyers }} ta Ideal Mijoz</p>
           </div>
         </div>
       </Card>
@@ -127,16 +127,16 @@
           </button>
         </div>
 
-        <!-- Dream Buyer Feature -->
+        <!-- Ideal Mijoz Feature -->
         <div v-if="activeFeature === 'dream-buyer'">
           <p class="text-sm text-gray-600 mb-4">
-            Dream Buyer profilingizni tanlang va AI tahlil qilsin.
+            Ideal Mijoz profilingizni tanlang va AI tahlil qilsin.
           </p>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Dream Buyer</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Ideal Mijoz</label>
               <select v-model="selectedDreamBuyer" class="input">
-                <option value="">Dream Buyer tanlang...</option>
+                <option value="">Ideal Mijoz tanlang...</option>
                 <!-- Options will be loaded from backend -->
               </select>
             </div>
@@ -250,7 +250,7 @@ const contentForm = ref({
 
 const getFeatureTitle = () => {
   const titles = {
-    'dream-buyer': 'Dream Buyer AI Tahlili',
+    'dream-buyer': 'Ideal Mijoz AI Tahlili',
     'content': 'AI Kontent Generatori',
     'competitor': 'Raqobatchi AI Tahlili',
     'offer': 'Taklif AI Optimallashtirish',

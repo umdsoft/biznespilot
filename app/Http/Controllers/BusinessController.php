@@ -76,8 +76,15 @@ class BusinessController extends Controller
         // Assign owner role using Spatie Permission
         Auth::user()->assignRole('owner');
 
-        return redirect()->route('business.index')
-            ->with('success', 'Biznes muvaffaqiyatli yaratildi!');
+        // Set business onboarding status
+        $business->update([
+            'onboarding_status' => 'in_progress',
+            'onboarding_current_step' => 'basic_info',
+        ]);
+
+        // Redirect to onboarding wizard
+        return redirect()->route('onboarding.index')
+            ->with('success', 'Biznes muvaffaqiyatli yaratildi! Endi onboarding jarayonini boshlang.');
     }
 
     /**

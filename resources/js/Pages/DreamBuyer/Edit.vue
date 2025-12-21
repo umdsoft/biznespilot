@@ -1,5 +1,5 @@
 <template>
-  <BusinessLayout title="Dream Buyerni Tahrirlash">
+  <BusinessLayout title="Ideal Mijozni Tahrirlash">
     <div class="max-w-4xl mx-auto">
       <div class="mb-6">
         <Link href="/dream-buyer" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
@@ -8,7 +8,7 @@
           </svg>
           Orqaga
         </Link>
-        <h2 class="text-2xl font-bold text-gray-900">Dream Buyerni Tahrirlash</h2>
+        <h2 class="text-2xl font-bold text-gray-900">Ideal Mijozni Tahrirlash</h2>
         <p class="mt-1 text-sm text-gray-600">
           {{ dreamBuyer.name }} ma'lumotlarini yangilash
         </p>
@@ -164,7 +164,7 @@
             @click="confirmDelete"
             class="px-4 py-2 text-red-600 hover:text-red-700 font-medium"
           >
-            Dream Buyerni O'chirish
+            Ideal Mijozni O'chirish
           </button>
           <div class="flex items-center space-x-3">
             <Link
@@ -226,7 +226,7 @@ const submit = () => {
 };
 
 const confirmDelete = () => {
-  if (confirm('Rostdan ham bu Dream Buyerni o\'chirmoqchimisiz?')) {
+  if (confirm('Rostdan ham bu Ideal Mijozni o\'chirmoqchimisiz?')) {
     router.delete(`/dream-buyer/${props.dreamBuyer.id}`);
   }
 };

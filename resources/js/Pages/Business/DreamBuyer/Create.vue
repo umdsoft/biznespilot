@@ -1,5 +1,5 @@
 <template>
-    <BusinessLayout title="Yangi Dream Buyer">
+    <BusinessLayout title="Yangi Ideal Mijoz">
         <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div class="mb-6">
                 <Link
@@ -11,7 +11,7 @@
                     </svg>
                     Orqaga
                 </Link>
-                <h1 class="text-3xl font-bold text-gray-900">Yangi Dream Buyer Yaratish</h1>
+                <h1 class="text-3xl font-bold text-gray-900">Yangi Ideal Mijoz Yaratish</h1>
                 <p class="mt-2 text-gray-600">"Sell Like Crazy" metodologiyasi asosida ideal mijozingizni tavsiflang</p>
             </div>
 
@@ -39,7 +39,7 @@
                             <textarea
                                 v-model="form.description"
                                 rows="3"
-                                placeholder="Bu Dream Buyer profili haqida qisqacha..."
+                                placeholder="Bu Ideal Mijoz profili haqida qisqacha..."
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             ></textarea>
                             <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>

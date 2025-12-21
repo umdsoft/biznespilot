@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OnboardingStep extends Model
 {
+    use HasUuid;
     protected $fillable = [
         'business_id',
         'step_definition_id',
@@ -48,7 +50,7 @@ class OnboardingStep extends Model
         return $query->where('is_completed', false);
     }
 
-    public function scopeForBusiness($query, int $businessId)
+    public function scopeForBusiness($query, string $businessId)
     {
         return $query->where('business_id', $businessId);
     }

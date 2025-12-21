@@ -1,5 +1,5 @@
 <template>
-  <BusinessLayout title="Yangi Dream Buyer">
+  <BusinessLayout title="Yangi Ideal Mijoz">
     <div class="max-w-4xl mx-auto">
       <div class="mb-6">
         <Link href="/dream-buyer" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
@@ -8,7 +8,7 @@
           </svg>
           Orqaga
         </Link>
-        <h2 class="text-2xl font-bold text-gray-900">Yangi Dream Buyer Yaratish</h2>
+        <h2 class="text-2xl font-bold text-gray-900">Yangi Ideal Mijoz Yaratish</h2>
         <p class="mt-1 text-sm text-gray-600">
           Ideal mijozingizning to'liq profilini yarating
         </p>
@@ -170,7 +170,7 @@
             variant="primary"
             :loading="form.processing"
           >
-            Dream Buyer Yaratish
+            Ideal Mijoz Yaratish
           </Button>
         </div>
       </form>

@@ -6,7 +6,7 @@
         {{ initials }}
       </div>
       <div>
-        <h3 class="text-xl font-bold text-gray-900">Dream Buyer Profili</h3>
+        <h3 class="text-xl font-bold text-gray-900">Ideal Mijoz Profili</h3>
         <p class="text-gray-600">Ideal mijozingiz kim ekanligini aniqlang</p>
       </div>
     </div>

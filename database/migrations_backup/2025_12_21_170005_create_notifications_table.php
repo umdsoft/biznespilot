@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('business_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
             // Notification details
             $table->string('type'); // alert, insight, report, system, celebration
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('action_url')->nullable();
             $table->string('action_text')->nullable();
             $table->string('related_type')->nullable();
-            $table->string('related_id')->nullable();
+            $table->unsignedBigInteger('related_id')->nullable();
             $table->string('priority')->default('medium'); // critical, high, medium, low
 
             // Status

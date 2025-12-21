@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -80,23 +81,21 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-billing',
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission);
+        foreach ($permissions as $permissionName) {
+            if (!Permission::where('name', $permissionName)->where('guard_name', 'web')->exists()) {
+                $permission = new Permission();
+                $permission->id = Str::uuid()->toString();
+                $permission->name = $permissionName;
+                $permission->guard_name = 'web';
+                $permission->save();
+            }
         }
 
         // Create roles and assign permissions
+        $this->createRole('super_admin', Permission::all()->pluck('name')->toArray());
+        $this->createRole('owner', Permission::all()->pluck('name')->toArray());
 
-        // Super Admin - Platform administrator (full system access)
-        $superAdmin = Role::findOrCreate('super_admin');
-        $superAdmin->givePermissionTo(Permission::all());
-
-        // Owner - Full access
-        $owner = Role::findOrCreate('owner');
-        $owner->givePermissionTo(Permission::all());
-
-        // Admin - Almost full access (except delete business and manage subscription)
-        $admin = Role::findOrCreate('admin');
-        $admin->givePermissionTo([
+        $this->createRole('admin', [
             'view-business',
             'update-business',
             'view-team',
@@ -134,9 +133,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-billing',
         ]);
 
-        // Manager - Manage day-to-day operations
-        $manager = Role::findOrCreate('manager');
-        $manager->givePermissionTo([
+        $this->createRole('manager', [
             'view-business',
             'view-team',
             'view-dream-buyers',
@@ -162,9 +159,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-integrations',
         ]);
 
-        // Member - Basic access
-        $member = Role::findOrCreate('member');
-        $member->givePermissionTo([
+        $this->createRole('member', [
             'view-business',
             'view-team',
             'view-dream-buyers',
@@ -181,9 +176,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-reports',
         ]);
 
-        // Viewer - Read-only access
-        $viewer = Role::findOrCreate('viewer');
-        $viewer->givePermissionTo([
+        $this->createRole('viewer', [
             'view-business',
             'view-team',
             'view-dream-buyers',
@@ -195,5 +188,20 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-chatbot',
             'view-reports',
         ]);
+    }
+
+    private function createRole(string $roleName, array $permissions): void
+    {
+        $role = Role::where('name', $roleName)->where('guard_name', 'web')->first();
+
+        if (!$role) {
+            $role = new Role();
+            $role->id = Str::uuid()->toString();
+            $role->name = $roleName;
+            $role->guard_name = 'web';
+            $role->save();
+        }
+
+        $role->syncPermissions($permissions);
     }
 }

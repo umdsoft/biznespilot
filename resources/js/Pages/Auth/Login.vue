@@ -32,7 +32,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-lg">AI Dream Buyer Tahlil</h3>
+              <h3 class="font-semibold text-lg">AI Ideal Mijoz Tahlili</h3>
               <p class="text-blue-100 text-sm">Ideal mijozingizni aniqlang va ular bilan gaplashing</p>
             </div>
           </div>

@@ -46,7 +46,7 @@ const steps = [
     {
         number: 1,
         title: 'Asosiy Ma\'lumot',
-        description: 'Dream Buyer profili nomi va tavsifi',
+        description: 'Ideal Mijoz profili nomi va tavsifi',
         field: 'name',
         label: 'Profil Nomi',
         placeholder: 'Masalan: Tashvishli Ona Sabina, Muvaffaqiyatga Intiluvchi Jasur',
@@ -194,8 +194,8 @@ const submitWithoutAI = () => {
 </script>
 
 <template>
-    <BusinessLayout :title="isEdit ? 'Dream Buyer Tahrirlash' : 'Yangi Dream Buyer'">
-        <Head :title="isEdit ? 'Dream Buyer Tahrirlash' : 'Yangi Dream Buyer'" />
+    <BusinessLayout :title="isEdit ? 'Ideal Mijoz Tahrirlash' : 'Yangi Ideal Mijoz'">
+        <Head :title="isEdit ? 'Ideal Mijoz Tahrirlash' : 'Yangi Ideal Mijoz'" />
 
         <div class="py-12">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -209,7 +209,7 @@ const submitWithoutAI = () => {
                         Orqaga
                     </Link>
                     <h1 class="text-3xl font-bold text-gray-900">
-                        {{ isEdit ? 'Dream Buyer Tahrirlash' : 'Yangi Dream Buyer Yaratish' }}
+                        {{ isEdit ? 'Ideal Mijoz Tahrirlash' : 'Yangi Ideal Mijoz Yaratish' }}
                     </h1>
                     <p class="mt-2 text-gray-600">
                         "Sell Like Crazy" metodologiyasi asosida 9 ta savolga javob bering
@@ -293,7 +293,7 @@ const submitWithoutAI = () => {
                                 <textarea
                                     v-model="form.description"
                                     rows="3"
-                                    placeholder="Bu Dream Buyer haqida qisqacha..."
+                                    placeholder="Bu Ideal Mijoz haqida qisqacha..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 ></textarea>
                             </div>

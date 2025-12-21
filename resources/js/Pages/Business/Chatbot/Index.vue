@@ -156,7 +156,7 @@ const isTyping = ref(false);
 const messagesContainer = ref(null);
 
 const suggestions = [
-  "Dream Buyer qanday yaratish kerak?",
+  "Ideal Mijoz qanday yaratish kerak?",
   "Ijtimoiy tarmoqlarda marketing strategiyasi",
   "Raqobatchilardan qanday ajralib turish mumkin?",
   "Konversiyani oshirish usullari",

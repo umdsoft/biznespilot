@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CampaignMessage extends Model
 {
+    use HasUuid;
     protected $fillable = [
         'campaign_id',
         'customer_id',

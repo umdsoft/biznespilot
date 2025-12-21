@@ -19,13 +19,6 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             PlanSeeder::class,
             TestUserSeeder::class,
-            BusinessSeeder::class,
-            DreamBuyerSeeder::class,
-            OfferSeeder::class,
-            CampaignSeeder::class,
-            ConversationSeeder::class,
-            LeadSeeder::class,
-            CustomerDataSeeder::class,
         ]);
     }
 }

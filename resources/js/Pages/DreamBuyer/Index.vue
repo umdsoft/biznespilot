@@ -55,8 +55,8 @@ const cancelDelete = () => {
 </script>
 
 <template>
-    <BusinessLayout title="Dream Buyers">
-        <Head title="Dream Buyers" />
+    <BusinessLayout title="Ideal Mijozlar">
+        <Head title="Ideal Mijozlar" />
 
         <div class="py-12 px-4 sm:px-6 lg:px-8">
             <!-- Header -->
@@ -64,7 +64,7 @@ const cancelDelete = () => {
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <UserGroupIcon class="w-10 h-10 text-indigo-600" />
-                            Dream Buyers
+                            Ideal Mijozlar
                         </h1>
                         <p class="mt-2 text-gray-600">
                             "Sell Like Crazy" metodologiyasi asosida ideal mijozlar profilini yarating
@@ -75,14 +75,14 @@ const cancelDelete = () => {
                         class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200 gap-2"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        Yangi Dream Buyer
+                        Yangi Ideal Mijoz
                     </Link>
                 </div>
 
                 <!-- Empty State -->
                 <div v-if="!dreamBuyers || dreamBuyers.length === 0" class="text-center py-16">
                     <UserGroupIcon class="mx-auto h-24 w-24 text-gray-400" />
-                    <h3 class="mt-4 text-lg font-medium text-gray-900">Hali Dream Buyer yo'q</h3>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">Hali Ideal Mijoz yo'q</h3>
                     <p class="mt-2 text-gray-500">
                         9 ta savol orqali ideal mijoz profilini yarating va AI yordamida to'liq analiz oling
                     </p>
@@ -92,12 +92,12 @@ const cancelDelete = () => {
                             class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200 gap-2"
                         >
                             <PlusIcon class="w-5 h-5" />
-                            Dream Buyer Yaratish
+                            Ideal Mijoz Yaratish
                         </Link>
                     </div>
                 </div>
 
-                <!-- Dream Buyers Grid -->
+                <!-- Ideal Mijozlar Grid -->
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div
                         v-for="buyer in dreamBuyers"
@@ -219,13 +219,13 @@ const cancelDelete = () => {
                         <TrashIcon class="w-6 h-6 text-red-600" />
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Dream Buyer o'chirish</h3>
+                        <h3 class="text-lg font-bold text-gray-900">Ideal Mijoz o'chirish</h3>
                         <p class="text-sm text-gray-500">Bu amalni qaytarib bo'lmaydi</p>
                     </div>
                 </div>
 
                 <p class="text-gray-700 mb-6">
-                    <strong>{{ deletingBuyer.name }}</strong> nomli Dream Buyerni o'chirishni xohlaysizmi?
+                    <strong>{{ deletingBuyer.name }}</strong> nomli Ideal Mijozni o'chirishni xohlaysizmi?
                 </p>
 
                 <div class="flex gap-3">

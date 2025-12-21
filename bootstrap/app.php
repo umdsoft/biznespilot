@@ -7,6 +7,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Request;
 use App\Http\Middleware\EnsureBusinessAccess;
+use App\Http\Middleware\EnsureHasBusiness;
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\CheckFeatureLimit;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -54,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'business.access' => EnsureBusinessAccess::class,
             'business.context' => SetBusinessContext::class,
+            'has.business' => EnsureHasBusiness::class,
             'subscription' => CheckSubscription::class,
             'feature.limit' => CheckFeatureLimit::class,
             'admin' => AdminMiddleware::class,

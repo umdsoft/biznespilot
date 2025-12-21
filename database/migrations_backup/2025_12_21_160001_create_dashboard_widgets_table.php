@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('dashboard_widgets', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
-            $table->uuid('user_id');
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
             // Widget Config
             $table->enum('widget_type', [
@@ -51,8 +51,6 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->index(['business_id', 'user_id']);
         });
     }

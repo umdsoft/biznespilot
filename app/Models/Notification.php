@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
-    use HasUuids, BelongsToBusiness;
+    use BelongsToBusiness;
 
     protected $fillable = [
         'business_id',

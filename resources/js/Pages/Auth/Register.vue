@@ -1,116 +1,288 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center px-4 py-12">
-    <div class="w-full max-w-2xl">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-primary-900">BiznesPilot AI</h1>
-        <p class="mt-2 text-gray-600">O'zbekiston startaplari uchun Marketing Intelligence</p>
+  <div class="h-screen flex overflow-hidden">
+    <!-- Left Side - Branding & Info -->
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 relative overflow-hidden">
+      <!-- Background Pattern -->
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-full h-full" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 px-8 py-6">
-        <div class="text-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">Ro'yxatdan o'tish</h2>
-          <p class="mt-2 text-sm text-gray-600">
-            Akkauntingiz bormi?
-            <Link href="/login" class="text-primary-600 hover:text-primary-500 font-medium">
-              Tizimga kirish
-            </Link>
+      <!-- Floating Elements -->
+      <div class="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-20 left-10 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl"></div>
+
+      <!-- Content -->
+      <div class="relative z-10 flex flex-col justify-center px-10 py-8 text-white">
+        <div class="mb-8">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h1 class="ml-3 text-2xl font-bold">BiznesPilot AI</h1>
+          </div>
+          <h2 class="text-3xl font-bold leading-tight mb-3">
+            Biznesingizni
+            <span class="text-emerald-200">yangi bosqichga</span>
+            olib chiqing
+          </h2>
+          <p class="text-lg text-emerald-100 leading-relaxed">
+            AI-powered marketing va sotuvni boshqarish platformasi
           </p>
         </div>
 
-        <form @submit.prevent="form.post('/register')" class="space-y-4">
-          <Input
-            v-model="form.name"
-            label="To'liq ism"
-            type="text"
-            placeholder="Ism Familiya"
-            :error="form.errors.name"
-            required
-          />
-
-          <Input
-            v-model="form.login"
-            label="Login (username)"
-            type="text"
-            placeholder="username"
-            :error="form.errors.login"
-            hint="Faqat harflar, raqamlar, tire va pastki chiziq"
-            required
-          />
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              v-model="form.email"
-              label="Email (ixtiyoriy)"
-              type="email"
-              placeholder="email@example.com"
-              :error="form.errors.email"
-            />
-
-            <Input
-              v-model="form.phone"
-              label="Telefon (ixtiyoriy)"
-              type="tel"
-              placeholder="+998901234567"
-              :error="form.errors.phone"
-            />
+        <!-- Benefits -->
+        <div class="space-y-3">
+          <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+            <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold">Bepul boshlang</h3>
+              <p class="text-emerald-100 text-sm">14 kunlik bepul sinov davri</p>
+            </div>
           </div>
 
-          <Input
-            v-model="form.password"
-            label="Parol"
-            type="password"
-            placeholder="••••••••"
-            :error="form.errors.password"
-            hint="Kamida 8 ta belgi"
-            required
-          />
-
-          <Input
-            v-model="form.password_confirmation"
-            label="Parolni tasdiqlash"
-            type="password"
-            placeholder="••••••••"
-            :error="form.errors.password_confirmation"
-            required
-          />
-
-          <div class="flex items-start">
-            <input
-              v-model="form.terms"
-              type="checkbox"
-              class="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <label class="ml-2 text-sm text-gray-600">
-              Men
-              <a href="#" class="text-primary-600 hover:text-primary-500">Foydalanish shartlari</a>
-              va
-              <a href="#" class="text-primary-600 hover:text-primary-500">Maxfiylik siyosati</a>
-              ga roziman
-            </label>
+          <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+            <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold">AI tahlil va tavsiyalar</h3>
+              <p class="text-emerald-100 text-sm">Biznesingiz uchun maxsus strategiyalar</p>
+            </div>
           </div>
 
-          <Button
-            type="submit"
-            variant="primary"
-            :loading="form.processing"
-            full-width
-          >
-            Ro'yxatdan o'tish
-          </Button>
-        </form>
+          <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+            <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-semibold">24/7 qo'llab-quvvatlash</h3>
+              <p class="text-emerald-100 text-sm">Mutaxassislar har doim yordam berishga tayyor</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial -->
+        <div class="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-bold">
+              A
+            </div>
+            <div>
+              <p class="text-emerald-50 italic text-sm mb-1">
+                "BiznesPilot AI bizning sotuvlarimizni 3 oyda 40% ga oshirdi!"
+              </p>
+              <p class="text-emerald-200 text-xs font-medium">Aziz Karimov, TechStart CEO</p>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <p class="mt-6 text-center text-sm text-gray-600">
-        &copy; {{ new Date().getFullYear() }} BiznesPilot AI. Barcha huquqlar himoyalangan.
-      </p>
+    <!-- Right Side - Register Form -->
+    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-y-auto">
+      <div class="w-full max-w-md py-6">
+        <!-- Mobile Logo -->
+        <div class="lg:hidden text-center mb-6">
+          <div class="inline-flex items-center justify-center w-14 h-14 bg-emerald-600 rounded-2xl mb-3">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h1 class="text-xl font-bold text-gray-900">BiznesPilot AI</h1>
+        </div>
+
+        <!-- Register Card -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+          <div class="mb-5">
+            <h2 class="text-xl font-bold text-gray-900 mb-1">Ro'yxatdan o'tish</h2>
+            <p class="text-sm text-gray-600">
+              Bepul akkaunt yarating va biznesingizni o'stiring
+            </p>
+          </div>
+
+          <!-- Error Messages -->
+          <div v-if="Object.keys(form.errors).length > 0" class="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <div class="flex items-start">
+              <svg class="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="text-xs text-red-800">
+                <p v-for="(error, key) in form.errors" :key="key">{{ error }}</p>
+              </div>
+            </div>
+          </div>
+
+          <form @submit.prevent="form.post('/register')" class="space-y-4">
+            <!-- Name Field -->
+            <div>
+              <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                To'liq ism <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="name"
+                v-model="form.name"
+                type="text"
+                placeholder="Ism Familiya"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
+                :class="{ 'border-red-300 focus:ring-red-500': form.errors.name }"
+                required
+              />
+            </div>
+
+            <!-- Login Field -->
+            <div>
+              <label for="login" class="block text-sm font-medium text-gray-700 mb-1">
+                Login <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="login"
+                v-model="form.login"
+                type="text"
+                placeholder="username"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
+                :class="{ 'border-red-300 focus:ring-red-500': form.errors.login }"
+                required
+                autocomplete="username"
+              />
+            </div>
+
+            <!-- Email & Phone Row -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  v-model="form.email"
+                  type="email"
+                  placeholder="email@example.com"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
+                  :class="{ 'border-red-300 focus:ring-red-500': form.errors.email }"
+                  autocomplete="email"
+                />
+              </div>
+              <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+                  Telefon
+                </label>
+                <input
+                  id="phone"
+                  v-model="form.phone"
+                  type="tel"
+                  placeholder="+998901234567"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
+                  :class="{ 'border-red-300 focus:ring-red-500': form.errors.phone }"
+                  autocomplete="tel"
+                />
+              </div>
+            </div>
+
+            <!-- Password Row -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                  Parol <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="password"
+                  v-model="form.password"
+                  type="password"
+                  placeholder="Kamida 8 belgi"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
+                  :class="{ 'border-red-300 focus:ring-red-500': form.errors.password }"
+                  required
+                  autocomplete="new-password"
+                />
+              </div>
+              <div>
+                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                  Tasdiqlash <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="password_confirmation"
+                  v-model="form.password_confirmation"
+                  type="password"
+                  placeholder="Qayta kiriting"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
+                  :class="{ 'border-red-300 focus:ring-red-500': form.errors.password_confirmation }"
+                  required
+                  autocomplete="new-password"
+                />
+              </div>
+            </div>
+
+            <!-- Terms Checkbox -->
+            <div class="flex items-start">
+              <input
+                id="terms"
+                v-model="form.terms"
+                type="checkbox"
+                class="mt-0.5 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+              />
+              <label for="terms" class="ml-2 text-xs text-gray-600 cursor-pointer">
+                Men
+                <a href="#" class="text-emerald-600 hover:text-emerald-500 font-medium">Foydalanish shartlari</a>
+                va
+                <a href="#" class="text-emerald-600 hover:text-emerald-500 font-medium">Maxfiylik siyosati</a>ga
+                roziman
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              :disabled="form.processing"
+              class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transform transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl text-sm"
+            >
+              <span v-if="!form.processing" class="flex items-center justify-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Ro'yxatdan o'tish
+              </span>
+              <span v-else class="flex items-center justify-center">
+                <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Yuklanmoqda...
+              </span>
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <p class="text-center text-sm text-gray-600">
+              Akkauntingiz bormi?
+              <Link href="/login" class="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
+                Tizimga kirish
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <p class="mt-4 text-center text-xs text-gray-500">
+          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. Barcha huquqlar himoyalangan.
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
-import Input from '@/components/Input.vue';
-import Button from '@/components/Button.vue';
 
 const form = useForm({
   name: '',

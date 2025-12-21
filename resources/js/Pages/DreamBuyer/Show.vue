@@ -84,7 +84,7 @@ const generateAdCopy = async () => {
 };
 
 const deleteBuyer = () => {
-    if (confirm(`${props.dreamBuyer.name} nomli Dream Buyerni o'chirishni xohlaysizmi?`)) {
+    if (confirm(`${props.dreamBuyer.name} nomli Ideal Mijozni o'chirishni xohlaysizmi?`)) {
         router.delete(route('business.dream-buyer.destroy', props.dreamBuyer.id));
     }
 };
@@ -103,7 +103,7 @@ const deleteBuyer = () => {
                         class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
                     >
                         <ArrowLeftIcon class="w-4 h-4 mr-1" />
-                        Barcha Dream Buyers
+                        Barcha Ideal Mijozlar
                     </Link>
 
                     <!-- Hero Card -->

@@ -67,7 +67,7 @@ const form = useForm({
 
 const steps = [
     { number: 1, title: 'Asosiy Ma\'lumot', icon: '📝' },
-    { number: 2, title: 'Dream Buyer', icon: '👥' },
+    { number: 2, title: 'Ideal Mijoz', icon: '👥' },
     { number: 3, title: 'Value Equation', icon: '📊' },
     { number: 4, title: 'Guarantee', icon: '🛡️' },
     { number: 5, title: 'Scarcity & Urgency', icon: '⚡' },
@@ -307,11 +307,11 @@ const submitWithoutAI = () => {
                         </div>
                     </div>
 
-                    <!-- Step 2: Dream Buyer -->
+                    <!-- Step 2: Ideal Mijoz -->
                     <div v-if="currentStep === 2">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Dream Buyer Tanlash</h2>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Ideal Mijoz Tanlash</h2>
                         <p class="text-gray-600 mb-6">
-                            AI uchun Dream Buyer profilini tanlang. Bu offer ularning ehtiyojlariga moslashtiriladi.
+                            AI uchun Ideal Mijoz profilini tanlang. Bu offer ularning ehtiyojlariga moslashtiriladi.
                         </p>
 
                         <div class="space-y-3">
@@ -357,7 +357,7 @@ const submitWithoutAI = () => {
                                         <CheckIcon v-if="form.dream_buyer_id === null" class="w-3 h-3 text-white" />
                                     </div>
                                     <div>
-                                        <h3 class="font-semibold text-gray-900">Dream Buyer tanlamaslik</h3>
+                                        <h3 class="font-semibold text-gray-900">Ideal Mijoz tanlamaslik</h3>
                                         <p class="text-sm text-gray-600">Umumiy auditoriya uchun</p>
                                     </div>
                                 </div>

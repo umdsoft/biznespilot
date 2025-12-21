@@ -154,7 +154,7 @@ const exportToExcel = async () => {
                             Performance Reports
                         </h1>
                         <p class="mt-2 text-gray-600">
-                            Dream Buyer, Offer va Source tahlili
+                            Ideal Mijoz, Offer va Source tahlili
                         </p>
                     </div>
 
@@ -229,7 +229,7 @@ const exportToExcel = async () => {
                             >
                                 <div class="flex items-center justify-center gap-2">
                                     <UserGroupIcon class="w-5 h-5" />
-                                    <span>Dream Buyers</span>
+                                    <span>Ideal Mijozlar</span>
                                 </div>
                             </button>
                             <button
@@ -263,14 +263,14 @@ const exportToExcel = async () => {
                         </nav>
                     </div>
 
-                    <!-- Dream Buyers Tab -->
+                    <!-- Ideal Mijozlar Tab -->
                     <div v-show="activeTab === 'dream-buyers'" class="p-6">
                         <div v-if="dream_buyer_performance && dream_buyer_performance.length > 0">
                             <div class="overflow-x-auto">
                                 <table class="w-full">
                                     <thead>
                                         <tr class="border-b border-gray-200">
-                                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Dream Buyer</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Ideal Mijoz</th>
                                             <th class="text-right py-3 px-4 font-semibold text-gray-700">Total Leads</th>
                                             <th class="text-right py-3 px-4 font-semibold text-gray-700">Won Deals</th>
                                             <th class="text-right py-3 px-4 font-semibold text-gray-700">Conversion Rate</th>
