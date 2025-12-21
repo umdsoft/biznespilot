@@ -43,7 +43,7 @@ class SubscriptionService
     /**
      * Upgrade/downgrade a subscription to a new plan
      */
-    public function changePlan(Subscription $subscription, Plan $newPlan, string $billingCycle = null): Subscription
+    public function changePlan(Subscription $subscription, Plan $newPlan, ?string $billingCycle = null): Subscription
     {
         // Cancel current subscription
         $this->cancel($subscription, false);

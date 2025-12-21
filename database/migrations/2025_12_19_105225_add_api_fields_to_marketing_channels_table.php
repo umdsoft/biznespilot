@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('marketing_channels', function (Blueprint $table) {
-            // Change type enum to include platform-specific types
+            // Drop index first before dropping the column
+            $table->dropIndex(['type']);
+        });
+
+        Schema::table('marketing_channels', function (Blueprint $table) {
+            // Now drop the column
             $table->dropColumn('type');
         });
 
@@ -39,8 +44,9 @@ return new class extends Migration
             $table->timestamp('token_expires_at')->nullable()->after('refresh_token');
             $table->timestamp('last_synced_at')->nullable()->after('is_active');
 
-            // Add index for last_synced_at for efficient querying
+            // Add index for last_synced_at and type
             $table->index('last_synced_at');
+            $table->index('type');
         });
     }
 

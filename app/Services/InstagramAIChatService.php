@@ -207,17 +207,22 @@ class InstagramAIChatService
         // Add DreamBuyer context
         if (!empty($context['dream_buyer'])) {
             $dreamBuyer = $context['dream_buyer'];
+            $demographics = $dreamBuyer['demographics'] ?? 'N/A';
+            $problems = $dreamBuyer['problems'] ?? 'N/A';
+            $desires = $dreamBuyer['desires'] ?? 'N/A';
             $prompt .= "Ideal Mijoz Profili:\n";
-            $prompt .= "- Demografiya: {$dreamBuyer['demographics'] ?? 'N/A'}\n";
-            $prompt .= "- Muammolar: {$dreamBuyer['problems'] ?? 'N/A'}\n";
-            $prompt .= "- Xohishlar: {$dreamBuyer['desires'] ?? 'N/A'}\n\n";
+            $prompt .= "- Demografiya: {$demographics}\n";
+            $prompt .= "- Muammolar: {$problems}\n";
+            $prompt .= "- Xohishlar: {$desires}\n\n";
         }
 
         // Add active offers context
         if (!empty($context['offers'])) {
             $prompt .= "Faol Takliflar:\n";
             foreach ($context['offers'] as $offer) {
-                $prompt .= "- {$offer['name']}: {$offer['value_proposition'] ?? ''}\n";
+                $offerName = $offer['name'] ?? '';
+                $valueProposition = $offer['value_proposition'] ?? '';
+                $prompt .= "- {$offerName}: {$valueProposition}\n";
             }
             $prompt .= "\n";
         }

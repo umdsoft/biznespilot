@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AIController;
-use App\Http\Controllers\AIChatController;
 use App\Http\Controllers\AIInsightsController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MonthlyStrategyController;
@@ -14,7 +13,6 @@ use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\InstagramWebhookController;
 use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\WhatsAppWebhookController;
-use App\Http\Controllers\CompetitorsController;
 use App\Http\Controllers\CompetitorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DreamBuyerController;
@@ -32,6 +30,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\BusinessManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\TargetAnalysisController;
+use App\Http\Controllers\InstagramAnalysisController;
+use App\Http\Controllers\InstagramChatbotController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -128,9 +128,6 @@ Route::middleware('auth')->prefix('business')->name('business.')->group(function
     // Sales routes
     Route::resource('sales', SalesController::class);
 
-    // Competitors routes
-    Route::resource('competitors', CompetitorsController::class);
-
     // Offers routes
     Route::prefix('offers')->name('offers.')->group(function () {
         Route::get('/', [OffersController::class, 'index'])->name('index');
@@ -192,18 +189,6 @@ Route::middleware('auth')->prefix('business')->name('business.')->group(function
         Route::post('/{insight}/mark-read', [AIInsightsController::class, 'markAsRead'])->name('mark-read');
         Route::post('/{insight}/record-action', [AIInsightsController::class, 'recordAction'])->name('record-action');
         Route::delete('/{insight}', [AIInsightsController::class, 'destroy'])->name('destroy');
-    });
-
-    // AI Chat routes
-    Route::prefix('ai/chat')->name('ai.chat.')->group(function () {
-        Route::get('/', [AIChatController::class, 'index'])->name('index');
-        Route::get('/conversations', [AIChatController::class, 'conversations'])->name('conversations');
-        Route::post('/', [AIChatController::class, 'store'])->name('store');
-        Route::get('/{conversation}', [AIChatController::class, 'show'])->name('show');
-        Route::post('/{conversation}/message', [AIChatController::class, 'sendMessage'])->name('send-message');
-        Route::post('/{conversation}/rate', [AIChatController::class, 'rate'])->name('rate');
-        Route::post('/{conversation}/archive', [AIChatController::class, 'archive'])->name('archive');
-        Route::delete('/{conversation}', [AIChatController::class, 'destroy'])->name('destroy');
     });
 
     // AI Monthly Strategy routes
@@ -334,6 +319,81 @@ Route::middleware('auth')->prefix('business')->name('business.')->group(function
         Route::get('/churn-risk', [TargetAnalysisController::class, 'getChurnRisk'])->name('churn-risk');
         Route::get('/export', [TargetAnalysisController::class, 'export'])->name('export');
         Route::get('/top-performers', [TargetAnalysisController::class, 'getTopPerformers'])->name('top-performers');
+    });
+
+    // Meta Ads Integration routes (inside target-analysis)
+    Route::prefix('target-analysis/meta')->name('target-analysis.meta.')->group(function () {
+        Route::get('/auth-url', [TargetAnalysisController::class, 'getMetaAuthUrl'])->name('auth-url');
+        Route::get('/callback', [TargetAnalysisController::class, 'handleMetaCallback'])->name('callback');
+        Route::post('/disconnect', [TargetAnalysisController::class, 'disconnectMeta'])->name('disconnect');
+        Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
+        Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
+    });
+
+    // Meta Ads API routes (inside target-analysis)
+    Route::prefix('api/target-analysis/meta')->name('api.target-analysis.meta.')->group(function () {
+        Route::get('/overview', [TargetAnalysisController::class, 'getMetaOverview'])->name('overview');
+        Route::get('/campaigns', [TargetAnalysisController::class, 'getMetaCampaigns'])->name('campaigns');
+        Route::get('/demographics', [TargetAnalysisController::class, 'getMetaDemographics'])->name('demographics');
+        Route::get('/placements', [TargetAnalysisController::class, 'getMetaPlacements'])->name('placements');
+        Route::get('/trend', [TargetAnalysisController::class, 'getMetaTrend'])->name('trend');
+        Route::post('/ai-insights', [TargetAnalysisController::class, 'getMetaAIInsights'])->name('ai-insights');
+    });
+
+    // Instagram Analysis routes
+    Route::prefix('instagram-analysis')->name('instagram-analysis.')->group(function () {
+        Route::get('/', [InstagramAnalysisController::class, 'index'])->name('index');
+        Route::post('/select-account', [InstagramAnalysisController::class, 'selectAccount'])->name('select-account');
+        Route::post('/sync', [InstagramAnalysisController::class, 'sync'])->name('sync');
+        Route::get('/check-permissions', [InstagramAnalysisController::class, 'checkPermissions'])->name('check-permissions');
+    });
+
+    // Instagram Analysis API routes
+    Route::prefix('api/instagram-analysis')->name('api.instagram-analysis.')->group(function () {
+        Route::get('/overview', [InstagramAnalysisController::class, 'getOverview'])->name('overview');
+        Route::get('/media-performance', [InstagramAnalysisController::class, 'getMediaPerformance'])->name('media-performance');
+        Route::get('/reels-analytics', [InstagramAnalysisController::class, 'getReelsAnalytics'])->name('reels-analytics');
+        Route::get('/engagement', [InstagramAnalysisController::class, 'getEngagementAnalytics'])->name('engagement');
+        Route::get('/audience', [InstagramAnalysisController::class, 'getAudienceDemographics'])->name('audience');
+        Route::get('/hashtags', [InstagramAnalysisController::class, 'getHashtagPerformance'])->name('hashtags');
+        Route::get('/growth-trend', [InstagramAnalysisController::class, 'getGrowthTrend'])->name('growth-trend');
+        Route::get('/content-comparison', [InstagramAnalysisController::class, 'getContentComparison'])->name('content-comparison');
+        Route::post('/ai-insights', [InstagramAnalysisController::class, 'getAIInsights'])->name('ai-insights');
+
+        // Business Insights API - amaliy tavsiyalar
+        Route::get('/business-insights', [InstagramAnalysisController::class, 'getBusinessInsights'])->name('business-insights');
+        Route::get('/content-winners', [InstagramAnalysisController::class, 'getContentWinners'])->name('content-winners');
+        Route::get('/growth-drivers', [InstagramAnalysisController::class, 'getGrowthDrivers'])->name('growth-drivers');
+        Route::get('/viral-analysis', [InstagramAnalysisController::class, 'getViralAnalysis'])->name('viral-analysis');
+    });
+
+    // Instagram Chatbot routes
+    Route::prefix('instagram-chatbot')->name('instagram-chatbot.')->group(function () {
+        Route::get('/', [InstagramChatbotController::class, 'index'])->name('index');
+    });
+
+    // Instagram Chatbot API routes
+    Route::prefix('api/instagram-chatbot')->name('api.instagram-chatbot.')->group(function () {
+        Route::get('/dashboard', [InstagramChatbotController::class, 'getDashboard'])->name('dashboard');
+        Route::get('/automations', [InstagramChatbotController::class, 'getAutomations'])->name('automations');
+        Route::post('/automations', [InstagramChatbotController::class, 'createAutomation'])->name('automations.create');
+        Route::put('/automations/{id}', [InstagramChatbotController::class, 'updateAutomation'])->name('automations.update');
+        Route::delete('/automations/{id}', [InstagramChatbotController::class, 'deleteAutomation'])->name('automations.delete');
+        Route::post('/automations/{id}/toggle', [InstagramChatbotController::class, 'toggleAutomation'])->name('automations.toggle');
+        Route::get('/conversations', [InstagramChatbotController::class, 'getConversations'])->name('conversations');
+        Route::get('/conversations/{id}', [InstagramChatbotController::class, 'getConversation'])->name('conversations.show');
+        Route::post('/conversations/{id}/message', [InstagramChatbotController::class, 'sendMessage'])->name('conversations.message');
+        Route::get('/trigger-types', [InstagramChatbotController::class, 'getTriggerTypes'])->name('trigger-types');
+        Route::get('/action-types', [InstagramChatbotController::class, 'getActionTypes'])->name('action-types');
+        Route::get('/quick-replies', [InstagramChatbotController::class, 'getQuickReplies'])->name('quick-replies');
+        Route::post('/quick-replies', [InstagramChatbotController::class, 'createQuickReply'])->name('quick-replies.create');
+
+        // Flow Builder API routes
+        Route::get('/node-types', [InstagramChatbotController::class, 'getNodeTypes'])->name('node-types');
+        Route::get('/templates', [InstagramChatbotController::class, 'getTemplates'])->name('templates');
+        Route::post('/flow-automations', [InstagramChatbotController::class, 'createFlowAutomation'])->name('flow-automations.create');
+        Route::get('/flow-automations/{id}', [InstagramChatbotController::class, 'getFlowAutomation'])->name('flow-automations.show');
+        Route::put('/flow-automations/{id}', [InstagramChatbotController::class, 'updateFlowAutomation'])->name('flow-automations.update');
     });
 });
 

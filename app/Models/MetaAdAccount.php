@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\BelongsToBusiness;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class MetaAdAccount extends Model
+{
+    use BelongsToBusiness;
+
+    protected $fillable = [
+        'integration_id',
+        'business_id',
+        'meta_account_id',
+        'name',
+        'currency',
+        'timezone',
+        'account_status',
+        'amount_spent',
+        'is_primary',
+        'metadata',
+        'last_sync_at',
+    ];
+
+    protected $casts = [
+        'amount_spent' => 'decimal:2',
+        'is_primary' => 'boolean',
+        'metadata' => 'array',
+        'last_sync_at' => 'datetime',
+    ];
+
+    public function integration(): BelongsTo
+    {
+        return $this->belongsTo(Integration::class);
+    }
+
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(MetaCampaign::class, 'ad_account_id');
+    }
+
+    public function insights(): HasMany
+    {
+        return $this->hasMany(MetaInsight::class, 'ad_account_id');
+    }
+
+    public function getAccountIdAttribute(): string
+    {
+        return str_replace('act_', '', $this->meta_account_id);
+    }
+
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', true);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('account_status', 1);
+    }
+}

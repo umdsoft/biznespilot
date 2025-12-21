@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class InstagramQuickReply extends Model
+{
+    protected $fillable = [
+        'instagram_account_id',
+        'title',
+        'content',
+        'shortcut',
+        'usage_count',
+    ];
+
+    public function instagramAccount(): BelongsTo
+    {
+        return $this->belongsTo(InstagramAccount::class);
+    }
+
+    public function incrementUsage(): void
+    {
+        $this->increment('usage_count');
+    }
+
+    public function scopeByShortcut($query, string $shortcut)
+    {
+        return $query->where('shortcut', $shortcut);
+    }
+
+    public function scopeMostUsed($query, int $limit = 10)
+    {
+        return $query->orderByDesc('usage_count')->limit($limit);
+    }
+}
