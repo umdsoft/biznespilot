@@ -18,21 +18,21 @@ class Sale extends Model
 
     /**
      * The attributes that are mass assignable.
+     * Matches the actual database schema from create_crm_tables migration
      *
      * @var array<string>
      */
     protected $fillable = [
         'business_id',
+        'order_id',
+        'product_id',
         'customer_id',
-        'customer_name',
-        'customer_email',
-        'customer_phone',
+        'marketing_channel_id',
         'amount',
+        'cost',
+        'profit',
         'currency',
-        'status',
-        'source',
-        'notes',
-        'sold_at',
+        'sale_date',
     ];
 
     /**
@@ -42,16 +42,10 @@ class Sale extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
-        'sold_at' => 'datetime',
+        'cost' => 'decimal:2',
+        'profit' => 'decimal:2',
+        'sale_date' => 'date',
     ];
-
-    /**
-     * The possible statuses for a sale.
-     */
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_CANCELLED = 'cancelled';
-    public const STATUS_REFUNDED = 'refunded';
 
     /**
      * Get the customer associated with the sale.
@@ -62,18 +56,26 @@ class Sale extends Model
     }
 
     /**
-     * Scope a query to only include completed sales.
+     * Get the order associated with the sale.
      */
-    public function scopeCompleted($query)
+    public function order(): BelongsTo
     {
-        return $query->where('status', self::STATUS_COMPLETED);
+        return $this->belongsTo(Order::class);
     }
 
     /**
-     * Scope a query to only include cancelled sales.
+     * Get the product associated with the sale.
      */
-    public function scopeCancelled($query)
+    public function product(): BelongsTo
     {
-        return $query->where('status', self::STATUS_CANCELLED);
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the marketing channel associated with the sale.
+     */
+    public function marketingChannel(): BelongsTo
+    {
+        return $this->belongsTo(MarketingChannel::class);
     }
 }

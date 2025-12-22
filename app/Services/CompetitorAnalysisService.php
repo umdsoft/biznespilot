@@ -54,10 +54,14 @@ class CompetitorAnalysisService
         ];
 
         // Social media presence
-        if ($competitor->instagram_handle) $data['social_presence']['instagram'] = $competitor->instagram_handle;
-        if ($competitor->telegram_handle) $data['social_presence']['telegram'] = $competitor->telegram_handle;
-        if ($competitor->facebook_page) $data['social_presence']['facebook'] = $competitor->facebook_page;
-        if ($competitor->tiktok_handle) $data['social_presence']['tiktok'] = $competitor->tiktok_handle;
+        if ($competitor->instagram_handle)
+            $data['social_presence']['instagram'] = $competitor->instagram_handle;
+        if ($competitor->telegram_handle)
+            $data['social_presence']['telegram'] = $competitor->telegram_handle;
+        if ($competitor->facebook_page)
+            $data['social_presence']['facebook'] = $competitor->facebook_page;
+        if ($competitor->tiktok_handle)
+            $data['social_presence']['tiktok'] = $competitor->tiktok_handle;
 
         // Latest metrics
         $latestMetric = CompetitorMetric::where('competitor_id', $competitor->id)
@@ -302,7 +306,7 @@ PROMPT;
     /**
      * Get competitive insights for business
      */
-    public function getCompetitiveInsights(int $businessId): array
+    public function getCompetitiveInsights(string $businessId): array
     {
         $competitors = Competitor::where('business_id', $businessId)
             ->where('is_active', true)

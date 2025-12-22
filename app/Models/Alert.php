@@ -11,67 +11,31 @@ class Alert extends Model
 {
     use BelongsToBusiness, SoftDeletes;
 
+    /**
+     * The actual columns in the alerts table from migration:
+     * id, business_id, type, category, title, message, severity, status,
+     * data, action_url, is_read, read_at, dismissed_at, created_at, updated_at, deleted_at
+     */
     protected $fillable = [
         'business_id',
-        'user_id',
-        'alert_rule_id',
         'type',
-        'alert_type',
-        'alert_category',
+        'category',
         'title',
         'message',
-        'metric_code',
-        'condition',
-        'threshold_value',
-        'threshold_percent',
-        'comparison_period',
-        'current_value',
-        'previous_value',
-        'change_percent',
-        'action_suggestion',
         'severity',
         'status',
-        'is_read',
-        'is_dismissed',
+        'data',
         'action_url',
-        'action_label',
-        'metadata',
-        'triggered_at',
+        'is_read',
         'read_at',
-        'acknowledged_at',
-        'acknowledged_by',
-        'resolved_at',
-        'resolution_note',
-        'snoozed_until',
-        'notify_in_app',
-        'notify_email',
-        'notify_telegram',
-        'notify_sms',
-        'cooldown_hours',
-        'last_triggered_at',
-        'is_active',
+        'dismissed_at',
     ];
 
     protected $casts = [
-        'threshold_value' => 'decimal:2',
-        'threshold_percent' => 'decimal:2',
-        'current_value' => 'decimal:2',
-        'previous_value' => 'decimal:2',
-        'change_percent' => 'decimal:2',
-        'metadata' => 'array',
-        'triggered_at' => 'datetime',
-        'read_at' => 'datetime',
-        'acknowledged_at' => 'datetime',
-        'resolved_at' => 'datetime',
-        'snoozed_until' => 'datetime',
-        'last_triggered_at' => 'datetime',
+        'data' => 'array',
         'is_read' => 'boolean',
-        'is_dismissed' => 'boolean',
-        'notify_in_app' => 'boolean',
-        'notify_email' => 'boolean',
-        'notify_telegram' => 'boolean',
-        'notify_sms' => 'boolean',
-        'is_active' => 'boolean',
+        'read_at' => 'datetime',
+        'dismissed_at' => 'datetime',
     ];
 
     public function business(): BelongsTo
@@ -79,19 +43,9 @@ class Alert extends Model
         return $this->belongsTo(Business::class);
     }
 
-    public function rule(): BelongsTo
-    {
-        return $this->belongsTo(AlertRule::class, 'alert_rule_id');
-    }
-
-    public function acknowledgedByUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'acknowledged_by');
-    }
-
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', 'active');
     }
 
     public function scopeNew($query)
@@ -101,7 +55,7 @@ class Alert extends Model
 
     public function scopeUnresolved($query)
     {
-        return $query->whereIn('status', ['new', 'acknowledged']);
+        return $query->whereIn('status', ['new', 'active']);
     }
 
     public function scopeBySeverity($query, $severity)
@@ -114,51 +68,24 @@ class Alert extends Model
         return $query->where('severity', 'critical');
     }
 
+    /**
+     * Since snoozed_until doesn't exist in DB, return all (not snoozed)
+     */
     public function scopeNotSnoozed($query)
     {
-        return $query->where(function ($q) {
-            $q->whereNull('snoozed_until')
-              ->orWhere('snoozed_until', '<', now());
-        });
+        return $query;
     }
 
     public function getMessage($locale = 'uz')
     {
-        return $locale === 'en' && $this->message_en
-            ? $this->message_en
-            : $this->message_uz;
-    }
-
-    public function acknowledge(User $user)
-    {
-        $this->update([
-            'status' => 'acknowledged',
-            'acknowledged_at' => now(),
-            'acknowledged_by' => $user->id,
-        ]);
-    }
-
-    public function resolve($note = null)
-    {
-        $this->update([
-            'status' => 'resolved',
-            'resolved_at' => now(),
-            'resolution_note' => $note,
-        ]);
-    }
-
-    public function snooze($hours)
-    {
-        $this->update([
-            'status' => 'snoozed',
-            'snoozed_until' => now()->addHours($hours),
-        ]);
+        return $this->message;
     }
 
     public function dismiss()
     {
         $this->update([
             'status' => 'dismissed',
+            'dismissed_at' => now(),
         ]);
     }
 

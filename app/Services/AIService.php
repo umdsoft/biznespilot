@@ -9,13 +9,19 @@ class AIService
 {
     protected $openAIService;
     protected $claudeService;
-    protected $userSettings;
+    protected $userSettings = null;
 
     public function __construct(OpenAIService $openAI, ClaudeService $claude)
     {
         $this->openAIService = $openAI;
         $this->claudeService = $claude;
-        $this->userSettings = UserSetting::firstOrCreate(['user_id' => Auth::id()]);
+
+        // Try to get user settings if user is authenticated
+        if (Auth::check()) {
+            $this->userSettings = UserSetting::where('user_id', Auth::id())
+                ->where('key', 'ai_settings')
+                ->first();
+        }
     }
 
     /**
@@ -23,28 +29,31 @@ class AIService
      */
     protected function getActiveService()
     {
-        $preferredModel = $this->userSettings->preferred_ai_model ?? 'gpt-4';
+        $preferredModel = $this->userSettings?->preferred_ai_model ?? 'gpt-4';
+        $openaiKey = $this->userSettings?->openai_api_key ?? config('services.openai.key');
+        $claudeKey = $this->userSettings?->claude_api_key ?? config('services.anthropic.key');
 
         // Check if Claude is preferred and available
-        if (str_contains($preferredModel, 'claude') && $this->userSettings->claude_api_key) {
+        if (str_contains($preferredModel, 'claude') && $claudeKey) {
             return $this->claudeService;
         }
 
         // Check if OpenAI is preferred and available
-        if (str_contains($preferredModel, 'gpt') && $this->userSettings->openai_api_key) {
+        if (str_contains($preferredModel, 'gpt') && $openaiKey) {
             return $this->openAIService;
         }
 
         // Fallback: use whichever service has an API key
-        if ($this->userSettings->openai_api_key) {
+        if ($openaiKey) {
             return $this->openAIService;
         }
 
-        if ($this->userSettings->claude_api_key) {
+        if ($claudeKey) {
             return $this->claudeService;
         }
 
-        throw new \Exception('API kaliti topilmadi. Settings sahifasida API kalitini qo\'shing.');
+        // Default to OpenAI service (will show proper error message when called)
+        return $this->openAIService;
     }
 
     /**
@@ -53,7 +62,7 @@ class AIService
     public function generateText(string $prompt, array $context = []): string
     {
         $service = $this->getActiveService();
-        $creativity = $this->userSettings->ai_creativity_level ?? 7;
+        $creativity = $this->userSettings?->ai_creativity_level ?? 7;
 
         return $service->generateText($prompt, $context, $creativity);
     }

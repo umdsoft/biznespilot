@@ -14,11 +14,11 @@ class SalesAnalyticsService
     /**
      * Get conversion funnel data with stage-by-stage metrics
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters ['date_from', 'date_to', 'dream_buyer_id', 'offer_id', 'source_id']
      * @return array
      */
-    public function getFunnelData(int $businessId, array $filters = []): array
+    public function getFunnelData(string $businessId, array $filters = []): array
     {
         $query = Lead::where('business_id', $businessId);
 
@@ -102,11 +102,11 @@ class SalesAnalyticsService
     /**
      * Get Dream Buyer performance analysis
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    public function getDreamBuyerPerformance(int $businessId, array $filters = []): array
+    public function getDreamBuyerPerformance(string $businessId, array $filters = []): array
     {
         $dreamBuyers = DreamBuyer::where('business_id', $businessId)->get();
 
@@ -158,11 +158,11 @@ class SalesAnalyticsService
     /**
      * Get Offer performance metrics
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    public function getOfferPerformance(int $businessId, array $filters = []): array
+    public function getOfferPerformance(string $businessId, array $filters = []): array
     {
         $offers = Offer::where('business_id', $businessId)
             ->where('status', 'active')
@@ -175,7 +175,7 @@ class SalesAnalyticsService
             $leadsQuery = Lead::where('business_id', $businessId)
                 ->where(function ($q) use ($offer) {
                     $q->whereJsonContains('data->offer_id', $offer->id)
-                      ->orWhereJsonContains('data->selected_offer', $offer->id);
+                        ->orWhereJsonContains('data->selected_offer', $offer->id);
                 });
 
             // Apply date filters
@@ -221,11 +221,11 @@ class SalesAnalyticsService
     /**
      * Get lead source performance analysis
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    public function getLeadSourceAnalysis(int $businessId, array $filters = []): array
+    public function getLeadSourceAnalysis(string $businessId, array $filters = []): array
     {
         $sources = MarketingChannel::where('business_id', $businessId)->get();
 
@@ -286,15 +286,15 @@ class SalesAnalyticsService
     /**
      * Get revenue trends over time
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param string $period 'daily', 'weekly', 'monthly'
      * @param int $points Number of data points to return
      * @return array
      */
-    public function getRevenueTrends(int $businessId, string $period = 'daily', int $points = 30): array
+    public function getRevenueTrends(string $businessId, string $period = 'daily', int $points = 30): array
     {
         $endDate = Carbon::now();
-        $startDate = match($period) {
+        $startDate = match ($period) {
             'daily' => $endDate->copy()->subDays($points),
             'weekly' => $endDate->copy()->subWeeks($points),
             'monthly' => $endDate->copy()->subMonths($points),
@@ -315,7 +315,7 @@ class SalesAnalyticsService
         $currentDate = $startDate->copy();
 
         while ($currentDate <= $endDate) {
-            $nextDate = match($period) {
+            $nextDate = match ($period) {
                 'daily' => $currentDate->copy()->addDay(),
                 'weekly' => $currentDate->copy()->addWeek(),
                 'monthly' => $currentDate->copy()->addMonth(),
@@ -329,7 +329,7 @@ class SalesAnalyticsService
             $revenue = $periodLeads->sum('estimated_value');
             $dealCount = $periodLeads->count();
 
-            $label = match($period) {
+            $label = match ($period) {
                 'daily' => $currentDate->format('M d'),
                 'weekly' => $currentDate->format('M d'),
                 'monthly' => $currentDate->format('M Y'),
@@ -383,11 +383,11 @@ class SalesAnalyticsService
     /**
      * Forecast future revenue based on historical trends
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param int $forecastDays
      * @return array
      */
-    public function forecastRevenue(int $businessId, int $forecastDays = 30): array
+    public function forecastRevenue(string $businessId, int $forecastDays = 30): array
     {
         // Get last 90 days of data for trend analysis
         $historicalData = $this->getRevenueTrends($businessId, 'daily', 90);
@@ -459,10 +459,11 @@ class SalesAnalyticsService
     protected function calculateStdDev(array $values): float
     {
         $n = count($values);
-        if ($n === 0) return 0;
+        if ($n === 0)
+            return 0;
 
         $mean = array_sum($values) / $n;
-        $variance = array_sum(array_map(function($x) use ($mean) {
+        $variance = array_sum(array_map(function ($x) use ($mean) {
             return pow($x - $mean, 2);
         }, $values)) / $n;
 
@@ -472,11 +473,11 @@ class SalesAnalyticsService
     /**
      * Get conversion rates by various dimensions
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    public function getConversionRates(int $businessId, array $filters = []): array
+    public function getConversionRates(string $businessId, array $filters = []): array
     {
         $query = Lead::where('business_id', $businessId);
 
@@ -541,11 +542,11 @@ class SalesAnalyticsService
     /**
      * Get conversion rates by source
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    protected function getSourceConversionRates(int $businessId, array $filters): array
+    protected function getSourceConversionRates(string $businessId, array $filters): array
     {
         $sources = MarketingChannel::where('business_id', $businessId)->get();
         $rates = [];
@@ -612,11 +613,11 @@ class SalesAnalyticsService
     /**
      * Get top performers summary
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    public function getTopPerformers(int $businessId, array $filters = []): array
+    public function getTopPerformers(string $businessId, array $filters = []): array
     {
         $dreamBuyerPerformance = $this->getDreamBuyerPerformance($businessId, $filters);
         $offerPerformance = $this->getOfferPerformance($businessId, $filters);
@@ -632,11 +633,11 @@ class SalesAnalyticsService
     /**
      * Get comprehensive dashboard metrics
      *
-     * @param int $businessId
+     * @param string $businessId
      * @param array $filters
      * @return array
      */
-    public function getDashboardMetrics(int $businessId, array $filters = []): array
+    public function getDashboardMetrics(string $businessId, array $filters = []): array
     {
         $leads = Lead::where('business_id', $businessId);
 

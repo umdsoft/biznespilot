@@ -71,6 +71,30 @@ class Business extends Model
     ];
 
     /**
+     * Boot method - Business yaratilganda OnboardingProgress ham yaratilsin
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($business) {
+            // OnboardingProgress yaratish
+            $business->onboardingProgress()->create([
+                'current_phase' => 1,
+                'phase_1_status' => 'in_progress',
+                'phase_1_completion_percent' => 0,
+            ]);
+
+            // BusinessMaturityAssessment yaratish
+            if (!$business->maturityAssessment) {
+                $business->maturityAssessment()->create([
+                    'business_id' => $business->id,
+                ]);
+            }
+        });
+    }
+
+    /**
      * Get the owner of the business.
      */
     public function owner(): BelongsTo

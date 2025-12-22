@@ -31,13 +31,13 @@ class OnboardingWebController extends Controller
         }
 
         // Get onboarding progress
-        $progress = $this->onboardingService->getProgress($business);
+        $progress = $this->onboardingService->calculateProgress($business);
 
         // Get maturity score if available
-        $maturityScore = $this->onboardingService->getMaturityScore($business);
+        $maturityScore = $business->maturityAssessment?->overall_score;
 
         // Get steps
-        $steps = $this->onboardingService->getSteps($business);
+        $steps = $this->onboardingService->getStepsWithStatus($business);
 
         // Get industries for dropdown
         $industries = Industry::orderBy('name_uz')->get();
@@ -97,7 +97,7 @@ class OnboardingWebController extends Controller
         }
 
         // Check if onboarding is complete
-        $progress = $this->onboardingService->getProgress($business);
+        $progress = $this->onboardingService->calculateProgress($business);
 
         if ($progress['overall_percent'] < 100) {
             return back()->with('error', 'Iltimos, avval barcha onboarding bosqichlarini yakunlang.');

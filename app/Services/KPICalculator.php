@@ -19,12 +19,12 @@ class KPICalculator
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('monthly_budget');
 
-        // Count new unique customers in this period
+        // Count new unique customers in this period (using customer_id instead of customer_name)
         $newCustomers = Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->distinct('customer_name') // Using customer_name as proxy for unique customers
-            ->count('customer_name');
+            ->whereNotNull('customer_id')
+            ->distinct('customer_id')
+            ->count('customer_id');
 
         return $newCustomers > 0 ? round($totalSpend / $newCustomers, 2) : 0;
     }
@@ -37,7 +37,6 @@ class KPICalculator
     {
         // Average Order Value
         $avgOrderValue = Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
             ->avg('amount') ?? 0;
 
         // Configurable parameters (can be moved to settings later)
@@ -63,7 +62,6 @@ class KPICalculator
 
         // Total revenue from sales
         $revenue = Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('amount');
 
@@ -78,7 +76,6 @@ class KPICalculator
     {
         // Total revenue
         $revenue = Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('amount');
 
@@ -98,19 +95,14 @@ class KPICalculator
     {
         // Customers at start of period
         $startCustomers = Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
             ->where('created_at', '<', $startDate)
-            ->distinct('customer_name')
-            ->count('customer_name');
+            ->whereNotNull('customer_id')
+            ->distinct('customer_id')
+            ->count('customer_id');
 
-        // Lost customers (cancelled sales in period)
-        $lostCustomers = Sale::where('business_id', $businessId)
-            ->where('status', 'cancelled')
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->distinct('customer_name')
-            ->count('customer_name');
-
-        return $startCustomers > 0 ? round(($lostCustomers / $startCustomers) * 100, 2) : 0;
+        // Note: Since sales table doesn't have status, we can't track cancelled/churned
+        // For now, return 0 or implement churn tracking through customers table
+        return 0; // TODO: Implement proper churn tracking via customers table
     }
 
     /**
@@ -150,12 +142,8 @@ class KPICalculator
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
-        $completedSales = Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-        return $totalSales > 0 ? round(($completedSales / $totalSales) * 100, 2) : 0;
+        // All sales count as conversions since we don't have status
+        return $totalSales > 0 ? 100 : 0;
     }
 
     /**
@@ -164,7 +152,6 @@ class KPICalculator
     public function getTotalRevenue($businessId, $startDate, $endDate)
     {
         return Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('amount');
     }
@@ -175,9 +162,9 @@ class KPICalculator
     public function getTotalCustomers($businessId)
     {
         return Sale::where('business_id', $businessId)
-            ->where('status', 'completed')
-            ->distinct('customer_name')
-            ->count('customer_name');
+            ->whereNotNull('customer_id')
+            ->distinct('customer_id')
+            ->count('customer_id');
     }
 
     /**
@@ -185,10 +172,14 @@ class KPICalculator
      */
     public function getROASBenchmark($roas)
     {
-        if ($roas >= 5) return ['color' => 'blue', 'label' => 'Ajoyib'];
-        if ($roas >= 3) return ['color' => 'green', 'label' => 'Yaxshi'];
-        if ($roas >= 2) return ['color' => 'yellow', 'label' => 'Foydali'];
-        if ($roas >= 1) return ['color' => 'orange', 'label' => 'Break-even'];
+        if ($roas >= 5)
+            return ['color' => 'blue', 'label' => 'Ajoyib'];
+        if ($roas >= 3)
+            return ['color' => 'green', 'label' => 'Yaxshi'];
+        if ($roas >= 2)
+            return ['color' => 'yellow', 'label' => 'Foydali'];
+        if ($roas >= 1)
+            return ['color' => 'orange', 'label' => 'Break-even'];
         return ['color' => 'red', 'label' => 'Zarar'];
     }
 
@@ -197,9 +188,12 @@ class KPICalculator
      */
     public function getLTVCACBenchmark($ratio)
     {
-        if ($ratio >= 5) return ['color' => 'blue', 'label' => 'Ajoyib'];
-        if ($ratio >= 3) return ['color' => 'green', 'label' => 'Yaxshi'];
-        if ($ratio >= 1) return ['color' => 'yellow', 'label' => 'O\'rta'];
+        if ($ratio >= 5)
+            return ['color' => 'blue', 'label' => 'Ajoyib'];
+        if ($ratio >= 3)
+            return ['color' => 'green', 'label' => 'Yaxshi'];
+        if ($ratio >= 1)
+            return ['color' => 'yellow', 'label' => 'O\'rta'];
         return ['color' => 'red', 'label' => 'Xavfli'];
     }
 }

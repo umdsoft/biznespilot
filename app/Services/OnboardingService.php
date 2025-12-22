@@ -497,4 +497,41 @@ class OnboardingService
 
         return true;
     }
+
+    /**
+     * Get step details by step code
+     */
+    public function getStepDetails(Business $business, string $stepCode): ?array
+    {
+        $stepDef = StepDefinition::where('code', $stepCode)->first();
+
+        if (!$stepDef) {
+            return null;
+        }
+
+        $step = $business->onboardingSteps()
+            ->where('step_definition_id', $stepDef->id)
+            ->first();
+
+        $validation = $this->validateStep($business, $stepCode);
+
+        return [
+            'code' => $stepDef->code,
+            'phase' => $stepDef->phase,
+            'category' => $stepDef->category,
+            'name' => $stepDef->name_uz,
+            'description' => $stepDef->description_uz,
+            'icon' => $stepDef->icon,
+            'is_required' => $stepDef->is_required,
+            'estimated_time' => $stepDef->estimated_time_minutes,
+            'is_completed' => $step?->is_completed ?? false,
+            'completion_percent' => $step?->completion_percent ?? 0,
+            'started_at' => $step?->started_at,
+            'completed_at' => $step?->completed_at,
+            'is_locked' => $this->isStepLocked($business, $stepDef),
+            'validation' => $validation,
+            'required_fields' => $stepDef->required_fields ?? [],
+            'config' => $stepDef->config ?? [],
+        ];
+    }
 }

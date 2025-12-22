@@ -112,7 +112,7 @@ class DashboardController extends Controller
 
         // AI Insights (so'nggi 3 ta)
         $aiInsights = AiInsight::where('business_id', $currentBusiness->id)
-            ->whereNull('viewed_at')
+            ->where('is_read', false)
             ->orderBy('created_at', 'desc')
             ->limit(3)
             ->get()
@@ -120,7 +120,7 @@ class DashboardController extends Controller
                 'id' => $insight->id,
                 'type' => $insight->type,
                 'title' => $insight->title,
-                'summary' => $insight->content ?? $insight->description_uz,
+                'summary' => $insight->content ?? $insight->description_uz ?? '',
                 'priority' => $insight->priority,
                 'created_at' => $insight->created_at->diffForHumans(),
             ]);

@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class StepDefinition extends Model
 {
     use HasUuid;
-    public $timestamps = false;
 
     protected $fillable = [
+        'id',
         'code',
         'phase',
         'category',
