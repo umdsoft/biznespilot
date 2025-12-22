@@ -12,38 +12,63 @@ class BusinessMaturityAssessment extends Model
 
     protected $fillable = [
         'business_id',
-        'has_website',
-        'has_instagram',
-        'has_telegram',
-        'has_crm',
-        'has_paid_ads',
-        'has_email_marketing',
-        'has_analytics',
-        'has_defined_target_audience',
-        'has_documented_process',
+        // Revenue
         'monthly_revenue_range',
         'monthly_marketing_budget_range',
-        'team_marketing_size',
-        'team_sales_size',
+        // Challenges
         'main_challenges',
-        'main_goals',
-        'maturity_score',
+        // Infrastructure
+        'has_website',
+        'has_crm',
+        'uses_analytics',
+        'has_automation',
+        'current_tools',
+        // Processes
+        'has_documented_processes',
+        'has_sales_process',
+        'has_support_process',
+        'has_marketing_process',
+        // Marketing
+        'marketing_channels',
+        'has_marketing_budget',
+        'tracks_marketing_metrics',
+        'has_dedicated_marketing',
+        // Goals
+        'primary_goals',
+        'growth_target',
+        // Scores (calculated)
+        'overall_score',
         'maturity_level',
+        'category_scores',
+        'answers',
+        'recommendations',
         'assessed_at',
     ];
 
     protected $casts = [
+        // Infrastructure
         'has_website' => 'boolean',
-        'has_instagram' => 'boolean',
-        'has_telegram' => 'boolean',
         'has_crm' => 'boolean',
-        'has_paid_ads' => 'boolean',
-        'has_email_marketing' => 'boolean',
-        'has_analytics' => 'boolean',
-        'has_defined_target_audience' => 'boolean',
-        'has_documented_process' => 'boolean',
+        'uses_analytics' => 'boolean',
+        'has_automation' => 'boolean',
+        'current_tools' => 'array',
+        // Processes
+        'has_documented_processes' => 'boolean',
+        'has_sales_process' => 'boolean',
+        'has_support_process' => 'boolean',
+        'has_marketing_process' => 'boolean',
+        // Marketing
+        'marketing_channels' => 'array',
+        'has_marketing_budget' => 'boolean',
+        'tracks_marketing_metrics' => 'boolean',
+        'has_dedicated_marketing' => 'boolean',
+        // Goals & Challenges
         'main_challenges' => 'array',
-        'main_goals' => 'array',
+        'primary_goals' => 'array',
+        // Scores
+        'category_scores' => 'array',
+        'answers' => 'array',
+        'recommendations' => 'array',
         'assessed_at' => 'datetime',
     ];
 
@@ -105,24 +130,35 @@ class BusinessMaturityAssessment extends Model
     public function getInfrastructureScore(): int
     {
         $score = 0;
-        if ($this->has_website) $score += 10;
-        if ($this->has_instagram) $score += 10;
-        if ($this->has_telegram) $score += 10;
-        if ($this->has_crm) $score += 15;
-        if ($this->has_paid_ads) $score += 10;
-        if ($this->has_email_marketing) $score += 10;
-        if ($this->has_analytics) $score += 10;
+        if ($this->has_website) $score += 20;
+        if ($this->has_crm) $score += 25;
+        if ($this->uses_analytics) $score += 20;
+        if ($this->has_automation) $score += 20;
+        if (!empty($this->current_tools)) $score += min(count($this->current_tools) * 5, 15);
 
-        return $score; // Max 75
+        return $score; // Max 100
     }
 
     public function getProcessScore(): int
     {
         $score = 0;
-        if ($this->has_defined_target_audience) $score += 15;
-        if ($this->has_documented_process) $score += 10;
+        if ($this->has_documented_processes) $score += 25;
+        if ($this->has_sales_process) $score += 25;
+        if ($this->has_support_process) $score += 25;
+        if ($this->has_marketing_process) $score += 25;
 
-        return $score; // Max 25
+        return $score; // Max 100
+    }
+
+    public function getMarketingScore(): int
+    {
+        $score = 0;
+        if (!empty($this->marketing_channels)) $score += min(count($this->marketing_channels) * 10, 30);
+        if ($this->has_marketing_budget) $score += 25;
+        if ($this->tracks_marketing_metrics) $score += 25;
+        if ($this->has_dedicated_marketing) $score += 20;
+
+        return $score; // Max 100
     }
 
     public function getRevenueScore(): int

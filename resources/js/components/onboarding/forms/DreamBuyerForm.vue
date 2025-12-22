@@ -114,7 +114,7 @@
       <!-- Question 1 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          1. Ular qayerda vaqt o'tkazishadi? <span class="text-red-500">*</span>
+          1. Ular qayerda vaqt o'tkazishadi?
         </label>
         <p class="text-xs text-gray-500 mb-2">Onlayn va oflayn - qaysi platformalar, joylar, tadbirlar?</p>
         <textarea
@@ -128,7 +128,7 @@
       <!-- Question 2 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          2. Ular ma'lumot olish uchun qayerga murojaat qilishadi? <span class="text-red-500">*</span>
+          2. Ular ma'lumot olish uchun qayerga murojaat qilishadi?
         </label>
         <p class="text-xs text-gray-500 mb-2">Bloglar, YouTube kanallar, podkastlar, kitoblar?</p>
         <textarea
@@ -142,7 +142,7 @@
       <!-- Question 3 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          3. Ularning eng katta qiyinchiliklari nima? <span class="text-red-500">*</span>
+          3. Ularning eng katta qiyinchiliklari nima?
         </label>
         <p class="text-xs text-gray-500 mb-2">Kundalik hayotda nima ularni bezovta qiladi?</p>
         <textarea
@@ -156,7 +156,7 @@
       <!-- Question 4 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          4. Ularning orzulari nima? <span class="text-red-500">*</span>
+          4. Ularning orzulari nima?
         </label>
         <p class="text-xs text-gray-500 mb-2">Ular nima haqida orzu qilishadi, qanday kelajak istashadi?</p>
         <textarea
@@ -170,7 +170,7 @@
       <!-- Question 5 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          5. Ularning eng katta qo'rquvlari nima? <span class="text-red-500">*</span>
+          5. Ularning eng katta qo'rquvlari nima?
         </label>
         <p class="text-xs text-gray-500 mb-2">Nimadan qo'rqishadi, nimani yo'qotishdan xavotir olishadi?</p>
         <textarea
@@ -184,7 +184,7 @@
       <!-- Question 6 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          6. Ular qanday muloqot usulini afzal ko'rishadi? <span class="text-red-500">*</span>
+          6. Ular qanday muloqot usulini afzal ko'rishadi?
         </label>
         <p class="text-xs text-gray-500 mb-2">Telegram, telefon qo'ng'irog'i, email, yuzma-yuz?</p>
         <textarea
@@ -198,7 +198,7 @@
       <!-- Question 7 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          7. Ular qanday til uslubini ishlatishadi? <span class="text-red-500">*</span>
+          7. Ular qanday til uslubini ishlatishadi?
         </label>
         <p class="text-xs text-gray-500 mb-2">Rasmiy yoki norasmiy? Qanday so'zlar ishlatishadi?</p>
         <textarea
@@ -212,7 +212,7 @@
       <!-- Question 8 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          8. Ularning kundalik tartibi qanday? <span class="text-red-500">*</span>
+          8. Ularning kundalik tartibi qanday?
         </label>
         <p class="text-xs text-gray-500 mb-2">Ertalab nima qilishadi? Qachon bo'sh?</p>
         <textarea
@@ -226,7 +226,7 @@
       <!-- Question 9 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          9. Nima ularni baxtli qiladi? <span class="text-red-500">*</span>
+          9. Nima ularni baxtli qiladi?
         </label>
         <p class="text-xs text-gray-500 mb-2">Qanday voqealar, yutuqlar ularni xursand qiladi?</p>
         <textarea
@@ -252,26 +252,40 @@
       </div>
     </div>
 
+    <!-- Info text -->
+    <p class="text-sm text-gray-500 text-center">
+      Barcha savollar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+    </p>
+
     <!-- Submit -->
-    <div class="flex justify-end gap-3 pt-4">
+    <div class="flex justify-between gap-3 pt-4">
       <button
         type="button"
-        @click="$emit('cancel')"
+        @click="handleSkip"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        Bekor qilish
+        O'tkazib yuborish
       </button>
-      <button
-        type="submit"
-        :disabled="loading"
-        class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      >
-        <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Saqlash
-      </button>
+      <div class="flex gap-3">
+        <button
+          type="button"
+          @click="$emit('cancel')"
+          class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+        >
+          Bekor qilish
+        </button>
+        <button
+          type="submit"
+          :disabled="loading"
+          class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Saqlash
+        </button>
+      </div>
     </div>
   </form>
 </template>
@@ -279,8 +293,10 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
+import { useToastStore } from '@/stores/toast';
 
 const store = useOnboardingStore();
+const toast = useToastStore();
 
 const props = defineProps({
   dreamBuyer: {
@@ -289,7 +305,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(['submit', 'cancel', 'skip']);
 
 const loading = ref(false);
 
@@ -336,11 +352,18 @@ async function handleSubmit() {
 
   try {
     await store.updateDreamBuyer(form);
+    toast.success('Muvaffaqiyatli saqlandi', 'Ideal mijoz profili yangilandi');
     emit('submit');
   } catch (err) {
     console.error(err);
+    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
+    toast.error('Xatolik', errorMessage);
   } finally {
     loading.value = false;
   }
+}
+
+function handleSkip() {
+  emit('skip');
 }
 </script>

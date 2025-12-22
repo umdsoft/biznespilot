@@ -62,18 +62,23 @@
           </div>
         </div>
 
+        <!-- Testimonials Carousel -->
+        <div class="mt-8 group">
+          <TestimonialCarousel :autoplay-interval="5000" />
+        </div>
+
         <!-- Stats -->
-        <div class="mt-12 grid grid-cols-3 gap-6 pt-8 border-t border-white/20">
+        <div class="mt-6 grid grid-cols-3 gap-6 pt-6 border-t border-white/20">
           <div>
-            <div class="text-3xl font-bold">500+</div>
+            <div class="text-3xl font-bold">50+</div>
             <div class="text-blue-200 text-sm">Faol bizneslar</div>
           </div>
           <div>
-            <div class="text-3xl font-bold">50K+</div>
+            <div class="text-3xl font-bold">1K+</div>
             <div class="text-blue-200 text-sm">Mijozlar</div>
           </div>
           <div>
-            <div class="text-3xl font-bold">99%</div>
+            <div class="text-3xl font-bold">98%</div>
             <div class="text-blue-200 text-sm">Qoniqish</div>
           </div>
         </div>
@@ -194,14 +199,6 @@
             </p>
           </div>
 
-          <!-- Demo Credentials -->
-          <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p class="text-xs font-semibold text-gray-700 mb-2">Demo hisoblar:</p>
-            <div class="text-xs text-gray-600 space-y-1">
-              <div>Admin: <code class="bg-white px-2 py-0.5 rounded text-blue-600">admin / password</code></div>
-              <div>User: <code class="bg-white px-2 py-0.5 rounded text-blue-600">user1 / password</code></div>
-            </div>
-          </div>
         </div>
 
         <!-- Footer -->
@@ -215,6 +212,7 @@
 
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
+import TestimonialCarousel from '@/Components/Auth/TestimonialCarousel.vue';
 
 const form = useForm({
   login: '',

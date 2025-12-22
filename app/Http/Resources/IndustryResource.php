@@ -11,16 +11,17 @@ class IndustryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'code' => $this->code,
+            'slug' => $this->slug,
+            'name_uz' => $this->name_uz,
+            'name_en' => $this->name_en,
             'name' => [
                 'uz' => $this->name_uz,
-                'ru' => $this->name_ru,
                 'en' => $this->name_en,
             ],
             'icon' => $this->icon,
             'parent_id' => $this->parent_id,
             'is_active' => $this->is_active,
-            'order' => $this->order,
+            'sort_order' => $this->sort_order,
             'children' => IndustryResource::collection($this->whenLoaded('children')),
         ];
     }

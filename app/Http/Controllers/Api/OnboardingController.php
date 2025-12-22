@@ -20,6 +20,8 @@ use App\Models\Competitor;
 use App\Models\DreamBuyer;
 use App\Models\Industry;
 use App\Models\MarketingHypothesis;
+use App\Models\MarketingMetrics;
+use App\Models\SalesMetrics;
 use App\Models\StepDefinition;
 use App\Services\MaturityCalculatorService;
 use App\Services\OnboardingService;
@@ -589,6 +591,224 @@ class OnboardingController extends Controller
         ]);
     }
 
+    // ==================== SALES METRICS ====================
+
+    /**
+     * Get sales metrics
+     */
+    public function salesMetrics(Request $request): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes tanlanmagan',
+            ], 404);
+        }
+
+        $metrics = $business->salesMetrics;
+
+        return response()->json([
+            'success' => true,
+            'data' => $metrics,
+        ]);
+    }
+
+    /**
+     * Update sales metrics
+     */
+    public function updateSalesMetrics(Request $request): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes tanlanmagan',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'monthly_lead_volume' => 'nullable|string|max:50',
+            'lead_sources' => 'nullable|array',
+            'lead_quality' => 'nullable|string|max:20',
+            'monthly_sales_volume' => 'nullable|string|max:50',
+            'avg_deal_size' => 'nullable|string|max:255',
+            'sales_cycle' => 'nullable|string|max:50',
+            'sales_team_type' => 'nullable|string|max:50',
+            'sales_tools' => 'nullable|array',
+            'sales_challenges' => 'nullable|string',
+        ]);
+
+        $metrics = $business->salesMetrics;
+        $isNew = !$metrics;
+
+        if (!$metrics) {
+            $metrics = SalesMetrics::create([
+                'business_id' => $business->id,
+                ...$validated,
+            ]);
+            // Tarixga dastlabki yozuv
+            $metrics->saveToHistory('initial', 'Dastlabki ma\'lumotlar kiritildi');
+        } else {
+            // Tarixga oldingi holatni saqlash
+            $metrics->saveToHistory('update');
+
+            // Yangilash
+            $metrics->update($validated);
+        }
+
+        // Update step progress
+        $this->onboardingService->updateStepProgress($business, 'kpi_sales');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sotuv ko\'rsatkichlari saqlandi',
+            'data' => [
+                'metrics' => $metrics->fresh(),
+                'progress' => $this->onboardingService->calculateProgress($business),
+            ],
+        ]);
+    }
+
+    /**
+     * Get sales metrics history
+     */
+    public function salesMetricsHistory(Request $request): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes tanlanmagan',
+            ], 404);
+        }
+
+        $history = $business->salesMetrics?->history()
+            ->orderBy('recorded_at', 'desc')
+            ->limit(50)
+            ->get() ?? collect();
+
+        return response()->json([
+            'success' => true,
+            'data' => $history,
+        ]);
+    }
+
+    // ==================== MARKETING METRICS ====================
+
+    /**
+     * Get marketing metrics
+     */
+    public function marketingMetrics(Request $request): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes tanlanmagan',
+            ], 404);
+        }
+
+        $metrics = $business->marketingMetrics;
+
+        return response()->json([
+            'success' => true,
+            'data' => $metrics,
+        ]);
+    }
+
+    /**
+     * Update marketing metrics
+     */
+    public function updateMarketingMetrics(Request $request): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes tanlanmagan',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'monthly_budget' => 'nullable|string|max:255',
+            'ad_spend' => 'nullable|string|max:255',
+            'website_purpose' => 'nullable|string|max:50',
+            'monthly_visits' => 'nullable|integer|min:0',
+            'website_conversion' => 'nullable|numeric|min:0|max:100',
+            'active_channels' => 'nullable|array',
+            'best_channel' => 'nullable|string|max:50',
+            'top_lead_channel' => 'nullable|string|max:50',
+            'instagram_followers' => 'nullable|integer|min:0',
+            'telegram_subscribers' => 'nullable|integer|min:0',
+            'facebook_followers' => 'nullable|integer|min:0',
+            'roi_tracking_level' => 'nullable|string|max:20',
+            'marketing_roi' => 'nullable|numeric',
+            'content_activities' => 'nullable|array',
+            'marketing_challenges' => 'nullable|string',
+        ]);
+
+        $metrics = $business->marketingMetrics;
+        $isNew = !$metrics;
+
+        if (!$metrics) {
+            $metrics = MarketingMetrics::create([
+                'business_id' => $business->id,
+                ...$validated,
+            ]);
+            // Tarixga dastlabki yozuv
+            $metrics->saveToHistory('initial', 'Dastlabki ma\'lumotlar kiritildi');
+        } else {
+            // Tarixga oldingi holatni saqlash
+            $metrics->saveToHistory('update');
+
+            // Yangilash
+            $metrics->update($validated);
+        }
+
+        // Update step progress
+        $this->onboardingService->updateStepProgress($business, 'kpi_marketing');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Marketing ko\'rsatkichlari saqlandi',
+            'data' => [
+                'metrics' => $metrics->fresh(),
+                'progress' => $this->onboardingService->calculateProgress($business),
+            ],
+        ]);
+    }
+
+    /**
+     * Get marketing metrics history
+     */
+    public function marketingMetricsHistory(Request $request): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes tanlanmagan',
+            ], 404);
+        }
+
+        $history = $business->marketingMetrics?->history()
+            ->orderBy('recorded_at', 'desc')
+            ->limit(50)
+            ->get() ?? collect();
+
+        return response()->json([
+            'success' => true,
+            'data' => $history,
+        ]);
+    }
+
     /**
      * Get step data based on step code
      */
@@ -600,7 +820,7 @@ class OnboardingController extends Controller
                 'industries' => Industry::parents()->active()->ordered()->with('children')->get(),
             ],
             'business_maturity' => [
-                'assessment' => $business->maturityAssessment,
+                'maturity' => $business->maturityAssessment,
             ],
             'framework_problem' => [
                 'problems' => $business->problems()->active()->ordered()->get(),

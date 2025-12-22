@@ -144,6 +144,79 @@
           </div>
 
           <div class="flex items-center space-x-4">
+            <!-- Business Selector Dropdown -->
+            <div class="relative">
+              <button
+                @click="showBusinessMenu = !showBusinessMenu"
+                class="flex items-center space-x-3 hover:bg-gray-50 rounded-xl px-4 py-2 transition-all duration-200 border border-gray-200"
+              >
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <span class="text-xs font-bold text-white">
+                    {{ currentBusinessInitial }}
+                  </span>
+                </div>
+                <div class="text-left hidden sm:block">
+                  <p class="text-sm font-medium text-gray-900 max-w-[150px] truncate">
+                    {{ $page.props.currentBusiness?.name || 'Biznes tanlang' }}
+                  </p>
+                </div>
+                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Business Dropdown Menu -->
+              <div
+                v-show="showBusinessMenu"
+                class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200/50 py-2 z-50"
+              >
+                <div class="px-3 py-2 border-b border-gray-100">
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bizneslaringiz</p>
+                </div>
+
+                <div class="max-h-64 overflow-y-auto">
+                  <Link
+                    v-for="business in $page.props.businesses"
+                    :key="business.id"
+                    :href="`/switch-business/${business.id}`"
+                    method="post"
+                    as="button"
+                    @click="showBusinessMenu = false"
+                    class="w-full flex items-center px-3 py-2.5 hover:bg-gray-50 transition-colors"
+                    :class="{ 'bg-blue-50': business.id === $page.props.currentBusiness?.id }"
+                  >
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center mr-3"
+                      :class="business.id === $page.props.currentBusiness?.id ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100'"
+                    >
+                      <span class="text-sm font-bold" :class="business.id === $page.props.currentBusiness?.id ? 'text-white' : 'text-gray-600'">
+                        {{ business.name?.charAt(0)?.toUpperCase() || '?' }}
+                      </span>
+                    </div>
+                    <div class="flex-1 text-left">
+                      <p class="text-sm font-medium text-gray-900">{{ business.name }}</p>
+                      <p class="text-xs text-gray-500">{{ business.category }}</p>
+                    </div>
+                    <svg v-if="business.id === $page.props.currentBusiness?.id" class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                  </Link>
+                </div>
+
+                <div class="border-t border-gray-100 mt-2 pt-2 px-3">
+                  <Link
+                    href="/new-business"
+                    @click="showBusinessMenu = false"
+                    class="flex items-center w-full px-3 py-2.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span class="text-sm font-medium">Yangi biznes yaratish</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             <!-- User Dropdown -->
             <div class="relative">
               <button
@@ -201,7 +274,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import NavLink from '@/components/NavLink.vue';
 
@@ -215,6 +288,7 @@ defineProps({
 const page = usePage();
 
 const showUserMenu = ref(false);
+const showBusinessMenu = ref(false);
 
 const userInitials = computed(() => {
   const user = page.props.auth?.user;
@@ -225,5 +299,27 @@ const userInitials = computed(() => {
     .join('')
     .toUpperCase()
     .slice(0, 2);
+});
+
+const currentBusinessInitial = computed(() => {
+  const business = page.props.currentBusiness;
+  if (!business?.name) return '?';
+  return business.name.charAt(0).toUpperCase();
+});
+
+// Close dropdowns when clicking outside
+const closeDropdowns = (e) => {
+  if (!e.target.closest('.relative')) {
+    showUserMenu.value = false;
+    showBusinessMenu.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', closeDropdowns);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdowns);
 });
 </script>

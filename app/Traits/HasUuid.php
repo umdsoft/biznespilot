@@ -13,6 +13,11 @@ trait HasUuid
     {
         $this->incrementing = false;
         $this->keyType = 'string';
+
+        // Generate UUID on instantiation if not set (works even with WithoutModelEvents)
+        if (empty($this->{$this->getKeyName()})) {
+            $this->{$this->getKeyName()} = Str::uuid()->toString();
+        }
     }
 
     /**

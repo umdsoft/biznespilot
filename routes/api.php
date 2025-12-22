@@ -29,7 +29,7 @@ Route::prefix('v1')->group(function () {
 });
 
 // Protected routes - API v1
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+Route::prefix('v1')->middleware(['web', 'auth'])->group(function () {
     // Authentication routes
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
@@ -70,6 +70,16 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::post('hypotheses', [OnboardingController::class, 'storeHypothesis']);
         Route::put('hypotheses/{hypothesis}', [OnboardingController::class, 'updateHypothesis']);
         Route::delete('hypotheses/{hypothesis}', [OnboardingController::class, 'deleteHypothesis']);
+
+        // Sales Metrics
+        Route::get('sales-metrics', [OnboardingController::class, 'salesMetrics']);
+        Route::put('sales-metrics', [OnboardingController::class, 'updateSalesMetrics']);
+        Route::get('sales-metrics/history', [OnboardingController::class, 'salesMetricsHistory']);
+
+        // Marketing Metrics
+        Route::get('marketing-metrics', [OnboardingController::class, 'marketingMetrics']);
+        Route::put('marketing-metrics', [OnboardingController::class, 'updateMarketingMetrics']);
+        Route::get('marketing-metrics/history', [OnboardingController::class, 'marketingMetricsHistory']);
 
         // Phase 2
         Route::post('start-phase-2', [OnboardingController::class, 'startPhase2']);

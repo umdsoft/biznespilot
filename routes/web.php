@@ -75,12 +75,19 @@ Route::middleware('auth')->get('/', function () {
 // Logout route (accessible from both panels)
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Business switching route
+Route::middleware('auth')->post('/switch-business/{business}', [WelcomeController::class, 'switchBusiness'])->name('switch-business');
+
 // Welcome routes (for users without business)
 Route::middleware('auth')->prefix('welcome')->name('welcome.')->group(function () {
     Route::get('/', [WelcomeController::class, 'index'])->name('index');
     Route::get('/create-business', [WelcomeController::class, 'createBusiness'])->name('create-business');
     Route::post('/create-business', [WelcomeController::class, 'storeBusiness'])->name('store-business');
 });
+
+// Create new business (for users who already have businesses)
+Route::middleware('auth')->get('/new-business', [WelcomeController::class, 'newBusiness'])->name('new-business');
+Route::middleware('auth')->post('/new-business', [WelcomeController::class, 'storeNewBusiness'])->name('store-new-business');
 
 // Onboarding routes (outside business prefix for cleaner URL, requires business)
 Route::middleware(['auth', 'has.business'])->prefix('onboarding')->name('onboarding.')->group(function () {

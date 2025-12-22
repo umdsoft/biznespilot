@@ -73,6 +73,11 @@ class BusinessProblem extends Model
         return $query->orderBy('priority');
     }
 
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
     // Helpers
     public function getCategoryLabel(): string
     {

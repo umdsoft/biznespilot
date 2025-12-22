@@ -276,6 +276,22 @@ class Business extends Model
     }
 
     /**
+     * Get the sales metrics for the business.
+     */
+    public function salesMetrics(): HasOne
+    {
+        return $this->hasOne(SalesMetrics::class);
+    }
+
+    /**
+     * Get the marketing metrics for the business.
+     */
+    public function marketingMetrics(): HasOne
+    {
+        return $this->hasOne(MarketingMetrics::class);
+    }
+
+    /**
      * Get team members (excluding owner)
      */
     public function teamMembers(): BelongsToMany

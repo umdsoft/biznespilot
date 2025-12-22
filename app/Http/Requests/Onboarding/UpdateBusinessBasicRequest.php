@@ -14,11 +14,10 @@ class UpdateBusinessBasicRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'industry_id' => 'required|exists:industries,id',
-            'sub_industry_id' => 'nullable|exists:industries,id',
-            'business_type' => 'required|in:b2b,b2c,b2b2c,d2c',
-            'business_model' => 'required|in:product,service,marketplace,subscription,hybrid',
+            'name' => 'nullable|string|max:255',
+            'category' => 'nullable|string|in:retail,wholesale,ecommerce,food_service,manufacturing,construction,it_services,education,healthcare,beauty_wellness,real_estate,transportation,agriculture,tourism,finance,consulting,marketing_agency,media,fitness,automotive,textile,furniture,electronics,cleaning,event_services,legal,other',
+            'business_type' => 'nullable|in:b2b,b2c,b2b2c,d2c',
+            'business_model' => 'nullable|in:product,service,marketplace,subscription,hybrid',
             'description' => 'nullable|string|max:1000',
         ];
     }
@@ -26,12 +25,8 @@ class UpdateBusinessBasicRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Biznes nomi kiritilishi shart',
-            'industry_id.required' => 'Soha tanlanishi shart',
-            'industry_id.exists' => 'Noto\'g\'ri soha tanlandi',
-            'business_type.required' => 'Biznes turi tanlanishi shart',
+            'category.in' => 'Noto\'g\'ri kategoriya tanlandi',
             'business_type.in' => 'Noto\'g\'ri biznes turi',
-            'business_model.required' => 'Biznes modeli tanlanishi shart',
             'business_model.in' => 'Noto\'g\'ri biznes modeli',
         ];
     }

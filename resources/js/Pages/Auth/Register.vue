@@ -71,19 +71,9 @@
           </div>
         </div>
 
-        <!-- Testimonial -->
-        <div class="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          <div class="flex items-start space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-bold">
-              A
-            </div>
-            <div>
-              <p class="text-emerald-50 italic text-sm mb-1">
-                "BiznesPilot AI bizning sotuvlarimizni 3 oyda 40% ga oshirdi!"
-              </p>
-              <p class="text-emerald-200 text-xs font-medium">Aziz Karimov, TechStart CEO</p>
-            </div>
-          </div>
+        <!-- Testimonials Carousel -->
+        <div class="mt-6 group">
+          <TestimonialCarousel :autoplay-interval="5000" />
         </div>
       </div>
     </div>
@@ -230,11 +220,11 @@
                 type="checkbox"
                 class="mt-0.5 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
               />
-              <label for="terms" class="ml-2 text-xs text-gray-600 cursor-pointer">
+              <label for="terms" class="ml-2 text-xs text-gray-600">
                 Men
-                <a href="#" class="text-emerald-600 hover:text-emerald-500 font-medium">Foydalanish shartlari</a>
+                <button type="button" @click="showTermsModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">Foydalanish shartlari</button>
                 va
-                <a href="#" class="text-emerald-600 hover:text-emerald-500 font-medium">Maxfiylik siyosati</a>ga
+                <button type="button" @click="showPrivacyModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">Maxfiylik siyosati</button>ga
                 roziman
               </label>
             </div>
@@ -278,11 +268,19 @@
         </p>
       </div>
     </div>
+
+    <!-- Legal Modals -->
+    <TermsOfServiceModal v-model="showTermsModal" @close="showTermsModal = false" />
+    <PrivacyPolicyModal v-model="showPrivacyModal" @close="showPrivacyModal = false" />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
+import TermsOfServiceModal from '@/Components/Legal/TermsOfServiceModal.vue';
+import PrivacyPolicyModal from '@/Components/Legal/PrivacyPolicyModal.vue';
+import TestimonialCarousel from '@/Components/Auth/TestimonialCarousel.vue';
 
 const form = useForm({
   name: '',
@@ -293,4 +291,7 @@ const form = useForm({
   password_confirmation: '',
   terms: false,
 });
+
+const showTermsModal = ref(false);
+const showPrivacyModal = ref(false);
 </script>

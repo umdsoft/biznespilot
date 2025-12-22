@@ -3,7 +3,7 @@
     <!-- Team Size -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Jamoa hajmi <span class="text-red-500">*</span>
+        Jamoa hajmi
       </label>
       <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
         <label
@@ -31,7 +31,7 @@
     <!-- Business Stage -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes bosqichi <span class="text-red-500">*</span>
+        Biznes bosqichi
       </label>
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <label
@@ -61,7 +61,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Shahar <span class="text-red-500">*</span>
+          Shahar
         </label>
         <select
           v-model="form.city"
@@ -151,26 +151,40 @@
       ></textarea>
     </div>
 
+    <!-- Info text -->
+    <p class="text-sm text-gray-500 text-center">
+      Barcha maydonlar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+    </p>
+
     <!-- Submit -->
-    <div class="flex justify-end gap-3 pt-4">
+    <div class="flex justify-between gap-3 pt-4">
       <button
         type="button"
-        @click="$emit('cancel')"
+        @click="handleSkip"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        Bekor qilish
+        O'tkazib yuborish
       </button>
-      <button
-        type="submit"
-        :disabled="loading"
-        class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      >
-        <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Saqlash va davom etish
-      </button>
+      <div class="flex gap-3">
+        <button
+          type="button"
+          @click="$emit('cancel')"
+          class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+        >
+          Bekor qilish
+        </button>
+        <button
+          type="submit"
+          :disabled="loading"
+          class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Saqlash
+        </button>
+      </div>
     </div>
   </form>
 </template>
@@ -178,8 +192,10 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
+import { useToastStore } from '@/stores/toast';
 
 const store = useOnboardingStore();
+const toast = useToastStore();
 
 const props = defineProps({
   business: {
@@ -188,7 +204,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(['submit', 'cancel', 'skip']);
 
 const loading = ref(false);
 const errors = reactive({});
@@ -243,24 +259,25 @@ async function handleSubmit() {
   // Clear errors
   Object.keys(errors).forEach(key => delete errors[key]);
 
-  // Validate
-  if (!form.team_size) errors.team_size = 'Jamoa hajmi tanlanishi shart';
-  if (!form.city) errors.city = 'Shahar tanlanishi shart';
-  if (!form.business_stage) errors.business_stage = 'Biznes bosqichi tanlanishi shart';
-
-  if (Object.keys(errors).length > 0) return;
-
+  // Barcha maydonlar ixtiyoriy - validatsiya yo'q
   loading.value = true;
 
   try {
     await store.updateBusinessDetails(form);
+    toast.success('Muvaffaqiyatli saqlandi', 'Biznes tafsilotlari yangilandi');
     emit('submit');
   } catch (err) {
     if (err.response?.data?.errors) {
       Object.assign(errors, err.response.data.errors);
     }
+    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
+    toast.error('Xatolik', errorMessage);
   } finally {
     loading.value = false;
   }
+}
+
+function handleSkip() {
+  emit('skip');
 }
 </script>

@@ -9,8 +9,11 @@ use App\Models\Competitor;
 use App\Models\DreamBuyer;
 use App\Models\Integration;
 use App\Models\MarketingHypothesis;
+use App\Models\MarketResearch;
+use App\Models\MarketingMetrics;
 use App\Models\OnboardingProgress;
 use App\Models\OnboardingStep;
+use App\Models\SalesMetrics;
 use App\Models\StepDefinition;
 use Illuminate\Support\Collection;
 
@@ -55,6 +58,27 @@ class OnboardingService
     }
 
     /**
+     * Ensure onboarding steps exist for a business
+     */
+    public function ensureStepsExist(Business $business): void
+    {
+        $stepDefinitions = StepDefinition::active()->ordered()->get();
+
+        foreach ($stepDefinitions as $stepDef) {
+            OnboardingStep::firstOrCreate(
+                [
+                    'business_id' => $business->id,
+                    'step_definition_id' => $stepDef->id,
+                ],
+                [
+                    'is_completed' => false,
+                    'completion_percent' => 0,
+                ]
+            );
+        }
+    }
+
+    /**
      * Calculate overall progress for a business
      */
     public function calculateProgress(Business $business): array
@@ -63,10 +87,13 @@ class OnboardingService
 
         if (!$progress) {
             $progress = $this->initializeOnboarding($business);
+        } else {
+            // Ensure onboarding steps exist
+            $this->ensureStepsExist($business);
         }
 
         // Calculate category progress
-        $categories = ['profile', 'integration', 'framework'];
+        $categories = ['profile', 'kpi', 'framework'];
         $categoryProgress = [];
         $totalPercent = 0;
 
@@ -119,6 +146,7 @@ class OnboardingService
 
     /**
      * Calculate progress for a specific category
+     * Uses actual completion_percent of each step for accurate progress calculation
      */
     public function calculateCategoryProgress(Business $business, string $category): array
     {
@@ -131,27 +159,45 @@ class OnboardingService
         $completedSteps = 0;
         $requiredSteps = 0;
         $requiredCompleted = 0;
+        $totalPercent = 0;
+        $requiredTotalPercent = 0;
 
         foreach ($stepDefinitions as $stepDef) {
             $step = $business->onboardingSteps()
                 ->where('step_definition_id', $stepDef->id)
                 ->first();
 
+            // Get actual completion percent from step or calculate via validation
+            $stepPercent = 0;
+            if ($step) {
+                $stepPercent = $step->completion_percent ?? 0;
+            }
+
+            // If step has no percent, try to calculate from validation
+            if ($stepPercent === 0) {
+                $validation = $this->validateStep($business, $stepDef->code);
+                $stepPercent = $validation['percent'] ?? 0;
+            }
+
+            $totalPercent += $stepPercent;
+
             if ($step && $step->is_completed) {
                 $completedSteps++;
-
-                if ($stepDef->is_required) {
-                    $requiredCompleted++;
-                }
             }
 
             if ($stepDef->is_required) {
                 $requiredSteps++;
+                $requiredTotalPercent += $stepPercent;
+
+                if ($step && $step->is_completed) {
+                    $requiredCompleted++;
+                }
             }
         }
 
-        $percent = $totalSteps > 0 ? (int) round(($completedSteps / $totalSteps) * 100) : 0;
-        $requiredPercent = $requiredSteps > 0 ? (int) round(($requiredCompleted / $requiredSteps) * 100) : 100;
+        // Calculate average percent based on actual completion percentages
+        $percent = $totalSteps > 0 ? (int) round($totalPercent / $totalSteps) : 0;
+        $requiredPercent = $requiredSteps > 0 ? (int) round($requiredTotalPercent / $requiredSteps) : 100;
 
         return [
             'category' => $category,
@@ -200,31 +246,11 @@ class OnboardingService
 
     /**
      * Check if a step is locked (dependencies not met)
+     * UPDATED: Hech qachon lock qilinmaydi - barcha qadamlar ixtiyoriy
      */
     public function isStepLocked(Business $business, StepDefinition $stepDef): bool
     {
-        $dependencies = $stepDef->getDependencies();
-
-        if (empty($dependencies)) {
-            return false;
-        }
-
-        foreach ($dependencies as $depCode) {
-            $depStepDef = StepDefinition::where('code', $depCode)->first();
-
-            if (!$depStepDef) {
-                continue;
-            }
-
-            $depStep = $business->onboardingSteps()
-                ->where('step_definition_id', $depStepDef->id)
-                ->first();
-
-            if (!$depStep || !$depStep->is_completed) {
-                return true;
-            }
-        }
-
+        // Barcha qadamlar doim ochiq
         return false;
     }
 
@@ -245,7 +271,7 @@ class OnboardingService
         switch ($stepCode) {
             case 'business_basic':
                 if (empty($business->name)) $errors[] = 'Biznes nomi kiritilmagan';
-                if (empty($business->industry_id)) $errors[] = 'Soha tanlanmagan';
+                if (empty($business->category)) $errors[] = 'Kategoriya tanlanmagan';
                 if (empty($business->business_type)) $errors[] = 'Biznes turi tanlanmagan';
                 if (empty($business->business_model)) $errors[] = 'Biznes modeli tanlanmagan';
                 break;
@@ -272,10 +298,7 @@ class OnboardingService
 
             case 'integration_instagram':
                 $hasInstagram = Integration::where('business_id', $business->id)
-                    ->where(function ($q) {
-                        $q->where('type', 'instagram')
-                            ->orWhere('platform', 'instagram');
-                    })
+                    ->where('type', 'instagram')
                     ->where('status', 'connected')
                     ->exists();
                 if (!$hasInstagram) $errors[] = 'Instagram ulanmagan';
@@ -283,11 +306,7 @@ class OnboardingService
 
             case 'integration_telegram':
                 $hasTelegram = Integration::where('business_id', $business->id)
-                    ->where(function ($q) {
-                        $q->where('type', 'telegram')
-                            ->orWhere('platform', 'telegram_channel')
-                            ->orWhere('platform', 'telegram_bot');
-                    })
+                    ->whereIn('type', ['telegram', 'telegram_channel', 'telegram_bot'])
                     ->where('status', 'connected')
                     ->exists();
                 if (!$hasTelegram) $errors[] = 'Telegram ulanmagan';
@@ -339,12 +358,63 @@ class OnboardingService
                 }
                 break;
 
-            // Optional steps - always valid
+            // KPI Steps - optional but track completion based on data
+            case 'kpi_sales':
+                $salesMetrics = $business->salesMetrics;
+                if ($salesMetrics && $salesMetrics->hasData()) {
+                    // Has data - calculate completion percent from model
+                    $percent = $salesMetrics->completion_percent ?? 100;
+                    return [
+                        'is_valid' => true,
+                        'errors' => [],
+                        'percent' => $percent,
+                    ];
+                }
+                return [
+                    'is_valid' => true,
+                    'errors' => [],
+                    'percent' => 0,
+                ];
+
+            case 'kpi_marketing':
+                $marketingMetrics = $business->marketingMetrics;
+                if ($marketingMetrics && $marketingMetrics->hasData()) {
+                    // Has data - calculate completion percent from model
+                    $percent = $marketingMetrics->completion_percent ?? 100;
+                    return [
+                        'is_valid' => true,
+                        'errors' => [],
+                        'percent' => $percent,
+                    ];
+                }
+                return [
+                    'is_valid' => true,
+                    'errors' => [],
+                    'percent' => 0,
+                ];
+
+            // Optional integration steps - check if connected
             case 'integration_amocrm':
             case 'integration_google_ads':
+                // Integration steps - check if actually connected
+                $integration = Integration::where('business_id', $business->id)
+                    ->where('type', str_replace('integration_', '', $stepCode))
+                    ->where('status', 'connected')
+                    ->exists();
+                return [
+                    'is_valid' => true,
+                    'errors' => [],
+                    'percent' => $integration ? 100 : 0,
+                ];
+
             case 'framework_research':
-                // These are optional, so they're always valid
-                break;
+                // Research step - check if research data exists
+                $hasResearch = MarketResearch::where('business_id', $business->id)->exists();
+                return [
+                    'is_valid' => true,
+                    'errors' => [],
+                    'percent' => $hasResearch ? 100 : 0,
+                ];
         }
 
         $percent = empty($errors) ? 100 : $this->calculateStepPercent($stepCode, $business, $errors);
@@ -401,6 +471,7 @@ class OnboardingService
 
     /**
      * Update step progress
+     * Creates step if it doesn't exist, then updates its progress
      */
     public function updateStepProgress(Business $business, string $stepCode): void
     {
@@ -412,16 +483,23 @@ class OnboardingService
 
         $validation = $this->validateStep($business, $stepCode);
 
-        $step = $business->onboardingSteps()
-            ->where('step_definition_id', $stepDef->id)
-            ->first();
+        // Get or create the step
+        $step = OnboardingStep::firstOrCreate(
+            [
+                'business_id' => $business->id,
+                'step_definition_id' => $stepDef->id,
+            ],
+            [
+                'is_completed' => false,
+                'completion_percent' => 0,
+            ]
+        );
 
-        if ($step) {
-            $step->updateProgress(
-                $validation['percent'],
-                $validation['is_valid'] ? null : $validation['errors']
-            );
-        }
+        // Update progress
+        $step->updateProgress(
+            $validation['percent'],
+            $validation['is_valid'] ? null : $validation['errors']
+        );
 
         // Recalculate overall progress
         $this->calculateProgress($business);

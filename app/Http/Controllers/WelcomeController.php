@@ -26,24 +26,50 @@ class WelcomeController extends Controller
     }
 
     /**
-     * Show the create business form
+     * Show the create business form (for first-time users)
      */
     public function createBusiness()
     {
         $user = Auth::user();
 
-        // If user already has a business, redirect to dashboard
+        // If user already has a business, redirect to new-business route
         if ($user->businesses()->exists()) {
-            return redirect()->route('business.dashboard');
+            return redirect()->route('new-business');
         }
 
         return Inertia::render('Welcome/CreateBusiness');
     }
 
     /**
-     * Store a new business
+     * Show the create business form (for users who already have businesses)
+     */
+    public function newBusiness()
+    {
+        return Inertia::render('Welcome/CreateBusiness', [
+            'isAdditionalBusiness' => true,
+        ]);
+    }
+
+    /**
+     * Store a new business (first time)
      */
     public function storeBusiness(Request $request)
+    {
+        return $this->createAndStoreBusiness($request);
+    }
+
+    /**
+     * Store a new business (additional)
+     */
+    public function storeNewBusiness(Request $request)
+    {
+        return $this->createAndStoreBusiness($request);
+    }
+
+    /**
+     * Common method to create and store a business
+     */
+    private function createAndStoreBusiness(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -96,11 +122,41 @@ class WelcomeController extends Controller
             'joined_at' => now(),
         ]);
 
-        // Assign owner role using Spatie Permission
-        Auth::user()->assignRole('owner');
+        // Assign owner role using Spatie Permission (if not already)
+        if (!Auth::user()->hasRole('owner')) {
+            Auth::user()->assignRole('owner');
+        }
+
+        // Set the new business as current
+        session(['current_business_id' => $business->id]);
 
         // Redirect to onboarding
         return redirect()->route('onboarding.index')
             ->with('success', 'Biznes muvaffaqiyatli yaratildi! Endi onboarding jarayonini boshlang.');
+    }
+
+    /**
+     * Switch to a different business
+     */
+    public function switchBusiness(Business $business)
+    {
+        $user = Auth::user();
+
+        // Check if user has access to this business
+        if (!$user->businesses()->where('businesses.id', $business->id)->exists()) {
+            abort(403, 'Bu biznesga kirish huquqingiz yo\'q');
+        }
+
+        // Set the business as current
+        session(['current_business_id' => $business->id]);
+
+        // Check if business needs onboarding
+        if ($business->onboarding_status !== 'completed') {
+            return redirect()->route('onboarding.index')
+                ->with('info', "{$business->name} biznesiga o'tdingiz.");
+        }
+
+        return redirect()->route('business.dashboard')
+            ->with('success', "{$business->name} biznesiga o'tdingiz.");
     }
 }

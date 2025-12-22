@@ -20,9 +20,7 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Biznes nomi, sohasi va turi haqida ma\'lumotlar',
                 'description_en' => 'Business name, industry and type information',
                 'is_required' => true,
-                'required_fields' => json_encode([
-                    'name', 'industry_id', 'business_type', 'business_model'
-                ]),
+                'required_fields' => ['name', 'industry_id', 'business_type', 'business_model'],
                 'icon' => 'building-office',
                 'estimated_time_minutes' => 3,
                 'sort_order' => 1,
@@ -36,10 +34,8 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Jamoa, lokatsiya va bosqich haqida',
                 'description_en' => 'Team, location and stage information',
                 'is_required' => true,
-                'depends_on' => json_encode(['business_basic']),
-                'required_fields' => json_encode([
-                    'team_size', 'city', 'business_stage'
-                ]),
+                'depends_on' => ['business_basic'],
+                'required_fields' => ['team_size', 'city', 'business_stage'],
                 'icon' => 'users',
                 'estimated_time_minutes' => 3,
                 'sort_order' => 2,
@@ -53,10 +49,8 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Daromad, byudjet va asosiy qiyinchiliklar',
                 'description_en' => 'Revenue, budget and main challenges',
                 'is_required' => true,
-                'depends_on' => json_encode(['business_details']),
-                'required_fields' => json_encode([
-                    'monthly_revenue_range', 'monthly_marketing_budget_range', 'main_challenges'
-                ]),
+                'depends_on' => ['business_details'],
+                'required_fields' => ['monthly_revenue_range', 'monthly_marketing_budget_range', 'main_challenges'],
                 'icon' => 'chart-bar',
                 'estimated_time_minutes' => 5,
                 'sort_order' => 3,
@@ -72,7 +66,7 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Instagram biznes akkauntingizni ulang',
                 'description_en' => 'Connect your Instagram business account',
                 'is_required' => true,
-                'required_fields' => json_encode(['instagram_connected']),
+                'required_fields' => ['instagram_connected'],
                 'icon' => 'camera',
                 'estimated_time_minutes' => 5,
                 'sort_order' => 4,
@@ -86,7 +80,7 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Telegram kanalingiz yoki botingizni ulang',
                 'description_en' => 'Connect your Telegram channel or bot',
                 'is_required' => true,
-                'required_fields' => json_encode(['telegram_connected']),
+                'required_fields' => ['telegram_connected'],
                 'icon' => 'paper-airplane',
                 'estimated_time_minutes' => 5,
                 'sort_order' => 5,
@@ -100,7 +94,7 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'AmoCRM bilan integratsiya (ixtiyoriy)',
                 'description_en' => 'AmoCRM integration (optional)',
                 'is_required' => false,
-                'required_fields' => json_encode([]),
+                'required_fields' => [],
                 'icon' => 'document-text',
                 'estimated_time_minutes' => 10,
                 'sort_order' => 6,
@@ -114,10 +108,40 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Google Ads integratsiya (ixtiyoriy)',
                 'description_en' => 'Google Ads integration (optional)',
                 'is_required' => false,
-                'required_fields' => json_encode([]),
+                'required_fields' => [],
                 'icon' => 'currency-dollar',
                 'estimated_time_minutes' => 10,
                 'sort_order' => 7,
+            ],
+
+            // KPI CATEGORY (2 steps)
+            [
+                'code' => 'kpi_sales',
+                'phase' => 1,
+                'category' => 'kpi',
+                'name_uz' => 'Sotuv ko\'rsatkichlari',
+                'name_en' => 'Sales Metrics',
+                'description_uz' => 'Lidlar, konversiya, sotuv hajmi',
+                'description_en' => 'Leads, conversion, sales volume',
+                'is_required' => false,
+                'required_fields' => [],
+                'icon' => 'currency-dollar',
+                'estimated_time_minutes' => 5,
+                'sort_order' => 8,
+            ],
+            [
+                'code' => 'kpi_marketing',
+                'phase' => 1,
+                'category' => 'kpi',
+                'name_uz' => 'Marketing ko\'rsatkichlari',
+                'name_en' => 'Marketing Metrics',
+                'description_uz' => 'Kanallar, byudjet, ROI',
+                'description_en' => 'Channels, budget, ROI',
+                'is_required' => false,
+                'required_fields' => [],
+                'icon' => 'chart-pie',
+                'estimated_time_minutes' => 5,
+                'sort_order' => 9,
             ],
 
             // FRAMEWORK CATEGORY (5 steps)
@@ -130,12 +154,10 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Asosiy muammo va maqsadlarni aniqlash',
                 'description_en' => 'Define main problem and objectives',
                 'is_required' => true,
-                'required_fields' => json_encode([
-                    'problem_description', 'desired_outcome'
-                ]),
+                'required_fields' => ['problem_description', 'desired_outcome'],
                 'icon' => 'exclamation-circle',
                 'estimated_time_minutes' => 10,
-                'sort_order' => 8,
+                'sort_order' => 10,
             ],
             [
                 'code' => 'framework_dream_buyer',
@@ -146,15 +168,15 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Ideal mijoz profilini yaratish (9 ta savol)',
                 'description_en' => 'Create ideal customer profile (9 questions)',
                 'is_required' => true,
-                'depends_on' => json_encode(['framework_problem']),
-                'required_fields' => json_encode([
+                'depends_on' => ['framework_problem'],
+                'required_fields' => [
                     'dream_buyer_created', 'q1_answered', 'q2_answered', 'q3_answered',
                     'q4_answered', 'q5_answered', 'q6_answered', 'q7_answered',
                     'q8_answered', 'q9_answered'
-                ]),
+                ],
                 'icon' => 'user-circle',
                 'estimated_time_minutes' => 20,
-                'sort_order' => 9,
+                'sort_order' => 11,
             ],
             [
                 'code' => 'framework_research',
@@ -165,11 +187,11 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Bozor tadqiqoti ma\'lumotlarini kiritish',
                 'description_en' => 'Enter market research data',
                 'is_required' => false,
-                'depends_on' => json_encode(['framework_dream_buyer']),
-                'required_fields' => json_encode([]),
+                'depends_on' => ['framework_dream_buyer'],
+                'required_fields' => [],
                 'icon' => 'document-search',
                 'estimated_time_minutes' => 15,
-                'sort_order' => 10,
+                'sort_order' => 12,
             ],
             [
                 'code' => 'framework_competitors',
@@ -180,15 +202,15 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Kamida 2 ta raqobatchini kiritish',
                 'description_en' => 'Add at least 2 competitors',
                 'is_required' => true,
-                'depends_on' => json_encode(['framework_dream_buyer']),
-                'required_fields' => json_encode(['min_2_competitors']),
-                'completion_rules' => json_encode([
+                'depends_on' => ['framework_dream_buyer'],
+                'required_fields' => ['min_2_competitors'],
+                'completion_rules' => [
                     'min_count' => 2,
                     'model' => 'Competitor'
-                ]),
+                ],
                 'icon' => 'user-group',
                 'estimated_time_minutes' => 15,
-                'sort_order' => 11,
+                'sort_order' => 13,
             ],
             [
                 'code' => 'framework_hypotheses',
@@ -199,20 +221,23 @@ class StepDefinitionSeeder extends Seeder
                 'description_uz' => 'Kamida 1 ta gipoteza yaratish',
                 'description_en' => 'Create at least 1 hypothesis',
                 'is_required' => true,
-                'depends_on' => json_encode(['framework_competitors']),
-                'required_fields' => json_encode(['min_1_hypothesis']),
-                'completion_rules' => json_encode([
+                'depends_on' => ['framework_competitors'],
+                'required_fields' => ['min_1_hypothesis'],
+                'completion_rules' => [
                     'min_count' => 1,
                     'model' => 'MarketingHypothesis'
-                ]),
+                ],
                 'icon' => 'light-bulb',
                 'estimated_time_minutes' => 10,
-                'sort_order' => 12,
+                'sort_order' => 14,
             ],
         ];
 
         foreach ($steps as $step) {
-            StepDefinition::create($step);
+            StepDefinition::updateOrCreate(
+                ['code' => $step['code']],
+                $step
+            );
         }
     }
 }

@@ -410,6 +410,78 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   }
 
+  // Sales Metrics
+  async function fetchSalesMetrics() {
+    try {
+      const response = await axios.get('/api/v1/onboarding/sales-metrics');
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
+      throw err;
+    }
+  }
+
+  async function updateSalesMetrics(data) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await axios.put('/api/v1/onboarding/sales-metrics', data);
+      progress.value = response.data.data.progress;
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchSalesMetricsHistory() {
+    try {
+      const response = await axios.get('/api/v1/onboarding/sales-metrics/history');
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
+      throw err;
+    }
+  }
+
+  // Marketing Metrics
+  async function fetchMarketingMetrics() {
+    try {
+      const response = await axios.get('/api/v1/onboarding/marketing-metrics');
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
+      throw err;
+    }
+  }
+
+  async function updateMarketingMetrics(data) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await axios.put('/api/v1/onboarding/marketing-metrics', data);
+      progress.value = response.data.data.progress;
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchMarketingMetricsHistory() {
+    try {
+      const response = await axios.get('/api/v1/onboarding/marketing-metrics/history');
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
+      throw err;
+    }
+  }
+
   // Reset
   function reset() {
     progress.value = null;
@@ -472,6 +544,12 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     updateHypothesis,
     deleteHypothesis,
     startPhase2,
+    fetchSalesMetrics,
+    updateSalesMetrics,
+    fetchSalesMetricsHistory,
+    fetchMarketingMetrics,
+    updateMarketingMetrics,
+    fetchMarketingMetricsHistory,
     reset,
   };
 });

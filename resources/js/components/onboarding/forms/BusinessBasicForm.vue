@@ -1,241 +1,254 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="space-y-6">
-    <!-- Business Name -->
+  <form @submit.prevent="handleSubmit" class="space-y-5">
+    <!-- Row 1: Business Name -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes nomi <span class="text-red-500">*</span>
+      <label class="block text-sm font-medium text-gray-700 mb-1.5">
+        Biznes nomi
       </label>
       <input
         v-model="form.name"
         type="text"
-        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
         placeholder="Masalan: TechnoMarket"
         :class="{ 'border-red-500': errors.name }"
       />
-      <p v-if="errors.name" class="mt-1 text-sm text-red-500">{{ errors.name }}</p>
+      <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
     </div>
 
-    <!-- Industry -->
+    <!-- Row 2: Category -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Soha <span class="text-red-500">*</span>
+      <label class="block text-sm font-medium text-gray-700 mb-1.5">
+        Biznes kategoriyasi
       </label>
       <select
-        v-model="form.industry_id"
-        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        :class="{ 'border-red-500': errors.industry_id }"
-        @change="onIndustryChange"
+        v-model="form.category"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+        :class="{ 'border-red-500': errors.category }"
       >
-        <option value="">Sohani tanlang</option>
+        <option value="">Kategoriyani tanlang</option>
         <option
-          v-for="industry in industries"
-          :key="industry.id"
-          :value="industry.id"
+          v-for="cat in businessCategories"
+          :key="cat.value"
+          :value="cat.value"
         >
-          {{ industry.name.uz }}
+          {{ cat.label }}
         </option>
       </select>
-      <p v-if="errors.industry_id" class="mt-1 text-sm text-red-500">{{ errors.industry_id }}</p>
+      <p v-if="errors.category" class="mt-1 text-xs text-red-500">{{ errors.category }}</p>
     </div>
 
-    <!-- Sub-Industry -->
-    <div v-if="subIndustries.length > 0">
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Yo'nalish
+    <!-- Row 3: Description -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1.5">
+        Qisqacha tavsif
       </label>
-      <select
-        v-model="form.sub_industry_id"
-        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-      >
-        <option value="">Yo'nalishni tanlang (ixtiyoriy)</option>
-        <option
-          v-for="sub in subIndustries"
-          :key="sub.id"
-          :value="sub.id"
-        >
-          {{ sub.name.uz }}
-        </option>
-      </select>
+      <textarea
+        v-model="form.description"
+        rows="2"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
+        placeholder="Biznesingiz nima bilan shug'ullanadi?"
+      ></textarea>
     </div>
 
-    <!-- Business Type -->
+    <!-- Row 4: Business Type -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes turi <span class="text-red-500">*</span>
+        Biznes turi
       </label>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="grid grid-cols-4 gap-2">
         <label
           v-for="type in businessTypes"
           :key="type.value"
           :class="[
-            'relative flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all',
+            'relative flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all text-center',
             form.business_type === type.value
               ? 'border-indigo-500 bg-indigo-50'
               : 'border-gray-200 hover:border-gray-300'
           ]"
         >
-          <input
-            type="radio"
-            v-model="form.business_type"
-            :value="type.value"
-            class="sr-only"
-          />
-          <div class="text-center">
-            <span class="block font-medium text-gray-900">{{ type.label }}</span>
-            <span class="block text-xs text-gray-500 mt-1">{{ type.description }}</span>
-          </div>
+          <input type="radio" v-model="form.business_type" :value="type.value" class="sr-only" />
+          <span class="text-sm font-semibold text-gray-900">{{ type.label }}</span>
+          <span class="text-xs text-gray-500">{{ type.description }}</span>
         </label>
       </div>
-      <p v-if="errors.business_type" class="mt-1 text-sm text-red-500">{{ errors.business_type }}</p>
+      <p v-if="errors.business_type" class="mt-1 text-xs text-red-500">{{ errors.business_type }}</p>
     </div>
 
-    <!-- Business Model -->
+    <!-- Row 5: Business Model -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes modeli <span class="text-red-500">*</span>
+        Biznes modeli
       </label>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div class="grid grid-cols-5 gap-2">
         <label
           v-for="model in businessModels"
           :key="model.value"
           :class="[
-            'relative flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all',
+            'relative flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all text-center',
             form.business_model === model.value
               ? 'border-indigo-500 bg-indigo-50'
               : 'border-gray-200 hover:border-gray-300'
           ]"
         >
-          <input
-            type="radio"
-            v-model="form.business_model"
-            :value="model.value"
-            class="sr-only"
-          />
-          <div class="text-center">
-            <span class="block font-medium text-gray-900">{{ model.label }}</span>
-            <span class="block text-xs text-gray-500 mt-1">{{ model.description }}</span>
-          </div>
+          <input type="radio" v-model="form.business_model" :value="model.value" class="sr-only" />
+          <span class="text-sm font-semibold text-gray-900">{{ model.label }}</span>
+          <span class="text-xs text-gray-500">{{ model.description }}</span>
         </label>
       </div>
-      <p v-if="errors.business_model" class="mt-1 text-sm text-red-500">{{ errors.business_model }}</p>
+      <p v-if="errors.business_model" class="mt-1 text-xs text-red-500">{{ errors.business_model }}</p>
     </div>
 
-    <!-- Description -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes haqida qisqacha
-      </label>
-      <textarea
-        v-model="form.description"
-        rows="3"
-        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        placeholder="Biznesingiz haqida qisqacha ma'lumot..."
-      ></textarea>
-    </div>
+    <!-- Info text -->
+    <p class="text-sm text-gray-500 text-center">
+      Barcha maydonlar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+    </p>
 
     <!-- Submit -->
-    <div class="flex justify-end gap-3 pt-4">
+    <div class="flex justify-between gap-3 pt-2">
       <button
         type="button"
-        @click="$emit('cancel')"
-        class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+        @click="handleSkip"
+        class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
       >
-        Bekor qilish
+        O'tkazib yuborish
       </button>
-      <button
-        type="submit"
-        :disabled="loading"
-        class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      >
-        <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Saqlash va davom etish
-      </button>
+      <div class="flex gap-3">
+        <button
+          type="button"
+          @click="$emit('cancel')"
+          class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          Bekor qilish
+        </button>
+        <button
+          type="submit"
+          :disabled="loading"
+          class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <svg v-if="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Saqlash
+        </button>
+      </div>
     </div>
   </form>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
+import { useToastStore } from '@/stores/toast';
 
 const store = useOnboardingStore();
+const toast = useToastStore();
 
 const props = defineProps({
   business: {
     type: Object,
     default: () => ({})
-  },
-  industries: {
-    type: Array,
-    default: () => []
   }
 });
 
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(['submit', 'cancel', 'skip']);
 
 const loading = ref(false);
 const errors = reactive({});
 
-const form = reactive({
-  name: props.business?.name || '',
-  industry_id: props.business?.industry_id || '',
-  sub_industry_id: props.business?.sub_industry_id || '',
-  business_type: props.business?.business_type || '',
-  business_model: props.business?.business_model || '',
-  description: props.business?.description || ''
-});
+// Biznes kategoriyalari - CreateBusiness.vue bilan bir xil
+const businessCategories = [
+  { value: 'retail', label: 'Chakana savdo (Do\'konlar, supermarketlar)' },
+  { value: 'wholesale', label: 'Ulgurji savdo' },
+  { value: 'ecommerce', label: 'Onlayn savdo (E-commerce)' },
+  { value: 'food_service', label: 'Oziq-ovqat xizmati (Restoranlar, kafelar)' },
+  { value: 'manufacturing', label: 'Ishlab chiqarish' },
+  { value: 'construction', label: 'Qurilish va ta\'mirlash' },
+  { value: 'it_services', label: 'IT xizmatlari va dasturlash' },
+  { value: 'education', label: 'Ta\'lim va o\'quv markazlari' },
+  { value: 'healthcare', label: 'Sog\'liqni saqlash va tibbiyot' },
+  { value: 'beauty_wellness', label: 'Go\'zallik va salomatlik (Salonlar, SPA)' },
+  { value: 'real_estate', label: 'Ko\'chmas mulk' },
+  { value: 'transportation', label: 'Transport va logistika' },
+  { value: 'agriculture', label: 'Qishloq xo\'jaligi' },
+  { value: 'tourism', label: 'Turizm va mehmonxonalar' },
+  { value: 'finance', label: 'Moliya va sug\'urta' },
+  { value: 'consulting', label: 'Konsalting va biznes xizmatlari' },
+  { value: 'marketing_agency', label: 'Marketing va reklama agentligi' },
+  { value: 'media', label: 'Media va ko\'ngilochar sanoat' },
+  { value: 'fitness', label: 'Sport va fitness' },
+  { value: 'automotive', label: 'Avtomobil xizmatlari' },
+  { value: 'textile', label: 'To\'qimachilik va kiyim-kechak' },
+  { value: 'furniture', label: 'Mebel ishlab chiqarish va savdosi' },
+  { value: 'electronics', label: 'Elektronika va texnika' },
+  { value: 'cleaning', label: 'Tozalash xizmatlari' },
+  { value: 'event_services', label: 'Tadbirlar va to\'yxonalar' },
+  { value: 'legal', label: 'Yuridik xizmatlar' },
+  { value: 'other', label: 'Boshqa' },
+];
 
 const businessTypes = [
   { value: 'b2b', label: 'B2B', description: 'Biznesga' },
   { value: 'b2c', label: 'B2C', description: 'Mijozga' },
   { value: 'b2b2c', label: 'B2B2C', description: 'Ikkalasiga' },
-  { value: 'd2c', label: 'D2C', description: 'To\'g\'ridan-to\'g\'ri' }
+  { value: 'd2c', label: 'D2C', description: 'To\'g\'ri' }
 ];
 
 const businessModels = [
-  { value: 'product', label: 'Mahsulot', description: 'Tovar sotish' },
-  { value: 'service', label: 'Xizmat', description: 'Xizmat ko\'rsatish' },
+  { value: 'product', label: 'Mahsulot', description: 'Tovar' },
+  { value: 'service', label: 'Xizmat', description: 'Xizmat' },
   { value: 'marketplace', label: 'Marketplace', description: 'Platforma' },
-  { value: 'subscription', label: 'Obuna', description: 'Oylik to\'lov' },
-  { value: 'hybrid', label: 'Aralash', description: 'Ko\'p model' }
+  { value: 'subscription', label: 'Obuna', description: 'Oylik' },
+  { value: 'hybrid', label: 'Aralash', description: 'Ko\'p' }
 ];
 
-const subIndustries = computed(() => {
-  if (!form.industry_id) return [];
-  const industry = props.industries.find(i => i.id === parseInt(form.industry_id));
-  return industry?.children || [];
+const form = reactive({
+  name: '',
+  category: '',
+  business_type: '',
+  business_model: '',
+  description: ''
 });
 
-function onIndustryChange() {
-  form.sub_industry_id = '';
+// Initialize form when component mounts or props change
+function initializeForm() {
+  if (props.business) {
+    form.name = props.business.name || '';
+    form.category = props.business.category || '';
+    form.description = props.business.description || '';
+    form.business_type = props.business.business_type || '';
+    form.business_model = props.business.business_model || '';
+  }
 }
+
+// Watch for business prop changes
+watch(() => props.business, () => {
+  initializeForm();
+}, { immediate: true, deep: true });
 
 async function handleSubmit() {
   // Clear errors
   Object.keys(errors).forEach(key => delete errors[key]);
 
-  // Validate
-  if (!form.name) errors.name = 'Biznes nomi kiritilishi shart';
-  if (!form.industry_id) errors.industry_id = 'Soha tanlanishi shart';
-  if (!form.business_type) errors.business_type = 'Biznes turi tanlanishi shart';
-  if (!form.business_model) errors.business_model = 'Biznes modeli tanlanishi shart';
-
-  if (Object.keys(errors).length > 0) return;
-
+  // Barcha maydonlar ixtiyoriy - validatsiya yo'q
   loading.value = true;
 
   try {
     await store.updateBusinessBasic(form);
+    toast.success('Muvaffaqiyatli saqlandi', 'Biznes ma\'lumotlari yangilandi');
     emit('submit');
   } catch (err) {
     if (err.response?.data?.errors) {
       Object.assign(errors, err.response.data.errors);
     }
+    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
+    toast.error('Xatolik', errorMessage);
   } finally {
     loading.value = false;
   }
+}
+
+function handleSkip() {
+  emit('skip');
 }
 </script>

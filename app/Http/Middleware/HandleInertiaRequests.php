@@ -35,21 +35,54 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $currentBusiness = null;
+        $businesses = [];
+
+        if ($user) {
+            // Get all user's businesses
+            $businesses = $user->businesses()->select('id', 'name', 'slug', 'category', 'logo')->get()->map(fn($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
+                'slug' => $b->slug,
+                'category' => $b->category,
+                'logo' => $b->logo,
+            ])->toArray();
+
+            // Get current business from session or first business
+            $currentBusinessId = session('current_business_id');
+            if ($currentBusinessId) {
+                $currentBusiness = $user->businesses()->find($currentBusinessId);
+            }
+            if (!$currentBusiness && count($businesses) > 0) {
+                $currentBusiness = $user->businesses()->first();
+                session(['current_business_id' => $currentBusiness?->id]);
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'login' => $request->user()->login,
-                    'email' => $request->user()->email,
-                    'phone' => $request->user()->phone,
-                    'roles' => $request->user()->roles->map(fn($role) => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'login' => $user->login,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'roles' => $user->roles->map(fn($role) => [
                         'id' => $role->id,
                         'name' => $role->name,
                     ]),
                 ] : null,
             ],
+            'businesses' => $businesses,
+            'currentBusiness' => $currentBusiness ? [
+                'id' => $currentBusiness->id,
+                'name' => $currentBusiness->name,
+                'slug' => $currentBusiness->slug,
+                'category' => $currentBusiness->category,
+                'logo' => $currentBusiness->logo,
+            ] : null,
         ];
     }
 }
