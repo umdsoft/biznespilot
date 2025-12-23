@@ -23,6 +23,27 @@ class IndustryBenchmark extends Model
         'valid_from',
         'valid_until',
         'is_active',
+        // New fields for AI Diagnostics
+        'industry',
+        'sub_industry',
+        'avg_health_score',
+        'avg_conversion_rate',
+        'avg_engagement_rate',
+        'avg_response_time_minutes',
+        'avg_repeat_purchase_rate',
+        'top_health_score',
+        'top_conversion_rate',
+        'top_engagement_rate',
+        'top_response_time_minutes',
+        'top_repeat_purchase_rate',
+        'optimal_post_frequency_weekly',
+        'optimal_stories_daily',
+        'optimal_caption_length',
+        'optimal_hashtag_count',
+        'optimal_posting_times',
+        'proven_tactics',
+        'businesses_count',
+        'last_calculated_at',
     ];
 
     protected $casts = [
@@ -33,6 +54,18 @@ class IndustryBenchmark extends Model
         'valid_from' => 'date',
         'valid_until' => 'date',
         'is_active' => 'boolean',
+        // New casts
+        'avg_health_score' => 'decimal:2',
+        'avg_conversion_rate' => 'decimal:2',
+        'avg_engagement_rate' => 'decimal:2',
+        'avg_repeat_purchase_rate' => 'decimal:2',
+        'top_health_score' => 'decimal:2',
+        'top_conversion_rate' => 'decimal:2',
+        'top_engagement_rate' => 'decimal:2',
+        'top_repeat_purchase_rate' => 'decimal:2',
+        'optimal_posting_times' => 'array',
+        'proven_tactics' => 'array',
+        'last_calculated_at' => 'datetime',
     ];
 
     // Constants
@@ -64,6 +97,11 @@ class IndustryBenchmark extends Model
     public function scopeForMetric($query, string $metricCode)
     {
         return $query->where('metric_code', $metricCode);
+    }
+
+    public function scopeForIndustry($query, string $industry)
+    {
+        return $query->where('industry', $industry);
     }
 
     public function scopeValid($query)
@@ -183,5 +221,61 @@ class IndustryBenchmark extends Model
         };
 
         return $formatted;
+    }
+
+    /**
+     * Get benchmark data for AI Diagnostics
+     */
+    public function toAIBenchmarkArray(): array
+    {
+        return [
+            'industry' => $this->industry,
+            'sub_industry' => $this->sub_industry,
+            'avg_health_score' => $this->avg_health_score ?? 50,
+            'avg_conversion_rate' => $this->avg_conversion_rate ?? 2.5,
+            'avg_engagement_rate' => $this->avg_engagement_rate ?? 3.5,
+            'avg_response_time_minutes' => $this->avg_response_time_minutes ?? 60,
+            'avg_repeat_purchase_rate' => $this->avg_repeat_purchase_rate ?? 20,
+            'top_health_score' => $this->top_health_score ?? 85,
+            'top_conversion_rate' => $this->top_conversion_rate ?? 8,
+            'top_engagement_rate' => $this->top_engagement_rate ?? 8,
+            'top_response_time_minutes' => $this->top_response_time_minutes ?? 15,
+            'top_repeat_purchase_rate' => $this->top_repeat_purchase_rate ?? 40,
+            'optimal_post_frequency_weekly' => $this->optimal_post_frequency_weekly ?? 5,
+            'optimal_stories_daily' => $this->optimal_stories_daily ?? 5,
+            'proven_tactics' => $this->proven_tactics ?? [],
+            'businesses_count' => $this->businesses_count ?? 0,
+        ];
+    }
+
+    /**
+     * Get default benchmarks for an industry
+     */
+    public static function getDefaultBenchmarks(string $industry): array
+    {
+        $benchmark = self::where('industry', $industry)->first();
+
+        if ($benchmark) {
+            return $benchmark->toAIBenchmarkArray();
+        }
+
+        // Default values
+        return [
+            'industry' => $industry,
+            'avg_health_score' => 50,
+            'avg_conversion_rate' => 2.5,
+            'avg_engagement_rate' => 3.5,
+            'avg_response_time_minutes' => 60,
+            'avg_repeat_purchase_rate' => 20,
+            'top_health_score' => 85,
+            'top_conversion_rate' => 8,
+            'top_engagement_rate' => 8,
+            'top_response_time_minutes' => 15,
+            'top_repeat_purchase_rate' => 40,
+            'optimal_post_frequency_weekly' => 5,
+            'optimal_stories_daily' => 5,
+            'proven_tactics' => [],
+            'businesses_count' => 0,
+        ];
     }
 }

@@ -40,22 +40,13 @@ class DiagnosticService
     {
         $reasons = [];
 
-        // Check onboarding completion
-        if ($business->onboarding_progress < 100) {
+        // Check onboarding completion (minimum 50%)
+        if ($business->onboarding_percent < 50) {
             $reasons[] = [
                 'code' => 'onboarding_incomplete',
-                'message' => 'Onboarding jarayoni tugallanmagan',
-                'current' => $business->onboarding_progress,
-                'required' => 100,
-            ];
-        }
-
-        // Check if maturity assessment exists
-        $hasMaturity = MaturityAssessment::where('business_id', $business->id)->exists();
-        if (!$hasMaturity) {
-            $reasons[] = [
-                'code' => 'no_maturity_assessment',
-                'message' => 'Maturity baholash o\'tkazilmagan',
+                'message' => 'Kamida 50% ma\'lumotlarni to\'ldiring',
+                'current' => $business->onboarding_percent,
+                'required' => 50,
             ];
         }
 
@@ -413,7 +404,7 @@ class DiagnosticService
     /**
      * Get next version number for diagnostic
      */
-    protected function getNextVersion(int $businessId): int
+    protected function getNextVersion(string $businessId): int
     {
         $lastVersion = AIDiagnostic::where('business_id', $businessId)
             ->max('version');
@@ -428,7 +419,7 @@ class DiagnosticService
     {
         return AIDiagnostic::where('business_id', $business->id)
             ->where('status', 'completed')
-            ->with(['questions', 'reports', 'kpiCalculation'])
+            ->with(['reports', 'actionProgress'])
             ->latest('completed_at')
             ->first();
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class AIDiagnostic extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuids;
 
     protected $table = 'ai_diagnostics';
 
@@ -28,12 +29,38 @@ class AIDiagnostic extends Model
         'data_period_end',
         'data_sources_used',
         'data_points_analyzed',
+
+        // Scores
         'overall_score',
         'overall_health_score',
         'marketing_score',
         'sales_score',
         'content_score',
         'funnel_score',
+
+        // Status
+        'status_level',
+        'status_message',
+        'industry_avg_score',
+
+        // JSON Analysis (from TT)
+        'money_loss_analysis',
+        'similar_businesses',
+        'ideal_customer_analysis',
+        'offer_strength',
+        'channels_analysis',
+        'funnel_analysis',
+        'roi_calculations',
+        'cause_effect_matrix',
+        'quick_strategies',
+        'automation_analysis',
+        'risks',
+        'action_plan',
+        'expected_results',
+        'platform_recommendations',
+        'recommended_videos',
+
+        // Legacy SWOT
         'strengths',
         'weaknesses',
         'opportunities',
@@ -47,18 +74,28 @@ class AIDiagnostic extends Model
         'low_priority_actions',
         'executive_summary',
         'detailed_analysis',
+
+        // AI Meta
+        'ai_model',
         'ai_model_used',
         'ai_input_tokens',
         'ai_output_tokens',
         'ai_tokens_used',
+        'tokens_used',
+        'generation_time_ms',
         'ai_cost',
+
+        // Data
         'input_data_snapshot',
         'kpi_snapshot',
         'benchmark_comparison',
         'benchmark_summary',
         'trend_data',
+
+        // Timestamps
         'started_at',
         'completed_at',
+        'expires_at',
         'error_message',
         'retry_count',
     ];
@@ -67,6 +104,25 @@ class AIDiagnostic extends Model
         'data_period_start' => 'date',
         'data_period_end' => 'date',
         'data_sources_used' => 'array',
+
+        // JSON Analysis fields
+        'money_loss_analysis' => 'array',
+        'similar_businesses' => 'array',
+        'ideal_customer_analysis' => 'array',
+        'offer_strength' => 'array',
+        'channels_analysis' => 'array',
+        'funnel_analysis' => 'array',
+        'roi_calculations' => 'array',
+        'cause_effect_matrix' => 'array',
+        'quick_strategies' => 'array',
+        'automation_analysis' => 'array',
+        'risks' => 'array',
+        'action_plan' => 'array',
+        'expected_results' => 'array',
+        'platform_recommendations' => 'array',
+        'recommended_videos' => 'array',
+
+        // Legacy arrays
         'strengths' => 'array',
         'weaknesses' => 'array',
         'opportunities' => 'array',
@@ -83,9 +139,11 @@ class AIDiagnostic extends Model
         'benchmark_comparison' => 'array',
         'benchmark_summary' => 'array',
         'trend_data' => 'array',
+
         'ai_cost' => 'decimal:4',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -115,6 +173,14 @@ class AIDiagnostic extends Model
         'failed' => 'Xato',
     ];
 
+    public const STATUS_LEVELS = [
+        'critical' => ['label' => 'Xavfli', 'emoji' => '😰', 'color' => 'red'],
+        'weak' => ['label' => 'Zaif', 'emoji' => '😐', 'color' => 'orange'],
+        'medium' => ['label' => "O'rta", 'emoji' => '🙂', 'color' => 'yellow'],
+        'good' => ['label' => 'Yaxshi', 'emoji' => '😊', 'color' => 'green'],
+        'excellent' => ['label' => "Zo'r", 'emoji' => '🚀', 'color' => 'blue'],
+    ];
+
     // Relationships
     public function questions(): HasMany
     {
@@ -134,6 +200,11 @@ class AIDiagnostic extends Model
     public function previousDiagnostic(): BelongsTo
     {
         return $this->belongsTo(AIDiagnostic::class, 'previous_diagnostic_id');
+    }
+
+    public function actionProgress(): HasMany
+    {
+        return $this->hasMany(DiagnosticActionProgress::class, 'diagnostic_id');
     }
 
     // Scopes
@@ -162,6 +233,14 @@ class AIDiagnostic extends Model
         return $query->where('diagnostic_type', 'onboarding');
     }
 
+    public function scopeNotExpired($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('expires_at')
+              ->orWhere('expires_at', '>', now());
+        });
+    }
+
     // Helpers
     public function isPending(): bool
     {
@@ -181,6 +260,11 @@ class AIDiagnostic extends Model
     public function isFailed(): bool
     {
         return $this->status === 'failed';
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at && $this->expires_at->isPast();
     }
 
     public function markAsProcessing(): void
@@ -229,25 +313,50 @@ class AIDiagnostic extends Model
         return self::STATUSES[$this->status] ?? $this->status;
     }
 
+    public function getStatusLevelInfo(): array
+    {
+        return self::STATUS_LEVELS[$this->status_level] ?? [
+            'label' => $this->status_level,
+            'emoji' => '❓',
+            'color' => 'gray'
+        ];
+    }
+
+    public function getStatusLevelLabel(): string
+    {
+        return $this->getStatusLevelInfo()['label'];
+    }
+
+    public function getStatusLevelEmoji(): string
+    {
+        return $this->getStatusLevelInfo()['emoji'];
+    }
+
+    public function getStatusLevelColor(): string
+    {
+        return $this->getStatusLevelInfo()['color'];
+    }
+
     public function getHealthStatusColor(): string
     {
-        $score = $this->overall_health_score ?? 0;
+        $score = $this->overall_score ?? 0;
 
-        if ($score >= 80) return 'green';
-        if ($score >= 60) return 'yellow';
-        if ($score >= 40) return 'orange';
+        if ($score >= 80) return 'blue';
+        if ($score >= 60) return 'green';
+        if ($score >= 40) return 'yellow';
+        if ($score >= 20) return 'orange';
         return 'red';
     }
 
     public function getHealthStatusLabel(): string
     {
-        $score = $this->overall_health_score ?? 0;
+        $score = $this->overall_score ?? 0;
 
-        if ($score >= 80) return 'Ajoyib';
+        if ($score >= 80) return "Zo'r";
         if ($score >= 60) return 'Yaxshi';
-        if ($score >= 40) return 'O\'rtacha';
+        if ($score >= 40) return "O'rtacha";
         if ($score >= 20) return 'Zaif';
-        return 'Kritik';
+        return 'Xavfli';
     }
 
     public function getAllRecommendations(): array
@@ -285,5 +394,64 @@ class AIDiagnostic extends Model
         $remainingSeconds = $seconds % 60;
 
         return "{$minutes} daqiqa {$remainingSeconds} soniya";
+    }
+
+    // Money Loss Helpers
+    public function getMonthlyLoss(): int
+    {
+        return $this->money_loss_analysis['monthly_loss'] ?? 0;
+    }
+
+    public function getYearlyLoss(): int
+    {
+        return $this->money_loss_analysis['yearly_loss'] ?? 0;
+    }
+
+    public function getDailyLoss(): int
+    {
+        return $this->money_loss_analysis['daily_loss'] ?? 0;
+    }
+
+    public function getLossBreakdown(): array
+    {
+        return $this->money_loss_analysis['breakdown'] ?? [];
+    }
+
+    // Action Plan Helpers
+    public function getActionSteps(): array
+    {
+        return $this->action_plan['steps'] ?? [];
+    }
+
+    public function getTotalActionTime(): int
+    {
+        return $this->action_plan['total_time_hours'] ?? 0;
+    }
+
+    public function getPotentialSavings(): int
+    {
+        return $this->action_plan['total_potential_savings'] ?? 0;
+    }
+
+    // Expected Results Helpers
+    public function getExpectedResultsAt(string $period): array
+    {
+        return $this->expected_results[$period] ?? [];
+    }
+
+    public function get90DayProjection(): array
+    {
+        return $this->getExpectedResultsAt('90_days');
+    }
+
+    // Similar Businesses
+    public function getSuccessStories(): array
+    {
+        return $this->similar_businesses['success_stories'] ?? [];
+    }
+
+    public function getProvenTactics(): array
+    {
+        return $this->similar_businesses['proven_tactics'] ?? [];
     }
 }

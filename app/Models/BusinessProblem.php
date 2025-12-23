@@ -12,22 +12,16 @@ class BusinessProblem extends Model
 
     protected $fillable = [
         'business_id',
-        'problem_category',
-        'problem_description',
-        'impact_level',
-        'when_started',
-        'attempts_to_solve',
-        'desired_outcome',
-        'success_metrics',
-        'priority',
+        'category',
+        'title',
+        'description',
+        'severity',
         'status',
-        'resolved_at',
+        'potential_solutions',
     ];
 
     protected $casts = [
-        'when_started' => 'date',
-        'attempts_to_solve' => 'array',
-        'resolved_at' => 'datetime',
+        'potential_solutions' => 'array',
     ];
 
     // Constants
@@ -40,7 +34,7 @@ class BusinessProblem extends Model
         'other' => 'Boshqa',
     ];
 
-    public const IMPACT_LEVELS = [
+    public const SEVERITY_LEVELS = [
         'critical' => 'Juda jiddiy',
         'high' => 'Yuqori',
         'medium' => 'O\'rtacha',
@@ -60,17 +54,12 @@ class BusinessProblem extends Model
 
     public function scopeCritical($query)
     {
-        return $query->where('impact_level', 'critical');
+        return $query->where('severity', 'critical');
     }
 
     public function scopeByCategory($query, string $category)
     {
-        return $query->where('problem_category', $category);
-    }
-
-    public function scopeOrderByPriority($query)
-    {
-        return $query->orderBy('priority');
+        return $query->where('category', $category);
     }
 
     public function scopeOrdered($query)
@@ -81,19 +70,18 @@ class BusinessProblem extends Model
     // Helpers
     public function getCategoryLabel(): string
     {
-        return self::CATEGORIES[$this->problem_category] ?? $this->problem_category;
+        return self::CATEGORIES[$this->category] ?? $this->category;
     }
 
-    public function getImpactLabel(): string
+    public function getSeverityLabel(): string
     {
-        return self::IMPACT_LEVELS[$this->impact_level] ?? $this->impact_level;
+        return self::SEVERITY_LEVELS[$this->severity] ?? $this->severity;
     }
 
     public function resolve(): void
     {
         $this->update([
             'status' => 'resolved',
-            'resolved_at' => now(),
         ]);
     }
 
@@ -104,6 +92,6 @@ class BusinessProblem extends Model
 
     public function isCritical(): bool
     {
-        return $this->impact_level === 'critical';
+        return $this->severity === 'critical';
     }
 }

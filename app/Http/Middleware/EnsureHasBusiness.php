@@ -46,8 +46,12 @@ class EnsureHasBusiness
 
         // Check if current business needs onboarding
         if ($currentBusiness && $currentBusiness->onboarding_status !== 'completed') {
-            // Allow access to onboarding routes
-            if ($request->is('onboarding*') || $request->is('logout') || $request->is('switch-business*') || $request->is('new-business*')) {
+            // Allow access to onboarding, diagnostic and some other routes
+            if ($request->is('onboarding*') ||
+                $request->is('business/diagnostic*') ||
+                $request->is('logout') ||
+                $request->is('switch-business*') ||
+                $request->is('new-business*')) {
                 return $next($request);
             }
 

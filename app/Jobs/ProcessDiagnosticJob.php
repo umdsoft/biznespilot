@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\AIDiagnostic;
-use App\Services\DiagnosticService;
+use App\Services\ClaudeDiagnosticService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -38,19 +38,24 @@ class ProcessDiagnosticJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(DiagnosticService $diagnosticService): void
+    public function handle(ClaudeDiagnosticService $claudeService): void
     {
-        Log::info('Processing diagnostic', [
+        Log::info('Processing diagnostic with Claude AI', [
             'diagnostic_id' => $this->diagnostic->id,
             'business_id' => $this->diagnostic->business_id,
         ]);
 
         try {
-            $diagnosticService->processDiagnostic($this->diagnostic);
+            // Get fresh diagnostic instance
+            $diagnostic = $this->diagnostic->fresh();
+            $business = $diagnostic->business;
+
+            // Run Claude diagnostics
+            $claudeService->runDiagnosticsForExisting($diagnostic, $business);
 
             Log::info('Diagnostic completed successfully', [
-                'diagnostic_id' => $this->diagnostic->id,
-                'overall_score' => $this->diagnostic->overall_score,
+                'diagnostic_id' => $diagnostic->id,
+                'overall_score' => $diagnostic->overall_score,
             ]);
 
         } catch (\Exception $e) {

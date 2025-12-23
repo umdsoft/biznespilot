@@ -71,6 +71,17 @@ class Business extends Model
     ];
 
     /**
+     * Get onboarding progress percent as accessor (Phase 1 completion)
+     * Access via $business->onboarding_percent
+     * This returns phase_1_completion_percent which is what users see on onboarding page
+     */
+    public function getOnboardingPercentAttribute(): int
+    {
+        $progress = $this->onboardingProgress()->first();
+        return $progress ? (int) $progress->phase_1_completion_percent : 0;
+    }
+
+    /**
      * Boot method - Business yaratilganda OnboardingProgress ham yaratilsin
      */
     protected static function boot()
@@ -183,6 +194,17 @@ class Business extends Model
     public function integrations(): HasMany
     {
         return $this->hasMany(Integration::class);
+    }
+
+    /**
+     * Check if business has a specific integration type connected.
+     */
+    public function hasIntegration(string $type): bool
+    {
+        return $this->integrations()
+            ->where('type', $type)
+            ->where('status', 'connected')
+            ->exists();
     }
 
     /**

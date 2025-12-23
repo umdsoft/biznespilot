@@ -30,18 +30,44 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Welcome Section -->
-      <div class="text-center mb-10">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full mb-4">
-          <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-          <span class="text-sm font-medium text-blue-700">Ma'lumotlar to'plash bosqichi</span>
+      <!-- Welcome Section with AI CTA -->
+      <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 rounded-3xl p-8 sm:p-10 mb-10 relative overflow-hidden">
+        <!-- Background decoration -->
+        <div class="absolute inset-0 opacity-10">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div class="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
         </div>
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-          Biznesingizni sozlashni boshlang
-        </h1>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-          AI yordamchi sizga to'liq marketingni tahlil qilib berishi uchun quyidagi ma'lumotlarni kiriting
-        </p>
+
+        <div class="relative flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div class="text-center lg:text-left flex-1">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-4">
+              <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+              <span class="text-sm font-medium text-white">{{ overallPercent }}% tayyor</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3">
+              Biznesingizni AI bilan tahlil qiling
+            </h1>
+            <p class="text-lg text-indigo-100 max-w-xl">
+              Ma'lumotlaringiz asosida AI sizning biznesingizni 360° tahlil qiladi va o'sish strategiyasini tavsiya qiladi
+            </p>
+          </div>
+
+          <div class="flex flex-col items-center gap-4">
+            <button
+              @click="startAIDiagnostic"
+              class="group relative px-8 py-4 bg-white text-indigo-600 font-bold text-lg rounded-2xl shadow-2xl shadow-black/20 hover:shadow-black/30 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+            >
+              <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>AI Diagnostikani Boshlash</span>
+              <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
+            <p class="text-indigo-200 text-sm">Bepul • 2-3 daqiqa • Aniq tavsiyalar</p>
+          </div>
+        </div>
       </div>
 
       <!-- Loading State -->
@@ -121,14 +147,6 @@
               </div>
             </div>
           </div>
-
-          <!-- AI Analiz Button -->
-          <button @click="startAIDiagnostic" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            AI Analizga o'tish
-          </button>
 
           <!-- Dashboard Button -->
           <button @click="goToDashboard" class="w-full py-3 bg-white border-2 border-indigo-200 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-colors flex items-center justify-center gap-2">
@@ -775,7 +793,7 @@ function goToDashboard() {
 }
 
 function startAIDiagnostic() {
-  window.location.href = '/diagnostic';
+  window.location.href = '/business/diagnostic';
 }
 
 // Lifecycle

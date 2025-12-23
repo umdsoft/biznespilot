@@ -49,11 +49,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useDiagnosticStore } from '@/stores/diagnostic';
 import ProcessingAnimation from '@/Components/diagnostic/ProcessingAnimation.vue';
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline';
+import axios from 'axios';
 
 const props = defineProps({
   diagnostic: {
@@ -65,29 +66,73 @@ const props = defineProps({
 const store = useDiagnosticStore();
 const processingStep = ref(props.diagnostic.processing_step || 'aggregating_data');
 const error = ref(null);
+const isRunning = ref(false);
 
 let pollInterval = null;
 
+async function runDiagnostic() {
+  if (isRunning.value) return;
+  isRunning.value = true;
+  error.value = null;
+
+  try {
+    // Start polling IMMEDIATELY before the POST request
+    // This ensures we catch all step updates
+    startPolling();
+
+    // Trigger the actual processing (this returns quickly now)
+    const response = await axios.post(`/business/diagnostic/${props.diagnostic.id}/run`);
+
+    // Update step from response if available
+    if (response.data.processing_step) {
+      processingStep.value = response.data.processing_step;
+    }
+
+  } catch (err) {
+    console.error('Run error:', err);
+    stopPolling();
+    error.value = err.response?.data?.message || 'Diagnostika ishga tushirib bo\'lmadi';
+    isRunning.value = false;
+  }
+}
+
 async function pollStatus() {
   try {
-    const status = await store.fetchStatus(props.diagnostic.id);
-    processingStep.value = status.processing_step;
+    const response = await axios.get(`/business/diagnostic/${props.diagnostic.id}/status`);
+    const status = response.data;
 
+    // Update processing step
+    if (status.processing_step) {
+      processingStep.value = status.processing_step;
+    }
+
+    // Check if completed or failed
     if (status.status === 'completed') {
       stopPolling();
-      router.visit(`/business/diagnostic/${props.diagnostic.id}`);
+      isRunning.value = false;
+      // Small delay before redirect for UX
+      setTimeout(() => {
+        router.visit(`/business/diagnostic/${props.diagnostic.id}`);
+      }, 500);
     } else if (status.status === 'failed') {
       stopPolling();
+      isRunning.value = false;
       error.value = status.error_message || 'Diagnostika muvaffaqiyatsiz tugadi';
     }
   } catch (err) {
     console.error('Polling error:', err);
+    // Don't stop polling on network error, might be temporary
   }
 }
 
 function startPolling() {
-  pollStatus(); // Initial call
-  pollInterval = setInterval(pollStatus, 2000);
+  if (pollInterval) return; // Already polling
+
+  // Poll every 1 second for real-time updates
+  pollInterval = setInterval(pollStatus, 1000);
+
+  // Also do an immediate poll
+  pollStatus();
 }
 
 function stopPolling() {
@@ -102,18 +147,24 @@ function cancelDiagnostic() {
   router.visit('/business/diagnostic');
 }
 
-function retryDiagnostic() {
+async function retryDiagnostic() {
   error.value = null;
-  store.startDiagnostic();
+  isRunning.value = false;
+  await runDiagnostic();
 }
 
-onMounted(() => {
-  if (props.diagnostic.status === 'pending' || props.diagnostic.status === 'processing') {
+onMounted(async () => {
+  if (props.diagnostic.status === 'pending') {
+    // Trigger the processing
+    await runDiagnostic();
+  } else if (props.diagnostic.status === 'processing') {
+    // Already processing, just start polling
+    isRunning.value = true;
     startPolling();
   } else if (props.diagnostic.status === 'completed') {
     router.visit(`/business/diagnostic/${props.diagnostic.id}`);
   } else if (props.diagnostic.status === 'failed') {
-    error.value = 'Diagnostika muvaffaqiyatsiz tugadi';
+    error.value = props.diagnostic.error_message || 'Diagnostika muvaffaqiyatsiz tugadi';
   }
 });
 

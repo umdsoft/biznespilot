@@ -439,6 +439,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/history', [DiagnosticController::class, 'history'])->name('history');
         Route::get('/{diagnostic}/status', [DiagnosticController::class, 'status'])->name('status');
         Route::get('/{diagnostic}/processing', [DiagnosticController::class, 'processing'])->name('processing');
+        Route::post('/{diagnostic}/run', [DiagnosticController::class, 'run'])->name('run');
         Route::get('/{diagnostic}', [DiagnosticController::class, 'show'])->name('show');
         Route::get('/{diagnostic}/questions', [DiagnosticController::class, 'questions'])->name('questions');
         Route::post('/questions/{question}/answer', [DiagnosticController::class, 'answerQuestion'])->name('questions.answer');
