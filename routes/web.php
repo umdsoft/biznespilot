@@ -437,6 +437,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/check-eligibility', [DiagnosticController::class, 'checkEligibility'])->name('check-eligibility');
         Route::post('/start', [DiagnosticController::class, 'start'])->name('start');
         Route::get('/history', [DiagnosticController::class, 'history'])->name('history');
+        Route::post('/complete-and-go', [DiagnosticController::class, 'completeAndGoToBusiness'])->name('complete-and-go');
+        Route::post('/skip', [DiagnosticController::class, 'skipDiagnostic'])->name('skip');
         Route::get('/{diagnostic}/status', [DiagnosticController::class, 'status'])->name('status');
         Route::get('/{diagnostic}/processing', [DiagnosticController::class, 'processing'])->name('processing');
         Route::post('/{diagnostic}/run', [DiagnosticController::class, 'run'])->name('run');

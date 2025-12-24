@@ -31,6 +31,17 @@
                 Onboardingga qaytish
               </span>
             </Link>
+            <button
+              @click="skipDiagnostic"
+              class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+                O'tkazib yuborish
+              </span>
+            </button>
             <div class="text-right hidden sm:block">
               <p class="text-sm font-medium text-gray-900">{{ businessName }}</p>
               <p class="text-xs text-gray-500">{{ userName }}</p>
@@ -345,6 +356,101 @@
               </div>
             </button>
           </div>
+
+          <!-- Start Working CTA Section -->
+          <div class="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 rounded-3xl p-8 relative overflow-hidden mb-8">
+            <!-- Background decorations -->
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute top-0 right-0 w-72 h-72 bg-white rounded-full -translate-y-1/3 translate-x-1/3"></div>
+              <div class="absolute bottom-0 left-0 w-56 h-56 bg-white rounded-full translate-y-1/3 -translate-x-1/3"></div>
+              <div class="absolute top-1/2 left-1/2 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+
+            <div class="relative">
+              <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <!-- Left content -->
+                <div class="flex-1 text-center lg:text-left">
+                  <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-4">
+                    <RocketLaunchIcon class="w-5 h-5 text-white" />
+                    <span class="text-sm font-semibold text-white">Tahlil yakunlandi</span>
+                  </div>
+
+                  <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3">
+                    Ishni boshlash vaqti keldi!
+                  </h2>
+
+                  <p class="text-emerald-100 text-lg mb-6 max-w-xl">
+                    Diagnostika natijalariga ko'ra sizning biznesingiz uchun aniq harakat rejasi tayyor.
+                    Endi Dashboard'ga o'ting va birinchi qadamni qo'ying.
+                  </p>
+
+                  <!-- Quick stats -->
+                  <div class="flex flex-wrap justify-center lg:justify-start gap-4 mb-6">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <CheckCircleIcon class="w-5 h-5 text-white" />
+                      <span class="text-white font-medium">{{ latestDiagnostic.action_plan?.total_steps || 3 }} qadam tayyor</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <ClockIcon class="w-5 h-5 text-white" />
+                      <span class="text-white font-medium">~{{ latestDiagnostic.action_plan?.total_time_hours || 5 }} soat</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <BanknotesIcon class="w-5 h-5 text-white" />
+                      <span class="text-white font-medium">+{{ formatPotentialSavings(latestDiagnostic.action_plan?.total_potential_savings) }} potensial</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right - CTA buttons -->
+                <div class="flex flex-col gap-4">
+                  <button
+                    @click="goToDashboard"
+                    class="group flex items-center justify-center gap-3 px-8 py-4 bg-white text-emerald-600 font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                  >
+                    <PlayIcon class="w-6 h-6" />
+                    <span>Dashboard'ga o'tish</span>
+                    <ArrowRightIcon class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+
+                  <Link
+                    v-if="latestDiagnostic.action_plan?.steps?.[0]?.module_route"
+                    :href="latestDiagnostic.action_plan.steps[0].module_route"
+                    class="group flex items-center justify-center gap-3 px-8 py-4 bg-white/20 backdrop-blur-sm text-white font-semibold text-lg rounded-2xl border-2 border-white/30 hover:bg-white/30 hover:border-white/50 transition-all duration-300"
+                  >
+                    <SparklesIcon class="w-6 h-6" />
+                    <span>{{ latestDiagnostic.action_plan.steps[0].title || 'Birinchi qadamni boshlash' }}</span>
+                  </Link>
+                </div>
+              </div>
+
+              <!-- First step preview -->
+              <div v-if="latestDiagnostic.action_plan?.steps?.[0]" class="mt-8 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl font-bold text-emerald-600">1</span>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-white font-semibold text-lg mb-1">
+                      {{ latestDiagnostic.action_plan.steps[0].title }}
+                    </h4>
+                    <p class="text-emerald-100 text-sm mb-3">
+                      {{ latestDiagnostic.action_plan.steps[0].why }}
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                      <span class="inline-flex items-center gap-1 px-3 py-1 bg-white/20 rounded-lg text-white text-sm">
+                        <ClockIcon class="w-4 h-4" />
+                        {{ latestDiagnostic.action_plan.steps[0].time_minutes }} daqiqa
+                      </span>
+                      <span class="inline-flex items-center gap-1 px-3 py-1 bg-white/20 rounded-lg text-white text-sm">
+                        <TrophyIcon class="w-4 h-4" />
+                        {{ latestDiagnostic.action_plan.steps[0].similar_business_result }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </template>
 
         <!-- History Section -->
@@ -404,6 +510,9 @@ import {
   RocketLaunchIcon,
   TrophyIcon,
   ClipboardDocumentListIcon,
+  PlayIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -457,5 +566,18 @@ function scoreColorClass(score) {
   if (score >= 60) return 'bg-green-100 text-green-700';
   if (score >= 40) return 'bg-yellow-100 text-yellow-700';
   return 'bg-red-100 text-red-700';
+}
+
+function formatPotentialSavings(amount) {
+  if (!amount) return '0 so\'m';
+  return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
+}
+
+function goToDashboard() {
+  router.post('/business/diagnostic/complete-and-go');
+}
+
+function skipDiagnostic() {
+  router.post('/business/diagnostic/skip');
 }
 </script>

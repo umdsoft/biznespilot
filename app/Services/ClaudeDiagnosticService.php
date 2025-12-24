@@ -70,7 +70,7 @@ class ClaudeDiagnosticService
                 'breakdown' => [
                     ['problem' => 'Mijozlar bilan aloqa yo\'qligi', 'amount' => 5000000, 'solution_module' => '/onboarding/dream-buyer', 'solution_title' => 'Ideal Mijoz'],
                     ['problem' => 'Zaif marketing kanallari', 'amount' => 7000000, 'solution_module' => '/business/channels', 'solution_title' => 'Kanallar'],
-                    ['problem' => 'Avtomatlashtirish yo\'qligi', 'amount' => 3000000, 'solution_module' => '/business/whatsapp-ai', 'solution_title' => 'WhatsApp AI'],
+                    ['problem' => 'Avtomatlashtirish yo\'qligi', 'amount' => 3000000, 'solution_module' => '/business/instagram-ai', 'solution_title' => 'Instagram AI'],
                 ],
             ],
             'roi_calculations' => [
@@ -110,7 +110,7 @@ class ClaudeDiagnosticService
                     ],
                     [
                         'id' => 2,
-                        'action' => 'Grand Slam Offer yaratish',
+                        'action' => 'Rad qilib bo\'lmas taklif yaratish',
                         'priority' => 2,
                         'investment' => [
                             'time' => '45 daqiqa',
@@ -122,7 +122,7 @@ class ClaudeDiagnosticService
                             'metric' => 'Sotuvlar',
                             'improvement' => '+60%',
                             'monthly_gain' => 7000000,
-                            'description' => 'Rad qilib bo\'lmaydigan taklif',
+                            'description' => 'Raqobatchilardan farqlanadigan kuchli taklif',
                         ],
                         'roi_percent' => 18567,
                         'payback_days' => 1,
@@ -132,7 +132,7 @@ class ClaudeDiagnosticService
                     ],
                     [
                         'id' => 3,
-                        'action' => 'WhatsApp AI yoqish',
+                        'action' => 'Instagram AI ulash',
                         'priority' => 3,
                         'investment' => [
                             'time' => '20 daqiqa',
@@ -148,7 +148,7 @@ class ClaudeDiagnosticService
                         ],
                         'roi_percent' => 17864,
                         'payback_days' => 1,
-                        'module_route' => '/business/whatsapp-ai',
+                        'module_route' => '/business/instagram-ai',
                         'difficulty' => 'oson',
                         'verdict' => 'JUDA SAMARALI ✅',
                     ],
@@ -182,7 +182,7 @@ class ClaudeDiagnosticService
                     'current_impact' => 'Mijozlar qaror qila olmaydi, sotuvlar past',
                     'monthly_loss' => 7000000,
                     'solution' => [
-                        'action' => 'Grand Slam Offer yarating',
+                        'action' => 'Rad qilib bo\'lmas taklif yarating',
                         'module' => 'Taklif',
                         'module_route' => '/onboarding/offer',
                         'time' => '45 daqiqa',
@@ -203,9 +203,9 @@ class ClaudeDiagnosticService
                     'current_impact' => 'Leadlar yo\'qolmoqda, raqobatchilar olib ketmoqda',
                     'monthly_loss' => 3000000,
                     'solution' => [
-                        'action' => 'WhatsApp AI yoqing',
-                        'module' => 'WhatsApp AI',
-                        'module_route' => '/business/whatsapp-ai',
+                        'action' => 'Instagram AI yoqing',
+                        'module' => 'Instagram AI',
+                        'module_route' => '/business/instagram-ai',
                         'time' => '20 daqiqa',
                         'difficulty' => 'oson',
                     ],
@@ -294,7 +294,7 @@ class ClaudeDiagnosticService
                 'channels' => [
                     ['name' => 'Instagram', 'effectiveness' => 'low', 'recommendation' => 'Hozircha ulanmagan. Instagram profilingizni ulang va kontentni muntazam joylashtiring'],
                     ['name' => 'Telegram', 'effectiveness' => 'medium', 'recommendation' => 'Bot yarating va mijozlar bilan avtomatik muloqot o\'rnating'],
-                    ['name' => 'WhatsApp', 'effectiveness' => 'high', 'recommendation' => 'WhatsApp Business API ni ulang va tezkor javob bering'],
+                    ['name' => 'Facebook', 'effectiveness' => 'high', 'recommendation' => 'Facebook Business sahifangizni faollashtiring va reklama kampaniyalarini boshlang'],
                 ],
                 'recommended_channels' => ['TikTok', 'YouTube Shorts', 'Google Ads'],
             ],
@@ -308,7 +308,7 @@ class ClaudeDiagnosticService
                 ],
                 'bottlenecks' => [
                     'Qiziqish -> Qaror bosqichida 83% yo\'qotish mavjud',
-                    'Taklif yetarlicha kuchli emas - Grand Slam Offer kerak',
+                    'Taklif yetarlicha kuchli emas - rad qilib bo\'lmas taklif kerak',
                     'Follow-up tizimi yo\'q - mijozlar unutilmoqda',
                 ],
             ],
@@ -317,7 +317,7 @@ class ClaudeDiagnosticService
                 'chatbot_enabled' => false,
                 'followup_enabled' => false,
                 'lost_leads_percent' => rand(40, 70),
-                'recommendations' => ['WhatsApp AI ni yoqing', 'Avtomatik follow-up'],
+                'recommendations' => ['Instagram AI ni yoqing', 'Avtomatik follow-up'],
             ],
             'risks' => [
                 'threats' => [
@@ -328,7 +328,7 @@ class ClaudeDiagnosticService
                 'opportunities' => [
                     'AI avtomatlashtirish orqali xarajatlarni 40% kamaytirish',
                     'Dream Buyer metodologiyasi bilan konversiyani 2x oshirish',
-                    'WhatsApp bot orqali 24/7 mijozlarga xizmat ko\'rsatish',
+                    'Instagram AI orqali 24/7 mijozlarga xizmat ko\'rsatish',
                 ],
             ],
             'swot' => [
@@ -358,15 +358,27 @@ class ClaudeDiagnosticService
                 'total_potential_savings' => 15000000,
                 'steps' => [
                     ['order' => 1, 'title' => 'Ideal mijozni aniqlang', 'module_route' => '/onboarding/dream-buyer', 'module_name' => 'Dream Buyer', 'time_minutes' => 30, 'impact_stars' => 5, 'why' => 'Barcha marketing harakatlarining asosi', 'similar_business_result' => '+45% konversiya', 'timeline' => 'today'],
-                    ['order' => 2, 'title' => 'Grand Slam Offer yarating', 'module_route' => '/onboarding/offer', 'module_name' => 'Taklif', 'time_minutes' => 45, 'impact_stars' => 5, 'why' => 'Mijozlarni jalb qilish uchun', 'similar_business_result' => '+60% sotuvlar', 'timeline' => 'today'],
-                    ['order' => 3, 'title' => 'WhatsApp AI ni sozlang', 'module_route' => '/business/whatsapp-ai', 'module_name' => 'WhatsApp AI', 'time_minutes' => 20, 'impact_stars' => 4, 'why' => 'Avtomatik javob berish', 'similar_business_result' => '+80% javob tezligi', 'timeline' => 'this_week'],
+                    ['order' => 2, 'title' => 'Rad qilib bo\'lmas taklif yarating', 'module_route' => '/onboarding/offer', 'module_name' => 'Taklif', 'time_minutes' => 45, 'impact_stars' => 5, 'why' => 'Mijozlarni jalb qilish uchun', 'similar_business_result' => '+60% sotuvlar', 'timeline' => 'today'],
+                    ['order' => 3, 'title' => 'Instagram AI ni sozlang', 'module_route' => '/business/instagram-ai', 'module_name' => 'Instagram AI', 'time_minutes' => 20, 'impact_stars' => 4, 'why' => 'Avtomatik javob berish', 'similar_business_result' => '+80% javob tezligi', 'timeline' => 'this_week'],
                 ],
             ],
             'expected_results' => [
                 'now' => ['score' => $score, 'leads_weekly' => 10, 'conversion' => 2, 'revenue_change' => 0],
-                '30_days' => ['score' => $score + 15, 'leads_weekly' => 25, 'conversion' => 5, 'revenue_change' => 30],
-                '60_days' => ['score' => $score + 25, 'leads_weekly' => 50, 'conversion' => 8, 'revenue_change' => 60],
-                '90_days' => ['score' => $score + 35, 'leads_weekly' => 80, 'conversion' => 12, 'revenue_change' => 100],
+                '30_days' => [
+                    'health_score_improvement' => 15,
+                    'conversion_improvement' => 3,
+                    'description' => 'Ideal mijoz aniqlanadi, taklif optimallashtiriladi, dastlabki natijalar ko\'rinadi',
+                ],
+                '60_days' => [
+                    'health_score_improvement' => 25,
+                    'revenue_improvement' => 40,
+                    'description' => 'Marketing kanallari yaxshilanadi, sotuvlar barqarorlashadi, mijozlar soni oshadi',
+                ],
+                '90_days' => [
+                    'health_score_improvement' => 35,
+                    'total_revenue_increase' => 8000000,
+                    'description' => 'To\'liq tizim ishlaydi, avtomatlashtirish tugallanadi, barqaror o\'sish boshlandi',
+                ],
             ],
             'platform_recommendations' => [
                 [
@@ -376,16 +388,16 @@ class ClaudeDiagnosticService
                     'route' => '/onboarding/dream-buyer',
                 ],
                 [
-                    'module' => 'Grand Slam Offer',
+                    'module' => 'Rad qilib bo\'lmas taklif',
                     'reason' => 'Taqqoslab bo\'lmaydigan taklif yarating va konversiyani oshiring',
                     'priority' => 'yuqori',
                     'route' => '/onboarding/offer',
                 ],
                 [
-                    'module' => 'WhatsApp AI',
+                    'module' => 'Instagram AI',
                     'reason' => 'Mijozlarga avtomatik javob berish va yo\'qotilgan leadlarni qaytarish',
                     'priority' => 'o\'rta',
-                    'route' => '/business/whatsapp-ai',
+                    'route' => '/business/instagram-ai',
                 ],
             ],
             'recommended_videos' => [

@@ -630,6 +630,7 @@ HTML;
             'tokens_used' => $diagnostic->tokens_used,
             'generation_time_ms' => $diagnostic->generation_time_ms,
             'completed_at' => $diagnostic->completed_at?->format('d.m.Y H:i'),
+            'completed_at_raw' => $diagnostic->completed_at?->toIso8601String(),
         ];
     }
 
@@ -670,5 +671,43 @@ HTML;
         return response()->json([
             'diagnostic' => $this->formatDiagnosticForView($diagnostic),
         ]);
+    }
+
+    /**
+     * Complete onboarding and go to business dashboard
+     * This marks onboarding as completed and redirects to the main business page
+     */
+    public function completeAndGoToBusiness()
+    {
+        $business = auth()->user()->currentBusiness;
+
+        // Mark onboarding as completed
+        if ($business->onboarding_status !== 'completed') {
+            $business->update([
+                'onboarding_status' => 'completed',
+                'onboarding_completed_at' => now(),
+            ]);
+        }
+
+        return redirect('/business')->with('success', 'Tabriklaymiz! Endi asosiy dashboard\'dan foydalanishingiz mumkin.');
+    }
+
+    /**
+     * Skip diagnostic and go to business dashboard
+     * This marks onboarding as completed without requiring diagnostic
+     */
+    public function skipDiagnostic()
+    {
+        $business = auth()->user()->currentBusiness;
+
+        // Mark onboarding as completed
+        if ($business->onboarding_status !== 'completed') {
+            $business->update([
+                'onboarding_status' => 'completed',
+                'onboarding_completed_at' => now(),
+            ]);
+        }
+
+        return redirect('/business')->with('info', 'Diagnostikani keyinroq ham o\'tkazishingiz mumkin.');
     }
 }

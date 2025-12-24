@@ -25,8 +25,8 @@
           <p class="text-lg font-bold text-gray-900">{{ formatMoney(data?.summary?.total_investment?.total_uzs) }}</p>
         </div>
         <div class="bg-white/80 rounded-xl p-3 text-center">
-          <p class="text-xs text-gray-500">Oylik qaytim</p>
-          <p class="text-lg font-bold text-green-600">{{ formatMoney(data?.summary?.total_monthly_return) }}</p>
+          <p class="text-xs text-gray-500">Oylik foyda</p>
+          <p class="text-lg font-bold text-green-600">{{ formatMoneySom(data?.summary?.total_monthly_return) }}</p>
         </div>
         <div class="bg-white/80 rounded-xl p-3 text-center">
           <p class="text-xs text-gray-500">ROI</p>
@@ -69,8 +69,8 @@
 
           <!-- Return -->
           <div class="text-center px-3">
-            <p class="text-xs text-gray-400">Qaytim/oy</p>
-            <p class="text-sm font-bold text-green-600">+{{ formatMoney(item.expected_return?.monthly_gain) }}</p>
+            <p class="text-xs text-gray-400">Foyda/oy</p>
+            <p class="text-sm font-bold text-green-600">+{{ formatMoneySom(item.expected_return?.monthly_gain) }}</p>
           </div>
 
           <!-- ROI -->
@@ -133,16 +133,18 @@ const sortedActions = computed(() => {
 });
 
 function formatMoney(amount) {
-  if (!amount) return '0';
-  if (amount >= 1000000) return (amount / 1000000).toFixed(1) + 'M';
-  if (amount >= 1000) return (amount / 1000).toFixed(0) + 'K';
-  return new Intl.NumberFormat('uz-UZ').format(amount);
+  if (!amount) return '0 so\'m';
+  return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
+}
+
+function formatMoneySom(amount) {
+  if (!amount) return '0 so\'m';
+  return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
 }
 
 function formatROI(roi) {
   if (!roi) return '0';
-  if (roi >= 10000) return (roi / 1000).toFixed(0) + 'K';
-  return roi;
+  return new Intl.NumberFormat('uz-UZ').format(roi);
 }
 
 function getPriorityColor(priority) {

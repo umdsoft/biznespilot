@@ -122,8 +122,7 @@ const totalGain = computed(() => {
 });
 
 function formatMoney(amount) {
-  if (!amount) return '0';
-  if (amount >= 1000000) return (amount / 1000000).toFixed(1) + 'M';
-  return new Intl.NumberFormat('uz-UZ').format(amount);
+  if (!amount) return '0 so\'m';
+  return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
 }
 </script>

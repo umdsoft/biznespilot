@@ -226,8 +226,7 @@ function getScoreBarClass(score) {
 }
 
 function formatNumber(num) {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-  return num?.toLocaleString() || '0';
+  if (!num) return '0';
+  return new Intl.NumberFormat('uz-UZ').format(num);
 }
 </script>
