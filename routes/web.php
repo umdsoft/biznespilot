@@ -41,6 +41,7 @@ use App\Http\Controllers\InsightController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\AlgorithmController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -452,6 +453,19 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     // Diagnostic API routes
     Route::prefix('api/diagnostic')->name('api.diagnostic.')->group(function () {
         Route::get('/latest', [DiagnosticController::class, 'apiLatest'])->name('latest');
+    });
+
+    // Algorithm Engine routes (Predictive Analytics without AI)
+    Route::prefix('algorithm')->name('algorithm.')->group(function () {
+        Route::get('/', [AlgorithmController::class, 'showDashboard'])->name('dashboard');
+        Route::get('/api/modules', [AlgorithmController::class, 'analyzeModules'])->name('api.modules');
+        Route::get('/api/modules/{module}', [AlgorithmController::class, 'analyzeModule'])->name('api.module');
+        Route::get('/api/predictions', [AlgorithmController::class, 'predictNextSteps'])->name('api.predictions');
+        Route::get('/api/quick-wins', [AlgorithmController::class, 'getQuickWins'])->name('api.quick-wins');
+        Route::get('/api/critical', [AlgorithmController::class, 'getCriticalActions'])->name('api.critical');
+        Route::get('/api/data-audit', [AlgorithmController::class, 'auditDataAccuracy'])->name('api.data-audit');
+        Route::get('/api/full', [AlgorithmController::class, 'dashboard'])->name('api.full');
+        Route::post('/api/refresh', [AlgorithmController::class, 'refreshCache'])->name('api.refresh');
     });
 
     // Strategy Building routes (FAZA 3)
