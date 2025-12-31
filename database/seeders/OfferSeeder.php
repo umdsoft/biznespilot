@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
-use App\Models\Offer;
 use App\Models\DreamBuyer;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OfferSeeder extends Seeder
 {
@@ -23,31 +24,35 @@ class OfferSeeder extends Seeder
 
         foreach ($businesses as $business) {
             $dreamBuyer = DreamBuyer::where('business_id', $business->id)->first();
-            $offers = $this->getOffersForBusiness($business, $dreamBuyer);
+            $offers = $this->getOffersForBusiness($business);
 
             foreach ($offers as $offerData) {
-                Offer::firstOrCreate(
-                    [
-                        'business_id' => $business->id,
-                        'name' => $offerData['name'],
-                    ],
-                    [
-                        'description' => $offerData['description'],
-                        'value_proposition' => $offerData['value_proposition'],
-                        'target_audience' => $offerData['target_audience'] ?? null,
-                        'pricing' => $offerData['pricing'],
-                        'pricing_model' => $offerData['pricing_model'] ?? 'one-time',
-                        'guarantees' => $offerData['guarantees'],
-                        'bonuses' => $offerData['bonuses'],
-                        'scarcity' => $offerData['scarcity'],
-                        'urgency' => $offerData['urgency'],
-                        'status' => 'active',
-                        'conversion_rate' => rand(5, 25),
-                        'metadata' => json_encode([
-                            'dream_buyer_id' => $dreamBuyer?->id,
-                        ]),
-                    ]
-                );
+                DB::table('offers')->insert([
+                    'id' => Str::uuid()->toString(),
+                    'business_id' => $business->id,
+                    'dream_buyer_id' => $dreamBuyer?->id,
+                    'name' => $offerData['name'],
+                    'description' => $offerData['description'],
+                    'type' => $offerData['type'] ?? 'product',
+                    'price' => $offerData['price'],
+                    'currency' => 'UZS',
+                    'dream_outcome_score' => rand(7, 10),
+                    'dream_outcome_description' => $offerData['dream_outcome'] ?? null,
+                    'perceived_likelihood_score' => rand(6, 9),
+                    'perceived_likelihood_description' => $offerData['guarantee'] ?? 'Sifat kafolati',
+                    'time_delay_score' => rand(5, 8),
+                    'time_delay_description' => $offerData['delivery'] ?? 'Tez yetkazish',
+                    'effort_sacrifice_score' => rand(6, 9),
+                    'effort_sacrifice_description' => 'Qulay buyurtma',
+                    'value_score' => rand(70, 95) / 10.0,
+                    'bonuses' => json_encode($offerData['bonuses'] ?? []),
+                    'guarantees' => json_encode($offerData['guarantees'] ?? []),
+                    'urgency_scarcity' => json_encode($offerData['urgency'] ?? []),
+                    'status' => 'active',
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             $this->command->info("Created offers for: {$business->name}");
@@ -57,107 +62,107 @@ class OfferSeeder extends Seeder
     }
 
     /**
-     * Get offers based on business industry
+     * Get offers based on business category
      */
-    protected function getOffersForBusiness(Business $business, $dreamBuyer = null): array
+    protected function getOffersForBusiness(Business $business): array
     {
-        $industryOffers = [
+        $categoryOffers = [
             'Technology' => [
                 [
                     'name' => 'Startup Digital Package',
-                    'description' => 'Startuplar uchun to\'liq digital yechim',
-                    'value_proposition' => 'Website + CRM + Marketing Automation - 60 kun ichida. 60% chegirma!',
-                    'target_audience' => 'Startuplar, SMB',
-                    'pricing' => 15000000,
-                    'pricing_model' => 'one-time',
-                    'guarantees' => '60 kun pul qaytarish kafolati',
-                    'bonuses' => "Bepul logo design\nSocial media templates\n1 yillik domain",
-                    'scarcity' => 'Har oyda faqat 5 ta mijoz',
-                    'urgency' => 'Yana 2 ta o\'rin qoldi',
+                    'description' => 'Startuplar uchun to\'liq digital yechim - Website + CRM + Marketing',
+                    'type' => 'service',
+                    'price' => 15000000,
+                    'dream_outcome' => 'Biznesingiz onlayn holatga keladi va mijozlar oqimi boshlanadi',
+                    'guarantee' => '60 kun pul qaytarish kafolati',
+                    'delivery' => '60 kun ichida tayyor',
+                    'bonuses' => ['Bepul logo design', 'Social media templates', '1 yillik domain'],
+                    'guarantees' => ['Pul qaytarish', 'Sifat kafolati'],
+                    'urgency' => ['message' => 'Har oyda faqat 5 ta mijoz', 'type' => 'scarcity'],
                 ],
                 [
                     'name' => 'Business Automation Pro',
-                    'description' => 'Biznesni to\'liq avtomatlash',
-                    'value_proposition' => 'Samaradorlikni 3x oshiring. AI-powered avtomatlashtirish.',
-                    'target_audience' => 'O\'rta bizneslar',
-                    'pricing' => 25000000,
-                    'pricing_model' => 'one-time',
-                    'guarantees' => '90 kun ROI kafolati',
-                    'bonuses' => "AI chatbot\nAnalytics dashboard\nOylik optimizatsiya",
-                    'scarcity' => 'Premium - faqat 3 ta kompaniya',
-                    'urgency' => 'Keyingi intake 2 oydan keyin',
+                    'description' => 'AI-powered biznes avtomatlashtirish xizmati',
+                    'type' => 'service',
+                    'price' => 25000000,
+                    'dream_outcome' => 'Samaradorlikni 3x oshiring',
+                    'guarantee' => '90 kun ROI kafolati',
+                    'delivery' => '90 kun ichida implement',
+                    'bonuses' => ['AI chatbot', 'Analytics dashboard', 'Oylik optimizatsiya'],
+                    'guarantees' => ['ROI kafolati', 'Sifat kafolati'],
+                    'urgency' => ['message' => 'Premium - faqat 3 ta kompaniya', 'type' => 'scarcity'],
                 ],
             ],
             'Fashion & Retail' => [
                 [
                     'name' => 'Summer Collection VIP',
-                    'description' => 'Yozgi premium kiyimlar to\'plami',
-                    'value_proposition' => '5 outfit + aksessuarlar + styling. 42% chegirma!',
-                    'target_audience' => 'Yosh fashionistalar',
-                    'pricing' => 3500000,
-                    'pricing_model' => 'one-time',
-                    'guarantees' => '14 kun qaytarish yoki almashtirish',
-                    'bonuses' => "VIP card 20% discount\nBepul yetkazish\nFree alterations",
-                    'scarcity' => 'Limited - 50 ta paket',
-                    'urgency' => '5 kungacha',
+                    'description' => 'Yozgi premium kiyimlar to\'plami - 5 outfit + aksessuarlar',
+                    'type' => 'product',
+                    'price' => 3500000,
+                    'dream_outcome' => 'Stylish va unique ko\'rinish',
+                    'guarantee' => '14 kun qaytarish yoki almashtirish',
+                    'delivery' => 'Bepul yetkazish',
+                    'bonuses' => ['VIP card 20% discount', 'Free alterations'],
+                    'guarantees' => ['Qaytarish kafolati', 'Sifat kafolati'],
+                    'urgency' => ['message' => 'Limited - 50 ta paket', 'type' => 'scarcity'],
                 ],
             ],
             'Food & Beverage' => [
                 [
                     'name' => '30 Days Healthy Meal Plan',
-                    'description' => '30 kunlik sog\'lom ovqatlanish',
-                    'value_proposition' => '90 ta taom + snacks. Fitness plan bepul!',
-                    'target_audience' => 'Health-conscious professionals',
-                    'pricing' => 2500000,
-                    'pricing_model' => 'subscription',
-                    'guarantees' => '7 kun bepul sinov',
-                    'bonuses' => "Fitness plan\nRecipe book\nWater bottle\nTracking app",
-                    'scarcity' => 'Kuniga 50 ta buyurtma',
-                    'urgency' => 'Bugun 15% chegirma',
+                    'description' => '30 kunlik sog\'lom ovqatlanish - 90 ta taom + snacks',
+                    'type' => 'subscription',
+                    'price' => 2500000,
+                    'dream_outcome' => 'Sog\'lom va fit bo\'lish',
+                    'guarantee' => '7 kun bepul sinov',
+                    'delivery' => 'Kunlik yetkazish',
+                    'bonuses' => ['Fitness plan', 'Recipe book', 'Water bottle', 'Tracking app'],
+                    'guarantees' => ['Bepul sinov', 'Sifat kafolati'],
+                    'urgency' => ['message' => 'Bugun 15% chegirma', 'type' => 'urgency'],
                 ],
             ],
             'Education' => [
                 [
                     'name' => 'English Premium Course',
-                    'description' => '6 oylik intensive English',
-                    'value_proposition' => 'IELTS 7.0+ kafolati. Native speaker bilan!',
-                    'target_audience' => 'IELTS talabgоrlari',
-                    'pricing' => 4000000,
-                    'pricing_model' => 'one-time',
-                    'guarantees' => 'IELTS 6.5 kafolati yoki bepul qayta o\'qish',
-                    'bonuses' => "Mock test bepul\nConversation club\n1 yil online access",
-                    'scarcity' => 'Guruhda 12 ta o\'rin',
-                    'urgency' => '1 haftadan boshlanadi',
+                    'description' => '6 oylik intensive English - IELTS 7.0+ kafolati',
+                    'type' => 'service',
+                    'price' => 4000000,
+                    'dream_outcome' => 'IELTS 7.0+ ball olish',
+                    'guarantee' => 'IELTS 6.5 kafolati yoki bepul qayta o\'qish',
+                    'delivery' => '6 oy intensive kurs',
+                    'bonuses' => ['Mock test bepul', 'Conversation club', '1 yil online access'],
+                    'guarantees' => ['Natija kafolati', 'Bepul qayta o\'qish'],
+                    'urgency' => ['message' => 'Guruhda 12 ta o\'rin', 'type' => 'scarcity'],
                 ],
             ],
             'Automotive' => [
                 [
                     'name' => 'Premium Car Service Package',
-                    'description' => 'Yillik to\'liq xizmat paketi',
-                    'value_proposition' => '4 ta TO + diagnostika + 12 ta yuvish. 40% tejash!',
-                    'target_audience' => 'Car owners',
-                    'pricing' => 3000000,
-                    'pricing_model' => 'subscription',
-                    'guarantees' => '1 yil ishlar kafolati',
-                    'bonuses' => "24/7 roadside assistance\nBepul towing\n20% discount card",
-                    'scarcity' => '100 ta paket',
-                    'urgency' => '50 ta sotildi',
+                    'description' => 'Yillik to\'liq xizmat paketi - 4 ta TO + diagnostika + 12 ta yuvish',
+                    'type' => 'subscription',
+                    'price' => 3000000,
+                    'dream_outcome' => 'Mashinangiz doim ideal holatda',
+                    'guarantee' => '1 yil ishlar kafolati',
+                    'delivery' => 'Har chorakda xizmat',
+                    'bonuses' => ['24/7 roadside assistance', 'Bepul towing', '20% discount card'],
+                    'guarantees' => ['Ish kafolati', 'Original qismlar'],
+                    'urgency' => ['message' => '50 ta sotildi', 'type' => 'scarcity'],
                 ],
             ],
         ];
 
-        return $industryOffers[$business->industry] ?? [
+        return $categoryOffers[$business->category] ?? [
             [
                 'name' => 'Starter Package',
-                'description' => 'Boshlang\'ich paket',
-                'value_proposition' => 'Eng zarur xizmatlar bitta paketda',
-                'target_audience' => 'Barcha mijozlar',
-                'pricing' => 1000000,
-                'pricing_model' => 'one-time',
-                'guarantees' => '30 kun pul qaytarish',
-                'bonuses' => "Bonus 1\nBonus 2",
-                'scarcity' => 'Limited offer',
-                'urgency' => 'Tez tugaydi',
+                'description' => 'Boshlang\'ich paket - eng zarur xizmatlar bitta paketda',
+                'type' => 'product',
+                'price' => 1000000,
+                'dream_outcome' => 'Sifatli xizmat olish',
+                'guarantee' => '30 kun pul qaytarish',
+                'delivery' => 'Tez xizmat',
+                'bonuses' => ['Bonus 1', 'Bonus 2'],
+                'guarantees' => ['Pul qaytarish'],
+                'urgency' => ['message' => 'Limited offer', 'type' => 'scarcity'],
             ],
         ];
     }

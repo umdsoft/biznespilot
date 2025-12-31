@@ -32,5 +32,26 @@ class TestUserSeeder extends Seeder
         if (!$admin->hasRole('super_admin')) {
             $admin->assignRole('super_admin');
         }
+
+        // Create regular test user
+        $user1 = User::where('login', 'user1')->first();
+
+        if (!$user1) {
+            $user1 = new User();
+            $user1->id = Str::uuid()->toString();
+            $user1->login = 'user1';
+            $user1->name = 'Test User';
+            $user1->email = 'user1@biznespilot.uz';
+            $user1->phone = '+998901234568';
+            $user1->password = Hash::make('user123');
+            $user1->save();
+        }
+
+        // Assign owner role
+        if (!$user1->hasRole('owner')) {
+            $user1->assignRole('owner');
+        }
+
+        $this->command->info('Test users created: admin@biznespilot.uz / admin123, user1@biznespilot.uz / user123');
     }
 }

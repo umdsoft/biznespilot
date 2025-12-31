@@ -1,7 +1,7 @@
 <template>
   <Head title="Algoritm Tahlili" />
 
-  <AuthenticatedLayout>
+  <BusinessLayout>
     <template #header>
       <div class="flex items-center justify-between">
         <div>
@@ -302,13 +302,13 @@
         </div>
       </div>
     </div>
-  </AuthenticatedLayout>
+  </BusinessLayout>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
   HeartIcon,
   ShieldCheckIcon,

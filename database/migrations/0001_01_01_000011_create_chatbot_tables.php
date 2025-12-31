@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         // Chatbot Configs
@@ -98,7 +97,10 @@ return new class extends Migration
             $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
             $table->index('business_id');
             $table->index('category');
-            $table->fullText(['question', 'answer']);
+            // Fulltext index only for MySQL/PostgreSQL (SQLite doesn't support it)
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+                $table->fullText(['question', 'answer']);
+            }
             $table->softDeletes();
         });
 

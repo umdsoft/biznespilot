@@ -33,12 +33,12 @@ class BusinessSeeder extends Seeder
             return;
         }
 
-        // Create demo businesses
+        // Create demo businesses (matching migration schema)
         $businesses = [
             [
                 'name' => 'Tech Solutions UZ',
                 'slug' => 'tech-solutions-uz',
-                'industry' => 'Technology',
+                'category' => 'Technology',
                 'description' => 'IT xizmatlari va dasturiy ta\'minot ishlab chiqish kompaniyasi',
                 'website' => 'https://techsolutions.uz',
                 'phone' => '+998901234567',
@@ -52,7 +52,7 @@ class BusinessSeeder extends Seeder
             [
                 'name' => 'Fashion Boutique',
                 'slug' => 'fashion-boutique',
-                'industry' => 'Fashion & Retail',
+                'category' => 'Fashion & Retail',
                 'description' => 'Zamonaviy kiyim-kechak va aksessuarlar do\'koni',
                 'website' => 'https://fashionboutique.uz',
                 'phone' => '+998901234568',
@@ -66,7 +66,7 @@ class BusinessSeeder extends Seeder
             [
                 'name' => 'Healthy Food Delivery',
                 'slug' => 'healthy-food-delivery',
-                'industry' => 'Food & Beverage',
+                'category' => 'Food & Beverage',
                 'description' => 'Sog\'lom va tabiiy ovqatlar yetkazib berish xizmati',
                 'website' => 'https://healthyfood.uz',
                 'phone' => '+998901234569',
@@ -80,7 +80,7 @@ class BusinessSeeder extends Seeder
             [
                 'name' => 'Education Center Plus',
                 'slug' => 'education-center-plus',
-                'industry' => 'Education',
+                'category' => 'Education',
                 'description' => 'Zamonaviy ta\'lim markazi - til kurslari va IT o\'rgatish',
                 'website' => 'https://eduplus.uz',
                 'phone' => '+998901234570',
@@ -94,7 +94,7 @@ class BusinessSeeder extends Seeder
             [
                 'name' => 'Auto Service Pro',
                 'slug' => 'auto-service-pro',
-                'industry' => 'Automotive',
+                'category' => 'Automotive',
                 'description' => 'Professional avtomobil xizmat ko\'rsatish markazi',
                 'website' => 'https://autoservice.uz',
                 'phone' => '+998901234571',
@@ -111,9 +111,9 @@ class BusinessSeeder extends Seeder
             $business = Business::firstOrCreate(
                 ['slug' => $businessData['slug']],
                 [
-                    'uuid' => (string) Str::uuid(),
+                    'id' => (string) Str::uuid(),
                     'name' => $businessData['name'],
-                    'industry' => $businessData['industry'],
+                    'category' => $businessData['category'],
                     'description' => $businessData['description'],
                     'website' => $businessData['website'],
                     'phone' => $businessData['phone'],
@@ -130,7 +130,7 @@ class BusinessSeeder extends Seeder
             Subscription::firstOrCreate(
                 ['business_id' => $business->id],
                 [
-                    'uuid' => (string) Str::uuid(),
+                    'id' => (string) Str::uuid(),
                     'plan_id' => $plan->id,
                     'status' => 'active',
                     'starts_at' => now(),

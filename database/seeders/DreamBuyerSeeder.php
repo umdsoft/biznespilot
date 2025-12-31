@@ -3,8 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
-use App\Models\DreamBuyer;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DreamBuyerSeeder extends Seeder
 {
@@ -24,27 +25,28 @@ class DreamBuyerSeeder extends Seeder
             $profiles = $this->getDreamBuyerProfiles($business);
 
             foreach ($profiles as $index => $profileData) {
-                DreamBuyer::firstOrCreate(
-                    [
-                        'business_id' => $business->id,
-                        'name' => $profileData['name'],
-                    ],
-                    [
-                        'description' => $profileData['description'],
-                        'data' => json_encode($profileData['demographics'] ?? []),
-                        'priority' => $index + 1,
-                        'is_primary' => $index === 0,
-                        'where_spend_time' => $profileData['where_spend_time'],
-                        'info_sources' => $profileData['info_sources'],
-                        'frustrations' => $profileData['frustrations'],
-                        'dreams' => $profileData['dreams'],
-                        'fears' => $profileData['fears'],
-                        'communication_preferences' => $profileData['communication_preferences'],
-                        'language_style' => $profileData['language_style'],
-                        'daily_routine' => $profileData['daily_routine'],
-                        'happiness_triggers' => $profileData['happiness_triggers'],
-                    ]
-                );
+                DB::table('dream_buyers')->insert([
+                    'id' => Str::uuid()->toString(),
+                    'business_id' => $business->id,
+                    'name' => $profileData['name'],
+                    'description' => $profileData['description'],
+                    'age_range' => $profileData['age_range'] ?? null,
+                    'gender' => $profileData['gender'] ?? null,
+                    'location' => $profileData['location'] ?? 'Toshkent',
+                    'occupation' => $profileData['occupation'] ?? null,
+                    'income_level' => $profileData['income_level'] ?? 'medium',
+                    'interests' => $profileData['interests'] ?? null,
+                    'pain_points' => $profileData['pain_points'] ?? null,
+                    'goals' => $profileData['goals'] ?? null,
+                    'objections' => $profileData['objections'] ?? null,
+                    'buying_triggers' => $profileData['buying_triggers'] ?? null,
+                    'preferred_channels' => $profileData['preferred_channels'] ?? null,
+                    'priority' => $index === 0 ? 'high' : 'medium',
+                    'is_primary' => $index === 0,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             $this->command->info("Created Dream Buyer profiles for: {$business->name}");
@@ -54,7 +56,7 @@ class DreamBuyerSeeder extends Seeder
     }
 
     /**
-     * Get Dream Buyer profiles based on business industry
+     * Get Dream Buyer profiles based on business category
      */
     protected function getDreamBuyerProfiles(Business $business): array
     {
@@ -62,99 +64,100 @@ class DreamBuyerSeeder extends Seeder
             'Technology' => [
                 [
                     'name' => 'Tech-Savvy Entrepreneur',
-                    'description' => '28-40 yoshdagi startup founder yoki tech manager. Yuqori daromadli, zamonaviy texnologiyalarga qiziquvchi.',
-                    'where_spend_time' => 'LinkedIn, Telegram tech channels, GitHub, ProductHunt, tech conferences',
-                    'info_sources' => 'TechCrunch, LinkedIn articles, YouTube tech reviews, startup podcasts',
-                    'frustrations' => "Vaqt yetishmasligi, zamonaviy texnologiyalarni joriy qilish qiyinligi, qualified mutaxassislar topish",
-                    'dreams' => "Biznesni to'liq raqamlashtirish, samaradorlikni 3x oshirish, bozorda leader bo'lish",
-                    'fears' => "Raqobatchilardan ortda qolish, ma'lumotlar yo'qolishi, cyber attacks",
-                    'communication_preferences' => 'Email (detailed), LinkedIn, Zoom meetings. Data-driven communication with ROI calculations',
-                    'language_style' => 'Technical jargon: ROI, KPI, automation, API, integration, scalability',
-                    'daily_routine' => "06:00-09:00: Sport va news, 09:00-18:00: Work va meetings, 20:00-22:00: O'rganish",
-                    'happiness_triggers' => "Yangi texnologiya implement, productivity oshishi, industry recognition",
-                    'demographics' => ['age' => '28-40', 'income' => 'high', 'location' => 'Toshkent'],
+                    'description' => '28-40 yoshdagi startup founder yoki tech manager.',
+                    'age_range' => '28-40',
+                    'gender' => 'any',
+                    'income_level' => 'high',
+                    'occupation' => 'Startup Founder / Tech Manager',
+                    'interests' => 'Zamonaviy texnologiyalar, startup, innovation, AI',
+                    'pain_points' => 'Vaqt yetishmasligi, qualified mutaxassislar topish',
+                    'goals' => 'Biznesni raqamlashtirish, samaradorlikni oshirish',
+                    'objections' => 'Narxi, implementatsiya murakkabligi',
+                    'buying_triggers' => 'ROI, vaqt tejash, konkurentsiya',
+                    'preferred_channels' => 'LinkedIn, Telegram, Email',
                 ],
             ],
             'Fashion & Retail' => [
                 [
                     'name' => 'Young Fashion Enthusiast',
-                    'description' => '18-28 yoshdagi student yoki yosh professional. Instagram va TikTokda faol, trendlarga e\'tibor beradi.',
-                    'where_spend_time' => 'Instagram, TikTok, Pinterest, YouTube fashion channels, shopping malls',
-                    'info_sources' => 'Instagram influencers, fashion bloggers, TikTok trends, YouTube haul videos',
-                    'frustrations' => "Trend kiyimlar qimmat, o'lchami mos kelmaydi, onlayn xaridda ishonch kam",
-                    'dreams' => "Har doim stylish va unique ko'rinish, Instagram-da ajralib turish, quality kiyimlar",
-                    'fears' => "Fashion trends-dan ortda qolish, do'stlari orasida tanqid qilinishi",
-                    'communication_preferences' => 'Instagram DM, WhatsApp, visual content (photos/videos)',
-                    'language_style' => 'Casual, emoji-rich, trendy words: lit, vibe, aesthetic, on fleek',
-                    'daily_routine' => "07:00-09:00: Social media check, 09:00-17:00: Work/study, 19:00-23:00: Instagram scrolling",
-                    'happiness_triggers' => "Yangi kiyim olish, compliment olish, Instagram-da ko'p like olish",
-                    'demographics' => ['age' => '18-28', 'income' => 'medium', 'location' => 'Toshkent'],
+                    'description' => '18-28 yoshdagi student yoki yosh professional.',
+                    'age_range' => '18-28',
+                    'gender' => 'female',
+                    'income_level' => 'medium',
+                    'occupation' => 'Student / Young Professional',
+                    'interests' => 'Fashion, Instagram, TikTok, shopping',
+                    'pain_points' => 'Trend kiyimlar qimmat, o\'lchami mos kelmaydi',
+                    'goals' => 'Stylish ko\'rinish, Instagram-da ajralib turish',
+                    'objections' => 'Narx, sifat shubhasi',
+                    'buying_triggers' => 'Chegirma, trend, influencer tavsiyasi',
+                    'preferred_channels' => 'Instagram, TikTok, WhatsApp',
                 ],
             ],
             'Food & Beverage' => [
                 [
                     'name' => 'Health-Conscious Professional',
-                    'description' => '25-40 yoshdagi office worker. Sog\'lom turmush tarzini afzal ko\'radi, fitness bilan shug\'ullanadi.',
-                    'where_spend_time' => 'Fitness clubs, health food stores, Instagram (fitness accounts), LinkedIn',
-                    'info_sources' => 'Health blogs, fitness influencers, nutrition apps, wellness podcasts',
-                    'frustrations' => "Sog'lom ovqat topish qiyin, vaqt yo'q, kaloriya hisoblash murakkab",
-                    'dreams' => "Sog'lom va fit bo'lish, vazn nazorati, energiya oshishi",
-                    'fears' => "Sog'likning yomonlashishi, ortiqcha vazn, tez-tez kasal bo'lish",
-                    'communication_preferences' => 'Telegram, Instagram, mobile app notifications',
-                    'language_style' => 'Health terms: calories, organic, protein, gluten-free, keto',
-                    'daily_routine' => "06:00-07:00: Fitness, 07:00-09:00: Healthy breakfast, 18:00-19:00: Evening workout",
-                    'happiness_triggers' => "Vazn kamayishi, fitness goals achieve qilish, energiya oshishi",
-                    'demographics' => ['age' => '25-40', 'income' => 'medium-high', 'location' => 'Toshkent'],
+                    'description' => '25-40 yoshdagi office worker.',
+                    'age_range' => '25-40',
+                    'gender' => 'any',
+                    'income_level' => 'medium-high',
+                    'occupation' => 'Office Worker',
+                    'interests' => 'Fitness, healthy eating, wellness',
+                    'pain_points' => 'Sog\'lom ovqat topish qiyin, vaqt yo\'q',
+                    'goals' => 'Sog\'lom va fit bo\'lish, energiya oshishi',
+                    'objections' => 'Narx, mazasi oddiy ovqatga o\'xshamaydi',
+                    'buying_triggers' => 'Sog\'liq, qulay yetkazib berish, tavsiya',
+                    'preferred_channels' => 'Telegram, Instagram',
                 ],
             ],
             'Education' => [
                 [
                     'name' => 'Ambitious Parent',
-                    'description' => '30-45 yoshdagi professional ota-ona. Farzandlarining kelajagi uchun tashvishlanadi.',
-                    'where_spend_time' => 'Facebook parent groups, Telegram education channels, school events',
-                    'info_sources' => 'Education blogs, parent forums, teacher recommendations, Facebook groups',
-                    'frustrations' => "Sifatli ta'lim qimmat, zamonaviy bilim yetishmaydi, vaqt yo'q",
-                    'dreams' => "Farzandlar international standartda ta'lim olishi, yaxshi karyera",
-                    'fears' => "Farzandlar ortda qolishi, imkoniyatlarni boy berish, kelajakda muvaffaqiyatsizlik",
-                    'communication_preferences' => 'WhatsApp, Facebook, phone calls, face-to-face meetings',
-                    'language_style' => 'Education-focused: IELTS, international certification, qualified teachers',
-                    'daily_routine' => "07:00-09:00: Farzandlarni tayyorlash, 18:00-21:00: Homework help, uy vazifasi",
-                    'happiness_triggers' => "Farzandlarning yutuqlari, yaxshi baholar, teacher appreciation",
-                    'demographics' => ['age' => '30-45', 'income' => 'medium-high', 'location' => 'Toshkent'],
+                    'description' => '30-45 yoshdagi professional ota-ona.',
+                    'age_range' => '30-45',
+                    'gender' => 'any',
+                    'income_level' => 'medium-high',
+                    'occupation' => 'Professional',
+                    'interests' => 'Farzand ta\'limi, til o\'rganish, IT',
+                    'pain_points' => 'Sifatli ta\'lim qimmat, vaqt yetishmaydi',
+                    'goals' => 'Farzandlar international standartda ta\'lim olishi',
+                    'objections' => 'Narx, natijalar kafolati',
+                    'buying_triggers' => 'Farzand kelajagi, sertifikat, do\'stlar tavsiyasi',
+                    'preferred_channels' => 'WhatsApp, Facebook, Telegram',
                 ],
             ],
             'Automotive' => [
                 [
                     'name' => 'Car Enthusiast',
-                    'description' => '25-50 yoshdagi professional. Mashinasini yaxshi holatda saqlashni xohlaydi.',
-                    'where_spend_time' => 'Car forums, Telegram auto groups, YouTube car channels, auto shows',
-                    'info_sources' => 'YouTube mechanic channels, car forums, Telegram communities',
-                    'frustrations' => "Ishonchli service topish qiyin, yuqori narxlar, sifatsiz qismlar",
-                    'dreams' => "Mashinani uzoq muddatga saqlash, xavfsizlik, value retention",
-                    'fears' => "Mashinaning buzilishi, yo'lda qolish, qimmat ta'mirlash",
-                    'communication_preferences' => 'WhatsApp, Telegram, phone calls',
-                    'language_style' => 'Car terms: original parts, warranty, diagnostics, maintenance',
-                    'daily_routine' => "Har kuni mashina bilan ishga, hafta oxirida car wash",
-                    'happiness_triggers' => "Mashina yaxshi ishlashi, quality service olish, muammosiz haydash",
-                    'demographics' => ['age' => '25-50', 'income' => 'medium', 'location' => 'Toshkent'],
+                    'description' => '25-50 yoshdagi professional.',
+                    'age_range' => '25-50',
+                    'gender' => 'male',
+                    'income_level' => 'medium',
+                    'occupation' => 'Professional',
+                    'interests' => 'Cars, maintenance, driving',
+                    'pain_points' => 'Ishonchli service topish qiyin, yuqori narxlar',
+                    'goals' => 'Mashinani uzoq muddatga saqlash, xavfsizlik',
+                    'objections' => 'Narx, ishonch masalasi',
+                    'buying_triggers' => 'Kafolat, original qismlar, tavsiya',
+                    'preferred_channels' => 'WhatsApp, Telegram',
                 ],
             ],
         ];
 
-        return $profiles[$business->industry] ?? [
+        // Return profiles based on business category or default
+        return $profiles[$business->category] ?? [
             [
                 'name' => 'General Customer',
                 'description' => '25-45 yoshdagi professional',
-                'where_spend_time' => 'Instagram, Telegram, Facebook',
-                'info_sources' => 'Social media, recommendations',
-                'frustrations' => "Sifatli mahsulot topish, vaqt yo'qligi, narx",
-                'dreams' => "Sifatli mahsulot olish, qulaylik",
-                'fears' => "Pulni bekorga sarflash, sifatsiz xizmat",
-                'communication_preferences' => 'Telegram, WhatsApp',
-                'language_style' => 'O\'zbek tili, oddiy so\'zlar',
-                'daily_routine' => "09:00-18:00: Work",
-                'happiness_triggers' => "Yaxshi xizmat, sifatli mahsulot",
-                'demographics' => ['age' => '25-45', 'income' => 'medium', 'location' => 'Toshkent'],
+                'age_range' => '25-45',
+                'gender' => 'any',
+                'income_level' => 'medium',
+                'occupation' => 'Professional',
+                'interests' => 'Quality products, service',
+                'pain_points' => 'Sifatli mahsulot topish, vaqt yo\'qligi',
+                'goals' => 'Sifatli mahsulot olish, qulaylik',
+                'objections' => 'Narx, ishonch',
+                'buying_triggers' => 'Tavsiya, chegirma, sifat',
+                'preferred_channels' => 'Telegram, WhatsApp',
             ],
         ];
     }
