@@ -328,7 +328,7 @@ const form = reactive({
 });
 
 const initials = computed(() => {
-  if (!form.name) return 'DB';
+  if (!form.name) return 'IM';
   return form.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 });
 

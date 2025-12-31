@@ -13,7 +13,7 @@ class MetaDataService
     /**
      * Get overview stats from local database
      */
-    public function getOverview(int $adAccountId, string $datePreset): array
+    public function getOverview(string $adAccountId, string $datePreset): array
     {
         $dates = $this->getDateRange($datePreset);
         $noFilter = $dates['no_filter'] ?? false;
@@ -38,41 +38,47 @@ class MetaDataService
     }
 
     /**
+     * Check if we have any data for this account
+     */
+    public function hasData(string $adAccountId): bool
+    {
+        return MetaInsight::withoutGlobalScope('business')->where('ad_account_id', $adAccountId)->exists();
+    }
+
+    /**
      * Get campaigns with insights from local database
      */
-    public function getCampaigns(int $adAccountId, string $datePreset): array
+    public function getCampaigns(string $adAccountId, string $datePreset): array
     {
         $dates = $this->getDateRange($datePreset);
 
-        $campaigns = MetaCampaign::where('ad_account_id', $adAccountId)
+        $campaigns = MetaCampaign::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
             ->get();
 
-        $query = MetaInsight::where('ad_account_id', $adAccountId)
-            ->where('object_type', 'campaign')
-            ->whereNull('age_range')
-            ->whereNull('gender')
-            ->whereNull('publisher_platform');
+        $query = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->whereNotNull('campaign_id');
 
         // Apply date filter only if not 'maximum'
         if (!($dates['no_filter'] ?? false)) {
-            $query->whereBetween('date', [$dates['start'], $dates['end']]);
+            $query->whereBetween('date_start', [$dates['start'], $dates['end']]);
         }
 
         $insights = $query->select(
-                'object_id',
+                'campaign_id',
                 DB::raw('SUM(impressions) as impressions'),
                 DB::raw('SUM(reach) as reach'),
                 DB::raw('SUM(clicks) as clicks'),
                 DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions'),
-                DB::raw('SUM(conversion_value) as conversion_value')
+                DB::raw('SUM(conversions) as conversions')
             )
-            ->groupBy('object_id')
+            ->groupBy('campaign_id')
             ->get()
-            ->keyBy('object_id');
+            ->keyBy('campaign_id');
 
         return $campaigns->map(function ($campaign) use ($insights) {
-            $insight = $insights->get($campaign->meta_campaign_id);
+            $insight = $insights->get($campaign->id);
             $impressions = $insight?->impressions ?? 0;
             $clicks = $insight?->clicks ?? 0;
             $spend = $insight?->spend ?? 0;
@@ -82,14 +88,14 @@ class MetaDataService
                 'name' => $campaign->name,
                 'objective' => $campaign->objective,
                 'status' => $campaign->status,
-                'created_time' => $campaign->created_time,
+                'created_time' => $campaign->start_time,
                 'spend' => (float) $spend,
                 'impressions' => (int) $impressions,
                 'clicks' => (int) $clicks,
                 'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
                 'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
                 'conversions' => (int) ($insight?->conversions ?? 0),
-                'roas' => $spend > 0 ? round(($insight?->conversion_value ?? 0) / $spend, 2) : 0,
+                'roas' => 0, // Not available in current schema
             ];
         })->sortByDesc('spend')->values()->toArray();
     }
@@ -97,181 +103,242 @@ class MetaDataService
     /**
      * Get demographics breakdown from local database
      */
-    public function getDemographics(int $adAccountId, string $datePreset): array
+    public function getDemographics(string $adAccountId, string $datePreset): array
     {
         $dates = $this->getDateRange($datePreset);
         $noFilter = $dates['no_filter'] ?? false;
 
         // Age breakdown
-        $ageQuery = MetaInsight::where('ad_account_id', $adAccountId)
-            ->whereNotNull('age_range');
-
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $ageQuery->whereBetween('date', [$dates['start'], $dates['end']]);
-        }
-
-        $ageData = $ageQuery->select(
+        $ageQuery = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->whereNotNull('age_range')
+            ->select(
                 'age_range',
-                DB::raw('SUM(spend) as spend'),
                 DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
                 DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
                 DB::raw('SUM(conversions) as conversions')
             )
-            ->groupBy('age_range')
-            ->orderBy('age_range')
-            ->get();
+            ->groupBy('age_range');
 
-        $totalAgeSpend = $ageData->sum('spend');
+        if (!$noFilter && $dates['start'] && $dates['end']) {
+            $ageQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+        }
 
-        $age = $ageData->map(function ($row) use ($totalAgeSpend) {
+        $ageRawData = $ageQuery->get();
+        $totalAgeSpend = $ageRawData->sum('spend');
+
+        $ageData = $ageRawData->map(function ($row) use ($totalAgeSpend) {
+            $impressions = (int) ($row->impressions ?? 0);
+            $clicks = (int) ($row->clicks ?? 0);
+            $spend = (float) ($row->spend ?? 0);
+
             return [
-                'label' => $row->age_range,
-                'spend' => (float) $row->spend,
-                'impressions' => (int) $row->impressions,
-                'clicks' => (int) $row->clicks,
-                'conversions' => (int) $row->conversions,
-                'percentage' => $totalAgeSpend > 0 ? round(($row->spend / $totalAgeSpend) * 100, 1) : 0,
+                'age_range' => $row->age_range,
+                'label' => $row->age_range, // Frontend expects 'label'
+                'impressions' => $impressions,
+                'reach' => (int) ($row->reach ?? 0),
+                'clicks' => $clicks,
+                'spend' => $spend,
+                'percentage' => $totalAgeSpend > 0 ? round(($spend / $totalAgeSpend) * 100, 1) : 0,
+                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                'conversions' => (int) ($row->conversions ?? 0),
             ];
-        })->values()->toArray();
+        })->sortBy('age_range')->values()->toArray();
 
         // Gender breakdown
-        $genderQuery = MetaInsight::where('ad_account_id', $adAccountId)
-            ->whereNotNull('gender');
-
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $genderQuery->whereBetween('date', [$dates['start'], $dates['end']]);
-        }
-
-        $genderData = $genderQuery->select(
+        $genderQuery = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->whereNotNull('gender')
+            ->select(
                 'gender',
-                DB::raw('SUM(spend) as spend'),
                 DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
                 DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
                 DB::raw('SUM(conversions) as conversions')
             )
-            ->groupBy('gender')
-            ->get();
+            ->groupBy('gender');
 
-        $totalGenderSpend = $genderData->sum('spend');
+        if (!$noFilter && $dates['start'] && $dates['end']) {
+            $genderQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+        }
 
-        $gender = $genderData->map(function ($row) use ($totalGenderSpend) {
+        $genderRawData = $genderQuery->get();
+        $totalGenderSpend = $genderRawData->sum('spend');
+
+        $genderData = $genderRawData->map(function ($row) use ($totalGenderSpend) {
+            $impressions = (int) ($row->impressions ?? 0);
+            $clicks = (int) ($row->clicks ?? 0);
+            $spend = (float) ($row->spend ?? 0);
+
             return [
-                'label' => $row->gender === 'male' ? 'Erkak' : ($row->gender === 'female' ? 'Ayol' : $row->gender),
-                'spend' => (float) $row->spend,
-                'impressions' => (int) $row->impressions,
-                'clicks' => (int) $row->clicks,
-                'conversions' => (int) $row->conversions,
-                'percentage' => $totalGenderSpend > 0 ? round(($row->spend / $totalGenderSpend) * 100, 1) : 0,
+                'gender' => $row->gender,
+                'label' => $row->gender, // Raw value for Vue template comparison (male/female)
+                'impressions' => $impressions,
+                'reach' => (int) ($row->reach ?? 0),
+                'clicks' => $clicks,
+                'spend' => $spend,
+                'percentage' => $totalGenderSpend > 0 ? round(($spend / $totalGenderSpend) * 100, 1) : 0,
+                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                'conversions' => (int) ($row->conversions ?? 0),
             ];
         })->values()->toArray();
 
+        $hasData = !empty($ageData) || !empty($genderData);
+
         return [
-            'age' => $age,
-            'gender' => $gender,
+            'age' => $ageData,
+            'gender' => $genderData,
+            'message' => $hasData ? null : 'Demografik ma\'lumotlar hozircha mavjud emas',
         ];
     }
 
     /**
      * Get placements breakdown from local database
      */
-    public function getPlacements(int $adAccountId, string $datePreset): array
+    public function getPlacements(string $adAccountId, string $datePreset): array
     {
         $dates = $this->getDateRange($datePreset);
         $noFilter = $dates['no_filter'] ?? false;
 
-        // Platform breakdown
-        $platformQuery = MetaInsight::where('ad_account_id', $adAccountId)
-            ->whereNotNull('publisher_platform');
-
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $platformQuery->whereBetween('date', [$dates['start'], $dates['end']]);
-        }
-
-        $platformData = $platformQuery->select(
+        // Platform breakdown (Facebook, Instagram, etc.)
+        $platformQuery = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->whereNotNull('publisher_platform')
+            ->select(
                 'publisher_platform',
-                DB::raw('SUM(spend) as spend'),
                 DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(clicks) as clicks')
+                DB::raw('SUM(reach) as reach'),
+                DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
+                DB::raw('SUM(conversions) as conversions')
             )
-            ->groupBy('publisher_platform')
-            ->get();
-
-        $totalPlatformSpend = $platformData->sum('spend');
-
-        $platforms = $platformData->map(function ($row) use ($totalPlatformSpend) {
-            return [
-                'label' => ucfirst($row->publisher_platform),
-                'spend' => (float) $row->spend,
-                'impressions' => (int) $row->impressions,
-                'clicks' => (int) $row->clicks,
-                'percentage' => $totalPlatformSpend > 0 ? round(($row->spend / $totalPlatformSpend) * 100, 1) : 0,
-            ];
-        })->sortByDesc('spend')->values()->toArray();
-
-        // Position breakdown
-        $positionQuery = MetaInsight::where('ad_account_id', $adAccountId)
-            ->whereNotNull('platform_position');
+            ->groupBy('publisher_platform');
 
         if (!$noFilter && $dates['start'] && $dates['end']) {
-            $positionQuery->whereBetween('date', [$dates['start'], $dates['end']]);
+            $platformQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
         }
 
-        $positionData = $positionQuery->select(
-                'platform_position',
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(clicks) as clicks')
-            )
-            ->groupBy('platform_position')
-            ->get();
+        $platformRawData = $platformQuery->get();
+        $totalPlatformSpend = $platformRawData->sum('spend');
 
-        $totalPositionSpend = $positionData->sum('spend');
+        $platformData = $platformRawData->map(function ($row) use ($totalPlatformSpend) {
+            $impressions = (int) ($row->impressions ?? 0);
+            $clicks = (int) ($row->clicks ?? 0);
+            $spend = (float) ($row->spend ?? 0);
 
-        $positions = $positionData->map(function ($row) use ($totalPositionSpend) {
             return [
-                'label' => str_replace('_', ' ', ucfirst($row->platform_position)),
-                'spend' => (float) $row->spend,
-                'impressions' => (int) $row->impressions,
-                'clicks' => (int) $row->clicks,
-                'percentage' => $totalPositionSpend > 0 ? round(($row->spend / $totalPositionSpend) * 100, 1) : 0,
+                'platform' => $row->publisher_platform,
+                'label' => match ($row->publisher_platform) {
+                    'facebook' => 'Facebook',
+                    'instagram' => 'Instagram',
+                    'messenger' => 'Messenger',
+                    'audience_network' => 'Audience Network',
+                    default => ucfirst($row->publisher_platform ?? 'Noma\'lum'),
+                },
+                'impressions' => $impressions,
+                'reach' => (int) ($row->reach ?? 0),
+                'clicks' => $clicks,
+                'spend' => $spend,
+                'percentage' => $totalPlatformSpend > 0 ? round(($spend / $totalPlatformSpend) * 100, 1) : 0,
+                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                'conversions' => (int) ($row->conversions ?? 0),
             ];
         })->sortByDesc('spend')->values()->toArray();
+
+        // Position breakdown (Feed, Stories, Reels, etc.)
+        $positionQuery = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->whereNotNull('platform_position')
+            ->select(
+                'platform_position',
+                'publisher_platform',
+                DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
+                DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
+                DB::raw('SUM(conversions) as conversions')
+            )
+            ->groupBy('platform_position', 'publisher_platform');
+
+        if (!$noFilter && $dates['start'] && $dates['end']) {
+            $positionQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+        }
+
+        $positionRawData = $positionQuery->get();
+        $totalPositionSpend = $positionRawData->sum('spend');
+
+        $positionData = $positionRawData->map(function ($row) use ($totalPositionSpend) {
+            $impressions = (int) ($row->impressions ?? 0);
+            $clicks = (int) ($row->clicks ?? 0);
+            $spend = (float) ($row->spend ?? 0);
+
+            return [
+                'position' => $row->platform_position,
+                'platform' => $row->publisher_platform,
+                'label' => match ($row->platform_position) {
+                    'feed' => 'Feed',
+                    'story' => 'Stories',
+                    'reels' => 'Reels',
+                    'explore' => 'Explore',
+                    'search' => 'Search',
+                    'instream_video' => 'In-Stream Video',
+                    'right_hand_column' => 'Right Column',
+                    'marketplace' => 'Marketplace',
+                    'an_classic' => 'Audience Network Classic',
+                    default => ucfirst(str_replace('_', ' ', $row->platform_position ?? 'Noma\'lum')),
+                },
+                'impressions' => $impressions,
+                'reach' => (int) ($row->reach ?? 0),
+                'clicks' => $clicks,
+                'spend' => $spend,
+                'percentage' => $totalPositionSpend > 0 ? round(($spend / $totalPositionSpend) * 100, 1) : 0,
+                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                'conversions' => (int) ($row->conversions ?? 0),
+            ];
+        })->sortByDesc('spend')->values()->toArray();
+
+        $hasData = !empty($platformData) || !empty($positionData);
 
         return [
-            'platforms' => $platforms,
-            'positions' => $positions,
+            'platforms' => $platformData,
+            'positions' => $positionData,
+            'message' => $hasData ? null : 'Joylashuv ma\'lumotlari hozircha mavjud emas',
         ];
     }
 
     /**
      * Get daily trend from local database
      */
-    public function getTrend(int $adAccountId, int $days = 30): array
+    public function getTrend(string $adAccountId, int $days = 30): array
     {
         $startDate = Carbon::today()->subDays($days);
         $endDate = Carbon::today();
 
-        $trend = MetaInsight::where('ad_account_id', $adAccountId)
-            ->where('object_type', 'account')
-            ->whereBetween('date', [$startDate, $endDate])
-            ->whereNull('age_range')
-            ->whereNull('gender')
-            ->whereNull('publisher_platform')
+        $trend = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->whereBetween('date_start', [$startDate, $endDate])
             ->select(
-                'date',
+                'date_start',
                 DB::raw('SUM(spend) as spend'),
                 DB::raw('SUM(impressions) as impressions'),
                 DB::raw('SUM(clicks) as clicks'),
                 DB::raw('SUM(conversions) as conversions')
             )
-            ->groupBy('date')
-            ->orderBy('date')
+            ->groupBy('date_start')
+            ->orderBy('date_start')
             ->get();
 
         return $trend->map(function ($row) {
             $impressions = $row->impressions ?? 0;
             $clicks = $row->clicks ?? 0;
-            $date = $row->date instanceof Carbon ? $row->date->format('Y-m-d') : (string) $row->date;
+            $date = $row->date_start instanceof Carbon ? $row->date_start->format('Y-m-d') : (string) $row->date_start;
 
             return [
                 'date' => $date,
@@ -287,27 +354,21 @@ class MetaDataService
     /**
      * Get aggregated insights for a date range
      */
-    private function getAggregatedInsights(int $adAccountId, ?Carbon $startDate, ?Carbon $endDate, bool $noFilter = false): array
+    private function getAggregatedInsights(string $adAccountId, ?Carbon $startDate, ?Carbon $endDate, bool $noFilter = false): array
     {
-        $query = MetaInsight::where('ad_account_id', $adAccountId)
-            ->where('object_type', 'account')
-            ->whereNull('age_range')
-            ->whereNull('gender')
-            ->whereNull('publisher_platform');
+        $query = MetaInsight::withoutGlobalScope('business')->where('ad_account_id', $adAccountId);
 
         // Apply date filter only if not 'maximum'
         if (!$noFilter && $startDate && $endDate) {
-            $query->whereBetween('date', [$startDate, $endDate]);
+            $query->whereBetween('date_start', [$startDate, $endDate]);
         }
 
         $data = $query->select(
                 DB::raw('SUM(impressions) as impressions'),
                 DB::raw('SUM(reach) as reach'),
                 DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(unique_clicks) as unique_clicks'),
                 DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions'),
-                DB::raw('SUM(conversion_value) as conversion_value')
+                DB::raw('SUM(conversions) as conversions')
             )
             ->first();
 
@@ -321,16 +382,16 @@ class MetaDataService
             'impressions' => $impressions,
             'reach' => $reach,
             'clicks' => $clicks,
-            'unique_clicks' => (int) ($data->unique_clicks ?? 0),
+            'unique_clicks' => 0, // Not available in current schema
             'spend' => $spend,
             'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
             'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
             'cpm' => $impressions > 0 ? round(($spend / $impressions) * 1000, 2) : 0,
             'frequency' => $reach > 0 ? round($impressions / $reach, 2) : 0,
             'conversions' => $conversions,
-            'conversion_value' => (float) ($data->conversion_value ?? 0),
+            'conversion_value' => 0, // Not available in current schema
             'cost_per_conversion' => $conversions > 0 ? round($spend / $conversions, 2) : 0,
-            'roas' => $spend > 0 ? round(($data->conversion_value ?? 0) / $spend, 2) : 0,
+            'roas' => 0, // Not available in current schema
         ];
     }
 
@@ -403,39 +464,41 @@ class MetaDataService
     /**
      * Check if we have synced data for an account
      */
-    public function hasSyncedData(int $adAccountId): bool
+    public function hasSyncedData(string $adAccountId): bool
     {
-        return MetaInsight::where('ad_account_id', $adAccountId)->exists();
+        return MetaInsight::withoutGlobalScope('business')->where('ad_account_id', $adAccountId)->exists();
     }
 
     /**
      * Get sync status information
      */
-    public function getSyncStatus(int $adAccountId): array
+    public function getSyncStatus(string $adAccountId): array
     {
-        $account = MetaAdAccount::find($adAccountId);
+        $account = MetaAdAccount::withoutGlobalScope('business')->find($adAccountId);
 
         if (!$account) {
             return ['synced' => false];
         }
 
-        $oldestInsight = MetaInsight::where('ad_account_id', $adAccountId)
-            ->orderBy('date', 'asc')
+        $oldestInsight = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->orderBy('date_start', 'asc')
             ->first();
 
-        $newestInsight = MetaInsight::where('ad_account_id', $adAccountId)
-            ->orderBy('date', 'desc')
+        $newestInsight = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->orderBy('date_start', 'desc')
             ->first();
 
-        $insightCount = MetaInsight::where('ad_account_id', $adAccountId)->count();
-        $campaignCount = MetaCampaign::where('ad_account_id', $adAccountId)->count();
+        $insightCount = MetaInsight::withoutGlobalScope('business')->where('ad_account_id', $adAccountId)->count();
+        $campaignCount = MetaCampaign::withoutGlobalScope('business')->where('ad_account_id', $adAccountId)->count();
 
         return [
             'synced' => $insightCount > 0,
             'last_sync' => $account->last_sync_at?->format('Y-m-d H:i:s'),
             'date_range' => [
-                'from' => $oldestInsight?->date?->format('Y-m-d'),
-                'to' => $newestInsight?->date?->format('Y-m-d'),
+                'from' => $oldestInsight?->date_start,
+                'to' => $newestInsight?->date_start,
             ],
             'insights_count' => $insightCount,
             'campaigns_count' => $campaignCount,
@@ -445,7 +508,7 @@ class MetaDataService
     /**
      * Generate AI-ready summary data
      */
-    public function getAISummary(int $adAccountId, string $datePreset = 'last_30d'): array
+    public function getAISummary(string $adAccountId, string $datePreset = 'last_30d'): array
     {
         $overview = $this->getOverview($adAccountId, $datePreset);
         $campaigns = $this->getCampaigns($adAccountId, $datePreset);

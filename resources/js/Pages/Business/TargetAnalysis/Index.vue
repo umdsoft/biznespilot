@@ -3,25 +3,25 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import axios from 'axios';
+import CampaignsTab from '@/Components/Meta/CampaignsTab.vue';
 
 const props = defineProps({
     business: Object,
     analysis: Object,
     lastUpdated: String,
     error: String,
-    // Meta Ads props
     metaIntegration: Object,
     metaAdAccounts: Array,
     selectedMetaAccount: Object,
 });
 
 const page = usePage();
-const loading = ref(false);
-const refreshing = ref(false);
 const activeTab = ref('overview');
-const showAIInsights = ref(false);
-const generatingInsights = ref(false);
-const aiInsights = ref(null);
+
+// Flash messages
+const flashSuccess = ref(page.props.flash?.success || null);
+const flashError = ref(page.props.flash?.error || null);
+const showFlash = ref(!!flashSuccess.value || !!flashError.value);
 
 // Meta Ads states
 const metaLoading = ref(false);
@@ -33,62 +33,27 @@ const metaCampaigns = ref([]);
 const metaDemographics = ref({ age: [], gender: [] });
 const metaPlacements = ref({ platforms: [], positions: [] });
 const metaTrend = ref([]);
-const metaAIInsights = ref(null);
-const generatingMetaInsights = ref(false);
-const showMetaAIModal = ref(false);
 const metaDataLoaded = ref(false);
 const metaError = ref(null);
 
-// Filters and pagination
-const campaignStatusFilter = ref('all');
-const campaignSortBy = ref('spend');
-const campaignSearch = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 15;
-const selectedCampaign = ref(null);
+// AI Insights
+const showAIModal = ref(false);
+const generatingAI = ref(false);
+const aiInsights = ref(null);
 
-const dateRangeOptions = [
-    { value: 'last_7d', label: 'Oxirgi 7 kun' },
-    { value: 'last_14d', label: 'Oxirgi 14 kun' },
-    { value: 'last_30d', label: 'Oxirgi 30 kun' },
-    { value: 'last_90d', label: 'Oxirgi 90 kun' },
-];
+// Toast notification
+const notification = ref({ show: false, type: 'success', message: '' });
 
-// Computed properties for formatted data
-const formattedRevenue = computed(() => {
-    return new Intl.NumberFormat('uz-UZ').format(props.analysis?.overview?.total_revenue || 0);
-});
+const isMetaConnected = computed(() => props.metaIntegration?.status === 'connected');
+const hasMetaAccount = computed(() => isMetaConnected.value && props.selectedMetaAccount);
 
-const formattedAvgLTV = computed(() => {
-    return new Intl.NumberFormat('uz-UZ').format(props.analysis?.overview?.avg_ltv || 0);
-});
-
-const isMetaConnected = computed(() => {
-    return props.metaIntegration?.status === 'connected';
-});
-
-const hasMetaAccount = computed(() => {
-    return isMetaConnected.value && props.selectedMetaAccount;
-});
-
-// Computed for campaign statistics (shown in Overview even without insights)
-const campaignStats = computed(() => {
-    const active = metaCampaigns.value.filter(c => c.status === 'ACTIVE').length;
-    const paused = metaCampaigns.value.filter(c => c.status === 'PAUSED').length;
-    const total = metaCampaigns.value.length;
-    const totalSpend = metaCampaigns.value.reduce((sum, c) => sum + (c.spend || 0), 0);
-    const totalClicks = metaCampaigns.value.reduce((sum, c) => sum + (c.clicks || 0), 0);
-    const totalImpressions = metaCampaigns.value.reduce((sum, c) => sum + (c.impressions || 0), 0);
-
-    return {
-        active,
-        paused,
-        total,
-        totalSpend,
-        totalClicks,
-        totalImpressions,
-        avgCtr: totalImpressions > 0 ? (totalClicks / totalImpressions * 100) : 0,
-    };
+// Debug logging
+console.log('Index.vue mounted with props:', {
+    businessId: props.business?.id,
+    businessName: props.business?.name,
+    isMetaConnected: props.metaIntegration?.status,
+    selectedAccountId: props.selectedMetaAccount?.id,
+    selectedAccountName: props.selectedMetaAccount?.name,
 });
 
 // Format helpers
@@ -98,128 +63,20 @@ const formatCurrency = (amount, currency = 'USD') => {
 };
 const formatPercent = (value) => (value || 0).toFixed(2) + '%';
 
-const formatObjective = (objective) => {
-    const objectives = {
-        'OUTCOME_TRAFFIC': 'Trafik',
-        'OUTCOME_ENGAGEMENT': 'Jalb qilish',
-        'OUTCOME_AWARENESS': 'Xabardorlik',
-        'OUTCOME_LEADS': 'Lidlar',
-        'OUTCOME_SALES': 'Sotuvlar',
-        'LINK_CLICKS': 'Havolaga bosish',
-        'REACH': 'Qamrov',
-        'BRAND_AWARENESS': 'Brend xabardorligi',
-        'VIDEO_VIEWS': 'Video ko\'rishlar',
-        'MESSAGES': 'Xabarlar',
-        'CONVERSIONS': 'Konversiyalar',
-    };
-    return objectives[objective] || objective || 'Noma\'lum';
+const dismissFlash = () => {
+    showFlash.value = false;
+    flashSuccess.value = null;
+    flashError.value = null;
 };
 
-// Filtered and sorted campaigns
-const filteredCampaigns = computed(() => {
-    let campaigns = [...metaCampaigns.value];
-
-    // Filter by status
-    if (campaignStatusFilter.value !== 'all') {
-        campaigns = campaigns.filter(c => c.status === campaignStatusFilter.value);
-    }
-
-    // Filter by search
-    if (campaignSearch.value) {
-        const search = campaignSearch.value.toLowerCase();
-        campaigns = campaigns.filter(c => c.name.toLowerCase().includes(search));
-    }
-
-    // Sort
-    campaigns.sort((a, b) => {
-        switch (campaignSortBy.value) {
-            case 'spend': return (b.spend || 0) - (a.spend || 0);
-            case 'clicks': return (b.clicks || 0) - (a.clicks || 0);
-            case 'impressions': return (b.impressions || 0) - (a.impressions || 0);
-            case 'ctr': return (b.ctr || 0) - (a.ctr || 0);
-            case 'cpc': return (a.cpc || 0) - (b.cpc || 0); // Lower is better
-            case 'created': return new Date(b.created_time || 0) - new Date(a.created_time || 0);
-            default: return 0;
-        }
-    });
-
-    return campaigns;
-});
-
-const totalPages = computed(() => Math.ceil(filteredCampaigns.value.length / itemsPerPage));
-
-const paginatedCampaigns = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage;
-    return filteredCampaigns.value.slice(start, start + itemsPerPage);
-});
-
-// Campaign selection
-const selectCampaign = (campaign) => {
-    selectedCampaign.value = campaign;
+const showNotification = (type, message) => {
+    notification.value = { show: true, type, message };
+    setTimeout(() => notification.value.show = false, 5000);
 };
 
-// Reset pagination when filters change
-watch([campaignStatusFilter, campaignSearch, campaignSortBy], () => {
-    currentPage.value = 1;
-});
-
-// Methods
-const refreshAnalysis = async () => {
-    refreshing.value = true;
-    try {
-        const response = await axios.get('/business/api/target-analysis', {
-            params: { business_id: props.business.id }
-        });
-        if (response.data.success) {
-            window.location.reload();
-        }
-    } catch (error) {
-        console.error('Error refreshing analysis:', error);
-    } finally {
-        refreshing.value = false;
-    }
-};
-
-const generateAIInsights = async () => {
-    generatingInsights.value = true;
-    showAIInsights.value = true;
-    try {
-        const response = await axios.post('/business/api/target-analysis/insights/regenerate', {
-            business_id: props.business.id
-        });
-        if (response.data.success) {
-            aiInsights.value = response.data.insights;
-        }
-    } catch (error) {
-        console.error('Error generating AI insights:', error);
-        aiInsights.value = { success: false, insights: 'AI tahlil yaratishda xatolik yuz berdi' };
-    } finally {
-        generatingInsights.value = false;
-    }
-};
-
-const exportAnalysis = async () => {
-    try {
-        const response = await axios.get('/business/api/target-analysis/export', {
-            params: { business_id: props.business.id },
-            responseType: 'blob'
-        });
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `target-analysis-${Date.now()}.json`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-    } catch (error) {
-        console.error('Error exporting analysis:', error);
-    }
-};
-
-// Meta Ads Methods
+// Meta Methods
 const connectMeta = async () => {
     metaConnecting.value = true;
-    metaError.value = null;
     try {
         const response = await axios.get('/business/target-analysis/meta/auth-url', {
             params: { business_id: props.business.id }
@@ -227,11 +84,10 @@ const connectMeta = async () => {
         if (response.data.url) {
             window.location.href = response.data.url;
         } else {
-            metaError.value = 'OAuth URL olinmadi. Meta App sozlamalarini tekshiring.';
+            metaError.value = 'OAuth URL olinmadi';
         }
     } catch (error) {
-        console.error('Error getting auth URL:', error);
-        metaError.value = error.response?.data?.message || 'Meta bilan ulanishda xatolik yuz berdi';
+        metaError.value = error.response?.data?.message || 'Ulanishda xatolik';
     } finally {
         metaConnecting.value = false;
     }
@@ -246,7 +102,7 @@ const disconnectMeta = async () => {
         });
         window.location.reload();
     } catch (error) {
-        console.error('Error disconnecting:', error);
+        console.error('Disconnect error:', error);
     } finally {
         metaLoading.value = false;
     }
@@ -260,35 +116,31 @@ const syncMeta = async () => {
             business_id: props.business.id
         });
         if (response.data.success) {
-            // Show success message and reload to get updated accounts
-            alert(response.data.message || 'Ma\'lumotlar muvaffaqiyatli yuklandi!');
-            window.location.reload();
+            showNotification('success', 'Ma\'lumotlar muvaffaqiyatli sinxronlandi!');
+            setTimeout(() => window.location.reload(), 1500);
         } else {
-            metaError.value = response.data.error || 'Yuklashda xatolik yuz berdi';
+            showNotification('error', response.data.error || 'Xatolik yuz berdi');
         }
     } catch (error) {
-        console.error('Error syncing:', error);
-        metaError.value = error.response?.data?.error || 'Meta ma\'lumotlarini yuklashda xatolik yuz berdi';
+        showNotification('error', error.response?.data?.error || 'Sinxronlashda xatolik');
     } finally {
         metaSyncing.value = false;
     }
 };
 
 const selectMetaAccount = async (accountId) => {
-    metaLoading.value = true;
     try {
         await axios.post('/business/target-analysis/meta/select-account', {
             business_id: props.business.id,
-            account_id: accountId,
+            account_id: accountId
         });
         window.location.reload();
     } catch (error) {
-        console.error('Error selecting account:', error);
-    } finally {
-        metaLoading.value = false;
+        console.error('Select account error:', error);
     }
 };
 
+// Load Meta Data
 const loadMetaOverview = async () => {
     try {
         const response = await axios.get('/business/api/target-analysis/meta/overview', {
@@ -296,7 +148,7 @@ const loadMetaOverview = async () => {
         });
         metaOverview.value = response.data;
     } catch (error) {
-        console.error('Error loading overview:', error);
+        console.error('Overview error:', error);
     }
 };
 
@@ -307,7 +159,7 @@ const loadMetaCampaigns = async () => {
         });
         metaCampaigns.value = response.data.campaigns || [];
     } catch (error) {
-        console.error('Error loading campaigns:', error);
+        console.error('Campaigns error:', error);
     }
 };
 
@@ -318,7 +170,7 @@ const loadMetaDemographics = async () => {
         });
         metaDemographics.value = response.data;
     } catch (error) {
-        console.error('Error loading demographics:', error);
+        console.error('Demographics error:', error);
     }
 };
 
@@ -329,7 +181,7 @@ const loadMetaPlacements = async () => {
         });
         metaPlacements.value = response.data;
     } catch (error) {
-        console.error('Error loading placements:', error);
+        console.error('Placements error:', error);
     }
 };
 
@@ -340,7 +192,7 @@ const loadMetaTrend = async () => {
         });
         metaTrend.value = response.data.trend || [];
     } catch (error) {
-        console.error('Error loading trend:', error);
+        console.error('Trend error:', error);
     }
 };
 
@@ -348,7 +200,6 @@ const loadMetaData = async () => {
     if (!isMetaConnected.value || !props.selectedMetaAccount) return;
     metaLoading.value = true;
     metaError.value = null;
-    metaDataLoaded.value = false;
     try {
         await Promise.all([
             loadMetaOverview(),
@@ -359,37 +210,27 @@ const loadMetaData = async () => {
         ]);
         metaDataLoaded.value = true;
     } catch (error) {
-        console.error('Error loading Meta data:', error);
-        metaError.value = 'Meta ma\'lumotlarini yuklashda xatolik yuz berdi';
+        metaError.value = 'Ma\'lumotlarni yuklashda xatolik';
+        metaDataLoaded.value = true;
     } finally {
         metaLoading.value = false;
     }
 };
 
-const generateMetaAIInsights = async () => {
-    generatingMetaInsights.value = true;
-    showMetaAIModal.value = true;
+const generateAIInsights = async () => {
+    generatingAI.value = true;
+    showAIModal.value = true;
     try {
         const response = await axios.post('/business/api/target-analysis/meta/ai-insights', {
             business_id: props.business.id,
             period: metaDateRange.value,
         });
-        metaAIInsights.value = response.data;
+        aiInsights.value = response.data;
     } catch (error) {
-        console.error('Error generating insights:', error);
-        metaAIInsights.value = { success: false, error: 'Xatolik yuz berdi' };
+        aiInsights.value = { success: false, error: 'Xatolik yuz berdi' };
     } finally {
-        generatingMetaInsights.value = false;
+        generatingAI.value = false;
     }
-};
-
-const getStatusColor = (status) => {
-    const colors = {
-        ACTIVE: 'bg-green-100 text-green-800',
-        PAUSED: 'bg-yellow-100 text-yellow-800',
-        DELETED: 'bg-red-100 text-red-800',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
 };
 
 watch(metaDateRange, () => {
@@ -399,1059 +240,603 @@ watch(metaDateRange, () => {
 });
 
 onMounted(() => {
-    if (props.analysis?.ai_insights) {
-        aiInsights.value = props.analysis.ai_insights;
-    }
     if (isMetaConnected.value && props.selectedMetaAccount) {
         loadMetaData();
+    }
+    if (showFlash.value) {
+        setTimeout(() => dismissFlash(), 8000);
     }
 });
 </script>
 
 <template>
-    <Head title="Target Tahlili" />
+    <Head title="Meta Ads Tahlil" />
 
-    <BusinessLayout>
-        <div class="py-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- Header -->
-                <div class="mb-8">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900">Target Tahlili</h1>
-                            <p class="mt-2 text-gray-600">
-                                <span v-if="business">{{ business.name }}</span>
-                                <span v-if="lastUpdated" class="ml-2 text-sm">• Oxirgi yangilanish: {{ lastUpdated }}</span>
-                            </p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button @click="generateAIInsights" :disabled="generatingInsights"
-                                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
-                                <svg v-if="!generatingInsights" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Notification Toast -->
+    <Teleport to="body">
+        <Transition
+            enter-active-class="transition ease-out duration-300"
+            enter-from-class="transform translate-x-full opacity-0"
+            enter-to-class="transform translate-x-0 opacity-100"
+            leave-active-class="transition ease-in duration-200"
+            leave-from-class="transform translate-x-0 opacity-100"
+            leave-to-class="transform translate-x-full opacity-0"
+        >
+            <div v-if="notification.show" class="fixed top-4 right-4 z-50">
+                <div :class="notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'" class="text-white rounded-xl shadow-2xl p-4 flex items-center gap-3 min-w-[300px]">
+                    <svg v-if="notification.type === 'success'" class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <svg v-else class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-medium">{{ notification.message }}</span>
+                    <button @click="notification.show = false" class="ml-auto opacity-70 hover:opacity-100">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
+
+    <!-- AI Insights Modal -->
+    <Teleport to="body">
+        <Transition
+            enter-active-class="transition ease-out duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition ease-in duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div v-if="showAIModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                 </svg>
-                                <svg v-else class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                                AI Tahlil
-                            </button>
-                            <button @click="exportAnalysis" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Export
-                            </button>
-                            <button @click="refreshAnalysis" :disabled="refreshing"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
-                                <svg :class="{ 'animate-spin': refreshing }" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Yangilash
-                            </button>
+                            </div>
+                            <h3 class="text-xl font-bold">AI Tahlil</h3>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Error State -->
-                <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                    <p class="text-red-800">{{ error }}</p>
-                </div>
-
-                <!-- Main Content -->
-                <div v-else>
-                    <!-- AI Insights Modal -->
-                    <div v-if="showAIInsights" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-                            <div class="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
-                                <h3 class="text-xl font-bold text-gray-900">AI Tahlil Natijalari</h3>
-                                <button @click="showAIInsights = false" class="text-gray-500 hover:text-gray-700">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-6">
-                                <div v-if="generatingInsights" class="text-center py-12">
-                                    <svg class="animate-spin h-12 w-12 mx-auto mb-4 text-purple-600" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    <p class="text-gray-600">AI tahlil yaratilmoqda...</p>
-                                </div>
-                                <div v-else-if="aiInsights" class="prose max-w-none">
-                                    <div class="whitespace-pre-wrap text-gray-800">{{ aiInsights.insights || aiInsights }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Meta AI Insights Modal -->
-                    <div v-if="showMetaAIModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-                            <div class="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
-                                <h3 class="text-xl font-bold text-gray-900">Meta Ads AI Tahlil</h3>
-                                <button @click="showMetaAIModal = false" class="text-gray-500 hover:text-gray-700">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-6">
-                                <div v-if="generatingMetaInsights" class="text-center py-12">
-                                    <svg class="animate-spin h-12 w-12 mx-auto mb-4 text-purple-600" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    <p class="text-gray-600">AI tahlil yaratilmoqda...</p>
-                                </div>
-                                <div v-else-if="metaAIInsights?.success" class="space-y-6">
-                                    <div class="bg-blue-50 p-4 rounded-lg">
-                                        <h4 class="font-semibold text-blue-900 mb-2">Samaradorlik Xulosasi</h4>
-                                        <p class="text-blue-800">{{ metaAIInsights.performance_summary }}</p>
-                                    </div>
-                                    <div class="bg-green-50 p-4 rounded-lg">
-                                        <h4 class="font-semibold text-green-900 mb-2">Tavsiyalar</h4>
-                                        <ul class="list-disc list-inside text-green-800 space-y-1">
-                                            <li v-for="(rec, i) in metaAIInsights.recommendations" :key="i">{{ rec }}</li>
-                                        </ul>
-                                    </div>
-                                    <div class="bg-purple-50 p-4 rounded-lg">
-                                        <h4 class="font-semibold text-purple-900 mb-2">Auditoriya Tahlili</h4>
-                                        <p class="text-purple-800">{{ metaAIInsights.audience_insights }}</p>
-                                    </div>
-                                </div>
-                                <div v-else-if="metaAIInsights" class="text-red-600">
-                                    {{ metaAIInsights.error || 'Xatolik yuz berdi' }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tabs -->
-                    <div class="border-b border-gray-200 mb-6">
-                        <nav class="-mb-px flex space-x-8 overflow-x-auto">
-                            <button @click="activeTab = 'overview'" :class="[activeTab === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
-                                Umumiy Ko'rinish
-                            </button>
-                            <button @click="activeTab = 'dreambuyer'" :class="[activeTab === 'dreambuyer' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
-                                Ideal Mijoz
-                            </button>
-                            <button @click="activeTab = 'segments'" :class="[activeTab === 'segments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
-                                Segmentatsiya
-                            </button>
-                            <button @click="activeTab = 'funnel'" :class="[activeTab === 'funnel' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
-                                Voronka
-                            </button>
-                            <button @click="activeTab = 'churn'" :class="[activeTab === 'churn' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
-                                Churn
-                            </button>
-                            <button @click="activeTab = 'meta'" :class="[activeTab === 'meta' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2']">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                </svg>
-                                Meta Ads
-                            </button>
-                        </nav>
-                    </div>
-
-                    <!-- Connect Meta Required Message (shown for all tabs except meta when not connected) -->
-                    <div v-if="!hasMetaAccount && activeTab !== 'meta'" class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                        <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        <button @click="showAIModal = false" class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                        </div>
-                        <h2 class="text-xl font-bold text-gray-900 mb-3">Meta hisobingizni ulang</h2>
-                        <p class="text-gray-600 mb-6 max-w-md mx-auto">
-                            {{ activeTab === 'overview' ? 'Umumiy ko\'rinish' :
-                               activeTab === 'dreambuyer' ? 'Ideal Mijoz tahlili' :
-                               activeTab === 'segments' ? 'Segmentatsiya' :
-                               activeTab === 'funnel' ? 'Voronka tahlili' :
-                               'Churn tahlili' }}
-                            ma'lumotlarini ko'rish uchun avval Facebook/Instagram reklama hisobingizni ulang.
-                        </p>
-                        <button @click="activeTab = 'meta'" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 font-semibold inline-flex items-center gap-2 shadow-lg transition-all">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                            Meta hisobini ulash
                         </button>
                     </div>
+                    <div class="p-6 overflow-y-auto max-h-[calc(85vh-100px)]">
+                        <div v-if="generatingAI" class="text-center py-16">
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="animate-spin h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-gray-600 font-medium">AI tahlil yaratilmoqda...</p>
+                            <p class="text-gray-400 text-sm mt-1">Bu bir necha soniya vaqt olishi mumkin</p>
+                        </div>
+                        <div v-else-if="aiInsights" class="prose max-w-none">
+                            <div class="whitespace-pre-wrap text-gray-700 leading-relaxed">{{ aiInsights.insights || aiInsights.error || aiInsights }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 
-                    <!-- Overview Tab -->
-                    <div v-show="activeTab === 'overview' && hasMetaAccount && metaDataLoaded" class="space-y-6">
-                        <!-- Filters Bar -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                            <div class="flex flex-wrap items-center gap-4">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm font-medium text-gray-700">Davr:</label>
-                                    <select v-model="metaDateRange" @change="loadMetaData"
-                                        class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="last_7d">Oxirgi 7 kun</option>
-                                        <option value="last_14d">Oxirgi 14 kun</option>
-                                        <option value="last_30d">Oxirgi 30 kun</option>
-                                        <option value="last_90d">Oxirgi 90 kun</option>
-                                        <option value="maximum">Barcha vaqt</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm font-medium text-gray-700">Status:</label>
-                                    <select v-model="campaignStatusFilter"
-                                        class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="all">Barchasi</option>
-                                        <option value="ACTIVE">Faol</option>
-                                        <option value="PAUSED">To'xtatilgan</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm font-medium text-gray-700">Tartiblash:</label>
-                                    <select v-model="campaignSortBy"
-                                        class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="spend">Sarflangan</option>
-                                        <option value="clicks">Kliklar</option>
-                                        <option value="impressions">Ko'rishlar</option>
-                                        <option value="ctr">CTR</option>
-                                        <option value="cpc">CPC</option>
-                                        <option value="created">Yaratilgan sana</option>
-                                    </select>
-                                </div>
-                                <button @click="loadMetaData" :disabled="metaLoading"
-                                    class="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 text-sm">
-                                    <svg :class="{ 'animate-spin': metaLoading }" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    <BusinessLayout>
+        <div class="min-h-screen bg-gray-50">
+            <!-- Flash Messages -->
+            <div v-if="showFlash" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+                <div v-if="flashSuccess" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-green-800 font-medium">{{ flashSuccess }}</span>
+                    </div>
+                    <button @click="dismissFlash" class="text-green-500 hover:text-green-700">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+                <div v-if="flashError" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between mt-3">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-red-800 font-medium">{{ flashError }}</span>
+                    </div>
+                    <button @click="dismissFlash" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Not Connected State -->
+                <div v-if="!hasMetaAccount" class="text-center py-20">
+                    <div class="max-w-lg mx-auto">
+                        <div class="w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-purple-500/30">
+                            <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-4">Meta Ads Tahlil</h1>
+                        <p class="text-gray-600 text-lg mb-8">
+                            Facebook va Instagram reklamalaringiz samaradorligini tahlil qiling.
+                            Auditoriya demografiyasi, kampaniya natijalari va AI tavsiyalarini oling.
+                        </p>
+                        <button @click="connectMeta" :disabled="metaConnecting"
+                            class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl hover:from-blue-700 hover:to-purple-700 font-semibold text-lg shadow-xl shadow-blue-500/30 transition-all disabled:opacity-50">
+                            <svg v-if="!metaConnecting" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <svg v-else class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            {{ metaConnecting ? 'Ulanmoqda...' : 'Meta hisobini ulash' }}
+                        </button>
+                        <p v-if="metaError" class="mt-4 text-red-600">{{ metaError }}</p>
+                    </div>
+                </div>
+
+                <!-- Connected State -->
+                <div v-else>
+                    <!-- Header Card -->
+                    <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-white shadow-xl">
+                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                     </svg>
-                                    Yangilash
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Campaign Summary Cards -->
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-5 text-white">
-                                <p class="text-xs font-medium text-blue-100 uppercase">Kampaniyalar</p>
-                                <p class="text-2xl font-bold mt-1">{{ campaignStats.total }}</p>
-                                <p class="text-xs text-blue-100 mt-1">{{ campaignStats.active }} faol</p>
-                            </div>
-                            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                <p class="text-xs font-medium text-gray-500 uppercase">Sarflangan</p>
-                                <p class="text-xl font-bold text-gray-900 mt-1">{{ formatCurrency(metaOverview?.current?.spend || 0, selectedMetaAccount?.currency) }}</p>
-                                <p class="text-xs mt-1" :class="(metaOverview?.change?.spend || 0) >= 0 ? 'text-red-500' : 'text-green-500'">
-                                    {{ (metaOverview?.change?.spend || 0) >= 0 ? '+' : '' }}{{ metaOverview?.change?.spend || 0 }}%
-                                </p>
-                            </div>
-                            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                <p class="text-xs font-medium text-gray-500 uppercase">Reach</p>
-                                <p class="text-xl font-bold text-gray-900 mt-1">{{ formatNumber(metaOverview?.current?.reach || 0) }}</p>
-                                <p class="text-xs text-gray-500 mt-1">Noyob foydalanuvchi</p>
-                            </div>
-                            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                <p class="text-xs font-medium text-gray-500 uppercase">Impressions</p>
-                                <p class="text-xl font-bold text-gray-900 mt-1">{{ formatNumber(metaOverview?.current?.impressions || 0) }}</p>
-                                <p class="text-xs text-gray-500 mt-1">Jami ko'rishlar</p>
-                            </div>
-                            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                <p class="text-xs font-medium text-gray-500 uppercase">Kliklar</p>
-                                <p class="text-xl font-bold text-gray-900 mt-1">{{ formatNumber(metaOverview?.current?.clicks || 0) }}</p>
-                                <p class="text-xs mt-1" :class="(metaOverview?.change?.clicks || 0) >= 0 ? 'text-green-500' : 'text-red-500'">
-                                    {{ (metaOverview?.change?.clicks || 0) >= 0 ? '+' : '' }}{{ metaOverview?.change?.clicks || 0 }}%
-                                </p>
-                            </div>
-                            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                <p class="text-xs font-medium text-gray-500 uppercase">CTR</p>
-                                <p class="text-xl font-bold mt-1" :class="(metaOverview?.current?.ctr || 0) >= 1 ? 'text-green-600' : 'text-orange-600'">
-                                    {{ formatPercent(metaOverview?.current?.ctr || 0) }}
-                                </p>
-                                <p class="text-xs text-gray-500 mt-1">CPC: {{ formatCurrency(metaOverview?.current?.cpc || 0, selectedMetaAccount?.currency) }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Campaigns Table -->
-                        <div v-if="filteredCampaigns.length" class="bg-white rounded-xl shadow-sm border border-gray-200">
-                            <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+                                </div>
                                 <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">Kampaniyalar</h3>
-                                    <p class="text-sm text-gray-500">{{ filteredCampaigns.length }} ta kampaniya</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input v-model="campaignSearch" type="text" placeholder="Qidirish..."
-                                        class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-48" />
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kampaniya</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Maqsad</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sarflangan</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ko'rishlar</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Kliklar</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTR</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CPC</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Amal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        <tr v-for="campaign in paginatedCampaigns" :key="campaign.id"
-                                            class="hover:bg-gray-50 cursor-pointer" @click="selectCampaign(campaign)">
-                                            <td class="px-4 py-4">
-                                                <div class="text-sm font-medium text-gray-900 max-w-xs truncate">{{ campaign.name }}</div>
-                                                <div class="text-xs text-gray-500">ID: {{ campaign.id }}</div>
-                                            </td>
-                                            <td class="px-4 py-4">
-                                                <span :class="getStatusColor(campaign.status)" class="px-2 py-1 text-xs font-semibold rounded-full">
-                                                    {{ campaign.status === 'ACTIVE' ? 'Faol' : campaign.status === 'PAUSED' ? 'To\'xtatilgan' : campaign.status }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-4">
-                                                <span class="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">{{ formatObjective(campaign.objective) }}</span>
-                                            </td>
-                                            <td class="px-4 py-4 text-sm text-right font-medium text-gray-900">
-                                                {{ formatCurrency(campaign.spend, selectedMetaAccount?.currency) }}
-                                            </td>
-                                            <td class="px-4 py-4 text-sm text-right text-gray-600">
-                                                {{ formatNumber(campaign.impressions) }}
-                                            </td>
-                                            <td class="px-4 py-4 text-sm text-right text-gray-600">
-                                                {{ formatNumber(campaign.clicks) }}
-                                            </td>
-                                            <td class="px-4 py-4 text-sm text-right">
-                                                <span :class="campaign.ctr >= 1 ? 'text-green-600 font-medium' : campaign.ctr >= 0.5 ? 'text-orange-600' : 'text-red-600'">
-                                                    {{ formatPercent(campaign.ctr) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-4 text-sm text-right text-gray-600">
-                                                {{ formatCurrency(campaign.cpc, selectedMetaAccount?.currency) }}
-                                            </td>
-                                            <td class="px-4 py-4 text-center">
-                                                <button @click.stop="selectCampaign(campaign)" class="text-blue-600 hover:text-blue-800">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- Pagination -->
-                            <div class="px-5 py-4 border-t border-gray-200 flex items-center justify-between">
-                                <p class="text-sm text-gray-500">
-                                    {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ Math.min(currentPage * itemsPerPage, filteredCampaigns.length) }} / {{ filteredCampaigns.length }} ta kampaniya
-                                </p>
-                                <div class="flex items-center gap-2">
-                                    <button @click="currentPage--" :disabled="currentPage === 1"
-                                        class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 hover:bg-gray-50">
-                                        Oldingi
-                                    </button>
-                                    <span class="text-sm text-gray-600">{{ currentPage }} / {{ totalPages }}</span>
-                                    <button @click="currentPage++" :disabled="currentPage === totalPages"
-                                        class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 hover:bg-gray-50">
-                                        Keyingi
-                                    </button>
+                                    <p class="text-white/70 text-sm">Ulangan hisob</p>
+                                    <select v-if="metaAdAccounts?.length > 1"
+                                        @change="selectMetaAccount($event.target.value)"
+                                        class="text-xl font-bold bg-transparent border-none text-white focus:ring-0 cursor-pointer -ml-1">
+                                        <option v-for="acc in metaAdAccounts" :key="acc.meta_account_id"
+                                            :value="acc.meta_account_id"
+                                            :selected="acc.meta_account_id === selectedMetaAccount?.meta_account_id"
+                                            class="text-gray-900">
+                                            {{ acc.name }}
+                                        </option>
+                                    </select>
+                                    <h2 v-else class="text-xl font-bold">{{ selectedMetaAccount?.name }}</h2>
+                                    <p class="text-white/60 text-sm">{{ selectedMetaAccount?.meta_account_id }} • {{ selectedMetaAccount?.currency }}</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Campaign Detail Modal -->
-                        <div v-if="selectedCampaign" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                            <div class="bg-white rounded-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
-                                <div class="p-6 border-b border-gray-200 flex justify-between items-start sticky top-0 bg-white">
-                                    <div>
-                                        <h3 class="text-xl font-bold text-gray-900">{{ selectedCampaign.name }}</h3>
-                                        <p class="text-sm text-gray-500 mt-1">ID: {{ selectedCampaign.id }}</p>
-                                    </div>
-                                    <button @click="selectedCampaign = null" class="text-gray-500 hover:text-gray-700">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="p-6 space-y-6">
-                                    <!-- Campaign Info -->
-                                    <div class="flex items-center gap-4">
-                                        <span :class="getStatusColor(selectedCampaign.status)" class="px-3 py-1.5 text-sm font-semibold rounded-full">
-                                            {{ selectedCampaign.status === 'ACTIVE' ? 'Faol' : 'To\'xtatilgan' }}
-                                        </span>
-                                        <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">{{ formatObjective(selectedCampaign.objective) }}</span>
-                                    </div>
-
-                                    <!-- Performance Metrics -->
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div class="bg-gray-50 rounded-lg p-4 text-center">
-                                            <p class="text-xs text-gray-500 uppercase">Sarflangan</p>
-                                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ formatCurrency(selectedCampaign.spend, selectedMetaAccount?.currency) }}</p>
-                                        </div>
-                                        <div class="bg-gray-50 rounded-lg p-4 text-center">
-                                            <p class="text-xs text-gray-500 uppercase">Ko'rishlar</p>
-                                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ formatNumber(selectedCampaign.impressions) }}</p>
-                                        </div>
-                                        <div class="bg-gray-50 rounded-lg p-4 text-center">
-                                            <p class="text-xs text-gray-500 uppercase">Kliklar</p>
-                                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ formatNumber(selectedCampaign.clicks) }}</p>
-                                        </div>
-                                        <div class="bg-gray-50 rounded-lg p-4 text-center">
-                                            <p class="text-xs text-gray-500 uppercase">CTR</p>
-                                            <p class="text-2xl font-bold mt-1" :class="selectedCampaign.ctr >= 1 ? 'text-green-600' : 'text-orange-600'">
-                                                {{ formatPercent(selectedCampaign.ctr) }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Additional Metrics -->
-                                    <div class="grid grid-cols-3 gap-4">
-                                        <div class="border border-gray-200 rounded-lg p-4">
-                                            <p class="text-sm text-gray-500">CPC (Klik uchun narx)</p>
-                                            <p class="text-xl font-bold text-gray-900 mt-1">{{ formatCurrency(selectedCampaign.cpc, selectedMetaAccount?.currency) }}</p>
-                                        </div>
-                                        <div class="border border-gray-200 rounded-lg p-4">
-                                            <p class="text-sm text-gray-500">CPM (1000 ko'rish narxi)</p>
-                                            <p class="text-xl font-bold text-gray-900 mt-1">{{ formatCurrency(selectedCampaign.impressions > 0 ? (selectedCampaign.spend / selectedCampaign.impressions * 1000) : 0, selectedMetaAccount?.currency) }}</p>
-                                        </div>
-                                        <div class="border border-gray-200 rounded-lg p-4">
-                                            <p class="text-sm text-gray-500">Konversiyalar</p>
-                                            <p class="text-xl font-bold text-gray-900 mt-1">{{ formatNumber(selectedCampaign.conversions || 0) }}</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Performance Assessment -->
-                                    <div class="border border-gray-200 rounded-lg p-4">
-                                        <h4 class="font-semibold text-gray-900 mb-3">Samaradorlik Bahosi</h4>
-                                        <div class="space-y-3">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-600">CTR Darajasi</span>
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-32 bg-gray-200 rounded-full h-2">
-                                                        <div class="h-2 rounded-full" :class="selectedCampaign.ctr >= 1 ? 'bg-green-500' : selectedCampaign.ctr >= 0.5 ? 'bg-yellow-500' : 'bg-red-500'"
-                                                            :style="{ width: Math.min(selectedCampaign.ctr * 33, 100) + '%' }"></div>
-                                                    </div>
-                                                    <span class="text-sm font-medium" :class="selectedCampaign.ctr >= 1 ? 'text-green-600' : selectedCampaign.ctr >= 0.5 ? 'text-yellow-600' : 'text-red-600'">
-                                                        {{ selectedCampaign.ctr >= 1 ? 'Yaxshi' : selectedCampaign.ctr >= 0.5 ? 'O\'rtacha' : 'Past' }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-600">CPC Darajasi</span>
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-32 bg-gray-200 rounded-full h-2">
-                                                        <div class="h-2 rounded-full" :class="selectedCampaign.cpc <= 0.5 ? 'bg-green-500' : selectedCampaign.cpc <= 1 ? 'bg-yellow-500' : 'bg-red-500'"
-                                                            :style="{ width: Math.min(100 - selectedCampaign.cpc * 25, 100) + '%' }"></div>
-                                                    </div>
-                                                    <span class="text-sm font-medium" :class="selectedCampaign.cpc <= 0.5 ? 'text-green-600' : selectedCampaign.cpc <= 1 ? 'text-yellow-600' : 'text-red-600'">
-                                                        {{ selectedCampaign.cpc <= 0.5 ? 'Arzon' : selectedCampaign.cpc <= 1 ? 'O\'rtacha' : 'Qimmat' }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Recommendations -->
-                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                        <h4 class="font-semibold text-blue-900 mb-2">Tavsiyalar</h4>
-                                        <ul class="text-sm text-blue-800 space-y-1">
-                                            <li v-if="selectedCampaign.ctr < 0.5">• CTR juda past. Kreativlarni yangilang va maqsadli auditoriyani qayta ko'rib chiqing.</li>
-                                            <li v-if="selectedCampaign.ctr >= 0.5 && selectedCampaign.ctr < 1">• CTR o'rtacha. A/B test orqali kreativlarni optimallashtiring.</li>
-                                            <li v-if="selectedCampaign.ctr >= 1">• CTR yaxshi! Budjetni oshirishni ko'rib chiqing.</li>
-                                            <li v-if="selectedCampaign.cpc > 1">• CPC yuqori. Auditoriyani kengaytiring yoki bid strategiyasini o'zgartiring.</li>
-                                            <li v-if="selectedCampaign.status === 'PAUSED' && selectedCampaign.ctr >= 1">• Yaxshi natijali kampaniya to'xtatilgan. Qayta ishga tushirishni ko'rib chiqing.</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ideal Mijoz Tab - Based on Meta Demographics -->
-                    <div v-show="activeTab === 'dreambuyer' && hasMetaAccount && metaDataLoaded" class="space-y-6">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ideal Auditoriya Profili (Meta asosida)</h3>
-                            <p class="text-gray-600 mb-6">Facebook/Instagram reklama ma'lumotlari asosida eng samarali auditoriya segmentlari</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Age Based Ideal Mijoz -->
-                                <div class="border border-gray-200 rounded-lg p-4">
-                                    <h4 class="font-semibold text-gray-900 mb-3">Yosh bo'yicha eng samarali</h4>
-                                    <div v-if="metaDemographics.age?.length" class="space-y-2">
-                                        <div v-for="(item, index) in metaDemographics.age.slice(0, 3)" :key="item.label"
-                                            :class="index === 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50'"
-                                            class="p-3 rounded-lg border">
-                                            <div class="flex justify-between items-center">
-                                                <span class="font-medium" :class="index === 0 ? 'text-green-800' : 'text-gray-700'">{{ item.label }} yosh</span>
-                                                <span class="font-bold" :class="index === 0 ? 'text-green-600' : 'text-gray-900'">{{ item.percentage }}%</span>
-                                            </div>
-                                            <p v-if="index === 0" class="text-sm text-green-600 mt-1">Eng yuqori konversiya</p>
-                                        </div>
-                                    </div>
-                                    <p v-else class="text-gray-500 text-center py-4">Ma'lumot mavjud emas</p>
-                                </div>
-
-                                <!-- Platform Based Ideal Mijoz -->
-                                <div class="border border-gray-200 rounded-lg p-4">
-                                    <h4 class="font-semibold text-gray-900 mb-3">Platforma bo'yicha</h4>
-                                    <div v-if="metaPlacements.platforms?.length" class="space-y-2">
-                                        <div v-for="(item, index) in metaPlacements.platforms" :key="item.label"
-                                            :class="index === 0 ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'"
-                                            class="p-3 rounded-lg border">
-                                            <div class="flex justify-between items-center">
-                                                <span class="font-medium" :class="index === 0 ? 'text-blue-800' : 'text-gray-700'">{{ item.label }}</span>
-                                                <span class="font-bold" :class="index === 0 ? 'text-blue-600' : 'text-gray-900'">{{ item.percentage }}%</span>
-                                            </div>
-                                            <p v-if="index === 0" class="text-sm text-blue-600 mt-1">Asosiy platforma</p>
-                                        </div>
-                                    </div>
-                                    <p v-else class="text-gray-500 text-center py-4">Ma'lumot mavjud emas</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Segments Tab - Based on Meta Data -->
-                    <div v-show="activeTab === 'segments' && hasMetaAccount && metaDataLoaded" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Age Segmentation -->
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Yosh Bo'yicha Segmentatsiya</h3>
-                                <div v-if="metaDemographics.age?.length" class="space-y-4">
-                                    <div v-for="item in metaDemographics.age" :key="item.label">
-                                        <div class="flex justify-between mb-2">
-                                            <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
-                                            <span class="text-sm font-semibold text-gray-900">{{ item.percentage }}%</span>
-                                        </div>
-                                        <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="bg-blue-600 h-2 rounded-full" :style="{ width: item.percentage + '%' }"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p v-else class="text-gray-500 text-center py-8">Demografik ma'lumot mavjud emas</p>
-                            </div>
-
-                            <!-- Platform Segmentation -->
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Platforma Bo'yicha Segmentatsiya</h3>
-                                <div v-if="metaPlacements.platforms?.length" class="space-y-3">
-                                    <div v-for="item in metaPlacements.platforms" :key="item.label"
-                                        class="flex justify-between items-center p-3 rounded-lg"
-                                        :class="item.label.toLowerCase() === 'facebook' ? 'bg-blue-50' : 'bg-purple-50'">
-                                        <div class="flex items-center gap-3">
-                                            <div :class="item.label.toLowerCase() === 'facebook' ? 'bg-blue-100' : 'bg-purple-100'" class="w-10 h-10 rounded-lg flex items-center justify-center">
-                                                <svg v-if="item.label.toLowerCase() === 'facebook'" class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                                </svg>
-                                                <svg v-else class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
-                                                </svg>
-                                            </div>
-                                            <span class="font-medium text-gray-700">{{ item.label }}</span>
-                                        </div>
-                                        <span class="text-lg font-bold" :class="item.label.toLowerCase() === 'facebook' ? 'text-blue-600' : 'text-purple-600'">{{ item.percentage }}%</span>
-                                    </div>
-                                </div>
-                                <p v-else class="text-gray-500 text-center py-8">Platforma ma'lumoti mavjud emas</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Funnel Tab - Based on Meta Insights -->
-                    <div v-show="activeTab === 'funnel' && hasMetaAccount && metaDataLoaded" class="space-y-6">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-6">Reklama Voronkasi (Meta)</h3>
-                            <div class="space-y-4">
-                                <div class="relative">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-sm font-medium text-gray-700">Impressions (Ko'rishlar)</span>
-                                        <div class="text-right">
-                                            <span class="text-lg font-bold text-gray-900">{{ formatNumber(metaOverview?.current?.impressions) }}</span>
-                                            <span class="text-sm text-gray-500 ml-2">(100%)</span>
-                                        </div>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-8">
-                                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-8 rounded-full" style="width: 100%"></div>
-                                    </div>
-                                </div>
-                                <div class="relative">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-sm font-medium text-gray-700">Reach (Qamrov)</span>
-                                        <div class="text-right">
-                                            <span class="text-lg font-bold text-gray-900">{{ formatNumber(metaOverview?.current?.reach) }}</span>
-                                            <span class="text-sm text-gray-500 ml-2">({{ ((metaOverview?.current?.reach || 0) / (metaOverview?.current?.impressions || 1) * 100).toFixed(1) }}%)</span>
-                                        </div>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-8">
-                                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-8 rounded-full" :style="{ width: ((metaOverview?.current?.reach || 0) / (metaOverview?.current?.impressions || 1) * 100) + '%' }"></div>
-                                    </div>
-                                </div>
-                                <div class="relative">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-sm font-medium text-gray-700">Clicks (Kliklar)</span>
-                                        <div class="text-right">
-                                            <span class="text-lg font-bold text-gray-900">{{ formatNumber(metaOverview?.current?.clicks) }}</span>
-                                            <span class="text-sm text-gray-500 ml-2">(CTR: {{ formatPercent(metaOverview?.current?.ctr) }})</span>
-                                        </div>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-8">
-                                        <div class="bg-gradient-to-r from-green-500 to-green-600 h-8 rounded-full" :style="{ width: Math.min((metaOverview?.current?.ctr || 0) * 10, 100) + '%' }"></div>
-                                    </div>
-                                </div>
-                                <div class="relative">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-sm font-medium text-gray-700">Conversions</span>
-                                        <div class="text-right">
-                                            <span class="text-lg font-bold text-gray-900">{{ formatNumber(metaOverview?.current?.conversions || 0) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-8">
-                                        <div class="bg-gradient-to-r from-orange-500 to-orange-600 h-8 rounded-full" :style="{ width: Math.min(((metaOverview?.current?.conversions || 0) / (metaOverview?.current?.clicks || 1) * 100), 100) + '%' }"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Churn Tab - Based on Campaign Performance -->
-                    <div v-show="activeTab === 'churn' && hasMetaAccount && metaDataLoaded" class="space-y-6">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Kampaniya Samaradorlik Tahlili</h3>
-                            <p class="text-gray-600 mb-6">Reklama kampaniyalari holati va samaradorligi</p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-green-50 border border-green-200 rounded-xl p-6">
-                                <h4 class="text-sm font-medium text-green-800 mb-2">Faol Kampaniyalar</h4>
-                                <p class="text-3xl font-bold text-green-600">{{ metaCampaigns.filter(c => c.status === 'ACTIVE').length }}</p>
-                                <p class="text-sm text-green-600 mt-1">Ishlayotgan</p>
-                            </div>
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                                <h4 class="text-sm font-medium text-yellow-800 mb-2">To'xtatilgan</h4>
-                                <p class="text-3xl font-bold text-yellow-600">{{ metaCampaigns.filter(c => c.status === 'PAUSED').length }}</p>
-                                <p class="text-sm text-yellow-600 mt-1">Pauzada</p>
-                            </div>
-                            <div class="bg-red-50 border border-red-200 rounded-xl p-6">
-                                <h4 class="text-sm font-medium text-red-800 mb-2">Past Samaradorlik</h4>
-                                <p class="text-3xl font-bold text-red-600">{{ metaCampaigns.filter(c => (c.ctr || 0) < 1).length }}</p>
-                                <p class="text-sm text-red-600 mt-1">CTR < 1%</p>
-                            </div>
-                        </div>
-
-                        <!-- Low Performing Campaigns -->
-                        <div v-if="metaCampaigns.filter(c => (c.ctr || 0) < 1).length" class="bg-white rounded-xl shadow-sm border border-gray-200">
-                            <div class="p-6 border-b border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-900">Past Samaradorlikdagi Kampaniyalar</h3>
-                                <p class="text-sm text-gray-500">CTR 1% dan past - optimallashtirish tavsiya etiladi</p>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kampaniya</th>
-                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTR</th>
-                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sarflangan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        <tr v-for="campaign in metaCampaigns.filter(c => (c.ctr || 0) < 1)" :key="campaign.id">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ campaign.name }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-right font-medium">{{ formatPercent(campaign.ctr) }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{{ formatCurrency(campaign.spend, selectedMetaAccount?.currency) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Meta Ads Tab -->
-                    <div v-show="activeTab === 'meta'" class="space-y-6">
-                        <!-- Error Message -->
-                        <div v-if="metaError" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p class="text-red-700">{{ metaError }}</p>
-                                <button @click="metaError = null" class="ml-auto text-red-500 hover:text-red-700">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <select v-model="metaDateRange" class="px-4 py-2.5 bg-white/10 border border-white/20 text-white rounded-xl text-sm focus:ring-2 focus:ring-white/30 backdrop-blur">
+                                    <option value="last_7d" class="text-gray-900">Oxirgi 7 kun</option>
+                                    <option value="last_14d" class="text-gray-900">Oxirgi 14 kun</option>
+                                    <option value="last_30d" class="text-gray-900">Oxirgi 30 kun</option>
+                                    <option value="last_90d" class="text-gray-900">Oxirgi 90 kun</option>
+                                    <option value="maximum" class="text-gray-900">Barcha vaqt</option>
+                                </select>
+                                <button @click="generateAIInsights" :disabled="generatingAI || !metaDataLoaded"
+                                    class="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 backdrop-blur">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- State 1: Not Connected - Show Connect UI -->
-                        <div v-if="!isMetaConnected" class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                            <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                </svg>
-                            </div>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Meta Ads Integratsiyasi</h2>
-                            <p class="text-gray-600 mb-6 max-w-lg mx-auto">
-                                Facebook va Instagram reklama hisoblaringizni ulang. Ulanganingizdan so'ng quyidagi imkoniyatlarga ega bo'lasiz:
-                            </p>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
-                                <div class="bg-blue-50 rounded-lg p-4">
-                                    <svg class="w-8 h-8 text-blue-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                    <p class="text-sm font-medium text-blue-900">Kampaniya Statistikasi</p>
-                                </div>
-                                <div class="bg-purple-50 rounded-lg p-4">
-                                    <svg class="w-8 h-8 text-purple-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                    <p class="text-sm font-medium text-purple-900">Auditoriya Tahlili</p>
-                                </div>
-                                <div class="bg-green-50 rounded-lg p-4">
-                                    <svg class="w-8 h-8 text-green-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                     </svg>
-                                    <p class="text-sm font-medium text-green-900">AI Tavsiyalar</p>
-                                </div>
-                            </div>
-                            <button @click="connectMeta" :disabled="metaConnecting"
-                                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 text-lg font-semibold inline-flex items-center gap-3 shadow-lg transition-all">
-                                <svg v-if="!metaConnecting" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                </svg>
-                                <svg v-else class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                                {{ metaConnecting ? 'Ulanmoqda...' : 'Facebook/Instagram bilan Ulash' }}
-                            </button>
-                            <p class="text-xs text-gray-500 mt-4">
-                                Ulanish orqali siz Meta Ads hisoblaringizga faqat o'qish huquqini berasiz
-                            </p>
-                        </div>
-
-                        <!-- State 2: Connected but no account selected -->
-                        <div v-else-if="isMetaConnected && !selectedMetaAccount && metaAdAccounts?.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                            <div class="text-center mb-8">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    AI Tahlil
+                                </button>
+                                <button @click="syncMeta" :disabled="metaSyncing"
+                                    class="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 backdrop-blur">
+                                    <svg :class="{ 'animate-spin': metaSyncing }" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
+                                    {{ metaSyncing ? 'Sinxronlanmoqda...' : 'Yangilash' }}
+                                </button>
+                                <button @click="disconnectMeta" class="px-4 py-2.5 bg-red-500/80 border border-red-400/50 rounded-xl hover:bg-red-500 transition-colors text-sm font-medium">
+                                    Uzish
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div v-if="metaLoading && !metaDataLoaded" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-16">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="animate-spin h-12 w-12 text-blue-600 mb-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <p class="text-gray-600 font-medium">Ma'lumotlar yuklanmoqda...</p>
+                        </div>
+                    </div>
+
+                    <!-- Data Loaded -->
+                    <div v-else-if="metaDataLoaded">
+                        <!-- Tab Navigation -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6">
+                            <nav class="flex overflow-x-auto p-1.5 gap-1">
+                                <button @click="activeTab = 'overview'"
+                                    :class="[activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-600 hover:bg-gray-100', 'flex-1 min-w-[120px] py-3 px-4 rounded-xl font-medium text-sm transition-all']">
+                                    Umumiy
+                                </button>
+                                <button @click="activeTab = 'campaigns'"
+                                    :class="[activeTab === 'campaigns' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-600 hover:bg-gray-100', 'flex-1 min-w-[120px] py-3 px-4 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2']">
+                                    Kampaniyalar
+                                    <span :class="activeTab === 'campaigns' ? 'bg-white/20' : 'bg-gray-200'" class="text-xs px-2 py-0.5 rounded-full">{{ metaCampaigns.length }}</span>
+                                </button>
+                                <button @click="activeTab = 'audience'"
+                                    :class="[activeTab === 'audience' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-600 hover:bg-gray-100', 'flex-1 min-w-[120px] py-3 px-4 rounded-xl font-medium text-sm transition-all']">
+                                    Auditoriya
+                                </button>
+                                <button @click="activeTab = 'placements'"
+                                    :class="[activeTab === 'placements' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-600 hover:bg-gray-100', 'flex-1 min-w-[120px] py-3 px-4 rounded-xl font-medium text-sm transition-all']">
+                                    Platformalar
+                                </button>
+                                <button @click="activeTab = 'trend'"
+                                    :class="[activeTab === 'trend' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-600 hover:bg-gray-100', 'flex-1 min-w-[120px] py-3 px-4 rounded-xl font-medium text-sm transition-all']">
+                                    Trend
+                                </button>
+                            </nav>
+                        </div>
+
+                        <!-- Tab: Overview -->
+                        <div v-show="activeTab === 'overview'" class="space-y-6">
+                            <!-- KPI Cards -->
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
+                                    <p class="text-blue-100 text-xs font-medium uppercase tracking-wide">Sarflangan</p>
+                                    <p class="text-2xl font-bold mt-2">{{ formatCurrency(metaOverview?.current?.spend || 0, selectedMetaAccount?.currency) }}</p>
+                                    <p class="text-blue-200 text-xs mt-1" v-if="metaOverview?.change?.spend">
+                                        <span :class="metaOverview.change.spend >= 0 ? 'text-red-300' : 'text-green-300'">
+                                            {{ metaOverview.change.spend >= 0 ? '+' : '' }}{{ metaOverview.change.spend }}%
+                                        </span> oldingi davrga
+                                    </p>
                                 </div>
-                                <h2 class="text-xl font-bold text-gray-900 mb-2">Meta hisobi ulandi!</h2>
-                                <p class="text-gray-600">Endi tahlil qilmoqchi bo'lgan reklama hisobingizni tanlang</p>
+                                <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                                    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Qamrov</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ formatNumber(metaOverview?.current?.reach || 0) }}</p>
+                                    <p class="text-gray-400 text-xs mt-1">Noyob foydalanuvchi</p>
+                                </div>
+                                <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                                    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Ko'rishlar</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ formatNumber(metaOverview?.current?.impressions || 0) }}</p>
+                                    <p class="text-gray-400 text-xs mt-1">Jami impressions</p>
+                                </div>
+                                <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                                    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Kliklar</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ formatNumber(metaOverview?.current?.clicks || 0) }}</p>
+                                    <p class="text-xs mt-1" :class="(metaOverview?.change?.clicks || 0) >= 0 ? 'text-green-500' : 'text-red-500'">
+                                        {{ (metaOverview?.change?.clicks || 0) >= 0 ? '+' : '' }}{{ metaOverview?.change?.clicks || 0 }}%
+                                    </p>
+                                </div>
+                                <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                                    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">CTR</p>
+                                    <p class="text-2xl font-bold mt-2" :class="(metaOverview?.current?.ctr || 0) >= 1 ? 'text-green-600' : 'text-orange-600'">
+                                        {{ formatPercent(metaOverview?.current?.ctr || 0) }}
+                                    </p>
+                                    <p class="text-gray-400 text-xs mt-1">Click-through rate</p>
+                                </div>
+                                <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                                    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">CPC</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ formatCurrency(metaOverview?.current?.cpc || 0, selectedMetaAccount?.currency) }}</p>
+                                    <p class="text-gray-400 text-xs mt-1">Klik narxi</p>
+                                </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <button v-for="account in metaAdAccounts" :key="account.id" @click="selectMetaAccount(account.meta_account_id)"
-                                    :disabled="metaLoading"
-                                    class="p-6 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left group">
-                                    <div class="flex items-start justify-between">
-                                        <div>
-                                            <h3 class="font-semibold text-gray-900 group-hover:text-blue-700">{{ account.name }}</h3>
-                                            <p class="text-sm text-gray-500 mt-1 font-mono">{{ account.meta_account_id }}</p>
+
+                            <!-- Two Column Layout -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Top Age Groups -->
+                                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Yosh bo'yicha auditoriya</h3>
+                                    <div v-if="metaDemographics.age?.length" class="space-y-3">
+                                        <div v-for="(item, index) in metaDemographics.age.slice(0, 5)" :key="item.label" class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
+                                                :class="index === 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'">
+                                                {{ index + 1 }}
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
+                                                    <span class="text-sm font-semibold text-gray-900">{{ item.percentage }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-100 rounded-full h-2">
+                                                    <div class="h-2 rounded-full transition-all"
+                                                        :class="index === 0 ? 'bg-blue-500' : 'bg-gray-400'"
+                                                        :style="{ width: item.percentage + '%' }"></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </div>
+                                    <div v-else class="text-center py-8 text-gray-400">
+                                        <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
+                                        <p class="text-sm">Ma'lumot mavjud emas</p>
                                     </div>
-                                    <div class="flex items-center gap-2 mt-4">
-                                        <span class="text-xs px-2 py-1 bg-gray-100 rounded font-medium">{{ account.currency }}</span>
-                                        <span class="text-xs px-2 py-1 bg-gray-100 rounded">{{ account.timezone }}</span>
+                                </div>
+
+                                <!-- Gender Distribution -->
+                                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Jins bo'yicha auditoriya</h3>
+                                    <div v-if="metaDemographics.gender?.length" class="space-y-4">
+                                        <div v-for="item in metaDemographics.gender" :key="item.label" class="flex items-center gap-4 p-4 rounded-xl"
+                                            :class="item.label === 'male' ? 'bg-blue-50' : item.label === 'female' ? 'bg-pink-50' : 'bg-gray-50'">
+                                            <div class="w-14 h-14 rounded-xl flex items-center justify-center"
+                                                :class="item.label === 'male' ? 'bg-blue-100' : item.label === 'female' ? 'bg-pink-100' : 'bg-gray-200'">
+                                                <svg class="w-7 h-7" :class="item.label === 'male' ? 'text-blue-600' : item.label === 'female' ? 'text-pink-600' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-semibold text-gray-900">{{ item.label === 'male' ? 'Erkaklar' : item.label === 'female' ? 'Ayollar' : 'Noma\'lum' }}</p>
+                                                <p class="text-sm text-gray-500">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }} sarflangan</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-2xl font-bold text-gray-900">{{ item.percentage }}%</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </button>
+                                    <div v-else class="text-center py-8 text-gray-400">
+                                        <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <p class="text-sm">Ma'lumot mavjud emas</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mt-6 pt-6 border-t border-gray-200 text-center">
-                                <button @click="disconnectMeta" class="text-red-600 hover:text-red-700 text-sm font-medium">
-                                    Boshqa hisob bilan ulash
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- State 3: Connected with no accounts found - Need to load data -->
-                        <div v-else-if="isMetaConnected && !selectedMetaAccount && (!metaAdAccounts || metaAdAccounts.length === 0)" class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                            <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-3">Meta hisobi ulandi!</h2>
-                            <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                                Meta hisobingiz muvaffaqiyatli ulandi. Endi reklama hisoblaringiz va kampaniya ma'lumotlarini yuklab olish uchun quyidagi tugmani bosing.
-                            </p>
-                            <button @click="syncMeta" :disabled="metaSyncing"
-                                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 text-lg font-semibold inline-flex items-center gap-3 shadow-lg transition-all">
-                                <svg v-if="!metaSyncing" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                <svg v-else class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                                {{ metaSyncing ? 'Yuklanmoqda...' : 'Ma\'lumotlarni Yuklash' }}
-                            </button>
-                            <p class="text-sm text-gray-500 mt-6">
-                                Bu jarayon bir necha soniya davom etishi mumkin
-                            </p>
-                            <div class="mt-6 pt-6 border-t border-gray-200">
-                                <button @click="disconnectMeta" class="text-red-600 hover:text-red-700 text-sm font-medium">
-                                    Boshqa hisob bilan ulash
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- State 4: Connected with Account Selected - Show Dashboard -->
-                        <div v-else-if="hasMetaAccount">
-                            <!-- Account Header -->
-                            <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 rounded-xl p-6 mb-6 text-white shadow-lg">
-                                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                            <!-- Platform Summary -->
+                            <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Platforma samaradorligi</h3>
+                                <div v-if="metaPlacements.platforms?.length" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    <div v-for="item in metaPlacements.platforms" :key="item.platform" class="text-center p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <!-- Instagram -->
+                                        <div v-if="item.platform === 'instagram'" class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 0 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Facebook -->
+                                        <div v-else-if="item.platform === 'facebook'" class="w-14 h-14 mx-auto mb-3 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                             </svg>
                                         </div>
-                                        <div>
-                                            <p class="text-blue-200 text-sm">Ulangan Hisob</p>
-                                            <!-- Account Selector Dropdown -->
-                                            <select v-if="metaAdAccounts?.length > 1"
-                                                @change="selectMetaAccount($event.target.value)"
-                                                class="text-xl font-bold bg-transparent border-none text-white focus:ring-0 cursor-pointer pr-8 -ml-1">
-                                                <option v-for="acc in metaAdAccounts" :key="acc.meta_account_id"
-                                                    :value="acc.meta_account_id"
-                                                    :selected="acc.meta_account_id === selectedMetaAccount.meta_account_id"
-                                                    class="text-gray-900 text-base">
-                                                    {{ acc.name }}
-                                                </option>
-                                            </select>
-                                            <h2 v-else class="text-xl font-bold">{{ selectedMetaAccount.name }}</h2>
-                                            <p class="text-blue-200 text-sm mt-0.5">
-                                                {{ selectedMetaAccount.meta_account_id }} • {{ selectedMetaAccount.currency }}
-                                                <span v-if="selectedMetaAccount.last_sync_at" class="ml-2">• Oxirgi sync: {{ selectedMetaAccount.last_sync_at }}</span>
-                                            </p>
+                                        <!-- Messenger -->
+                                        <div v-else-if="item.platform === 'messenger'" class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.906 1.447 5.497 3.708 7.2V22l3.4-1.867c.907.252 1.87.387 2.892.387 5.523 0 10-4.145 10-9.243S17.523 2 12 2zm1.065 12.44l-2.545-2.717-4.97 2.717 5.466-5.802 2.608 2.716 4.906-2.716-5.465 5.803z"/>
+                                            </svg>
                                         </div>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <select v-model="metaDateRange" class="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-lg text-sm focus:ring-2 focus:ring-white/30">
-                                            <option v-for="option in dateRangeOptions" :key="option.value" :value="option.value" class="text-gray-900">
-                                                {{ option.label }}
-                                            </option>
-                                        </select>
-                                        <button @click="generateMetaAIInsights" :disabled="generatingMetaInsights || !metaDataLoaded"
-                                            class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 flex items-center gap-2 text-sm disabled:opacity-50">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                        <!-- Audience Network -->
+                                        <div v-else-if="item.platform === 'audience_network'" class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                                             </svg>
-                                            AI Tahlil
-                                        </button>
-                                        <button @click="loadMetaData" :disabled="metaLoading"
-                                            class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 flex items-center gap-2 text-sm disabled:opacity-50">
-                                            <svg :class="{ 'animate-spin': metaLoading }" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </div>
+                                        <!-- Threads -->
+                                        <div v-else-if="item.platform === 'threads'" class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gray-900 flex items-center justify-center shadow-lg shadow-gray-500/30">
+                                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.182.408-2.256 1.332-3.023.9-.747 2.132-1.186 3.574-1.27.976-.057 1.954.02 2.918.228-.104-.9-.47-1.575-1.089-2.015-.764-.544-1.905-.81-3.395-.79l-.06-2.119c1.87-.053 3.452.343 4.713 1.179 1.186.786 1.942 1.9 2.253 3.311.104.378.165.778.192 1.196.996.378 1.876.916 2.604 1.602 1.218 1.148 1.895 2.62 1.96 4.26.084 2.097-.797 4.153-2.479 5.791C18.455 23.145 15.643 24 12.186 24z"/>
                                             </svg>
-                                            Yangilash
-                                        </button>
-                                        <button @click="disconnectMeta" class="px-3 py-2 bg-red-500/80 border border-red-400/50 rounded-lg hover:bg-red-500 text-sm">
-                                            Uzish
-                                        </button>
+                                        </div>
+                                        <!-- Default -->
+                                        <div v-else class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gray-500 flex items-center justify-center shadow-lg shadow-gray-400/30">
+                                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <path d="M8 12h8M12 8v8"/>
+                                            </svg>
+                                        </div>
+                                        <p class="font-semibold text-gray-900 mt-2">{{ item.label }}</p>
+                                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ item.percentage }}%</p>
+                                        <p class="text-xs text-gray-500 mt-1">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }}</p>
                                     </div>
+                                </div>
+                                <div v-else class="text-center py-8 text-gray-400">
+                                    <p class="text-sm">Ma'lumot mavjud emas</p>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Loading State -->
-                            <div v-if="metaLoading && !metaDataLoaded" class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
-                                <div class="flex flex-col items-center justify-center">
-                                    <svg class="animate-spin h-12 w-12 text-blue-600 mb-4" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    <p class="text-gray-600">Meta ma'lumotlari yuklanmoqda...</p>
-                                </div>
+                        <!-- Tab: Campaigns -->
+                        <div v-show="activeTab === 'campaigns'">
+                            <CampaignsTab
+                                v-if="business?.id"
+                                :business-id="business.id"
+                                :currency="selectedMetaAccount?.currency"
+                                @sync-started="metaSyncing = true"
+                                @sync-completed="(data) => { metaSyncing = false; loadMetaData(); }"
+                                @error="(msg) => showNotification('error', msg)"
+                            />
+                            <div v-else class="p-8 text-center text-gray-500">
+                                <p>Biznes ID topilmadi</p>
                             </div>
+                        </div>
 
-                            <!-- Data Loaded - Show Stats -->
-                            <div v-else-if="metaDataLoaded">
-                                <!-- Overview Stats Cards -->
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-medium text-gray-500 uppercase">Sarflangan</p>
-                                                <p class="text-xl font-bold text-gray-900">{{ formatCurrency(metaOverview?.current?.spend, selectedMetaAccount?.currency) }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-medium text-gray-500 uppercase">Ko'rishlar</p>
-                                                <p class="text-xl font-bold text-gray-900">{{ formatNumber(metaOverview?.current?.impressions) }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-medium text-gray-500 uppercase">Kliklar</p>
-                                                <p class="text-xl font-bold text-gray-900">{{ formatNumber(metaOverview?.current?.clicks) }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-medium text-gray-500 uppercase">CTR</p>
-                                                <p class="text-xl font-bold text-gray-900">{{ formatPercent(metaOverview?.current?.ctr) }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Campaigns Table -->
-                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-                                    <div class="p-5 border-b border-gray-200 flex items-center justify-between">
-                                        <h3 class="text-lg font-semibold text-gray-900">Kampaniyalar</h3>
-                                        <span class="text-sm text-gray-500">{{ metaCampaigns.length }} ta kampaniya</span>
-                                    </div>
-                                    <div v-if="metaCampaigns.length > 0" class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-50">
-                                                <tr>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kampaniya Nomi</th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Sarflangan</th>
-                                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ko'rishlar</th>
-                                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Kliklar</th>
-                                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">CTR</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-200">
-                                                <tr v-for="campaign in metaCampaigns" :key="campaign.id" class="hover:bg-gray-50">
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        <div class="text-sm font-medium text-gray-900">{{ campaign.name }}</div>
-                                                        <div class="text-xs text-gray-500">{{ campaign.objective || 'Noma\'lum' }}</div>
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        <span :class="getStatusColor(campaign.status)" class="px-2.5 py-1 text-xs font-semibold rounded-full">
-                                                            {{ campaign.status }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
-                                                        {{ formatCurrency(campaign.spend, selectedMetaAccount?.currency) }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
-                                                        {{ formatNumber(campaign.impressions) }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
-                                                        {{ formatNumber(campaign.clicks) }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
-                                                        {{ formatPercent(campaign.ctr) }}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div v-else class="p-8 text-center text-gray-500">
-                                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                        </svg>
-                                        <p>Hozircha kampaniyalar mavjud emas</p>
-                                    </div>
-                                </div>
-
-                                <!-- Demographics & Placements -->
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <!-- Age Demographics -->
-                                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Yosh Bo'yicha Auditoriya</h3>
-                                        <div v-if="metaDemographics.age?.length" class="space-y-4">
-                                            <div v-for="item in metaDemographics.age" :key="item.label">
-                                                <div class="flex justify-between items-center mb-1.5">
-                                                    <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
-                                                    <div class="text-right">
-                                                        <span class="text-sm font-semibold text-gray-900">{{ item.percentage }}%</span>
-                                                        <span class="text-xs text-gray-500 ml-2">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all" :style="{ width: item.percentage + '%' }"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div v-else class="flex flex-col items-center justify-center py-8 text-gray-400">
-                                            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                            <p class="text-sm">Demografik ma'lumot mavjud emas</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Platform Distribution -->
-                                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Platforma Bo'yicha</h3>
-                                        <div v-if="metaPlacements.platforms?.length" class="space-y-4">
-                                            <div v-for="item in metaPlacements.platforms" :key="item.label" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                                                <div :class="item.label.toLowerCase() === 'facebook' ? 'bg-blue-100' : 'bg-gradient-to-br from-purple-100 to-pink-100'" class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
-                                                    <svg v-if="item.label.toLowerCase() === 'facebook'" class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                                    </svg>
-                                                    <svg v-else class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-semibold text-gray-900">{{ item.label }}</p>
-                                                    <p class="text-sm text-gray-500">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }}</p>
-                                                </div>
+                        <!-- Tab: Audience -->
+                        <div v-show="activeTab === 'audience'" class="space-y-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Age Demographics -->
+                                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Yosh bo'yicha auditoriya</h3>
+                                    <div v-if="metaDemographics.age?.length" class="space-y-4">
+                                        <div v-for="item in metaDemographics.age" :key="item.label">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
                                                 <div class="text-right">
-                                                    <p class="text-lg font-bold text-gray-900">{{ item.percentage }}%</p>
+                                                    <span class="text-sm font-bold text-gray-900">{{ item.percentage }}%</span>
+                                                    <span class="text-xs text-gray-500 ml-2">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }}</span>
                                                 </div>
                                             </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-3">
+                                                <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all" :style="{ width: item.percentage + '%' }"></div>
+                                            </div>
                                         </div>
-                                        <div v-else class="flex flex-col items-center justify-center py-8 text-gray-400">
-                                            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                            </svg>
-                                            <p class="text-sm">Platforma ma'lumoti mavjud emas</p>
+                                    </div>
+                                    <div v-else class="flex flex-col items-center justify-center py-12 text-gray-400">
+                                        <svg class="w-16 h-16 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <p>Ma'lumot mavjud emas</p>
+                                    </div>
+                                </div>
+
+                                <!-- Gender Demographics -->
+                                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Jins bo'yicha auditoriya</h3>
+                                    <div v-if="metaDemographics.gender?.length" class="space-y-4">
+                                        <div v-for="item in metaDemographics.gender" :key="item.label" class="flex items-center gap-4 p-5 rounded-xl"
+                                            :class="item.label === 'male' ? 'bg-blue-50' : item.label === 'female' ? 'bg-pink-50' : 'bg-gray-50'">
+                                            <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                                :class="item.label === 'male' ? 'bg-blue-100' : item.label === 'female' ? 'bg-pink-100' : 'bg-gray-200'">
+                                                <svg class="w-8 h-8" :class="item.label === 'male' ? 'text-blue-600' : item.label === 'female' ? 'text-pink-600' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-lg font-semibold text-gray-900">{{ item.label === 'male' ? 'Erkaklar' : item.label === 'female' ? 'Ayollar' : 'Noma\'lum' }}</p>
+                                                <p class="text-sm text-gray-500">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }} sarflangan</p>
+                                                <p class="text-xs text-gray-400 mt-1">CTR: {{ item.ctr }}% • CPC: {{ formatCurrency(item.cpc, selectedMetaAccount?.currency) }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-3xl font-bold text-gray-900">{{ item.percentage }}%</p>
+                                            </div>
                                         </div>
+                                    </div>
+                                    <div v-else class="flex flex-col items-center justify-center py-12 text-gray-400">
+                                        <svg class="w-16 h-16 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <p>Ma'lumot mavjud emas</p>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- No Data Yet - Prompt to Load -->
-                            <div v-else class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
+                        <!-- Tab: Placements -->
+                        <div v-show="activeTab === 'placements'" class="space-y-6">
+                            <!-- Platform Distribution -->
+                            <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Platformalar</h3>
+                                <div v-if="metaPlacements.platforms?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div v-for="item in metaPlacements.platforms" :key="item.label" class="flex items-center gap-4 p-5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                        <!-- Facebook -->
+                                        <div v-if="item.platform === 'facebook'" class="w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Instagram -->
+                                        <div v-else-if="item.platform === 'instagram'" class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Messenger -->
+                                        <div v-else-if="item.platform === 'messenger'" class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0z"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Audience Network -->
+                                        <div v-else-if="item.platform === 'audience_network'" class="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Threads -->
+                                        <div v-else-if="item.platform === 'threads'" class="w-14 h-14 rounded-xl bg-gray-900 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.182.408-2.256 1.332-3.023.9-.747 2.132-1.186 3.574-1.27.976-.057 1.954.02 2.918.228-.104-.9-.47-1.575-1.089-2.015-.764-.544-1.905-.81-3.395-.79l-.06-2.119c1.87-.053 3.452.343 4.713 1.179 1.186.786 1.942 1.9 2.253 3.311.104.378.165.778.192 1.196.996.378 1.876.916 2.604 1.602 1.218 1.148 1.895 2.62 1.96 4.26.084 2.097-.797 4.153-2.479 5.791C18.455 23.145 15.643 24 12.186 24z"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Default -->
+                                        <div v-else class="w-14 h-14 rounded-xl bg-gray-400 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-base font-semibold text-gray-900">{{ item.label }}</p>
+                                            <p class="text-sm text-gray-500">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-2xl font-bold text-gray-900">{{ item.percentage }}%</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Ma'lumotlarni yuklash</h3>
-                                <p class="text-gray-600 mb-6 max-w-md mx-auto">
-                                    Meta Ads hisobingiz ulandi. Kampaniya statistikasi va auditoriya ma'lumotlarini ko'rish uchun ma'lumotlarni yuklang.
-                                </p>
-                                <button @click="loadMetaData" :disabled="metaLoading"
-                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 inline-flex items-center gap-2">
-                                    <svg :class="{ 'animate-spin': metaLoading }" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                <div v-else class="text-center py-12 text-gray-400">
+                                    <svg class="w-16 h-16 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
-                                    {{ metaLoading ? 'Yuklanmoqda...' : 'Ma\'lumotlarni Yuklash' }}
-                                </button>
+                                    <p>Platforma ma'lumoti mavjud emas</p>
+                                </div>
+                            </div>
+
+                            <!-- Positions -->
+                            <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Joylashuvlar (Positions)</h3>
+                                <div v-if="metaPlacements.positions?.length" class="space-y-3">
+                                    <div v-for="item in metaPlacements.positions.slice(0, 10)" :key="item.position + item.platform" class="flex items-center gap-4">
+                                        <div class="flex-1">
+                                            <div class="flex justify-between mb-1">
+                                                <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
+                                                <span class="text-sm font-semibold text-gray-900">{{ item.percentage }}%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full transition-all" :style="{ width: Math.min(item.percentage * 3, 100) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-400 w-20 text-right">{{ formatCurrency(item.spend, selectedMetaAccount?.currency) }}</span>
+                                    </div>
+                                </div>
+                                <div v-else class="text-center py-12 text-gray-400">
+                                    <p>Joylashuv ma'lumoti mavjud emas</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Trend -->
+                        <div v-show="activeTab === 'trend'" class="space-y-6">
+                            <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">30 kunlik trend</h3>
+                                <div v-if="metaTrend?.length" class="overflow-x-auto">
+                                    <table class="min-w-full">
+                                        <thead>
+                                            <tr class="border-b border-gray-200">
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Sana</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Sarflangan</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Ko'rishlar</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Kliklar</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">CTR</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">CPC</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            <tr v-for="day in metaTrend" :key="day.date" class="hover:bg-gray-50 transition-colors">
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ day.date }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-900 text-right font-semibold">{{ formatCurrency(day.spend, selectedMetaAccount?.currency) }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-600 text-right">{{ formatNumber(day.impressions) }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-600 text-right">{{ formatNumber(day.clicks) }}</td>
+                                                <td class="px-4 py-3 text-sm text-right font-medium" :class="day.ctr >= 1 ? 'text-green-600' : 'text-orange-600'">{{ formatPercent(day.ctr) }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-600 text-right">{{ formatCurrency(day.cpc, selectedMetaAccount?.currency) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div v-else class="text-center py-12 text-gray-400">
+                                    <svg class="w-16 h-16 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg>
+                                    <p>Trend ma'lumoti mavjud emas</p>
+                                </div>
                             </div>
                         </div>
                     </div>

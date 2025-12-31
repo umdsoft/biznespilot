@@ -15,9 +15,11 @@ class BusinessProblem extends Model
         'category',
         'title',
         'description',
-        'severity',
+        'impact_level',
+        'frequency',
+        'current_solution',
+        'desired_outcome',
         'status',
-        'potential_solutions',
     ];
 
     protected $casts = [
@@ -44,7 +46,7 @@ class BusinessProblem extends Model
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereIn('status', ['active', 'identified']);
     }
 
     public function scopeResolved($query)

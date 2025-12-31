@@ -21,22 +21,24 @@ class Customer extends Model
     protected $fillable = [
         'business_id',
         'lead_id',
+        'dream_buyer_id',
         'name',
         'email',
         'phone',
         'company',
         'address',
         'city',
-        'country',
+        'region',
         'status',
-        'ltv',
+        'type',
         'total_spent',
-        'total_orders',
-        'acquisition_date',
-        'acquisition_source',
-        'data',
-        'notes',
+        'orders_count',
+        'average_order_value',
+        'first_purchase_at',
         'last_purchase_at',
+        'notes',
+        'tags',
+        'custom_fields',
     ];
 
     /**
@@ -45,11 +47,13 @@ class Customer extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'ltv' => 'decimal:2',
         'total_spent' => 'decimal:2',
-        'acquisition_date' => 'date',
-        'data' => 'array',
+        'average_order_value' => 'decimal:2',
+        'orders_count' => 'integer',
+        'first_purchase_at' => 'datetime',
         'last_purchase_at' => 'datetime',
+        'tags' => 'array',
+        'custom_fields' => 'array',
     ];
 
     /**

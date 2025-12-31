@@ -188,7 +188,7 @@ const testimonials = [
     name: 'Gulnora Karimova',
     position: 'TravelUz marketing menejeri',
     avatar: 'GK',
-    text: 'Dream Buyer funksiyasi bizga ideal mijozni topishda juda yordam berdi. Targetlash aniqroq bo\'ldi.',
+    text: 'Ideal Mijoz funksiyasi bizga to\'g\'ri auditoriyani topishda juda yordam berdi. Targetlash aniqroq bo\'ldi.',
     rating: 5,
     metric: 'Konversiya 45% oshdi',
   },

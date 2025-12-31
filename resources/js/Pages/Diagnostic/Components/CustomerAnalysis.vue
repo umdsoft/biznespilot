@@ -9,7 +9,7 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900">Ideal Mijoz Tahlili</h3>
-            <p class="text-sm text-gray-500">Dream Buyer metodologiyasi</p>
+            <p class="text-sm text-gray-500">Ideal Mijoz metodologiyasi</p>
           </div>
         </div>
         <div class="flex items-center gap-4">

@@ -14,10 +14,12 @@ class MetaInsight extends Model
     protected $fillable = [
         'ad_account_id',
         'business_id',
+        'campaign_id',
         'object_type',
         'object_id',
         'object_name',
-        'date',
+        'date_start',
+        'date_stop',
         'impressions',
         'reach',
         'frequency',

@@ -50,7 +50,7 @@ class TargetAnalysisService
             'total_leads' => $leads->count(),
             'qualified_leads' => $leads->where('status', 'qualified')->count(),
             'conversion_rate' => $this->calculateConversionRate($business),
-            'avg_ltv' => $customers->avg('ltv') ?? 0,
+            'avg_ltv' => $customers->avg('total_spent') ?? 0,
             'total_revenue' => $customers->sum('total_spent') ?? 0,
             'avg_order_value' => $this->calculateAvgOrderValue($business),
         ];
@@ -88,18 +88,17 @@ class TargetAnalysisService
                 'match_percentage' => $customers->count() > 0
                     ? round((count($matchingCustomers) / $customers->count()) * 100, 2)
                     : 0,
-                'avg_ltv_of_matches' => collect($matchingCustomers)->avg('ltv') ?? 0,
+                'avg_ltv_of_matches' => collect($matchingCustomers)->avg('total_spent') ?? 0,
                 'total_revenue_from_matches' => collect($matchingCustomers)->sum('total_spent') ?? 0,
                 'top_matching_customers' => collect($matchingCustomers)
-                    ->sortByDesc('ltv')
+                    ->sortByDesc('total_spent')
                     ->take(5)
                     ->values()
                     ->map(fn($c) => [
                         'id' => $c->id,
                         'name' => $c->name,
-                        'ltv' => $c->ltv,
-                        'total_spent' => $c->total_spent,
-                        'total_orders' => $c->total_orders,
+                        'total_spent' => $c->total_spent ?? 0,
+                        'orders_count' => $c->orders_count ?? 0,
                     ])
                     ->toArray(),
             ];
@@ -178,11 +177,11 @@ class TargetAnalysisService
     {
         $customers = Customer::where('business_id', $business->id)->get();
 
-        // Segment by LTV (Low, Medium, High value)
+        // Segment by LTV (Low, Medium, High value) - using total_spent
         $ltvSegments = [
-            'high_value' => $customers->filter(fn($c) => $c->ltv >= 5000000)->count(),
-            'medium_value' => $customers->filter(fn($c) => $c->ltv >= 1000000 && $c->ltv < 5000000)->count(),
-            'low_value' => $customers->filter(fn($c) => $c->ltv < 1000000)->count(),
+            'high_value' => $customers->filter(fn($c) => ($c->total_spent ?? 0) >= 5000000)->count(),
+            'medium_value' => $customers->filter(fn($c) => ($c->total_spent ?? 0) >= 1000000 && ($c->total_spent ?? 0) < 5000000)->count(),
+            'low_value' => $customers->filter(fn($c) => ($c->total_spent ?? 0) < 1000000)->count(),
         ];
 
         // Segment by status
@@ -197,7 +196,7 @@ class TargetAnalysisService
             ->groupBy('acquisition_source')
             ->map(fn($group) => [
                 'count' => $group->count(),
-                'avg_ltv' => $group->avg('ltv'),
+                'avg_ltv' => $group->avg('total_spent'),
                 'total_revenue' => $group->sum('total_spent'),
             ])
             ->toArray();
@@ -208,7 +207,7 @@ class TargetAnalysisService
             ->groupBy('city')
             ->map(fn($group) => [
                 'count' => $group->count(),
-                'avg_ltv' => $group->avg('ltv'),
+                'avg_ltv' => $group->avg('total_spent'),
             ])
             ->sortByDesc('count')
             ->take(10)
@@ -243,7 +242,7 @@ class TargetAnalysisService
             $recency = $customer->last_purchase_at
                 ? now()->diffInDays($customer->last_purchase_at)
                 : 999;
-            $frequency = $customer->total_orders ?? 0;
+            $frequency = $customer->orders_count ?? 0;
             $monetary = $customer->total_spent ?? 0;
 
             if ($recency <= 30 && $frequency >= 5 && $monetary >= 1000000) {
@@ -330,15 +329,15 @@ class TargetAnalysisService
             ->map(fn($group) => [
                 'count' => $group->count(),
                 'percentage' => round(($group->count() / $customers->count()) * 100, 2),
-                'avg_ltv' => round($group->avg('ltv'), 2),
+                'avg_ltv' => round($group->avg('total_spent') ?? 0, 2),
             ])
             ->sortByDesc('count')
             ->toArray();
 
         // Country distribution
         $countryDistribution = $customers
-            ->filter(fn($c) => $c->country)
-            ->groupBy('country')
+            ->filter(fn($c) => $c->region)
+            ->groupBy('region')
             ->map(fn($group) => [
                 'count' => $group->count(),
                 'percentage' => round(($group->count() / $customers->count()) * 100, 2),
@@ -348,13 +347,13 @@ class TargetAnalysisService
 
         // Acquisition source performance
         $sourcePerformance = $customers
-            ->filter(fn($c) => $c->acquisition_source)
-            ->groupBy('acquisition_source')
+            ->filter(fn($c) => $c->type)
+            ->groupBy('type')
             ->map(fn($group) => [
                 'count' => $group->count(),
-                'avg_ltv' => round($group->avg('ltv'), 2),
-                'total_revenue' => round($group->sum('total_spent'), 2),
-                'avg_orders' => round($group->avg('total_orders'), 2),
+                'avg_ltv' => round($group->avg('total_spent') ?? 0, 2),
+                'total_revenue' => round($group->sum('total_spent') ?? 0, 2),
+                'avg_orders' => round($group->avg('orders_count') ?? 0, 2),
             ])
             ->sortByDesc('total_revenue')
             ->toArray();
@@ -457,7 +456,7 @@ class TargetAnalysisService
     {
         return Customer::where('business_id', $business->id)
             ->where('status', 'active')
-            ->orderByDesc('ltv')
+            ->orderByDesc('total_spent')
             ->limit($limit)
             ->get()
             ->map(fn($customer) => [
@@ -465,10 +464,9 @@ class TargetAnalysisService
                 'name' => $customer->name,
                 'email' => $customer->email,
                 'phone' => $customer->phone,
-                'ltv' => $customer->ltv,
-                'total_spent' => $customer->total_spent,
-                'total_orders' => $customer->total_orders,
-                'acquisition_source' => $customer->acquisition_source,
+                'total_spent' => $customer->total_spent ?? 0,
+                'orders_count' => $customer->orders_count ?? 0,
+                'type' => $customer->type,
                 'last_purchase' => $customer->last_purchase_at?->diffForHumans(),
             ])
             ->toArray();
@@ -499,21 +497,21 @@ class TargetAnalysisService
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'days_since_purchase' => $daysSinceLastPurchase,
-                    'ltv' => $customer->ltv,
+                    'total_spent' => $customer->total_spent ?? 0,
                 ];
             } elseif ($daysSinceLastPurchase > 60) {
                 $riskLevels['medium_risk'][] = [
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'days_since_purchase' => $daysSinceLastPurchase,
-                    'ltv' => $customer->ltv,
+                    'total_spent' => $customer->total_spent ?? 0,
                 ];
             } else {
                 $riskLevels['low_risk'][] = [
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'days_since_purchase' => $daysSinceLastPurchase,
-                    'ltv' => $customer->ltv,
+                    'total_spent' => $customer->total_spent ?? 0,
                 ];
             }
         }
@@ -523,7 +521,7 @@ class TargetAnalysisService
             'medium_risk_count' => count($riskLevels['medium_risk']),
             'low_risk_count' => count($riskLevels['low_risk']),
             'high_risk_customers' => array_slice($riskLevels['high_risk'], 0, 10),
-            'potential_lost_revenue' => collect($riskLevels['high_risk'])->sum('ltv'),
+            'potential_lost_revenue' => collect($riskLevels['high_risk'])->sum('total_spent'),
         ];
     }
 
@@ -548,7 +546,7 @@ class TargetAnalysisService
     protected function calculateAvgOrderValue(Business $business): float
     {
         $customers = Customer::where('business_id', $business->id)
-            ->where('total_orders', '>', 0)
+            ->where('orders_count', '>', 0)
             ->get();
 
         if ($customers->isEmpty()) {
@@ -556,7 +554,7 @@ class TargetAnalysisService
         }
 
         $totalRevenue = $customers->sum('total_spent');
-        $totalOrders = $customers->sum('total_orders');
+        $totalOrders = $customers->sum('orders_count');
 
         return $totalOrders > 0
             ? round($totalRevenue / $totalOrders, 2)

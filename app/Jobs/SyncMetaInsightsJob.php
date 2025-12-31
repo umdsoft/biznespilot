@@ -21,7 +21,7 @@ class SyncMetaInsightsJob implements ShouldQueue
     public int $timeout = 1800; // 30 minutes for full sync
 
     public function __construct(
-        protected int $businessId,
+        protected string $businessId,
         protected bool $fullSync = true
     ) {}
 
