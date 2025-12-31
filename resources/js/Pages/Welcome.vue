@@ -292,7 +292,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Dream Buyer - Ideal Mijoz</h3>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Ideal Mijoz Profili</h3>
             <p class="text-gray-600 mb-4">AI sizning ideal mijozingizni topadi, ularning og'riqlarini aniqlaydi va qanday gaplashish kerakligini aytadi.</p>
             <div class="flex items-center text-blue-600 font-medium text-sm">
               <span class="mr-2">Natija:</span>
@@ -431,7 +431,7 @@
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
-            <p class="text-white/90 mb-4 italic">"Dream Buyer funksiyasi bizga ideal mijozni topishda juda yordam berdi. Targetlash endi aniqroq."</p>
+            <p class="text-white/90 mb-4 italic">"Ideal Mijoz funksiyasi bizga to'g'ri auditoriyani topishda juda yordam berdi. Targetlash endi aniqroq."</p>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">GK</div>
               <div>
@@ -496,7 +496,7 @@
           <div>
             <h4 class="font-semibold mb-4">Mahsulot</h4>
             <ul class="space-y-2 text-gray-400 text-sm">
-              <li>Dream Buyer</li>
+              <li>Ideal Mijoz</li>
               <li>AI Chatbotlar</li>
               <li>CRM</li>
               <li>Analytics</li>

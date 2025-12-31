@@ -93,17 +93,27 @@ class OnboardingService
         }
 
         // Calculate category progress
+        // Profile va Framework - majburiy (overall hisobga olinadi)
+        // KPI - ixtiyoriy (overall hisobga olinmaydi, lekin ko'rsatiladi)
+        // Integration - hozircha mavjud emas
         $categories = ['profile', 'kpi', 'framework'];
         $categoryProgress = [];
-        $totalPercent = 0;
+        $totalRequiredPercent = 0;
+        $requiredCategoryCount = 0;
 
         foreach ($categories as $category) {
             $catProgress = $this->calculateCategoryProgress($business, $category);
             $categoryProgress[$category] = $catProgress;
-            $totalPercent += $catProgress['percent'];
+
+            // Faqat profile va framework overall hisobga olinadi (KPI ixtiyoriy)
+            if ($category !== 'kpi' && $catProgress['total_steps'] > 0) {
+                $totalRequiredPercent += $catProgress['required_percent'];
+                $requiredCategoryCount++;
+            }
         }
 
-        $overallPercent = (int) round($totalPercent / count($categories));
+        // Overall percent - faqat majburiy kategoriyalar (profile + framework)
+        $overallPercent = $requiredCategoryCount > 0 ? (int) round($totalRequiredPercent / $requiredCategoryCount) : 0;
 
         // Update progress
         $progress->update([
@@ -197,7 +207,8 @@ class OnboardingService
 
         // Calculate average percent based on actual completion percentages
         $percent = $totalSteps > 0 ? (int) round($totalPercent / $totalSteps) : 0;
-        $requiredPercent = $requiredSteps > 0 ? (int) round($requiredTotalPercent / $requiredSteps) : 100;
+        // If no required steps, required_percent should be 0, not 100
+        $requiredPercent = $requiredSteps > 0 ? (int) round($requiredTotalPercent / $requiredSteps) : 0;
 
         return [
             'category' => $category,
@@ -270,93 +281,150 @@ class OnboardingService
 
         switch ($stepCode) {
             case 'business_basic':
-                if (empty($business->name)) $errors[] = 'Biznes nomi kiritilmagan';
-                if (empty($business->category)) $errors[] = 'Kategoriya tanlanmagan';
-                if (empty($business->business_type)) $errors[] = 'Biznes turi tanlanmagan';
-                if (empty($business->business_model)) $errors[] = 'Biznes modeli tanlanmagan';
-                break;
+                $totalFields = 4;
+                $filledFields = 0;
+                if (!empty($business->name)) $filledFields++; else $errors[] = 'Biznes nomi kiritilmagan';
+                if (!empty($business->industry_id) || !empty($business->category)) $filledFields++; else $errors[] = 'Soha/kategoriya tanlanmagan';
+                if (!empty($business->business_type)) $filledFields++; else $errors[] = 'Biznes turi tanlanmagan';
+                if (!empty($business->business_model)) $filledFields++; else $errors[] = 'Biznes modeli tanlanmagan';
+
+                $percent = (int) round(($filledFields / $totalFields) * 100);
+                return [
+                    'is_valid' => empty($errors),
+                    'errors' => $errors,
+                    'percent' => $percent,
+                ];
 
             case 'business_details':
-                if (empty($business->team_size)) $errors[] = 'Jamoa hajmi kiritilmagan';
-                if (empty($business->city)) $errors[] = 'Shahar kiritilmagan';
-                if (empty($business->business_stage)) $errors[] = 'Biznes bosqichi tanlanmagan';
-                break;
+                $totalFields = 3;
+                $filledFields = 0;
+                if (!empty($business->team_size)) $filledFields++; else $errors[] = 'Jamoa hajmi kiritilmagan';
+                if (!empty($business->city)) $filledFields++; else $errors[] = 'Shahar kiritilmagan';
+                if (!empty($business->business_stage)) $filledFields++; else $errors[] = 'Biznes bosqichi tanlanmagan';
+
+                $percent = (int) round(($filledFields / $totalFields) * 100);
+                return [
+                    'is_valid' => empty($errors),
+                    'errors' => $errors,
+                    'percent' => $percent,
+                ];
 
             case 'business_maturity':
+                $totalFields = 3;
+                $filledFields = 0;
                 $assessment = $business->maturityAssessment;
-                if (!$assessment) {
-                    $errors[] = 'Baholash to\'ldirilmagan';
-                } else {
-                    if ($assessment->monthly_revenue_range === 'none' || empty($assessment->monthly_revenue_range)) {
+
+                if ($assessment) {
+                    if (!empty($assessment->monthly_revenue_range) && $assessment->monthly_revenue_range !== 'none') {
+                        $filledFields++;
+                    } else {
                         $errors[] = 'Oylik daromad ko\'rsatilmagan';
                     }
-                    if (empty($assessment->main_challenges)) {
+
+                    if (!empty($assessment->monthly_marketing_budget_range)) {
+                        $filledFields++;
+                    } else {
+                        $errors[] = 'Marketing byudjeti ko\'rsatilmagan';
+                    }
+
+                    if (!empty($assessment->main_challenges) && is_array($assessment->main_challenges) && count($assessment->main_challenges) > 0) {
+                        $filledFields++;
+                    } else {
                         $errors[] = 'Asosiy qiyinchiliklar tanlanmagan';
                     }
+                } else {
+                    $errors[] = 'Baholash to\'ldirilmagan';
                 }
-                break;
+
+                $percent = (int) round(($filledFields / $totalFields) * 100);
+                return [
+                    'is_valid' => empty($errors),
+                    'errors' => $errors,
+                    'percent' => $percent,
+                ];
 
             case 'integration_instagram':
                 $hasInstagram = Integration::where('business_id', $business->id)
                     ->where('type', 'instagram')
                     ->where('status', 'connected')
                     ->exists();
-                if (!$hasInstagram) $errors[] = 'Instagram ulanmagan';
-                break;
+                return [
+                    'is_valid' => $hasInstagram,
+                    'errors' => $hasInstagram ? [] : ['Instagram ulanmagan'],
+                    'percent' => $hasInstagram ? 100 : 0,
+                ];
 
             case 'integration_telegram':
                 $hasTelegram = Integration::where('business_id', $business->id)
                     ->whereIn('type', ['telegram', 'telegram_channel', 'telegram_bot'])
                     ->where('status', 'connected')
                     ->exists();
-                if (!$hasTelegram) $errors[] = 'Telegram ulanmagan';
-                break;
+                return [
+                    'is_valid' => $hasTelegram,
+                    'errors' => $hasTelegram ? [] : ['Telegram ulanmagan'],
+                    'percent' => $hasTelegram ? 100 : 0,
+                ];
 
             case 'framework_problem':
-                $hasProblem = BusinessProblem::where('business_id', $business->id)
-                    ->where('status', 'active')
-                    ->exists();
-                if (!$hasProblem) $errors[] = 'Kamida 1 ta muammo kiritilmagan';
-                break;
+                $problemCount = BusinessProblem::where('business_id', $business->id)
+                    ->whereIn('status', ['active', 'identified'])
+                    ->count();
+                $percent = $problemCount >= 1 ? 100 : 0;
+                return [
+                    'is_valid' => $problemCount >= 1,
+                    'errors' => $problemCount >= 1 ? [] : ['Kamida 1 ta muammo kiritilmagan'],
+                    'percent' => $percent,
+                ];
 
             case 'framework_dream_buyer':
                 $dreamBuyer = DreamBuyer::where('business_id', $business->id)
                     ->where('is_primary', true)
                     ->first();
+
                 if (!$dreamBuyer) {
-                    $errors[] = 'Dream Buyer yaratilmagan';
-                } else {
-                    // Check 9 questions
-                    $questions = [
-                        'where_spend_time', 'info_sources', 'frustrations',
-                        'dreams', 'fears', 'communication_preferences',
-                        'language_style', 'daily_routine', 'happiness_triggers'
+                    return [
+                        'is_valid' => false,
+                        'errors' => ['Dream Buyer yaratilmagan'],
+                        'percent' => 0,
                     ];
-                    $answeredCount = 0;
-                    foreach ($questions as $q) {
-                        if (!empty($dreamBuyer->$q)) $answeredCount++;
-                    }
-                    if ($answeredCount < 9) {
-                        $errors[] = "9 ta savoldan faqat {$answeredCount} tasi javoblangan";
-                    }
                 }
-                break;
+
+                // Check 9 questions
+                $questions = [
+                    'where_spend_time', 'info_sources', 'frustrations',
+                    'dreams', 'fears', 'communication_preferences',
+                    'language_style', 'daily_routine', 'happiness_triggers'
+                ];
+                $answeredCount = 0;
+                foreach ($questions as $q) {
+                    if (!empty($dreamBuyer->$q)) $answeredCount++;
+                }
+
+                $percent = (int) round(($answeredCount / 9) * 100);
+                return [
+                    'is_valid' => $answeredCount >= 9,
+                    'errors' => $answeredCount >= 9 ? [] : ["9 ta savoldan faqat {$answeredCount} tasi javoblangan"],
+                    'percent' => $percent,
+                ];
 
             case 'framework_competitors':
                 $competitorCount = Competitor::where('business_id', $business->id)
                     ->where('is_active', true)
                     ->count();
-                if ($competitorCount < 2) {
-                    $errors[] = "Kamida 2 ta raqobatchi kerak (hozirda: {$competitorCount})";
-                }
-                break;
+                $percent = min(100, (int) round(($competitorCount / 2) * 100));
+                return [
+                    'is_valid' => $competitorCount >= 2,
+                    'errors' => $competitorCount >= 2 ? [] : ["Kamida 2 ta raqobatchi kerak (hozirda: {$competitorCount})"],
+                    'percent' => $percent,
+                ];
 
             case 'framework_hypotheses':
                 $hypothesisCount = MarketingHypothesis::where('business_id', $business->id)->count();
-                if ($hypothesisCount < 1) {
-                    $errors[] = 'Kamida 1 ta gipoteza yaratilmagan';
-                }
-                break;
+                return [
+                    'is_valid' => $hypothesisCount >= 1,
+                    'errors' => $hypothesisCount >= 1 ? [] : ['Kamida 1 ta gipoteza yaratilmagan'],
+                    'percent' => $hypothesisCount >= 1 ? 100 : 0,
+                ];
 
             // KPI Steps - optional but track completion based on data
             case 'kpi_sales':

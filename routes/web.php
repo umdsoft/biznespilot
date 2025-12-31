@@ -22,6 +22,7 @@ use App\Http\Controllers\DreamBuyerController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\MarketingAnalyticsController;
 use App\Http\Controllers\MarketingCampaignController;
+use App\Http\Controllers\MetaCampaignController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SalesController;
@@ -363,6 +364,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/callback', [TargetAnalysisController::class, 'handleMetaCallback'])->name('callback');
         Route::post('/disconnect', [TargetAnalysisController::class, 'disconnectMeta'])->name('disconnect');
         Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
+        Route::post('/refresh', [TargetAnalysisController::class, 'refreshMeta'])->name('refresh');
         Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
     });
 
@@ -374,6 +376,21 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/placements', [TargetAnalysisController::class, 'getMetaPlacements'])->name('placements');
         Route::get('/trend', [TargetAnalysisController::class, 'getMetaTrend'])->name('trend');
         Route::post('/ai-insights', [TargetAnalysisController::class, 'getMetaAIInsights'])->name('ai-insights');
+    });
+
+    // Meta Campaigns page routes
+    Route::prefix('meta-campaigns')->name('meta-campaigns.')->group(function () {
+        Route::get('/{id}', [MetaCampaignController::class, 'showPage'])->name('show');
+    });
+
+    // Meta Campaigns API routes (paginated campaigns list)
+    Route::prefix('api/meta-campaigns')->name('api.meta-campaigns.')->group(function () {
+        Route::get('/', [MetaCampaignController::class, 'index'])->name('index');
+        Route::get('/filters', [MetaCampaignController::class, 'filters'])->name('filters');
+        Route::get('/{id}', [MetaCampaignController::class, 'show'])->name('show');
+        Route::get('/{id}/adsets', [MetaCampaignController::class, 'getAdSets'])->name('adsets');
+        Route::get('/{id}/ads', [MetaCampaignController::class, 'getAds'])->name('ads');
+        Route::post('/sync', [MetaCampaignController::class, 'sync'])->name('sync');
     });
 
     // Instagram Analysis routes

@@ -8,6 +8,8 @@ use App\Models\MetaCampaign;
 use App\Models\MetaAdSet;
 use App\Models\MetaAd;
 use App\Models\MetaInsight;
+use App\Models\MetaCampaignInsight;
+use App\Models\MetaSyncLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +22,7 @@ class MetaSyncService
 
     private string $accessToken;
     private Integration $integration;
-    private int $businessId;
+    private string $businessId;
 
     /**
      * Initialize the service with an integration
@@ -178,8 +180,8 @@ class MetaSyncService
                     'daily_budget' => isset($campaignData['daily_budget']) ? $campaignData['daily_budget'] / 100 : null,
                     'lifetime_budget' => isset($campaignData['lifetime_budget']) ? $campaignData['lifetime_budget'] / 100 : null,
                     'budget_remaining' => $campaignData['budget_remaining'] ?? null,
-                    'start_time' => isset($campaignData['start_time']) ? Carbon::parse($campaignData['start_time']) : null,
-                    'stop_time' => isset($campaignData['stop_time']) ? Carbon::parse($campaignData['stop_time']) : null,
+                    'start_time' => $this->parseDateTime($campaignData['start_time'] ?? null),
+                    'stop_time' => $this->parseDateTime($campaignData['stop_time'] ?? null),
                     'metadata' => [
                         'created_time' => $campaignData['created_time'] ?? null,
                         'updated_time' => $campaignData['updated_time'] ?? null,
@@ -231,8 +233,8 @@ class MetaSyncService
                     'bid_strategy' => $adsetData['bid_strategy'] ?? null,
                     'bid_amount' => isset($adsetData['bid_amount']) ? $adsetData['bid_amount'] / 100 : null,
                     'targeting' => $adsetData['targeting'] ?? null,
-                    'start_time' => isset($adsetData['start_time']) ? Carbon::parse($adsetData['start_time']) : null,
-                    'end_time' => isset($adsetData['end_time']) ? Carbon::parse($adsetData['end_time']) : null,
+                    'start_time' => $this->parseDateTime($adsetData['start_time'] ?? null),
+                    'end_time' => $this->parseDateTime($adsetData['end_time'] ?? null),
                 ]
             );
 
@@ -258,16 +260,25 @@ class MetaSyncService
         foreach ($data as $adData) {
             // Find adset
             $adset = MetaAdSet::where('ad_account_id', $account->id)
-                ->where('meta_adset_id', $adData['adset_id'])
+                ->where('meta_adset_id', $adData['adset_id'] ?? '')
+                ->first();
+
+            // Find campaign
+            $campaign = MetaCampaign::where('ad_account_id', $account->id)
+                ->where('meta_campaign_id', $adData['campaign_id'] ?? '')
                 ->first();
 
             $ad = MetaAd::updateOrCreate(
                 [
-                    'ad_set_id' => $adset?->id ?? 0,
+                    'ad_account_id' => $account->id,
                     'meta_ad_id' => $adData['id'],
                 ],
                 [
                     'business_id' => $this->businessId,
+                    'adset_id' => $adset?->id,
+                    'campaign_id' => $campaign?->id,
+                    'meta_adset_id' => $adData['adset_id'] ?? null,
+                    'meta_campaign_id' => $adData['campaign_id'] ?? null,
                     'name' => $adData['name'],
                     'status' => $adData['status'],
                     'effective_status' => $adData['effective_status'] ?? null,
@@ -280,10 +291,7 @@ class MetaSyncService
                         ?? $adData['creative']['object_story_spec']['video_data']['image_url'] ?? null,
                     'creative_call_to_action' => $adData['creative']['object_story_spec']['link_data']['call_to_action']['type']
                         ?? $adData['creative']['object_story_spec']['video_data']['call_to_action']['type'] ?? null,
-                    'metadata' => [
-                        'campaign_id' => $adData['campaign_id'] ?? null,
-                        'adset_id' => $adData['adset_id'] ?? null,
-                    ],
+                    'metadata' => $adData,
                 ]
             );
 
@@ -314,7 +322,24 @@ class MetaSyncService
         // 4. Platform breakdown (facebook, instagram)
         $count += $this->syncPlatformInsights($account, $startDate, $endDate);
 
+        // 5. Update campaign aggregates from insights
+        $this->updateCampaignAggregates($account);
+
         return $count;
+    }
+
+    /**
+     * Update all campaign aggregates for an account
+     */
+    private function updateCampaignAggregates(MetaAdAccount $account): void
+    {
+        $campaigns = MetaCampaign::withoutGlobalScope('business')
+            ->where('ad_account_id', $account->id)
+            ->get();
+
+        foreach ($campaigns as $campaign) {
+            $campaign->updateAggregates();
+        }
     }
 
     /**
@@ -353,7 +378,7 @@ class MetaSyncService
     }
 
     /**
-     * Sync Campaign Level Insights
+     * Sync Campaign Level Insights (to meta_insights table)
      */
     private function syncCampaignInsights(MetaAdAccount $account, Carbon $startDate, Carbon $endDate): int
     {
@@ -378,6 +403,104 @@ class MetaSyncService
                 $insight['campaign_id'] ?? null,
                 $insight['campaign_name'] ?? null
             );
+        }
+
+        // Also sync to meta_campaign_insights table with daily breakdown
+        $count += $this->syncDetailedCampaignInsights($account, $startDate, $endDate);
+
+        return $count;
+    }
+
+    /**
+     * Sync Detailed Campaign Insights (to meta_campaign_insights table with daily data)
+     */
+    private function syncDetailedCampaignInsights(MetaAdAccount $account, Carbon $startDate, Carbon $endDate): int
+    {
+        $count = 0;
+
+        // Get all campaigns for this account
+        $campaigns = MetaCampaign::withoutGlobalScope('business')
+            ->where('ad_account_id', $account->id)
+            ->get()
+            ->keyBy('meta_campaign_id');
+
+        if ($campaigns->isEmpty()) {
+            return 0;
+        }
+
+        // Sync in chunks to avoid API limits
+        $currentStart = clone $startDate;
+
+        while ($currentStart < $endDate) {
+            $currentEnd = (clone $currentStart)->addMonths(3);
+            if ($currentEnd > $endDate) {
+                $currentEnd = $endDate;
+            }
+
+            try {
+                $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
+                    'fields' => $this->getInsightFields() . ',campaign_id,campaign_name',
+                    'time_range' => json_encode([
+                        'since' => $currentStart->format('Y-m-d'),
+                        'until' => $currentEnd->format('Y-m-d'),
+                    ]),
+                    'time_increment' => 1, // Daily breakdown
+                    'level' => 'campaign',
+                    'limit' => 5000,
+                ]);
+
+                foreach ($response['data'] ?? [] as $insight) {
+                    $metaCampaignId = $insight['campaign_id'] ?? null;
+                    $campaign = $campaigns->get($metaCampaignId);
+
+                    if (!$campaign) {
+                        continue;
+                    }
+
+                    MetaCampaignInsight::updateOrCreate(
+                        [
+                            'campaign_id' => $campaign->id,
+                            'date' => $insight['date_start'] ?? now()->format('Y-m-d'),
+                        ],
+                        [
+                            'business_id' => $this->businessId,
+                            'spend' => $insight['spend'] ?? 0,
+                            'impressions' => $insight['impressions'] ?? 0,
+                            'reach' => $insight['reach'] ?? 0,
+                            'clicks' => $insight['clicks'] ?? 0,
+                            'cpc' => $insight['cpc'] ?? 0,
+                            'cpm' => $insight['cpm'] ?? 0,
+                            'ctr' => $insight['ctr'] ?? 0,
+                            'frequency' => $insight['frequency'] ?? 0,
+                            'conversions' => $this->getActionValue($insight['actions'] ?? [], 'omni_purchase')
+                                + $this->getActionValue($insight['actions'] ?? [], 'purchase'),
+                            'leads' => $this->getActionValue($insight['actions'] ?? [], 'lead'),
+                            'purchases' => $this->getActionValue($insight['actions'] ?? [], 'purchase'),
+                            'add_to_cart' => $this->getActionValue($insight['actions'] ?? [], 'omni_add_to_cart'),
+                            'link_clicks' => $this->getActionValue($insight['actions'] ?? [], 'link_click'),
+                            'video_views' => $this->getActionValue($insight['actions'] ?? [], 'video_view'),
+                            'cost_per_conversion' => isset($insight['cost_per_action_type'])
+                                ? $this->getActionValue($insight['cost_per_action_type'], 'purchase')
+                                : 0,
+                            'cost_per_lead' => isset($insight['cost_per_action_type'])
+                                ? $this->getActionValue($insight['cost_per_action_type'], 'lead')
+                                : 0,
+                            'actions' => $insight['actions'] ?? null,
+                            'action_values' => $insight['action_values'] ?? null,
+                        ]
+                    );
+                    $count++;
+                }
+            } catch (\Exception $e) {
+                Log::warning("Error syncing detailed campaign insights: " . $e->getMessage());
+            }
+
+            $currentStart = $currentEnd->addDay();
+        }
+
+        // Update campaign aggregates
+        foreach ($campaigns as $campaign) {
+            $campaign->updateAggregates();
         }
 
         return $count;
@@ -467,7 +590,7 @@ class MetaSyncService
                     'business_id' => $this->businessId,
                     'object_type' => 'account',
                     'object_id' => $account->meta_account_id,
-                    'date' => $insight['date_start'] ?? now()->format('Y-m-d'),
+                    'date_start' => $insight['date_start'] ?? now()->format('Y-m-d'),
                     'publisher_platform' => $insight['publisher_platform'] ?? null,
                     'platform_position' => $insight['platform_position'] ?? null,
                 ],
@@ -493,7 +616,7 @@ class MetaSyncService
                     'business_id' => $this->businessId,
                     'object_type' => $objectType,
                     'object_id' => $objectId ?? $account->meta_account_id,
-                    'date' => $insight['date_start'] ?? now()->format('Y-m-d'),
+                    'date_start' => $insight['date_start'] ?? now()->format('Y-m-d'),
                 ],
                 array_merge(
                     $this->mapInsightData($insight),
@@ -517,7 +640,7 @@ class MetaSyncService
                 'business_id' => $this->businessId,
                 'object_type' => 'account',
                 'object_id' => $account->meta_account_id,
-                'date' => $insight['date_start'] ?? now()->format('Y-m-d'),
+                'date_start' => $insight['date_start'] ?? now()->format('Y-m-d'),
                 $breakdownField => $breakdownValue,
             ],
             array_merge(
@@ -535,6 +658,8 @@ class MetaSyncService
     private function mapInsightData(array $insight): array
     {
         return [
+            'date_start' => $insight['date_start'] ?? now()->format('Y-m-d'),
+            'date_stop' => $insight['date_stop'] ?? null,
             'impressions' => $insight['impressions'] ?? 0,
             'reach' => $insight['reach'] ?? 0,
             'frequency' => $insight['frequency'] ?? 0,
@@ -627,6 +752,26 @@ class MetaSyncService
     }
 
     /**
+     * Parse datetime value safely
+     */
+    private function parseDateTime($value): ?Carbon
+    {
+        if (empty($value) || $value === '0' || $value === 0) {
+            return null;
+        }
+        try {
+            $parsed = Carbon::parse($value);
+            // Check for Unix epoch (1970-01-01) or earlier - treat as null
+            if ($parsed->year < 1990) {
+                return null;
+            }
+            return $parsed;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Make API request to Meta Graph API
      */
     private function makeRequest(string $endpoint, array $params = []): array
@@ -694,11 +839,11 @@ class MetaSyncService
         $totalCampaigns = MetaCampaign::whereIn('ad_account_id', $accounts->pluck('id'))->count();
 
         $oldestInsight = MetaInsight::whereIn('ad_account_id', $accounts->pluck('id'))
-            ->orderBy('date', 'asc')
+            ->orderBy('date_start', 'asc')
             ->first();
 
         $newestInsight = MetaInsight::whereIn('ad_account_id', $accounts->pluck('id'))
-            ->orderBy('date', 'desc')
+            ->orderBy('date_start', 'desc')
             ->first();
 
         return [
@@ -706,8 +851,8 @@ class MetaSyncService
             'campaigns' => $totalCampaigns,
             'insights' => $totalInsights,
             'date_range' => [
-                'from' => $oldestInsight?->date?->format('Y-m-d'),
-                'to' => $newestInsight?->date?->format('Y-m-d'),
+                'from' => $oldestInsight?->date_start,
+                'to' => $newestInsight?->date_start,
             ],
             'last_sync' => $this->integration->last_sync_at?->format('Y-m-d H:i:s'),
         ];

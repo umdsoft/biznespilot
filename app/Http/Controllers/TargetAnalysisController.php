@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\Integration;
 use App\Models\MetaAdAccount;
+use App\Models\MetaCampaign;
+use App\Models\MetaInsight;
 use App\Services\TargetAnalysisService;
 use App\Services\Integration\MetaAdsService;
 use App\Services\Integration\MetaOAuthService;
@@ -446,7 +448,7 @@ class TargetAnalysisController extends Controller
     }
 
     /**
-     * Sync Meta data manually (Load Data button)
+     * Sync Meta data manually (Load Data button) - Quick sync
      */
     public function syncMeta(Request $request): JsonResponse
     {
@@ -465,32 +467,88 @@ class TargetAnalysisController extends Controller
         }
 
         try {
-            // First sync ad accounts
-            $this->syncMetaAdAccounts($integration);
+            // Use MetaSyncService for proper sync
+            $this->metaSyncService->initialize($integration);
+            $results = $this->metaSyncService->fullSync();
 
             // Update last sync time
             $integration->update(['last_sync_at' => now()]);
 
-            // Then dispatch background job for insights
-            SyncMetaInsightsJob::dispatch($business->id);
+            // Build success message
+            $message = "{$results['accounts']} ta hisob, {$results['campaigns']} ta kampaniya, {$results['insights']} ta insight sinxronlandi.";
 
-            // Get synced accounts count
-            $accountsCount = MetaAdAccount::where('integration_id', $integration->id)->count();
+            if (!empty($results['errors'])) {
+                $message .= " Ba'zi xatoliklar: " . implode('; ', array_slice($results['errors'], 0, 2));
+            }
 
             return response()->json([
-                'success' => true,
-                'message' => "Ma'lumotlar yuklanmoqda. {$accountsCount} ta reklama hisobi topildi.",
-                'accounts_count' => $accountsCount,
+                'success' => $results['success'],
+                'message' => $message,
+                'data' => $results,
             ]);
         } catch (\Exception $e) {
             \Log::error('Meta Sync Error', [
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'error' => 'Yuklashda xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Refresh Meta data - Full sync (includes demographics & placements)
+     */
+    public function refreshMeta(Request $request): JsonResponse
+    {
+        $business = $this->getCurrentBusiness($request);
+
+        $integration = Integration::where('business_id', $business->id)
+            ->where('type', 'meta_ads')
+            ->where('status', 'connected')
+            ->first();
+
+        if (!$integration) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Meta Ads ulanmagan'
+            ], 400);
+        }
+
+        try {
+            // Use MetaSyncService for full sync
+            $this->metaSyncService->initialize($integration);
+            $results = $this->metaSyncService->fullSync();
+
+            // Update last sync time
+            $integration->update(['last_sync_at' => now()]);
+
+            // Build success message
+            $message = "To'liq sinxronlash tugadi: {$results['accounts']} ta hisob, {$results['campaigns']} ta kampaniya, {$results['insights']} ta insight.";
+
+            if (!empty($results['errors'])) {
+                $message .= " Xatoliklar: " . implode('; ', array_slice($results['errors'], 0, 2));
+            }
+
+            return response()->json([
+                'success' => $results['success'],
+                'message' => $message,
+                'data' => $results,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Meta Full Sync Error', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'To\'liq sinxronlashda xatolik: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -529,19 +587,44 @@ class TargetAnalysisController extends Controller
      */
     public function getMetaOverview(Request $request): JsonResponse
     {
-        $business = $this->getCurrentBusiness($request);
-        $datePreset = $request->period ?? 'last_30d';
-
-        $adAccount = $this->getSelectedMetaAccount($business->id);
-        if (!$adAccount) {
-            return response()->json(['current' => [], 'change' => []]);
-        }
-
         try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->period ?? 'last_30d';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'current' => [],
+                    'change' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan. Avval "Ma\'lumotlarni yuklash" tugmasini bosing.',
+                ]);
+            }
+
+            // Check if we have any data
+            if (!$this->metaDataService->hasData($adAccount->id)) {
+                return response()->json([
+                    'success' => false,
+                    'current' => [],
+                    'change' => [],
+                    'message' => 'Hali ma\'lumot yuklanmagan. "Yangilash" tugmasini bosib ma\'lumotlarni yuklang.',
+                ]);
+            }
+
             $data = $this->metaDataService->getOverview($adAccount->id, $datePreset);
-            return response()->json($data);
+            return response()->json(array_merge(['success' => true], $data));
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Meta Overview Error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'current' => [],
+                'change' => [],
+            ], 500);
         }
     }
 
@@ -550,19 +633,31 @@ class TargetAnalysisController extends Controller
      */
     public function getMetaCampaigns(Request $request): JsonResponse
     {
-        $business = $this->getCurrentBusiness($request);
-        $datePreset = $request->period ?? 'last_30d';
-
-        $adAccount = $this->getSelectedMetaAccount($business->id);
-        if (!$adAccount) {
-            return response()->json(['campaigns' => []]);
-        }
-
         try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->period ?? 'last_30d';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'campaigns' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan.',
+                ]);
+            }
+
             $campaigns = $this->metaDataService->getCampaigns($adAccount->id, $datePreset);
-            return response()->json(['campaigns' => $campaigns]);
+            return response()->json([
+                'success' => true,
+                'campaigns' => $campaigns,
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Meta Campaigns Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'campaigns' => [],
+            ], 500);
         }
     }
 
@@ -571,19 +666,30 @@ class TargetAnalysisController extends Controller
      */
     public function getMetaDemographics(Request $request): JsonResponse
     {
-        $business = $this->getCurrentBusiness($request);
-        $datePreset = $request->period ?? 'last_30d';
-
-        $adAccount = $this->getSelectedMetaAccount($business->id);
-        if (!$adAccount) {
-            return response()->json(['age' => [], 'gender' => []]);
-        }
-
         try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->period ?? 'last_30d';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'age' => [],
+                    'gender' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan.',
+                ]);
+            }
+
             $data = $this->metaDataService->getDemographics($adAccount->id, $datePreset);
-            return response()->json($data);
+            return response()->json(['success' => true, ...$data]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Meta Demographics Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'age' => [],
+                'gender' => [],
+            ], 500);
         }
     }
 
@@ -592,19 +698,30 @@ class TargetAnalysisController extends Controller
      */
     public function getMetaPlacements(Request $request): JsonResponse
     {
-        $business = $this->getCurrentBusiness($request);
-        $datePreset = $request->period ?? 'last_30d';
-
-        $adAccount = $this->getSelectedMetaAccount($business->id);
-        if (!$adAccount) {
-            return response()->json(['platforms' => [], 'positions' => []]);
-        }
-
         try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->period ?? 'last_30d';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'platforms' => [],
+                    'positions' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan.',
+                ]);
+            }
+
             $data = $this->metaDataService->getPlacements($adAccount->id, $datePreset);
-            return response()->json($data);
+            return response()->json(['success' => true, ...$data]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Meta Placements Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'platforms' => [],
+                'positions' => [],
+            ], 500);
         }
     }
 
@@ -613,19 +730,31 @@ class TargetAnalysisController extends Controller
      */
     public function getMetaTrend(Request $request): JsonResponse
     {
-        $business = $this->getCurrentBusiness($request);
-        $days = (int) ($request->days ?? 30);
-
-        $adAccount = $this->getSelectedMetaAccount($business->id);
-        if (!$adAccount) {
-            return response()->json(['trend' => []]);
-        }
-
         try {
+            $business = $this->getCurrentBusiness($request);
+            $days = (int) ($request->days ?? 30);
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'trend' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan.',
+                ]);
+            }
+
             $trend = $this->metaDataService->getTrend($adAccount->id, $days);
-            return response()->json(['trend' => $trend]);
+            return response()->json([
+                'success' => true,
+                'trend' => $trend,
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Meta Trend Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trend' => [],
+            ], 500);
         }
     }
 
@@ -634,15 +763,21 @@ class TargetAnalysisController extends Controller
      */
     public function getMetaAIInsights(Request $request): JsonResponse
     {
-        $business = $this->getCurrentBusiness($request);
-        $datePreset = $request->period ?? 'last_30d';
-
-        $adAccount = $this->getSelectedMetaAccount($business->id);
-        if (!$adAccount) {
-            return response()->json(['success' => false, 'error' => 'No account selected']);
-        }
-
         try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->period ?? 'last_30d';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Meta Ad hesob tanlanmagan.',
+                    'performance_summary' => '',
+                    'recommendations' => [],
+                    'audience_insights' => '',
+                ]);
+            }
+
             $summaryData = $this->metaDataService->getAISummary($adAccount->id, $datePreset);
             $insights = $this->generateMetaInsightsFromLocal($summaryData);
 
@@ -653,7 +788,14 @@ class TargetAnalysisController extends Controller
                 'audience_insights' => $insights['audience'],
             ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+            \Log::error('Meta AI Insights Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'performance_summary' => '',
+                'recommendations' => [],
+                'audience_insights' => '',
+            ], 500);
         }
     }
 
@@ -674,7 +816,7 @@ class TargetAnalysisController extends Controller
         return Business::findOrFail($businessId);
     }
 
-    protected function getMetaIntegration(int $businessId): ?Integration
+    protected function getMetaIntegration(string $businessId): ?Integration
     {
         return Integration::where('business_id', $businessId)
             ->where('type', 'meta_ads')
@@ -682,13 +824,13 @@ class TargetAnalysisController extends Controller
             ->first();
     }
 
-    protected function getSelectedMetaAccountId(int $businessId): ?string
+    protected function getSelectedMetaAccountId(string $businessId): ?string
     {
         $account = $this->getSelectedMetaAccount($businessId);
         return $account ? str_replace('act_', '', $account->meta_account_id) : null;
     }
 
-    protected function getSelectedMetaAccount(int $businessId): ?MetaAdAccount
+    protected function getSelectedMetaAccount(string $businessId): ?MetaAdAccount
     {
         $integration = Integration::where('business_id', $businessId)
             ->where('type', 'meta_ads')
@@ -723,8 +865,38 @@ class TargetAnalysisController extends Controller
         $this->setupMetaService($integration);
 
         $accounts = $this->metaService->getAdAccounts();
+        $accountsData = $accounts['data'] ?? [];
 
-        foreach ($accounts['data'] ?? [] as $index => $account) {
+        // Find account with highest spend to set as primary
+        $maxSpendAccountId = null;
+        $maxSpend = 0;
+        foreach ($accountsData as $account) {
+            $spent = floatval($account['amount_spent'] ?? 0);
+            if ($spent > $maxSpend) {
+                $maxSpend = $spent;
+                $maxSpendAccountId = $account['id'];
+            }
+        }
+
+        // Check if there's already a primary account
+        $hasPrimary = MetaAdAccount::where('integration_id', $integration->id)
+            ->where('is_primary', true)
+            ->exists();
+
+        foreach ($accountsData as $index => $account) {
+            // Only active accounts (status 1)
+            $isActive = ($account['account_status'] ?? 1) == 1;
+
+            // Determine primary: keep existing, or set highest spend, or first active
+            $isPrimary = false;
+            if (!$hasPrimary) {
+                if ($maxSpendAccountId && $account['id'] === $maxSpendAccountId) {
+                    $isPrimary = true;
+                } elseif (!$maxSpendAccountId && $isActive && $index === 0) {
+                    $isPrimary = true;
+                }
+            }
+
             MetaAdAccount::updateOrCreate(
                 [
                     'integration_id' => $integration->id,
@@ -737,7 +909,7 @@ class TargetAnalysisController extends Controller
                     'timezone' => $account['timezone_name'] ?? null,
                     'account_status' => $account['account_status'] ?? 1,
                     'amount_spent' => floatval($account['amount_spent'] ?? 0) / 100,
-                    'is_primary' => $index === 0,
+                    'is_primary' => $isPrimary,
                     'last_sync_at' => now(),
                 ]
             );

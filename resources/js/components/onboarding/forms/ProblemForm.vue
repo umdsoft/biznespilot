@@ -54,7 +54,7 @@
             Muhimlik darajasi
           </label>
           <select
-            v-model="form.severity"
+            v-model="form.impact_level"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="low">Past</option>
@@ -78,20 +78,21 @@
             <option value="finance">Moliya</option>
             <option value="hr">Kadrlar</option>
             <option value="technology">Texnologiya</option>
-            <option value="other">Boshqa</option>
+            <option value="product">Mahsulot</option>
+            <option value="customer_service">Mijozlarga xizmat</option>
           </select>
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Ta'sir ko'lami
+          Kutilayotgan natija
         </label>
         <textarea
-          v-model="form.impact"
+          v-model="form.desired_outcome"
           rows="2"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Bu muammo biznesga qanday ta'sir ko'rsatmoqda?"
+          placeholder="Bu muammoni hal qilsangiz qanday natija kutasiz?"
         ></textarea>
       </div>
 
@@ -131,10 +132,10 @@
               <span
                 :class="[
                   'px-2 py-0.5 text-xs rounded-full',
-                  severityColors[problem.severity] || 'bg-gray-100 text-gray-600'
+                  severityColors[problem.impact_level] || 'bg-gray-100 text-gray-600'
                 ]"
               >
-                {{ severityLabels[problem.severity] || problem.severity }}
+                {{ severityLabels[problem.impact_level] || problem.impact_level }}
               </span>
               <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-600">
                 {{ categoryLabels[problem.category] || problem.category }}
@@ -143,8 +144,8 @@
             <p v-if="problem.description" class="text-sm text-gray-600 mb-2">
               {{ problem.description }}
             </p>
-            <p v-if="problem.impact" class="text-xs text-gray-500">
-              <span class="font-medium">Ta'sir:</span> {{ problem.impact }}
+            <p v-if="problem.desired_outcome" class="text-xs text-gray-500">
+              <span class="font-medium">Kutilayotgan natija:</span> {{ problem.desired_outcome }}
             </p>
           </div>
           <div class="flex items-center gap-2 ml-4">
@@ -235,9 +236,9 @@ const saving = ref(false);
 const form = reactive({
   title: '',
   description: '',
-  severity: 'medium',
+  impact_level: 'medium',
   category: 'marketing',
-  impact: ''
+  desired_outcome: ''
 });
 
 const severityColors = {
@@ -261,7 +262,8 @@ const categoryLabels = {
   finance: 'Moliya',
   hr: 'Kadrlar',
   technology: 'Texnologiya',
-  other: 'Boshqa'
+  product: 'Mahsulot',
+  customer_service: 'Mijozlarga xizmat'
 };
 
 onMounted(async () => {
@@ -270,8 +272,8 @@ onMounted(async () => {
 
 async function loadProblems() {
   try {
-    const data = await store.fetchProblems();
-    problems.value = data || [];
+    await store.fetchProblems();
+    problems.value = store.problems || [];
   } catch (err) {
     console.error('Failed to load problems:', err);
   }
@@ -280,9 +282,9 @@ async function loadProblems() {
 function resetForm() {
   form.title = '';
   form.description = '';
-  form.severity = 'medium';
+  form.impact_level = 'medium';
   form.category = 'marketing';
-  form.impact = '';
+  form.desired_outcome = '';
 }
 
 function cancelForm() {
@@ -295,9 +297,9 @@ function editProblem(problem) {
   editingProblem.value = problem;
   form.title = problem.title;
   form.description = problem.description || '';
-  form.severity = problem.severity || 'medium';
+  form.impact_level = problem.impact_level || 'medium';
   form.category = problem.category || 'marketing';
-  form.impact = problem.impact || '';
+  form.desired_outcome = problem.desired_outcome || '';
   showAddForm.value = false;
 }
 

@@ -121,11 +121,14 @@
             <div class="space-y-4">
               <div v-for="cat in categoryProgress" :key="cat.key">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-sm font-medium text-gray-700">{{ cat.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-700">{{ cat.name }}</span>
+                    <span v-if="cat.isOptional" class="text-xs text-gray-400">(ixtiyoriy)</span>
+                  </div>
                   <span class="text-sm font-bold" :class="cat.percent >= 100 ? 'text-green-600' : 'text-gray-600'">{{ cat.percent }}%</span>
                 </div>
                 <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-500" :class="cat.percent >= 100 ? 'bg-green-500' : 'bg-blue-500'" :style="{ width: cat.percent + '%' }"></div>
+                  <div class="h-full rounded-full transition-all duration-500" :class="cat.percent >= 100 ? 'bg-green-500' : cat.isOptional ? 'bg-emerald-400' : 'bg-blue-500'" :style="{ width: cat.percent + '%' }"></div>
                 </div>
               </div>
             </div>
@@ -209,7 +212,7 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <h4 class="font-semibold text-gray-900 truncate">{{ step.step?.name?.uz || step.step?.name_uz || step.name || 'Qadam' }}</h4>
-                    <span v-if="!step.is_completed" class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Ixtiyoriy</span>
+                    <span v-if="!step.is_required" class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Ixtiyoriy</span>
                   </div>
                   <p class="text-sm text-gray-500 truncate">{{ step.step?.description?.uz || step.step?.description_uz || step.description || '' }}</p>
                 </div>
@@ -252,7 +255,19 @@
                     <svg v-if="step.is_completed" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span v-else class="text-lg font-bold">{{ step.order || '?' }}</span>
+                    <template v-else>
+                      <!-- Sotuv KPI - Currency Dollar -->
+                      <svg v-if="step.code === 'kpi_sales'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <!-- Marketing KPI - Chart Pie -->
+                      <svg v-else-if="step.code === 'kpi_marketing'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                      </svg>
+                      <!-- Default -->
+                      <span v-else class="text-lg font-bold">?</span>
+                    </template>
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
@@ -581,12 +596,13 @@ const progress = computed(() => store.progress);
 const overallPercent = computed(() => progress.value?.overall_percent || 0);
 
 const categoryProgress = computed(() => [
-  { key: 'profile', name: 'Biznes Profili', percent: progress.value?.categories?.profile?.percent || 0 },
-  { key: 'kpi', name: 'KPI va Metrikalar', percent: progress.value?.categories?.kpi?.percent || 0 },
-  { key: 'framework', name: 'Framework', percent: progress.value?.categories?.framework?.percent || 0 },
+  { key: 'profile', name: 'Biznes Profili', percent: progress.value?.categories?.profile?.required_percent || 0 },
+  { key: 'kpi', name: 'KPI va Metrikalar', percent: progress.value?.categories?.kpi?.percent || 0, isOptional: true },
+  { key: 'framework', name: 'Framework', percent: progress.value?.categories?.framework?.required_percent || 0 },
 ]);
 
 const profileSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'profile'));
+const integrationSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'integration'));
 const metricsSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'kpi'));
 const frameworkSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'framework'));
 
@@ -657,7 +673,14 @@ const currentFormProps = computed(() => {
 
 // Methods
 function getCategoryPercent(category) {
-  return progress.value?.categories?.[category]?.percent || 0;
+  const cat = progress.value?.categories?.[category];
+  if (!cat) return 0;
+  // KPI ixtiyoriy - oddiy percent ishlatamiz
+  // Boshqa kategoriyalar uchun required_percent (overall hisoblashga kiradi)
+  if (category === 'kpi') {
+    return cat.percent || 0;
+  }
+  return cat.required_percent || 0;
 }
 
 async function loadData() {

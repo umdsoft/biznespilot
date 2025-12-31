@@ -234,7 +234,6 @@ function getActionClass(priority) {
 }
 
 const moduleIcons = {
-  'Dream Buyer': UserGroupIcon,
   'Ideal Mijoz': UserGroupIcon,
   'Taklif': GiftIcon,
   'Offer': GiftIcon,
