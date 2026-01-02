@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip if table already exists (created by earlier migration)
+        if (Schema::hasTable('kpi_weekly_summaries')) {
+            return;
+        }
+
         Schema::create('kpi_weekly_summaries', function (Blueprint $table) {
             $table->id();
             $table->uuid('business_id');

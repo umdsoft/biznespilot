@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import axios from 'axios';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import {
     PlusIcon,
@@ -51,6 +52,32 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    lazyLoad: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+// Lazy loading state
+const isLoading = ref(false);
+const loadedLeads = ref([]);
+const loadedStats = ref(null);
+const pagination = ref({
+    current_page: 1,
+    last_page: 1,
+    per_page: 25,
+    total: 0,
+});
+
+// Use loaded data or fall back to props
+const leads = computed(() => loadedLeads.value.length ? loadedLeads.value : (props.leads || []));
+const stats = computed(() => loadedStats.value || props.stats || {
+    total_leads: 0,
+    new_leads: 0,
+    qualified_leads: 0,
+    pipeline_value: 0,
+    won_deals: 0,
+    total_value: 0
 });
 
 // View mode: 'kanban' or 'list'
@@ -74,22 +101,82 @@ const pipelineStages = [
     { value: 'lost', label: 'Yo\'qoldi', color: 'red', bgColor: 'bg-red-500', lightBg: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800' },
 ];
 
-// Filter leads based on search and source
-const filteredLeads = computed(() => {
-    let filtered = props.leads;
+// Fetch leads with pagination
+const fetchLeads = async (page = 1) => {
+    try {
+        const params = { page, per_page: 25 };
+        if (searchQuery.value) params.search = searchQuery.value;
+        if (sourceFilter.value) params.source = sourceFilter.value;
 
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter(lead =>
-            lead.name?.toLowerCase().includes(query) ||
-            lead.email?.toLowerCase().includes(query) ||
-            lead.company?.toLowerCase().includes(query) ||
-            lead.phone?.toLowerCase().includes(query)
-        );
+        const response = await axios.get('/business/api/sales/leads', { params });
+        loadedLeads.value = response.data.data || [];
+        pagination.value = {
+            current_page: response.data.current_page,
+            last_page: response.data.last_page,
+            per_page: response.data.per_page,
+            total: response.data.total,
+        };
+    } catch (err) {
+        console.error('Error fetching leads:', err);
     }
+};
 
-    if (sourceFilter.value) {
-        filtered = filtered.filter(lead => lead.source?.id === parseInt(sourceFilter.value));
+// Fetch stats
+const fetchStats = async () => {
+    try {
+        const response = await axios.get('/business/api/sales/stats');
+        loadedStats.value = response.data;
+    } catch (err) {
+        console.error('Error fetching stats:', err);
+    }
+};
+
+// Fetch all data
+const fetchData = async () => {
+    if (!props.lazyLoad) return;
+    isLoading.value = true;
+    try {
+        await Promise.all([fetchLeads(), fetchStats()]);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+// Debounced search
+let searchTimeout;
+const debouncedSearch = () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        if (props.lazyLoad) {
+            fetchLeads(1);
+        }
+    }, 300);
+};
+
+watch(searchQuery, debouncedSearch);
+watch(sourceFilter, () => {
+    if (props.lazyLoad) fetchLeads(1);
+});
+
+// Filter leads based on search and source (for non-lazy mode)
+const filteredLeads = computed(() => {
+    let filtered = leads.value;
+
+    // Only apply client-side filtering if not using lazy load
+    if (!props.lazyLoad) {
+        if (searchQuery.value) {
+            const query = searchQuery.value.toLowerCase();
+            filtered = filtered.filter(lead =>
+                lead.name?.toLowerCase().includes(query) ||
+                lead.email?.toLowerCase().includes(query) ||
+                lead.company?.toLowerCase().includes(query) ||
+                lead.phone?.toLowerCase().includes(query)
+            );
+        }
+
+        if (sourceFilter.value) {
+            filtered = filtered.filter(lead => lead.source?.id === parseInt(sourceFilter.value));
+        }
     }
 
     return filtered;
@@ -258,6 +345,10 @@ const handleClickOutside = (e) => {
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
+    // Lazy load data if needed
+    if (props.lazyLoad) {
+        fetchData();
+    }
 });
 
 onUnmounted(() => {
@@ -277,13 +368,16 @@ onUnmounted(() => {
                     <div class="flex items-center gap-6">
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sotuv Pipeline</h1>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                            <p v-if="isLoading" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                <span class="inline-block w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
+                            </p>
+                            <p v-else class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                                 {{ stats?.total_leads || 0 }} ta lead • {{ formatFullCurrency(stats?.pipeline_value) }} pipeline
                             </p>
                         </div>
 
                         <!-- Quick Stats -->
-                        <div class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
+                        <div v-if="!isLoading" class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats?.won_deals || 0 }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Yutilgan</p>
@@ -295,6 +389,12 @@ onUnmounted(() => {
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats?.qualified_leads || 0 }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Qualified</p>
+                            </div>
+                        </div>
+                        <div v-else class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
+                            <div v-for="i in 3" :key="i" class="text-center">
+                                <div class="w-12 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
+                                <div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                             </div>
                         </div>
                     </div>
@@ -363,8 +463,35 @@ onUnmounted(() => {
                 </div>
             </div>
 
+            <!-- Loading Skeleton for Kanban -->
+            <div v-if="viewMode === 'kanban' && isLoading" class="flex-1 overflow-x-auto overflow-y-hidden">
+                <div class="h-full p-4 sm:p-6">
+                    <div class="flex gap-4 h-full min-w-max">
+                        <div v-for="i in 7" :key="i" class="w-72 flex-shrink-0 flex flex-col bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                            <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+                                    <div class="w-20 h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
+                                </div>
+                                <div class="w-24 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                            </div>
+                            <div class="flex-1 p-2 space-y-2">
+                                <div v-for="j in 2" :key="j" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+                                        <div class="w-24 h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
+                                    </div>
+                                    <div class="w-32 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
+                                    <div class="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Kanban Board -->
-            <div v-if="viewMode === 'kanban'" class="flex-1 overflow-x-auto overflow-y-hidden">
+            <div v-else-if="viewMode === 'kanban'" class="flex-1 overflow-x-auto overflow-y-hidden">
                 <div class="h-full p-4 sm:p-6">
                     <div class="flex gap-4 h-full min-w-max">
                         <!-- Pipeline Columns -->
@@ -538,9 +665,45 @@ onUnmounted(() => {
             </div>
 
             <!-- List View -->
-            <div v-else class="flex-1 overflow-auto p-4 sm:p-6">
+            <div v-else-if="viewMode === 'list'" class="flex-1 overflow-auto p-4 sm:p-6">
+                <!-- Loading State -->
+                <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-900/50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lead</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kontakt</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Holat</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Qiymat</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ball</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Manba</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr v-for="i in 5" :key="i" class="animate-pulse">
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                                        <div>
+                                            <div class="w-24 h-4 bg-gray-300 dark:bg-gray-600 rounded mb-1"></div>
+                                            <div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4"><div class="w-28 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                                <td class="px-4 py-4"><div class="w-16 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                                <td class="px-4 py-4"><div class="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                                <td class="px-4 py-4"><div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                                <td class="px-4 py-4"><div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                                <td class="px-4 py-4"><div class="w-20 h-6 bg-gray-200 dark:bg-gray-700 rounded float-right"></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <!-- Empty State -->
-                <div v-if="!leads || leads.length === 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+                <div v-else-if="!leads || leads.length === 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
                     <div class="mx-auto w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
                         <UsersIcon class="w-10 h-10 text-blue-600 dark:text-blue-400" />
                     </div>

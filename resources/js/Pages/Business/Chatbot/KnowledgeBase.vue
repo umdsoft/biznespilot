@@ -27,7 +27,7 @@ const form = useForm({
 });
 
 const applyFilters = () => {
-    router.get(route('customer-bot.knowledge-base'), filters.value, {
+    router.get(route('business.customer-bot.knowledge-base'), filters.value, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -63,11 +63,11 @@ const closeModal = () => {
 
 const submit = () => {
     if (editingKnowledge.value) {
-        form.put(route('customer-bot.knowledge-base.update', editingKnowledge.value.id), {
+        form.put(route('business.customer-bot.knowledge-base.update', editingKnowledge.value.id), {
             onSuccess: () => closeModal(),
         });
     } else {
-        form.post(route('customer-bot.knowledge-base.store'), {
+        form.post(route('business.customer-bot.knowledge-base.store'), {
             onSuccess: () => closeModal(),
         });
     }
@@ -75,7 +75,7 @@ const submit = () => {
 
 const deleteKnowledge = (knowledge) => {
     if (confirm('Bu ma\'lumotni o\'chirmoqchimisiz?')) {
-        router.delete(route('customer-bot.knowledge-base.destroy', knowledge.id));
+        router.delete(route('business.customer-bot.knowledge-base.destroy', knowledge.id));
     }
 };
 

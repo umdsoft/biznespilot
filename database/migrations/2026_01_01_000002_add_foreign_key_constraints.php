@@ -134,37 +134,38 @@ return new class extends Migration
             return;
         }
 
-        // Clean up orphaned KPI records
-        DB::table('kpi_daily_actuals')
-            ->whereNotIn('business_id', $validBusinessIds)
-            ->delete();
+        // Clean up orphaned records from tables that exist
+        $tablesToClean = [
+            'kpi_daily_actuals',
+            'leads',
+            'instagram_accounts',
+            'facebook_pages',
+            'sales_metrics',
+            'marketing_metrics',
+            'kpi_configurations',
+            'competitors',
+            'dream_buyers',
+        ];
 
-        // Clean up orphaned leads
-        DB::table('leads')
-            ->whereNotIn('business_id', $validBusinessIds)
-            ->delete();
-
-        // Clean up orphaned Instagram accounts
-        DB::table('instagram_accounts')
-            ->whereNotIn('business_id', $validBusinessIds)
-            ->delete();
-
-        // Clean up orphaned Facebook pages
-        DB::table('facebook_pages')
-            ->whereNotIn('business_id', $validBusinessIds)
-            ->delete();
-
-        // Clean up other tables if they exist
-        $tables = ['sales_metrics', 'marketing_metrics', 'kpi_configurations', 'competitors', 'dream_buyers'];
-        foreach ($tables as $table) {
+        $existingTables = [];
+        foreach ($tablesToClean as $table) {
             if (Schema::hasTable($table)) {
                 DB::table($table)
                     ->whereNotIn('business_id', $validBusinessIds)
                     ->delete();
+                $existingTables[] = $table;
             }
         }
 
-        DB::statement('OPTIMIZE TABLE kpi_daily_actuals, leads, instagram_accounts, facebook_pages');
+        // Optimize only existing tables
+        if (!empty($existingTables)) {
+            $tableList = implode(', ', $existingTables);
+            try {
+                DB::statement("OPTIMIZE TABLE {$tableList}");
+            } catch (\Exception $e) {
+                // Ignore optimize errors
+            }
+        }
     }
 
     /**

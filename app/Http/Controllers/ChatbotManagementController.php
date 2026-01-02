@@ -10,12 +10,14 @@ use App\Models\ChatbotKnowledgeBase;
 use App\Models\ChatbotTemplate;
 use App\Services\TelegramBotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ChatbotManagementController extends Controller
 {
     protected TelegramBotService $telegramService;
+    protected int $cacheTTL = 300; // 5 minutes
 
     public function __construct(TelegramBotService $telegramService)
     {
@@ -23,11 +25,15 @@ class ChatbotManagementController extends Controller
     }
 
     /**
-     * Chatbot dashboard
+     * Chatbot dashboard - LAZY LOADING
      */
     public function index(Request $request)
     {
         $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return redirect()->route('business.index');
+        }
 
         $config = ChatbotConfig::firstOrCreate(
             ['business_id' => $business->id],
@@ -41,13 +47,39 @@ class ChatbotManagementController extends Controller
             ]
         );
 
-        // Get statistics for the last 30 days
-        $stats = $this->getDashboardStats($business);
+        // Load lightweight stats for initial render
+        $basicStats = Cache::remember("chatbot_basic_stats_{$business->id}", $this->cacheTTL, function () use ($business) {
+            return [
+                'active_conversations' => ChatbotConversation::where('business_id', $business->id)->where('status', 'active')->count(),
+                'total_conversations' => ChatbotConversation::where('business_id', $business->id)->count(),
+            ];
+        });
 
         return Inertia::render('Business/Chatbot/Dashboard', [
             'config' => $config,
-            'stats' => $stats,
+            'stats' => $basicStats,
+            'lazyLoad' => true,
         ]);
+    }
+
+    /**
+     * API: Get full dashboard stats
+     */
+    public function getDashboardStatsApi(Request $request)
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $cacheKey = "chatbot_dashboard_stats_{$business->id}";
+
+        $stats = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business) {
+            return $this->getDashboardStats($business);
+        });
+
+        return response()->json(['stats' => $stats]);
     }
 
     /**

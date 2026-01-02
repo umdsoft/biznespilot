@@ -16,7 +16,7 @@ const filters = ref({
 });
 
 const applyFilters = () => {
-    router.get(route('customer-bot.conversations'), filters.value, {
+    router.get(route('business.customer-bot.conversations'), filters.value, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -73,7 +73,7 @@ const formatDate = (date) => {
                         <p class="mt-2 text-gray-600">Mijozlar bilan barcha suhbatlar</p>
                     </div>
                     <Link
-                        :href="route('customer-bot.settings')"
+                        :href="route('business.customer-bot.settings')"
                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
                         Sozlamalar
@@ -153,7 +153,7 @@ const formatDate = (date) => {
                             class="hover:bg-gray-50 transition-colors"
                         >
                             <Link
-                                :href="route('customer-bot.conversation', conversation.id)"
+                                :href="route('business.customer-bot.conversation', conversation.id)"
                                 class="block p-6"
                             >
                                 <div class="flex items-center justify-between">

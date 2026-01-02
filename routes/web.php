@@ -43,6 +43,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\AlgorithmController;
+use App\Http\Controllers\YouTubeAnalyticsController;
+use App\Http\Controllers\GoogleAdsAnalyticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -128,6 +130,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/', [MarketingAnalyticsController::class, 'index'])->name('index');
         Route::get('/analytics', [MarketingAnalyticsController::class, 'index'])->name('analytics');
 
+        // Lazy Loading API Endpoint
+        Route::get('/api/dashboard', [MarketingAnalyticsController::class, 'getDashboardData'])->name('api.dashboard');
+
         // Channels Management
         Route::get('/channels', [MarketingAnalyticsController::class, 'channels'])->name('channels');
         Route::post('/channels', [MarketingAnalyticsController::class, 'store'])->name('channels.store');
@@ -172,6 +177,12 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         'sales' => 'lead'
     ]);
 
+    // Sales API routes (Lazy Loading)
+    Route::prefix('api/sales')->name('api.sales.')->group(function () {
+        Route::get('/leads', [SalesController::class, 'getLeads'])->name('leads');
+        Route::get('/stats', [SalesController::class, 'getStats'])->name('stats');
+    });
+
     // Offers routes
     Route::prefix('offers')->name('offers.')->group(function () {
         Route::get('/', [OffersController::class, 'index'])->name('index');
@@ -195,6 +206,12 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/funnel', [AnalyticsController::class, 'funnel'])->name('funnel');
         Route::get('/performance', [AnalyticsController::class, 'performance'])->name('performance');
         Route::get('/revenue', [AnalyticsController::class, 'revenue'])->name('revenue');
+
+        // Lazy Loading API Endpoints
+        Route::get('/api/initial', [AnalyticsController::class, 'getInitialData'])->name('api.initial');
+        Route::get('/api/funnel-page', [AnalyticsController::class, 'getFunnelPageData'])->name('api.funnel-page');
+        Route::get('/api/performance-page', [AnalyticsController::class, 'getPerformancePageData'])->name('api.performance-page');
+        Route::get('/api/revenue-page', [AnalyticsController::class, 'getRevenuePageData'])->name('api.revenue-page');
 
         // AJAX Data Endpoints
         Route::post('/data/funnel', [AnalyticsController::class, 'getFunnelData'])->name('data.funnel');
@@ -272,6 +289,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         // Dashboard
         Route::get('/', [ChatbotManagementController::class, 'index'])->name('index');
 
+        // Lazy Loading API Endpoint
+        Route::get('/api/stats', [ChatbotManagementController::class, 'getDashboardStatsApi'])->name('api.stats');
+
         // Conversations
         Route::get('/conversations', [ChatbotManagementController::class, 'conversations'])->name('conversations');
         Route::get('/conversations/{conversation}', [ChatbotManagementController::class, 'conversation'])->name('conversation');
@@ -325,6 +345,24 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         // Instagram Integration
         Route::get('/instagram-ai', [SettingsController::class, 'instagramAI'])->name('instagram-ai');
 
+        // Google Ads Integration
+        Route::get('/google-ads', [SettingsController::class, 'googleAds'])->name('google-ads');
+        Route::post('/google-ads/connect', [SettingsController::class, 'connectGoogleAds'])->name('google-ads.connect');
+        Route::post('/google-ads/disconnect', [SettingsController::class, 'disconnectGoogleAds'])->name('google-ads.disconnect');
+        Route::get('/google-ads/callback', [SettingsController::class, 'googleAdsCallback'])->name('google-ads.callback');
+
+        // Yandex Direct Integration
+        Route::get('/yandex-direct', [SettingsController::class, 'yandexDirect'])->name('yandex-direct');
+        Route::post('/yandex-direct/connect', [SettingsController::class, 'connectYandexDirect'])->name('yandex-direct.connect');
+        Route::post('/yandex-direct/disconnect', [SettingsController::class, 'disconnectYandexDirect'])->name('yandex-direct.disconnect');
+        Route::get('/yandex-direct/callback', [SettingsController::class, 'yandexDirectCallback'])->name('yandex-direct.callback');
+
+        // YouTube Analytics Integration
+        Route::get('/youtube', [SettingsController::class, 'youtube'])->name('youtube');
+        Route::post('/youtube/connect', [SettingsController::class, 'connectYoutube'])->name('youtube.connect');
+        Route::post('/youtube/disconnect', [SettingsController::class, 'disconnectYoutube'])->name('youtube.disconnect');
+        Route::get('/youtube/callback', [SettingsController::class, 'youtubeCallback'])->name('youtube.callback');
+
         // 2FA routes
         Route::get('/two-factor', [TwoFactorAuthController::class, 'show'])->name('two-factor');
         Route::get('/two-factor/setup', [TwoFactorAuthController::class, 'setup'])->name('two-factor.setup');
@@ -357,6 +395,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{competitor}/metrics', [CompetitorController::class, 'recordMetrics'])->name('metrics.record');
         Route::post('/{competitor}/monitor', [CompetitorController::class, 'monitor'])->name('monitor');
         Route::post('/{competitor}/swot', [CompetitorController::class, 'generateSwot'])->name('swot.generate');
+
+        // Lazy Loading API Endpoints
+        Route::get('/api/insights', [CompetitorController::class, 'getInsights'])->name('api.insights');
+        Route::get('/api/dashboard-data', [CompetitorController::class, 'getDashboardData'])->name('api.dashboard-data');
     });
 
     // Target Analysis API routes
@@ -431,6 +473,18 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/content-winners', [InstagramAnalysisController::class, 'getContentWinners'])->name('content-winners');
         Route::get('/growth-drivers', [InstagramAnalysisController::class, 'getGrowthDrivers'])->name('growth-drivers');
         Route::get('/viral-analysis', [InstagramAnalysisController::class, 'getViralAnalysis'])->name('viral-analysis');
+    });
+
+    // YouTube Analytics routes
+    Route::prefix('youtube-analytics')->name('youtube-analytics.')->group(function () {
+        Route::get('/', [YouTubeAnalyticsController::class, 'index'])->name('index');
+        Route::post('/sync', [YouTubeAnalyticsController::class, 'sync'])->name('sync');
+        Route::get('/video/{videoId}', [YouTubeAnalyticsController::class, 'videoDetail'])->name('video');
+    });
+
+    // Google Ads Analytics routes
+    Route::prefix('google-ads-analytics')->name('google-ads-analytics.')->group(function () {
+        Route::get('/', [GoogleAdsAnalyticsController::class, 'index'])->name('index');
     });
 
     // Instagram Chatbot routes
@@ -555,6 +609,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/', [ContentCalendarController::class, 'store'])->name('store');
         Route::get('/analytics', [ContentCalendarController::class, 'analytics'])->name('analytics');
 
+        // Lazy Loading API Endpoint
+        Route::get('/api/calendar', [ContentCalendarController::class, 'getCalendarData'])->name('api.calendar');
+
         // Content item actions
         Route::get('/{content}', [ContentCalendarController::class, 'show'])->name('show');
         Route::put('/{content}', [ContentCalendarController::class, 'update'])->name('update');
@@ -581,6 +638,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
     // Dashboard API routes
     Route::prefix('api/dashboard')->name('api.dashboard.')->group(function () {
+        Route::get('/initial', [DashboardController::class, 'getInitialData'])->name('initial'); // Lazy load initial data
         Route::get('/data', [DashboardController::class, 'getData'])->name('data');
         Route::get('/kpis', [DashboardController::class, 'getKPIs'])->name('kpis');
         Route::get('/trends', [DashboardController::class, 'getTrends'])->name('trends');

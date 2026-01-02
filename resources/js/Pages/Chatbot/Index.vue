@@ -25,7 +25,7 @@
           <p class="mt-1 text-sm text-yellow-700">
             Chatbot funksiyasidan foydalanish uchun Settings sahifasida OpenAI yoki Claude API kalitini qo'shing.
           </p>
-          <Link :href="route('settings.index')" class="mt-3 inline-flex items-center text-sm font-medium text-yellow-800 hover:text-yellow-900">
+          <Link :href="route('business.settings.index')" class="mt-3 inline-flex items-center text-sm font-medium text-yellow-800 hover:text-yellow-900">
             Settings ga o'tish
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

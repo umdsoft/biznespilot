@@ -47,21 +47,21 @@ onMounted(() => {
 
 const closeConversation = () => {
     if (confirm('Suhbatni yopmoqchimisiz?')) {
-        router.post(route('customer-bot.conversation.close', props.conversation.id), {}, {
+        router.post(route('business.customer-bot.conversation.close', props.conversation.id), {}, {
             preserveScroll: true,
         });
     }
 };
 
 const reopenConversation = () => {
-    router.post(route('customer-bot.conversation.reopen', props.conversation.id), {}, {
+    router.post(route('business.customer-bot.conversation.reopen', props.conversation.id), {}, {
         preserveScroll: true,
     });
 };
 
 const handoffToHuman = () => {
     if (confirm('Suhbatni operatorga topshirmoqchimisiz?')) {
-        router.post(route('customer-bot.conversation.handoff', props.conversation.id), {}, {
+        router.post(route('business.customer-bot.conversation.handoff', props.conversation.id), {}, {
             preserveScroll: true,
         });
     }
@@ -78,7 +78,7 @@ const handoffToHuman = () => {
                 <div class="mb-6 flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <Link
-                            :href="route('customer-bot.conversations')"
+                            :href="route('business.customer-bot.conversations')"
                             class="p-2 hover:bg-gray-100 rounded-md"
                         >
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,7 +274,7 @@ const handoffToHuman = () => {
 
                                 <div>
                                     <Link
-                                        :href="route('leads.show', conversation.lead.id)"
+                                        :href="route('business.sales.show', conversation.lead.id)"
                                         class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                     >
                                         Lidni ko'rish

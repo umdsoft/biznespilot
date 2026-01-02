@@ -497,6 +497,14 @@ class Business extends Model
     // ==================== ALGORITHM RELATIONSHIPS ====================
 
     /**
+     * Get the ad platform integrations for the business (Google Ads, Yandex Direct, YouTube, etc.)
+     */
+    public function adIntegrations(): HasMany
+    {
+        return $this->hasMany(\App\Models\AdIntegration::class);
+    }
+
+    /**
      * Get the Instagram accounts for the business.
      */
     public function instagramAccounts(): HasMany

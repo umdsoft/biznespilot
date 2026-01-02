@@ -31,6 +31,8 @@ class TargetAnalysisController extends Controller
 
     /**
      * Display target analysis dashboard
+     * OPTIMIZED: Only sends minimal data on initial load
+     * Heavy data is loaded lazily via API calls
      */
     public function index(Request $request): Response
     {
@@ -50,9 +52,11 @@ class TargetAnalysisController extends Controller
             abort(403, 'Sizda bu biznesga kirish huquqi yo\'q');
         }
 
-        $analysis = $this->analysisService->getTargetAnalysis($business);
+        // OPTIMIZATION: Don't load heavy analysis data on initial page load
+        // It will be loaded via API call after page mounts
+        // $analysis = $this->analysisService->getTargetAnalysis($business);
 
-        // Meta Ads integration data
+        // Meta Ads integration data - lightweight query
         $metaIntegration = Integration::where('business_id', $business->id)
             ->where('type', 'meta_ads')
             ->first();
@@ -72,7 +76,9 @@ class TargetAnalysisController extends Controller
                 'name' => $business->name,
                 'industry' => $business->industry,
             ],
-            'analysis' => $analysis,
+            // LAZY LOAD: Analysis data will be fetched via API
+            'analysis' => null,
+            'lazyLoad' => true, // Flag to tell frontend to fetch data
             'lastUpdated' => now()->format('d.m.Y H:i'),
             // Meta Ads data
             'metaIntegration' => $metaIntegration ? [

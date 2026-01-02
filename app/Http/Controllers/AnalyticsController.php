@@ -6,12 +6,14 @@ use App\Services\SalesAnalyticsService;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class AnalyticsController extends Controller
 {
     protected SalesAnalyticsService $analyticsService;
     protected ExportService $exportService;
+    protected int $cacheTTL = 300; // 5 minutes
 
     public function __construct(
         SalesAnalyticsService $analyticsService,
@@ -32,7 +34,7 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Main analytics dashboard
+     * Main analytics dashboard - LAZY LOADING
      */
     public function index(Request $request)
     {
@@ -44,42 +46,46 @@ class AnalyticsController extends Controller
 
         $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'source_id']);
 
-        // Get dashboard metrics
-        $dashboardMetrics = $this->analyticsService->getDashboardMetrics(
-            $currentBusiness->id,
-            $filters
-        );
-
-        // Get revenue trends
-        $revenueTrends = $this->analyticsService->getRevenueTrends(
-            $currentBusiness->id,
-            'daily',
-            30
-        );
-
-        // Get top performers
-        $topPerformers = $this->analyticsService->getTopPerformers(
-            $currentBusiness->id,
-            $filters
-        );
-
-        // Get funnel overview
-        $funnelData = $this->analyticsService->getFunnelData(
-            $currentBusiness->id,
-            $filters
-        );
-
+        // Only return filters and lazyLoad flag - data will be loaded via API
         return Inertia::render('Business/Analytics/Dashboard', [
-            'metrics' => $dashboardMetrics,
-            'revenue_trends' => $revenueTrends,
-            'top_performers' => $topPerformers,
-            'funnel_summary' => $funnelData['summary'],
+            'metrics' => null,
+            'revenue_trends' => null,
+            'top_performers' => null,
+            'funnel_summary' => null,
             'filters' => $filters,
+            'lazyLoad' => true,
         ]);
     }
 
     /**
-     * Conversion funnel page
+     * API: Get initial analytics data (combined for faster loading)
+     */
+    public function getInitialData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'source_id']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_initial_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return [
+                'metrics' => $this->analyticsService->getDashboardMetrics($currentBusiness->id, $filters),
+                'revenue_trends' => $this->analyticsService->getRevenueTrends($currentBusiness->id, 'daily', 30),
+                'top_performers' => $this->analyticsService->getTopPerformers($currentBusiness->id, $filters),
+                'funnel_summary' => $this->analyticsService->getFunnelData($currentBusiness->id, $filters)['summary'] ?? null,
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Conversion funnel page - LAZY LOADING
      */
     public function funnel(Request $request)
     {
@@ -91,25 +97,41 @@ class AnalyticsController extends Controller
 
         $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'offer_id', 'source_id']);
 
-        $funnelData = $this->analyticsService->getFunnelData(
-            $currentBusiness->id,
-            $filters
-        );
-
-        $conversionRates = $this->analyticsService->getConversionRates(
-            $currentBusiness->id,
-            $filters
-        );
-
         return Inertia::render('Business/Analytics/Funnel', [
-            'funnel_data' => $funnelData,
-            'conversion_rates' => $conversionRates,
+            'funnel_data' => null,
+            'conversion_rates' => null,
             'filters' => $filters,
+            'lazyLoad' => true,
         ]);
     }
 
     /**
-     * Performance reports page
+     * API: Get funnel page data
+     */
+    public function getFunnelPageData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'offer_id', 'source_id']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_funnel_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return [
+                'funnel_data' => $this->analyticsService->getFunnelData($currentBusiness->id, $filters),
+                'conversion_rates' => $this->analyticsService->getConversionRates($currentBusiness->id, $filters),
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Performance reports page - LAZY LOADING
      */
     public function performance(Request $request)
     {
@@ -121,31 +143,43 @@ class AnalyticsController extends Controller
 
         $filters = $request->only(['date_from', 'date_to']);
 
-        $dreamBuyerPerformance = $this->analyticsService->getDreamBuyerPerformance(
-            $currentBusiness->id,
-            $filters
-        );
-
-        $offerPerformance = $this->analyticsService->getOfferPerformance(
-            $currentBusiness->id,
-            $filters
-        );
-
-        $sourceAnalysis = $this->analyticsService->getLeadSourceAnalysis(
-            $currentBusiness->id,
-            $filters
-        );
-
         return Inertia::render('Business/Analytics/Performance', [
-            'dream_buyer_performance' => $dreamBuyerPerformance,
-            'offer_performance' => $offerPerformance,
-            'source_analysis' => $sourceAnalysis,
+            'dream_buyer_performance' => null,
+            'offer_performance' => null,
+            'source_analysis' => null,
             'filters' => $filters,
+            'lazyLoad' => true,
         ]);
     }
 
     /**
-     * Revenue trends and forecasting page
+     * API: Get performance page data
+     */
+    public function getPerformancePageData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_performance_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return [
+                'dream_buyer_performance' => $this->analyticsService->getDreamBuyerPerformance($currentBusiness->id, $filters),
+                'offer_performance' => $this->analyticsService->getOfferPerformance($currentBusiness->id, $filters),
+                'source_analysis' => $this->analyticsService->getLeadSourceAnalysis($currentBusiness->id, $filters),
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Revenue trends and forecasting page - LAZY LOADING
      */
     public function revenue(Request $request)
     {
@@ -158,22 +192,37 @@ class AnalyticsController extends Controller
         $period = $request->input('period', 'daily');
         $points = $request->input('points', 30);
 
-        $revenueTrends = $this->analyticsService->getRevenueTrends(
-            $currentBusiness->id,
-            $period,
-            $points
-        );
-
-        $forecast = $this->analyticsService->forecastRevenue(
-            $currentBusiness->id,
-            30
-        );
-
         return Inertia::render('Business/Analytics/Revenue', [
-            'trends' => $revenueTrends,
-            'forecast' => $forecast,
+            'trends' => null,
+            'forecast' => null,
             'period' => $period,
+            'lazyLoad' => true,
         ]);
+    }
+
+    /**
+     * API: Get revenue page data
+     */
+    public function getRevenuePageData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $period = $request->input('period', 'daily');
+        $points = $request->input('points', 30);
+        $cacheKey = "analytics_revenue_{$currentBusiness->id}_{$period}_{$points}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $period, $points) {
+            return [
+                'trends' => $this->analyticsService->getRevenueTrends($currentBusiness->id, $period, $points),
+                'forecast' => $this->analyticsService->forecastRevenue($currentBusiness->id, 30),
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**

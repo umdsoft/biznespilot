@@ -36,11 +36,11 @@ const showTokens = ref({
 });
 
 const submit = () => {
-    form.put(route('customer-bot.settings.update'));
+    form.put(route('business.customer-bot.settings.update'));
 };
 
 const setupTelegramWebhook = () => {
-    form.post(route('customer-bot.settings.telegram.webhook'), {
+    form.post(route('business.customer-bot.settings.telegram.webhook'), {
         preserveScroll: true,
     });
 };

@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::table('leads', function (Blueprint $table) {
             // Add source_id column for foreign key relationship
-            $table->unsignedBigInteger('source_id')->nullable()->after('source');
+            if (!Schema::hasColumn('leads', 'source_id')) {
+                $table->unsignedBigInteger('source_id')->nullable()->after('source');
+            }
 
             // Add score column if it doesn't exist
             if (!Schema::hasColumn('leads', 'score')) {
@@ -24,13 +26,17 @@ return new class extends Migration
             if (!Schema::hasColumn('leads', 'uuid')) {
                 $table->uuid('uuid')->nullable()->after('id');
             }
-
-            // Add foreign key constraint
-            $table->foreign('source_id')
-                ->references('id')
-                ->on('lead_sources')
-                ->onDelete('set null');
         });
+
+        // Add foreign key constraint only if lead_sources table exists
+        if (Schema::hasTable('lead_sources')) {
+            Schema::table('leads', function (Blueprint $table) {
+                $table->foreign('source_id')
+                    ->references('id')
+                    ->on('lead_sources')
+                    ->onDelete('set null');
+            });
+        }
     }
 
     /**
@@ -39,8 +45,16 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('leads', function (Blueprint $table) {
-            $table->dropForeign(['source_id']);
-            $table->dropColumn('source_id');
+            // Try to drop foreign key if it exists
+            try {
+                $table->dropForeign(['source_id']);
+            } catch (\Exception $e) {
+                // Foreign key may not exist
+            }
+
+            if (Schema::hasColumn('leads', 'source_id')) {
+                $table->dropColumn('source_id');
+            }
 
             if (Schema::hasColumn('leads', 'score')) {
                 $table->dropColumn('score');

@@ -7,21 +7,28 @@ use App\Models\MonthlyPlan;
 use App\Models\WeeklyPlan;
 use App\Services\ContentStrategyService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
 class ContentCalendarController extends Controller
 {
+    protected int $cacheTTL = 300; // 5 minutes
+
     public function __construct(
         private ContentStrategyService $contentService
     ) {}
 
     /**
-     * Content calendar view
+     * Content calendar view - LAZY LOADING
      */
     public function index(Request $request)
     {
         $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return redirect()->route('business.index');
+        }
 
         $view = $request->input('view', 'month'); // month, week, day
         $date = $request->input('date', now()->toDateString());
@@ -36,42 +43,80 @@ class ContentCalendarController extends Controller
             'day' => [$currentDate->copy()->startOfDay(), $currentDate->copy()->endOfDay()],
         };
 
-        // Get content items
-        $items = $this->contentService->getCalendar(
-            $business,
-            $startDate->toDateString(),
-            $endDate->toDateString(),
-            $channel
-        );
-
-        // Group by date for calendar view
-        $groupedItems = $items->groupBy(function ($item) {
-            return $item->scheduled_date->toDateString();
-        });
-
-        // Get channels for filter
+        // Static constants don't need caching
         $channels = ContentCalendar::CHANNELS;
 
-        // Get today's items
-        $todaysContent = $this->contentService->getTodaysContent($business);
-
-        // Get upcoming items
-        $upcomingContent = $this->contentService->getUpcomingContent($business, 7);
-
         return Inertia::render('Strategy/ContentCalendar/Index', [
-            'items' => $items,
-            'grouped_items' => $groupedItems,
+            'items' => null,
+            'grouped_items' => null,
             'view' => $view,
             'current_date' => $currentDate->toDateString(),
             'start_date' => $startDate->toDateString(),
             'end_date' => $endDate->toDateString(),
             'channels' => $channels,
             'selected_channel' => $channel,
-            'todays_content' => $todaysContent,
-            'upcoming_content' => $upcomingContent,
+            'todays_content' => null,
+            'upcoming_content' => null,
             'content_types' => ContentCalendar::CONTENT_TYPES,
             'statuses' => ContentCalendar::STATUSES,
+            'lazyLoad' => true,
         ]);
+    }
+
+    /**
+     * API: Get calendar data
+     */
+    public function getCalendarData(Request $request)
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $view = $request->input('view', 'month');
+        $date = $request->input('date', now()->toDateString());
+        $channel = $request->input('channel');
+
+        $currentDate = Carbon::parse($date);
+
+        [$startDate, $endDate] = match($view) {
+            'month' => [$currentDate->copy()->startOfMonth(), $currentDate->copy()->endOfMonth()],
+            'week' => [$currentDate->copy()->startOfWeek(), $currentDate->copy()->endOfWeek()],
+            'day' => [$currentDate->copy()->startOfDay(), $currentDate->copy()->endOfDay()],
+        };
+
+        $cacheKey = "content_calendar_{$business->id}_{$view}_{$startDate->format('Y-m-d')}_{$channel}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $startDate, $endDate, $channel) {
+            // Get content items
+            $items = $this->contentService->getCalendar(
+                $business,
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+                $channel
+            );
+
+            // Group by date for calendar view
+            $groupedItems = $items->groupBy(function ($item) {
+                return $item->scheduled_date->toDateString();
+            });
+
+            // Get today's items
+            $todaysContent = $this->contentService->getTodaysContent($business);
+
+            // Get upcoming items
+            $upcomingContent = $this->contentService->getUpcomingContent($business, 7);
+
+            return [
+                'items' => $items,
+                'grouped_items' => $groupedItems,
+                'todays_content' => $todaysContent,
+                'upcoming_content' => $upcomingContent,
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**

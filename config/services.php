@@ -47,11 +47,21 @@ return [
         'redirect_uri' => env('META_REDIRECT_URI', '/business/meta-ads/callback'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    ],
+
     'google_ads' => [
-        'client_id' => env('GOOGLE_ADS_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_ADS_CLIENT_SECRET'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'developer_token' => env('GOOGLE_ADS_DEVELOPER_TOKEN'),
         'redirect' => env('GOOGLE_ADS_REDIRECT_URI'),
+    ],
+
+    'yandex' => [
+        'client_id' => env('YANDEX_CLIENT_ID'),
+        'client_secret' => env('YANDEX_CLIENT_SECRET'),
     ],
 
     'anthropic' => [

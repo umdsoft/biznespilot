@@ -51,7 +51,8 @@
             </div>
           </div>
           <p class="text-purple-100 text-sm font-medium mb-1">Jami Leadlar</p>
-          <p class="text-white text-3xl font-bold">{{ formatNumber(stats.total_leads) }}</p>
+          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
+          <p v-else class="text-white text-3xl font-bold">{{ formatNumber(stats.total_leads) }}</p>
         </div>
       </div>
 
@@ -67,7 +68,8 @@
             </div>
           </div>
           <p class="text-green-100 text-sm font-medium mb-1">Mijozlar</p>
-          <p class="text-white text-3xl font-bold">{{ formatNumber(stats.total_customers) }}</p>
+          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
+          <p v-else class="text-white text-3xl font-bold">{{ formatNumber(stats.total_customers) }}</p>
         </div>
       </div>
 
@@ -83,7 +85,8 @@
             </div>
           </div>
           <p class="text-blue-100 text-sm font-medium mb-1">Daromad (30 kun)</p>
-          <p class="text-white text-3xl font-bold">{{ formatCurrency(stats.total_revenue) }}</p>
+          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
+          <p v-else class="text-white text-3xl font-bold">{{ formatCurrency(stats.total_revenue) }}</p>
         </div>
       </div>
 
@@ -99,7 +102,8 @@
             </div>
           </div>
           <p class="text-orange-100 text-sm font-medium mb-1">Konversiya</p>
-          <p class="text-white text-3xl font-bold">{{ stats.conversion_rate }}%</p>
+          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
+          <p v-else class="text-white text-3xl font-bold">{{ stats.conversion_rate }}%</p>
         </div>
       </div>
     </div>
@@ -210,7 +214,7 @@
 
     <!-- Sales Trend Chart -->
     <Card title="Sotuvlar tendensiyasi (oxirgi 7 kun)">
-      <div v-if="salesTrend.length > 0" class="overflow-x-auto">
+      <div v-if="salesTrend?.length > 0" class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -242,6 +246,8 @@
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 import { Link } from '@inertiajs/vue3';
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
   stats: Object,
@@ -251,6 +257,90 @@ const props = defineProps({
   salesTrend: Array,
   moduleStats: Object,
   currentBusiness: Object,
+  lazyLoad: { type: Boolean, default: false },
+  revenueForecast: Array,
+  aiInsights: Array,
+  recentActivities: Array,
+  activeAlertsCount: { type: Number, default: 0 },
+});
+
+// Reactive state for lazy-loaded data
+const isLoading = ref(false);
+const loadedData = ref({
+  stats: null,
+  kpis: null,
+  roasBenchmark: null,
+  ltvCacBenchmark: null,
+  salesTrend: null,
+  moduleStats: null,
+  revenueForecast: null,
+  aiInsights: null,
+  recentActivities: null,
+});
+
+// Default values for benchmarks and objects
+const defaultRoasBenchmark = { color: 'blue', label: 'Yuklanmoqda...' };
+const defaultLtvCacBenchmark = { color: 'blue', label: 'Yuklanmoqda...' };
+const defaultKpis = {
+  cac: 0,
+  clv: 0,
+  ltv_cac_ratio: 0,
+  roas: 0,
+  roi: 0,
+  payback_period: 0,
+  churn_rate: 0,
+  nps: 0,
+  mrr: 0,
+  arr: 0,
+};
+const defaultModuleStats = {
+  dream_buyers: 0,
+  marketing_channels: 0,
+  active_offers: 0,
+};
+
+// Computed properties - use loaded data or props with defaults
+const stats = computed(() => loadedData.value.stats || props.stats || { total_leads: 0, total_customers: 0, total_revenue: 0, conversion_rate: 0 });
+const kpis = computed(() => loadedData.value.kpis || props.kpis || defaultKpis);
+const roasBenchmark = computed(() => loadedData.value.roasBenchmark || props.roasBenchmark || defaultRoasBenchmark);
+const ltvCacBenchmark = computed(() => loadedData.value.ltvCacBenchmark || props.ltvCacBenchmark || defaultLtvCacBenchmark);
+const salesTrend = computed(() => loadedData.value.salesTrend || props.salesTrend || []);
+const moduleStats = computed(() => loadedData.value.moduleStats || props.moduleStats || defaultModuleStats);
+const revenueForecast = computed(() => loadedData.value.revenueForecast || props.revenueForecast || []);
+const aiInsights = computed(() => loadedData.value.aiInsights || props.aiInsights || []);
+const recentActivities = computed(() => loadedData.value.recentActivities || props.recentActivities || []);
+
+// Fetch data lazily after component mounts
+const fetchDashboardData = async () => {
+  if (!props.lazyLoad) return;
+
+  isLoading.value = true;
+  try {
+    const response = await axios.get('/business/api/dashboard/initial');
+    if (response.data) {
+      loadedData.value = {
+        stats: response.data.stats,
+        kpis: response.data.kpis,
+        roasBenchmark: response.data.roasBenchmark,
+        ltvCacBenchmark: response.data.ltvCacBenchmark,
+        salesTrend: response.data.salesTrend,
+        moduleStats: response.data.moduleStats,
+        revenueForecast: response.data.revenueForecast,
+        aiInsights: response.data.aiInsights,
+        recentActivities: response.data.recentActivities,
+      };
+    }
+  } catch (error) {
+    console.error('Dashboard data loading error:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  if (props.lazyLoad) {
+    fetchDashboardData();
+  }
 });
 
 const formatNumber = (value) => {

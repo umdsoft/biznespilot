@@ -6,35 +6,63 @@ use App\Models\MetaAdAccount;
 use App\Models\MetaCampaign;
 use App\Models\MetaInsight;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class MetaDataService
 {
     /**
+     * Cache TTL in seconds (10 minutes for Meta data)
+     */
+    protected int $cacheTTL = 600;
+
+    /**
      * Get overview stats from local database
+     * OPTIMIZED: Results are cached for 10 minutes
      */
     public function getOverview(string $adAccountId, string $datePreset): array
     {
-        $dates = $this->getDateRange($datePreset);
-        $noFilter = $dates['no_filter'] ?? false;
+        $cacheKey = "meta_overview_{$adAccountId}_{$datePreset}";
 
-        $current = $this->getAggregatedInsights($adAccountId, $dates['start'], $dates['end'], $noFilter);
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId, $datePreset) {
+            $dates = $this->getDateRange($datePreset);
+            $noFilter = $dates['no_filter'] ?? false;
 
-        // For 'maximum', no comparison data
-        if ($noFilter) {
+            $current = $this->getAggregatedInsights($adAccountId, $dates['start'], $dates['end'], $noFilter);
+
+            // For 'maximum', no comparison data
+            if ($noFilter) {
+                return [
+                    'current' => $current,
+                    'change' => [],
+                ];
+            }
+
+            $previousDates = $this->getPreviousDateRange($datePreset);
+            $previous = $this->getAggregatedInsights($adAccountId, $previousDates['start'], $previousDates['end'], false);
+
             return [
                 'current' => $current,
-                'change' => [],
+                'change' => $this->calculateChange($current, $previous),
             ];
+        });
+    }
+
+    /**
+     * Invalidate all cache for an ad account
+     */
+    public function invalidateCache(string $adAccountId): void
+    {
+        $presets = ['last_7d', 'last_14d', 'last_30d', 'last_90d', 'last_365d', 'maximum'];
+        foreach ($presets as $preset) {
+            Cache::forget("meta_overview_{$adAccountId}_{$preset}");
+            Cache::forget("meta_campaigns_{$adAccountId}_{$preset}");
+            Cache::forget("meta_demographics_{$adAccountId}_{$preset}");
+            Cache::forget("meta_placements_{$adAccountId}_{$preset}");
         }
-
-        $previousDates = $this->getPreviousDateRange($datePreset);
-        $previous = $this->getAggregatedInsights($adAccountId, $previousDates['start'], $previousDates['end'], false);
-
-        return [
-            'current' => $current,
-            'change' => $this->calculateChange($current, $previous),
-        ];
+        Cache::forget("meta_trend_{$adAccountId}_30");
+        Cache::forget("meta_trend_{$adAccountId}_7");
+        Cache::forget("meta_trend_{$adAccountId}_90");
     }
 
     /**
@@ -47,69 +75,78 @@ class MetaDataService
 
     /**
      * Get campaigns with insights from local database
+     * OPTIMIZED: Results are cached for 10 minutes
      */
     public function getCampaigns(string $adAccountId, string $datePreset): array
     {
-        $dates = $this->getDateRange($datePreset);
+        $cacheKey = "meta_campaigns_{$adAccountId}_{$datePreset}";
 
-        $campaigns = MetaCampaign::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->get();
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId, $datePreset) {
+            $dates = $this->getDateRange($datePreset);
 
-        $query = MetaInsight::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->whereNotNull('campaign_id');
+            $campaigns = MetaCampaign::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->get();
 
-        // Apply date filter only if not 'maximum'
-        if (!($dates['no_filter'] ?? false)) {
-            $query->whereBetween('date_start', [$dates['start'], $dates['end']]);
-        }
+            $query = MetaInsight::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('campaign_id');
 
-        $insights = $query->select(
-                'campaign_id',
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(reach) as reach'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions')
-            )
-            ->groupBy('campaign_id')
-            ->get()
-            ->keyBy('campaign_id');
+            // Apply date filter only if not 'maximum'
+            if (!($dates['no_filter'] ?? false)) {
+                $query->whereBetween('date_start', [$dates['start'], $dates['end']]);
+            }
 
-        return $campaigns->map(function ($campaign) use ($insights) {
-            $insight = $insights->get($campaign->id);
-            $impressions = $insight?->impressions ?? 0;
-            $clicks = $insight?->clicks ?? 0;
-            $spend = $insight?->spend ?? 0;
+            $insights = $query->select(
+                    'campaign_id',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('SUM(conversions) as conversions')
+                )
+                ->groupBy('campaign_id')
+                ->get()
+                ->keyBy('campaign_id');
 
-            return [
-                'id' => $campaign->meta_campaign_id,
-                'name' => $campaign->name,
-                'objective' => $campaign->objective,
-                'status' => $campaign->status,
-                'created_time' => $campaign->start_time,
+            return $campaigns->map(function ($campaign) use ($insights) {
+                $insight = $insights->get($campaign->id);
+                $impressions = $insight?->impressions ?? 0;
+                $clicks = $insight?->clicks ?? 0;
+                $spend = $insight?->spend ?? 0;
+
+                return [
+                    'id' => $campaign->meta_campaign_id,
+                    'name' => $campaign->name,
+                    'objective' => $campaign->objective,
+                    'status' => $campaign->status,
+                    'created_time' => $campaign->start_time,
                 'spend' => (float) $spend,
                 'impressions' => (int) $impressions,
                 'clicks' => (int) $clicks,
                 'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
-                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
-                'conversions' => (int) ($insight?->conversions ?? 0),
-                'roas' => 0, // Not available in current schema
-            ];
-        })->sortByDesc('spend')->values()->toArray();
+                    'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                    'conversions' => (int) ($insight?->conversions ?? 0),
+                    'roas' => 0, // Not available in current schema
+                ];
+            })->sortByDesc('spend')->values()->toArray();
+        });
     }
 
     /**
      * Get demographics breakdown from local database
+     * OPTIMIZED: Results are cached for 10 minutes
      */
     public function getDemographics(string $adAccountId, string $datePreset): array
     {
-        $dates = $this->getDateRange($datePreset);
-        $noFilter = $dates['no_filter'] ?? false;
+        $cacheKey = "meta_demographics_{$adAccountId}_{$datePreset}";
 
-        // Age breakdown
-        $ageQuery = MetaInsight::withoutGlobalScope('business')
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId, $datePreset) {
+            $dates = $this->getDateRange($datePreset);
+            $noFilter = $dates['no_filter'] ?? false;
+
+            // Age breakdown
+            $ageQuery = MetaInsight::withoutGlobalScope('business')
             ->where('ad_account_id', $adAccountId)
             ->whereNotNull('age_range')
             ->select(
@@ -188,25 +225,30 @@ class MetaDataService
             ];
         })->values()->toArray();
 
-        $hasData = !empty($ageData) || !empty($genderData);
+            $hasData = !empty($ageData) || !empty($genderData);
 
-        return [
-            'age' => $ageData,
-            'gender' => $genderData,
-            'message' => $hasData ? null : 'Demografik ma\'lumotlar hozircha mavjud emas',
-        ];
+            return [
+                'age' => $ageData,
+                'gender' => $genderData,
+                'message' => $hasData ? null : 'Demografik ma\'lumotlar hozircha mavjud emas',
+            ];
+        });
     }
 
     /**
      * Get placements breakdown from local database
+     * OPTIMIZED: Results are cached for 10 minutes
      */
     public function getPlacements(string $adAccountId, string $datePreset): array
     {
-        $dates = $this->getDateRange($datePreset);
-        $noFilter = $dates['no_filter'] ?? false;
+        $cacheKey = "meta_placements_{$adAccountId}_{$datePreset}";
 
-        // Platform breakdown (Facebook, Instagram, etc.)
-        $platformQuery = MetaInsight::withoutGlobalScope('business')
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId, $datePreset) {
+            $dates = $this->getDateRange($datePreset);
+            $noFilter = $dates['no_filter'] ?? false;
+
+            // Platform breakdown (Facebook, Instagram, etc.)
+            $platformQuery = MetaInsight::withoutGlobalScope('business')
             ->where('ad_account_id', $adAccountId)
             ->whereNotNull('publisher_platform')
             ->select(
@@ -304,24 +346,29 @@ class MetaDataService
             ];
         })->sortByDesc('spend')->values()->toArray();
 
-        $hasData = !empty($platformData) || !empty($positionData);
+            $hasData = !empty($platformData) || !empty($positionData);
 
-        return [
-            'platforms' => $platformData,
-            'positions' => $positionData,
-            'message' => $hasData ? null : 'Joylashuv ma\'lumotlari hozircha mavjud emas',
-        ];
+            return [
+                'platforms' => $platformData,
+                'positions' => $positionData,
+                'message' => $hasData ? null : 'Joylashuv ma\'lumotlari hozircha mavjud emas',
+            ];
+        });
     }
 
     /**
      * Get daily trend from local database
+     * OPTIMIZED: Results are cached for 10 minutes
      */
     public function getTrend(string $adAccountId, int $days = 30): array
     {
-        $startDate = Carbon::today()->subDays($days);
-        $endDate = Carbon::today();
+        $cacheKey = "meta_trend_{$adAccountId}_{$days}";
 
-        $trend = MetaInsight::withoutGlobalScope('business')
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId, $days) {
+            $startDate = Carbon::today()->subDays($days);
+            $endDate = Carbon::today();
+
+            $trend = MetaInsight::withoutGlobalScope('business')
             ->where('ad_account_id', $adAccountId)
             ->whereBetween('date_start', [$startDate, $endDate])
             ->select(
@@ -335,20 +382,21 @@ class MetaDataService
             ->orderBy('date_start')
             ->get();
 
-        return $trend->map(function ($row) {
-            $impressions = $row->impressions ?? 0;
-            $clicks = $row->clicks ?? 0;
-            $date = $row->date_start instanceof Carbon ? $row->date_start->format('Y-m-d') : (string) $row->date_start;
+            return $trend->map(function ($row) {
+                $impressions = $row->impressions ?? 0;
+                $clicks = $row->clicks ?? 0;
+                $date = $row->date_start instanceof Carbon ? $row->date_start->format('Y-m-d') : (string) $row->date_start;
 
-            return [
-                'date' => $date,
-                'spend' => (float) $row->spend,
-                'impressions' => (int) $impressions,
-                'clicks' => (int) $clicks,
-                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
-                'conversions' => (int) $row->conversions,
-            ];
-        })->values()->toArray();
+                return [
+                    'date' => $date,
+                    'spend' => (float) $row->spend,
+                    'impressions' => (int) $impressions,
+                    'clicks' => (int) $clicks,
+                    'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                    'conversions' => (int) $row->conversions,
+                ];
+            })->values()->toArray();
+        });
     }
 
     /**

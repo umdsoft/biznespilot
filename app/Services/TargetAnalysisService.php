@@ -7,12 +7,18 @@ use App\Models\Customer;
 use App\Models\DreamBuyer;
 use App\Models\Lead;
 use App\Models\Campaign;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TargetAnalysisService
 {
     protected ClaudeAIService $claudeService;
+
+    /**
+     * Cache TTL in seconds (15 minutes)
+     */
+    protected int $cacheTTL = 900;
 
     public function __construct(ClaudeAIService $claudeService)
     {
@@ -21,38 +27,75 @@ class TargetAnalysisService
 
     /**
      * Get comprehensive target analysis for a business
+     * NOTE: AI insights are NOT loaded here - they should be loaded lazily via API
      */
     public function getTargetAnalysis(Business $business): array
     {
-        return [
-            'overview' => $this->getOverview($business),
-            'dream_buyer_match' => $this->analyzeDreamBuyerMatch($business),
-            'customer_segments' => $this->getCustomerSegments($business),
-            'conversion_funnel' => $this->getConversionFunnel($business),
-            'demographic_insights' => $this->getDemographicInsights($business),
-            'ai_insights' => $this->generateAIInsights($business),
-            'top_performers' => $this->getTopPerformingCustomers($business),
-            'churn_risk' => $this->getChurnRiskAnalysis($business),
-        ];
+        $cacheKey = "target_analysis_{$business->id}";
+
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($business) {
+            return [
+                'overview' => $this->getOverview($business),
+                'dream_buyer_match' => $this->analyzeDreamBuyerMatch($business),
+                'customer_segments' => $this->getCustomerSegments($business),
+                'conversion_funnel' => $this->getConversionFunnel($business),
+                'demographic_insights' => $this->getDemographicInsights($business),
+                // AI insights NOT loaded on page load - loaded lazily via separate API call
+                'ai_insights' => ['success' => false, 'lazy_load' => true, 'message' => 'AI tahlil tugmani bosing'],
+                'top_performers' => $this->getTopPerformingCustomers($business),
+                'churn_risk' => $this->getChurnRiskAnalysis($business),
+            ];
+        });
+    }
+
+    /**
+     * Invalidate cache for a business
+     */
+    public function invalidateCache(Business $business): void
+    {
+        Cache::forget("target_analysis_{$business->id}");
     }
 
     /**
      * Get overview statistics
+     * OPTIMIZED: Single query for customer stats, single query for lead stats
      */
     protected function getOverview(Business $business): array
     {
-        $customers = Customer::where('business_id', $business->id);
-        $leads = Lead::where('business_id', $business->id);
+        // Single query for all customer stats
+        $customerStats = Customer::where('business_id', $business->id)
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN status = "active" THEN 1 ELSE 0 END) as active,
+                AVG(total_spent) as avg_ltv,
+                SUM(total_spent) as total_revenue,
+                SUM(orders_count) as total_orders
+            ')
+            ->first();
+
+        // Single query for all lead stats
+        $leadStats = Lead::where('business_id', $business->id)
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN status = "qualified" THEN 1 ELSE 0 END) as qualified,
+                SUM(CASE WHEN status = "converted" THEN 1 ELSE 0 END) as converted
+            ')
+            ->first();
+
+        $totalLeads = $leadStats->total ?? 0;
+        $convertedLeads = $leadStats->converted ?? 0;
+        $totalOrders = $customerStats->total_orders ?? 0;
+        $totalRevenue = $customerStats->total_revenue ?? 0;
 
         return [
-            'total_customers' => $customers->count(),
-            'active_customers' => $customers->where('status', 'active')->count(),
-            'total_leads' => $leads->count(),
-            'qualified_leads' => $leads->where('status', 'qualified')->count(),
-            'conversion_rate' => $this->calculateConversionRate($business),
-            'avg_ltv' => $customers->avg('total_spent') ?? 0,
-            'total_revenue' => $customers->sum('total_spent') ?? 0,
-            'avg_order_value' => $this->calculateAvgOrderValue($business),
+            'total_customers' => $customerStats->total ?? 0,
+            'active_customers' => $customerStats->active ?? 0,
+            'total_leads' => $totalLeads,
+            'qualified_leads' => $leadStats->qualified ?? 0,
+            'conversion_rate' => $totalLeads > 0 ? round(($convertedLeads / $totalLeads) * 100, 2) : 0,
+            'avg_ltv' => round($customerStats->avg_ltv ?? 0, 2),
+            'total_revenue' => $totalRevenue,
+            'avg_order_value' => $totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0,
         ];
     }
 

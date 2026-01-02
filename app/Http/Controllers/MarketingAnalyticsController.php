@@ -8,66 +8,111 @@ use App\Models\TelegramMetric;
 use App\Models\FacebookMetric;
 use App\Models\GoogleAdsMetric;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
 class MarketingAnalyticsController extends Controller
 {
+    protected int $cacheTTL = 300; // 5 minutes
+
     /**
-     * Display the marketing analytics dashboard.
+     * Display the marketing analytics dashboard - LAZY LOADING
      */
     public function index(Request $request)
     {
         $businessId = session('current_business_id');
 
-        // Get all channels for current business
-        $channels = MarketingChannel::where('business_id', $businessId)
-            ->with(['instagramMetrics' => function ($query) {
-                $query->latest('metric_date')->limit(1);
-            }])
-            ->get();
-
-        // Calculate aggregate metrics for the last 30 days
-        $startDate = Carbon::now()->subDays(30);
-
-        $analytics = [
-            'total_channels' => $channels->count(),
-            'active_channels' => $channels->where('is_active', true)->count(),
-            'total_reach' => 0,
-            'total_engagement' => 0,
-            'average_engagement_rate' => 0,
-        ];
-
-        // Aggregate metrics from each channel type
-        foreach ($channels as $channel) {
-            $latestMetric = $channel->latestMetrics();
-
-            if ($latestMetric) {
-                if ($channel->type === 'instagram') {
-                    $analytics['total_reach'] += $latestMetric->reach ?? 0;
-                    $analytics['total_engagement'] += $latestMetric->getTotalEngagementAttribute();
-                } elseif ($channel->type === 'telegram') {
-                    $analytics['total_reach'] += $latestMetric->total_views ?? 0;
-                    $analytics['total_engagement'] += $latestMetric->getTotalEngagementAttribute();
-                } elseif ($channel->type === 'facebook') {
-                    $analytics['total_reach'] += $latestMetric->reach ?? 0;
-                    $analytics['total_engagement'] += $latestMetric->getTotalEngagementAttribute();
-                }
-            }
+        if (!$businessId) {
+            return redirect()->route('business.index');
         }
 
-        // Calculate average engagement rate
-        if ($analytics['total_reach'] > 0) {
-            $analytics['average_engagement_rate'] = round(
-                ($analytics['total_engagement'] / $analytics['total_reach']) * 100,
-                2
-            );
-        }
+        // Only load lightweight data for initial page render
+        $channelCounts = Cache::remember("marketing_channel_counts_{$businessId}", $this->cacheTTL, function () use ($businessId) {
+            return [
+                'total_channels' => MarketingChannel::where('business_id', $businessId)->count(),
+                'active_channels' => MarketingChannel::where('business_id', $businessId)->where('is_active', true)->count(),
+            ];
+        });
 
         return Inertia::render('Business/Marketing/Dashboard', [
-            'channels' => $channels,
-            'analytics' => $analytics,
+            'channels' => null,
+            'analytics' => $channelCounts,
+            'lazyLoad' => true,
         ]);
+    }
+
+    /**
+     * API: Get marketing dashboard data
+     */
+    public function getDashboardData(Request $request)
+    {
+        $businessId = session('current_business_id');
+
+        if (!$businessId) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $cacheKey = "marketing_dashboard_{$businessId}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($businessId) {
+            // Get all channels with their latest metrics (optimized query)
+            $channels = MarketingChannel::where('business_id', $businessId)
+                ->with([
+                    'instagramMetrics' => fn($q) => $q->latest('metric_date')->limit(1),
+                    'telegramMetrics' => fn($q) => $q->latest('metric_date')->limit(1),
+                    'facebookMetrics' => fn($q) => $q->latest('metric_date')->limit(1),
+                ])
+                ->get();
+
+            // Calculate aggregate metrics using single pass (avoid N+1)
+            $analytics = [
+                'total_channels' => $channels->count(),
+                'active_channels' => $channels->where('is_active', true)->count(),
+                'total_reach' => 0,
+                'total_engagement' => 0,
+                'average_engagement_rate' => 0,
+            ];
+
+            // Single pass aggregation (no additional queries)
+            foreach ($channels as $channel) {
+                $latestMetric = match($channel->type) {
+                    'instagram' => $channel->instagramMetrics->first(),
+                    'telegram' => $channel->telegramMetrics->first(),
+                    'facebook' => $channel->facebookMetrics->first(),
+                    default => null,
+                };
+
+                if ($latestMetric) {
+                    if ($channel->type === 'instagram') {
+                        $analytics['total_reach'] += $latestMetric->reach ?? 0;
+                        $analytics['total_engagement'] += ($latestMetric->likes ?? 0) + ($latestMetric->comments ?? 0) + ($latestMetric->shares ?? 0);
+                    } elseif ($channel->type === 'telegram') {
+                        $analytics['total_reach'] += $latestMetric->total_views ?? 0;
+                        $analytics['total_engagement'] += ($latestMetric->reactions ?? 0) + ($latestMetric->shares ?? 0) + ($latestMetric->comments ?? 0);
+                    } elseif ($channel->type === 'facebook') {
+                        $analytics['total_reach'] += $latestMetric->reach ?? 0;
+                        $analytics['total_engagement'] += ($latestMetric->likes ?? 0) + ($latestMetric->comments ?? 0) + ($latestMetric->shares ?? 0);
+                    }
+                }
+            }
+
+            // Calculate average engagement rate
+            if ($analytics['total_reach'] > 0) {
+                $analytics['average_engagement_rate'] = round(
+                    ($analytics['total_engagement'] / $analytics['total_reach']) * 100,
+                    2
+                );
+            }
+
+            return [
+                'channels' => $channels,
+                'analytics' => $analytics,
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**

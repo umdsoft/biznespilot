@@ -9,12 +9,14 @@ use App\Services\CompetitorAnalysisService;
 use App\Services\CompetitorMonitoringService;
 use App\Jobs\ScrapeCompetitorData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class CompetitorController extends Controller
 {
     protected CompetitorMonitoringService $monitoringService;
     protected CompetitorAnalysisService $analysisService;
+    protected int $cacheTTL = 600; // 10 minutes
 
     public function __construct(
         CompetitorMonitoringService $monitoringService,
@@ -25,11 +27,15 @@ class CompetitorController extends Controller
     }
 
     /**
-     * Display competitors list
+     * Display competitors list - LAZY LOADING
      */
     public function index(Request $request)
     {
         $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return redirect()->route('business.index');
+        }
 
         $query = Competitor::where('business_id', $business->id)
             ->with(['metrics' => fn($q) => $q->latest('date')->limit(1)])
@@ -56,54 +62,106 @@ class CompetitorController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        // Get competitive insights
-        $insights = $this->analysisService->getCompetitiveInsights($business->id);
-
+        // Insights will be loaded via API (lazy loading)
         return Inertia::render('Business/Competitors/Index', [
             'competitors' => $competitors,
-            'insights' => $insights,
+            'insights' => null,
             'filters' => $request->only(['status', 'threat_level', 'search']),
+            'lazyLoad' => true,
         ]);
     }
 
     /**
-     * Show competitor dashboard
+     * API: Get competitive insights (cached)
+     */
+    public function getInsights(Request $request)
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $cacheKey = "competitor_insights_{$business->id}";
+
+        $insights = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business) {
+            return $this->analysisService->getCompetitiveInsights($business->id);
+        });
+
+        return response()->json(['insights' => $insights]);
+    }
+
+    /**
+     * Show competitor dashboard - LAZY LOADING
      */
     public function dashboard(Request $request)
     {
         $business = $request->user()->currentBusiness;
 
-        // Get all active competitors
-        $competitors = Competitor::where('business_id', $business->id)
-            ->where('status', 'active')
-            ->with(['metrics' => fn($q) => $q->latest('date')->limit(30)])
-            ->get();
+        if (!$business) {
+            return redirect()->route('business.index');
+        }
 
-        // Get unread alerts
-        $unreadAlerts = CompetitorAlert::where('business_id', $business->id)
-            ->unread()
-            ->with('competitor')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        // Get insights
-        $insights = $this->analysisService->getCompetitiveInsights($business->id);
-
-        // Aggregate metrics
-        $stats = [
-            'total_competitors' => $competitors->count(),
-            'active_monitoring' => $competitors->where('auto_monitor', true)->count(),
-            'high_threats' => $competitors->whereIn('threat_level', ['high', 'critical'])->count(),
-            'unread_alerts' => $unreadAlerts->count(),
-        ];
+        // Load only lightweight stats initially
+        $stats = Cache::remember("competitor_stats_{$business->id}", 300, function () use ($business) {
+            return [
+                'total_competitors' => Competitor::where('business_id', $business->id)->where('status', 'active')->count(),
+                'active_monitoring' => Competitor::where('business_id', $business->id)->where('status', 'active')->where('auto_monitor', true)->count(),
+                'high_threats' => Competitor::where('business_id', $business->id)->whereIn('threat_level', ['high', 'critical'])->count(),
+                'unread_alerts' => CompetitorAlert::where('business_id', $business->id)->where('status', 'unread')->count(),
+            ];
+        });
 
         return Inertia::render('Business/Competitors/Dashboard', [
-            'competitors' => $competitors,
+            'competitors' => null,
             'stats' => $stats,
-            'alerts' => $unreadAlerts,
-            'insights' => $insights,
+            'alerts' => null,
+            'insights' => null,
+            'lazyLoad' => true,
         ]);
+    }
+
+    /**
+     * API: Get dashboard data
+     */
+    public function getDashboardData(Request $request)
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $cacheKey = "competitor_dashboard_{$business->id}";
+
+        $data = Cache::remember($cacheKey, 300, function () use ($business) {
+            // Get all active competitors
+            $competitors = Competitor::where('business_id', $business->id)
+                ->where('status', 'active')
+                ->with(['metrics' => fn($q) => $q->latest('date')->limit(30)])
+                ->get();
+
+            // Get unread alerts
+            $unreadAlerts = CompetitorAlert::where('business_id', $business->id)
+                ->where('status', 'unread')
+                ->with('competitor')
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
+
+            // Get insights (use separate cache)
+            $insights = Cache::remember("competitor_insights_{$business->id}", 600, function () use ($business) {
+                return $this->analysisService->getCompetitiveInsights($business->id);
+            });
+
+            return [
+                'competitors' => $competitors,
+                'alerts' => $unreadAlerts,
+                'insights' => $insights,
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**

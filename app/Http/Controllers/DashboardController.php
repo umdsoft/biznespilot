@@ -37,6 +37,10 @@ class DashboardController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
+    /**
+     * Dashboard index - OPTIMIZED for fast initial load
+     * Heavy data is loaded via API after page mounts
+     */
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -48,53 +52,10 @@ class DashboardController extends Controller
             return redirect()->route('business.business.create');
         }
 
-        // Date range (default: last 30 days)
-        $endDate = now();
-        $startDate = now()->subDays(30);
+        // OPTIMIZATION: Only load cached/lightweight data on initial render
+        // Heavy calculations moved to API endpoints
 
-        // Get KPIs
-        $kpis = $this->kpiCalculator->getAllKPIs(
-            $currentBusiness->id,
-            $startDate,
-            $endDate
-        );
-
-        // Get basic stats
-        $stats = [
-            'total_leads' => Sale::where('business_id', $currentBusiness->id)->count(),
-            'total_customers' => $this->kpiCalculator->getTotalCustomers($currentBusiness->id),
-            'total_revenue' => $this->kpiCalculator->getTotalRevenue(
-                $currentBusiness->id,
-                $startDate,
-                $endDate
-            ),
-            'conversion_rate' => $this->kpiCalculator->getConversionRate(
-                $currentBusiness->id,
-                $startDate,
-                $endDate
-            ),
-        ];
-
-        // Get ROAS and LTV/CAC benchmarks
-        $roasBenchmark = $this->kpiCalculator->getROASBenchmark($kpis['roas']);
-        $ltvCacBenchmark = $this->kpiCalculator->getLTVCACBenchmark($kpis['ltv_cac_ratio']);
-
-        // Sales trend (last 7 days)
-        $salesTrend = Sale::where('business_id', $currentBusiness->id)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(amount) as revenue')
-            ->groupBy('date')
-            ->orderBy('date', 'asc')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'date' => $item->date,
-                    'count' => $item->count,
-                    'revenue' => (float) $item->revenue,
-                ];
-            });
-
-        // Quick stats for modules (cached for 5 minutes)
+        // Quick stats for modules (cached for 5 minutes) - lightweight
         $moduleStats = Cache::remember(
             "dashboard_module_stats_{$currentBusiness->id}",
             300,
@@ -109,61 +70,136 @@ class DashboardController extends Controller
             ]
         );
 
-        // Revenue Forecast (7 kunlik)
-        $revenueForecast = $this->analyticsService->forecastRevenue($currentBusiness->id, 7);
-
-        // AI Insights (so'nggi 3 ta)
-        $aiInsights = AiInsight::where('business_id', $currentBusiness->id)
-            ->where('is_read', false)
-            ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get()
-            ->map(fn($insight) => [
-                'id' => $insight->id,
-                'type' => $insight->type,
-                'title' => $insight->title,
-                'summary' => $insight->content ?? $insight->description_uz ?? '',
-                'priority' => $insight->priority,
-                'created_at' => $insight->created_at->diffForHumans(),
-            ]);
-
-        // Recent Activities (so'nggi 5 ta) - eager load user to prevent N+1
-        $recentActivities = ActivityLog::with('user:id,name')
-            ->where('business_id', $currentBusiness->id)
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(fn($activity) => [
-                'id' => $activity->id,
-                'description' => $activity->description,
-                'type' => $activity->type,
-                'created_at' => $activity->created_at->diffForHumans(),
-                'user_name' => $activity->user->name ?? 'System',
-            ]);
-
-        // Get active alerts count
-        $activeAlertsCount = Alert::where('business_id', $currentBusiness->id)
-            ->active()
-            ->unresolved()
-            ->notSnoozed()
-            ->count();
+        // Active alerts count - lightweight query
+        $activeAlertsCount = Cache::remember(
+            "dashboard_alerts_count_{$currentBusiness->id}",
+            60,
+            fn() => Alert::where('business_id', $currentBusiness->id)
+                ->active()
+                ->unresolved()
+                ->notSnoozed()
+                ->count()
+        );
 
         return Inertia::render('Business/Dashboard', [
-            'stats' => $stats,
-            'kpis' => $kpis,
-            'roasBenchmark' => $roasBenchmark,
-            'ltvCacBenchmark' => $ltvCacBenchmark,
-            'salesTrend' => $salesTrend,
+            // LAZY LOAD flags - frontend will fetch via API
+            'lazyLoad' => true,
+            'stats' => null,
+            'kpis' => null,
+            'roasBenchmark' => null,
+            'ltvCacBenchmark' => null,
+            'salesTrend' => null,
+            'revenueForecast' => null,
+            'aiInsights' => null,
+            'recentActivities' => null,
+            // Lightweight cached data - loaded immediately
             'moduleStats' => $moduleStats,
-            'revenueForecast' => $revenueForecast,
-            'aiInsights' => $aiInsights,
-            'recentActivities' => $recentActivities,
             'activeAlertsCount' => $activeAlertsCount,
             'currentBusiness' => [
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,
                 'type' => $currentBusiness->type,
             ],
+        ]);
+    }
+
+    /**
+     * Get initial dashboard data via API (for lazy loading)
+     */
+    public function getInitialData(Request $request)
+    {
+        $business = $this->getCurrentBusiness();
+
+        // Date range (default: last 30 days)
+        $endDate = now();
+        $startDate = now()->subDays(30);
+
+        // Get KPIs with caching
+        $cacheKey = "dashboard_kpis_{$business->id}";
+        $kpis = Cache::remember($cacheKey, 300, fn() => $this->kpiCalculator->getAllKPIs(
+            $business->id,
+            $startDate,
+            $endDate
+        ));
+
+        // Get basic stats with caching
+        $statsCacheKey = "dashboard_stats_{$business->id}";
+        $stats = Cache::remember($statsCacheKey, 300, fn() => [
+            'total_leads' => Sale::where('business_id', $business->id)->count(),
+            'total_customers' => $this->kpiCalculator->getTotalCustomers($business->id),
+            'total_revenue' => $this->kpiCalculator->getTotalRevenue($business->id, $startDate, $endDate),
+            'conversion_rate' => $this->kpiCalculator->getConversionRate($business->id, $startDate, $endDate),
+        ]);
+
+        // Get ROAS and LTV/CAC benchmarks
+        $roasBenchmark = $this->kpiCalculator->getROASBenchmark($kpis['roas']);
+        $ltvCacBenchmark = $this->kpiCalculator->getLTVCACBenchmark($kpis['ltv_cac_ratio']);
+
+        // Sales trend (last 7 days) - cached
+        $trendCacheKey = "dashboard_sales_trend_{$business->id}";
+        $salesTrend = Cache::remember($trendCacheKey, 300, fn() => Sale::where('business_id', $business->id)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(amount) as revenue')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get()
+            ->map(fn($item) => [
+                'date' => $item->date,
+                'count' => $item->count,
+                'revenue' => (float) $item->revenue,
+            ])
+        );
+
+        // Revenue Forecast - cached
+        $forecastCacheKey = "dashboard_forecast_{$business->id}";
+        $revenueForecast = Cache::remember($forecastCacheKey, 600, fn() =>
+            $this->analyticsService->forecastRevenue($business->id, 7)
+        );
+
+        // AI Insights - cached
+        $insightsCacheKey = "dashboard_insights_{$business->id}";
+        $aiInsights = Cache::remember($insightsCacheKey, 300, fn() =>
+            AiInsight::where('business_id', $business->id)
+                ->where('is_read', false)
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get()
+                ->map(fn($insight) => [
+                    'id' => $insight->id,
+                    'type' => $insight->type,
+                    'title' => $insight->title,
+                    'summary' => $insight->content ?? $insight->description_uz ?? '',
+                    'priority' => $insight->priority,
+                    'created_at' => $insight->created_at->diffForHumans(),
+                ])
+        );
+
+        // Recent Activities - cached
+        $activitiesCacheKey = "dashboard_activities_{$business->id}";
+        $recentActivities = Cache::remember($activitiesCacheKey, 300, fn() =>
+            ActivityLog::with('user:id,name')
+                ->where('business_id', $business->id)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
+                ->map(fn($activity) => [
+                    'id' => $activity->id,
+                    'description' => $activity->description,
+                    'type' => $activity->type,
+                    'created_at' => $activity->created_at->diffForHumans(),
+                    'user_name' => $activity->user->name ?? 'System',
+                ])
+        );
+
+        return response()->json([
+            'stats' => $stats,
+            'kpis' => $kpis,
+            'roasBenchmark' => $roasBenchmark,
+            'ltvCacBenchmark' => $ltvCacBenchmark,
+            'salesTrend' => $salesTrend,
+            'revenueForecast' => $revenueForecast,
+            'aiInsights' => $aiInsights,
+            'recentActivities' => $recentActivities,
         ]);
     }
 
