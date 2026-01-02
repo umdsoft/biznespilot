@@ -4,48 +4,48 @@
             <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900">Kanal Tahlili</h2>
-                    <p class="mt-2 text-sm text-gray-600">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Kanal Tahlili</h2>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         Barcha messaging kanallar bo'yicha batafsil statistika
                     </p>
                 </div>
 
                 <!-- Filters -->
-                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Channel Selector -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Kanal</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kanal</label>
                             <select
                                 v-model="currentChannel"
                                 @change="updateChannel"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-purple-500 focus:border-purple-500"
                             >
-                                <option value="whatsapp">💬 WhatsApp</option>
-                                <option value="instagram">📸 Instagram</option>
-                                <option value="telegram">✈️ Telegram</option>
-                                <option value="facebook">👥 Facebook</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="telegram">Telegram</option>
+                                <option value="facebook">Facebook</option>
                             </select>
                         </div>
 
                         <!-- Date Range -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Boshlanish</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Boshlanish</label>
                             <input
                                 v-model="startDate"
                                 @change="updateDateRange"
                                 type="date"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-purple-500 focus:border-purple-500"
                             />
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tugash</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tugash</label>
                             <input
                                 v-model="endDate"
                                 @change="updateDateRange"
                                 type="date"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-purple-500 focus:border-purple-500"
                             />
                         </div>
                     </div>
@@ -126,17 +126,17 @@
                 <!-- Charts Row 1 -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <!-- Message Volume -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Xabarlar Hajmi</h3>
-                        <div class="h-64 flex items-center justify-center text-gray-500">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Xabarlar Hajmi</h3>
+                        <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
                             <div class="text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
                                 <p class="text-sm">
                                     Kunlik: {{ analytics.message_volume?.daily?.length || 0 }} kun
                                 </p>
-                                <p class="text-xs text-gray-400 mt-1">
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                     Chart.js integratsiyasi kerak
                                 </p>
                             </div>
@@ -144,30 +144,30 @@
                     </div>
 
                     <!-- Engagement Metrics -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Engagement Metrikalari</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Engagement Metrikalari</h3>
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <span class="text-sm text-gray-700">Faol Suhbatlar</span>
-                                <span class="text-lg font-bold text-green-600">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Faol Suhbatlar</span>
+                                <span class="text-lg font-bold text-green-600 dark:text-green-400">
                                     {{ analytics.engagement_metrics?.active_conversations || 0 }}
                                 </span>
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <span class="text-sm text-gray-700">Yopilgan Suhbatlar</span>
-                                <span class="text-lg font-bold text-gray-600">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Yopilgan Suhbatlar</span>
+                                <span class="text-lg font-bold text-gray-600 dark:text-gray-300">
                                     {{ analytics.engagement_metrics?.closed_conversations || 0 }}
                                 </span>
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <span class="text-sm text-gray-700">O'rtacha Davomiylik</span>
-                                <span class="text-lg font-bold text-purple-600">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">O'rtacha Davomiylik</span>
+                                <span class="text-lg font-bold text-purple-600 dark:text-purple-400">
                                     {{ analytics.engagement_metrics?.avg_conversation_duration_minutes?.toFixed(1) || 0 }} min
                                 </span>
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <span class="text-sm text-gray-700">Qaytib Kelganlar</span>
-                                <span class="text-lg font-bold text-blue-600">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Qaytib Kelganlar</span>
+                                <span class="text-lg font-bold text-blue-600 dark:text-blue-400">
                                     {{ analytics.engagement_metrics?.returning_customers || 0 }}
                                 </span>
                             </div>
@@ -178,41 +178,41 @@
                 <!-- Charts Row 2 -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <!-- Conversion Funnel -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Konversiya Voronkasi</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Konversiya Voronkasi</h3>
                         <div class="space-y-3">
                             <div class="text-center mb-4">
-                                <div class="text-3xl font-bold text-purple-600">
+                                <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">
                                     {{ analytics.conversion_metrics?.conversion_rate || 0 }}%
                                 </div>
-                                <div class="text-sm text-gray-600">Konversiya Darajasi</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Konversiya Darajasi</div>
                             </div>
 
                             <div v-if="analytics.conversion_metrics?.stages_distribution" class="space-y-2">
                                 <div
                                     v-for="(count, stage) in analytics.conversion_metrics.stages_distribution"
                                     :key="stage"
-                                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                    class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                                 >
-                                    <span class="text-sm font-medium text-gray-700">{{ stage }}</span>
-                                    <span class="text-sm font-bold text-purple-600">{{ count }}</span>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ stage }}</span>
+                                    <span class="text-sm font-bold text-purple-600 dark:text-purple-400">{{ count }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Hourly Distribution -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Soatlik Taqsimot</h3>
-                        <div class="h-64 flex items-center justify-center text-gray-500">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Soatlik Taqsimot</h3>
+                        <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
                             <div class="text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <p class="text-sm">
                                     {{ analytics.hourly_distribution?.length || 0 }} soatlik ma'lumot
                                 </p>
-                                <p class="text-xs text-gray-400 mt-1">
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                     Chart.js integratsiyasi kerak
                                 </p>
                             </div>
@@ -221,24 +221,24 @@
                 </div>
 
                 <!-- Response Metrics -->
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Javob Metrikalari</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Javob Metrikalari</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                            <div class="text-sm text-blue-700 mb-2">O'rtacha Javob Vaqti</div>
-                            <div class="text-3xl font-bold text-blue-600">
+                        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl">
+                            <div class="text-sm text-blue-700 dark:text-blue-300 mb-2">O'rtacha Javob Vaqti</div>
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                                 {{ analytics.response_metrics?.avg_response_time_seconds?.toFixed(1) || 0 }}s
                             </div>
                         </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-                            <div class="text-sm text-green-700 mb-2">Javob Darajasi</div>
-                            <div class="text-3xl font-bold text-green-600">
+                        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-xl">
+                            <div class="text-sm text-green-700 dark:text-green-300 mb-2">Javob Darajasi</div>
+                            <div class="text-3xl font-bold text-green-600 dark:text-green-400">
                                 {{ analytics.response_metrics?.response_rate?.toFixed(1) || 0 }}%
                             </div>
                         </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                            <div class="text-sm text-purple-700 mb-2">O'rtacha Xabarlar</div>
-                            <div class="text-3xl font-bold text-purple-600">
+                        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl">
+                            <div class="text-sm text-purple-700 dark:text-purple-300 mb-2">O'rtacha Xabarlar</div>
+                            <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">
                                 {{ analytics.overview?.avg_messages_per_conversation?.toFixed(1) || 0 }}
                             </div>
                         </div>
@@ -247,10 +247,10 @@
 
                 <!-- Channel Comparison Modal -->
                 <div v-if="showComparison" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-                        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
-                            <h3 class="text-xl font-bold text-gray-900">Kanallar Taqqoslash</h3>
-                            <button @click="showComparison = false" class="text-gray-500 hover:text-gray-700">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Kanallar Taqqoslash</h3>
+                            <button @click="showComparison = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -260,29 +260,29 @@
                             <div v-if="comparisonData" class="overflow-x-auto">
                                 <table class="min-w-full">
                                     <thead>
-                                        <tr class="border-b border-gray-200">
-                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900">Kanal</th>
-                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900">Suhbatlar</th>
-                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900">Xabarlar</th>
-                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900">Konversiya %</th>
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Kanal</th>
+                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">Suhbatlar</th>
+                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">Xabarlar</th>
+                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">Konversiya %</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr
                                             v-for="(data, channel) in comparisonData"
                                             :key="channel"
-                                            class="border-b border-gray-100 hover:bg-gray-50"
+                                            class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                                         >
                                             <td class="px-4 py-3">
                                                 <div class="flex items-center">
                                                     <span class="text-xl mr-2">{{ getChannelIcon(channel) }}</span>
-                                                    <span class="font-medium text-gray-900">{{ getChannelName(channel) }}</span>
+                                                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ getChannelName(channel) }}</span>
                                                 </div>
                                             </td>
-                                            <td class="px-4 py-3 text-center text-gray-900">{{ data.conversations }}</td>
-                                            <td class="px-4 py-3 text-center text-gray-900">{{ data.messages }}</td>
+                                            <td class="px-4 py-3 text-center text-gray-900 dark:text-gray-100">{{ data.conversations }}</td>
+                                            <td class="px-4 py-3 text-center text-gray-900 dark:text-gray-100">{{ data.messages }}</td>
                                             <td class="px-4 py-3 text-center">
-                                                <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full font-semibold">
+                                                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 rounded-full font-semibold">
                                                     {{ data.conversion_rate }}%
                                                 </span>
                                             </td>

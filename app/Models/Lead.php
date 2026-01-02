@@ -19,6 +19,7 @@ class Lead extends Model
      * @var array<string>
      */
     protected $fillable = [
+        'uuid',
         'business_id',
         'source_id',
         'assigned_to',
@@ -48,11 +49,11 @@ class Lead extends Model
     ];
 
     /**
-     * Get the marketing channel source for the lead.
+     * Get the lead source for the lead.
      */
     public function source(): BelongsTo
     {
-        return $this->belongsTo(MarketingChannel::class, 'source_id');
+        return $this->belongsTo(LeadSource::class, 'source_id');
     }
 
     /**

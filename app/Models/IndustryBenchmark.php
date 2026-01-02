@@ -278,4 +278,88 @@ class IndustryBenchmark extends Model
             'businesses_count' => 0,
         ];
     }
+
+    /**
+     * Get benchmark for algorithm usage with caching
+     */
+    public static function getForAlgorithm(string $industry): array
+    {
+        $cacheKey = "algo_benchmark:{$industry}";
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($industry) {
+            $benchmark = self::where('industry', $industry)->active()->first();
+
+            if ($benchmark) {
+                return $benchmark->toAlgorithmArray();
+            }
+
+            return self::getAlgorithmDefaults();
+        });
+    }
+
+    /**
+     * Convert to algorithm-friendly array
+     */
+    public function toAlgorithmArray(): array
+    {
+        return [
+            'industry' => $this->industry,
+            'conversion_rate' => $this->avg_conversion_rate ?? 2.5,
+            'engagement_rate' => $this->avg_engagement_rate ?? 3.0,
+            'response_time_hours' => ($this->avg_response_time_minutes ?? 120) / 60,
+            'customer_retention' => 100 - ($this->churn_rate ?? 5),
+            'cac_ltv_ratio' => 3.0,
+            'repeat_purchase_rate' => $this->avg_repeat_purchase_rate ?? 25,
+            'churn_rate' => $this->churn_rate ?? 5,
+            'funnel_conversion' => $this->funnel_conversion ?? [
+                'awareness_to_interest' => 30,
+                'interest_to_consideration' => 50,
+                'consideration_to_intent' => 40,
+                'intent_to_purchase' => 25,
+            ],
+            'social_benchmarks' => $this->social_benchmarks ?? [
+                'instagram_er' => 3.0,
+                'telegram_growth' => 5,
+                'post_frequency' => $this->optimal_post_frequency_weekly ?? 5,
+            ],
+            'content_benchmarks' => $this->content_benchmarks ?? [
+                'caption_length' => $this->optimal_caption_length ?? 150,
+                'hashtag_count' => $this->optimal_hashtag_count ?? 15,
+                'stories_daily' => $this->optimal_stories_daily ?? 5,
+            ],
+        ];
+    }
+
+    /**
+     * Get algorithm default benchmarks
+     */
+    public static function getAlgorithmDefaults(): array
+    {
+        return [
+            'industry' => 'default',
+            'conversion_rate' => 2.5,
+            'engagement_rate' => 3.0,
+            'response_time_hours' => 2,
+            'customer_retention' => 70,
+            'cac_ltv_ratio' => 3.0,
+            'repeat_purchase_rate' => 25,
+            'churn_rate' => 5,
+            'funnel_conversion' => [
+                'awareness_to_interest' => 30,
+                'interest_to_consideration' => 50,
+                'consideration_to_intent' => 40,
+                'intent_to_purchase' => 25,
+            ],
+            'social_benchmarks' => [
+                'instagram_er' => 3.0,
+                'telegram_growth' => 5,
+                'post_frequency' => 5,
+            ],
+            'content_benchmarks' => [
+                'caption_length' => 150,
+                'hashtag_count' => 15,
+                'stories_daily' => 5,
+            ],
+        ];
+    }
 }

@@ -123,11 +123,11 @@ const clearFilters = () => {
             <!-- Header -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <ChartBarIcon class="w-10 h-10 text-blue-600" />
-                            Sales Analytics Dashboard
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                            <ChartBarIcon class="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                            Sales Analytics
                         </h1>
-                        <p class="mt-2 text-gray-600">
+                        <p class="mt-2 text-gray-600 dark:text-gray-400">
                             Sotuv va konversiya ko'rsatkichlarini kuzatish
                         </p>
                     </div>
@@ -136,14 +136,14 @@ const clearFilters = () => {
                     <div class="flex gap-2">
                         <Link
                             :href="route('business.analytics.funnel')"
-                            class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors gap-2"
+                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors gap-2"
                         >
                             <FunnelIcon class="w-4 h-4" />
                             Funnel
                         </Link>
                         <Link
                             :href="route('business.analytics.performance')"
-                            class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors gap-2"
+                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors gap-2"
                         >
                             <TrophyIcon class="w-4 h-4" />
                             Performance
@@ -152,26 +152,26 @@ const clearFilters = () => {
                 </div>
 
                 <!-- Filters -->
-                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
                     <div class="flex flex-wrap items-end gap-4">
                         <div class="flex-1 min-w-[200px]">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Boshlanish sanasi
                             </label>
                             <input
                                 v-model="dateFrom"
                                 type="date"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                         <div class="flex-1 min-w-[200px]">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Tugash sanasi
                             </label>
                             <input
                                 v-model="dateTo"
                                 type="date"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                         <button
@@ -182,7 +182,7 @@ const clearFilters = () => {
                         </button>
                         <button
                             @click="clearFilters"
-                            class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                            class="px-6 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
                         >
                             Tozalash
                         </button>
@@ -236,7 +236,7 @@ const clearFilters = () => {
                     </div>
 
                     <!-- Pipeline Value -->
-                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+                    <div class="bg-gradient-to-br from-orange-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
                         <div class="flex items-center justify-between mb-2">
                             <FunnelIcon class="w-8 h-8 opacity-80" />
                             <CalendarIcon class="w-6 h-6 opacity-80" />
@@ -252,12 +252,12 @@ const clearFilters = () => {
                 <!-- Charts Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <!-- Revenue Trends Chart -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-900">Revenue Trends</h3>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Revenue Trends</h3>
                             <Link
                                 :href="route('business.analytics.revenue')"
-                                class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                             >
                                 Batafsil →
                             </Link>
@@ -268,10 +268,10 @@ const clearFilters = () => {
                     </div>
 
                     <!-- Deals Won Chart -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-900">Deals Won</h3>
-                            <span class="text-sm text-gray-500">So'nggi 30 kun</span>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Deals Won</h3>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">So'nggi 30 kun</span>
                         </div>
                         <div class="h-64">
                             <canvas id="dealsChart"></canvas>
@@ -280,103 +280,103 @@ const clearFilters = () => {
                 </div>
 
                 <!-- Top Performers -->
-                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
                     <div class="flex items-center gap-3 mb-6">
-                        <TrophyIcon class="w-6 h-6 text-yellow-600" />
-                        <h3 class="text-lg font-bold text-gray-900">Top Performers</h3>
+                        <TrophyIcon class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Top Performers</h3>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Top Ideal Mijoz -->
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 mb-2">TOP IDEAL MIJOZ</p>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOP IDEAL MIJOZ</p>
                             <div v-if="top_performers.top_dream_buyer">
-                                <p class="font-bold text-gray-900 mb-2">{{ top_performers.top_dream_buyer.dream_buyer_name }}</p>
-                                <div class="space-y-1 text-sm text-gray-600">
+                                <p class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ top_performers.top_dream_buyer.dream_buyer_name }}</p>
+                                <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                                     <p>Leads: {{ top_performers.top_dream_buyer.total_leads }}</p>
                                     <p>Won: {{ top_performers.top_dream_buyer.won_leads }}</p>
-                                    <p class="text-green-600 font-semibold">
+                                    <p class="text-green-600 dark:text-green-400 font-semibold">
                                         CR: {{ formatPercent(top_performers.top_dream_buyer.conversion_rate) }}%
                                     </p>
-                                    <p class="text-blue-600 font-semibold">
+                                    <p class="text-blue-600 dark:text-blue-400 font-semibold">
                                         {{ formatPrice(top_performers.top_dream_buyer.total_revenue) }}
                                     </p>
                                 </div>
                             </div>
-                            <p v-else class="text-sm text-gray-400">Ma'lumot yo'q</p>
+                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">Ma'lumot yo'q</p>
                         </div>
 
                         <!-- Top Offer -->
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 mb-2">TOP OFFER</p>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOP OFFER</p>
                             <div v-if="top_performers.top_offer">
-                                <p class="font-bold text-gray-900 mb-2">{{ top_performers.top_offer.offer_name }}</p>
-                                <div class="space-y-1 text-sm text-gray-600">
+                                <p class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ top_performers.top_offer.offer_name }}</p>
+                                <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                                     <p>Value Score: {{ top_performers.top_offer.value_score }}</p>
                                     <p>Won: {{ top_performers.top_offer.won_leads }}</p>
-                                    <p class="text-green-600 font-semibold">
+                                    <p class="text-green-600 dark:text-green-400 font-semibold">
                                         CR: {{ formatPercent(top_performers.top_offer.conversion_rate) }}%
                                     </p>
-                                    <p class="text-blue-600 font-semibold">
+                                    <p class="text-blue-600 dark:text-blue-400 font-semibold">
                                         {{ formatPrice(top_performers.top_offer.total_revenue) }}
                                     </p>
                                 </div>
                             </div>
-                            <p v-else class="text-sm text-gray-400">Ma'lumot yo'q</p>
+                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">Ma'lumot yo'q</p>
                         </div>
 
                         <!-- Top Source -->
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 mb-2">TOP SOURCE</p>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOP SOURCE</p>
                             <div v-if="top_performers.top_source">
-                                <p class="font-bold text-gray-900 mb-2">{{ top_performers.top_source.source_name }}</p>
-                                <div class="space-y-1 text-sm text-gray-600">
+                                <p class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ top_performers.top_source.source_name }}</p>
+                                <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                                     <p>Type: {{ top_performers.top_source.channel_type }}</p>
                                     <p>Won: {{ top_performers.top_source.won_leads }}</p>
-                                    <p class="text-green-600 font-semibold">
+                                    <p class="text-green-600 dark:text-green-400 font-semibold">
                                         ROI: {{ formatPercent(top_performers.top_source.roi) }}%
                                     </p>
-                                    <p class="text-blue-600 font-semibold">
+                                    <p class="text-blue-600 dark:text-blue-400 font-semibold">
                                         {{ formatPrice(top_performers.top_source.total_revenue) }}
                                     </p>
                                 </div>
                             </div>
-                            <p v-else class="text-sm text-gray-400">Ma'lumot yo'q</p>
+                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">Ma'lumot yo'q</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Funnel Overview -->
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
-                            <FunnelIcon class="w-6 h-6 text-blue-600" />
-                            <h3 class="text-lg font-bold text-gray-900">Conversion Funnel Overview</h3>
+                            <FunnelIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Conversion Funnel Overview</h3>
                         </div>
                         <Link
                             :href="route('business.analytics.funnel')"
-                            class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                         >
                             Batafsil ko'rish →
                         </Link>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <p class="text-2xl font-bold text-gray-900">{{ funnel_summary.total_leads || 0 }}</p>
-                            <p class="text-sm text-gray-600 mt-1">Total Leads</p>
+                        <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ funnel_summary.total_leads || 0 }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Leads</p>
                         </div>
-                        <div class="text-center p-4 bg-green-50 rounded-lg">
-                            <p class="text-2xl font-bold text-green-600">{{ funnel_summary.won_leads || 0 }}</p>
-                            <p class="text-sm text-gray-600 mt-1">Won</p>
+                        <div class="text-center p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ funnel_summary.won_leads || 0 }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Won</p>
                         </div>
-                        <div class="text-center p-4 bg-blue-50 rounded-lg">
-                            <p class="text-2xl font-bold text-blue-600">{{ funnel_summary.active_leads || 0 }}</p>
-                            <p class="text-sm text-gray-600 mt-1">Active</p>
+                        <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ funnel_summary.active_leads || 0 }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Active</p>
                         </div>
-                        <div class="text-center p-4 bg-purple-50 rounded-lg">
-                            <p class="text-2xl font-bold text-purple-600">{{ formatPercent(funnel_summary.overall_conversion_rate) }}%</p>
-                            <p class="text-sm text-gray-600 mt-1">Conversion Rate</p>
+                        <div class="text-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ formatPercent(funnel_summary.overall_conversion_rate) }}%</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Conversion Rate</p>
                         </div>
                     </div>
                 </div>
@@ -414,7 +414,7 @@ export default {
                 const dealsCtx = document.getElementById('dealsChart');
                 if (dealsCtx) {
                     new Chart(dealsCtx, {
-                        type: 'line',
+                        type: 'bar',
                         data: this.dealCountChartData,
                         options: this.chartOptions,
                     });

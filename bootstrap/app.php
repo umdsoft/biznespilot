@@ -37,6 +37,16 @@ return Application::configure(basePath: dirname(__DIR__))
             RateLimiter::for('webhooks', function (Request $request) {
                 return Limit::perMinute(300)->by($request->ip());
             });
+
+            // KPI Sync endpoints rate limiter (DDoS protection)
+            RateLimiter::for('kpi-sync', function (Request $request) {
+                return Limit::perHour(5)->by($request->user()?->id ?: $request->ip());
+            });
+
+            // KPI monitoring endpoints (admin only, higher limit)
+            RateLimiter::for('kpi-monitoring', function (Request $request) {
+                return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+            });
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

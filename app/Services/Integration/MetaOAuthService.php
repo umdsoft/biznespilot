@@ -13,8 +13,8 @@ class MetaOAuthService
 
     public function __construct()
     {
-        $this->appId = config('services.meta.app_id', '');
-        $this->appSecret = config('services.meta.app_secret', '');
+        $this->appId = config('services.meta.app_id') ?? '';
+        $this->appSecret = config('services.meta.app_secret') ?? '';
     }
 
     /**

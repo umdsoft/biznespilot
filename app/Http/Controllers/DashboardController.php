@@ -12,8 +12,10 @@ use App\Models\ActivityLog;
 use App\Models\Alert;
 use App\Models\DashboardWidget;
 use App\Services\KPICalculator;
+use App\Services\KPIPlanCalculator;
 use App\Services\SalesAnalyticsService;
 use App\Services\DashboardService;
+use App\Models\KpiPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -273,6 +275,233 @@ class DashboardController extends Controller
         return response()->json([
             'data' => $this->dashboardService->getDashboardData($business),
         ]);
+    }
+
+    /**
+     * Display the KPI page
+     */
+    public function kpi(Request $request)
+    {
+        $user = Auth::user();
+        $currentBusiness = session('current_business_id')
+            ? $user->businesses()->find(session('current_business_id'))
+            : $user->businesses()->first();
+
+        if (!$currentBusiness) {
+            return redirect()->route('business.business.create');
+        }
+
+        // Date range (default: last 30 days)
+        $endDate = now();
+        $startDate = now()->subDays(30);
+
+        // Get KPIs
+        $kpis = $this->kpiCalculator->getAllKPIs(
+            $currentBusiness->id,
+            $startDate,
+            $endDate
+        );
+
+        // Get ROAS and LTV/CAC benchmarks
+        $roasBenchmark = $this->kpiCalculator->getROASBenchmark($kpis['roas']);
+        $ltvCacBenchmark = $this->kpiCalculator->getLTVCACBenchmark($kpis['ltv_cac_ratio']);
+
+        // Get active KPI plan for current/next month
+        $calculator = app(KPIPlanCalculator::class);
+        $targetMonth = $calculator->determineTargetMonth();
+
+        $activePlan = KpiPlan::where('business_id', $currentBusiness->id)
+            ->where('year', $targetMonth['year'])
+            ->where('month', $targetMonth['month'])
+            ->where('status', 'active')
+            ->first();
+
+        // Get all KPI plans for this business
+        $kpiPlans = KpiPlan::where('business_id', $currentBusiness->id)
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get();
+
+        // Month names in Uzbek
+        $monthNames = [
+            1 => 'Yanvar', 2 => 'Fevral', 3 => 'Mart', 4 => 'Aprel',
+            5 => 'May', 6 => 'Iyun', 7 => 'Iyul', 8 => 'Avgust',
+            9 => 'Sentabr', 10 => 'Oktabr', 11 => 'Noyabr', 12 => 'Dekabr',
+        ];
+
+        // Get daily entries for current month + last week of previous month (for weekly view edge cases)
+        $rangeStart = now()->startOfMonth()->subDays(7);
+        $rangeEnd = now()->endOfMonth();
+
+        $dailyEntries = \App\Models\KpiDailyEntry::where('business_id', $currentBusiness->id)
+            ->whereBetween('date', [$rangeStart, $rangeEnd])
+            ->orderBy('date')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->date->format('Y-m-d');
+            });
+
+        return Inertia::render('Business/KPI/Index', [
+            'kpis' => $kpis,
+            'roasBenchmark' => $roasBenchmark,
+            'ltvCacBenchmark' => $ltvCacBenchmark,
+            'dateRange' => [
+                'start' => $startDate->format('Y-m-d'),
+                'end' => $endDate->format('Y-m-d'),
+            ],
+            'businessRegistrationDate' => $currentBusiness->created_at->format('Y-m-d'),
+            'activePlan' => $activePlan,
+            'kpiPlans' => $kpiPlans,
+            'dailyEntries' => $dailyEntries,
+            'targetMonth' => [
+                'year' => $targetMonth['year'],
+                'month' => $targetMonth['month'],
+                'month_name' => $monthNames[$targetMonth['month']],
+                'start_date' => $targetMonth['start_date'],
+                'end_date' => $targetMonth['end_date'],
+                'working_days' => $targetMonth['working_days'],
+            ],
+        ]);
+    }
+
+    /**
+     * KPI Data Entry page
+     */
+    public function kpiDataEntry(Request $request)
+    {
+        $user = Auth::user();
+        $currentBusiness = session('current_business_id')
+            ? $user->businesses()->find(session('current_business_id'))
+            : $user->businesses()->first();
+
+        if (!$currentBusiness) {
+            return redirect()->route('business.business.create');
+        }
+
+        return Inertia::render('Business/KPI/DataEntry', [
+            'business' => $currentBusiness,
+        ]);
+    }
+
+    /**
+     * Calculate KPI plan based on new sales and average check
+     */
+    public function calculateKPIPlan(Request $request)
+    {
+        $request->validate([
+            'new_sales' => 'required|integer|min:1',
+            'avg_check' => 'required|numeric|min:0',
+        ]);
+
+        $business = $this->getCurrentBusiness();
+
+        // Use KPIPlanCalculator service
+        $calculator = app(\App\Services\KPIPlanCalculator::class);
+        $plan = $calculator->calculateNextMonthPlan(
+            $business,
+            $request->new_sales,
+            $request->avg_check
+        );
+
+        return response()->json([
+            'plan' => $plan,
+        ]);
+    }
+
+    /**
+     * Save KPI plan for target month
+     */
+    public function saveKPIPlan(Request $request)
+    {
+        $request->validate([
+            'new_sales' => 'required|integer|min:1',
+            'avg_check' => 'required|numeric|min:0',
+            'leads' => 'nullable|integer|min:1',
+            'lead_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        $business = $this->getCurrentBusiness();
+        $calculator = app(KPIPlanCalculator::class);
+
+        // Create full plan with date calculations and breakdowns
+        $fullPlan = $calculator->createFullPlan(
+            $business,
+            $request->new_sales,
+            $request->avg_check,
+            $request->leads,
+            $request->lead_cost
+        );
+
+        // Check if plan already exists for this month
+        $existingPlan = KpiPlan::where('business_id', $business->id)
+            ->where('year', $fullPlan['year'])
+            ->where('month', $fullPlan['month'])
+            ->first();
+
+        if ($existingPlan) {
+            // Update existing plan
+            $existingPlan->update([
+                'start_date' => $fullPlan['start_date'],
+                'end_date' => $fullPlan['end_date'],
+                'working_days' => $fullPlan['working_days'],
+                'new_sales' => $fullPlan['metrics']['new_sales'],
+                'avg_check' => $fullPlan['metrics']['avg_check'],
+                'repeat_sales' => $fullPlan['metrics']['repeat_sales'],
+                'total_customers' => $fullPlan['metrics']['total_customers'],
+                'total_revenue' => $fullPlan['metrics']['total_revenue'],
+                'ad_costs' => $fullPlan['metrics']['ad_costs'],
+                'gross_margin' => $fullPlan['metrics']['gross_margin'],
+                'gross_margin_percent' => $fullPlan['metrics']['gross_margin_percent'],
+                'roi' => $fullPlan['metrics']['roi'],
+                'roas' => $fullPlan['metrics']['roas'],
+                'cac' => $fullPlan['metrics']['cac'],
+                'clv' => $fullPlan['metrics']['clv'],
+                'ltv_cac_ratio' => $fullPlan['metrics']['ltv_cac_ratio'],
+                'total_leads' => $fullPlan['metrics']['total_leads'],
+                'lead_cost' => $fullPlan['metrics']['lead_cost'],
+                'conversion_rate' => $fullPlan['metrics']['conversion_rate'],
+                'ctr' => $fullPlan['metrics']['ctr'],
+                'churn_rate' => $fullPlan['metrics']['churn_rate'],
+                'daily_breakdown' => $fullPlan['daily'],
+                'weekly_breakdown' => $fullPlan['weekly'],
+                'calculation_method' => $fullPlan['metrics']['calculation_method'],
+            ]);
+            $kpiPlan = $existingPlan;
+        } else {
+            // Create new plan
+            $kpiPlan = KpiPlan::create([
+                'business_id' => $business->id,
+                'year' => $fullPlan['year'],
+                'month' => $fullPlan['month'],
+                'start_date' => $fullPlan['start_date'],
+                'end_date' => $fullPlan['end_date'],
+                'working_days' => $fullPlan['working_days'],
+                'new_sales' => $fullPlan['metrics']['new_sales'],
+                'avg_check' => $fullPlan['metrics']['avg_check'],
+                'repeat_sales' => $fullPlan['metrics']['repeat_sales'],
+                'total_customers' => $fullPlan['metrics']['total_customers'],
+                'total_revenue' => $fullPlan['metrics']['total_revenue'],
+                'ad_costs' => $fullPlan['metrics']['ad_costs'],
+                'gross_margin' => $fullPlan['metrics']['gross_margin'],
+                'gross_margin_percent' => $fullPlan['metrics']['gross_margin_percent'],
+                'roi' => $fullPlan['metrics']['roi'],
+                'roas' => $fullPlan['metrics']['roas'],
+                'cac' => $fullPlan['metrics']['cac'],
+                'clv' => $fullPlan['metrics']['clv'],
+                'ltv_cac_ratio' => $fullPlan['metrics']['ltv_cac_ratio'],
+                'total_leads' => $fullPlan['metrics']['total_leads'],
+                'lead_cost' => $fullPlan['metrics']['lead_cost'],
+                'conversion_rate' => $fullPlan['metrics']['conversion_rate'],
+                'ctr' => $fullPlan['metrics']['ctr'],
+                'churn_rate' => $fullPlan['metrics']['churn_rate'],
+                'daily_breakdown' => $fullPlan['daily'],
+                'weekly_breakdown' => $fullPlan['weekly'],
+                'calculation_method' => $fullPlan['metrics']['calculation_method'],
+                'status' => 'active',
+            ]);
+        }
+
+        return redirect()->route('business.kpi')->with('success', 'KPI rejasi muvaffaqiyatli saqlandi!');
     }
 
     /**

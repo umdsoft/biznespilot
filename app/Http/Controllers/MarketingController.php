@@ -221,6 +221,8 @@ class MarketingController extends Controller
                     'content' => $post->content,
                     'platform' => $post->platform,
                     'type' => $post->type,
+                    'content_type' => $post->content_type,
+                    'format' => $post->format,
                     'status' => $post->status,
                     'scheduled_at' => $post->scheduled_at?->format('Y-m-d H:i'),
                     'published_at' => $post->published_at?->format('d.m.Y H:i'),
@@ -228,6 +230,7 @@ class MarketingController extends Controller
                     'likes' => $post->likes,
                     'comments' => $post->comments,
                     'shares' => $post->shares,
+                    'hashtags' => $post->hashtags,
                 ];
             });
 
@@ -249,7 +252,9 @@ class MarketingController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
             'platform' => ['required', 'string', 'max:100'],
-            'type' => ['required', 'in:post,story,reel,video,article'],
+            'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
+            'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
+            'type' => ['nullable', 'string'], // Legacy field
             'status' => ['required', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
             'hashtags' => ['nullable', 'array'],
@@ -257,9 +262,154 @@ class MarketingController extends Controller
 
         $validated['business_id'] = $currentBusiness->id;
 
+        // Handle multiple platforms - store as JSON array
+        if (is_array($validated['platform'])) {
+            $validated['platform'] = json_encode($validated['platform']);
+        }
+
         ContentPost::create($validated);
 
         return redirect()->back()
             ->with('success', 'Kontent muvaffaqiyatli qo\'shildi!');
+    }
+
+    /**
+     * Show content post details.
+     */
+    public function showContent(ContentPost $content)
+    {
+        $currentBusiness = session('current_business_id')
+            ? Auth::user()->businesses()->find(session('current_business_id'))
+            : Auth::user()->businesses()->first();
+
+        if ($content->business_id !== $currentBusiness->id) {
+            abort(403);
+        }
+
+        // Parse platforms if stored as JSON
+        $platforms = $content->platform;
+        if (is_string($platforms) && str_starts_with($platforms, '[')) {
+            $platforms = json_decode($platforms, true);
+        }
+
+        return Inertia::render('Business/Marketing/ContentShow', [
+            'post' => [
+                'id' => $content->id,
+                'title' => $content->title,
+                'content' => $content->content,
+                'platform' => $platforms,
+                'platforms' => is_array($platforms) ? $platforms : [$platforms],
+                'type' => $content->type,
+                'content_type' => $content->content_type,
+                'format' => $content->format,
+                'status' => $content->status,
+                'scheduled_at' => $content->scheduled_at?->format('Y-m-d\TH:i'),
+                'scheduled_at_display' => $content->scheduled_at?->format('d.m.Y H:i'),
+                'published_at' => $content->published_at?->format('d.m.Y H:i'),
+                'views' => $content->views ?? 0,
+                'likes' => $content->likes ?? 0,
+                'comments' => $content->comments ?? 0,
+                'shares' => $content->shares ?? 0,
+                'hashtags' => $content->hashtags ?? [],
+                'media' => $content->media ?? [],
+                'external_url' => $content->external_url,
+                'ai_suggestions' => $content->ai_suggestions,
+                'created_at' => $content->created_at->format('d.m.Y H:i'),
+                'updated_at' => $content->updated_at->format('d.m.Y H:i'),
+            ],
+        ]);
+    }
+
+    /**
+     * Show edit form for content post.
+     */
+    public function editContent(ContentPost $content)
+    {
+        $currentBusiness = session('current_business_id')
+            ? Auth::user()->businesses()->find(session('current_business_id'))
+            : Auth::user()->businesses()->first();
+
+        if ($content->business_id !== $currentBusiness->id) {
+            abort(403);
+        }
+
+        // Parse platforms if stored as JSON
+        $platforms = $content->platform;
+        if (is_string($platforms) && str_starts_with($platforms, '[')) {
+            $platforms = json_decode($platforms, true);
+        }
+
+        return Inertia::render('Business/Marketing/ContentEdit', [
+            'post' => [
+                'id' => $content->id,
+                'title' => $content->title,
+                'content' => $content->content,
+                'platform' => $platforms,
+                'platforms' => is_array($platforms) ? $platforms : [$platforms],
+                'type' => $content->type,
+                'content_type' => $content->content_type,
+                'format' => $content->format,
+                'status' => $content->status,
+                'scheduled_at' => $content->scheduled_at?->format('Y-m-d\TH:i'),
+                'hashtags' => $content->hashtags ?? [],
+                'media' => $content->media ?? [],
+                'external_url' => $content->external_url,
+            ],
+        ]);
+    }
+
+    /**
+     * Update content post.
+     */
+    public function updateContent(Request $request, ContentPost $content)
+    {
+        $currentBusiness = session('current_business_id')
+            ? Auth::user()->businesses()->find(session('current_business_id'))
+            : Auth::user()->businesses()->first();
+
+        if ($content->business_id !== $currentBusiness->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+            'platform' => ['required'],
+            'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
+            'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
+            'status' => ['required', 'in:draft,scheduled,published'],
+            'scheduled_at' => ['nullable', 'date'],
+            'hashtags' => ['nullable', 'array'],
+            'external_url' => ['nullable', 'url'],
+        ]);
+
+        // Handle multiple platforms
+        if (is_array($validated['platform'])) {
+            $validated['platform'] = json_encode($validated['platform']);
+        }
+
+        $content->update($validated);
+
+        return redirect()->route('business.marketing.content.show', $content)
+            ->with('success', 'Kontent muvaffaqiyatli yangilandi!');
+    }
+
+    /**
+     * Delete content post.
+     */
+    public function deleteContent(ContentPost $content)
+    {
+        $currentBusiness = session('current_business_id')
+            ? Auth::user()->businesses()->find(session('current_business_id'))
+            : Auth::user()->businesses()->first();
+
+        if ($content->business_id !== $currentBusiness->id) {
+            abort(403);
+        }
+
+        $content->delete();
+
+        return redirect()->route('business.marketing.content')
+            ->with('success', 'Kontent muvaffaqiyatli o\'chirildi!');
     }
 }

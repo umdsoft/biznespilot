@@ -26,9 +26,9 @@ class UnifiedInboxService
                 $q->latest()->limit(1);
             }]);
 
-        // Filter by channel
+        // Filter by channel (uses 'platform' column in database)
         if (!empty($filters['channel'])) {
-            $query->where('channel', $filters['channel']);
+            $query->where('platform', $filters['channel']);
         }
 
         // Filter by status
@@ -60,7 +60,7 @@ class UnifiedInboxService
 
         return [
             'id' => $conversation->id,
-            'channel' => $conversation->channel,
+            'channel' => $conversation->platform,
             'customer' => [
                 'id' => $conversation->customer->id,
                 'name' => $conversation->customer->name,
@@ -91,7 +91,7 @@ class UnifiedInboxService
         $customer = $conversation->customer;
 
         // Send via appropriate channel
-        $result = $this->sendViaChannel($conversation->channel, $customer, $message);
+        $result = $this->sendViaChannel($conversation->platform, $customer, $message);
 
         if ($result) {
             // Log message
@@ -117,18 +117,17 @@ class UnifiedInboxService
      */
     public function getInboxStats(Business $business): array
     {
-        $conversations = ChatbotConversation::where('business_id', $business->id);
+        $baseQuery = fn() => ChatbotConversation::where('business_id', $business->id);
 
         return [
-            'total' => $conversations->count(),
-            'open' => $conversations->where('status', 'open')->count(),
-            'pending' => $conversations->where('status', 'pending')->count(),
-            'closed' => $conversations->where('status', 'closed')->count(),
+            'total' => $baseQuery()->count(),
+            'open' => $baseQuery()->where('status', 'open')->count(),
+            'pending' => $baseQuery()->where('status', 'pending')->count(),
+            'closed' => $baseQuery()->where('status', 'closed')->count(),
             'by_channel' => [
-                'whatsapp' => $conversations->where('channel', 'whatsapp')->count(),
-                'instagram' => $conversations->where('channel', 'instagram')->count(),
-                'telegram' => $conversations->where('channel', 'telegram')->count(),
-                'facebook' => $conversations->where('channel', 'facebook')->count(),
+                'instagram' => $baseQuery()->where('platform', 'instagram')->count(),
+                'telegram' => $baseQuery()->where('platform', 'telegram')->count(),
+                'facebook' => $baseQuery()->where('platform', 'facebook')->count(),
             ],
             'response_rate' => $this->calculateResponseRate($business),
         ];
@@ -143,14 +142,14 @@ class UnifiedInboxService
 
         return [
             'id' => $conversation->id,
-            'channel' => $conversation->channel,
-            'customer_name' => $conversation->customer->name,
-            'customer_avatar' => $this->getChannelAvatar($conversation->channel),
-            'last_message' => $lastMessage?->message_content,
+            'channel' => $conversation->platform,
+            'customer_name' => $conversation->customer?->name ?? $conversation->customer_name,
+            'customer_avatar' => $this->getChannelAvatar($conversation->platform),
+            'last_message' => $lastMessage?->content ?? $lastMessage?->message_content,
             'last_message_time' => $conversation->last_message_at?->diffForHumans(),
             'status' => $conversation->status,
-            'is_unread' => $lastMessage?->direction === 'incoming' && !$lastMessage?->is_read,
-            'message_count' => $conversation->message_count,
+            'is_unread' => $lastMessage?->direction === 'inbound' && !$lastMessage?->read_at,
+            'message_count' => $conversation->messages_count,
         ];
     }
 
@@ -160,13 +159,9 @@ class UnifiedInboxService
     protected function sendViaChannel(string $channel, Customer $customer, string $message): ?array
     {
         switch ($channel) {
-            case 'whatsapp':
-                $service = app(WhatsAppService::class);
-                return $service->sendTextMessage($customer->phone, $message);
-
             case 'instagram':
-                $service = app(InstagramDMService::class);
-                return $service->sendMessage($customer->phone, $message);
+                // Instagram DM implementation
+                return null;
 
             case 'telegram':
                 // Telegram implementation
@@ -187,7 +182,6 @@ class UnifiedInboxService
     protected function getChannelAvatar(string $channel): string
     {
         return match ($channel) {
-            'whatsapp' => '💬',
             'instagram' => '📸',
             'telegram' => '✈️',
             'facebook' => '👥',
@@ -202,12 +196,12 @@ class UnifiedInboxService
     {
         $total = ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
             $q->where('business_id', $business->id);
-        })->where('direction', 'incoming')->count();
+        })->where('direction', 'inbound')->count();
 
         $responded = ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
             $q->where('business_id', $business->id);
-        })->where('direction', 'incoming')
-            ->whereNotNull('response_time_seconds')
+        })->where('direction', 'inbound')
+            ->whereNotNull('response_time_ms')
             ->count();
 
         return $total > 0 ? ($responded / $total) * 100 : 0;

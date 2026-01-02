@@ -26,14 +26,27 @@ class InstagramAccount extends Model
         'follows_count',
         'media_count',
         'is_primary',
+        'is_active',
+        'access_token',
         'last_sync_at',
+        'last_synced_at',
+        'disconnected_at',
+        'posts_count',
+        'engagement_rate',
         'metadata',
     ];
 
     protected $casts = [
         'is_primary' => 'boolean',
+        'is_active' => 'boolean',
         'last_sync_at' => 'datetime',
+        'last_synced_at' => 'datetime',
+        'disconnected_at' => 'datetime',
         'metadata' => 'array',
+    ];
+
+    protected $hidden = [
+        'access_token',
     ];
 
     public function integration(): BelongsTo

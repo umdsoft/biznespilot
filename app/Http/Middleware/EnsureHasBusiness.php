@@ -47,8 +47,9 @@ class EnsureHasBusiness
         // Check if current business needs onboarding
         if ($currentBusiness && $currentBusiness->onboarding_status !== 'completed') {
             // Allow access to onboarding, diagnostic and some other routes
+            // IMPORTANT: Allow access to dashboard and other business routes if user chooses to skip onboarding from welcome page
             if ($request->is('onboarding*') ||
-                $request->is('business/diagnostic*') ||
+                $request->is('business*') ||
                 $request->is('logout') ||
                 $request->is('switch-business*') ||
                 $request->is('new-business*')) {

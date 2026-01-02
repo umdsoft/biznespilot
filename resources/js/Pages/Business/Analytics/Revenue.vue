@@ -183,11 +183,11 @@ const chartOptions = {
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <CurrencyDollarIcon class="w-10 h-10 text-green-600" />
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                            <CurrencyDollarIcon class="w-10 h-10 text-green-600 dark:text-green-400" />
                             Revenue Analytics
                         </h1>
-                        <p class="mt-2 text-gray-600">
+                        <p class="mt-2 text-gray-600 dark:text-gray-400">
                             Revenue trends va forecasting
                         </p>
                     </div>
@@ -195,7 +195,7 @@ const chartOptions = {
                     <div class="flex gap-2">
                         <Link
                             :href="route('business.analytics.index')"
-                            class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors gap-2"
+                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors gap-2"
                         >
                             <ChartBarIcon class="w-4 h-4" />
                             Dashboard
@@ -220,17 +220,17 @@ const chartOptions = {
                 </div>
 
                 <!-- Period Selector -->
-                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
                     <div class="flex items-center gap-2">
-                        <CalendarIcon class="w-5 h-5 text-gray-500" />
-                        <span class="text-sm font-medium text-gray-700 mr-4">Davr:</span>
+                        <CalendarIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-4">Davr:</span>
                         <div class="flex gap-2">
                             <button
                                 @click="changePeriod('daily')"
                                 :class="[
                                     selectedPeriod === 'daily'
                                         ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600',
                                     'px-4 py-2 rounded-lg font-medium transition-colors'
                                 ]"
                             >
@@ -241,7 +241,7 @@ const chartOptions = {
                                 :class="[
                                     selectedPeriod === 'weekly'
                                         ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600',
                                     'px-4 py-2 rounded-lg font-medium transition-colors'
                                 ]"
                             >
@@ -252,7 +252,7 @@ const chartOptions = {
                                 :class="[
                                     selectedPeriod === 'monthly'
                                         ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600',
                                     'px-4 py-2 rounded-lg font-medium transition-colors'
                                 ]"
                             >
@@ -263,9 +263,9 @@ const chartOptions = {
                 </div>
 
                 <!-- Revenue Trends Chart -->
-                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <ArrowTrendingUpIcon class="w-6 h-6 text-green-600" />
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <ArrowTrendingUpIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
                         Revenue Trends
                     </h3>
                     <div class="h-80">
@@ -274,34 +274,34 @@ const chartOptions = {
                 </div>
 
                 <!-- Forecast Section -->
-                <div v-if="forecast && forecast.forecast" class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-md p-6 mb-8">
-                    <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                        <SparklesIcon class="w-6 h-6 text-indigo-600" />
+                <div v-if="forecast && forecast.forecast" class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl shadow-md p-6 mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
+                        <SparklesIcon class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                         Revenue Forecast (Keyingi 30 kun)
                     </h3>
 
                     <!-- Forecast Metrics -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-white rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-1">O'rtacha Kunlik</p>
-                            <p class="text-xl font-bold text-gray-900">{{ formatPrice(forecast.summary.avg_daily_revenue) }}</p>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">O'rtacha Kunlik</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatPrice(forecast.summary.avg_daily_revenue) }}</p>
                         </div>
-                        <div class="bg-white rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-1">So'nggi O'rtacha</p>
-                            <p class="text-xl font-bold text-gray-900">{{ formatPrice(forecast.summary.recent_avg) }}</p>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">So'nggi O'rtacha</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatPrice(forecast.summary.recent_avg) }}</p>
                         </div>
-                        <div class="bg-white rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-1">O'sish Sur'ati</p>
-                            <p class="text-xl font-bold text-green-600">{{ formatPercent(forecast.summary.growth_rate) }}%</p>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">O'sish Sur'ati</p>
+                            <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ formatPercent(forecast.summary.growth_rate) }}%</p>
                         </div>
-                        <div class="bg-white rounded-lg p-4">
-                            <p class="text-sm text-gray-600 mb-1">Prognoz Jami</p>
-                            <p class="text-xl font-bold text-indigo-600">{{ formatPrice(forecast.summary.forecast_total) }}</p>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Prognoz Jami</p>
+                            <p class="text-xl font-bold text-indigo-600 dark:text-indigo-400">{{ formatPrice(forecast.summary.forecast_total) }}</p>
                         </div>
                     </div>
 
                     <!-- Forecast Chart -->
-                    <div class="bg-white rounded-lg p-4">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
                         <div class="h-80">
                             <canvas id="forecastChart"></canvas>
                         </div>
@@ -309,16 +309,16 @@ const chartOptions = {
                 </div>
 
                 <!-- Revenue Trends Table -->
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Revenue Details</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Revenue Details</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Sana</th>
-                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">Revenue</th>
-                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">Deals</th>
-                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">Avg Deal Size</th>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Sana</th>
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Revenue</th>
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Deals</th>
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Avg Deal Size</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -326,16 +326,16 @@ const chartOptions = {
                                     v-for="(trend, index) in trends.trends"
                                     :key="trend.date"
                                     :class="[
-                                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50',
-                                        'hover:bg-green-50 transition-colors'
+                                        index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50',
+                                        'hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors'
                                     ]"
                                 >
-                                    <td class="py-3 px-4 font-medium text-gray-900">{{ trend.label }}</td>
-                                    <td class="py-3 px-4 text-right font-semibold text-green-600">
+                                    <td class="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{{ trend.label }}</td>
+                                    <td class="py-3 px-4 text-right font-semibold text-green-600 dark:text-green-400">
                                         {{ formatPrice(trend.revenue) }}
                                     </td>
-                                    <td class="py-3 px-4 text-right text-gray-700">{{ trend.deal_count }}</td>
-                                    <td class="py-3 px-4 text-right text-gray-700">
+                                    <td class="py-3 px-4 text-right text-gray-700 dark:text-gray-300">{{ trend.deal_count }}</td>
+                                    <td class="py-3 px-4 text-right text-gray-700 dark:text-gray-300">
                                         {{ formatPrice(trend.avg_deal_size) }}
                                     </td>
                                 </tr>

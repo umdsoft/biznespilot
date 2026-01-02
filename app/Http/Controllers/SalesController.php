@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
+use App\Models\LeadSource;
 use App\Models\MarketingChannel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,13 +65,16 @@ class SalesController extends Controller
             'pipeline_value' => $leads->whereNotIn('status', ['won', 'lost'])->sum('estimated_value'),
         ];
 
-        // Get marketing channels for source filter
-        $channels = $currentBusiness->marketingChannels()
+        // Get lead sources for source filter
+        $channels = LeadSource::forBusiness($currentBusiness->id)
+            ->active()
+            ->orderBy('sort_order')
             ->get()
-            ->map(function ($channel) {
+            ->map(function ($source) {
                 return [
-                    'id' => $channel->id,
-                    'name' => $channel->name,
+                    'id' => $source->id,
+                    'name' => $source->name,
+                    'category' => $source->category,
                 ];
             });
 
@@ -98,13 +102,18 @@ class SalesController extends Controller
             return redirect()->route('business.index');
         }
 
-        // Get marketing channels
-        $channels = $currentBusiness->marketingChannels()
+        // Get lead sources (global + business-specific)
+        $channels = LeadSource::forBusiness($currentBusiness->id)
+            ->active()
+            ->orderBy('sort_order')
             ->get()
-            ->map(function ($channel) {
+            ->map(function ($source) {
                 return [
-                    'id' => $channel->id,
-                    'name' => $channel->name,
+                    'id' => $source->id,
+                    'name' => $source->name,
+                    'category' => $source->category,
+                    'icon' => $source->icon,
+                    'color' => $source->color,
                 ];
             });
 
@@ -127,7 +136,7 @@ class SalesController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'company' => ['nullable', 'string', 'max:255'],
-            'source_id' => ['nullable', 'exists:marketing_channels,id'],
+            'source_id' => ['nullable', 'exists:lead_sources,id'],
             'status' => ['required', 'in:new,contacted,qualified,proposal,negotiation,won,lost'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'estimated_value' => ['nullable', 'numeric', 'min:0'],
@@ -139,7 +148,7 @@ class SalesController extends Controller
 
         Lead::create($validated);
 
-        return redirect()->route('sales.index')
+        return redirect()->route('business.sales.index')
             ->with('success', 'Lead muvaffaqiyatli qo\'shildi!');
     }
 
@@ -152,7 +161,13 @@ class SalesController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if ($lead->business_id !== $currentBusiness->id) {
+        if (!$currentBusiness) {
+            return redirect()->route('business.index')
+                ->with('error', 'Avval biznes tanlang');
+        }
+
+        // Compare as strings to avoid type mismatch
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
             abort(403);
         }
 
@@ -174,7 +189,7 @@ class SalesController extends Controller
                 'source' => $lead->source ? [
                     'id' => $lead->source->id,
                     'name' => $lead->source->name,
-                    'platform' => $lead->source->platform,
+                    'category' => $lead->source->category,
                 ] : null,
                 'assigned_to' => $lead->assignedTo ? [
                     'id' => $lead->assignedTo->id,
@@ -197,17 +212,28 @@ class SalesController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if ($lead->business_id !== $currentBusiness->id) {
+        if (!$currentBusiness) {
+            return redirect()->route('business.index')
+                ->with('error', 'Avval biznes tanlang');
+        }
+
+        // Compare as strings to avoid type mismatch
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
             abort(403);
         }
 
-        // Get marketing channels
-        $channels = $currentBusiness->marketingChannels()
+        // Get lead sources (global + business-specific)
+        $channels = LeadSource::forBusiness($currentBusiness->id)
+            ->active()
+            ->orderBy('sort_order')
             ->get()
-            ->map(function ($channel) {
+            ->map(function ($source) {
                 return [
-                    'id' => $channel->id,
-                    'name' => $channel->name,
+                    'id' => $source->id,
+                    'name' => $source->name,
+                    'category' => $source->category,
+                    'icon' => $source->icon,
+                    'color' => $source->color,
                 ];
             });
 
@@ -240,7 +266,13 @@ class SalesController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if ($lead->business_id !== $currentBusiness->id) {
+        if (!$currentBusiness) {
+            return redirect()->route('business.index')
+                ->with('error', 'Avval biznes tanlang');
+        }
+
+        // Compare as strings to avoid type mismatch
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
             abort(403);
         }
 
@@ -249,7 +281,7 @@ class SalesController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'company' => ['nullable', 'string', 'max:255'],
-            'source_id' => ['nullable', 'exists:marketing_channels,id'],
+            'source_id' => ['nullable', 'exists:lead_sources,id'],
             'status' => ['required', 'in:new,contacted,qualified,proposal,negotiation,won,lost'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'estimated_value' => ['nullable', 'numeric', 'min:0'],
@@ -268,7 +300,7 @@ class SalesController extends Controller
 
         $lead->update($validated);
 
-        return redirect()->route('sales.index')
+        return redirect()->route('business.sales.index')
             ->with('success', 'Lead muvaffaqiyatli yangilandi!');
     }
 
@@ -281,13 +313,19 @@ class SalesController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if ($lead->business_id !== $currentBusiness->id) {
+        if (!$currentBusiness) {
+            return redirect()->route('business.index')
+                ->with('error', 'Avval biznes tanlang');
+        }
+
+        // Compare as strings to avoid type mismatch
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
             abort(403);
         }
 
         $lead->delete();
 
-        return redirect()->route('sales.index')
+        return redirect()->route('business.sales.index')
             ->with('success', 'Lead muvaffaqiyatli o\'chirildi!');
     }
 }

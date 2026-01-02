@@ -1,388 +1,501 @@
 <template>
     <BusinessLayout title="Raqobatchilar">
-        <template #header>
-            <div class="flex justify-between items-center">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Raqobatchilar Ro'yxati
-                </h2>
+        <div class="p-6 space-y-6">
+            <!-- Page Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Raqobatchilar</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Raqobatchilaringizni kuzating va tahlil qiling</p>
+                </div>
                 <div class="flex gap-3">
                     <Link
                         :href="route('business.competitors.dashboard')"
-                        class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                        class="inline-flex items-center px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         Dashboard
                     </Link>
                     <button
                         @click="showAddModal = true"
-                        class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                        class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
                     >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Yangi Raqobatchi
                     </button>
                 </div>
             </div>
-        </template>
 
-        <div class="py-12">
-            <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
-                <!-- Filters -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <!-- Search -->
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Qidirish</label>
-                                <input
-                                    v-model="filters.search"
-                                    type="text"
-                                    placeholder="Nomi yoki tavsif bo'yicha qidiring..."
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                />
-                            </div>
-
-                            <!-- Threat Level Filter -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tahdid Darajasi</label>
-                                <select
-                                    v-model="filters.threat_level"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                >
-                                    <option value="">Barchasi</option>
-                                    <option value="low">Past</option>
-                                    <option value="medium">O'rta</option>
-                                    <option value="high">Yuqori</option>
-                                    <option value="critical">Kritik</option>
-                                </select>
-                            </div>
-
-                            <!-- Status Filter -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select
-                                    v-model="filters.status"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                >
-                                    <option value="">Barchasi</option>
-                                    <option value="active">Faol</option>
-                                    <option value="inactive">Nofaol</option>
-                                    <option value="archived">Arxivlangan</option>
-                                </select>
-                            </div>
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ totalCompetitors }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Competitors List -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div v-if="filteredCompetitors.length === 0" class="text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Raqobatchilar topilmadi</h3>
-                            <p class="mt-1 text-sm text-gray-500">Yangi raqobatchi qo'shish uchun yuqoridagi tugmani bosing.</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ activeCount }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Faol</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                            <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ criticalCount }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Kritik tahdid</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                            <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ highCount }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Yuqori tahdid</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Search -->
+                    <div class="md:col-span-2">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                v-model="filters.search"
+                                type="text"
+                                placeholder="Nomi yoki tavsif bo'yicha qidiring..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Threat Level Filter -->
+                    <div>
+                        <select
+                            v-model="filters.threat_level"
+                            class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                            <option value="">Barcha tahdidlar</option>
+                            <option value="low">Past tahdid</option>
+                            <option value="medium">O'rta tahdid</option>
+                            <option value="high">Yuqori tahdid</option>
+                            <option value="critical">Kritik tahdid</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <select
+                            v-model="filters.status"
+                            class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                            <option value="">Barcha statuslar</option>
+                            <option value="active">Faol</option>
+                            <option value="inactive">Nofaol</option>
+                            <option value="archived">Arxivlangan</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competitors Grid -->
+            <div v-if="filteredCompetitors.length === 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+                <div class="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Raqobatchilar topilmadi</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Yangi raqobatchi qo'shish uchun yuqoridagi tugmani bosing.</p>
+                <button
+                    @click="showAddModal = true"
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Raqobatchi qo'shish
+                </button>
+            </div>
+
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                    v-for="competitor in filteredCompetitors"
+                    :key="competitor.id"
+                    class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors group"
+                >
+                    <!-- Card Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                                {{ competitor.name }}
+                            </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ competitor.industry || 'Soha belgilanmagan' }} • {{ competitor.location || 'Joylashuv belgilanmagan' }}
+                            </p>
                         </div>
 
-                        <div v-else class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Raqobatchi
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Platformalar
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tahdid
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            So'nggi Tekshiruv
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Amallar
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="competitor in filteredCompetitors" :key="competitor.id" class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div>
-                                                    <div class="text-sm font-medium text-gray-900">
-                                                        {{ competitor.name }}
-                                                    </div>
-                                                    <div class="text-sm text-gray-500">
-                                                        {{ competitor.industry }} • {{ competitor.location }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex gap-2">
-                                                <span v-if="competitor.instagram_handle" class="text-pink-600" title="Instagram">
-                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                                    </svg>
-                                                </span>
-                                                <span v-if="competitor.telegram_handle" class="text-blue-500" title="Telegram">
-                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                                                    </svg>
-                                                </span>
-                                                <span v-if="competitor.facebook_page" class="text-blue-600" title="Facebook">
-                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                                    </svg>
-                                                </span>
-                                                <span v-if="competitor.tiktok_handle" class="text-gray-900" title="TikTok">
-                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span
-                                                :class="{
-                                                    'bg-green-100 text-green-800': competitor.threat_level === 'low',
-                                                    'bg-yellow-100 text-yellow-800': competitor.threat_level === 'medium',
-                                                    'bg-orange-100 text-orange-800': competitor.threat_level === 'high',
-                                                    'bg-red-100 text-red-800': competitor.threat_level === 'critical'
-                                                }"
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                            >
-                                                {{ getThreatLevelText(competitor.threat_level) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ competitor.last_checked_at ? formatDate(competitor.last_checked_at) : 'Hech qachon' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span
-                                                :class="{
-                                                    'bg-green-100 text-green-800': competitor.status === 'active',
-                                                    'bg-gray-100 text-gray-800': competitor.status === 'inactive',
-                                                    'bg-blue-100 text-blue-800': competitor.status === 'archived'
-                                                }"
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                            >
-                                                {{ getStatusText(competitor.status) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div class="flex justify-end gap-2">
-                                                <Link
-                                                    :href="route('business.competitors.show', competitor.id)"
-                                                    class="text-indigo-600 hover:text-indigo-900"
-                                                    title="Ko'rish"
-                                                >
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </Link>
-                                                <button
-                                                    @click="editCompetitor(competitor)"
-                                                    class="text-blue-600 hover:text-blue-900"
-                                                    title="Tahrirlash"
-                                                >
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    @click="monitorNow(competitor)"
-                                                    :disabled="competitor.monitoring"
-                                                    class="text-green-600 hover:text-green-900 disabled:opacity-50"
-                                                    title="Hozir tekshirish"
-                                                >
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    @click="deleteCompetitor(competitor)"
-                                                    class="text-red-600 hover:text-red-900"
-                                                    title="O'chirish"
-                                                >
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <!-- Threat Badge -->
+                        <span
+                            :class="getThreatBadgeClass(competitor.threat_level)"
+                            class="px-2.5 py-1 text-xs font-medium rounded-lg"
+                        >
+                            {{ getThreatLevelText(competitor.threat_level) }}
+                        </span>
+                    </div>
+
+                    <!-- Description -->
+                    <p v-if="competitor.description" class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                        {{ competitor.description }}
+                    </p>
+
+                    <!-- Platforms -->
+                    <div class="flex items-center gap-3 mb-4">
+                        <span v-if="competitor.instagram_handle" class="flex items-center gap-1 text-pink-600 dark:text-pink-400" :title="competitor.instagram_handle">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </span>
+                        <span v-if="competitor.telegram_handle" class="flex items-center gap-1 text-blue-500 dark:text-blue-400" :title="competitor.telegram_handle">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                            </svg>
+                        </span>
+                        <span v-if="competitor.facebook_page" class="flex items-center gap-1 text-blue-600 dark:text-blue-400" :title="competitor.facebook_page">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </span>
+                        <span v-if="competitor.tiktok_handle" class="flex items-center gap-1 text-gray-900 dark:text-gray-100" :title="competitor.tiktok_handle">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                            </svg>
+                        </span>
+                        <span v-if="!competitor.instagram_handle && !competitor.telegram_handle && !competitor.facebook_page && !competitor.tiktok_handle" class="text-xs text-gray-400 dark:text-gray-500">
+                            Platformalar belgilanmagan
+                        </span>
+                    </div>
+
+                    <!-- Status & Last Check -->
+                    <div class="flex items-center justify-between text-sm mb-4">
+                        <span
+                            :class="getStatusBadgeClass(competitor.status)"
+                            class="px-2 py-0.5 text-xs font-medium rounded-md"
+                        >
+                            {{ getStatusText(competitor.status) }}
+                        </span>
+                        <span class="text-gray-500 dark:text-gray-400 text-xs">
+                            {{ competitor.last_checked_at ? formatDate(competitor.last_checked_at) : 'Tekshirilmagan' }}
+                        </span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <Link
+                            :href="route('business.competitors.show', competitor.id)"
+                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+                        >
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Ko'rish
+                        </Link>
+                        <button
+                            @click="editCompetitor(competitor)"
+                            class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            title="Tahrirlash"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </button>
+                        <button
+                            @click="monitorNow(competitor)"
+                            :disabled="competitor.monitoring"
+                            class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors disabled:opacity-50"
+                            title="Hozir tekshirish"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                        <button
+                            @click="deleteCompetitor(competitor)"
+                            class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                            title="O'chirish"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Add/Edit Competitor Modal -->
-        <Modal :show="showAddModal || showEditModal" @close="closeModal" max-width="2xl">
-            <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">
-                    {{ showEditModal ? 'Raqobatchini Tahrirlash' : 'Yangi Raqobatchi Qo\'shish' }}
-                </h3>
+        <Teleport to="body">
+            <div v-if="showAddModal || showEditModal" class="fixed inset-0 z-50 overflow-y-auto">
+                <div class="flex min-h-full items-center justify-center p-4">
+                    <!-- Backdrop -->
+                    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal"></div>
 
-                <form @submit.prevent="submitForm">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomi *</label>
-                            <input
-                                v-model="form.name"
-                                type="text"
-                                required
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tavsif</label>
-                            <textarea
-                                v-model="form.description"
-                                rows="3"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            ></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Soha</label>
-                            <input
-                                v-model="form.industry"
-                                type="text"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Joylashuv</label>
-                            <input
-                                v-model="form.location"
-                                type="text"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tahdid Darajasi *</label>
-                            <select
-                                v-model="form.threat_level"
-                                required
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    <!-- Modal Content -->
+                    <div class="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
+                        <!-- Modal Header -->
+                        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                {{ showEditModal ? 'Raqobatchini Tahrirlash' : 'Yangi Raqobatchi Qo\'shish' }}
+                            </h3>
+                            <button
+                                @click="closeModal"
+                                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                             >
-                                <option value="low">Past</option>
-                                <option value="medium">O'rta</option>
-                                <option value="high">Yuqori</option>
-                                <option value="critical">Kritik</option>
-                            </select>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select
-                                v-model="form.status"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            >
-                                <option value="active">Faol</option>
-                                <option value="inactive">Nofaol</option>
-                                <option value="archived">Arxivlangan</option>
-                            </select>
-                        </div>
+                        <!-- Modal Body -->
+                        <form @submit.prevent="submitForm" class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Name -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nomi *</label>
+                                    <input
+                                        v-model="form.name"
+                                        type="text"
+                                        required
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="Raqobatchi nomi"
+                                    />
+                                </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Instagram Handle</label>
-                            <input
-                                v-model="form.instagram_handle"
-                                type="text"
-                                placeholder="@username"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
+                                <!-- Description -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tavsif</label>
+                                    <textarea
+                                        v-model="form.description"
+                                        rows="3"
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                                        placeholder="Raqobatchi haqida qisqacha ma'lumot"
+                                    ></textarea>
+                                </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Telegram Handle</label>
-                            <input
-                                v-model="form.telegram_handle"
-                                type="text"
-                                placeholder="@username"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
+                                <!-- Industry -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Soha</label>
+                                    <input
+                                        v-model="form.industry"
+                                        type="text"
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="Masalan: Kiyim-kechak"
+                                    />
+                                </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Facebook Page</label>
-                            <input
-                                v-model="form.facebook_page"
-                                type="text"
-                                placeholder="Page ID yoki URL"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
+                                <!-- Location -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Joylashuv</label>
+                                    <input
+                                        v-model="form.location"
+                                        type="text"
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="Masalan: Toshkent"
+                                    />
+                                </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">TikTok Handle</label>
-                            <input
-                                v-model="form.tiktok_handle"
-                                type="text"
-                                placeholder="@username"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
+                                <!-- Threat Level -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tahdid Darajasi *</label>
+                                    <select
+                                        v-model="form.threat_level"
+                                        required
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    >
+                                        <option value="low">Past</option>
+                                        <option value="medium">O'rta</option>
+                                        <option value="high">Yuqori</option>
+                                        <option value="critical">Kritik</option>
+                                    </select>
+                                </div>
 
-                        <div class="md:col-span-2">
-                            <label class="flex items-center">
-                                <input
-                                    v-model="form.auto_monitor"
-                                    type="checkbox"
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                />
-                                <span class="ml-2 text-sm text-gray-600">Avtomatik kuzatishni yoqish</span>
-                            </label>
-                        </div>
+                                <!-- Status -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
+                                    <select
+                                        v-model="form.status"
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    >
+                                        <option value="active">Faol</option>
+                                        <option value="inactive">Nofaol</option>
+                                        <option value="archived">Arxivlangan</option>
+                                    </select>
+                                </div>
 
-                        <div v-if="form.auto_monitor">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tekshiruv chastotasi (soat)</label>
-                            <input
-                                v-model.number="form.check_frequency_hours"
-                                type="number"
-                                min="1"
-                                max="168"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
+                                <!-- Platforms Section -->
+                                <div class="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Platformalar</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <!-- Instagram -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                                                <span class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+                                                    </svg>
+                                                    Instagram
+                                                </span>
+                                            </label>
+                                            <input
+                                                v-model="form.instagram_handle"
+                                                type="text"
+                                                placeholder="@username"
+                                                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <!-- Telegram -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                                                <span class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                                                    </svg>
+                                                    Telegram
+                                                </span>
+                                            </label>
+                                            <input
+                                                v-model="form.telegram_handle"
+                                                type="text"
+                                                placeholder="@username"
+                                                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <!-- Facebook -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                                                <span class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                                    </svg>
+                                                    Facebook
+                                                </span>
+                                            </label>
+                                            <input
+                                                v-model="form.facebook_page"
+                                                type="text"
+                                                placeholder="Page ID yoki URL"
+                                                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <!-- TikTok -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                                                <span class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-gray-900 dark:text-gray-100" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                                                    </svg>
+                                                    TikTok
+                                                </span>
+                                            </label>
+                                            <input
+                                                v-model="form.tiktok_handle"
+                                                type="text"
+                                                placeholder="@username"
+                                                class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Auto Monitor -->
+                                <div class="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input
+                                            v-model="form.auto_monitor"
+                                            type="checkbox"
+                                            class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">Avtomatik kuzatishni yoqish</span>
+                                    </label>
+                                </div>
+
+                                <!-- Check Frequency -->
+                                <div v-if="form.auto_monitor">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tekshiruv chastotasi (soat)</label>
+                                    <input
+                                        v-model.number="form.check_frequency_hours"
+                                        type="number"
+                                        min="1"
+                                        max="168"
+                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <button
+                                    type="button"
+                                    @click="closeModal"
+                                    class="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+                                >
+                                    Bekor qilish
+                                </button>
+                                <button
+                                    type="submit"
+                                    :disabled="form.processing"
+                                    class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors disabled:opacity-50"
+                                >
+                                    {{ showEditModal ? 'Saqlash' : 'Qo\'shish' }}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-
-                    <div class="mt-6 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            @click="closeModal"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                        >
-                            Bekor qilish
-                        </button>
-                        <button
-                            type="submit"
-                            :disabled="form.processing"
-                            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                        >
-                            {{ showEditModal ? 'Saqlash' : 'Qo\'shish' }}
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
-        </Modal>
+        </Teleport>
     </BusinessLayout>
 </template>
 
@@ -390,7 +503,6 @@
 import { ref, computed } from 'vue';
 import { Link, useForm, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
-import Modal from '@/Components/Modal.vue';
 
 const props = defineProps({
     competitors: [Array, Object],
@@ -423,11 +535,20 @@ const form = useForm({
     check_frequency_hours: 24,
 });
 
-const filteredCompetitors = computed(() => {
-    // Handle both Array and Object (paginated) data
-    let result = Array.isArray(props.competitors) 
-        ? props.competitors 
+// Computed stats
+const competitorsList = computed(() => {
+    return Array.isArray(props.competitors)
+        ? props.competitors
         : (props.competitors?.data || []);
+});
+
+const totalCompetitors = computed(() => competitorsList.value.length);
+const activeCount = computed(() => competitorsList.value.filter(c => c.status === 'active').length);
+const criticalCount = computed(() => competitorsList.value.filter(c => c.threat_level === 'critical').length);
+const highCount = computed(() => competitorsList.value.filter(c => c.threat_level === 'high').length);
+
+const filteredCompetitors = computed(() => {
+    let result = competitorsList.value;
 
     if (filters.value.search) {
         const search = filters.value.search.toLowerCase();
@@ -510,6 +631,16 @@ function getThreatLevelText(level) {
     return levels[level] || level;
 }
 
+function getThreatBadgeClass(level) {
+    const classes = {
+        low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+        medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+        high: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+        critical: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+    };
+    return classes[level] || classes.medium;
+}
+
 function getStatusText(status) {
     const statuses = {
         active: 'Faol',
@@ -517,6 +648,15 @@ function getStatusText(status) {
         archived: 'Arxivlangan'
     };
     return statuses[status] || status;
+}
+
+function getStatusBadgeClass(status) {
+    const classes = {
+        active: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+        inactive: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
+        archived: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+    };
+    return classes[status] || classes.inactive;
 }
 
 function formatDate(dateString) {

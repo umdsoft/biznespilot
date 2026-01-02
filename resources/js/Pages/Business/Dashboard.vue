@@ -4,11 +4,11 @@
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 class="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+          <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Xush kelibsiz, {{ $page.props.auth?.user?.name }}!
           </h2>
-          <p class="mt-2 text-gray-600 flex items-center">
-            <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <p class="mt-2 text-gray-600 dark:text-gray-400 flex items-center">
+            <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span class="font-medium">{{ currentBusiness?.name }}</span>
@@ -17,7 +17,7 @@
         <div class="flex gap-3">
           <Link
             :href="route('business.dream-buyer.create')"
-            class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
+            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
           >
             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -109,9 +109,9 @@
       <!-- CAC -->
       <Card title="CAC (Customer Acquisition Cost)">
         <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 mb-2">{{ formatCurrency(kpis.cac) }}</div>
-          <p class="text-sm text-gray-500">Har bir mijozni jalb qilish narxi</p>
-          <div class="mt-3 text-xs text-gray-600">
+          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ formatCurrency(kpis.cac) }}</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Har bir mijozni jalb qilish narxi</p>
+          <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
             <span class="font-medium">Benchmark:</span> CLV/3 dan kam bo'lishi kerak
           </div>
         </div>
@@ -120,10 +120,10 @@
       <!-- CLV -->
       <Card title="CLV (Customer Lifetime Value)">
         <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 mb-2">{{ formatCurrency(kpis.clv) }}</div>
-          <p class="text-sm text-gray-500">Mijozning umrbod qiymati</p>
+          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ formatCurrency(kpis.clv) }}</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Mijozning umrbod qiymati</p>
           <div class="mt-3 flex items-center">
-            <span class="text-xs font-medium mr-2">LTV/CAC Ratio:</span>
+            <span class="text-xs font-medium mr-2 text-gray-600 dark:text-gray-400">LTV/CAC Ratio:</span>
             <span
               class="px-2 py-1 rounded text-xs font-medium"
               :class="{
@@ -142,8 +142,8 @@
       <!-- ROAS -->
       <Card title="ROAS (Return on Ad Spend)">
         <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 mb-2">{{ kpis.roas }}x</div>
-          <p class="text-sm text-gray-500">Reklama xarajatlaridan daromad</p>
+          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.roas }}x</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Reklama xarajatlaridan daromad</p>
           <div class="mt-3 flex items-center">
             <span
               class="px-2 py-1 rounded text-xs font-medium"
@@ -164,11 +164,11 @@
       <!-- ROI -->
       <Card title="ROI (Return on Investment)">
         <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 mb-2">{{ kpis.roi }}%</div>
-          <p class="text-sm text-gray-500">Investitsiyadan daromad</p>
-          <div class="mt-3 text-xs">
+          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.roi }}%</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Investitsiyadan daromad</p>
+          <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
             <span class="font-medium">Target:</span>
-            <span :class="kpis.roi >= 100 ? 'text-green-600' : 'text-red-600'">
+            <span :class="kpis.roi >= 100 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
               {{ kpis.roi >= 100 ? '✓' : '✗' }} > 100%
             </span>
           </div>
@@ -178,11 +178,11 @@
       <!-- Churn Rate -->
       <Card title="Churn Rate">
         <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 mb-2">{{ kpis.churn_rate }}%</div>
-          <p class="text-sm text-gray-500">Mijozlar yo'qotilish darajasi</p>
-          <div class="mt-3 text-xs">
+          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.churn_rate }}%</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Mijozlar yo'qotilish darajasi</p>
+          <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
             <span class="font-medium">Benchmark:</span>
-            <span :class="kpis.churn_rate < 5 ? 'text-green-600' : 'text-red-600'">
+            <span :class="kpis.churn_rate < 5 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
               {{ kpis.churn_rate < 5 ? '✓ Yaxshi' : '✗ Yuqori' }} (< 5%)
             </span>
           </div>
@@ -193,16 +193,16 @@
       <Card title="Modul Statistikasi">
         <div class="space-y-3">
           <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600">Ideal Mijozlar:</span>
-            <span class="font-semibold text-gray-900">{{ moduleStats.dream_buyers }}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">Ideal Mijozlar:</span>
+            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.dream_buyers }}</span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600">Marketing Kanallari:</span>
-            <span class="font-semibold text-gray-900">{{ moduleStats.marketing_channels }}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">Marketing Kanallari:</span>
+            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.marketing_channels }}</span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600">Faol Takliflar:</span>
-            <span class="font-semibold text-gray-900">{{ moduleStats.active_offers }}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">Faol Takliflar:</span>
+            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.active_offers }}</span>
           </div>
         </div>
       </Card>
@@ -211,19 +211,19 @@
     <!-- Sales Trend Chart -->
     <Card title="Sotuvlar tendensiyasi (oxirgi 7 kun)">
       <div v-if="salesTrend.length > 0" class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sana</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sotuvlar</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Daromad</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Sana</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Sotuvlar</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Daromad</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             <tr v-for="item in salesTrend" :key="item.date">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.date) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.count }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatCurrency(item.revenue) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ formatDate(item.date) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ item.count }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ formatCurrency(item.revenue) }}</td>
             </tr>
           </tbody>
         </table>

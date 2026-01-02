@@ -67,6 +67,24 @@ class WelcomeController extends Controller
     }
 
     /**
+     * Show the welcome/start page after business creation
+     */
+    public function start()
+    {
+        $user = Auth::user();
+        $business = $user->businesses()->latest()->first();
+
+        // If no business exists, redirect to create business
+        if (!$business) {
+            return redirect()->route('welcome.create-business');
+        }
+
+        return Inertia::render('Welcome/Start', [
+            'business' => $business,
+        ]);
+    }
+
+    /**
      * Common method to create and store a business
      */
     private function createAndStoreBusiness(Request $request)
@@ -130,9 +148,9 @@ class WelcomeController extends Controller
         // Set the new business as current
         session(['current_business_id' => $business->id]);
 
-        // Redirect to onboarding
-        return redirect()->route('onboarding.index')
-            ->with('success', 'Biznes muvaffaqiyatli yaratildi! Endi onboarding jarayonini boshlang.');
+        // Redirect to welcome/start page for new businesses
+        return redirect()->route('welcome.start')
+            ->with('success', 'Biznes muvaffaqiyatli yaratildi!');
     }
 
     /**

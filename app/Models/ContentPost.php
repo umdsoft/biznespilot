@@ -21,9 +21,12 @@ class ContentPost extends Model
         'business_id',
         'channel_id',
         'user_id',
+        'platform',
         'title',
         'content',
         'type',
+        'content_type',
+        'format',
         'status',
         'scheduled_at',
         'published_at',
@@ -32,6 +35,7 @@ class ContentPost extends Model
         'media',
         'metrics',
         'ai_suggestions',
+        'hashtags',
     ];
 
     /**
@@ -44,6 +48,8 @@ class ContentPost extends Model
         'published_at' => 'datetime',
         'media' => 'array',
         'metrics' => 'array',
+        'hashtags' => 'array',
+        'ai_suggestions' => 'array',
     ];
 
     /**

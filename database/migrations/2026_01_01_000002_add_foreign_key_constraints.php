@@ -1,0 +1,221 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * CRITICAL DATA INTEGRITY FIX: Add foreign key constraints
+     *
+     * Issue: Without foreign keys, orphaned records accumulate when businesses are deleted
+     * Impact: Database bloat, incorrect analytics, wasted storage
+     *
+     * Solution: Add CASCADE/RESTRICT policies to maintain data integrity
+     */
+    public function up(): void
+    {
+        // Clean up orphaned records before adding constraints
+        $this->cleanupOrphanedRecords();
+
+        // KPI Daily Actuals - Skip, foreign key already exists in create table migration
+        if (!$this->foreignKeyExists('kpi_daily_actuals', 'kpi_daily_actuals_business_id_foreign')) {
+            Schema::table('kpi_daily_actuals', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade'); // Delete KPIs when business deleted
+            });
+        }
+
+        // Leads
+        if (Schema::hasTable('leads') && !$this->foreignKeyExists('leads', 'leads_business_id_foreign')) {
+            Schema::table('leads', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // Instagram Accounts
+        if (Schema::hasTable('instagram_accounts') && !$this->foreignKeyExists('instagram_accounts', 'instagram_accounts_business_id_foreign')) {
+            Schema::table('instagram_accounts', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // Facebook Pages
+        if (Schema::hasTable('facebook_pages') && !$this->foreignKeyExists('facebook_pages', 'facebook_pages_business_id_foreign')) {
+            Schema::table('facebook_pages', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // Sales Metrics
+        if (Schema::hasTable('sales_metrics') && !$this->foreignKeyExists('sales_metrics', 'sales_metrics_business_id_foreign')) {
+            Schema::table('sales_metrics', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // Marketing Metrics
+        if (Schema::hasTable('marketing_metrics') && !$this->foreignKeyExists('marketing_metrics', 'marketing_metrics_business_id_foreign')) {
+            Schema::table('marketing_metrics', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // KPI Configurations
+        if (Schema::hasTable('kpi_configurations') && !$this->foreignKeyExists('kpi_configurations', 'kpi_configurations_business_id_foreign')) {
+            Schema::table('kpi_configurations', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // Competitors
+        if (Schema::hasTable('competitors') && !$this->foreignKeyExists('competitors', 'competitors_business_id_foreign')) {
+            Schema::table('competitors', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+
+        // Dream Buyers
+        if (Schema::hasTable('dream_buyers') && !$this->foreignKeyExists('dream_buyers', 'dream_buyers_business_id_foreign')) {
+            Schema::table('dream_buyers', function (Blueprint $table) {
+                $table->foreign('business_id')
+                    ->references('id')->on('businesses')
+                    ->onDelete('cascade');
+            });
+        }
+    }
+
+    /**
+     * Check if a foreign key constraint exists
+     */
+    protected function foreignKeyExists(string $table, string $foreignKey): bool
+    {
+        $conn = Schema::getConnection();
+        $dbName = $conn->getDatabaseName();
+
+        $result = DB::select(
+            "SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ? AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+            [$dbName, $table, $foreignKey]
+        );
+
+        return !empty($result);
+    }
+
+    /**
+     * Clean up orphaned records before adding constraints
+     */
+    protected function cleanupOrphanedRecords(): void
+    {
+        // Get list of valid business IDs
+        $validBusinessIds = DB::table('businesses')->pluck('id')->toArray();
+
+        if (empty($validBusinessIds)) {
+            // No businesses, skip cleanup
+            return;
+        }
+
+        // Clean up orphaned KPI records
+        DB::table('kpi_daily_actuals')
+            ->whereNotIn('business_id', $validBusinessIds)
+            ->delete();
+
+        // Clean up orphaned leads
+        DB::table('leads')
+            ->whereNotIn('business_id', $validBusinessIds)
+            ->delete();
+
+        // Clean up orphaned Instagram accounts
+        DB::table('instagram_accounts')
+            ->whereNotIn('business_id', $validBusinessIds)
+            ->delete();
+
+        // Clean up orphaned Facebook pages
+        DB::table('facebook_pages')
+            ->whereNotIn('business_id', $validBusinessIds)
+            ->delete();
+
+        // Clean up other tables if they exist
+        $tables = ['sales_metrics', 'marketing_metrics', 'kpi_configurations', 'competitors', 'dream_buyers'];
+        foreach ($tables as $table) {
+            if (Schema::hasTable($table)) {
+                DB::table($table)
+                    ->whereNotIn('business_id', $validBusinessIds)
+                    ->delete();
+            }
+        }
+
+        DB::statement('OPTIMIZE TABLE kpi_daily_actuals, leads, instagram_accounts, facebook_pages');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('kpi_daily_actuals', function (Blueprint $table) {
+            $table->dropForeign(['business_id']);
+        });
+
+        Schema::table('leads', function (Blueprint $table) {
+            $table->dropForeign(['business_id']);
+        });
+
+        Schema::table('instagram_accounts', function (Blueprint $table) {
+            $table->dropForeign(['business_id']);
+        });
+
+        Schema::table('facebook_pages', function (Blueprint $table) {
+            $table->dropForeign(['business_id']);
+        });
+
+        if (Schema::hasTable('sales_metrics')) {
+            Schema::table('sales_metrics', function (Blueprint $table) {
+                $table->dropForeign(['business_id']);
+            });
+        }
+
+        if (Schema::hasTable('marketing_metrics')) {
+            Schema::table('marketing_metrics', function (Blueprint $table) {
+                $table->dropForeign(['business_id']);
+            });
+        }
+
+        if (Schema::hasTable('kpi_configurations')) {
+            Schema::table('kpi_configurations', function (Blueprint $table) {
+                $table->dropForeign(['business_id']);
+            });
+        }
+
+        if (Schema::hasTable('competitors')) {
+            Schema::table('competitors', function (Blueprint $table) {
+                $table->dropForeign(['business_id']);
+            });
+        }
+
+        if (Schema::hasTable('dream_buyers')) {
+            Schema::table('dream_buyers', function (Blueprint $table) {
+                $table->dropForeign(['business_id']);
+            });
+        }
+    }
+};

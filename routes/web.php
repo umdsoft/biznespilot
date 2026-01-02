@@ -85,6 +85,7 @@ Route::middleware('auth')->prefix('welcome')->name('welcome.')->group(function (
     Route::get('/', [WelcomeController::class, 'index'])->name('index');
     Route::get('/create-business', [WelcomeController::class, 'createBusiness'])->name('create-business');
     Route::post('/create-business', [WelcomeController::class, 'storeBusiness'])->name('store-business');
+    Route::get('/start', [WelcomeController::class, 'start'])->name('start');
 });
 
 // Create new business (for users who already have businesses)
@@ -137,6 +138,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         // Old Marketing Controller routes (content, etc.)
         Route::get('/content', [MarketingController::class, 'content'])->name('content');
         Route::post('/content', [MarketingController::class, 'storeContent'])->name('content.store');
+        Route::get('/content/{content}', [MarketingController::class, 'showContent'])->name('content.show');
+        Route::get('/content/{content}/edit', [MarketingController::class, 'editContent'])->name('content.edit');
+        Route::put('/content/{content}', [MarketingController::class, 'updateContent'])->name('content.update');
+        Route::delete('/content/{content}', [MarketingController::class, 'deleteContent'])->name('content.destroy');
     });
 
     // Marketing Campaigns routes
@@ -162,8 +167,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/compare', [ChannelAnalyticsController::class, 'compare'])->name('compare');
     });
 
-    // Sales routes
-    Route::resource('sales', SalesController::class);
+    // Sales routes (Lead management)
+    Route::resource('sales', SalesController::class)->parameters([
+        'sales' => 'lead'
+    ]);
 
     // Offers routes
     Route::prefix('offers')->name('offers.')->group(function () {
@@ -295,6 +302,12 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportsController::class, 'index'])->name('index');
     });
+
+    // KPI routes
+    Route::get('/kpi', [DashboardController::class, 'kpi'])->name('kpi');
+    Route::get('/kpi/data-entry', [DashboardController::class, 'kpiDataEntry'])->name('kpi.data-entry');
+    Route::post('/kpi/calculate-plan', [DashboardController::class, 'calculateKPIPlan'])->name('kpi.calculate-plan');
+    Route::post('/kpi/save-plan', [DashboardController::class, 'saveKPIPlan'])->name('kpi.save-plan');
 
     // Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {

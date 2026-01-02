@@ -75,6 +75,16 @@ const routes = [
         component: () => import('@/pages/chatbot/Index.vue'),
       },
       {
+        path: '/kpi-dashboard',
+        name: 'kpi-dashboard',
+        component: () => import('@/Pages/KPI/Dashboard.vue'),
+      },
+      {
+        path: '/integrations',
+        name: 'integrations',
+        component: () => import('@/Pages/Integrations/Index.vue'),
+      },
+      {
         path: '/reports',
         name: 'reports',
         component: () => import('@/pages/reports/Index.vue'),

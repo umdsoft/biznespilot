@@ -177,16 +177,17 @@ class OnboardingService
                 ->where('step_definition_id', $stepDef->id)
                 ->first();
 
-            // Get actual completion percent from step or calculate via validation
-            $stepPercent = 0;
-            if ($step) {
-                $stepPercent = $step->completion_percent ?? 0;
-            }
+            // Always calculate validation to get current percent
+            $validation = $this->validateStep($business, $stepDef->code);
+            $stepPercent = $validation['percent'] ?? 0;
 
-            // If step has no percent, try to calculate from validation
-            if ($stepPercent === 0) {
-                $validation = $this->validateStep($business, $stepDef->code);
-                $stepPercent = $validation['percent'] ?? 0;
+            // Update step percent in database if it changed
+            if ($step && $step->completion_percent !== $stepPercent) {
+                $step->update([
+                    'completion_percent' => $stepPercent,
+                    'is_completed' => $stepPercent >= 100,
+                    'completed_at' => $stepPercent >= 100 ? now() : null,
+                ]);
             }
 
             $totalPercent += $stepPercent;

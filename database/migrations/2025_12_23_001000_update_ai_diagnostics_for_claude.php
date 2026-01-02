@@ -90,36 +90,8 @@ return new class extends Migration
         });
 
         // Update industry_benchmarks with more fields
-        Schema::table('industry_benchmarks', function (Blueprint $table) {
-            $table->string('industry', 100)->nullable()->after('id');
-            $table->string('sub_industry', 100)->nullable()->after('industry');
-
-            // Average metrics
-            $table->decimal('avg_health_score', 5, 2)->nullable()->after('sub_industry');
-            $table->decimal('avg_conversion_rate', 5, 2)->nullable()->after('avg_health_score');
-            $table->decimal('avg_engagement_rate', 5, 2)->nullable()->after('avg_conversion_rate');
-            $table->unsignedInteger('avg_response_time_minutes')->nullable()->after('avg_engagement_rate');
-            $table->decimal('avg_repeat_purchase_rate', 5, 2)->nullable()->after('avg_response_time_minutes');
-
-            // Top 10% metrics
-            $table->decimal('top_health_score', 5, 2)->nullable()->after('avg_repeat_purchase_rate');
-            $table->decimal('top_conversion_rate', 5, 2)->nullable()->after('top_health_score');
-            $table->decimal('top_engagement_rate', 5, 2)->nullable()->after('top_conversion_rate');
-            $table->unsignedInteger('top_response_time_minutes')->nullable()->after('top_engagement_rate');
-            $table->decimal('top_repeat_purchase_rate', 5, 2)->nullable()->after('top_response_time_minutes');
-
-            // Optimal parameters
-            $table->unsignedInteger('optimal_post_frequency_weekly')->nullable()->after('top_repeat_purchase_rate');
-            $table->unsignedInteger('optimal_stories_daily')->nullable()->after('optimal_post_frequency_weekly');
-            $table->string('optimal_caption_length', 20)->nullable()->after('optimal_stories_daily');
-            $table->string('optimal_hashtag_count', 20)->nullable()->after('optimal_caption_length');
-            $table->json('optimal_posting_times')->nullable()->after('optimal_hashtag_count');
-
-            // Tactics
-            $table->json('proven_tactics')->nullable()->after('optimal_posting_times');
-            $table->unsignedInteger('businesses_count')->default(0)->after('proven_tactics');
-            $table->timestamp('last_calculated_at')->nullable()->after('businesses_count');
-        });
+        // Skip this - columns are now added in create_ai_tables migration (0001_01_01_000010)
+        // This migration is kept for backwards compatibility but does nothing
     }
 
     public function down(): void

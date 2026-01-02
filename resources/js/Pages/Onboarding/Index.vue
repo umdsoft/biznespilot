@@ -181,45 +181,119 @@
               </div>
             </div>
             <div class="p-4 space-y-3">
-              <div
-                v-for="step in profileSteps"
-                :key="step.code"
-                @click="openStep(step)"
-                class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group"
-                :class="step.is_completed ? 'border-green-200 bg-green-50/50 hover:border-green-300' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'"
-              >
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105" :class="step.is_completed ? 'bg-green-500 text-white' : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600'">
-                  <svg v-if="step.is_completed" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <!-- Agar profileSteps mavjud bo'lsa -->
+              <template v-if="profileSteps.length > 0">
+                <div
+                  v-for="step in profileSteps"
+                  :key="step.code"
+                  @click="openStep(step)"
+                  class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group"
+                  :class="step.is_completed ? 'border-green-200 bg-green-50/50 hover:border-green-300' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105" :class="step.is_completed ? 'bg-green-500 text-white' : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600'">
+                    <svg v-if="step.is_completed" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <template v-else>
+                      <!-- Building icon for business_basic -->
+                      <svg v-if="step.code === 'business_basic'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <!-- Clipboard for business_details -->
+                      <svg v-else-if="step.code === 'business_details'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                      <!-- Chart bar for business_maturity -->
+                      <svg v-else-if="step.code === 'business_maturity'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      <!-- Default question mark -->
+                      <span v-else class="text-lg font-bold">?</span>
+                    </template>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900 truncate">{{ step.name || 'Qadam' }}</h4>
+                      <span v-if="!step.is_required" class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500 truncate">{{ step.description || '' }}</p>
+                  </div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
-                  <template v-else>
-                    <!-- Building icon for business_basic -->
-                    <svg v-if="step.code === 'business_basic'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                </div>
+              </template>
+
+              <!-- Agar profileSteps bo'sh bo'lsa - default cardlarni ko'rsat -->
+              <template v-else>
+                <!-- Biznes asoslari -->
+                <div
+                  @click="openProfileStep('business_basic')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-blue-300 hover:bg-blue-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    <!-- Clipboard for business_details -->
-                    <svg v-else-if="step.code === 'business_details'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Biznes asoslari</h4>
+                    </div>
+                    <p class="text-sm text-gray-500">Nomi, soha, biznes turi va modeli</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~3 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                <!-- Biznes tafsilotlari -->
+                <div
+                  @click="openProfileStep('business_details')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-blue-300 hover:bg-blue-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <!-- Chart bar for business_maturity -->
-                    <svg v-else-if="step.code === 'business_maturity'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Biznes tafsilotlari</h4>
+                      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Tavsif, manzil, aloqa ma'lumotlari</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~4 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                <!-- Biznes holati -->
+                <div
+                  @click="openProfileStep('business_maturity')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-blue-300 hover:bg-blue-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    <!-- Default question mark -->
-                    <span v-else class="text-lg font-bold">?</span>
-                  </template>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <h4 class="font-semibold text-gray-900 truncate">{{ step.step?.name?.uz || step.step?.name_uz || step.name || 'Qadam' }}</h4>
-                    <span v-if="!step.is_required" class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Ixtiyoriy</span>
                   </div>
-                  <p class="text-sm text-gray-500 truncate">{{ step.step?.description?.uz || step.step?.description_uz || step.description || '' }}</p>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Biznes holati</h4>
+                      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Darajasi, jamoangiz, moliyaviy holat</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~5 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
+              </template>
             </div>
           </div>
 
@@ -352,53 +426,151 @@
               </div>
             </div>
             <div class="p-4 space-y-3">
-              <div
-                v-for="step in frameworkSteps"
-                :key="step.code"
-                @click="openStep(step)"
-                class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group"
-                :class="step.is_completed ? 'border-green-200 bg-green-50/50 hover:border-green-300' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'"
-              >
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105" :class="step.is_completed ? 'bg-green-500 text-white' : 'bg-gradient-to-br from-purple-100 to-violet-100 text-purple-600'">
-                  <svg v-if="step.is_completed" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <!-- Agar frameworkSteps mavjud bo'lsa -->
+              <template v-if="frameworkSteps.length > 0">
+                <div
+                  v-for="step in frameworkSteps"
+                  :key="step.code"
+                  @click="openStep(step)"
+                  class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group"
+                  :class="step.is_completed ? 'border-green-200 bg-green-50/50 hover:border-green-300' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105" :class="step.is_completed ? 'bg-green-500 text-white' : 'bg-gradient-to-br from-purple-100 to-violet-100 text-purple-600'">
+                    <svg v-if="step.is_completed" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <template v-else>
+                      <!-- Muammo aniqlash - Exclamation -->
+                      <svg v-if="step.code === 'framework_problem'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <!-- Dream Buyer - User Circle -->
+                      <svg v-else-if="step.code === 'framework_dream_buyer'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <!-- Tadqiqot - Search -->
+                      <svg v-else-if="step.code === 'framework_research'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <!-- Raqobatchilar - Users -->
+                      <svg v-else-if="step.code === 'framework_competitors'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      <!-- Gipotezalar - Lightbulb -->
+                      <svg v-else-if="step.code === 'framework_hypotheses'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      <!-- Default -->
+                      <span v-else class="text-lg font-bold">?</span>
+                    </template>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900 truncate">{{ step.name || 'Qadam' }}</h4>
+                      <span v-if="!step.is_required" class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500 truncate">{{ step.description || '' }}</p>
+                  </div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
-                  <template v-else>
-                    <!-- Muammo aniqlash - Exclamation -->
-                    <svg v-if="step.code === 'framework_problem'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                </div>
+              </template>
+
+              <!-- Agar frameworkSteps bo'sh bo'lsa - default cardlarni ko'rsat -->
+              <template v-else>
+                <!-- Muammolar -->
+                <div
+                  @click="openFrameworkStep('framework_problem')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-purple-300 hover:bg-purple-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-purple-100 to-violet-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <!-- Dream Buyer - User Circle -->
-                    <svg v-else-if="step.code === 'framework_dream_buyer'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Muammolar</h4>
+                      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Mijozlar muammolarini aniqlang</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~5 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                <!-- Ideal mijoz -->
+                <div
+                  @click="openFrameworkStep('framework_dream_buyer')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-purple-300 hover:bg-purple-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-purple-100 to-violet-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <!-- Tadqiqot - Search -->
-                    <svg v-else-if="step.code === 'framework_research'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <!-- Raqobatchilar - Users -->
-                    <svg v-else-if="step.code === 'framework_competitors'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Ideal mijoz</h4>
+                      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Dream Buyer profilini yarating</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~6 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                <!-- Raqobatchilar -->
+                <div
+                  @click="openFrameworkStep('framework_competitors')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-purple-300 hover:bg-purple-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-purple-100 to-violet-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <!-- Gipotezalar - Lightbulb -->
-                    <svg v-else-if="step.code === 'framework_hypotheses'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Raqobatchilar</h4>
+                      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Raqobatchilarni tahlil qiling</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~5 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                <!-- Gipotezalar -->
+                <div
+                  @click="openFrameworkStep('framework_hypotheses')"
+                  class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer transition-all group hover:border-purple-300 hover:bg-purple-50/50"
+                >
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-gradient-to-br from-purple-100 to-violet-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    <!-- Default -->
-                    <span v-else class="text-lg font-bold">?</span>
-                  </template>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <h4 class="font-semibold text-gray-900 truncate">{{ step.step?.name?.uz || step.step?.name_uz || step.name || 'Qadam' }}</h4>
-                    <span v-if="!step.is_completed" class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Ixtiyoriy</span>
                   </div>
-                  <p class="text-sm text-gray-500 truncate">{{ step.step?.description?.uz || step.step?.description_uz || step.description || '' }}</p>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-semibold text-gray-900">Gipotezalar</h4>
+                      <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Ixtiyoriy</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Marketing gipotezalarini yarating</p>
+                  </div>
+                  <div class="text-sm text-gray-400">~4 daq</div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
+              </template>
             </div>
           </div>
 
@@ -557,6 +729,15 @@ import ResearchForm from '@/components/onboarding/forms/ResearchForm.vue';
 import SalesMetricsForm from '@/components/onboarding/forms/SalesMetricsForm.vue';
 import MarketingMetricsForm from '@/components/onboarding/forms/MarketingMetricsForm.vue';
 
+// Props from Inertia (passed from controller)
+const props = defineProps({
+  business: Object,
+  progress: Object,
+  maturityScore: [Number, Object],
+  steps: Array,
+  industries: Array,
+});
+
 // Page props
 const page = usePage();
 const store = useOnboardingStore();
@@ -566,9 +747,7 @@ const modalError = ref(null);
 
 // Error capture for child components
 onErrorCaptured((err, instance, info) => {
-  console.error('🔴 MODAL ERROR CAPTURED:', err);
-  console.error('Component:', instance);
-  console.error('Info:', info);
+  console.error('Modal component error:', err.message, info);
   modalError.value = {
     message: err.message,
     stack: err.stack,
@@ -587,12 +766,12 @@ const activeStepCode = ref(null);
 const stepData = ref(null);
 
 // Computed from page props
-const businessName = computed(() => page.props.currentBusiness?.name || 'Biznes');
+const businessName = computed(() => props.business?.name || page.props.currentBusiness?.name || 'Biznes');
 const userName = computed(() => page.props.auth?.user?.name || 'Foydalanuvchi');
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
 
-// Progress computed
-const progress = computed(() => store.progress);
+// Progress computed - use props first (from server), fallback to store
+const progress = computed(() => props.progress || store.progress);
 const overallPercent = computed(() => progress.value?.overall_percent || 0);
 
 const categoryProgress = computed(() => [
@@ -601,10 +780,12 @@ const categoryProgress = computed(() => [
   { key: 'framework', name: 'Framework', percent: progress.value?.categories?.framework?.required_percent || 0 },
 ]);
 
-const profileSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'profile'));
-const integrationSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'integration'));
-const metricsSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'kpi'));
-const frameworkSteps = computed(() => (progress.value?.steps || []).filter(s => s.category === 'framework'));
+// Use steps from props first (passed from server), fallback to progress.steps
+const allSteps = computed(() => props.steps || progress.value?.steps || []);
+const profileSteps = computed(() => allSteps.value.filter(s => s.category === 'profile'));
+const integrationSteps = computed(() => allSteps.value.filter(s => s.category === 'integration'));
+const metricsSteps = computed(() => allSteps.value.filter(s => s.category === 'kpi'));
+const frameworkSteps = computed(() => allSteps.value.filter(s => s.category === 'framework'));
 
 // Form component mapping - markRaw to prevent reactivity issues
 const formComponents = {
@@ -684,6 +865,13 @@ function getCategoryPercent(category) {
 }
 
 async function loadData() {
+  // If props already have data (from server-side), skip API loading
+  if (props.progress && props.steps) {
+    isLoading.value = false;
+    return;
+  }
+
+  // Otherwise fetch from API
   isLoading.value = true;
   hasError.value = false;
   errorMessage.value = '';
@@ -696,13 +884,13 @@ async function loadData() {
   } catch (err) {
     hasError.value = true;
     errorMessage.value = err.response?.data?.message || 'Ma\'lumotlarni yuklashda xatolik';
+    console.error('Onboarding loadData error:', err);
   } finally {
     isLoading.value = false;
   }
 }
 
 async function openStep(step) {
-  console.log('📂 openStep called:', step.code);
   modalError.value = null; // Reset error
   activeStepCode.value = step.code;
   showModal.value = true;
@@ -711,14 +899,12 @@ async function openStep(step) {
 
   try {
     const response = await store.fetchStepDetail(step.code);
-    console.log('📂 Step data received:', response.data);
     stepData.value = response.data;
 
     const component = formComponents[step.code];
-    console.log('📂 Component found:', component ? 'YES' : 'NO', step.code);
     currentFormComponent.value = component || null;
   } catch (err) {
-    console.error('❌ Failed to load step:', err);
+    console.error('Failed to load step:', step.code, err);
     modalError.value = {
       message: err.message || 'Step yuklanmadi',
       stack: err.stack,
@@ -730,7 +916,6 @@ async function openStep(step) {
 }
 
 function openMetricsStep(stepCode) {
-  console.log('📊 openMetricsStep called:', stepCode);
   modalError.value = null; // Reset error
   activeStepCode.value = stepCode;
   showModal.value = true;
@@ -738,10 +923,67 @@ function openMetricsStep(stepCode) {
   stepData.value = { step: {}, data: {} };
 
   const component = formComponents[stepCode];
-  console.log('📊 Component found:', component ? 'YES' : 'NO', stepCode);
-  console.log('📊 Component object:', component);
   currentFormComponent.value = component || null;
-  console.log('📊 currentFormComponent set to:', currentFormComponent.value);
+}
+
+function openProfileStep(stepCode) {
+  const step = allSteps.value.find(s => s.code === stepCode);
+  if (step) {
+    openStep(step);
+  } else {
+    // If step not found in array, open directly via API
+    modalError.value = null;
+    activeStepCode.value = stepCode;
+    showModal.value = true;
+    modalLoading.value = true;
+    currentFormComponent.value = null;
+
+    store.fetchStepDetail(stepCode)
+      .then(response => {
+        stepData.value = response.data;
+        currentFormComponent.value = formComponents[stepCode] || null;
+        modalLoading.value = false;
+      })
+      .catch(err => {
+        console.error('Failed to load profile step:', stepCode, err);
+        modalError.value = {
+          message: err.message || 'Step yuklanmadi',
+          stack: err.stack,
+          info: 'openProfileStep error'
+        };
+        modalLoading.value = false;
+      });
+  }
+}
+
+function openFrameworkStep(stepCode) {
+  const step = allSteps.value.find(s => s.code === stepCode);
+  if (step) {
+    openStep(step);
+  } else {
+    // If step not found in array, open directly via API
+    modalError.value = null;
+    activeStepCode.value = stepCode;
+    showModal.value = true;
+    modalLoading.value = true;
+    currentFormComponent.value = null;
+
+    store.fetchStepDetail(stepCode)
+      .then(response => {
+        stepData.value = response.data;
+        currentFormComponent.value = formComponents[stepCode] || null;
+        modalLoading.value = false;
+      })
+      .catch(err => {
+        console.error('Failed to load framework step:', stepCode, err);
+        modalError.value = {
+          message: err.message || 'Step yuklanmadi',
+          stack: err.stack,
+          info: 'openFrameworkStep error'
+        };
+        modalLoading.value = false;
+      });
+  }
 }
 
 function closeModal() {

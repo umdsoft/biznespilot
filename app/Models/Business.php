@@ -25,6 +25,8 @@ class Business extends Model
         'slug',
         'category',
         'industry',
+        'industry_code',
+        'industry_detected_at',
         'industry_id',
         'sub_industry_id',
         'business_type',
@@ -101,6 +103,21 @@ class Business extends Model
                 $business->maturityAssessment()->create([
                     'business_id' => $business->id,
                 ]);
+            }
+
+            // Auto-detect industry_code from category/industry
+            if (!$business->industry_code) {
+                $business->industry_code = \App\Services\KPI\BusinessCategoryMapper::detectFromBusiness($business);
+                $business->industry_detected_at = now();
+                $business->saveQuietly(); // Save without triggering events again
+            }
+        });
+
+        static::updating(function ($business) {
+            // Re-detect industry_code if category or industry changes
+            if ($business->isDirty(['category', 'industry', 'business_type']) && !$business->isDirty('industry_code')) {
+                $business->industry_code = \App\Services\KPI\BusinessCategoryMapper::detectFromBusiness($business);
+                $business->industry_detected_at = now();
             }
         });
     }
@@ -475,5 +492,57 @@ class Business extends Model
         }
 
         return now()->diffInDays($subscription->ends_at, false);
+    }
+
+    // ==================== ALGORITHM RELATIONSHIPS ====================
+
+    /**
+     * Get the Instagram accounts for the business.
+     */
+    public function instagramAccounts(): HasMany
+    {
+        return $this->hasMany(\App\Models\InstagramAccount::class);
+    }
+
+    /**
+     * Get the AI diagnostics for the business.
+     */
+    public function aiDiagnostics(): HasMany
+    {
+        return $this->hasMany(\App\Models\AiDiagnostic::class);
+    }
+
+    // ==================== KPI RELATIONSHIPS ====================
+
+    /**
+     * Get the KPI configuration for the business.
+     */
+    public function kpiConfiguration(): HasOne
+    {
+        return $this->hasOne(BusinessKpiConfiguration::class);
+    }
+
+    /**
+     * Get all KPI daily actuals for the business.
+     */
+    public function kpiDailyActuals(): HasMany
+    {
+        return $this->hasMany(KpiDailyActual::class);
+    }
+
+    /**
+     * Get all KPI weekly summaries for the business.
+     */
+    public function kpiWeeklySummaries(): HasMany
+    {
+        return $this->hasMany(KpiWeeklySummary::class);
+    }
+
+    /**
+     * Get all KPI monthly summaries for the business.
+     */
+    public function kpiMonthlySummaries(): HasMany
+    {
+        return $this->hasMany(KpiMonthlySummary::class);
     }
 }

@@ -25,8 +25,6 @@ class UserSetting extends Model
         'ai_creativity_level',
         'theme',
         'language',
-        'notification_preferences',
-        'integrations',
     ];
 
     /**
@@ -39,8 +37,6 @@ class UserSetting extends Model
         'browser_notifications' => 'boolean',
         'marketing_emails' => 'boolean',
         'ai_creativity_level' => 'integer',
-        'notification_preferences' => 'array',
-        'integrations' => 'array',
     ];
 
     /**

@@ -36,7 +36,7 @@ class OnboardingWebController extends Controller
         // Get maturity score if available
         $maturityScore = $business->maturityAssessment?->overall_score;
 
-        // Get steps
+        // Get steps and convert to array with numeric keys
         $steps = $this->onboardingService->getStepsWithStatus($business);
 
         // Get industries for dropdown
@@ -54,8 +54,8 @@ class OnboardingWebController extends Controller
             ],
             'progress' => $progress,
             'maturityScore' => $maturityScore,
-            'steps' => $steps,
-            'industries' => $industries,
+            'steps' => array_values($steps->toArray()), // Convert to indexed array
+            'industries' => array_values($industries->toArray()), // Convert to indexed array
         ]);
     }
 

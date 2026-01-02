@@ -91,25 +91,21 @@ class ReportsController extends Controller
 
         // Offers Performance
         $offersPerformance = Offer::where('business_id', $currentBusiness->id)
-            ->select('status', DB::raw('COUNT(*) as count'), DB::raw('AVG(conversion_rate) as avg_conversion'))
+            ->select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->get()
             ->map(function ($item) {
                 return [
                     'status' => $item->status,
                     'count' => $item->count,
-                    'avg_conversion' => round((float) $item->avg_conversion, 2),
+                    'avg_conversion' => 0, // Conversion rate calculation will be added later
                 ];
             });
 
-        // Competitor Threat Analysis
+        // Competitor Analysis
         $competitorStats = Competitor::where('business_id', $currentBusiness->id)
             ->select(
-                DB::raw('COUNT(*) as total'),
-                DB::raw('AVG(threat_level) as avg_threat'),
-                DB::raw('SUM(CASE WHEN threat_level >= 7 THEN 1 ELSE 0 END) as high_threat'),
-                DB::raw('SUM(CASE WHEN threat_level BETWEEN 4 AND 6 THEN 1 ELSE 0 END) as medium_threat'),
-                DB::raw('SUM(CASE WHEN threat_level < 4 THEN 1 ELSE 0 END) as low_threat')
+                DB::raw('COUNT(*) as total')
             )
             ->first();
 
@@ -122,10 +118,6 @@ class ReportsController extends Controller
             'offersPerformance' => $offersPerformance,
             'competitorStats' => [
                 'total' => $competitorStats->total ?? 0,
-                'avg_threat' => round((float) ($competitorStats->avg_threat ?? 0), 1),
-                'high_threat' => $competitorStats->high_threat ?? 0,
-                'medium_threat' => $competitorStats->medium_threat ?? 0,
-                'low_threat' => $competitorStats->low_threat ?? 0,
             ],
             'dateRange' => [
                 'start' => $startDate,

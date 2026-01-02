@@ -16,8 +16,10 @@ class EnsureBusinessAccess
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Get business ID from header or request parameter
-        $businessId = $request->header('X-Business-ID') ?? $request->input('business_id');
+        // Get business ID from route parameter, header, or request parameter
+        $businessId = $request->route('businessId')
+            ?? $request->header('X-Business-ID')
+            ?? $request->input('business_id');
 
         if (!$businessId) {
             return response()->json([
