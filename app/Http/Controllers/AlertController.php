@@ -145,7 +145,8 @@ class AlertController extends Controller
 
     public function createRule(Request $request)
     {
-        $request->validate([
+        // SECURITY FIX: Use validated data instead of $request->all() to prevent mass assignment
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:threshold,metric_change,pattern',
             'metric' => 'required|string|max:100',
@@ -153,9 +154,11 @@ class AlertController extends Controller
             'threshold_value' => 'required|numeric',
             'severity' => 'required|string|in:critical,high,medium,low,info',
             'message_template' => 'required|string|max:500',
+            'notification_channels' => 'nullable|array',
+            'is_active' => 'boolean',
         ]);
 
-        $rule = AlertRule::create($request->all());
+        $rule = AlertRule::create($validated);
 
         return response()->json(['success' => true, 'rule' => $rule]);
     }

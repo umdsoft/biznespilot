@@ -40,6 +40,8 @@ class GenerateDailyInsights implements ShouldQueue
 
     /**
      * Execute the job.
+     *
+     * PERFORMANCE: Uses chunking to prevent memory overflow with 1000+ businesses
      */
     public function handle(AIInsightsService $insightsService): void
     {
@@ -56,28 +58,46 @@ class GenerateDailyInsights implements ShouldQueue
 
             $this->generateForBusiness($business, $insightsService);
         } else {
-            // Generate insights for all active businesses
-            $businesses = Business::whereHas('subscription', function ($query) {
+            // PERFORMANCE: Count first for logging
+            $totalBusinesses = Business::whereHas('subscription', function ($query) {
                 $query->where('status', 'active')
                     ->where('ends_at', '>', now());
-            })->get();
+            })->count();
 
             Log::info('Starting daily insights generation', [
-                'businesses_count' => $businesses->count(),
+                'businesses_count' => $totalBusinesses,
             ]);
 
-            foreach ($businesses as $business) {
-                try {
-                    $this->generateForBusiness($business, $insightsService);
-                } catch (\Exception $e) {
-                    Log::error('Failed to generate insights for business', [
-                        'business_id' => $business->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
+            $processedCount = 0;
+            $failedCount = 0;
 
-            Log::info('Completed daily insights generation');
+            // PERFORMANCE: Process in chunks of 50 to prevent memory overflow
+            Business::whereHas('subscription', function ($query) {
+                $query->where('status', 'active')
+                    ->where('ends_at', '>', now());
+            })->chunk(50, function ($businesses) use ($insightsService, &$processedCount, &$failedCount) {
+                foreach ($businesses as $business) {
+                    try {
+                        $this->generateForBusiness($business, $insightsService);
+                        $processedCount++;
+                    } catch (\Exception $e) {
+                        Log::error('Failed to generate insights for business', [
+                            'business_id' => $business->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                        $failedCount++;
+                    }
+                }
+
+                // Allow garbage collection between chunks
+                gc_collect_cycles();
+            });
+
+            Log::info('Completed daily insights generation', [
+                'processed' => $processedCount,
+                'failed' => $failedCount,
+                'total' => $totalBusinesses,
+            ]);
         }
     }
 

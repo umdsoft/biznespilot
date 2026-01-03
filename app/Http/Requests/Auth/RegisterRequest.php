@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -43,7 +44,17 @@ class RegisterRequest extends FormRequest
                 'max:20',
                 Rule::unique('users', 'phone')->whereNotNull('phone'),
             ],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            // SECURITY: Strong password policy
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Password::min(8)
+                    ->mixedCase()      // At least one uppercase and one lowercase
+                    ->numbers()        // At least one number
+                    ->symbols()        // At least one special character
+                    ->uncompromised(), // Check against breached password databases
+            ],
         ];
     }
 
@@ -61,7 +72,11 @@ class RegisterRequest extends FormRequest
             'email.unique' => 'This email is already registered.',
             'phone.unique' => 'This phone number is already registered.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'password.min' => 'Password must be at least 8 characters.',
+            'password.min' => 'Parol kamida 8 ta belgidan iborat bo\'lishi kerak.',
+            'password.mixed' => 'Parol katta va kichik harflarni o\'z ichiga olishi kerak.',
+            'password.numbers' => 'Parol kamida bitta raqamni o\'z ichiga olishi kerak.',
+            'password.symbols' => 'Parol kamida bitta maxsus belgini o\'z ichiga olishi kerak.',
+            'password.uncompromised' => 'Bu parol ma\'lumotlar bazalarida topilgan. Iltimos, boshqa parol tanlang.',
         ];
     }
 }

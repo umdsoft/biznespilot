@@ -63,18 +63,25 @@ class KpiMatcherService
                 $query->where('is_universal', true)
                     // OR industry-specific KPIs
                     ->orWhere(function ($q) use ($industryCode, $subCategory, $maturity) {
-                        $q->whereRaw("JSON_CONTAINS(applicable_industries, '\"$industryCode\"') OR JSON_CONTAINS(applicable_industries, '\"all\"')");
+                        // Fixed SQL Injection - using parameter binding
+                        $q->whereRaw(
+                            "JSON_CONTAINS(applicable_industries, ?) OR JSON_CONTAINS(applicable_industries, ?)",
+                            [json_encode($industryCode), json_encode('all')]
+                        );
 
                         if ($subCategory) {
                             $q->where(function ($sq) use ($subCategory) {
                                 $sq->whereNull('applicable_subcategories')
-                                    ->orWhereRaw("JSON_CONTAINS(applicable_subcategories, '\"$subCategory\"')");
+                                    ->orWhereRaw(
+                                        "JSON_CONTAINS(applicable_subcategories, ?)",
+                                        [json_encode($subCategory)]
+                                    );
                             });
                         }
 
                         $q->where(function ($mq) use ($maturity) {
                             $mq->whereNull('min_maturity_level')
-                                ->orWhereRaw("FIND_IN_SET('$maturity', min_maturity_level)");
+                                ->orWhereRaw("FIND_IN_SET(?, min_maturity_level)", [$maturity]);
                         });
                     });
             })

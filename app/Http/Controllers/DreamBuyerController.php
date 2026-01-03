@@ -23,12 +23,19 @@ class DreamBuyerController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
+        // Paginated query instead of loading all
         $dreamBuyers = DreamBuyer::where('business_id', $business->id)
             ->latest()
-            ->get();
+            ->paginate(12);
 
         return Inertia::render('Business/DreamBuyer/Index', [
-            'dreamBuyers' => $dreamBuyers,
+            'dreamBuyers' => $dreamBuyers->items(),
+            'pagination' => [
+                'current_page' => $dreamBuyers->currentPage(),
+                'last_page' => $dreamBuyers->lastPage(),
+                'per_page' => $dreamBuyers->perPage(),
+                'total' => $dreamBuyers->total(),
+            ],
         ]);
     }
 

@@ -9,6 +9,7 @@ use App\Models\Campaign;
 use App\Models\ChatbotConversation;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -16,60 +17,72 @@ class AdminDashboardController extends Controller
 {
     /**
      * Display admin dashboard
+     *
+     * PERFORMANCE: All stats cached for 5 minutes to reduce database load
      */
     public function index()
     {
-        // Platform-wide statistics
-        $stats = [
-            'total_users' => User::count(),
-            'total_businesses' => Business::count(),
-            'active_businesses' => Business::where('status', 'active')->count(),
-            'total_customers' => Customer::count(),
-            'total_conversations' => ChatbotConversation::count(),
-            'total_campaigns' => Campaign::count(),
-            'active_campaigns' => Campaign::whereIn('status', ['running', 'scheduled'])->count(),
-        ];
+        // Platform-wide statistics (CACHED - 5 minutes)
+        $stats = Cache::remember('admin_dashboard_stats', 300, function () {
+            return [
+                'total_users' => User::count(),
+                'total_businesses' => Business::count(),
+                'active_businesses' => Business::where('status', 'active')->count(),
+                'total_customers' => Customer::count(),
+                'total_conversations' => ChatbotConversation::count(),
+                'total_campaigns' => Campaign::count(),
+                'active_campaigns' => Campaign::whereIn('status', ['running', 'scheduled'])->count(),
+            ];
+        });
 
-        // Recent activity
-        $recentBusinesses = Business::with('owner')
-            ->latest()
-            ->limit(5)
-            ->get()
-            ->map(fn($business) => [
-                'id' => $business->id,
-                'name' => $business->name,
-                'owner' => $business->owner->name ?? 'N/A',
-                'status' => $business->status,
-                'created_at' => $business->created_at->diffForHumans(),
-            ]);
+        // Recent activity (CACHED - 2 minutes for fresher data)
+        $recentBusinesses = Cache::remember('admin_recent_businesses', 120, function () {
+            return Business::with('owner')
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(fn($business) => [
+                    'id' => $business->id,
+                    'name' => $business->name,
+                    'owner' => $business->owner->name ?? 'N/A',
+                    'status' => $business->status,
+                    'created_at' => $business->created_at->diffForHumans(),
+                ]);
+        });
 
-        $recentUsers = User::latest()
-            ->limit(5)
-            ->get()
-            ->map(fn($user) => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'created_at' => $user->created_at->diffForHumans(),
-            ]);
+        $recentUsers = Cache::remember('admin_recent_users', 120, function () {
+            return User::latest()
+                ->limit(5)
+                ->get()
+                ->map(fn($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'created_at' => $user->created_at->diffForHumans(),
+                ]);
+        });
 
-        // Monthly growth
-        $monthlyGrowth = [
-            'users' => $this->getMonthlyGrowth(User::class),
-            'businesses' => $this->getMonthlyGrowth(Business::class),
-            'conversations' => $this->getMonthlyGrowth(ChatbotConversation::class),
-        ];
+        // Monthly growth (CACHED - 10 minutes, historical data rarely changes)
+        $monthlyGrowth = Cache::remember('admin_monthly_growth', 600, function () {
+            return [
+                'users' => $this->getMonthlyGrowth(User::class),
+                'businesses' => $this->getMonthlyGrowth(Business::class),
+                'conversations' => $this->getMonthlyGrowth(ChatbotConversation::class),
+            ];
+        });
 
-        // Top performing businesses
-        $topBusinesses = Business::withCount('chatbot_conversations')
-            ->orderBy('chatbot_conversations_count', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(fn($business) => [
-                'id' => $business->id,
-                'name' => $business->name,
-                'conversations_count' => $business->chatbot_conversations_count,
-            ]);
+        // Top performing businesses (CACHED - 5 minutes)
+        $topBusinesses = Cache::remember('admin_top_businesses', 300, function () {
+            return Business::withCount('chatbot_conversations')
+                ->orderBy('chatbot_conversations_count', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn($business) => [
+                    'id' => $business->id,
+                    'name' => $business->name,
+                    'conversations_count' => $business->chatbot_conversations_count,
+                ]);
+        });
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => $stats,
@@ -78,6 +91,20 @@ class AdminDashboardController extends Controller
             'monthlyGrowth' => $monthlyGrowth,
             'topBusinesses' => $topBusinesses,
         ]);
+    }
+
+    /**
+     * Clear admin dashboard cache
+     */
+    public function clearCache()
+    {
+        Cache::forget('admin_dashboard_stats');
+        Cache::forget('admin_recent_businesses');
+        Cache::forget('admin_recent_users');
+        Cache::forget('admin_monthly_growth');
+        Cache::forget('admin_top_businesses');
+
+        return response()->json(['success' => true, 'message' => 'Admin dashboard cache cleared']);
     }
 
     /**

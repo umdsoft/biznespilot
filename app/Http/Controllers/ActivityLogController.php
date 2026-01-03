@@ -97,6 +97,8 @@ class ActivityLogController extends Controller
 
     /**
      * Export activity logs
+     *
+     * PERFORMANCE: Uses chunking to prevent memory overflow with large datasets
      */
     public function export(Request $request)
     {
@@ -119,37 +121,43 @@ class ActivityLogController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        $logs = $query->get();
+        // Get total count for logging
+        $totalCount = $query->count();
 
-        // Create CSV
+        // Create CSV with streaming and chunking
         $filename = 'activity-logs-' . now()->format('Y-m-d-His') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $callback = function () use ($logs) {
+        // PERFORMANCE: Stream data in chunks to prevent memory overflow
+        $callback = function () use ($query) {
             $file = fopen('php://output', 'w');
 
             // Header row
             fputcsv($file, ['Date', 'User', 'Action', 'Description', 'IP Address']);
 
-            // Data rows
-            foreach ($logs as $log) {
-                fputcsv($file, [
-                    $log->created_at->format('Y-m-d H:i:s'),
-                    $log->user?->name ?? 'System',
-                    $log->action,
-                    $log->description,
-                    $log->ip_address,
-                ]);
-            }
+            // PERFORMANCE: Process in chunks of 1000 records
+            $query->chunk(1000, function ($logs) use ($file) {
+                foreach ($logs as $log) {
+                    fputcsv($file, [
+                        $log->created_at->format('Y-m-d H:i:s'),
+                        $log->user?->name ?? 'System',
+                        $log->action,
+                        $log->description,
+                        $log->ip_address,
+                    ]);
+                }
+                // Flush output buffer to prevent memory buildup
+                flush();
+            });
 
             fclose($file);
         };
 
         // Log the export
-        ActivityLogger::exported('Activity Logs', $logs->count());
+        ActivityLogger::exported('Activity Logs', $totalCount);
 
         return response()->stream($callback, 200, $headers);
     }

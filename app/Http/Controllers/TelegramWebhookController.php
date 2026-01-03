@@ -23,6 +23,15 @@ class TelegramWebhookController extends Controller
     public function handle(Request $request, $businessId)
     {
         try {
+            // SECURITY: Verify Telegram webhook secret token
+            if (!$this->verifySecretToken($request, $businessId)) {
+                Log::warning('Telegram webhook secret token verification failed', [
+                    'business_id' => $businessId,
+                    'ip' => $request->ip(),
+                ]);
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
             // Validate business
             $business = Business::findOrFail($businessId);
 
@@ -76,5 +85,40 @@ class TelegramWebhookController extends Controller
     public function verify(Request $request, $businessId)
     {
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Verify Telegram webhook secret token
+     *
+     * SECURITY: Telegram sends X-Telegram-Bot-Api-Secret-Token header
+     * when you set secret_token in setWebhook API call
+     */
+    private function verifySecretToken(Request $request, $businessId): bool
+    {
+        $secretToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
+
+        if (!$secretToken) {
+            // Allow if no secret token header (for backwards compatibility)
+            // In production, you should return false here after setting secret_token
+            Log::warning('Telegram webhook received without secret token header');
+            return true; // Change to false in production after setup
+        }
+
+        // Get the expected secret token for this business
+        $config = ChatbotConfig::where('business_id', $businessId)->first();
+
+        if (!$config || !$config->telegram_webhook_secret) {
+            // If business doesn't have a secret configured, use global secret
+            $expectedSecret = config('services.telegram.webhook_secret');
+
+            if (!$expectedSecret) {
+                Log::warning('Telegram webhook secret not configured');
+                return false;
+            }
+        } else {
+            $expectedSecret = $config->telegram_webhook_secret;
+        }
+
+        return hash_equals($expectedSecret, $secretToken);
     }
 }

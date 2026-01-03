@@ -23,33 +23,49 @@ class CompetitorsController extends Controller
                 ->with('error', 'Avval biznes yarating');
         }
 
-        $competitors = Competitor::where('business_id', $currentBusiness->id)
+        // Get stats with single optimized query (no N+1)
+        $stats = Competitor::where('business_id', $currentBusiness->id)
+            ->selectRaw('
+                COUNT(*) as total_competitors,
+                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_competitors,
+                SUM(CASE WHEN threat_level >= 7 THEN 1 ELSE 0 END) as high_threat,
+                AVG(threat_level) as avg_threat_level
+            ')
+            ->first();
+
+        // Paginated competitors with eager loading
+        $competitorsPaginated = Competitor::where('business_id', $currentBusiness->id)
             ->withCount('activities')
             ->latest()
-            ->get()
-            ->map(function ($competitor) {
-                return [
-                    'id' => $competitor->id,
-                    'name' => $competitor->name,
-                    'website' => $competitor->website,
-                    'description' => $competitor->description,
-                    'threat_level' => $competitor->threat_level,
-                    'is_active' => $competitor->is_active,
-                    'activities_count' => $competitor->activities_count,
-                    'created_at' => $competitor->created_at->format('d.m.Y'),
-                ];
-            });
+            ->paginate(15);
 
-        $stats = [
-            'total_competitors' => $competitors->count(),
-            'active_competitors' => $competitors->where('is_active', true)->count(),
-            'high_threat' => $competitors->where('threat_level', '>=', 7)->count(),
-            'avg_threat_level' => $competitors->avg('threat_level'),
-        ];
+        $competitors = $competitorsPaginated->getCollection()->map(function ($competitor) {
+            return [
+                'id' => $competitor->id,
+                'name' => $competitor->name,
+                'website' => $competitor->website,
+                'description' => $competitor->description,
+                'threat_level' => $competitor->threat_level,
+                'is_active' => $competitor->is_active,
+                'activities_count' => $competitor->activities_count,
+                'created_at' => $competitor->created_at->format('d.m.Y'),
+            ];
+        });
 
         return Inertia::render('Business/Competitors/Index', [
             'competitors' => $competitors->values()->toArray(),
-            'stats' => $stats,
+            'pagination' => [
+                'current_page' => $competitorsPaginated->currentPage(),
+                'last_page' => $competitorsPaginated->lastPage(),
+                'per_page' => $competitorsPaginated->perPage(),
+                'total' => $competitorsPaginated->total(),
+            ],
+            'stats' => [
+                'total_competitors' => $stats->total_competitors ?? 0,
+                'active_competitors' => $stats->active_competitors ?? 0,
+                'high_threat' => $stats->high_threat ?? 0,
+                'avg_threat_level' => round($stats->avg_threat_level ?? 0, 1),
+            ],
             'currentBusiness' => [
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,

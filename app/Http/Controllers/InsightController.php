@@ -7,6 +7,7 @@ use App\Models\Business;
 use App\Services\InsightService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,17 +42,19 @@ class InsightController extends Controller
 
         $insights = $query->paginate(20);
 
-        // Get stats
-        $stats = [
-            'total' => AiInsight::where('business_id', $business->id)->count(),
-            'active' => AiInsight::where('business_id', $business->id)->active()->notExpired()->count(),
-            'by_type' => AiInsight::where('business_id', $business->id)
-                ->active()
-                ->selectRaw('type, count(*) as count')
-                ->groupBy('type')
-                ->pluck('count', 'type')
-                ->toArray(),
-        ];
+        // PERFORMANCE: Get stats with caching (5 minutes)
+        $stats = Cache::remember("insights_stats_{$business->id}", 300, function () use ($business) {
+            return [
+                'total' => AiInsight::where('business_id', $business->id)->count(),
+                'active' => AiInsight::where('business_id', $business->id)->active()->notExpired()->count(),
+                'by_type' => AiInsight::where('business_id', $business->id)
+                    ->active()
+                    ->selectRaw('type, count(*) as count')
+                    ->groupBy('type')
+                    ->pluck('count', 'type')
+                    ->toArray(),
+            ];
+        });
 
         return Inertia::render('Dashboard/Insights/Index', [
             'insights' => $insights,
@@ -107,6 +110,9 @@ class InsightController extends Controller
         $insight = AiInsight::where('business_id', $business->id)->findOrFail($id);
 
         $insight->update(['is_active' => false]);
+
+        // Clear stats cache when insight is dismissed
+        Cache::forget("insights_stats_{$business->id}");
 
         return response()->json(['success' => true]);
     }

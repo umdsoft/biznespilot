@@ -20,21 +20,23 @@ use App\Http\Controllers\Api\KpiEntryController;
 |
 */
 
-// Public routes - API v1
+// Public routes - API v1 (Rate limited to prevent brute force attacks)
 Route::prefix('v1')->group(function () {
-    // Authentication routes
-    Route::prefix('auth')->group(function () {
+    // Authentication routes - SECURITY: Rate limited (5 attempts per minute for login/register)
+    Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
     });
 
-    // Public onboarding data
-    Route::get('industries', [OnboardingController::class, 'industries']);
-    Route::get('onboarding/steps', [OnboardingController::class, 'steps']);
+    // Public onboarding data - Rate limited (60 requests per minute)
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::get('industries', [OnboardingController::class, 'industries']);
+        Route::get('onboarding/steps', [OnboardingController::class, 'steps']);
+    });
 });
 
-// Protected routes - API v1
-Route::prefix('v1')->middleware(['web', 'auth'])->group(function () {
+// Protected routes - API v1 (Rate limited - 120 requests per minute for authenticated users)
+Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(function () {
     // Authentication routes
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
