@@ -25,14 +25,7 @@
           Dashboard
         </NavLink>
 
-        <NavLink href="/business/dream-buyer" :active="$page.url.startsWith('/business/dream-buyer')">
-          <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Ideal Mijoz
-        </NavLink>
-
-        <NavLink href="/business/marketing" :active="$page.url.startsWith('/business/marketing') && !$page.url.startsWith('/business/marketing/campaigns')">
+        <NavLink href="/business/marketing" :active="$page.url === '/business/marketing' || $page.url === '/business/marketing/' || $page.url.startsWith('/business/dream-buyer') || $page.url.startsWith('/business/offers') || $page.url.startsWith('/business/competitors')">
           <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
           </svg>
@@ -58,20 +51,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           Sotuv / Leadlar
-        </NavLink>
-
-        <NavLink href="/business/offers" :active="$page.url.startsWith('/business/offers')">
-          <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-          </svg>
-          Takliflar
-        </NavLink>
-
-        <NavLink href="/business/competitors" :active="$page.url.startsWith('/business/competitors')">
-          <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          Raqobatchilar
         </NavLink>
 
         <!-- AI Section -->

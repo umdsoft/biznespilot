@@ -228,10 +228,16 @@ return new class extends Migration
      */
     private function indexExists(string $table, string $indexName): bool
     {
-        $indexes = Schema::getConnection()
-            ->getDoctrineSchemaManager()
-            ->listTableIndexes($table);
+        $database = config('database.connections.mysql.database');
 
-        return isset($indexes[$indexName]);
+        $result = \DB::select("
+            SELECT COUNT(*) as count
+            FROM information_schema.statistics
+            WHERE table_schema = ?
+            AND table_name = ?
+            AND index_name = ?
+        ", [$database, $table, $indexName]);
+
+        return $result[0]->count > 0;
     }
 };

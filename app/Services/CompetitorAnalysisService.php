@@ -65,7 +65,7 @@ class CompetitorAnalysisService
 
         // Latest metrics
         $latestMetric = CompetitorMetric::where('competitor_id', $competitor->id)
-            ->latest('date')
+            ->latest('recorded_date')
             ->first();
 
         if ($latestMetric) {
@@ -304,13 +304,151 @@ PROMPT;
     }
 
     /**
+     * Generate comprehensive SWOT analysis for business based on all competitors
+     */
+    public function generateBusinessSWOT($business): array
+    {
+        // Get all active competitors with their metrics
+        $competitors = Competitor::where('business_id', $business->id)
+            ->where('status', 'active')
+            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->get();
+
+        if ($competitors->isEmpty()) {
+            return [
+                'strengths' => ['Raqobatchilar hali qo\'shilmagan - tahlil uchun raqobatchi qo\'shing'],
+                'weaknesses' => [],
+                'opportunities' => [],
+                'threats' => [],
+                'generated_at' => now()->toIso8601String(),
+                'based_on_competitors' => 0,
+            ];
+        }
+
+        // Gather all competitor data
+        $competitorData = [];
+        foreach ($competitors as $competitor) {
+            $competitorData[] = $this->gatherCompetitorData($competitor);
+        }
+
+        // Build comprehensive prompt
+        $prompt = $this->buildBusinessSWOTPrompt($business, $competitors, $competitorData);
+
+        // Get AI analysis
+        $response = $this->claudeAI->complete($prompt, null, 4096);
+
+        // Parse and return
+        $swot = $this->parseSWOTResponse($response);
+        $swot['based_on_competitors'] = $competitors->count();
+        $swot['competitor_names'] = $competitors->pluck('name')->toArray();
+
+        return $swot;
+    }
+
+    /**
+     * Build SWOT prompt based on all competitors for business
+     */
+    protected function buildBusinessSWOTPrompt($business, $competitors, array $competitorData): string
+    {
+        $competitorsList = '';
+        foreach ($competitors as $index => $competitor) {
+            $data = $competitorData[$index];
+            $followers = $data['metrics']['instagram_followers'] ?? 'N/A';
+            $engagement = $data['metrics']['instagram_engagement_rate'] ?? 'N/A';
+            $growth = $data['metrics']['follower_growth_rate'] ?? 'N/A';
+
+            $competitorsList .= "\n**{$competitor->name}** (Xavf darajasi: {$competitor->threat_level})\n";
+            $competitorsList .= "- Sohasi: {$competitor->industry}\n";
+            $competitorsList .= "- Instagram obunachilar: {$followers}\n";
+            $competitorsList .= "- Engagement rate: {$engagement}%\n";
+            $competitorsList .= "- O'sish tezligi: {$growth}%\n";
+
+            if (!empty($data['social_presence'])) {
+                $platforms = implode(', ', array_keys($data['social_presence']));
+                $competitorsList .= "- Platformalar: {$platforms}\n";
+            }
+        }
+
+        $businessName = $business->name ?? 'Biznes';
+        $businessIndustry = $business->industry ?? 'Noma\'lum';
+
+        return <<<PROMPT
+Siz biznes strategiya bo'yicha mutaxassissiz. Quyidagi ma'lumotlar asosida "{$businessName}" biznesi uchun SWOT tahlilini o'zbek tilida tuzing.
+
+**Biznes haqida:**
+- Nomi: {$businessName}
+- Sohasi: {$businessIndustry}
+
+**Raqobatchilar tahlili:**
+{$competitorsList}
+
+**Vazifa:**
+Raqobatchilarni tahlil qilib, SHU BIZNES uchun SWOT tahlil tuzing:
+1. STRENGTHS (Kuchli tomonlar) - Raqobatchilarga nisbatan biznesning afzalliklari
+2. WEAKNESSES (Zaif tomonlar) - Raqobatchilarga nisbatan kamchiliklar
+3. OPPORTUNITIES (Imkoniyatlar) - Raqobatchilarning zaifliklaridan foydalanish imkoniyatlari
+4. THREATS (Xavflar) - Raqobatchilardan keladigan xavflar
+
+**Javob formati (JSON):**
+{
+    "strengths": [
+        "O'zbek tilida aniq kuchli tomon 1",
+        "O'zbek tilida aniq kuchli tomon 2",
+        "O'zbek tilida aniq kuchli tomon 3"
+    ],
+    "weaknesses": [
+        "O'zbek tilida aniq zaif tomon 1",
+        "O'zbek tilida aniq zaif tomon 2"
+    ],
+    "opportunities": [
+        "O'zbek tilida aniq imkoniyat 1",
+        "O'zbek tilida aniq imkoniyat 2",
+        "O'zbek tilida aniq imkoniyat 3"
+    ],
+    "threats": [
+        "O'zbek tilida aniq xavf 1",
+        "O'zbek tilida aniq xavf 2"
+    ],
+    "overall_assessment": "Qisqa xulosa (2-3 gap)",
+    "recommendations": [
+        "Tavsiya 1",
+        "Tavsiya 2"
+    ]
+}
+
+FAQAT JSON bilan javob bering, boshqa matn yozmang.
+PROMPT;
+    }
+
+    /**
+     * Update business SWOT based on competitor changes
+     */
+    public function updateBusinessSwotFromCompetitor($business): void
+    {
+        try {
+            $swot = $this->generateBusinessSWOT($business);
+
+            $settings = $business->settings ?? [];
+            $settings['swot'] = $swot;
+            $settings['swot_auto_updated_at'] = now()->toIso8601String();
+            $business->settings = $settings;
+            $business->save();
+
+            // Clear cache
+            \Illuminate\Support\Facades\Cache::forget("competitor_insights_{$business->id}");
+        } catch (\Exception $e) {
+            \Log::error('Auto SWOT update failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get competitive insights for business
      */
     public function getCompetitiveInsights(string $businessId): array
     {
         $competitors = Competitor::where('business_id', $businessId)
-            ->where('is_active', true)
-            ->with(['metrics' => fn($q) => $q->latest('date')->limit(1)])
+            ->where('status', 'active')
+            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
             ->get();
 
         if ($competitors->isEmpty()) {

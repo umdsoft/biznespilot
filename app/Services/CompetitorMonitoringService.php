@@ -6,27 +6,71 @@ use App\Models\Competitor;
 use App\Models\CompetitorActivity;
 use App\Models\CompetitorAlert;
 use App\Models\CompetitorMetric;
+use App\Models\Integration;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class CompetitorMonitoringService
 {
+    protected SocialMediaScraperService $scraper;
+    protected ?ContentAnalysisService $contentService = null;
+    protected ?MetaAdLibraryService $adService = null;
+    protected ?PriceMonitoringService $priceService = null;
+    protected ?ReviewsMonitoringService $reviewsService = null;
+
+    public function __construct(
+        SocialMediaScraperService $scraper,
+        ?ContentAnalysisService $contentService = null,
+        ?MetaAdLibraryService $adService = null,
+        ?PriceMonitoringService $priceService = null,
+        ?ReviewsMonitoringService $reviewsService = null
+    ) {
+        $this->scraper = $scraper;
+        $this->contentService = $contentService ?? app(ContentAnalysisService::class);
+        $this->adService = $adService ?? app(MetaAdLibraryService::class);
+        $this->priceService = $priceService ?? app(PriceMonitoringService::class);
+        $this->reviewsService = $reviewsService ?? app(ReviewsMonitoringService::class);
+    }
+
     /**
-     * Monitor a single competitor
+     * Get Meta integration access token for a business
+     */
+    protected function getMetaAccessToken(string $businessId): ?string
+    {
+        $integration = Integration::where('business_id', $businessId)
+            ->where('type', 'meta_ads')
+            ->where('status', 'connected')
+            ->where('is_active', true)
+            ->first();
+
+        if ($integration && !$integration->isExpired()) {
+            return $integration->getAccessToken();
+        }
+
+        return null;
+    }
+
+    /**
+     * Monitor a single competitor - Full marketing intelligence
      */
     public function monitorCompetitor(Competitor $competitor): array
     {
         $results = [
             'success' => false,
             'metrics_collected' => false,
+            'content_analyzed' => false,
+            'ads_scanned' => false,
+            'prices_checked' => false,
+            'reviews_fetched' => false,
             'activities_found' => 0,
             'alerts_created' => 0,
             'errors' => [],
         ];
 
         try {
-            // Collect metrics from available platforms
+            // 1. Collect basic metrics from available platforms
             $metrics = $this->collectMetrics($competitor);
 
             if ($metrics) {
@@ -38,12 +82,63 @@ class CompetitorMonitoringService
                 $results['alerts_created'] = count($alerts);
             }
 
-            // Scan for new activities
+            // 2. Analyze content (posts from Instagram/Telegram)
+            try {
+                $contentResults = $this->contentService->analyzeCompetitor($competitor);
+                $results['content_analyzed'] = $contentResults['success'];
+                if (!$contentResults['success'] && !empty($contentResults['errors'])) {
+                    $results['errors'] = array_merge($results['errors'], $contentResults['errors']);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Content analysis failed', ['competitor_id' => $competitor->id, 'error' => $e->getMessage()]);
+            }
+
+            // 3. Scan for ads (Meta Ad Library)
+            if ($competitor->facebook_page || $competitor->instagram_handle) {
+                try {
+                    $adResults = $this->adService->searchCompetitorAds($competitor);
+                    $results['ads_scanned'] = $adResults['success'];
+                    if (!$adResults['success'] && !empty($adResults['errors'])) {
+                        $results['errors'] = array_merge($results['errors'], $adResults['errors']);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Ad scanning failed', ['competitor_id' => $competitor->id, 'error' => $e->getMessage()]);
+                }
+            }
+
+            // 4. Monitor prices (for tracked products)
+            if ($competitor->products()->tracked()->exists()) {
+                try {
+                    $priceResults = $this->priceService->monitorPrices($competitor);
+                    $results['prices_checked'] = $priceResults['success'];
+                    $results['alerts_created'] += $priceResults['price_changes'] ?? 0;
+                } catch (\Exception $e) {
+                    Log::warning('Price monitoring failed', ['competitor_id' => $competitor->id, 'error' => $e->getMessage()]);
+                }
+            }
+
+            // 5. Fetch reviews (from registered sources)
+            if ($competitor->reviewSources()->exists()) {
+                try {
+                    $reviewResults = $this->reviewsService->monitorReviews($competitor);
+                    $results['reviews_fetched'] = $reviewResults['success'];
+                    if (!$reviewResults['success'] && !empty($reviewResults['errors'])) {
+                        $results['errors'] = array_merge($results['errors'], $reviewResults['errors']);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Review fetching failed', ['competitor_id' => $competitor->id, 'error' => $e->getMessage()]);
+                }
+            }
+
+            // 6. Scan for new activities (legacy)
             $activities = $this->scanActivities($competitor);
             $results['activities_found'] = count($activities);
 
             // Update last checked timestamp
             $competitor->update(['last_checked_at' => now()]);
+
+            // Clear caches
+            $this->clearCompetitorCaches($competitor);
 
             $results['success'] = true;
 
@@ -60,84 +155,183 @@ class CompetitorMonitoringService
     }
 
     /**
-     * Collect metrics from all available platforms
+     * Clear all caches for competitor
+     */
+    protected function clearCompetitorCaches(Competitor $competitor): void
+    {
+        Cache::forget("competitor_content_insights_{$competitor->id}");
+        Cache::forget("competitor_ad_insights_{$competitor->id}");
+        Cache::forget("competitor_price_insights_{$competitor->id}");
+        Cache::forget("competitor_review_insights_{$competitor->id}");
+    }
+
+    /**
+     * Collect metrics from all available platforms (Hybrid approach)
+     * 1. Telegram - always via scraper (works well)
+     * 2. Instagram/Facebook - try Graph API if available, then scraper, else mark for manual entry
      */
     protected function collectMetrics(Competitor $competitor): array
     {
         $metrics = [];
+        $dataSources = [];
 
-        // Instagram metrics
-        if ($competitor->instagram_handle) {
-            $instagramData = $this->getInstagramMetrics($competitor->instagram_handle);
-            if ($instagramData) {
-                $metrics = array_merge($metrics, $instagramData);
-            }
-        }
+        // Get Meta access token for potential Graph API use
+        $accessToken = $this->getMetaAccessToken($competitor->business_id);
 
-        // Telegram metrics
+        // Telegram metrics - scraper always works
         if ($competitor->telegram_handle) {
             $telegramData = $this->getTelegramMetrics($competitor->telegram_handle);
             if ($telegramData) {
                 $metrics = array_merge($metrics, $telegramData);
+                $dataSources['telegram'] = 'scraper';
             }
         }
 
-        // Facebook metrics
+        // Instagram metrics - hybrid approach
+        if ($competitor->instagram_handle) {
+            $instagramData = null;
+
+            // Try Graph API first if we have access token
+            if ($accessToken) {
+                $instagramData = $this->getInstagramMetricsViaAPI($competitor->instagram_handle, $accessToken);
+                if ($instagramData) {
+                    $dataSources['instagram'] = 'api';
+                }
+            }
+
+            // Fallback to scraper
+            if (!$instagramData) {
+                $instagramData = $this->getInstagramMetrics($competitor->instagram_handle);
+                if ($instagramData) {
+                    $dataSources['instagram'] = 'scraper';
+                }
+            }
+
+            if ($instagramData) {
+                $metrics = array_merge($metrics, $instagramData);
+            } else {
+                $dataSources['instagram'] = 'manual_required';
+            }
+        }
+
+        // Facebook metrics - hybrid approach
         if ($competitor->facebook_page) {
-            $facebookData = $this->getFacebookMetrics($competitor->facebook_page);
+            $facebookData = null;
+
+            // Try Graph API first if we have access token
+            if ($accessToken) {
+                $facebookData = $this->getFacebookMetricsViaAPI($competitor->facebook_page, $accessToken);
+                if ($facebookData) {
+                    $dataSources['facebook'] = 'api';
+                }
+            }
+
+            // Fallback to scraper
+            if (!$facebookData) {
+                $facebookData = $this->getFacebookMetrics($competitor->facebook_page);
+                if ($facebookData) {
+                    $dataSources['facebook'] = 'scraper';
+                }
+            }
+
             if ($facebookData) {
                 $metrics = array_merge($metrics, $facebookData);
+            } else {
+                $dataSources['facebook'] = 'manual_required';
             }
+        }
+
+        // Store data sources info
+        if (!empty($dataSources)) {
+            $metrics['_data_sources'] = $dataSources;
         }
 
         return $metrics;
     }
 
     /**
-     * Get Instagram metrics
-     * NOTE: This is a placeholder. In production, you would:
-     * 1. Use Instagram Graph API (requires business account)
-     * 2. Use third-party scraping service
-     * 3. Manual data entry
+     * Get Instagram metrics via Graph API (when business has Meta integration)
      */
-    protected function getInstagramMetrics(string $handle): ?array
+    protected function getInstagramMetricsViaAPI(string $handle, string $accessToken): ?array
     {
-        // Placeholder - would integrate with Instagram API or scraping service
-        // For now, return null to indicate manual entry needed
+        Log::info('Trying Instagram Graph API', ['handle' => $handle]);
 
-        Log::info('Instagram metrics check', ['handle' => $handle]);
-
-        // Example of what real implementation might return:
-        // return [
-        //     'instagram_followers' => 15000,
-        //     'instagram_following' => 500,
-        //     'instagram_posts' => 234,
-        //     'instagram_engagement_rate' => 3.5,
-        //     'instagram_avg_likes' => 450,
-        //     'instagram_avg_comments' => 25,
-        // ];
-
-        return null;
-    }
-
-    /**
-     * Get Telegram metrics
-     * NOTE: Can use Telegram API for public channels
-     */
-    protected function getTelegramMetrics(string $handle): ?array
-    {
         try {
-            // Telegram provides public channel info via web preview
-            // This is a simplified example
-            $handle = str_replace('@', '', $handle);
+            // First, search for the Instagram business account
+            $searchResponse = Http::get('https://graph.facebook.com/v18.0/ig_hashtag_search', [
+                'user_id' => 'me',
+                'q' => ltrim($handle, '@'),
+                'access_token' => $accessToken,
+            ]);
 
-            // In production, integrate with Telegram Bot API or web scraping
-            Log::info('Telegram metrics check', ['handle' => $handle]);
+            // If direct API access doesn't work, try the scraper service's API method
+            $metrics = $this->scraper->getInstagramMetricsViaAPI($handle, $accessToken);
+
+            if ($metrics) {
+                Log::info('Instagram Graph API success', ['handle' => $handle]);
+                return $metrics;
+            }
 
             return null;
 
         } catch (\Exception $e) {
-            Log::error('Telegram metrics error', [
+            Log::warning('Instagram Graph API failed', [
+                'handle' => $handle,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Get Facebook metrics via Graph API (when business has Meta integration)
+     */
+    protected function getFacebookMetricsViaAPI(string $pageId, string $accessToken): ?array
+    {
+        Log::info('Trying Facebook Graph API', ['page_id' => $pageId]);
+
+        try {
+            $metrics = $this->scraper->getFacebookMetricsViaAPI($pageId, $accessToken);
+
+            if ($metrics) {
+                Log::info('Facebook Graph API success', ['page_id' => $pageId]);
+                return $metrics;
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            Log::warning('Facebook Graph API failed', [
+                'page_id' => $pageId,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Get Instagram metrics using SocialMediaScraperService
+     */
+    protected function getInstagramMetrics(string $handle): ?array
+    {
+        Log::info('Fetching Instagram metrics', ['handle' => $handle]);
+
+        try {
+            $metrics = $this->scraper->getInstagramMetrics($handle);
+
+            if ($metrics) {
+                Log::info('Instagram metrics fetched successfully', [
+                    'handle' => $handle,
+                    'followers' => $metrics['instagram_followers'] ?? null,
+                ]);
+            } else {
+                Log::warning('Instagram metrics not available', ['handle' => $handle]);
+            }
+
+            return $metrics;
+
+        } catch (\Exception $e) {
+            Log::error('Instagram metrics fetch failed', [
                 'handle' => $handle,
                 'error' => $e->getMessage(),
             ]);
@@ -147,14 +341,65 @@ class CompetitorMonitoringService
     }
 
     /**
-     * Get Facebook metrics
+     * Get Telegram metrics using SocialMediaScraperService
+     */
+    protected function getTelegramMetrics(string $handle): ?array
+    {
+        Log::info('Fetching Telegram metrics', ['handle' => $handle]);
+
+        try {
+            $metrics = $this->scraper->getTelegramMetrics($handle);
+
+            if ($metrics) {
+                Log::info('Telegram metrics fetched successfully', [
+                    'handle' => $handle,
+                    'members' => $metrics['telegram_members'] ?? null,
+                ]);
+            } else {
+                Log::warning('Telegram metrics not available', ['handle' => $handle]);
+            }
+
+            return $metrics;
+
+        } catch (\Exception $e) {
+            Log::error('Telegram metrics fetch failed', [
+                'handle' => $handle,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Get Facebook metrics using SocialMediaScraperService
      */
     protected function getFacebookMetrics(string $pageId): ?array
     {
-        // Placeholder - would integrate with Facebook Graph API
-        Log::info('Facebook metrics check', ['page_id' => $pageId]);
+        Log::info('Fetching Facebook metrics', ['page_id' => $pageId]);
 
-        return null;
+        try {
+            $metrics = $this->scraper->getFacebookMetrics($pageId);
+
+            if ($metrics) {
+                Log::info('Facebook metrics fetched successfully', [
+                    'page_id' => $pageId,
+                    'followers' => $metrics['facebook_followers'] ?? null,
+                ]);
+            } else {
+                Log::warning('Facebook metrics not available', ['page_id' => $pageId]);
+            }
+
+            return $metrics;
+
+        } catch (\Exception $e) {
+            Log::error('Facebook metrics fetch failed', [
+                'page_id' => $pageId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     /**
@@ -162,13 +407,29 @@ class CompetitorMonitoringService
      */
     protected function saveMetrics(Competitor $competitor, array $metrics): void
     {
+        // Extract data sources info before saving
+        $dataSources = $metrics['_data_sources'] ?? [];
+        unset($metrics['_data_sources']);
+
+        // Determine overall data source
+        $dataSource = 'scraper';
+        if (in_array('api', $dataSources)) {
+            $dataSource = 'api';
+        } elseif (empty(array_filter($dataSources, fn($s) => $s !== 'manual_required'))) {
+            $dataSource = 'manual';
+        }
+
         $metric = CompetitorMetric::updateOrCreate(
             [
                 'competitor_id' => $competitor->id,
-                'date' => today(),
+                'recorded_date' => today(),
             ],
             array_merge($metrics, [
-                'data_source' => 'api',
+                'data_source' => $dataSource,
+                'raw_data' => [
+                    'sources' => $dataSources,
+                    'collected_at' => now()->toIso8601String(),
+                ],
             ])
         );
 
@@ -199,25 +460,138 @@ class CompetitorMonitoringService
     }
 
     /**
-     * Scan Instagram posts
+     * Scan Instagram posts and save to competitor_contents
      */
     protected function scanInstagramPosts(Competitor $competitor): array
     {
-        // Placeholder for Instagram post scanning
-        // Would integrate with Instagram API or scraping service
+        if (!$competitor->instagram_handle) {
+            return [];
+        }
 
-        return [];
+        $activities = [];
+
+        try {
+            $posts = $this->scraper->getInstagramPosts($competitor->instagram_handle, 12);
+
+            if ($posts) {
+                foreach ($posts as $post) {
+                    // Check if post already exists
+                    $exists = $competitor->contents()
+                        ->where('platform', 'instagram')
+                        ->where('external_id', $post['id'])
+                        ->exists();
+
+                    if (!$exists) {
+                        $content = $competitor->contents()->create([
+                            'platform' => 'instagram',
+                            'external_id' => $post['id'],
+                            'content_type' => $post['type'] ?? 'image',
+                            'caption' => $post['caption'] ?? null,
+                            'permalink' => $post['permalink'] ?? null,
+                            'thumbnail_url' => $post['thumbnail_url'] ?? null,
+                            'media_urls' => $post['media_urls'] ?? null,
+                            'likes_count' => $post['likes_count'] ?? 0,
+                            'comments_count' => $post['comments_count'] ?? 0,
+                            'shares_count' => $post['shares_count'] ?? 0,
+                            'views_count' => $post['views_count'] ?? null,
+                            'published_at' => isset($post['timestamp']) ? Carbon::parse($post['timestamp']) : now(),
+                            'hashtags' => $this->extractHashtags($post['caption'] ?? ''),
+                            'mentions' => $this->extractMentions($post['caption'] ?? ''),
+                        ]);
+
+                        $activities[] = $content;
+                    }
+                }
+
+                Log::info('Instagram posts scanned', [
+                    'competitor_id' => $competitor->id,
+                    'new_posts' => count($activities),
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::warning('Instagram post scanning failed', [
+                'competitor_id' => $competitor->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $activities;
     }
 
     /**
-     * Scan Telegram posts
+     * Scan Telegram posts and save to competitor_contents
      */
     protected function scanTelegramPosts(Competitor $competitor): array
     {
-        // Placeholder for Telegram post scanning
-        // Can use Telegram API for public channels
+        if (!$competitor->telegram_handle) {
+            return [];
+        }
 
-        return [];
+        $activities = [];
+
+        try {
+            $posts = $this->scraper->getTelegramPosts($competitor->telegram_handle, 20);
+
+            if ($posts) {
+                foreach ($posts as $post) {
+                    // Check if post already exists
+                    $exists = $competitor->contents()
+                        ->where('platform', 'telegram')
+                        ->where('external_id', $post['id'])
+                        ->exists();
+
+                    if (!$exists) {
+                        $content = $competitor->contents()->create([
+                            'platform' => 'telegram',
+                            'external_id' => $post['id'],
+                            'content_type' => $post['type'] ?? 'text',
+                            'caption' => $post['text'] ?? null,
+                            'permalink' => $post['url'] ?? null,
+                            'thumbnail_url' => $post['photo_url'] ?? null,
+                            'media_urls' => $post['media_urls'] ?? null,
+                            'views_count' => $post['views'] ?? null,
+                            'published_at' => isset($post['date']) ? Carbon::parse($post['date']) : now(),
+                            'hashtags' => $this->extractHashtags($post['text'] ?? ''),
+                            'mentions' => $this->extractMentions($post['text'] ?? ''),
+                        ]);
+
+                        $activities[] = $content;
+                    }
+                }
+
+                Log::info('Telegram posts scanned', [
+                    'competitor_id' => $competitor->id,
+                    'new_posts' => count($activities),
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::warning('Telegram post scanning failed', [
+                'competitor_id' => $competitor->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $activities;
+    }
+
+    /**
+     * Extract hashtags from text
+     */
+    protected function extractHashtags(string $text): array
+    {
+        preg_match_all('/#(\w+)/u', $text, $matches);
+        return array_unique($matches[1] ?? []);
+    }
+
+    /**
+     * Extract mentions from text
+     */
+    protected function extractMentions(string $text): array
+    {
+        preg_match_all('/@(\w+)/u', $text, $matches);
+        return array_unique($matches[1] ?? []);
     }
 
     /**
@@ -229,8 +603,8 @@ class CompetitorMonitoringService
 
         // Get previous metrics
         $previousMetric = CompetitorMetric::where('competitor_id', $competitor->id)
-            ->where('date', '<', today())
-            ->orderBy('date', 'desc')
+            ->where('recorded_date', '<', today())
+            ->orderBy('recorded_date', 'desc')
             ->first();
 
         if (!$previousMetric) {
@@ -301,7 +675,7 @@ class CompetitorMonitoringService
         $metric = CompetitorMetric::updateOrCreate(
             [
                 'competitor_id' => $competitor->id,
-                'date' => $date ?? today(),
+                'recorded_date' => $date ?? today(),
             ],
             array_merge($metrics, [
                 'data_source' => 'manual',

@@ -1,6 +1,8 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import CampaignsTab from '@/components/GoogleAds/CampaignsTab.vue';
+import CreateCampaignModal from '@/components/GoogleAds/CreateCampaignModal.vue';
 import { ref, computed } from 'vue';
 
 const props = defineProps({
@@ -15,6 +17,27 @@ const props = defineProps({
 });
 
 const activeTab = ref('overview');
+const showCampaignModal = ref(false);
+const campaignsTabRef = ref(null);
+
+const openCampaignModal = () => {
+    showCampaignModal.value = true;
+};
+
+const closeCampaignModal = () => {
+    showCampaignModal.value = false;
+};
+
+const onCampaignCreated = () => {
+    closeCampaignModal();
+    if (campaignsTabRef.value) {
+        campaignsTabRef.value.loadCampaigns();
+    }
+};
+
+const goToCampaign = (campaign) => {
+    router.visit(route('google-ads-campaigns.show', campaign.id));
+};
 
 const formatNumber = (num) => {
     if (!num) return '0';
@@ -298,59 +321,23 @@ const getPriorityText = (priority) => {
 
                     <!-- Campaigns Tab -->
                     <div v-if="activeTab === 'campaigns'" class="p-6">
-                        <div v-if="campaignsData && campaignsData.length > 0" class="space-y-4">
-                            <div
-                                v-for="campaign in campaignsData"
-                                :key="campaign.id"
-                                class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
-                            >
-                                <div class="flex items-center justify-between mb-3">
-                                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ campaign.name }}</h4>
-                                    <span
-                                        class="px-2 py-1 text-xs font-medium rounded-full"
-                                        :class="campaign.status === 'ENABLED' ? 'bg-green-500/20 text-green-500' : 'bg-gray-500/20 text-gray-500'"
-                                    >
-                                        {{ campaign.status === 'ENABLED' ? 'Faol' : 'Nofaol' }}
-                                    </span>
-                                </div>
-                                <div class="grid grid-cols-4 gap-4 text-sm">
-                                    <div>
-                                        <p class="text-gray-500 dark:text-gray-400">Ko'rishlar</p>
-                                        <p class="font-semibold text-gray-900 dark:text-white">{{ formatNumber(campaign.impressions) }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-500 dark:text-gray-400">Kliklar</p>
-                                        <p class="font-semibold text-gray-900 dark:text-white">{{ formatNumber(campaign.clicks) }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-500 dark:text-gray-400">CTR</p>
-                                        <p class="font-semibold text-gray-900 dark:text-white">{{ formatPercent(campaign.ctr) }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-500 dark:text-gray-400">Xarajat</p>
-                                        <p class="font-semibold text-gray-900 dark:text-white">{{ formatCurrency(campaign.cost) }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-else class="text-center py-12">
-                            <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            <p class="text-gray-500 dark:text-gray-400 mb-4">Kampaniyalar topilmadi</p>
-                            <a
-                                href="https://ads.google.com"
-                                target="_blank"
-                                class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                            >
-                                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                Kampaniya yaratish
-                            </a>
-                        </div>
+                        <CampaignsTab
+                            ref="campaignsTabRef"
+                            :business-id="currentBusiness.id"
+                            :has-integration="!!integration"
+                            @open-campaign-modal="openCampaignModal"
+                            @campaign-selected="goToCampaign"
+                        />
                     </div>
                 </div>
+
+                <!-- Create Campaign Modal -->
+                <CreateCampaignModal
+                    v-if="showCampaignModal"
+                    :business-id="currentBusiness.id"
+                    @close="closeCampaignModal"
+                    @created="onCampaignCreated"
+                />
 
                 <!-- External Link -->
                 <div class="text-center">

@@ -18,7 +18,7 @@
                         Dashboard
                     </Link>
                     <button
-                        @click="showAddModal = true"
+                        @click="openAddModal"
                         class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
                 </div>
             </div>
 
-            <!-- Competitors Grid -->
+            <!-- Competitors Table -->
             <div v-if="filteredCompetitors.length === 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
                 <div class="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
                     <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Raqobatchilar topilmadi</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Yangi raqobatchi qo'shish uchun yuqoridagi tugmani bosing.</p>
                 <button
-                    @click="showAddModal = true"
+                    @click="openAddModal"
                     class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
                 >
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,118 +155,185 @@
                 </button>
             </div>
 
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div
-                    v-for="competitor in filteredCompetitors"
-                    :key="competitor.id"
-                    class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors group"
-                >
-                    <!-- Card Header -->
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-                                {{ competitor.name }}
-                            </h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ competitor.industry || 'Soha belgilanmagan' }} • {{ competitor.location || 'Joylashuv belgilanmagan' }}
-                            </p>
-                        </div>
+            <!-- Professional Table View -->
+            <div v-else class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Raqobatchi</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                                    <span class="flex items-center justify-center gap-1">
+                                        <svg class="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                        </svg>
+                                        Instagram
+                                    </span>
+                                </th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                                    <span class="flex items-center justify-center gap-1">
+                                        <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                                        Telegram
+                                    </span>
+                                </th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                                    <span class="flex items-center justify-center gap-1">
+                                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                        Facebook
+                                    </span>
+                                </th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Tahdid</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Kuzatuv</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            <tr
+                                v-for="competitor in filteredCompetitors"
+                                :key="competitor.id"
+                                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            >
+                                <!-- Competitor Info -->
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                                            {{ competitor.name.substring(0, 2).toUpperCase() }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <Link
+                                                :href="route('business.competitors.show', competitor.id)"
+                                                class="font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 truncate block"
+                                            >
+                                                {{ competitor.name }}
+                                            </Link>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                {{ competitor.industry || competitor.location || 'Ma\'lumot yo\'q' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
 
-                        <!-- Threat Badge -->
-                        <span
-                            :class="getThreatBadgeClass(competitor.threat_level)"
-                            class="px-2.5 py-1 text-xs font-medium rounded-lg"
-                        >
-                            {{ getThreatLevelText(competitor.threat_level) }}
-                        </span>
-                    </div>
+                                <!-- Instagram -->
+                                <td class="px-4 py-3 text-center">
+                                    <div v-if="competitor.instagram_handle" class="flex flex-col items-center">
+                                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ formatNumber(getLatestMetric(competitor, 'instagram_followers')) }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ competitor.instagram_handle }}</span>
+                                    </div>
+                                    <span v-else class="text-gray-300 dark:text-gray-600">—</span>
+                                </td>
 
-                    <!-- Description -->
-                    <p v-if="competitor.description" class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                        {{ competitor.description }}
-                    </p>
+                                <!-- Telegram -->
+                                <td class="px-4 py-3 text-center">
+                                    <div v-if="competitor.telegram_handle" class="flex flex-col items-center">
+                                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ formatNumber(getLatestMetric(competitor, 'telegram_members')) }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ competitor.telegram_handle }}</span>
+                                    </div>
+                                    <span v-else class="text-gray-300 dark:text-gray-600">—</span>
+                                </td>
 
-                    <!-- Platforms -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <span v-if="competitor.instagram_handle" class="flex items-center gap-1 text-pink-600 dark:text-pink-400" :title="competitor.instagram_handle">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                            </svg>
-                        </span>
-                        <span v-if="competitor.telegram_handle" class="flex items-center gap-1 text-blue-500 dark:text-blue-400" :title="competitor.telegram_handle">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                            </svg>
-                        </span>
-                        <span v-if="competitor.facebook_page" class="flex items-center gap-1 text-blue-600 dark:text-blue-400" :title="competitor.facebook_page">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                        </span>
-                        <span v-if="competitor.tiktok_handle" class="flex items-center gap-1 text-gray-900 dark:text-gray-100" :title="competitor.tiktok_handle">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                            </svg>
-                        </span>
-                        <span v-if="!competitor.instagram_handle && !competitor.telegram_handle && !competitor.facebook_page && !competitor.tiktok_handle" class="text-xs text-gray-400 dark:text-gray-500">
-                            Platformalar belgilanmagan
-                        </span>
-                    </div>
+                                <!-- Facebook -->
+                                <td class="px-4 py-3 text-center">
+                                    <div v-if="competitor.facebook_page" class="flex flex-col items-center">
+                                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ formatNumber(getLatestMetric(competitor, 'facebook_followers')) }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[80px]">{{ competitor.facebook_page }}</span>
+                                    </div>
+                                    <span v-else class="text-gray-300 dark:text-gray-600">—</span>
+                                </td>
 
-                    <!-- Status & Last Check -->
-                    <div class="flex items-center justify-between text-sm mb-4">
-                        <span
-                            :class="getStatusBadgeClass(competitor.status)"
-                            class="px-2 py-0.5 text-xs font-medium rounded-md"
-                        >
-                            {{ getStatusText(competitor.status) }}
-                        </span>
-                        <span class="text-gray-500 dark:text-gray-400 text-xs">
-                            {{ competitor.last_checked_at ? formatDate(competitor.last_checked_at) : 'Tekshirilmagan' }}
-                        </span>
-                    </div>
+                                <!-- Threat Level -->
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        :class="getThreatBadgeClass(competitor.threat_level)"
+                                        class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full"
+                                    >
+                                        <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getThreatDotClass(competitor.threat_level)"></span>
+                                        {{ getThreatLevelText(competitor.threat_level) }}
+                                    </span>
+                                </td>
 
-                    <!-- Actions -->
-                    <div class="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-                        <Link
-                            :href="route('business.competitors.show', competitor.id)"
-                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
-                        >
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            Ko'rish
-                        </Link>
-                        <button
-                            @click="editCompetitor(competitor)"
-                            class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                            title="Tahrirlash"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </button>
-                        <button
-                            @click="monitorNow(competitor)"
-                            :disabled="competitor.monitoring"
-                            class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors disabled:opacity-50"
-                            title="Hozir tekshirish"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                        </button>
-                        <button
-                            @click="deleteCompetitor(competitor)"
-                            class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                            title="O'chirish"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
+                                <!-- Status -->
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        :class="getStatusBadgeClass(competitor.status)"
+                                        class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md"
+                                    >
+                                        {{ getStatusText(competitor.status) }}
+                                    </span>
+                                </td>
+
+                                <!-- Auto Monitor -->
+                                <td class="px-4 py-3 text-center">
+                                    <div class="flex flex-col items-center">
+                                        <span
+                                            :class="competitor.auto_monitor ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'"
+                                            class="text-xs font-medium"
+                                        >
+                                            {{ competitor.auto_monitor ? 'Avtomatik' : 'O\'chirilgan' }}
+                                        </span>
+                                        <span class="text-xs text-gray-400 dark:text-gray-500">
+                                            {{ competitor.last_checked_at ? formatDate(competitor.last_checked_at) : 'Tekshirilmagan' }}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <Link
+                                            :href="route('business.competitors.show', competitor.id)"
+                                            class="p-1.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                            title="Ko'rish"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </Link>
+                                        <button
+                                            @click="editCompetitor(competitor)"
+                                            class="p-1.5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                            title="Tahrirlash"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            @click="monitorNow(competitor)"
+                                            :disabled="competitor.monitoring"
+                                            class="p-1.5 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                            title="Hozir tekshirish"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            @click="deleteCompetitor(competitor)"
+                                            class="p-1.5 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            title="O'chirish"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Footer with Pagination Info -->
+                <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                    Jami {{ filteredCompetitors.length }} ta raqobatchi
                 </div>
             </div>
         </div>
@@ -321,26 +388,45 @@
                                     ></textarea>
                                 </div>
 
-                                <!-- Industry -->
+                                <!-- Industry (auto-filled from business) -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Soha</label>
-                                    <input
-                                        v-model="form.industry"
-                                        type="text"
-                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="Masalan: Kiyim-kechak"
-                                    />
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                                        Soha
+                                        <span class="text-xs text-gray-400 ml-1">(biznes bilan bir xil)</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input
+                                            :value="businessIndustry || 'Biznes sozlamalarida belgilanmagan'"
+                                            type="text"
+                                            disabled
+                                            :class="[
+                                                'w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm cursor-not-allowed pr-10',
+                                                businessIndustry ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 italic'
+                                            ]"
+                                        />
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- Location -->
+                                <!-- Location (Viloyat select) -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Joylashuv</label>
-                                    <input
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                                        Viloyat
+                                        <span v-if="businessLocation" class="text-xs text-gray-400 ml-1">(biznes: {{ businessLocation }})</span>
+                                    </label>
+                                    <select
                                         v-model="form.location"
-                                        type="text"
                                         class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="Masalan: Toshkent"
-                                    />
+                                    >
+                                        <option value="">Viloyatni tanlang</option>
+                                        <option v-for="region in uzbekistanRegions" :key="region.value" :value="region.value">
+                                            {{ region.label }}
+                                        </option>
+                                    </select>
                                 </div>
 
                                 <!-- Threat Level -->
@@ -520,6 +606,53 @@ const filters = ref({
     status: '',
 });
 
+// O'zbekiston viloyatlari ro'yxati (computed dan oldin bo'lishi kerak)
+const uzbekistanRegions = [
+    { value: 'Toshkent shahri', label: 'Toshkent shahri' },
+    { value: 'Toshkent viloyati', label: 'Toshkent viloyati' },
+    { value: 'Andijon viloyati', label: 'Andijon viloyati' },
+    { value: 'Buxoro viloyati', label: 'Buxoro viloyati' },
+    { value: 'Farg\'ona viloyati', label: 'Farg\'ona viloyati' },
+    { value: 'Jizzax viloyati', label: 'Jizzax viloyati' },
+    { value: 'Xorazm viloyati', label: 'Xorazm viloyati' },
+    { value: 'Namangan viloyati', label: 'Namangan viloyati' },
+    { value: 'Navoiy viloyati', label: 'Navoiy viloyati' },
+    { value: 'Qashqadaryo viloyati', label: 'Qashqadaryo viloyati' },
+    { value: 'Qoraqalpog\'iston Respublikasi', label: 'Qoraqalpog\'iston Respublikasi' },
+    { value: 'Samarqand viloyati', label: 'Samarqand viloyati' },
+    { value: 'Sirdaryo viloyati', label: 'Sirdaryo viloyati' },
+    { value: 'Surxondaryo viloyati', label: 'Surxondaryo viloyati' },
+    { value: 'Butun O\'zbekiston', label: 'Butun O\'zbekiston' },
+];
+
+// Biznes ma'lumotlarini olish (industry_name, region)
+const businessIndustry = computed(() => {
+    const business = props.currentBusiness;
+    if (!business) return '';
+    // industry_name (controllerdan) yoki industry yoki category
+    return business.industry_name || business.industry || business.category || '';
+});
+
+const businessLocation = computed(() => {
+    const business = props.currentBusiness;
+    if (!business) return '';
+    // region yoki city
+    const region = business.region || business.city || '';
+    // Agar region qiymati viloyatlar ro'yxatida bo'lsa, qaytarish
+    if (region) {
+        // Exact match tekshirish
+        const found = uzbekistanRegions.find(r => r.value === region || r.label === region);
+        if (found) return found.value;
+        // Partial match tekshirish (masalan "Toshkent" -> "Toshkent shahri")
+        const partial = uzbekistanRegions.find(r =>
+            r.value.toLowerCase().includes(region.toLowerCase()) ||
+            region.toLowerCase().includes(r.value.toLowerCase().replace(' viloyati', '').replace(' shahri', ''))
+        );
+        if (partial) return partial.value;
+    }
+    return region;
+});
+
 const form = useForm({
     name: '',
     description: '',
@@ -534,6 +667,14 @@ const form = useForm({
     auto_monitor: true,
     check_frequency_hours: 24,
 });
+
+// Yangi raqobatchi qo'shish modalini ochish
+function openAddModal() {
+    form.reset();
+    form.industry = businessIndustry.value; // Biznes sohasini avtomatik qo'yish
+    form.location = businessLocation.value; // Biznes viloyatini avtomatik qo'yish
+    showAddModal.value = true;
+}
 
 // Computed stats
 const competitorsList = computed(() => {
@@ -669,5 +810,38 @@ function formatDate(dateString) {
     if (diffInHours < 48) return 'Kecha';
 
     return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// Format large numbers (e.g., 15000 → "15K", 1500000 → "1.5M")
+function formatNumber(num) {
+    if (num === null || num === undefined) return '—';
+    if (num === 0) return '0';
+
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toString();
+}
+
+// Get the latest metric value for a competitor
+function getLatestMetric(competitor, field) {
+    // Metrics are eagerly loaded from controller
+    const latestMetric = competitor.metrics?.[0];
+    if (!latestMetric) return null;
+    return latestMetric[field] ?? null;
+}
+
+// Get dot color class for threat level indicator
+function getThreatDotClass(level) {
+    const classes = {
+        low: 'bg-green-500',
+        medium: 'bg-yellow-500',
+        high: 'bg-orange-500',
+        critical: 'bg-red-500'
+    };
+    return classes[level] || classes.medium;
 }
 </script>

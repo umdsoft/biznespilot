@@ -15,7 +15,10 @@ class CompetitorMetric extends Model
      */
     protected $fillable = [
         'competitor_id',
-        'date',
+        'recorded_date',
+        'metric_type',
+        'platform',
+        'value',
         'instagram_followers',
         'instagram_following',
         'instagram_posts',
@@ -52,7 +55,7 @@ class CompetitorMetric extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'date' => 'date',
+        'recorded_date' => 'date',
         'instagram_engagement_rate' => 'decimal:2',
         'telegram_engagement_rate' => 'decimal:2',
         'facebook_engagement_rate' => 'decimal:2',
@@ -76,7 +79,7 @@ class CompetitorMetric extends Model
      */
     public function scopeToday($query)
     {
-        return $query->whereDate('date', today());
+        return $query->whereDate('recorded_date', today());
     }
 
     /**
@@ -84,15 +87,15 @@ class CompetitorMetric extends Model
      */
     public function scopeDateRange($query, $startDate, $endDate)
     {
-        return $query->whereBetween('date', [$startDate, $endDate]);
+        return $query->whereBetween('recorded_date', [$startDate, $endDate]);
     }
 
     /**
      * Scope for latest metrics
      */
-    public function scopeLatest($query)
+    public function scopeLatestMetrics($query)
     {
-        return $query->orderBy('date', 'desc');
+        return $query->orderBy('recorded_date', 'desc');
     }
 
     /**
@@ -101,8 +104,8 @@ class CompetitorMetric extends Model
     public function calculateGrowthRates()
     {
         $previous = static::where('competitor_id', $this->competitor_id)
-            ->where('date', '<', $this->date)
-            ->orderBy('date', 'desc')
+            ->where('recorded_date', '<', $this->recorded_date)
+            ->orderBy('recorded_date', 'desc')
             ->first();
 
         if (!$previous) {

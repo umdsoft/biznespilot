@@ -203,3 +203,15 @@ Schedule::call(function () {
     ->timezone('Asia/Tashkent')
     ->name('aggregate-monthly-kpis')
     ->onOneServer();
+
+// ==========================================
+// COMPETITOR MONITORING SCHEDULED JOBS
+// ==========================================
+
+// Competitor Monitoring - Har soatda auto_monitor yoqilgan raqobatchilarni kuzatish
+// check_frequency_hours sozlamasiga qarab ishga tushadi
+Schedule::job(new \App\Jobs\ScrapeCompetitorData())
+    ->hourly()
+    ->timezone('Asia/Tashkent')
+    ->name('competitor-monitoring')
+    ->onOneServer();

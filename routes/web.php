@@ -45,6 +45,7 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\AlgorithmController;
 use App\Http\Controllers\YouTubeAnalyticsController;
 use App\Http\Controllers\GoogleAdsAnalyticsController;
+use App\Http\Controllers\GoogleAdsCampaignController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -381,6 +382,13 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/{log}', [ActivityLogController::class, 'show'])->name('show');
     });
 
+    // SWOT Analysis routes
+    Route::prefix('swot')->name('swot.')->group(function () {
+        Route::get('/', [CompetitorController::class, 'swotIndex'])->name('index');
+        Route::post('/generate', [CompetitorController::class, 'generateBusinessSwot'])->name('generate');
+        Route::post('/save', [CompetitorController::class, 'saveBusinessSwot'])->name('save');
+    });
+
     // Competitor Intelligence routes
     Route::prefix('competitors')->name('competitors.')->group(function () {
         Route::get('/', [CompetitorController::class, 'index'])->name('index');
@@ -390,11 +398,23 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/alerts/{alert}/read', [CompetitorController::class, 'markAlertRead'])->name('alerts.read');
         Route::post('/alerts/{alert}/archive', [CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
         Route::get('/{competitor}', [CompetitorController::class, 'show'])->name('show');
+        Route::get('/{competitor}/edit', [CompetitorController::class, 'edit'])->name('edit');
         Route::put('/{competitor}', [CompetitorController::class, 'update'])->name('update');
         Route::delete('/{competitor}', [CompetitorController::class, 'destroy'])->name('destroy');
         Route::post('/{competitor}/metrics', [CompetitorController::class, 'recordMetrics'])->name('metrics.record');
         Route::post('/{competitor}/monitor', [CompetitorController::class, 'monitor'])->name('monitor');
         Route::post('/{competitor}/swot', [CompetitorController::class, 'generateSwot'])->name('swot.generate');
+
+        // Marketing Intelligence API routes
+        Route::post('/{competitor}/products', [CompetitorController::class, 'addProduct'])->name('products.store');
+        Route::delete('/{competitor}/products/{product}', [CompetitorController::class, 'deleteProduct'])->name('products.destroy');
+        Route::post('/{competitor}/ads', [CompetitorController::class, 'addAd'])->name('ads.store');
+        Route::delete('/{competitor}/ads/{ad}', [CompetitorController::class, 'deleteAd'])->name('ads.destroy');
+        Route::post('/{competitor}/review-sources', [CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
+        Route::delete('/{competitor}/review-sources/{source}', [CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
+        Route::post('/{competitor}/analyze-content', [CompetitorController::class, 'analyzeContent'])->name('content.analyze');
+        Route::post('/{competitor}/scan-ads', [CompetitorController::class, 'scanAds'])->name('ads.scan');
+        Route::post('/{competitor}/scan-reviews', [CompetitorController::class, 'scanReviews'])->name('reviews.scan');
 
         // Lazy Loading API Endpoints
         Route::get('/api/insights', [CompetitorController::class, 'getInsights'])->name('api.insights');
@@ -485,6 +505,28 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     // Google Ads Analytics routes
     Route::prefix('google-ads-analytics')->name('google-ads-analytics.')->group(function () {
         Route::get('/', [GoogleAdsAnalyticsController::class, 'index'])->name('index');
+    });
+
+    // Google Ads Campaigns page routes
+    Route::prefix('google-ads-campaigns')->name('google-ads-campaigns.')->group(function () {
+        Route::get('/{id}', [GoogleAdsCampaignController::class, 'showPage'])->name('show');
+    });
+
+    // Google Ads Campaigns API routes
+    Route::prefix('api/google-ads-campaigns')->name('api.google-ads-campaigns.')->group(function () {
+        Route::get('/', [GoogleAdsCampaignController::class, 'index'])->name('index');
+        Route::get('/filters', [GoogleAdsCampaignController::class, 'filters'])->name('filters');
+        Route::post('/', [GoogleAdsCampaignController::class, 'store'])->name('store');
+        Route::get('/{id}', [GoogleAdsCampaignController::class, 'show'])->name('show');
+        Route::put('/{id}', [GoogleAdsCampaignController::class, 'update'])->name('update');
+        Route::patch('/{id}/status', [GoogleAdsCampaignController::class, 'updateStatus'])->name('status');
+        Route::delete('/{id}', [GoogleAdsCampaignController::class, 'destroy'])->name('destroy');
+        Route::post('/sync', [GoogleAdsCampaignController::class, 'sync'])->name('sync');
+        Route::get('/{id}/insights', [GoogleAdsCampaignController::class, 'getInsights'])->name('insights');
+        Route::get('/{id}/ad-groups', [GoogleAdsCampaignController::class, 'getAdGroups'])->name('ad-groups');
+        Route::get('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'getKeywords'])->name('keywords');
+        Route::post('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'addKeywords'])->name('keywords.add');
+        Route::delete('/keywords/{keywordId}', [GoogleAdsCampaignController::class, 'removeKeyword'])->name('keywords.remove');
     });
 
     // Instagram Chatbot routes

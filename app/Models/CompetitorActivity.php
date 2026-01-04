@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompetitorActivity extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use SoftDeletes, HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -18,14 +17,13 @@ class CompetitorActivity extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'business_id',
         'competitor_id',
-        'activity_type',
+        'type',
         'title',
         'description',
-        'source_url',
+        'url',
+        'activity_date',
         'metadata',
-        'detected_at',
     ];
 
     /**
@@ -35,7 +33,7 @@ class CompetitorActivity extends Model
      */
     protected $casts = [
         'metadata' => 'array',
-        'detected_at' => 'datetime',
+        'activity_date' => 'date',
     ];
 
     /**
