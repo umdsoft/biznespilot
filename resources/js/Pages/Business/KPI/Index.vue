@@ -950,6 +950,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 
@@ -1531,6 +1532,16 @@ const getDayAchievement = (day) => {
   const monthStr = String(month + 1).padStart(2, '0');
   const dateKey = `${year}-${monthStr}-${dayStr}`;
 
+  // Check if this day is before the plan's start_date
+  // Return -1 for "not tracked" days (before plan was created)
+  if (props.activePlan?.start_date) {
+    const planStartDate = new Date(props.activePlan.start_date);
+    const currentDate = new Date(year, month, day);
+    if (currentDate < planStartDate) {
+      return -1; // Not tracked - day is before plan start
+    }
+  }
+
   // Check if we have data for this day
   const entry = props.dailyEntries[dateKey];
   if (!entry) {
@@ -1587,6 +1598,12 @@ const getButtonClass = (achievement, isActive = false, isPastOrCurrent = true) =
   // Kelajakdagi kunlar - disabled ko'rinish
   if (!isPastOrCurrent) {
     return 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-50';
+  }
+
+  // Reja start_date dan oldingi kunlar - kulrang "N/A" ko'rinish
+  // achievement = -1 degani bu kun kuzatilmagan (reja yaratilmagan edi)
+  if (achievement === -1) {
+    return 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-default';
   }
 
   // O'tgan kunlar - bajarilish foiziga qarab rang
@@ -2002,72 +2019,51 @@ function getStatusLabel(achievement) {
 
 // Calculate KPI plan based on user inputs
 async function calculatePlan() {
-  console.log('calculatePlan called with:', {
-    newSales: planInputs.value.newSales,
-    avgCheck: planInputs.value.avgCheck
-  });
-
   // Only calculate if both values are provided and valid
   const hasNewSales = planInputs.value.newSales && planInputs.value.newSales > 0;
   const hasAvgCheck = planInputs.value.avgCheck && planInputs.value.avgCheck > 0;
 
   if (!hasNewSales || !hasAvgCheck) {
-    console.log('Validation failed - missing or invalid values', {
-      hasNewSales,
-      hasAvgCheck,
-      newSales: planInputs.value.newSales,
-      avgCheck: planInputs.value.avgCheck
-    });
     calculatedPlan.value = null;
     return;
   }
 
   try {
-    console.log('Sending request to API...');
-
-    // Get CSRF token safely
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (!csrfToken) {
-      console.error('CSRF token not found');
-      throw new Error('CSRF token topilmadi. Sahifani yangilang.');
-    }
-
-    // Call backend API to calculate
-    const response = await fetch(route('business.kpi.calculate-plan'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-      },
-      body: JSON.stringify({
-        new_sales: planInputs.value.newSales,
-        avg_check: planInputs.value.avgCheck,
-      }),
+    // Call backend API using axios (handles CSRF automatically)
+    const response = await axios.post(route('business.kpi.calculate-plan'), {
+      new_sales: planInputs.value.newSales,
+      avg_check: planInputs.value.avgCheck,
     });
 
-    console.log('Response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API error:', errorText);
-      throw new Error(`API returned ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('Received plan data:', data);
-    calculatedPlan.value = data.plan;
-    console.log('calculatedPlan.value set to:', calculatedPlan.value);
+    calculatedPlan.value = response.data.plan;
 
     // Initialize editable values from calculated plan
-    if (data.plan) {
-      editableLeads.value = data.plan.total_leads;
-      editableLeadCost.value = data.plan.lead_cost;
-      editableLeadCostDisplay.value = formatNumberWithSpaces(data.plan.lead_cost);
-      editableConversionRate.value = data.plan.conversion_rate;
+    if (response.data.plan) {
+      editableLeads.value = response.data.plan.total_leads;
+      editableLeadCost.value = response.data.plan.lead_cost;
+      editableLeadCostDisplay.value = formatNumberWithSpaces(response.data.plan.lead_cost);
+      editableConversionRate.value = response.data.plan.conversion_rate;
     }
   } catch (error) {
-    console.error('Failed to calculate plan:', error);
-    alert('Hisoblashda xatolik yuz berdi: ' + error.message);
+
+    // Handle specific error codes
+    if (error.response?.status === 419) {
+      alert('Sessiya muddati tugagan. Sahifani yangilang va qayta urinib ko\'ring.');
+      window.location.reload();
+      return;
+    }
+
+    if (error.response?.status === 422) {
+      const errors = error.response.data?.errors;
+      if (errors) {
+        const errorMessages = Object.values(errors).flat().join('\n');
+        alert('Validatsiya xatoligi:\n' + errorMessages);
+        return;
+      }
+    }
+
+    const errorMessage = error.response?.data?.error || error.message || 'Noma\'lum xatolik';
+    alert('Hisoblashda xatolik yuz berdi: ' + errorMessage);
   }
 }
 
@@ -2102,15 +2098,12 @@ function parseFormattedNumber(value) {
 // Handle avg check input change
 function handleAvgCheckInput(event) {
   let value = event.target.value;
-  console.log('handleAvgCheckInput called with value:', value);
 
   // Parse the number (remove all spaces and non-digits)
   const numericValue = parseFormattedNumber(value);
-  console.log('Parsed numeric value:', numericValue);
 
   // Update the actual value
   planInputs.value.avgCheck = numericValue;
-  console.log('planInputs.value.avgCheck set to:', planInputs.value.avgCheck);
 
   // Format and update display
   if (numericValue) {
@@ -2118,7 +2111,6 @@ function handleAvgCheckInput(event) {
   } else {
     avgCheckDisplay.value = '';
   }
-  console.log('avgCheckDisplay.value:', avgCheckDisplay.value);
 
   calculatePlan();
 }

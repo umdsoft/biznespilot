@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 
@@ -18,6 +18,20 @@ const currentStep = ref(1);
 const totalSteps = 9;
 const generatingProfile = ref(false);
 
+// Multi-item fields state
+const whereSpendTimeList = ref(props.dreamBuyer?.where_spend_time ? props.dreamBuyer.where_spend_time.split('\n').filter(s => s.trim()) : []);
+const infoSourcesList = ref(props.dreamBuyer?.info_sources ? props.dreamBuyer.info_sources.split('\n').filter(s => s.trim()) : []);
+const frustrationsList = ref(props.dreamBuyer?.frustrations ? props.dreamBuyer.frustrations.split('\n').filter(f => f.trim()) : []);
+const dreamsList = ref(props.dreamBuyer?.dreams ? props.dreamBuyer.dreams.split('\n').filter(d => d.trim()) : []);
+const fearsList = ref(props.dreamBuyer?.fears ? props.dreamBuyer.fears.split('\n').filter(f => f.trim()) : []);
+
+// Input states for new items
+const newWhereSpendTime = ref('');
+const newInfoSource = ref('');
+const newFrustration = ref('');
+const newDream = ref('');
+const newFear = ref('');
+
 const form = useForm({
     name: props.dreamBuyer?.name || '',
     description: props.dreamBuyer?.description || '',
@@ -35,6 +49,86 @@ const form = useForm({
     generate_profile: false,
 });
 
+// Watch multi-item arrays and sync with form
+watch(whereSpendTimeList, (newVal) => {
+    form.where_spend_time = newVal.join('\n');
+}, { deep: true });
+
+watch(infoSourcesList, (newVal) => {
+    form.info_sources = newVal.join('\n');
+}, { deep: true });
+
+watch(frustrationsList, (newVal) => {
+    form.frustrations = newVal.join('\n');
+}, { deep: true });
+
+watch(dreamsList, (newVal) => {
+    form.dreams = newVal.join('\n');
+}, { deep: true });
+
+watch(fearsList, (newVal) => {
+    form.fears = newVal.join('\n');
+}, { deep: true });
+
+// Multi-item field configurations
+const multiItemFields = {
+    where_spend_time: {
+        list: whereSpendTimeList,
+        newItem: newWhereSpendTime,
+        icon: '📍',
+        color: 'emerald',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+        borderColor: 'border-emerald-200 dark:border-emerald-800',
+        textColor: 'text-emerald-700 dark:text-emerald-300',
+        buttonColor: 'bg-emerald-500 hover:bg-emerald-600',
+        tagColor: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700',
+    },
+    info_sources: {
+        list: infoSourcesList,
+        newItem: newInfoSource,
+        icon: '🔍',
+        color: 'blue',
+        bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+        borderColor: 'border-blue-200 dark:border-blue-800',
+        textColor: 'text-blue-700 dark:text-blue-300',
+        buttonColor: 'bg-blue-500 hover:bg-blue-600',
+        tagColor: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+    },
+    frustrations: {
+        list: frustrationsList,
+        newItem: newFrustration,
+        icon: '😤',
+        color: 'red',
+        bgColor: 'bg-red-50 dark:bg-red-900/20',
+        borderColor: 'border-red-200 dark:border-red-800',
+        textColor: 'text-red-700 dark:text-red-300',
+        buttonColor: 'bg-red-500 hover:bg-red-600',
+        tagColor: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700',
+    },
+    dreams: {
+        list: dreamsList,
+        newItem: newDream,
+        icon: '✨',
+        color: 'amber',
+        bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+        borderColor: 'border-amber-200 dark:border-amber-800',
+        textColor: 'text-amber-700 dark:text-amber-300',
+        buttonColor: 'bg-amber-500 hover:bg-amber-600',
+        tagColor: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+    },
+    fears: {
+        list: fearsList,
+        newItem: newFear,
+        icon: '😰',
+        color: 'purple',
+        bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+        borderColor: 'border-purple-200 dark:border-purple-800',
+        textColor: 'text-purple-700 dark:text-purple-300',
+        buttonColor: 'bg-purple-500 hover:bg-purple-600',
+        tagColor: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700',
+    }
+};
+
 const steps = [
     {
         number: 1,
@@ -46,7 +140,8 @@ const steps = [
         hint: 'Ikki-uch so\'zdan iborat aniq nom bering. Keyinchalik AI o\'zi ham nom taklif qiladi.',
         icon: '👤',
         color: 'indigo',
-        quickTags: []
+        quickTags: [],
+        isMultiItem: false
     },
     {
         number: 2,
@@ -54,11 +149,12 @@ const steps = [
         description: 'Qayerda vaqt o\'tkazadi?',
         field: 'where_spend_time',
         label: 'Ularni qayerda topishingiz mumkin?',
-        placeholder: 'Instagram, Facebook, LinkedIn, offline tadbirlar, ofisda, uyda...',
-        hint: 'Ideal mijozlaringiz ko\'p vaqt o\'tkazadigan joylar, platformalar va manzillar.',
+        placeholder: 'Yangi joy/platforma qo\'shing...',
+        hint: 'Har bir platformani alohida qo\'shing. Bu reklama joylashtirish uchun muhim!',
         icon: '📍',
         color: 'emerald',
-        quickTags: ['Instagram', 'Facebook', 'LinkedIn', 'YouTube', 'Telegram', 'TikTok', 'Offline tadbirlar', 'Ko\'cha reklama']
+        quickTags: ['Instagram', 'Facebook', 'LinkedIn', 'YouTube', 'Telegram', 'TikTok', 'Offline tadbirlar', 'Ko\'cha reklama', 'Twitter/X', 'WhatsApp'],
+        isMultiItem: true
     },
     {
         number: 3,
@@ -66,47 +162,51 @@ const steps = [
         description: 'Ma\'lumot olish uchun qayerga murojaat qiladi?',
         field: 'info_sources',
         label: 'Qaror qabul qilishdan oldin qayerdan ma\'lumot olishadi?',
-        placeholder: 'Google, YouTube, mutaxassis maslahat, do\'stlar tavsiyasi, bloglar...',
-        hint: 'Ular o\'z muammolari yoki ehtiyojlari haqida ma\'lumot qidirish uchun qanday manbalardan foydalanadilar?',
+        placeholder: 'Yangi manba qo\'shing...',
+        hint: 'Har bir manbani alohida qo\'shing. Bu reklama strategiyangiz uchun muhim!',
         icon: '🔍',
         color: 'blue',
-        quickTags: ['Google', 'YouTube', 'Telegram kanallar', 'Do\'stlar tavsiyasi', 'Ekspert maslahati', 'Bloglar', 'Podkastlar']
+        quickTags: ['Google', 'YouTube', 'Telegram kanallar', 'Do\'stlar tavsiyasi', 'Ekspert maslahati', 'Bloglar', 'Podkastlar', 'Instagram', 'Facebook gruppalari'],
+        isMultiItem: true
     },
     {
         number: 4,
-        title: 'Frustratsiyalar',
-        description: 'Eng katta frustratsiyalari va qiyinchiliklari?',
+        title: 'Muammolar',
+        description: 'Eng katta muammolari va qiyinchiliklari nima?',
         field: 'frustrations',
         label: 'Qanday muammolar ularni bezovta qiladi?',
-        placeholder: 'Vaqt yetishmasligi, natijalarga erisha olmaslik, pul isrof qilish...',
-        hint: 'Ularning kundalik hayotidagi asosiy muammolar, qiyinchiliklar va frustatsiyalar.',
+        placeholder: 'Yangi muammo yozing...',
+        hint: 'Har bir muammoni alohida qo\'shing. Bu kontent rejangiz uchun juda muhim!',
         icon: '😤',
         color: 'red',
-        quickTags: ['Vaqt yetishmasligi', 'Pul yetishmasligi', 'Bilim yetishmasligi', 'Natija yo\'qligi', 'Stress', 'Ishonchsizlik']
+        quickTags: ['Vaqt yetishmasligi', 'Pul yetishmasligi', 'Bilim yetishmasligi', 'Natija yo\'qligi', 'Stress', 'Ishonchsizlik', 'Motivatsiya yo\'qligi', 'Raqobat'],
+        isMultiItem: true
     },
     {
         number: 5,
         title: 'Orzular',
-        description: 'Orzulari va umidlari?',
+        description: 'Eng katta orzulari va maqsadlari nima?',
         field: 'dreams',
         label: 'Ular nimaga erishishni xohlashadi?',
-        placeholder: 'Moliyaviy erkinlik, ko\'proq vaqt, muvaffaqiyatli biznes, sog\'lom hayot...',
-        hint: 'Ularning eng katta orzulari va maqsadlari. Nima uchun ular sizning mahsulotingizga muhtoj?',
+        placeholder: 'Yangi orzu yozing...',
+        hint: 'Har bir orzuni alohida qo\'shing. Bu sizning taklif qilayotgan yechimingiz asosi!',
         icon: '✨',
         color: 'amber',
-        quickTags: ['Moliyaviy erkinlik', 'Ko\'proq vaqt', 'Muvaffaqiyatli biznes', 'Sog\'lom hayot', 'Oila baxti', 'Tan olinish']
+        quickTags: ['Moliyaviy erkinlik', 'Ko\'proq vaqt', 'Muvaffaqiyatli biznes', 'Sog\'lom hayot', 'Oila baxti', 'Tan olinish', 'Professional o\'sish', 'Mustaqillik'],
+        isMultiItem: true
     },
     {
         number: 6,
         title: 'Qo\'rquvlar',
-        description: 'Eng katta qo\'rquvlari?',
+        description: 'Eng katta qo\'rquvlari va tashvishlari nima?',
         field: 'fears',
         label: 'Nima ularni tashvishga soladi?',
-        placeholder: 'Muvaffaqiyatsizlik, pul yo\'qotish, noto\'g\'ri qaror qabul qilish, vaqt isrof qilish...',
-        hint: 'Ularning xarid qilishdan oldingi qo\'rquvlari va e\'tirozlari.',
+        placeholder: 'Yangi qo\'rquv yozing...',
+        hint: 'Har bir qo\'rquvni alohida qo\'shing. Bu e\'tirozlarni yengish uchun kerak bo\'ladi!',
         icon: '😰',
         color: 'purple',
-        quickTags: ['Muvaffaqiyatsizlik', 'Pul yo\'qotish', 'Vaqt isrof qilish', 'Aldanish', 'Noto\'g\'ri qaror', 'Tanqid qilinish']
+        quickTags: ['Muvaffaqiyatsizlik', 'Pul yo\'qotish', 'Vaqt isrof qilish', 'Aldanish', 'Noto\'g\'ri qaror', 'Tanqid qilinish', 'Xato qilish', 'Raddga uchrash'],
+        isMultiItem: true
     },
     {
         number: 7,
@@ -118,7 +218,8 @@ const steps = [
         hint: 'Qaysi kanallar va uslublar orqali ular bilan bog\'lanish yaxshiroq?',
         icon: '💬',
         color: 'cyan',
-        quickTags: ['Telefon qo\'ng\'iroq', 'Video uchrashuv', 'Telegram xabar', 'Email', 'Yuzma-yuz', 'Ijtimoiy tarmoq']
+        quickTags: ['Telefon qo\'ng\'iroq', 'Video uchrashuv', 'Telegram xabar', 'Email', 'Yuzma-yuz', 'Ijtimoiy tarmoq'],
+        isMultiItem: false
     },
     {
         number: 8,
@@ -130,7 +231,8 @@ const steps = [
         hint: 'Ularning til uslubi, ishlatiladigan so\'zlar va iboralar.',
         icon: '🗣️',
         color: 'pink',
-        quickTags: ['Rasmiy', 'Do\'stona', 'Hissiyotli', 'Mantiqiy', 'Texnik', 'Oddiy', 'Qisqa', 'Batafsil']
+        quickTags: ['Rasmiy', 'Do\'stona', 'Hissiyotli', 'Mantiqiy', 'Texnik', 'Oddiy', 'Qisqa', 'Batafsil'],
+        isMultiItem: false
     },
     {
         number: 9,
@@ -142,7 +244,8 @@ const steps = [
         hint: 'Ularning odatiy kuni va baxtli qiladigan narsalar.',
         icon: '📅',
         color: 'teal',
-        quickTags: []
+        quickTags: [],
+        isMultiItem: false
     }
 ];
 
@@ -152,7 +255,18 @@ const canGoNext = computed(() => {
     if (currentStep.value === 1) {
         return form.name.trim().length > 0;
     }
+
     const field = currentStepData.value.field;
+
+    // For multi-item fields, check the list length
+    if (currentStepData.value.isMultiItem) {
+        if (field === 'where_spend_time') return whereSpendTimeList.value.length > 0;
+        if (field === 'info_sources') return infoSourcesList.value.length > 0;
+        if (field === 'frustrations') return frustrationsList.value.length > 0;
+        if (field === 'dreams') return dreamsList.value.length > 0;
+        if (field === 'fears') return fearsList.value.length > 0;
+    }
+
     return form[field] && form[field].trim().length > 0;
 });
 
@@ -188,6 +302,36 @@ const addQuickTag = (tag, field) => {
     const currentValue = form[field] || '';
     if (currentValue.includes(tag)) return;
     form[field] = currentValue ? `${currentValue}, ${tag}` : tag;
+};
+
+// Multi-item functions
+const addItem = (field) => {
+    const config = multiItemFields[field];
+    const value = config.newItem.value.trim();
+
+    if (!value) return;
+    if (config.list.value.includes(value)) return;
+
+    config.list.value.push(value);
+    config.newItem.value = '';
+};
+
+const removeItem = (field, index) => {
+    const config = multiItemFields[field];
+    config.list.value.splice(index, 1);
+};
+
+const addQuickTagToList = (tag, field) => {
+    const config = multiItemFields[field];
+    if (config.list.value.includes(tag)) return;
+    config.list.value.push(tag);
+};
+
+const handleKeyDown = (event, field) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addItem(field);
+    }
 };
 
 const submit = (withAI = false) => {
@@ -371,9 +515,9 @@ const submitWithoutAI = () => {
                                         v-model="form.priority"
                                         class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 transition-all"
                                     >
-                                        <option value="low">🟢 Past</option>
-                                        <option value="medium">🟡 O'rta</option>
-                                        <option value="high">🔴 Yuqori</option>
+                                        <option value="low">Past</option>
+                                        <option value="medium">O'rta</option>
+                                        <option value="high">Yuqori</option>
                                     </select>
                                 </div>
                                 <div class="flex items-center">
@@ -389,6 +533,102 @@ const submitWithoutAI = () => {
                                         </div>
                                     </label>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Field - Multi-Item Steps (4, 5, 6) -->
+                        <div v-else-if="currentStepData.isMultiItem" class="space-y-5">
+                            <!-- Input for new item -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    {{ currentStepData.label }} <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex gap-3">
+                                    <input
+                                        v-model="multiItemFields[currentStepData.field].newItem.value"
+                                        type="text"
+                                        :placeholder="currentStepData.placeholder"
+                                        @keydown="handleKeyDown($event, currentStepData.field)"
+                                        class="flex-1 px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 transition-all"
+                                    />
+                                    <button
+                                        @click="addItem(currentStepData.field)"
+                                        type="button"
+                                        class="px-5 py-3.5 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                        :class="multiItemFields[currentStepData.field].buttonColor"
+                                    >
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Qo'shish
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Quick Tags -->
+                            <div v-if="currentStepData.quickTags && currentStepData.quickTags.length > 0">
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Tezkor qo'shish:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        v-for="tag in currentStepData.quickTags"
+                                        :key="tag"
+                                        @click="addQuickTagToList(tag, currentStepData.field)"
+                                        type="button"
+                                        class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors border"
+                                        :class="[
+                                            multiItemFields[currentStepData.field].list.value.includes(tag)
+                                                ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                                                : multiItemFields[currentStepData.field].tagColor + ' hover:opacity-80'
+                                        ]"
+                                        :disabled="multiItemFields[currentStepData.field].list.value.includes(tag)"
+                                    >
+                                        + {{ tag }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Added Items List -->
+                            <div v-if="multiItemFields[currentStepData.field].list.value.length > 0" class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        Qo'shilgan elementlar ({{ multiItemFields[currentStepData.field].list.value.length }})
+                                    </p>
+                                </div>
+                                <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
+                                    <div
+                                        v-for="(item, index) in multiItemFields[currentStepData.field].list.value"
+                                        :key="index"
+                                        class="flex items-center justify-between p-3 rounded-xl border transition-all group"
+                                        :class="multiItemFields[currentStepData.field].bgColor + ' ' + multiItemFields[currentStepData.field].borderColor"
+                                    >
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                                                :class="multiItemFields[currentStepData.field].buttonColor.split(' ')[0]">
+                                                {{ index + 1 }}
+                                            </span>
+                                            <span class="font-medium" :class="multiItemFields[currentStepData.field].textColor">
+                                                {{ item }}
+                                            </span>
+                                        </div>
+                                        <button
+                                            @click="removeItem(currentStepData.field, index)"
+                                            type="button"
+                                            class="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all opacity-0 group-hover:opacity-100"
+                                        >
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div v-else class="text-center py-8 px-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+                                <div class="text-4xl mb-3">{{ currentStepData.icon }}</div>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                                    Hali hech narsa qo'shilmagan. Yuqoridagi input orqali yoki tezkor taglardan foydalaning.
+                                </p>
                             </div>
                         </div>
 

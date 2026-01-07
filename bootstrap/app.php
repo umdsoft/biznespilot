@@ -56,6 +56,13 @@ return Application::configure(basePath: dirname(__DIR__))
             SetBusinessContext::class,
         ]);
 
+        // Exclude public survey and lead form routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            's/*',
+            'f/*',
+            'api/lead-forms/*',
+        ]);
+
         // Enable throttle middleware for API
         $middleware->api(prepend: [
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',

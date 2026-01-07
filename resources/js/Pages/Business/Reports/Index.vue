@@ -1,10 +1,28 @@
 <template>
     <BusinessLayout title="Hisobotlar">
         <div class="mb-8">
-            <!-- Page Header -->
-            <div>
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Hisobotlar</h2>
-                <p class="mt-2 text-gray-600 dark:text-gray-400">Biznesingiz bo'yicha to'liq tahlil va statistika</p>
+            <!-- Page Header with Generate Button -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Hisobotlar</h2>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">Biznesingiz bo'yicha to'liq tahlil va statistika</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button
+                        @click="generateReport"
+                        :disabled="isGenerating"
+                        class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg v-if="isGenerating" class="animate-spin -ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <svg v-else class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {{ isGenerating ? 'Yaratilmoqda...' : 'Hisobot yaratish' }}
+                    </button>
+                </div>
             </div>
 
             <!-- Date Range Filter -->
@@ -40,6 +58,129 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Health Score Card -->
+        <div v-if="realtimeData?.health_score" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex flex-col md:flex-row md:items-center gap-6">
+                <div
+                    class="w-28 h-28 rounded-2xl flex flex-col items-center justify-center shadow-lg"
+                    :class="getHealthScoreClass(realtimeData.health_score.score)"
+                >
+                    <div class="text-4xl font-bold">{{ Math.round(realtimeData.health_score.score) }}</div>
+                    <div class="text-xs opacity-80">/ 100</div>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        Biznes salomatligi: {{ realtimeData.health_score.label }}
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Bu ko'rsatkich biznesingizning umumiy holatini 5 ta yo'nalish bo'yicha baholaydi
+                    </p>
+
+                    <!-- Breakdown Grid -->
+                    <div v-if="realtimeData.health_score.breakdown" class="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div
+                            v-for="(item, key) in realtimeData.health_score.breakdown"
+                            :key="key"
+                            class="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                        >
+                            <div class="text-lg font-bold" :class="getScoreTextColor(item.score)">
+                                {{ Math.round(item.score) }}
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ item.label || getCategoryLabel(key) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div v-if="realtimeData?.insights?.length" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <span class="mr-2">💡</span> Tushunchalar
+            </h3>
+            <div class="space-y-3">
+                <div
+                    v-for="(insight, index) in realtimeData.insights.slice(0, 5)"
+                    :key="index"
+                    class="flex items-start space-x-3 p-3 rounded-lg"
+                    :class="getInsightClass(insight.type)"
+                >
+                    <span class="text-lg flex-shrink-0">{{ insight.icon || getInsightIcon(insight.type) }}</span>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ insight.message }}</p>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ insight.category }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div v-if="realtimeData?.recommendations?.length" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <span class="mr-2">📋</span> Tavsiyalar
+            </h3>
+            <div class="space-y-4">
+                <div
+                    v-for="(rec, index) in realtimeData.recommendations.slice(0, 3)"
+                    :key="index"
+                    class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-100 dark:border-blue-800"
+                >
+                    <div class="flex items-start space-x-3">
+                        <span class="text-lg flex-shrink-0">{{ rec.icon || '💡' }}</span>
+                        <div>
+                            <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ rec.title }}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ rec.description }}</p>
+                            <span v-if="rec.priority" class="inline-block mt-2 text-xs px-2 py-1 rounded-full"
+                                :class="{
+                                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': rec.priority === 'high',
+                                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400': rec.priority === 'medium',
+                                    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': rec.priority === 'low'
+                                }"
+                            >
+                                {{ rec.priority === 'high' ? 'Muhim' : rec.priority === 'medium' ? 'O\'rtacha' : 'Oddiy' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div v-if="recentReports?.length" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <span class="mr-2">📊</span> So'nggi hisobotlar
+                </h3>
+                <Link :href="route('business.reports.algorithmic')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    Barchasini ko'rish →
+                </Link>
+            </div>
+            <div class="space-y-3">
+                <Link
+                    v-for="report in recentReports"
+                    :key="report.id"
+                    :href="route('business.reports.show', report.id)"
+                    class="block p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ report.title }}</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ report.period_label }}</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span
+                                class="text-sm font-medium px-2 py-1 rounded-lg"
+                                :class="getHealthScoreBadgeClass(report.health_score)"
+                            >
+                                {{ report.health_score }}
+                            </span>
+                            <span class="text-xs text-gray-400">{{ report.created_at }}</span>
+                        </div>
+                    </div>
+                </Link>
             </div>
         </div>
 
@@ -122,6 +263,49 @@
                 <p class="text-red-100 text-sm font-medium mb-1">Kuzatilayotgan raqiblar</p>
                 <p class="text-3xl font-bold">{{ stats.competitors_tracked }}</p>
             </div>
+        </div>
+
+        <!-- Key Metrics from Realtime Data -->
+        <div v-if="realtimeData?.metrics" class="mb-6">
+            <Card title="Asosiy ko'rsatkichlar (Real-time)">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Sales Metrics -->
+                    <div v-if="realtimeData.metrics.sales" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div class="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Sotuvlar soni</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ realtimeData.metrics.sales.total_sales || 0 }}</div>
+                    </div>
+                    <div v-if="realtimeData.metrics.sales" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="text-sm text-green-600 dark:text-green-400 font-medium mb-1">Daromad</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(realtimeData.metrics.sales.total_revenue || 0) }}</div>
+                    </div>
+                    <!-- Marketing Metrics -->
+                    <div v-if="realtimeData.metrics.marketing" class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <div class="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Lidlar</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ realtimeData.metrics.marketing.total_leads || 0 }}</div>
+                    </div>
+                    <div v-if="realtimeData.metrics.marketing" class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <div class="text-sm text-yellow-600 dark:text-yellow-400 font-medium mb-1">Konversiya</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ (realtimeData.metrics.marketing.conversion_rate || 0).toFixed(1) }}%</div>
+                    </div>
+                    <!-- Financial Metrics -->
+                    <div v-if="realtimeData.metrics.financial" class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <div class="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">ROI</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ (realtimeData.metrics.financial.roi || 0).toFixed(1) }}%</div>
+                    </div>
+                    <div v-if="realtimeData.metrics.financial" class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div class="text-sm text-red-600 dark:text-red-400 font-medium mb-1">CAC</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(realtimeData.metrics.financial.cac || 0) }}</div>
+                    </div>
+                    <div v-if="realtimeData.metrics.financial" class="p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
+                        <div class="text-sm text-pink-600 dark:text-pink-400 font-medium mb-1">CLV</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(realtimeData.metrics.financial.clv || 0) }}</div>
+                    </div>
+                    <div v-if="realtimeData.metrics.financial" class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <div class="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-1">LTV/CAC</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ (realtimeData.metrics.financial.ltv_cac_ratio || 0).toFixed(2) }}x</div>
+                    </div>
+                </div>
+            </Card>
         </div>
 
         <!-- Sales Trend Chart -->
@@ -254,9 +438,10 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
+import axios from 'axios';
 
 const props = defineProps({
     stats: Object,
@@ -267,12 +452,16 @@ const props = defineProps({
     offersPerformance: Array,
     competitorStats: Object,
     dateRange: Object,
+    realtimeData: Object,
+    recentReports: Array,
 });
 
 const filters = reactive({
     start_date: props.dateRange.start,
     end_date: props.dateRange.end,
 });
+
+const isGenerating = ref(false);
 
 const applyFilters = () => {
     router.get(route('business.reports.index'), filters, {
@@ -289,6 +478,25 @@ const resetFilters = () => {
     filters.end_date = today.toISOString().split('T')[0];
 
     applyFilters();
+};
+
+const generateReport = async () => {
+    isGenerating.value = true;
+    try {
+        const response = await axios.post(route('business.reports.generate'), {
+            start_date: filters.start_date,
+            end_date: filters.end_date,
+        });
+
+        if (response.data.success && response.data.report) {
+            router.visit(route('business.reports.show', response.data.report.id));
+        }
+    } catch (error) {
+        console.error('Report generation failed:', error);
+        alert(error.response?.data?.message || 'Hisobot yaratishda xatolik yuz berdi');
+    } finally {
+        isGenerating.value = false;
+    }
 };
 
 const formatCurrency = (value) => {
@@ -308,5 +516,59 @@ const formatNumber = (value) => {
 const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+const getHealthScoreClass = (score) => {
+    if (!score) return 'bg-gray-200 dark:bg-gray-700 text-gray-600';
+    if (score >= 80) return 'bg-gradient-to-br from-green-400 to-green-600 text-white';
+    if (score >= 60) return 'bg-gradient-to-br from-blue-400 to-blue-600 text-white';
+    if (score >= 40) return 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white';
+    return 'bg-gradient-to-br from-red-400 to-red-600 text-white';
+};
+
+const getHealthScoreBadgeClass = (score) => {
+    if (!score) return 'bg-gray-100 text-gray-600';
+    if (score >= 80) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+    if (score >= 60) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+    if (score >= 40) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+    return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+};
+
+const getScoreTextColor = (score) => {
+    if (!score) return 'text-gray-600 dark:text-gray-400';
+    if (score >= 80) return 'text-green-600 dark:text-green-400';
+    if (score >= 60) return 'text-blue-600 dark:text-blue-400';
+    if (score >= 40) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
+};
+
+const getCategoryLabel = (key) => {
+    const labels = {
+        sales: 'Sotuvlar',
+        marketing: 'Marketing',
+        financial: 'Moliyaviy',
+        customer: 'Mijozlar',
+        efficiency: 'Samaradorlik',
+    };
+    return labels[key] || key;
+};
+
+const getInsightClass = (type) => {
+    return {
+        'bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500': type === 'positive',
+        'bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500': type === 'negative',
+        'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500': type === 'warning',
+        'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500': type === 'neutral' || !type,
+    };
+};
+
+const getInsightIcon = (type) => {
+    const icons = {
+        positive: '✅',
+        negative: '⚠️',
+        warning: '⚡',
+        neutral: '📊',
+    };
+    return icons[type] || '💡';
 };
 </script>

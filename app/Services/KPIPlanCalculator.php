@@ -247,28 +247,35 @@ class KPIPlanCalculator
         // Get business industry
         $industry = $business->industry ?? 'default';
 
-        // Try to find benchmark
-        $benchmark = IndustryBenchmark::where('industry', 'LIKE', "%{$industry}%")
-            ->orWhere('industry', 'default')
-            ->where('is_active', true)
-            ->first();
+        try {
+            // Try to find benchmark for specific industry first
+            $benchmark = IndustryBenchmark::where('industry', 'LIKE', "%{$industry}%")->first();
 
-        if (!$benchmark) {
-            return $default;
-        }
+            // Fallback to default industry if not found
+            if (!$benchmark) {
+                $benchmark = IndustryBenchmark::where('industry', 'default')->first();
+            }
 
-        // Map metric names to benchmark fields
-        $fieldMap = [
-            'Lead Conversion Rate' => 'avg_conversion_rate',
-            'Cost Per Lead' => null, // Not in algorithm benchmarks, use default
-            'Click Through Rate' => null,
-            'Monthly Churn Rate' => null,
-        ];
+            if (!$benchmark) {
+                return $default;
+            }
 
-        $field = $fieldMap[$metricName] ?? null;
+            // Map metric names to benchmark fields
+            $fieldMap = [
+                'Lead Conversion Rate' => 'avg_conversion_rate',
+                'Cost Per Lead' => null, // Not in algorithm benchmarks, use default
+                'Click Through Rate' => null,
+                'Monthly Churn Rate' => null,
+            ];
 
-        if ($field && isset($benchmark->$field)) {
-            return (float) $benchmark->$field;
+            $field = $fieldMap[$metricName] ?? null;
+
+            if ($field && isset($benchmark->$field)) {
+                return (float) $benchmark->$field;
+            }
+        } catch (\Exception $e) {
+            // If database error occurs, return default value
+            \Log::warning('IndustryBenchmark query failed: ' . $e->getMessage());
         }
 
         return $default;

@@ -19,6 +19,8 @@ use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\ContentCalendarController;
 use App\Http\Controllers\DreamBuyerController;
+use App\Http\Controllers\CustdevController;
+use App\Http\Controllers\PublicSurveyController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\MarketingAnalyticsController;
 use App\Http\Controllers\MarketingCampaignController;
@@ -26,6 +28,8 @@ use App\Http\Controllers\MetaCampaignController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\LeadFormController;
+use App\Http\Controllers\PublicLeadFormController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TwoFactorAuthController;
 use App\Http\Controllers\ActivityLogController;
@@ -125,6 +129,21 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{dreamBuyer}/ad-copy', [DreamBuyerController::class, 'generateAdCopy'])->name('ad-copy');
     });
 
+    // CustDev (Customer Development) routes
+    Route::prefix('custdev')->name('custdev.')->group(function () {
+        Route::get('/', [CustdevController::class, 'index'])->name('index');
+        Route::get('/create', [CustdevController::class, 'create'])->name('create');
+        Route::post('/', [CustdevController::class, 'store'])->name('store');
+        Route::get('/{custdev}', [CustdevController::class, 'show'])->name('show');
+        Route::get('/{custdev}/edit', [CustdevController::class, 'edit'])->name('edit');
+        Route::put('/{custdev}', [CustdevController::class, 'update'])->name('update');
+        Route::delete('/{custdev}', [CustdevController::class, 'destroy'])->name('destroy');
+        Route::post('/{custdev}/toggle-status', [CustdevController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{custdev}/results', [CustdevController::class, 'results'])->name('results');
+        Route::get('/{custdev}/export', [CustdevController::class, 'export'])->name('export');
+        Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
+    });
+
     // Marketing routes
     Route::prefix('marketing')->name('marketing.')->group(function () {
         // Marketing Analytics Dashboard
@@ -182,6 +201,20 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     Route::prefix('api/sales')->name('api.sales.')->group(function () {
         Route::get('/leads', [SalesController::class, 'getLeads'])->name('leads');
         Route::get('/stats', [SalesController::class, 'getStats'])->name('stats');
+    });
+
+    // Lead Forms routes
+    Route::prefix('lead-forms')->name('lead-forms.')->group(function () {
+        Route::get('/', [LeadFormController::class, 'index'])->name('index');
+        Route::get('/create', [LeadFormController::class, 'create'])->name('create');
+        Route::post('/', [LeadFormController::class, 'store'])->name('store');
+        Route::get('/{leadForm}', [LeadFormController::class, 'show'])->name('show');
+        Route::get('/{leadForm}/edit', [LeadFormController::class, 'edit'])->name('edit');
+        Route::put('/{leadForm}', [LeadFormController::class, 'update'])->name('update');
+        Route::delete('/{leadForm}', [LeadFormController::class, 'destroy'])->name('destroy');
+        Route::post('/{leadForm}/toggle-status', [LeadFormController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{leadForm}/duplicate', [LeadFormController::class, 'duplicate'])->name('duplicate');
+        Route::get('/{leadForm}/embed-code', [LeadFormController::class, 'getEmbedCode'])->name('embed-code');
     });
 
     // Offers routes
@@ -322,6 +355,20 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     // Reports routes
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportsController::class, 'index'])->name('index');
+
+        // Algorithmic Reports (non-AI)
+        Route::get('/algorithmic', [ReportsController::class, 'algorithmicReports'])->name('algorithmic');
+        Route::post('/generate', [ReportsController::class, 'generateReport'])->name('generate');
+        Route::get('/realtime', [ReportsController::class, 'getRealtime'])->name('realtime');
+        Route::get('/list', [ReportsController::class, 'getReports'])->name('list');
+        Route::get('/{id}', [ReportsController::class, 'showReport'])->name('show');
+        Route::get('/{id}/data', [ReportsController::class, 'getReportData'])->name('data');
+        Route::delete('/{id}', [ReportsController::class, 'deleteReport'])->name('delete');
+
+        // Report Schedules
+        Route::post('/schedules', [ReportsController::class, 'saveSchedule'])->name('schedules.save');
+        Route::post('/schedules/{id}/toggle', [ReportsController::class, 'toggleSchedule'])->name('schedules.toggle');
+        Route::delete('/schedules/{id}', [ReportsController::class, 'deleteSchedule'])->name('schedules.delete');
     });
 
     // KPI routes
@@ -774,6 +821,26 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
         Route::post('/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');
     });
 });
+
+// Public Survey routes (CustDev - no authentication required)
+Route::prefix('s')->name('survey.')->group(function () {
+    Route::get('/{slug}', [PublicSurveyController::class, 'show'])->name('show');
+    Route::post('/{slug}/start', [PublicSurveyController::class, 'startResponse'])->name('start');
+    Route::post('/{slug}/answer', [PublicSurveyController::class, 'saveAnswer'])->name('answer');
+    Route::post('/{slug}/complete', [PublicSurveyController::class, 'complete'])->name('complete');
+    Route::get('/{slug}/thank-you', [PublicSurveyController::class, 'thankYou'])->name('thank-you');
+});
+
+// Public Lead Form routes (no authentication required)
+Route::prefix('f')->name('lead-form.')->group(function () {
+    Route::get('/{slug}', [PublicLeadFormController::class, 'show'])->name('show');
+    Route::post('/{slug}/submit', [PublicLeadFormController::class, 'submit'])->name('submit');
+    Route::get('/{slug}/download/{submission}', [PublicLeadFormController::class, 'download'])->name('download');
+    Route::get('/{slug}/thank-you', [PublicLeadFormController::class, 'thankYou'])->name('thank-you');
+});
+
+// API endpoint for lead form webhooks (Facebook, Google Ads, etc.)
+Route::post('/api/lead-forms/{slug}/submit', [PublicLeadFormController::class, 'apiSubmit'])->name('api.lead-form.submit');
 
 // Webhook routes (public, no authentication required)
 Route::prefix('webhooks')->name('webhooks.')->group(function () {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use App\Models\Lead;
 use App\Models\LeadSource;
 use App\Models\MarketingChannel;
@@ -16,11 +17,17 @@ class SalesController extends Controller
     /**
      * Get current business helper
      */
-    protected function getCurrentBusiness()
+    protected function getCurrentBusiness(): Business
     {
-        return session('current_business_id')
+        $business = session('current_business_id')
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
+
+        if (!$business) {
+            abort(400, 'Biznes tanlanmagan. Iltimos, avval biznes yarating yoki tanlang.');
+        }
+
+        return $business;
     }
 
     /**

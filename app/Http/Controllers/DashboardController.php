@@ -424,24 +424,35 @@ class DashboardController extends Controller
      */
     public function calculateKPIPlan(Request $request)
     {
-        $request->validate([
-            'new_sales' => 'required|integer|min:1',
-            'avg_check' => 'required|numeric|min:0',
-        ]);
+        try {
+            $request->validate([
+                'new_sales' => 'required|integer|min:1',
+                'avg_check' => 'required|numeric|min:0',
+            ]);
 
-        $business = $this->getCurrentBusiness();
+            $business = $this->getCurrentBusiness();
 
-        // Use KPIPlanCalculator service
-        $calculator = app(\App\Services\KPIPlanCalculator::class);
-        $plan = $calculator->calculateNextMonthPlan(
-            $business,
-            $request->new_sales,
-            $request->avg_check
-        );
+            // Use KPIPlanCalculator service
+            $calculator = app(\App\Services\KPIPlanCalculator::class);
+            $plan = $calculator->calculateNextMonthPlan(
+                $business,
+                $request->new_sales,
+                $request->avg_check
+            );
 
-        return response()->json([
-            'plan' => $plan,
-        ]);
+            return response()->json([
+                'plan' => $plan,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validatsiya xatoligi',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Hisoblashda xatolik yuz berdi: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -546,8 +557,14 @@ class DashboardController extends Controller
     protected function getCurrentBusiness(): Business
     {
         $user = Auth::user();
-        return session('current_business_id')
+        $business = session('current_business_id')
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
+
+        if (!$business) {
+            abort(400, 'Biznes tanlanmagan. Iltimos, avval biznes yarating yoki tanlang.');
+        }
+
+        return $business;
     }
 }

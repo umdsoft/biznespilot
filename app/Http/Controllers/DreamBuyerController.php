@@ -23,19 +23,16 @@ class DreamBuyerController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        // Paginated query instead of loading all
+        // Load dream buyers with their CustDev surveys
         $dreamBuyers = DreamBuyer::where('business_id', $business->id)
+            ->with(['survey' => function($query) {
+                $query->withCount(['responses', 'completedResponses']);
+            }])
             ->latest()
-            ->paginate(12);
+            ->get();
 
         return Inertia::render('Business/DreamBuyer/Index', [
-            'dreamBuyers' => $dreamBuyers->items(),
-            'pagination' => [
-                'current_page' => $dreamBuyers->currentPage(),
-                'last_page' => $dreamBuyers->lastPage(),
-                'per_page' => $dreamBuyers->perPage(),
-                'total' => $dreamBuyers->total(),
-            ],
+            'dreamBuyers' => $dreamBuyers,
         ]);
     }
 
@@ -95,6 +92,9 @@ class DreamBuyerController extends Controller
     public function show(Request $request, DreamBuyer $dreamBuyer)
     {
         $this->authorize('view', $dreamBuyer);
+
+        // Load the survey relationship
+        $dreamBuyer->load('survey');
 
         return Inertia::render('Business/DreamBuyer/Show', [
             'dreamBuyer' => $dreamBuyer,

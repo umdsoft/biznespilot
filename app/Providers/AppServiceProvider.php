@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\CustdevResponse;
+use App\Observers\CustdevResponseObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register observers
+        CustdevResponse::observe(CustdevResponseObserver::class);
     }
 }

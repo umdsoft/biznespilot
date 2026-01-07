@@ -553,4 +553,38 @@ class Business extends Model
     {
         return $this->hasMany(KpiMonthlySummary::class);
     }
+
+    // ==================== REPORTS RELATIONSHIPS ====================
+
+    /**
+     * Get the report schedules for the business.
+     */
+    public function reportSchedules(): HasMany
+    {
+        return $this->hasMany(ReportSchedule::class);
+    }
+
+    /**
+     * Get the report templates for the business.
+     */
+    public function reportTemplates(): HasMany
+    {
+        return $this->hasMany(ReportTemplate::class);
+    }
+
+    /**
+     * Get the generated reports for the business.
+     */
+    public function generatedReports(): HasMany
+    {
+        return $this->hasMany(GeneratedReport::class);
+    }
+
+    /**
+     * Get the active report schedules for the business.
+     */
+    public function activeReportSchedules(): HasMany
+    {
+        return $this->hasMany(ReportSchedule::class)->where('is_active', true);
+    }
 }

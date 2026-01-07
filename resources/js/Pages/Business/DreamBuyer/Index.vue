@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 
@@ -8,15 +8,43 @@ const props = defineProps({
 });
 
 const deletingBuyer = ref(null);
+const selectedBuyerId = ref(null);
 
-const getPriorityColor = (priority) => {
-    const colors = {
-        high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800',
-        medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800',
-        low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
-    };
-    return colors[priority] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
+// Auto-select primary or first buyer
+const initializeSelection = () => {
+    if (!props.dreamBuyers?.length) return null;
+    const primary = props.dreamBuyers.find(b => b.is_primary);
+    return primary?.id || props.dreamBuyers[0]?.id;
 };
+selectedBuyerId.value = initializeSelection();
+
+const selectedBuyer = computed(() => {
+    return props.dreamBuyers?.find(b => b.id === selectedBuyerId.value) || null;
+});
+
+// Parse text fields into arrays
+const parseField = (text) => {
+    if (!text) return [];
+    return text.split('\n').filter(item => item.trim());
+};
+
+// Computed parsed fields
+const whereSpendTime = computed(() => parseField(selectedBuyer.value?.where_spend_time));
+const infoSources = computed(() => parseField(selectedBuyer.value?.info_sources));
+const frustrations = computed(() => parseField(selectedBuyer.value?.frustrations));
+const dreams = computed(() => parseField(selectedBuyer.value?.dreams));
+const fears = computed(() => parseField(selectedBuyer.value?.fears));
+const communicationPrefs = computed(() => parseField(selectedBuyer.value?.communication_preferences));
+const languageStyle = computed(() => parseField(selectedBuyer.value?.language_style));
+const dailyRoutine = computed(() => parseField(selectedBuyer.value?.daily_routine));
+const happinessTriggers = computed(() => parseField(selectedBuyer.value?.happiness_triggers));
+
+const hasData = computed(() => {
+    return whereSpendTime.value.length > 0 ||
+           frustrations.value.length > 0 ||
+           dreams.value.length > 0 ||
+           fears.value.length > 0;
+});
 
 const setPrimary = (dreamBuyer) => {
     router.post(route('business.dream-buyer.set-primary', dreamBuyer.id), {}, {
@@ -34,6 +62,9 @@ const deleteBuyer = () => {
             preserveScroll: true,
             onSuccess: () => {
                 deletingBuyer.value = null;
+                if (selectedBuyerId.value === deletingBuyer.value?.id) {
+                    selectedBuyerId.value = props.dreamBuyers?.[0]?.id || null;
+                }
             },
         });
     }
@@ -42,11 +73,111 @@ const deleteBuyer = () => {
 const cancelDelete = () => {
     deletingBuyer.value = null;
 };
+
+// Insight sections configuration
+const insightSections = [
+    {
+        key: 'whereSpendTime',
+        title: 'Mijozlarimni qayerdan topaman?',
+        subtitle: 'Qayerda vaqt o\'tkazadi',
+        icon: '📍',
+        color: 'blue',
+        data: whereSpendTime,
+        type: 'tags'
+    },
+    {
+        key: 'infoSources',
+        title: 'Qayerdan ma\'lumot oladi?',
+        subtitle: 'Ma\'lumot manbalari',
+        icon: '🔍',
+        color: 'indigo',
+        data: infoSources,
+        type: 'tags'
+    },
+    {
+        key: 'frustrations',
+        title: 'Qanday muammolari bor?',
+        subtitle: 'Frustratsiyalar va qiyinchiliklar',
+        icon: '😤',
+        color: 'red',
+        data: frustrations,
+        type: 'list'
+    },
+    {
+        key: 'dreams',
+        title: 'Nimani xohlaydi?',
+        subtitle: 'Orzulari va maqsadlari',
+        icon: '✨',
+        color: 'green',
+        data: dreams,
+        type: 'list'
+    },
+    {
+        key: 'fears',
+        title: 'Nimadan qo\'rqadi?',
+        subtitle: 'Qo\'rquvlar va e\'tirozlar',
+        icon: '😰',
+        color: 'amber',
+        data: fears,
+        type: 'list'
+    },
+    {
+        key: 'communicationPrefs',
+        title: 'Qanday muloqotni afzal ko\'radi?',
+        subtitle: 'Kommunikatsiya usullari',
+        icon: '💬',
+        color: 'purple',
+        data: communicationPrefs,
+        type: 'tags'
+    },
+    {
+        key: 'languageStyle',
+        title: 'Qanday tilda gaplashadi?',
+        subtitle: 'Til va jargon',
+        icon: '🗣️',
+        color: 'pink',
+        data: languageStyle,
+        type: 'tags'
+    },
+    {
+        key: 'dailyRoutine',
+        title: 'Kundalik hayoti qanday?',
+        subtitle: 'Kunlik tartib',
+        icon: '📅',
+        color: 'cyan',
+        data: dailyRoutine,
+        type: 'list'
+    },
+    {
+        key: 'happinessTriggers',
+        title: 'Nima uni baxtli qiladi?',
+        subtitle: 'Baxt omillari',
+        icon: '😊',
+        color: 'emerald',
+        data: happinessTriggers,
+        type: 'list'
+    }
+];
+
+const getColorClasses = (color) => {
+    const colors = {
+        blue: { bg: 'bg-blue-500', bgLight: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-800 dark:text-blue-300', border: 'border-blue-100 dark:border-blue-800' },
+        indigo: { bg: 'bg-indigo-500', bgLight: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-800 dark:text-indigo-300', border: 'border-indigo-100 dark:border-indigo-800' },
+        red: { bg: 'bg-red-500', bgLight: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-800 dark:text-red-300', border: 'border-red-100 dark:border-red-800' },
+        green: { bg: 'bg-green-500', bgLight: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-800 dark:text-green-300', border: 'border-green-100 dark:border-green-800' },
+        amber: { bg: 'bg-amber-500', bgLight: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-800 dark:text-amber-300', border: 'border-amber-100 dark:border-amber-800' },
+        purple: { bg: 'bg-purple-500', bgLight: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-800 dark:text-purple-300', border: 'border-purple-100 dark:border-purple-800' },
+        pink: { bg: 'bg-pink-500', bgLight: 'bg-pink-50 dark:bg-pink-900/20', text: 'text-pink-800 dark:text-pink-300', border: 'border-pink-100 dark:border-pink-800' },
+        cyan: { bg: 'bg-cyan-500', bgLight: 'bg-cyan-50 dark:bg-cyan-900/20', text: 'text-cyan-800 dark:text-cyan-300', border: 'border-cyan-100 dark:border-cyan-800' },
+        emerald: { bg: 'bg-emerald-500', bgLight: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-800 dark:text-emerald-300', border: 'border-emerald-100 dark:border-emerald-800' },
+    };
+    return colors[color] || colors.blue;
+};
 </script>
 
 <template>
-    <BusinessLayout title="Ideal Mijozlar">
-        <Head title="Ideal Mijozlar" />
+    <BusinessLayout title="Ideal Mijoz">
+        <Head title="Ideal Mijoz" />
 
         <div class="p-6 space-y-6">
             <!-- Header -->
@@ -54,12 +185,12 @@ const cancelDelete = () => {
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ideal Mijozlar</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">"Sell Like Crazy" metodologiyasi asosida ideal mijoz profilini yarating</p>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ideal Mijoz</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Mijozlaringiz haqida barcha ma'lumotlar bir joyda</p>
                     </div>
                 </div>
                 <Link
@@ -69,57 +200,44 @@ const cancelDelete = () => {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Yangi Ideal Mijoz
+                    Yangi Profil
                 </Link>
             </div>
 
             <!-- Empty State -->
             <div v-if="!dreamBuyers || dreamBuyers.length === 0" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div class="p-12 text-center">
-                    <!-- Animated Icon -->
                     <div class="relative w-32 h-32 mx-auto mb-8">
                         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-600/20 rounded-full animate-pulse"></div>
                         <div class="absolute inset-4 bg-gradient-to-br from-indigo-500/30 to-purple-600/30 rounded-full"></div>
                         <div class="absolute inset-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
                             <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         </div>
                     </div>
 
                     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Ideal Mijoz Profilini Yarating</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-                        9 ta savol orqali mijozlaringizni chuqur tushuning. AI yordamida to'liq psixologik portret va marketing tavsiyalari oling.
+                        Mijozlaringizni yaxshi tushunish uchun profil yarating. Bu sizga marketing xabarlarini to'g'ri yo'naltirish va savdoni oshirishga yordam beradi.
                     </p>
 
-                    <!-- Features -->
+                    <!-- Benefits Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
+                            <div class="text-3xl mb-3">📍</div>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Qayerdan Topaman?</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Mijozlaringiz qayerda vaqt o'tkazishini bilib oling</p>
+                        </div>
                         <div class="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800">
-                            <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Pain Points</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Mijozlarning og'riq nuqtalari va muammolari</p>
+                            <div class="text-3xl mb-3">😤</div>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Muammolari Nima?</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Ularning og'riqli nuqtalarini aniqlang</p>
                         </div>
                         <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
-                            <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                                </svg>
-                            </div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Orzular</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Maqsadlari, istaklari va orzulari</p>
-                        </div>
-                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
-                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                            </div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">AI Tahlil</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Avtomatik marketing tavsiyalari</p>
+                            <div class="text-3xl mb-3">✨</div>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Nimani Xohlaydi?</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Orzulari va maqsadlarini tushuning</p>
                         </div>
                     </div>
 
@@ -135,128 +253,213 @@ const cancelDelete = () => {
                 </div>
             </div>
 
-            <!-- Ideal Mijozlar Grid -->
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div
-                    v-for="buyer in dreamBuyers"
-                    :key="buyer.id"
-                    class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 group relative"
-                >
-                    <!-- Primary Badge -->
-                    <div v-if="buyer.is_primary" class="absolute top-4 right-4 z-10">
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-yellow-900 shadow-md">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <!-- Main Content when data exists -->
+            <template v-else>
+                <!-- Profile Selector (if multiple) -->
+                <div v-if="dreamBuyers.length > 1" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Profil tanlang:</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            v-for="buyer in dreamBuyers"
+                            :key="buyer.id"
+                            @click="selectedBuyerId = buyer.id"
+                            :class="[
+                                'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                                selectedBuyerId === buyer.id
+                                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            ]"
+                        >
+                            {{ buyer.name }}
+                            <svg v-if="buyer.is_primary" class="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                             </svg>
-                            Primary
-                        </span>
+                        </button>
                     </div>
+                </div>
 
-                    <!-- Card Header -->
-                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-6 text-white relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                        <div class="relative flex items-center gap-3">
-                            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <!-- Selected Buyer Header -->
+                <div v-if="selectedBuyer" class="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl shadow-xl p-6 text-white">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-xl font-bold truncate">{{ buyer.name }}</h3>
-                                <p v-if="buyer.data?.tagline" class="text-indigo-100 text-sm truncate">{{ buyer.data.tagline }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="p-6">
-                        <!-- Description -->
-                        <p v-if="buyer.description" class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                            {{ buyer.description }}
-                        </p>
-
-                        <!-- Priority Badge -->
-                        <div v-if="buyer.priority" class="mb-4">
-                            <span
-                                :class="getPriorityColor(buyer.priority)"
-                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border"
-                            >
-                                {{ buyer.priority === 'high' ? 'Yuqori' : buyer.priority === 'medium' ? "O'rta" : 'Past' }} prioritet
-                            </span>
-                        </div>
-
-                        <!-- AI Profile Indicator -->
-                        <div v-if="buyer.data?.avatar_name" class="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 mb-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg px-3 py-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                            </svg>
-                            <span class="font-medium">AI-Generated Profile</span>
-                        </div>
-
-                        <!-- Key Stats -->
-                        <div v-if="buyer.data" class="grid grid-cols-2 gap-2 mb-4">
-                            <div v-if="buyer.data.pain_points?.length" class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-red-100 dark:border-red-800">
-                                <div class="text-red-600 dark:text-red-400 font-medium text-xs mb-1">Pain Points</div>
-                                <div class="text-red-800 dark:text-red-300 text-xl font-bold">{{ buyer.data.pain_points.length }}</div>
-                            </div>
-                            <div v-if="buyer.data.goals_dreams?.length" class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100 dark:border-green-800">
-                                <div class="text-green-600 dark:text-green-400 font-medium text-xs mb-1">Maqsadlar</div>
-                                <div class="text-green-800 dark:text-green-300 text-xl font-bold">{{ buyer.data.goals_dreams.length }}</div>
-                            </div>
-                            <div v-if="buyer.data.fears_objections?.length" class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-100 dark:border-amber-800">
-                                <div class="text-amber-600 dark:text-amber-400 font-medium text-xs mb-1">Qo'rquvlar</div>
-                                <div class="text-amber-800 dark:text-amber-300 text-xl font-bold">{{ buyer.data.fears_objections.length }}</div>
-                            </div>
-                            <div v-if="buyer.data.purchase_triggers?.length" class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800">
-                                <div class="text-blue-600 dark:text-blue-400 font-medium text-xs mb-1">Triggerlar</div>
-                                <div class="text-blue-800 dark:text-blue-300 text-xl font-bold">{{ buyer.data.purchase_triggers.length }}</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-2xl font-bold">{{ selectedBuyer.name }}</h2>
+                                    <span v-if="selectedBuyer.is_primary" class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-semibold">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                        </svg>
+                                        Asosiy
+                                    </span>
+                                </div>
+                                <p v-if="selectedBuyer.description" class="text-indigo-100 mt-1">{{ selectedBuyer.description }}</p>
                             </div>
                         </div>
 
-                        <!-- Actions -->
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap gap-2">
                             <Link
-                                :href="route('business.dream-buyer.show', buyer.id)"
-                                class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium rounded-xl transition-colors"
-                            >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                Ko'rish
-                            </Link>
-                            <Link
-                                :href="route('business.dream-buyer.edit', buyer.id)"
-                                class="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+                                :href="route('business.dream-buyer.edit', selectedBuyer.id)"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
+                                Tahrirlash
                             </Link>
                             <button
-                                @click="confirmDelete(buyer)"
-                                class="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 font-medium rounded-xl transition-colors"
+                                v-if="!selectedBuyer.is_primary"
+                                @click="setPrimary(selectedBuyer)"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 rounded-xl transition-all text-sm font-medium"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                Asosiy qilish
+                            </button>
+                            <button
+                                @click="confirmDelete(selectedBuyer)"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500/80 hover:bg-red-600 rounded-xl transition-all text-sm font-medium"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
                         </div>
-
-                        <!-- Set Primary Button -->
-                        <button
-                            v-if="!buyer.is_primary"
-                            @click="setPrimary(buyer)"
-                            class="w-full mt-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-yellow-400 dark:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 font-medium rounded-xl transition-colors"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                            Primary qilish
-                        </button>
                     </div>
                 </div>
-            </div>
+
+                <!-- No Data Warning -->
+                <div v-if="!hasData && selectedBuyer" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-1">Profil to'ldirilmagan</h3>
+                            <p class="text-amber-700 dark:text-amber-400 text-sm mb-3">
+                                Ideal mijoz profilini to'ldiring - bu sizga marketing va savdoda katta yordam beradi.
+                            </p>
+                            <Link
+                                :href="route('business.dream-buyer.edit', selectedBuyer.id)"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Profilni to'ldirish
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insights Grid -->
+                <div v-if="hasData" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <template v-for="section in insightSections" :key="section.key">
+                        <div
+                            v-if="section.data.value.length > 0"
+                            class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                        >
+                            <!-- Section Header -->
+                            <div :class="['px-5 py-4', `bg-gradient-to-r from-${section.color}-500 to-${section.color}-600`]"
+                                 :style="`background: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to)); --tw-gradient-from: ${getColorClasses(section.color).bg.replace('bg-', 'rgb(var(--color-')})}`">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">{{ section.icon }}</span>
+                                    <div>
+                                        <h3 class="font-bold text-white">{{ section.title }}</h3>
+                                        <p class="text-white/80 text-xs">{{ section.subtitle }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Content -->
+                            <div class="p-5">
+                                <!-- Tags Type -->
+                                <div v-if="section.type === 'tags'" class="flex flex-wrap gap-2">
+                                    <span
+                                        v-for="item in section.data.value"
+                                        :key="item"
+                                        :class="['px-3 py-1.5 rounded-full text-sm font-medium', getColorClasses(section.color).bgLight, getColorClasses(section.color).text]"
+                                    >
+                                        {{ item }}
+                                    </span>
+                                </div>
+
+                                <!-- List Type -->
+                                <ul v-else class="space-y-2">
+                                    <li
+                                        v-for="item in section.data.value"
+                                        :key="item"
+                                        :class="['flex items-start gap-3 p-3 rounded-xl', getColorClasses(section.color).bgLight, 'border', getColorClasses(section.color).border]"
+                                    >
+                                        <span :class="['w-2 h-2 mt-2 rounded-full flex-shrink-0', getColorClasses(section.color).bg]"></span>
+                                        <span class="text-gray-800 dark:text-gray-200 text-sm">{{ item }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Quick Actions -->
+                <div v-if="hasData" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-4">Keyingi qadamlar</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Link
+                            :href="route('business.offers.create')"
+                            class="flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:shadow-lg transition-all"
+                        >
+                            <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center text-white">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-gray-100">Taklif yaratish</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Mijozga moslashtirilgan taklif</p>
+                            </div>
+                        </Link>
+
+                        <Link
+                            :href="route('business.marketing.content')"
+                            class="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-100 dark:border-blue-800 hover:shadow-lg transition-all"
+                        >
+                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-gray-100">Kontent yozish</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Mijozga mo'ljallangan kontent</p>
+                            </div>
+                        </Link>
+
+                        <Link
+                            :href="route('business.custdev.create')"
+                            class="flex items-center gap-3 p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-100 dark:border-purple-800 hover:shadow-lg transition-all"
+                        >
+                            <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center text-white">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-gray-100">CustDev o'tkazish</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Ko'proq ma'lumot to'plash</p>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            </template>
         </div>
 
         <!-- Delete Confirmation Modal -->
@@ -275,13 +478,13 @@ const cancelDelete = () => {
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Ideal Mijozni o'chirish</h3>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Profilni o'chirish</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Bu amalni qaytarib bo'lmaydi</p>
                             </div>
                         </div>
 
                         <p class="text-gray-700 dark:text-gray-300 mb-6">
-                            <strong class="text-gray-900 dark:text-gray-100">{{ deletingBuyer.name }}</strong> nomli Ideal Mijozni o'chirishni xohlaysizmi?
+                            <strong class="text-gray-900 dark:text-gray-100">{{ deletingBuyer.name }}</strong> nomli profilni o'chirishni xohlaysizmi?
                         </p>
 
                         <div class="flex gap-3">
@@ -304,3 +507,25 @@ const cancelDelete = () => {
         </Teleport>
     </BusinessLayout>
 </template>
+
+<style scoped>
+/* Dynamic gradient colors */
+.from-blue-500 { --tw-gradient-from: #3b82f6; }
+.to-blue-600 { --tw-gradient-to: #2563eb; }
+.from-indigo-500 { --tw-gradient-from: #6366f1; }
+.to-indigo-600 { --tw-gradient-to: #4f46e5; }
+.from-red-500 { --tw-gradient-from: #ef4444; }
+.to-red-600 { --tw-gradient-to: #dc2626; }
+.from-green-500 { --tw-gradient-from: #22c55e; }
+.to-green-600 { --tw-gradient-to: #16a34a; }
+.from-amber-500 { --tw-gradient-from: #f59e0b; }
+.to-amber-600 { --tw-gradient-to: #d97706; }
+.from-purple-500 { --tw-gradient-from: #a855f7; }
+.to-purple-600 { --tw-gradient-to: #9333ea; }
+.from-pink-500 { --tw-gradient-from: #ec4899; }
+.to-pink-600 { --tw-gradient-to: #db2777; }
+.from-cyan-500 { --tw-gradient-from: #06b6d4; }
+.to-cyan-600 { --tw-gradient-to: #0891b2; }
+.from-emerald-500 { --tw-gradient-from: #10b981; }
+.to-emerald-600 { --tw-gradient-to: #059669; }
+</style>

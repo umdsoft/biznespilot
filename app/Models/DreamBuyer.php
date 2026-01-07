@@ -6,6 +6,7 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class DreamBuyer extends Model
 {
@@ -44,4 +45,12 @@ class DreamBuyer extends Model
         'data' => 'array',
         'is_primary' => 'boolean',
     ];
+
+    /**
+     * Get the CustDev survey linked to this Dream Buyer
+     */
+    public function survey(): HasOne
+    {
+        return $this->hasOne(CustdevSurvey::class, 'dream_buyer_id');
+    }
 }
