@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\DashboardWidget;
 use App\Models\KpiDailySnapshot;
 use App\Models\Alert;
-use App\Models\AiInsight;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -196,12 +195,8 @@ class DashboardService
 
     protected function getActiveInsights(Business $business): Collection
     {
-        return AiInsight::where('business_id', $business->id)
-            ->active()
-            ->notExpired()
-            ->orderByRaw("FIELD(priority, 'critical', 'high', 'medium', 'low')")
-            ->limit(5)
-            ->get();
+        // AI Insights disabled - return empty collection
+        return collect([]);
     }
 
     protected function getWeeklyTrends(Business $business): array

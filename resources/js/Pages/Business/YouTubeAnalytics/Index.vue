@@ -374,6 +374,16 @@ const mostEngagingVideos = computed(() => {
                                             <p class="font-medium text-gray-900 dark:text-white text-sm line-clamp-1">{{ video.title }}</p>
                                             <p class="text-xs text-gray-500">{{ formatNumber(video.views) }} ko'rish</p>
                                         </div>
+                                        <!-- Ko'rishlar soni badge -->
+                                        <div class="ml-2 flex-shrink-0">
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-green-500/20 text-green-500 text-xs font-bold">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                {{ formatNumber(video.views) }}
+                                            </span>
+                                        </div>
                                     </Link>
                                 </div>
                             </div>
@@ -396,7 +406,16 @@ const mostEngagingVideos = computed(() => {
                                         />
                                         <div class="flex-1 min-w-0">
                                             <p class="font-medium text-gray-900 dark:text-white text-sm line-clamp-1">{{ video.title }}</p>
-                                            <p class="text-xs text-gray-500">{{ video.engagementRate.toFixed(2) }}% engagement</p>
+                                            <p class="text-xs text-gray-500">{{ video.engagementRate.toFixed(2) }}% faollik</p>
+                                        </div>
+                                        <!-- Engagement rate badge -->
+                                        <div class="ml-2 flex-shrink-0">
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-500 text-xs font-bold">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                </svg>
+                                                {{ video.engagementRate.toFixed(2) }}%
+                                            </span>
                                         </div>
                                     </Link>
                                 </div>

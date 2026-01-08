@@ -65,12 +65,6 @@ return [
         'client_secret' => env('YANDEX_CLIENT_SECRET'),
     ],
 
-    'anthropic' => [
-        'api_key' => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-20250514'),
-        'test_mode' => env('DIAGNOSTIC_TEST_MODE', false),
-    ],
-
     'whatsapp' => [
         'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
         'access_token' => env('WHATSAPP_ACCESS_TOKEN'),

@@ -46,12 +46,31 @@ class AnalyticsController extends Controller
 
         $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'source_id']);
 
-        // Only return filters and lazyLoad flag - data will be loaded via API
+        // Return default values - data will be loaded via API
         return Inertia::render('Business/Analytics/Dashboard', [
-            'metrics' => null,
+            'metrics' => [
+                'revenue_growth' => 0,
+                'total_revenue' => 0,
+                'total_leads' => 0,
+                'new_leads' => 0,
+                'active_pipeline_deals' => 0,
+                'won_deals' => 0,
+                'conversion_rate' => 0,
+                'avg_deal_size' => 0,
+                'pipeline_value' => 0,
+            ],
             'revenue_trends' => null,
-            'top_performers' => null,
-            'funnel_summary' => null,
+            'top_performers' => [
+                'top_dream_buyer' => null,
+                'top_offer' => null,
+                'top_source' => null,
+            ],
+            'funnel_summary' => [
+                'total_leads' => 0,
+                'won_leads' => 0,
+                'active_leads' => 0,
+                'overall_conversion_rate' => 0,
+            ],
             'filters' => $filters,
             'lazyLoad' => true,
         ]);
@@ -98,8 +117,18 @@ class AnalyticsController extends Controller
         $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'offer_id', 'source_id']);
 
         return Inertia::render('Business/Analytics/Funnel', [
-            'funnel_data' => null,
-            'conversion_rates' => null,
+            'funnel_data' => [
+                'funnel_stages' => [],
+                'summary' => [
+                    'total_leads' => 0,
+                    'won_leads' => 0,
+                    'lost_leads' => 0,
+                    'active_leads' => 0,
+                    'overall_conversion_rate' => 0,
+                    'win_rate' => 0,
+                ],
+            ],
+            'conversion_rates' => [],
             'filters' => $filters,
             'lazyLoad' => true,
         ]);
@@ -144,9 +173,9 @@ class AnalyticsController extends Controller
         $filters = $request->only(['date_from', 'date_to']);
 
         return Inertia::render('Business/Analytics/Performance', [
-            'dream_buyer_performance' => null,
-            'offer_performance' => null,
-            'source_analysis' => null,
+            'dream_buyer_performance' => [],
+            'offer_performance' => [],
+            'source_analysis' => [],
             'filters' => $filters,
             'lazyLoad' => true,
         ]);
@@ -193,8 +222,8 @@ class AnalyticsController extends Controller
         $points = $request->input('points', 30);
 
         return Inertia::render('Business/Analytics/Revenue', [
-            'trends' => null,
-            'forecast' => null,
+            'trends' => [],
+            'forecast' => [],
             'period' => $period,
             'lazyLoad' => true,
         ]);

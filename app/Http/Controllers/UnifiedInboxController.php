@@ -32,6 +32,14 @@ class UnifiedInboxController extends Controller
         $conversations = $this->inboxService->getAllConversations($currentBusiness, $filters);
         $stats = $this->inboxService->getInboxStats($currentBusiness);
 
+        // Return JSON for AJAX polling requests
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'conversations' => $conversations,
+                'stats' => $stats,
+            ]);
+        }
+
         return Inertia::render('Business/Inbox/Index', [
             'conversations' => $conversations,
             'stats' => $stats,

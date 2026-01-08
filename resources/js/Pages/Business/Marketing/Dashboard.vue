@@ -148,26 +148,8 @@ const contentAndChannels = [
     }
 ];
 
-// AI and Analytics sections
-const aiAndAnalytics = [
-    {
-        title: 'AI Strategiya',
-        description: 'Sun\'iy intellekt yordamida marketing strategiyasi',
-        icon: 'sparkles',
-        href: '/business/ai/marketing-strategy',
-        color: 'from-purple-500 to-indigo-600',
-        bgColor: 'bg-purple-500/10',
-        iconColor: 'text-purple-400'
-    },
-    {
-        title: 'AI Chat',
-        description: 'Marketing bo\'yicha AI bilan suhbat',
-        icon: 'chat',
-        href: '/business/ai/chat',
-        color: 'from-cyan-500 to-blue-600',
-        bgColor: 'bg-cyan-500/10',
-        iconColor: 'text-cyan-400'
-    },
+// Reports and KPI sections
+const reportsAndKpi = [
     {
         title: 'Hisobotlar',
         description: 'Marketing samaradorligi hisobotlari',
@@ -307,33 +289,25 @@ const aiAndAnalytics = [
                 </div>
             </div>
 
-            <!-- AI and Analytics Section -->
+            <!-- Reports and KPI Section -->
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-white flex items-center">
-                        <span class="w-2 h-6 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full mr-3"></span>
-                        AI va Tahlil
+                        <span class="w-2 h-6 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-3"></span>
+                        Hisobotlar va KPI
                     </h3>
-                    <span class="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">Sun'iy intellekt</span>
+                    <span class="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">Tahlil</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Link
-                        v-for="item in aiAndAnalytics"
+                        v-for="item in reportsAndKpi"
                         :key="item.title"
                         :href="item.href"
                         class="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-slate-600 hover:bg-slate-800/80 transition-all duration-300"
                     >
                         <div :class="[item.bgColor, 'w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform']">
-                            <!-- Sparkles Icon -->
-                            <svg v-if="item.icon === 'sparkles'" :class="[item.iconColor, 'w-6 h-6']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                            </svg>
-                            <!-- Chat Icon -->
-                            <svg v-else-if="item.icon === 'chat'" :class="[item.iconColor, 'w-6 h-6']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
                             <!-- Chart Icon -->
-                            <svg v-else-if="item.icon === 'chart'" :class="[item.iconColor, 'w-6 h-6']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg v-if="item.icon === 'chart'" :class="[item.iconColor, 'w-6 h-6']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                             <!-- Target Icon -->

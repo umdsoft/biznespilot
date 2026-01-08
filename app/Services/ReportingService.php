@@ -7,7 +7,6 @@ use App\Models\GeneratedReport;
 use App\Models\ScheduledReport;
 use App\Models\KpiDailySnapshot;
 use App\Models\Alert;
-use App\Models\AiInsight;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -374,17 +373,8 @@ class ReportingService
 
     protected function getInsightsForPeriod(Business $business, Carbon $start, Carbon $end): array
     {
-        return AiInsight::where('business_id', $business->id)
-            ->whereBetween('created_at', [$start, $end])
-            ->orderBy('priority')
-            ->get()
-            ->map(fn($i) => [
-                'title' => $i->title,
-                'type' => $i->type,
-                'priority' => $i->priority,
-                'summary' => $i->summary,
-            ])
-            ->toArray();
+        // AI Insights disabled - return empty array
+        return [];
     }
 
     protected function identifyTopPerformers(Collection $snapshots): array
@@ -497,14 +487,11 @@ class ReportingService
 
     protected function buildInsightsSummary(Business $business, Carbon $start, Carbon $end): array
     {
-        $insights = AiInsight::where('business_id', $business->id)
-            ->whereBetween('created_at', [$start, $end])
-            ->get();
-
+        // AI Insights disabled - return empty summary
         return [
-            'total' => $insights->count(),
-            'by_type' => $insights->groupBy('type')->map->count()->toArray(),
-            'acted_upon' => $insights->where('is_acted', true)->count(),
+            'total' => 0,
+            'by_type' => [],
+            'acted_upon' => 0,
         ];
     }
 

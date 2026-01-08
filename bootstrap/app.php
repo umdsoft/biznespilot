@@ -50,6 +50,9 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies (cloudflared, ngrok, etc.)
+        $middleware->trustProxies(at: '*');
+
         // Register Inertia middleware
         $middleware->web(append: [
             HandleInertiaRequests::class,
@@ -61,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             's/*',
             'f/*',
             'api/lead-forms/*',
+            'webhooks/*',
         ]);
 
         // Enable throttle middleware for API

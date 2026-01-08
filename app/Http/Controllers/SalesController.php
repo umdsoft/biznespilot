@@ -138,7 +138,7 @@ class SalesController extends Controller
     }
 
     /**
-     * API: Get lead stats (cached)
+     * API: Get lead stats (cached) - Optimized single query
      */
     public function getStats()
     {
@@ -148,16 +148,27 @@ class SalesController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
-        // Cache stats for 5 minutes
+        // Cache stats for 5 minutes - using single optimized query
         $stats = Cache::remember("lead_stats_{$currentBusiness->id}", 300, function () use ($currentBusiness) {
-            // Use efficient aggregate queries instead of loading all leads
+            // Single query with conditional aggregates for better performance
+            $result = Lead::where('business_id', $currentBusiness->id)
+                ->selectRaw("
+                    COUNT(*) as total_leads,
+                    SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new_leads,
+                    SUM(CASE WHEN status = 'qualified' THEN 1 ELSE 0 END) as qualified_leads,
+                    SUM(CASE WHEN status = 'won' THEN 1 ELSE 0 END) as won_deals,
+                    SUM(CASE WHEN status = 'won' THEN COALESCE(estimated_value, 0) ELSE 0 END) as total_value,
+                    SUM(CASE WHEN status NOT IN ('won', 'lost') THEN COALESCE(estimated_value, 0) ELSE 0 END) as pipeline_value
+                ")
+                ->first();
+
             return [
-                'total_leads' => Lead::where('business_id', $currentBusiness->id)->count(),
-                'new_leads' => Lead::where('business_id', $currentBusiness->id)->where('status', 'new')->count(),
-                'qualified_leads' => Lead::where('business_id', $currentBusiness->id)->where('status', 'qualified')->count(),
-                'won_deals' => Lead::where('business_id', $currentBusiness->id)->where('status', 'won')->count(),
-                'total_value' => Lead::where('business_id', $currentBusiness->id)->where('status', 'won')->sum('estimated_value') ?? 0,
-                'pipeline_value' => Lead::where('business_id', $currentBusiness->id)->whereNotIn('status', ['won', 'lost'])->sum('estimated_value') ?? 0,
+                'total_leads' => (int) ($result->total_leads ?? 0),
+                'new_leads' => (int) ($result->new_leads ?? 0),
+                'qualified_leads' => (int) ($result->qualified_leads ?? 0),
+                'won_deals' => (int) ($result->won_deals ?? 0),
+                'total_value' => (float) ($result->total_value ?? 0),
+                'pipeline_value' => (float) ($result->pipeline_value ?? 0),
             ];
         });
 

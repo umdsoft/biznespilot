@@ -3,48 +3,81 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
-use App\Traits\HasUuid;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TelegramBot extends Model
 {
-    use BelongsToBusiness, HasUuid;
+    use BelongsToBusiness, HasUuids;
 
     protected $fillable = [
         'business_id',
-        'integration_id',
         'bot_token',
         'bot_username',
-        'bot_name',
-        'bot_id',
-        'description',
-        'total_users',
-        'active_users',
-        'total_messages',
-        'messages_today',
-        'is_active',
+        'bot_first_name',
         'webhook_url',
-        'last_synced_at',
-        'disconnected_at',
-        'metadata',
+        'webhook_secret',
+        'is_active',
+        'is_verified',
+        'verified_at',
+        'settings',
+        'default_funnel_id',
     ];
 
     protected $casts = [
+        'settings' => 'array',
         'is_active' => 'boolean',
-        'last_synced_at' => 'datetime',
-        'disconnected_at' => 'datetime',
-        'metadata' => 'array',
+        'is_verified' => 'boolean',
+        'verified_at' => 'datetime',
     ];
 
     protected $hidden = [
         'bot_token',
+        'webhook_secret',
     ];
 
-    public function integration(): BelongsTo
+    // Encrypt bot_token
+    public function setBotTokenAttribute($value): void
     {
-        return $this->belongsTo(Integration::class);
+        $this->attributes['bot_token'] = encrypt($value);
+    }
+
+    public function getBotTokenAttribute($value): ?string
+    {
+        if (!$value) return null;
+        try {
+            return decrypt($value);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    // Relations
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
+    }
+
+    public function funnels(): HasMany
+    {
+        return $this->hasMany(TelegramFunnel::class);
+    }
+
+    public function activeFunnels(): HasMany
+    {
+        return $this->hasMany(TelegramFunnel::class)->where('is_active', true);
+    }
+
+    public function defaultFunnel(): BelongsTo
+    {
+        return $this->belongsTo(TelegramFunnel::class, 'default_funnel_id');
+    }
+
+    public function triggers(): HasMany
+    {
+        return $this->hasMany(TelegramTrigger::class);
     }
 
     public function users(): HasMany
@@ -52,9 +85,9 @@ class TelegramBot extends Model
         return $this->hasMany(TelegramUser::class);
     }
 
-    public function messages(): HasMany
+    public function conversations(): HasMany
     {
-        return $this->hasMany(TelegramMessage::class);
+        return $this->hasMany(TelegramConversation::class);
     }
 
     public function broadcasts(): HasMany
@@ -62,17 +95,57 @@ class TelegramBot extends Model
         return $this->hasMany(TelegramBroadcast::class);
     }
 
-    public function automations(): HasMany
+    public function dailyStats(): HasMany
     {
-        return $this->hasMany(TelegramAutomation::class);
+        return $this->hasMany(TelegramDailyStat::class);
     }
 
-    public function getActiveUserRateAttribute(): float
+    // Scopes
+    public function scopeActive($query)
     {
-        if ($this->total_users <= 0) {
-            return 0;
-        }
+        return $query->where('is_active', true);
+    }
 
-        return round(($this->active_users / $this->total_users) * 100, 2);
+    public function scopeVerified($query)
+    {
+        return $query->where('is_verified', true);
+    }
+
+    // Helpers
+    public function getSettingValue(string $key, $default = null)
+    {
+        return data_get($this->settings, $key, $default);
+    }
+
+    public function setSettingValue(string $key, $value): void
+    {
+        $settings = $this->settings ?? [];
+        data_set($settings, $key, $value);
+        $this->settings = $settings;
+    }
+
+    public function getWelcomeMessage(): string
+    {
+        return $this->getSettingValue('welcome_message', 'Assalomu alaykum! 👋');
+    }
+
+    public function getFallbackMessage(): string
+    {
+        return $this->getSettingValue('fallback_message', 'Tushunmadim, iltimos tanlang:');
+    }
+
+    public function getDefaultLanguage(): string
+    {
+        return $this->getSettingValue('default_language', 'uz');
+    }
+
+    public function hasTypingAction(): bool
+    {
+        return $this->getSettingValue('typing_action', true);
+    }
+
+    public function getTypingDelay(): int
+    {
+        return (int) $this->getSettingValue('typing_delay_ms', 500);
     }
 }

@@ -15,10 +15,38 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-    metrics: Object,
+    metrics: {
+        type: Object,
+        default: () => ({
+            revenue_growth: 0,
+            total_revenue: 0,
+            total_leads: 0,
+            new_leads: 0,
+            active_pipeline_deals: 0,
+            won_deals: 0,
+            conversion_rate: 0,
+            avg_deal_size: 0,
+            pipeline_value: 0,
+        }),
+    },
     revenue_trends: Object,
-    top_performers: Object,
-    funnel_summary: Object,
+    top_performers: {
+        type: Object,
+        default: () => ({
+            top_dream_buyer: null,
+            top_offer: null,
+            top_source: null,
+        }),
+    },
+    funnel_summary: {
+        type: Object,
+        default: () => ({
+            total_leads: 0,
+            won_leads: 0,
+            active_leads: 0,
+            overall_conversion_rate: 0,
+        }),
+    },
     filters: Object,
 });
 

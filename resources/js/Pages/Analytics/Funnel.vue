@@ -13,8 +13,24 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-    funnel_data: Object,
-    conversion_rates: Object,
+    funnel_data: {
+        type: Object,
+        default: () => ({
+            funnel_stages: [],
+            summary: {
+                total_leads: 0,
+                won_leads: 0,
+                lost_leads: 0,
+                active_leads: 0,
+                overall_conversion_rate: 0,
+                win_rate: 0,
+            },
+        }),
+    },
+    conversion_rates: {
+        type: Object,
+        default: () => ({}),
+    },
     filters: Object,
 });
 

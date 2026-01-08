@@ -23,13 +23,13 @@
             </div>
             <div class="flex flex-wrap gap-3">
               <Link
-                href="/business/ai/strategy"
+                href="/business/reports"
                 class="inline-flex items-center px-5 py-3 bg-white text-indigo-600 hover:bg-white/90 rounded-xl font-semibold transition-all shadow-lg"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                AI Strategiya Yaratish
+                Hisobotlarni Ko'rish
               </Link>
             </div>
           </div>
@@ -325,77 +325,21 @@
         </div>
       </div>
 
-      <!-- Section 3: AI va Tahlil -->
+      <!-- Section 3: Hisobotlar va KPI -->
       <div>
         <div class="flex items-center gap-3 mb-6">
-          <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">AI va Tahlil</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Sun'iy intellekt yordamida strategiya va tahlil</p>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Hisobotlar va KPI</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Marketing samaradorligini kuzating</p>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <!-- AI Strategiya -->
-          <Link
-            href="/business/ai/strategy"
-            class="group bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-white"
-          >
-            <div class="flex items-start justify-between mb-4">
-              <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <span class="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-lg">
-                AI
-              </span>
-            </div>
-            <h3 class="text-lg font-bold mb-2">AI Strategiya</h3>
-            <p class="text-sm text-white/80 mb-4">
-              Sun'iy intellekt yordamida marketing strategiyangizni yarating
-            </p>
-            <div class="flex items-center text-white text-sm font-medium">
-              <span>Boshlash</span>
-              <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </Link>
-
-          <!-- AI Chat -->
-          <Link
-            href="/business/ai"
-            class="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-300 hover:-translate-y-1"
-          >
-            <div class="flex items-start justify-between mb-4">
-              <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </div>
-              <span class="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium rounded-lg">
-                Chat
-              </span>
-            </div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              AI Tahlil
-            </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Marketing savollaringizga AI dan javob oling
-            </p>
-            <div class="flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-medium">
-              <span>Chat boshlash</span>
-              <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </Link>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
           <!-- Hisobotlar -->
           <Link
             href="/business/reports"
@@ -523,15 +467,15 @@
           </Link>
 
           <Link
-            href="/business/ai/strategy"
-            class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors group"
+            href="/business/reports"
+            class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors group"
           >
-            <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-              <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 text-center">AI Strategiya</span>
+            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 text-center">Hisobotlar</span>
           </Link>
         </div>
       </div>

@@ -6,7 +6,6 @@ use App\Models\Business;
 use App\Models\User;
 use App\Models\Notification;
 use App\Models\Alert;
-use App\Models\AiInsight;
 use App\Models\GeneratedReport;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -50,24 +49,6 @@ class NotificationService
                 'related_type' => Alert::class,
                 'related_id' => $alert->id,
                 'priority' => $alert->severity,
-            ]
-        );
-    }
-
-    public function sendInsight(AiInsight $insight): Notification
-    {
-        return $this->send(
-            $insight->business,
-            null,
-            'insight',
-            $insight->title,
-            $insight->summary,
-            [
-                'action_url' => "/dashboard/insights/{$insight->id}",
-                'action_text' => 'Batafsil',
-                'related_type' => AiInsight::class,
-                'related_id' => $insight->id,
-                'priority' => $insight->priority,
             ]
         );
     }

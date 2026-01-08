@@ -3,13 +3,16 @@
 namespace App\Services;
 
 use App\Models\Business;
-use App\Models\AiInsight;
 use App\Models\KpiDailySnapshot;
-use App\Models\Notification;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
+/**
+ * Algorithmic Insight Service
+ *
+ * Generates insights based on pattern detection and statistical analysis
+ * without using AI or storing in database.
+ */
 class InsightService
 {
     protected array $insightTypes = [
@@ -25,26 +28,21 @@ class InsightService
     {
         $insights = collect();
 
-        // Get historical data
         $snapshots = $this->getRecentSnapshots($business, 30);
 
         if ($snapshots->isEmpty()) {
             return $insights;
         }
 
-        // Detect patterns
         $patternInsights = $this->detectPatterns($business, $snapshots);
         $insights = $insights->merge($patternInsights);
 
-        // Detect anomalies
         $anomalyInsights = $this->detectAnomalies($business, $snapshots);
         $insights = $insights->merge($anomalyInsights);
 
-        // Generate recommendations
         $recommendations = $this->generateRecommendations($business, $snapshots);
         $insights = $insights->merge($recommendations);
 
-        // Detect celebrations (positive achievements)
         $celebrations = $this->detectCelebrations($business, $snapshots);
         $insights = $insights->merge($celebrations);
 
@@ -61,10 +59,9 @@ class InsightService
             return $insights;
         }
 
-        // Revenue trend pattern
         $revenueTrend = $this->calculateTrend($snapshots, 'revenue_total', 7);
         if ($revenueTrend !== null && abs($revenueTrend) > 10) {
-            $insights->push($this->createInsight($business, [
+            $insights->push($this->createInsightArray($business, [
                 'type' => 'trend',
                 'category' => 'revenue',
                 'priority' => abs($revenueTrend) > 20 ? 'high' : 'medium',
@@ -77,19 +74,13 @@ class InsightService
                     $revenueTrend,
                     $revenueTrend > 0 ? 'o\'sdi' : 'kamaydi'
                 ),
-                'details' => [
-                    'trend_percent' => $revenueTrend,
-                    'period_days' => 7,
-                    'metric' => 'revenue_total',
-                ],
                 'confidence_score' => 0.85,
             ]));
         }
 
-        // Lead generation trend
         $leadTrend = $this->calculateTrend($snapshots, 'leads_total', 7);
         if ($leadTrend !== null && abs($leadTrend) > 15) {
-            $insights->push($this->createInsight($business, [
+            $insights->push($this->createInsightArray($business, [
                 'type' => 'trend',
                 'category' => 'leads',
                 'priority' => abs($leadTrend) > 25 ? 'high' : 'medium',
@@ -102,10 +93,6 @@ class InsightService
                     $leadTrend,
                     $leadTrend > 0 ? 'ko\'paydi' : 'kamaydi'
                 ),
-                'details' => [
-                    'trend_percent' => $leadTrend,
-                    'period_days' => 7,
-                ],
                 'confidence_score' => 0.82,
             ]));
         }
@@ -141,7 +128,7 @@ class InsightService
                 if ($zScore > 2) {
                     $isPositive = $this->isPositiveAnomaly($metric, $currentValue, $mean);
 
-                    $insights->push($this->createInsight($business, [
+                    $insights->push($this->createInsightArray($business, [
                         'type' => 'anomaly',
                         'category' => $this->getMetricCategory($metric),
                         'priority' => $zScore > 3 ? 'critical' : 'high',
@@ -153,14 +140,6 @@ class InsightService
                             $mean,
                             $isPositive ? 'yuqori' : 'past'
                         ),
-                        'details' => [
-                            'metric' => $metric,
-                            'current_value' => $currentValue,
-                            'mean' => $mean,
-                            'std_dev' => $stdDev,
-                            'z_score' => $zScore,
-                            'is_positive' => $isPositive,
-                        ],
                         'confidence_score' => min(0.95, 0.7 + ($zScore * 0.1)),
                     ]));
                 }
@@ -179,60 +158,38 @@ class InsightService
             return $insights;
         }
 
-        // CAC is too high
         if ($today->cac > 0 && $today->revenue_total > 0) {
             $cacToRevenue = ($today->cac * $today->leads_total) / $today->revenue_total;
             if ($cacToRevenue > 0.3) {
-                $insights->push($this->createInsight($business, [
+                $insights->push($this->createInsightArray($business, [
                     'type' => 'recommendation',
                     'category' => 'marketing',
                     'priority' => 'high',
                     'title' => 'CAC optimizatsiyasi tavsiya etiladi',
                     'summary' => 'Mijoz jalb qilish xarajati daromadga nisbatan yuqori.',
-                    'details' => [
-                        'cac' => $today->cac,
-                        'cac_revenue_ratio' => $cacToRevenue,
-                    ],
-                    'recommendations' => [
-                        'Organik kanallarni kuchaytiring',
-                        'Referral dasturini yo\'lga qo\'ying',
-                        'Kam samarali reklama kanallarini to\'xtating',
-                    ],
                     'confidence_score' => 0.78,
                 ]));
             }
         }
 
-        // Low conversion rate
         if ($today->conversion_rate < 2 && $today->leads_total > 10) {
-            $insights->push($this->createInsight($business, [
+            $insights->push($this->createInsightArray($business, [
                 'type' => 'recommendation',
                 'category' => 'sales',
                 'priority' => 'high',
                 'title' => 'Konversiya darajasini oshirish kerak',
                 'summary' => sprintf('Joriy konversiya: %.1f%%. Sohadagi o\'rtacha 3-5%%.', $today->conversion_rate),
-                'recommendations' => [
-                    'Savdo skriptlarini qayta ko\'rib chiqing',
-                    'Lead kvalifikatsiyasini yaxshilang',
-                    'Follow-up jarayonini avtomatlashtiring',
-                ],
                 'confidence_score' => 0.75,
             ]));
         }
 
-        // ROAS is low
         if ($today->ad_roas > 0 && $today->ad_roas < 2) {
-            $insights->push($this->createInsight($business, [
+            $insights->push($this->createInsightArray($business, [
                 'type' => 'recommendation',
                 'category' => 'advertising',
                 'priority' => 'medium',
                 'title' => 'Reklama samaradorligini oshiring',
                 'summary' => sprintf('ROAS: %.1fx. Maqsad: kamida 3x.', $today->ad_roas),
-                'recommendations' => [
-                    'Target auditoriyani aniqroq belgilang',
-                    'Kreativlarni yangilang',
-                    'A/B testlarni o\'tkazing',
-                ],
                 'confidence_score' => 0.72,
             ]));
         }
@@ -250,38 +207,24 @@ class InsightService
             return $insights;
         }
 
-        // Revenue milestone
         if ($today->revenue_total >= 100000000 && $yesterday->revenue_total < 100000000) {
-            $insights->push($this->createInsight($business, [
+            $insights->push($this->createInsightArray($business, [
                 'type' => 'celebration',
                 'category' => 'revenue',
                 'priority' => 'high',
-                'title' => '🎉 100M so\'m belgilanish bosqichi!',
+                'title' => '100M so\'m belgilanish bosqichi!',
                 'summary' => 'Tabriklaymiz! Kunlik daromad 100 million so\'mdan oshdi.',
                 'confidence_score' => 1.0,
             ]));
         }
 
-        // Lead milestone
-        if ($today->leads_total >= 100 && $yesterday->leads_total < 100) {
-            $insights->push($this->createInsight($business, [
-                'type' => 'celebration',
-                'category' => 'leads',
-                'priority' => 'medium',
-                'title' => '🎯 100 ta lid belgilandi!',
-                'summary' => 'Kunlik lid soni 100 tadan oshdi.',
-                'confidence_score' => 1.0,
-            ]));
-        }
-
-        // Best day ever for revenue
         $maxRevenue = $snapshots->max('revenue_total');
         if ($today->revenue_total >= $maxRevenue && $today->revenue_total > 0) {
-            $insights->push($this->createInsight($business, [
+            $insights->push($this->createInsightArray($business, [
                 'type' => 'celebration',
                 'category' => 'revenue',
                 'priority' => 'high',
-                'title' => '🏆 Eng yaxshi kun!',
+                'title' => 'Eng yaxshi kun!',
                 'summary' => sprintf('Bugun rekord daromad: %s so\'m.', number_format($today->revenue_total)),
                 'confidence_score' => 1.0,
             ]));
@@ -290,57 +233,19 @@ class InsightService
         return $insights;
     }
 
-    protected function createInsight(Business $business, array $data): AiInsight
+    protected function createInsightArray(Business $business, array $data): array
     {
-        // Check for duplicate
-        $existing = AiInsight::where('business_id', $business->id)
-            ->where('type', $data['type'])
-            ->where('category', $data['category'] ?? null)
-            ->where('title', $data['title'])
-            ->where('created_at', '>=', now()->subHours(24))
-            ->first();
-
-        if ($existing) {
-            return $existing;
-        }
-
-        $insight = AiInsight::create([
+        return [
+            'id' => uniqid('insight_'),
             'business_id' => $business->id,
             'type' => $data['type'],
             'category' => $data['category'] ?? null,
             'priority' => $data['priority'] ?? 'medium',
             'title' => $data['title'],
             'summary' => $data['summary'],
-            'details' => $data['details'] ?? null,
-            'recommendations' => $data['recommendations'] ?? null,
-            'data_points' => $data['data_points'] ?? null,
             'confidence_score' => $data['confidence_score'] ?? 0.7,
-            'is_active' => true,
-            'expires_at' => now()->addDays(7),
-        ]);
-
-        // Send notification for high priority insights
-        if (in_array($data['priority'], ['critical', 'high'])) {
-            $this->sendInsightNotification($insight);
-        }
-
-        return $insight;
-    }
-
-    protected function sendInsightNotification(AiInsight $insight): void
-    {
-        Notification::create([
-            'business_id' => $insight->business_id,
-            'type' => 'insight',
-            'channel' => 'in_app',
-            'title' => $insight->title,
-            'message' => $insight->summary,
-            'action_url' => "/insights/{$insight->id}",
-            'action_text' => 'Batafsil',
-            'related_type' => AiInsight::class,
-            'related_id' => $insight->id,
-            'priority' => $insight->priority,
-        ]);
+            'created_at' => now()->toISOString(),
+        ];
     }
 
     protected function getRecentSnapshots(Business $business, int $days): Collection
@@ -411,11 +316,6 @@ class InsightService
 
     public function getActiveInsights(Business $business): Collection
     {
-        return AiInsight::where('business_id', $business->id)
-            ->active()
-            ->notExpired()
-            ->orderByRaw("FIELD(priority, 'critical', 'high', 'medium', 'low')")
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return $this->generateInsights($business);
     }
 }

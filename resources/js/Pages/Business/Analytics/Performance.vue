@@ -13,9 +13,18 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-    dream_buyer_performance: Array,
-    offer_performance: Array,
-    source_analysis: Array,
+    dream_buyer_performance: {
+        type: Array,
+        default: () => [],
+    },
+    offer_performance: {
+        type: Array,
+        default: () => [],
+    },
+    source_analysis: {
+        type: Array,
+        default: () => [],
+    },
     filters: Object,
 });
 

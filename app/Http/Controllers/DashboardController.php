@@ -7,7 +7,6 @@ use App\Models\DreamBuyer;
 use App\Models\MarketingChannel;
 use App\Models\Offer;
 use App\Models\Sale;
-use App\Models\AiInsight;
 use App\Models\ActivityLog;
 use App\Models\Alert;
 use App\Models\DashboardWidget;
@@ -156,23 +155,8 @@ class DashboardController extends Controller
             $this->analyticsService->forecastRevenue($business->id, 7)
         );
 
-        // AI Insights - cached
-        $insightsCacheKey = "dashboard_insights_{$business->id}";
-        $aiInsights = Cache::remember($insightsCacheKey, 300, fn() =>
-            AiInsight::where('business_id', $business->id)
-                ->where('is_read', false)
-                ->orderBy('created_at', 'desc')
-                ->limit(3)
-                ->get()
-                ->map(fn($insight) => [
-                    'id' => $insight->id,
-                    'type' => $insight->type,
-                    'title' => $insight->title,
-                    'summary' => $insight->content ?? $insight->description_uz ?? '',
-                    'priority' => $insight->priority,
-                    'created_at' => $insight->created_at->diffForHumans(),
-                ])
-        );
+        // AI Insights - disabled (AI feature removed)
+        $aiInsights = [];
 
         // Recent Activities - cached
         $activitiesCacheKey = "dashboard_activities_{$business->id}";

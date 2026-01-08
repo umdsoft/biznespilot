@@ -12,8 +12,25 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-    trends: Object,
-    forecast: Object,
+    trends: {
+        type: Object,
+        default: () => ({
+            chart_data: { labels: [], datasets: [] },
+            trends: [],
+        }),
+    },
+    forecast: {
+        type: Object,
+        default: () => ({
+            forecast: [],
+            summary: {
+                avg_daily_revenue: 0,
+                recent_avg: 0,
+                growth_rate: 0,
+                forecast_total: 0,
+            },
+        }),
+    },
     period: String,
 });
 

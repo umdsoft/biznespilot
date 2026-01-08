@@ -6,8 +6,6 @@ use App\Jobs\AnomalyDetectionJob;
 use App\Jobs\ChurnPreventionJob;
 use App\Jobs\CustomerSegmentationJob;
 use App\Jobs\DailyBusinessDiagnosticJob;
-use App\Jobs\GenerateDailyInsights;
-use App\Jobs\GenerateMonthlyStrategy;
 use App\Jobs\SocialMediaSyncJob;
 use App\Jobs\SyncAllChannelsMetrics;
 use App\Jobs\SyncDailyKpisFromIntegrationsJob;
@@ -28,20 +26,6 @@ Schedule::job(new SyncAllChannelsMetrics())
     ->dailyAt('02:00')
     ->timezone('Asia/Tashkent')
     ->name('sync-marketing-metrics')
-    ->onOneServer();
-
-// Schedule AI insights generation daily at 3:00 AM (after metrics sync)
-Schedule::job(new GenerateDailyInsights())
-    ->dailyAt('03:00')
-    ->timezone('Asia/Tashkent')
-    ->name('generate-daily-insights')
-    ->onOneServer();
-
-// Schedule monthly strategy generation on the 1st of each month at 4:00 AM
-Schedule::job(new GenerateMonthlyStrategy())
-    ->monthlyOn(1, '04:00')
-    ->timezone('Asia/Tashkent')
-    ->name('generate-monthly-strategy')
     ->onOneServer();
 
 // Schedule Meta Ads sync every 2 hours for all connected businesses

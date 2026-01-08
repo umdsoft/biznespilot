@@ -1,21 +1,24 @@
 <?php
 
-use App\Http\Controllers\AIController;
-use App\Http\Controllers\AIInsightsController;
 use App\Http\Controllers\AnalyticsController;
-use App\Http\Controllers\MonthlyStrategyController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\ChannelAnalyticsController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ChatbotManagementController;
 use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\Telegram\TelegramBotManagementController;
+use App\Http\Controllers\Telegram\TelegramFunnelController;
+use App\Http\Controllers\Telegram\TelegramTriggerController;
+use App\Http\Controllers\Telegram\TelegramBroadcastController;
+use App\Http\Controllers\Telegram\TelegramUserController;
+use App\Http\Controllers\Telegram\TelegramConversationController;
+use App\Http\Controllers\Telegram\TelegramFunnelWebhookController;
 use App\Http\Controllers\InstagramWebhookController;
 use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\CompetitorController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\ContentCalendarController;
 use App\Http\Controllers\DreamBuyerController;
@@ -263,42 +266,6 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/export/excel', [AnalyticsController::class, 'exportExcel'])->name('export.excel');
     });
 
-    // AI routes
-    Route::prefix('ai')->name('ai.')->group(function () {
-        Route::get('/', [AIController::class, 'index'])->name('index');
-        Route::post('/analyze-dream-buyer', [AIController::class, 'analyzeDreamBuyer'])->name('analyze-dream-buyer');
-        Route::post('/generate-content', [AIController::class, 'generateContent'])->name('generate-content');
-        Route::post('/analyze-competitor', [AIController::class, 'analyzeCompetitor'])->name('analyze-competitor');
-        Route::post('/optimize-offer', [AIController::class, 'optimizeOffer'])->name('optimize-offer');
-        Route::post('/get-advice', [AIController::class, 'getAdvice'])->name('get-advice');
-    });
-
-    // AI Insights routes
-    Route::prefix('ai/insights')->name('ai.insights.')->group(function () {
-        Route::get('/', [AIInsightsController::class, 'index'])->name('index');
-        Route::get('/statistics', [AIInsightsController::class, 'statistics'])->name('statistics');
-        Route::post('/generate', [AIInsightsController::class, 'generate'])->name('generate');
-        Route::post('/queue-generation', [AIInsightsController::class, 'queueGeneration'])->name('queue-generation');
-        Route::post('/mark-multiple-read', [AIInsightsController::class, 'markMultipleAsRead'])->name('mark-multiple-read');
-        Route::get('/{insight}', [AIInsightsController::class, 'show'])->name('show');
-        Route::post('/{insight}/mark-read', [AIInsightsController::class, 'markAsRead'])->name('mark-read');
-        Route::post('/{insight}/record-action', [AIInsightsController::class, 'recordAction'])->name('record-action');
-        Route::delete('/{insight}', [AIInsightsController::class, 'destroy'])->name('destroy');
-    });
-
-    // AI Monthly Strategy routes
-    Route::prefix('ai/strategy')->name('ai.strategy.')->group(function () {
-        Route::get('/', [MonthlyStrategyController::class, 'index'])->name('index');
-        Route::get('/statistics', [MonthlyStrategyController::class, 'statistics'])->name('statistics');
-        Route::post('/generate', [MonthlyStrategyController::class, 'generate'])->name('generate');
-        Route::post('/queue-generation', [MonthlyStrategyController::class, 'queueGeneration'])->name('queue-generation');
-        Route::get('/{strategy}', [MonthlyStrategyController::class, 'show'])->name('show');
-        Route::post('/{strategy}/approve', [MonthlyStrategyController::class, 'approve'])->name('approve');
-        Route::post('/{strategy}/complete', [MonthlyStrategyController::class, 'complete'])->name('complete');
-        Route::post('/{strategy}/archive', [MonthlyStrategyController::class, 'archive'])->name('archive');
-        Route::delete('/{strategy}', [MonthlyStrategyController::class, 'destroy'])->name('destroy');
-    });
-
     // Target Analysis routes
     Route::prefix('target-analysis')->name('target-analysis.')->group(function () {
         Route::get('/', [TargetAnalysisController::class, 'index'])->name('index');
@@ -350,6 +317,82 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/templates', [ChatbotManagementController::class, 'storeTemplate'])->name('templates.store');
         Route::put('/templates/{template}', [ChatbotManagementController::class, 'updateTemplate'])->name('templates.update');
         Route::delete('/templates/{template}', [ChatbotManagementController::class, 'destroyTemplate'])->name('templates.destroy');
+    });
+
+    // Telegram Funnel Builder routes
+    Route::prefix('telegram-funnels')->name('telegram-funnels.')->group(function () {
+        // Bot management
+        Route::get('/', [TelegramBotManagementController::class, 'index'])->name('index');
+        Route::get('/create', [TelegramBotManagementController::class, 'create'])->name('create');
+        Route::post('/', [TelegramBotManagementController::class, 'store'])->name('store');
+        Route::get('/{bot}', [TelegramBotManagementController::class, 'show'])->name('show');
+        Route::put('/{bot}', [TelegramBotManagementController::class, 'update'])->name('update');
+        Route::delete('/{bot}', [TelegramBotManagementController::class, 'destroy'])->name('destroy');
+        Route::post('/{bot}/toggle-active', [TelegramBotManagementController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/{bot}/setup-webhook', [TelegramBotManagementController::class, 'setupWebhook'])->name('setup-webhook');
+        Route::get('/{bot}/stats', [TelegramBotManagementController::class, 'stats'])->name('stats');
+
+        // Funnels for bot
+        Route::prefix('{bot}/funnels')->name('funnels.')->group(function () {
+            Route::get('/', [TelegramFunnelController::class, 'index'])->name('index');
+            Route::post('/', [TelegramFunnelController::class, 'store'])->name('store');
+            Route::get('/{funnel}', [TelegramFunnelController::class, 'show'])->name('show');
+            Route::put('/{funnel}', [TelegramFunnelController::class, 'update'])->name('update');
+            Route::delete('/{funnel}', [TelegramFunnelController::class, 'destroy'])->name('destroy');
+            Route::post('/{funnel}/toggle-active', [TelegramFunnelController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/{funnel}/duplicate', [TelegramFunnelController::class, 'duplicate'])->name('duplicate');
+            Route::post('/{funnel}/save-steps', [TelegramFunnelController::class, 'saveSteps'])->name('save-steps');
+        });
+
+        // Triggers for bot
+        Route::prefix('{bot}/triggers')->name('triggers.')->group(function () {
+            Route::get('/', [TelegramTriggerController::class, 'index'])->name('index');
+            Route::post('/', [TelegramTriggerController::class, 'store'])->name('store');
+            Route::put('/{trigger}', [TelegramTriggerController::class, 'update'])->name('update');
+            Route::delete('/{trigger}', [TelegramTriggerController::class, 'destroy'])->name('destroy');
+            Route::post('/{trigger}/toggle-active', [TelegramTriggerController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/test', [TelegramTriggerController::class, 'test'])->name('test');
+        });
+
+        // Broadcasts for bot
+        Route::prefix('{bot}/broadcasts')->name('broadcasts.')->group(function () {
+            Route::get('/', [TelegramBroadcastController::class, 'index'])->name('index');
+            Route::get('/create', [TelegramBroadcastController::class, 'create'])->name('create');
+            Route::post('/', [TelegramBroadcastController::class, 'store'])->name('store');
+            Route::get('/{broadcast}', [TelegramBroadcastController::class, 'show'])->name('show');
+            Route::put('/{broadcast}', [TelegramBroadcastController::class, 'update'])->name('update');
+            Route::delete('/{broadcast}', [TelegramBroadcastController::class, 'destroy'])->name('destroy');
+            Route::post('/{broadcast}/start', [TelegramBroadcastController::class, 'start'])->name('start');
+            Route::post('/{broadcast}/pause', [TelegramBroadcastController::class, 'pause'])->name('pause');
+            Route::post('/{broadcast}/resume', [TelegramBroadcastController::class, 'resume'])->name('resume');
+            Route::post('/{broadcast}/cancel', [TelegramBroadcastController::class, 'cancel'])->name('cancel');
+            Route::post('/preview-recipients', [TelegramBroadcastController::class, 'previewRecipients'])->name('preview-recipients');
+        });
+
+        // Users for bot
+        Route::prefix('{bot}/users')->name('users.')->group(function () {
+            Route::get('/', [TelegramUserController::class, 'index'])->name('index');
+            Route::get('/export', [TelegramUserController::class, 'export'])->name('export');
+            Route::get('/{user}', [TelegramUserController::class, 'show'])->name('show');
+            Route::put('/{user}', [TelegramUserController::class, 'update'])->name('update');
+            Route::post('/{user}/add-tag', [TelegramUserController::class, 'addTag'])->name('add-tag');
+            Route::post('/{user}/remove-tag', [TelegramUserController::class, 'removeTag'])->name('remove-tag');
+            Route::post('/{user}/reset-state', [TelegramUserController::class, 'resetState'])->name('reset-state');
+            Route::post('/bulk-add-tags', [TelegramUserController::class, 'bulkAddTags'])->name('bulk-add-tags');
+        });
+
+        // Conversations for bot
+        Route::prefix('{bot}/conversations')->name('conversations.')->group(function () {
+            Route::get('/', [TelegramConversationController::class, 'index'])->name('index');
+            Route::get('/{conversation}', [TelegramConversationController::class, 'show'])->name('show');
+            Route::post('/{conversation}/send', [TelegramConversationController::class, 'sendMessage'])->name('send');
+            Route::post('/{conversation}/assign', [TelegramConversationController::class, 'assign'])->name('assign');
+            Route::post('/{conversation}/close', [TelegramConversationController::class, 'close'])->name('close');
+            Route::post('/{conversation}/reopen', [TelegramConversationController::class, 'reopen'])->name('reopen');
+            Route::post('/{conversation}/add-tag', [TelegramConversationController::class, 'addTag'])->name('add-tag');
+            Route::post('/{conversation}/remove-tag', [TelegramConversationController::class, 'removeTag'])->name('remove-tag');
+            Route::get('/{conversation}/messages', [TelegramConversationController::class, 'getNewMessages'])->name('messages');
+        });
     });
 
     // Reports routes
@@ -605,29 +648,6 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::put('/flow-automations/{id}', [InstagramChatbotController::class, 'updateFlowAutomation'])->name('flow-automations.update');
     });
 
-    // AI Diagnostic routes (FAZA 2)
-    Route::prefix('diagnostic')->name('diagnostic.')->group(function () {
-        Route::get('/', [DiagnosticController::class, 'index'])->name('index');
-        Route::get('/check-eligibility', [DiagnosticController::class, 'checkEligibility'])->name('check-eligibility');
-        Route::post('/start', [DiagnosticController::class, 'start'])->name('start');
-        Route::get('/history', [DiagnosticController::class, 'history'])->name('history');
-        Route::post('/complete-and-go', [DiagnosticController::class, 'completeAndGoToBusiness'])->name('complete-and-go');
-        Route::post('/skip', [DiagnosticController::class, 'skipDiagnostic'])->name('skip');
-        Route::get('/{diagnostic}/status', [DiagnosticController::class, 'status'])->name('status');
-        Route::get('/{diagnostic}/processing', [DiagnosticController::class, 'processing'])->name('processing');
-        Route::post('/{diagnostic}/run', [DiagnosticController::class, 'run'])->name('run');
-        Route::get('/{diagnostic}', [DiagnosticController::class, 'show'])->name('show');
-        Route::get('/{diagnostic}/questions', [DiagnosticController::class, 'questions'])->name('questions');
-        Route::post('/questions/{question}/answer', [DiagnosticController::class, 'answerQuestion'])->name('questions.answer');
-        Route::get('/{diagnostic}/report/{type?}', [DiagnosticController::class, 'downloadReport'])->name('report');
-        Route::get('/{diagnostic1}/compare/{diagnostic2}', [DiagnosticController::class, 'compare'])->name('compare');
-    });
-
-    // Diagnostic API routes
-    Route::prefix('api/diagnostic')->name('api.diagnostic.')->group(function () {
-        Route::get('/latest', [DiagnosticController::class, 'apiLatest'])->name('latest');
-    });
-
     // Algorithm Engine routes (Predictive Analytics without AI)
     Route::prefix('algorithm')->name('algorithm.')->group(function () {
         Route::get('/', [AlgorithmController::class, 'showDashboard'])->name('dashboard');
@@ -844,7 +864,10 @@ Route::post('/api/lead-forms/{slug}/submit', [PublicLeadFormController::class, '
 
 // Webhook routes (public, no authentication required)
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
-    // Telegram webhooks
+    // Telegram Funnel Builder webhooks (new system)
+    Route::match(['get', 'post'], '/telegram-funnel/{botId}', [TelegramFunnelWebhookController::class, 'handle'])->name('telegram.funnel.webhook');
+
+    // Telegram webhooks (legacy chatbot system)
     Route::match(['get', 'post'], '/telegram/{business}', [TelegramWebhookController::class, 'handle'])->name('telegram');
     Route::get('/telegram/{business}/verify', [TelegramWebhookController::class, 'verify'])->name('telegram.verify');
 
