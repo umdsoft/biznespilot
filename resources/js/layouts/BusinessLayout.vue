@@ -78,6 +78,32 @@
           Sotuv / Leadlar
         </NavLink>
 
+        <NavLink href="/business/tasks" :active="$page.url.startsWith('/business/tasks')">
+          <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          <span class="flex-1">Vazifalar</span>
+          <span
+            v-if="taskStats.overdue > 0"
+            class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+          >
+            {{ taskStats.overdue > 99 ? '99+' : taskStats.overdue }}
+          </span>
+        </NavLink>
+
+        <NavLink href="/business/todos" :active="$page.url.startsWith('/business/todos') || $page.url.startsWith('/business/todo-templates')">
+          <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="flex-1">Todo List</span>
+          <span
+            v-if="todoStats.overdue > 0"
+            class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-orange-500 text-white rounded-full"
+          >
+            {{ todoStats.overdue > 99 ? '99+' : todoStats.overdue }}
+          </span>
+        </NavLink>
+
         <NavLink href="/business/lead-forms" :active="$page.url.startsWith('/business/lead-forms')">
           <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -365,6 +391,14 @@ const showBusinessMenu = ref(false);
 const inboxUnreadCount = ref(0);
 let inboxPollingInterval = null;
 
+// Task stats
+const taskStats = ref({ total: 0, overdue: 0 });
+let taskPollingInterval = null;
+
+// Todo stats
+const todoStats = ref({ total: 0, overdue: 0 });
+let todoPollingInterval = null;
+
 // Fetch inbox unread count
 const fetchInboxUnreadCount = async () => {
   try {
@@ -393,6 +427,64 @@ const stopInboxPolling = () => {
   if (inboxPollingInterval) {
     clearInterval(inboxPollingInterval);
     inboxPollingInterval = null;
+  }
+};
+
+// Fetch task stats
+const fetchTaskStats = async () => {
+  try {
+    const response = await axios.get('/business/tasks/stats');
+    if (response.data) {
+      taskStats.value = {
+        total: response.data.total || 0,
+        overdue: response.data.overdue || 0,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to fetch task stats:', error);
+  }
+};
+
+// Start polling for task updates
+const startTaskPolling = () => {
+  fetchTaskStats();
+  taskPollingInterval = setInterval(fetchTaskStats, 10000);
+};
+
+// Stop task polling
+const stopTaskPolling = () => {
+  if (taskPollingInterval) {
+    clearInterval(taskPollingInterval);
+    taskPollingInterval = null;
+  }
+};
+
+// Fetch todo stats
+const fetchTodoStats = async () => {
+  try {
+    const response = await axios.get('/business/todos/dashboard');
+    if (response.data?.stats) {
+      todoStats.value = {
+        total: response.data.stats.total_today || 0,
+        overdue: response.data.stats.overdue || 0,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to fetch todo stats:', error);
+  }
+};
+
+// Start polling for todo updates
+const startTodoPolling = () => {
+  fetchTodoStats();
+  todoPollingInterval = setInterval(fetchTodoStats, 30000);
+};
+
+// Stop todo polling
+const stopTodoPolling = () => {
+  if (todoPollingInterval) {
+    clearInterval(todoPollingInterval);
+    todoPollingInterval = null;
   }
 };
 
@@ -456,10 +548,14 @@ onMounted(() => {
   document.addEventListener('click', closeDropdowns);
   initDarkMode();
   startInboxPolling();
+  startTaskPolling();
+  startTodoPolling();
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', closeDropdowns);
   stopInboxPolling();
+  stopTaskPolling();
+  stopTodoPolling();
 });
 </script>

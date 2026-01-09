@@ -31,6 +31,12 @@ use App\Http\Controllers\MetaCampaignController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\SmsController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TelephonyController;
+use App\Http\Controllers\TodoController;
+use App\Http\Controllers\TodoTemplateController;
 use App\Http\Controllers\LeadFormController;
 use App\Http\Controllers\PublicLeadFormController;
 use App\Http\Controllers\SettingsController;
@@ -63,6 +69,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
+
+// Public team invitation routes
+Route::get('/invite/{token}', [TeamController::class, 'showAcceptInvite'])->name('invite.show');
+Route::post('/invite/{token}/accept', [TeamController::class, 'acceptInvite'])->name('invite.accept');
 
 // 2FA verification routes (accessible without full auth)
 Route::get('/two-factor/verify', [AuthController::class, 'showTwoFactorVerify'])->name('two-factor.verify');
@@ -204,6 +214,73 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     Route::prefix('api/sales')->name('api.sales.')->group(function () {
         Route::get('/leads', [SalesController::class, 'getLeads'])->name('leads');
         Route::get('/stats', [SalesController::class, 'getStats'])->name('stats');
+        Route::get('/operators', [SalesController::class, 'getOperators'])->name('operators');
+        Route::post('/leads/{lead}/assign', [SalesController::class, 'assign'])->name('assign');
+        Route::post('/leads/bulk-assign', [SalesController::class, 'bulkAssign'])->name('bulk-assign');
+        Route::get('/operator-stats', [SalesController::class, 'getOperatorStats'])->name('operator-stats');
+        Route::post('/check-duplicate', [SalesController::class, 'checkDuplicate'])->name('check-duplicate');
+        // Analytics routes
+        Route::get('/funnel-stats', [SalesController::class, 'getFunnelStats'])->name('funnel-stats');
+        Route::get('/source-stats', [SalesController::class, 'getSourceStats'])->name('source-stats');
+        Route::get('/lost-reasons-stats', [SalesController::class, 'getLostReasonsStats'])->name('lost-reasons-stats');
+        Route::post('/leads/{lead}/mark-lost', [SalesController::class, 'markAsLost'])->name('mark-lost');
+    });
+
+    // Tasks routes (Vazifalar)
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [TaskController::class, 'index'])->name('index');
+        Route::post('/', [TaskController::class, 'store'])->name('store');
+        Route::put('/{task}', [TaskController::class, 'update'])->name('update');
+        Route::post('/{task}/complete', [TaskController::class, 'complete'])->name('complete');
+        Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
+        Route::get('/stats', [TaskController::class, 'stats'])->name('stats');
+        Route::get('/lead/{lead}', [TaskController::class, 'leadTasks'])->name('lead');
+    });
+
+    // Todos routes (Todo List tizimi)
+    Route::prefix('todos')->name('todos.')->group(function () {
+        Route::get('/', [TodoController::class, 'index'])->name('index');
+        Route::post('/', [TodoController::class, 'store'])->name('store');
+        Route::put('/{todo}', [TodoController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [TodoController::class, 'destroy'])->name('destroy');
+        Route::post('/{todo}/toggle', [TodoController::class, 'toggleComplete'])->name('toggle');
+        Route::post('/reorder', [TodoController::class, 'reorder'])->name('reorder');
+        Route::get('/dashboard', [TodoController::class, 'dashboard'])->name('dashboard');
+
+        // Subtasks
+        Route::post('/{todo}/subtasks', [TodoController::class, 'addSubtask'])->name('subtasks.store');
+        Route::put('/{todo}/subtasks/{subtask}', [TodoController::class, 'updateSubtask'])->name('subtasks.update');
+        Route::post('/{todo}/subtasks/{subtask}/toggle', [TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
+        Route::delete('/{todo}/subtasks/{subtask}', [TodoController::class, 'deleteSubtask'])->name('subtasks.destroy');
+
+        // Recurrence
+        Route::post('/{todo}/recurrence', [TodoController::class, 'addRecurrence'])->name('recurrence.store');
+    });
+
+    // Todo Recurrences routes
+    Route::prefix('todo-recurrences')->name('todo-recurrences.')->group(function () {
+        Route::put('/{recurrence}', [TodoController::class, 'updateRecurrence'])->name('update');
+        Route::delete('/{recurrence}', [TodoController::class, 'deleteRecurrence'])->name('destroy');
+        Route::post('/{recurrence}/pause', [TodoController::class, 'pauseRecurrence'])->name('pause');
+        Route::post('/{recurrence}/resume', [TodoController::class, 'resumeRecurrence'])->name('resume');
+    });
+
+    // Todo Templates routes
+    Route::prefix('todo-templates')->name('todo-templates.')->group(function () {
+        Route::get('/', [TodoTemplateController::class, 'index'])->name('index');
+        Route::get('/list', [TodoTemplateController::class, 'list'])->name('list');
+        Route::post('/', [TodoTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}', [TodoTemplateController::class, 'show'])->name('show');
+        Route::put('/{template}', [TodoTemplateController::class, 'update'])->name('update');
+        Route::delete('/{template}', [TodoTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{template}/duplicate', [TodoTemplateController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{template}/apply', [TodoTemplateController::class, 'apply'])->name('apply');
+
+        // Template Items
+        Route::post('/{template}/items', [TodoTemplateController::class, 'addItem'])->name('items.store');
+        Route::put('/{template}/items/{item}', [TodoTemplateController::class, 'updateItem'])->name('items.update');
+        Route::delete('/{template}/items/{item}', [TodoTemplateController::class, 'deleteItem'])->name('items.destroy');
+        Route::post('/{template}/items/reorder', [TodoTemplateController::class, 'reorderItems'])->name('items.reorder');
     });
 
     // Lead Forms routes
@@ -454,6 +531,28 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/youtube/disconnect', [SettingsController::class, 'disconnectYoutube'])->name('youtube.disconnect');
         Route::get('/youtube/callback', [SettingsController::class, 'youtubeCallback'])->name('youtube.callback');
 
+        // SMS Integration (Eskiz & PlayMobile)
+        Route::get('/sms', [SmsController::class, 'settings'])->name('sms');
+        // Eskiz
+        Route::post('/sms/connect', [SmsController::class, 'connect'])->name('sms.connect');
+        Route::post('/sms/disconnect', [SmsController::class, 'disconnect'])->name('sms.disconnect');
+        Route::post('/sms/refresh-balance', [SmsController::class, 'refreshBalance'])->name('sms.refresh-balance');
+        // PlayMobile
+        Route::post('/sms/playmobile/connect', [SmsController::class, 'connectPlaymobile'])->name('sms.playmobile.connect');
+        Route::post('/sms/playmobile/disconnect', [SmsController::class, 'disconnectPlaymobile'])->name('sms.playmobile.disconnect');
+
+        // Telephony Integration (PBX & SipUni)
+        Route::get('/telephony', [TelephonyController::class, 'settings'])->name('telephony');
+        // PBX
+        Route::post('/telephony/pbx/connect', [TelephonyController::class, 'connectPbx'])->name('telephony.pbx.connect');
+        Route::post('/telephony/pbx/disconnect', [TelephonyController::class, 'disconnectPbx'])->name('telephony.pbx.disconnect');
+        // SipUni
+        Route::post('/telephony/sipuni/connect', [TelephonyController::class, 'connectSipuni'])->name('telephony.sipuni.connect');
+        Route::post('/telephony/sipuni/disconnect', [TelephonyController::class, 'disconnectSipuni'])->name('telephony.sipuni.disconnect');
+        // OnlinePBX
+        Route::post('/telephony/onlinepbx/connect', [TelephonyController::class, 'connectOnlinePbx'])->name('telephony.onlinepbx.connect');
+        Route::post('/telephony/onlinepbx/sync', [TelephonyController::class, 'syncOnlinePbxHistory'])->name('telephony.onlinepbx.sync');
+
         // 2FA routes
         Route::get('/two-factor', [TwoFactorAuthController::class, 'show'])->name('two-factor');
         Route::get('/two-factor/setup', [TwoFactorAuthController::class, 'setup'])->name('two-factor.setup');
@@ -461,6 +560,60 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/two-factor/disable', [TwoFactorAuthController::class, 'disable'])->name('two-factor.disable');
         Route::get('/two-factor/recovery-codes', [TwoFactorAuthController::class, 'showRecoveryCodes'])->name('two-factor.recovery-codes');
         Route::post('/two-factor/recovery-codes/regenerate', [TwoFactorAuthController::class, 'regenerateRecoveryCodes'])->name('two-factor.recovery-codes.regenerate');
+
+        // Team Management routes
+        Route::prefix('team')->name('team.')->group(function () {
+            Route::get('/', [TeamController::class, 'index'])->name('index');
+            Route::post('/add', [TeamController::class, 'invite'])->name('invite');
+            Route::put('/{member}', [TeamController::class, 'update'])->name('update');
+            Route::delete('/{member}', [TeamController::class, 'remove'])->name('remove');
+            Route::post('/{member}/reset-password', [TeamController::class, 'resetPassword'])->name('reset-password');
+        });
+    });
+
+    // SMS routes
+    Route::prefix('sms')->name('sms.')->group(function () {
+        // Status check
+        Route::get('/status', [SmsController::class, 'status'])->name('status');
+
+        // History & Statistics
+        Route::get('/history', [SmsController::class, 'history'])->name('history');
+        Route::get('/statistics', [SmsController::class, 'statistics'])->name('statistics');
+
+        // Send SMS to lead
+        Route::post('/send/{lead}', [SmsController::class, 'sendToLead'])->name('send');
+        Route::get('/lead/{lead}/history', [SmsController::class, 'leadHistory'])->name('lead.history');
+
+        // Bulk SMS
+        Route::post('/bulk-send', [SmsController::class, 'bulkSend'])->name('bulk-send');
+
+        // Calculate SMS parts
+        Route::post('/calculate-parts', [SmsController::class, 'calculateParts'])->name('calculate-parts');
+
+        // Templates
+        Route::get('/templates', [SmsController::class, 'templates'])->name('templates');
+        Route::post('/templates', [SmsController::class, 'storeTemplate'])->name('templates.store');
+        Route::put('/templates/{template}', [SmsController::class, 'updateTemplate'])->name('templates.update');
+        Route::delete('/templates/{template}', [SmsController::class, 'destroyTemplate'])->name('templates.destroy');
+        Route::post('/templates/{template}/preview', [SmsController::class, 'previewTemplate'])->name('templates.preview');
+    });
+
+    // Telephony routes
+    Route::prefix('telephony')->name('telephony.')->group(function () {
+        // Status check
+        Route::get('/status', [TelephonyController::class, 'status'])->name('status');
+
+        // History & Statistics
+        Route::get('/history', [TelephonyController::class, 'history'])->name('history');
+        Route::get('/statistics', [TelephonyController::class, 'statistics'])->name('statistics');
+
+        // Make calls
+        Route::post('/call', [TelephonyController::class, 'makeCall'])->name('call');
+        Route::post('/call/{lead}', [TelephonyController::class, 'callLead'])->name('call.lead');
+        Route::get('/lead/{lead}/history', [TelephonyController::class, 'leadCallHistory'])->name('lead.history');
+
+        // Balance
+        Route::post('/refresh-balance', [TelephonyController::class, 'refreshBalance'])->name('refresh-balance');
     });
 
     // Activity Logs routes
@@ -879,6 +1032,11 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
 
     // WhatsApp webhooks
     Route::match(['get', 'post'], '/whatsapp/{business}', [WhatsAppWebhookController::class, 'handle'])->name('whatsapp');
+
+    // Telephony webhooks
+    Route::post('/pbx', [TelephonyController::class, 'pbxWebhook'])->name('pbx');
+    Route::post('/sipuni', [TelephonyController::class, 'sipuniWebhook'])->name('sipuni');
+    Route::post('/onlinepbx', [TelephonyController::class, 'onlinePbxWebhook'])->name('onlinepbx');
     Route::get('/whatsapp/{business}/info', [WhatsAppWebhookController::class, 'getWebhookInfo'])->name('whatsapp.info');
     Route::post('/whatsapp/{business}/test', [WhatsAppWebhookController::class, 'sendTestMessage'])->name('whatsapp.test');
     Route::post('/whatsapp/{business}/template', [WhatsAppWebhookController::class, 'sendTemplate'])->name('whatsapp.template');

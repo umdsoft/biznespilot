@@ -35,14 +35,175 @@ import {
     DocumentPlusIcon,
     CogIcon,
 } from '@heroicons/vue/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/vue/24/solid';
+import { StarIcon as StarSolidIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/vue/24/solid';
+import SmsModal from '@/components/SmsModal.vue';
+import CallWidget from '@/components/CallWidget.vue';
+import TaskModal from '@/components/TaskModal.vue';
+import LeadAssignModal from '@/components/LeadAssignModal.vue';
+
+// SMS Modal state
+const showSmsModal = ref(false);
+const smsConnected = ref(false);
+
+// Telephony state
+const showCallWidget = ref(false);
+
+// Task state
+const showTaskModal = ref(false);
+const editingTask = ref(null);
+const tasks = ref([]);
+const tasksLoading = ref(false);
+
+// Assign modal state
+const showAssignModal = ref(false);
+const leadData = ref(null);
+
+// Check SMS status
+const checkSmsStatus = async () => {
+    try {
+        const response = await fetch(route('business.sms.status'), {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            smsConnected.value = data.connected;
+        }
+    } catch (error) {
+        console.error('Failed to check SMS status:', error);
+    }
+};
+
+// Open call widget
+const openCallWidget = () => {
+    showCallWidget.value = true;
+};
+
+// Close call widget
+const closeCallWidget = () => {
+    showCallWidget.value = false;
+};
+
+// Open task modal
+const openTaskModal = (task = null) => {
+    editingTask.value = task;
+    showTaskModal.value = true;
+};
+
+// Close task modal
+const closeTaskModal = () => {
+    showTaskModal.value = false;
+    editingTask.value = null;
+};
+
+// Open assign modal
+const openAssignModal = () => {
+    leadData.value = { ...props.lead };
+    showAssignModal.value = true;
+};
+
+// Handle assignment
+const onLeadAssigned = (updatedLead) => {
+    // Update the lead data reactively
+    if (leadData.value) {
+        leadData.value.assigned_to = updatedLead.assigned_to;
+    }
+    // Reload page to get fresh data
+    router.reload({ only: ['lead'] });
+};
+
+// Check on mount
+checkSmsStatus();
 
 const props = defineProps({
     lead: {
         type: Object,
         required: true,
     },
+    canAssignLeads: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+// Load tasks for this lead
+const loadTasks = async () => {
+    tasksLoading.value = true;
+    try {
+        const response = await fetch(route('business.tasks.lead', props.lead.id), {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            tasks.value = data.tasks || { overdue: [], today: [], tomorrow: [], this_week: [], later: [], completed: [] };
+        }
+    } catch (error) {
+        console.error('Failed to load tasks:', error);
+    } finally {
+        tasksLoading.value = false;
+    }
+};
+
+// Task groups config
+const taskGroups = [
+    { key: 'overdue', label: 'Muddati o\'tgan', color: 'red', icon: 'exclamation' },
+    { key: 'today', label: 'Bugun', color: 'blue', icon: 'clock' },
+    { key: 'tomorrow', label: 'Ertaga', color: 'indigo', icon: 'calendar' },
+    { key: 'this_week', label: 'Shu hafta', color: 'purple', icon: 'calendar' },
+    { key: 'later', label: 'Keyinroq', color: 'gray', icon: 'calendar' },
+    { key: 'completed', label: 'Bajarilgan', color: 'green', icon: 'check' },
+];
+
+// Check if there are any tasks
+const hasAnyTasks = computed(() => {
+    if (!tasks.value) return false;
+    return Object.values(tasks.value).some(group => group && group.length > 0);
+});
+
+// Handle task saved
+const onTaskSaved = () => {
+    loadTasks(); // Reload all tasks to get proper grouping
+};
+
+// Complete task
+const completeTask = async (task) => {
+    try {
+        const response = await fetch(route('business.tasks.complete', task.id), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            },
+        });
+        if (response.ok) {
+            loadTasks(); // Reload to update grouping
+        }
+    } catch (error) {
+        console.error('Failed to complete task:', error);
+    }
+};
+
+// Delete task
+const deleteTask = async (task) => {
+    if (!confirm('Vazifani o\'chirmoqchimisiz?')) return;
+
+    try {
+        const response = await fetch(route('business.tasks.destroy', task.id), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            },
+        });
+        if (response.ok) {
+            loadTasks(); // Reload to update grouping
+        }
+    } catch (error) {
+        console.error('Failed to delete task:', error);
+    }
+};
+
+// Load tasks on mount
+loadTasks();
 
 const showDeleteModal = ref(false);
 const activeTab = ref('activity');
@@ -190,9 +351,14 @@ const tabs = [
 
                     <!-- Right: Actions -->
                     <div class="flex items-center gap-2">
-                        <a v-if="lead.phone" :href="`tel:${lead.phone}`" class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="Qo'ng'iroq">
+                        <button
+                            v-if="lead.phone"
+                            @click="openCallWidget"
+                            class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                            title="Qo'ng'iroq qilish"
+                        >
                             <PhoneIcon class="w-5 h-5" />
-                        </a>
+                        </button>
                         <a v-if="lead.email" :href="`mailto:${lead.email}`" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Email">
                             <EnvelopeIcon class="w-5 h-5" />
                         </a>
@@ -269,16 +435,16 @@ const tabs = [
 
                             <!-- Contact Info -->
                             <div class="space-y-3">
-                                <a v-if="lead.phone" :href="`tel:${lead.phone}`" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors group">
+                                <button v-if="lead.phone" @click="openCallWidget" class="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors group cursor-pointer">
                                     <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:bg-green-200 dark:group-hover:bg-green-800/30 transition-colors">
                                         <PhoneIcon class="w-5 h-5 text-green-600 dark:text-green-400" />
                                     </div>
-                                    <div class="min-w-0 flex-1">
+                                    <div class="min-w-0 flex-1 text-left">
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Telefon</p>
                                         <p class="text-sm font-medium text-gray-900 dark:text-white">{{ lead.phone }}</p>
                                     </div>
-                                    <ArrowUpRightIcon class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </a>
+                                    <PhoneArrowUpRightIcon class="w-5 h-5 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </button>
 
                                 <a v-if="lead.email" :href="`mailto:${lead.email}`" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group">
                                     <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800/30 transition-colors">
@@ -306,6 +472,42 @@ const tabs = [
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ lead.source?.name || 'Belgilanmagan' }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Operator</span>
+                                    <!-- Clickable button if user can assign -->
+                                    <button
+                                        v-if="canAssignLeads"
+                                        @click="openAssignModal"
+                                        class="flex items-center gap-2 text-sm font-medium hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                                        :class="lead.assigned_to ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'"
+                                    >
+                                        <template v-if="lead.assigned_to">
+                                            <span class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-semibold">
+                                                {{ lead.assigned_to.name?.charAt(0)?.toUpperCase() }}
+                                            </span>
+                                            {{ lead.assigned_to.name }}
+                                        </template>
+                                        <template v-else>
+                                            Tayinlanmagan
+                                        </template>
+                                    </button>
+                                    <!-- Non-clickable display if user cannot assign -->
+                                    <span
+                                        v-else
+                                        class="flex items-center gap-2 text-sm font-medium"
+                                        :class="lead.assigned_to ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'"
+                                    >
+                                        <template v-if="lead.assigned_to">
+                                            <span class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-semibold">
+                                                {{ lead.assigned_to.name?.charAt(0)?.toUpperCase() }}
+                                            </span>
+                                            {{ lead.assigned_to.name }}
+                                        </template>
+                                        <template v-else>
+                                            Tayinlanmagan
+                                        </template>
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
                                     <span class="text-sm text-gray-500 dark:text-gray-400">Sifat bahosi</span>
                                     <span class="text-sm font-medium" :class="getScoreColor(lead.score)">{{ getScoreLabel(lead.score) }}</span>
                                 </div>
@@ -326,11 +528,32 @@ const tabs = [
                                     <PaperAirplaneIcon class="w-6 h-6" />
                                     <span class="text-xs font-medium">Telegram</span>
                                 </a>
-                                <button class="flex flex-col items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-xl transition-colors">
-                                    <BellIcon class="w-6 h-6" />
-                                    <span class="text-xs font-medium">Eslatma</span>
+                                <button v-if="lead.phone && smsConnected" @click="showSmsModal = true" class="flex flex-col items-center gap-2 p-3 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-xl transition-colors">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                    </svg>
+                                    <span class="text-xs font-medium">SMS</span>
                                 </button>
-                                <button class="flex flex-col items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-xl transition-colors">
+                                <button
+                                    v-if="lead.phone"
+                                    @click="openCallWidget"
+                                    class="flex flex-col items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-xl transition-colors"
+                                >
+                                    <PhoneArrowUpRightIcon class="w-6 h-6" />
+                                    <span class="text-xs font-medium">Qo'ng'iroq</span>
+                                </button>
+                                <button
+                                    @click="openTaskModal()"
+                                    class="flex flex-col items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-xl transition-colors"
+                                >
+                                    <BellIcon class="w-6 h-6" />
+                                    <span class="text-xs font-medium">Vazifa</span>
+                                </button>
+                                <button
+                                    v-if="canAssignLeads"
+                                    @click="openAssignModal"
+                                    class="flex flex-col items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-xl transition-colors"
+                                >
                                     <UserPlusIcon class="w-6 h-6" />
                                     <span class="text-xs font-medium">Tayinlash</span>
                                 </button>
@@ -421,10 +644,19 @@ const tabs = [
                                         ></textarea>
                                         <div class="flex items-center justify-between mt-3">
                                             <div class="flex items-center gap-2">
-                                                <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Fayl biriktirish">
-                                                    <DocumentPlusIcon class="w-5 h-5" />
-                                                </button>
-                                                <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Eslatma qo'shish">
+                                                <div class="relative group">
+                                                    <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Fayl biriktirish">
+                                                        <DocumentPlusIcon class="w-5 h-5" />
+                                                    </button>
+                                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                        Tez orada qo'shiladi
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    @click="openTaskModal()"
+                                                    class="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                    title="Vazifa qo'shish"
+                                                >
                                                     <BellIcon class="w-5 h-5" />
                                                 </button>
                                             </div>
@@ -494,15 +726,241 @@ const tabs = [
                                 </div>
                             </div>
 
-                            <!-- Tasks Tab -->
-                            <div v-if="activeTab === 'tasks'" class="max-w-3xl mx-auto text-center py-12">
-                                <CheckCircleIcon class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Vazifalar</h3>
-                                <p class="text-gray-500 dark:text-gray-400 mb-4">Bu funksiya tez orada qo'shiladi</p>
-                                <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium rounded-lg cursor-not-allowed">
-                                    <PlusIcon class="w-4 h-4" />
-                                    Vazifa qo'shish
-                                </button>
+                            <!-- Tasks Tab - Kanban Board -->
+                            <div v-if="activeTab === 'tasks'" class="h-full">
+                                <!-- Loading -->
+                                <div v-if="tasksLoading" class="text-center py-12">
+                                    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                    <p class="text-gray-500 dark:text-gray-400 mt-4">Yuklanmoqda...</p>
+                                </div>
+
+                                <!-- Kanban Board - 4 Columns -->
+                                <div v-else class="grid grid-cols-4 gap-4 h-full">
+                                    <!-- Column 1: Muddati o'tgan (Overdue) -->
+                                    <div class="flex flex-col bg-red-50/50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800/30 overflow-hidden">
+                                        <!-- Column Header -->
+                                        <div class="p-3 bg-red-100 dark:bg-red-900/30 border-b border-red-200 dark:border-red-800/30">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                                    <span class="font-semibold text-red-700 dark:text-red-400">Muddati o'tgan</span>
+                                                </div>
+                                                <span class="text-xs font-bold px-2 py-0.5 bg-red-200 dark:bg-red-800/50 text-red-700 dark:text-red-300 rounded-full">
+                                                    {{ tasks.overdue?.length || 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Tasks -->
+                                        <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                                            <div
+                                                v-for="task in tasks.overdue"
+                                                :key="task.id"
+                                                class="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-700/50 p-3 shadow-sm hover:shadow-md transition-shadow"
+                                            >
+                                                <!-- Time Badge -->
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-lg font-bold text-red-600 dark:text-red-400">{{ task.due_date_human }}</span>
+                                                    <span :class="[
+                                                        'text-xs px-2 py-0.5 rounded font-medium',
+                                                        task.type === 'call' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' :
+                                                        task.type === 'meeting' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' :
+                                                        'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                                                    ]">{{ task.type_label }}</span>
+                                                </div>
+                                                <!-- Title -->
+                                                <h4 class="font-medium text-gray-900 dark:text-white text-sm mb-1">{{ task.title }}</h4>
+                                                <!-- Date -->
+                                                <p class="text-xs text-red-500 dark:text-red-400 mb-2">{{ task.due_date_full.split(' ')[0] }}</p>
+                                                <!-- Actions -->
+                                                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <div class="flex gap-1">
+                                                        <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
+                                                        <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Empty state -->
+                                            <div v-if="!tasks.overdue?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                                                <CheckCircleIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                <p class="text-xs">Yo'q</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 2: Bugun (Today) -->
+                                    <div class="flex flex-col bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800/30 overflow-hidden">
+                                        <!-- Column Header -->
+                                        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 border-b border-blue-200 dark:border-blue-800/30">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                    <span class="font-semibold text-blue-700 dark:text-blue-400">Bugun</span>
+                                                </div>
+                                                <span class="text-xs font-bold px-2 py-0.5 bg-blue-200 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-full">
+                                                    {{ tasks.today?.length || 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Tasks -->
+                                        <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                                            <div
+                                                v-for="task in tasks.today"
+                                                :key="task.id"
+                                                class="bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700/50 p-3 shadow-sm hover:shadow-md transition-shadow"
+                                            >
+                                                <!-- Time Badge -->
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ task.due_date_human }}</span>
+                                                    <span :class="[
+                                                        'text-xs px-2 py-0.5 rounded font-medium',
+                                                        task.type === 'call' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' :
+                                                        task.type === 'meeting' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' :
+                                                        'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                                                    ]">{{ task.type_label }}</span>
+                                                </div>
+                                                <!-- Title -->
+                                                <h4 class="font-medium text-gray-900 dark:text-white text-sm mb-1">{{ task.title }}</h4>
+                                                <!-- Priority -->
+                                                <div v-if="task.priority === 'urgent' || task.priority === 'high'" class="mb-2">
+                                                    <span :class="[
+                                                        'text-xs px-2 py-0.5 rounded font-bold',
+                                                        task.priority === 'urgent' ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-orange-100 text-orange-700'
+                                                    ]">{{ task.priority_label }}</span>
+                                                </div>
+                                                <!-- Actions -->
+                                                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <div class="flex gap-1">
+                                                        <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
+                                                        <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Empty state -->
+                                            <div v-if="!tasks.today?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                                                <CalendarIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                <p class="text-xs">Yo'q</p>
+                                            </div>
+                                        </div>
+                                        <!-- Add button -->
+                                        <div class="p-2 border-t border-blue-200 dark:border-blue-800/30">
+                                            <button @click="openTaskModal()" class="w-full py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center justify-center gap-1">
+                                                <PlusIcon class="w-4 h-4" />
+                                                Vazifa qo'shish
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 3: Ertaga (Tomorrow) -->
+                                    <div class="flex flex-col bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-200 dark:border-indigo-800/30 overflow-hidden">
+                                        <!-- Column Header -->
+                                        <div class="p-3 bg-indigo-100 dark:bg-indigo-900/30 border-b border-indigo-200 dark:border-indigo-800/30">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                                    <span class="font-semibold text-indigo-700 dark:text-indigo-400">Ertaga</span>
+                                                </div>
+                                                <span class="text-xs font-bold px-2 py-0.5 bg-indigo-200 dark:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 rounded-full">
+                                                    {{ tasks.tomorrow?.length || 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Tasks -->
+                                        <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                                            <div
+                                                v-for="task in tasks.tomorrow"
+                                                :key="task.id"
+                                                class="bg-white dark:bg-gray-800 rounded-lg border border-indigo-200 dark:border-indigo-700/50 p-3 shadow-sm hover:shadow-md transition-shadow"
+                                            >
+                                                <!-- Time Badge -->
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400">{{ task.due_date_human }}</span>
+                                                    <span :class="[
+                                                        'text-xs px-2 py-0.5 rounded font-medium',
+                                                        task.type === 'call' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' :
+                                                        task.type === 'meeting' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' :
+                                                        'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                                                    ]">{{ task.type_label }}</span>
+                                                </div>
+                                                <!-- Title -->
+                                                <h4 class="font-medium text-gray-900 dark:text-white text-sm mb-1">{{ task.title }}</h4>
+                                                <!-- Priority -->
+                                                <div v-if="task.priority === 'urgent' || task.priority === 'high'" class="mb-2">
+                                                    <span :class="[
+                                                        'text-xs px-2 py-0.5 rounded font-bold',
+                                                        task.priority === 'urgent' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                                                    ]">{{ task.priority_label }}</span>
+                                                </div>
+                                                <!-- Actions -->
+                                                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <div class="flex gap-1">
+                                                        <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
+                                                        <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Empty state -->
+                                            <div v-if="!tasks.tomorrow?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                                                <CalendarIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                <p class="text-xs">Yo'q</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 4: Shu hafta (This Week) -->
+                                    <div class="flex flex-col bg-purple-50/50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800/30 overflow-hidden">
+                                        <!-- Column Header -->
+                                        <div class="p-3 bg-purple-100 dark:bg-purple-900/30 border-b border-purple-200 dark:border-purple-800/30">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-3 h-3 rounded-full bg-purple-500"></div>
+                                                    <span class="font-semibold text-purple-700 dark:text-purple-400">Shu hafta</span>
+                                                </div>
+                                                <span class="text-xs font-bold px-2 py-0.5 bg-purple-200 dark:bg-purple-800/50 text-purple-700 dark:text-purple-300 rounded-full">
+                                                    {{ tasks.this_week?.length || 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Tasks -->
+                                        <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                                            <div
+                                                v-for="task in tasks.this_week"
+                                                :key="task.id"
+                                                class="bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-purple-700/50 p-3 shadow-sm hover:shadow-md transition-shadow"
+                                            >
+                                                <!-- Time Badge -->
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ task.due_date_human }}</span>
+                                                    <span :class="[
+                                                        'text-xs px-2 py-0.5 rounded font-medium',
+                                                        task.type === 'call' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' :
+                                                        task.type === 'meeting' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' :
+                                                        'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                                                    ]">{{ task.type_label }}</span>
+                                                </div>
+                                                <!-- Title -->
+                                                <h4 class="font-medium text-gray-900 dark:text-white text-sm mb-1">{{ task.title }}</h4>
+                                                <!-- Date -->
+                                                <p class="text-xs text-purple-500 dark:text-purple-400 mb-2">{{ task.due_date_full.split(' ')[0] }}</p>
+                                                <!-- Actions -->
+                                                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <div class="flex gap-1">
+                                                        <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
+                                                        <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Empty state -->
+                                            <div v-if="!tasks.this_week?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                                                <CalendarIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                <p class="text-xs">Yo'q</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Files Tab -->
@@ -564,6 +1022,38 @@ const tabs = [
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- SMS Modal -->
+        <SmsModal
+            :show="showSmsModal"
+            :lead="lead"
+            @close="showSmsModal = false"
+            @sent="() => {}"
+        />
+
+        <!-- Call Widget -->
+        <CallWidget
+            :show="showCallWidget"
+            :lead="lead"
+            @close="closeCallWidget"
+        />
+
+        <!-- Task Modal -->
+        <TaskModal
+            :show="showTaskModal"
+            :lead="lead"
+            :task="editingTask"
+            @close="closeTaskModal"
+            @saved="onTaskSaved"
+        />
+
+        <!-- Lead Assign Modal -->
+        <LeadAssignModal
+            :show="showAssignModal"
+            :lead="leadData || lead"
+            @close="showAssignModal = false"
+            @assigned="onLeadAssigned"
+        />
     </BusinessLayout>
 </template>
 

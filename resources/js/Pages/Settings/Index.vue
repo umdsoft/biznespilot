@@ -141,13 +141,13 @@
     <!-- Preferences Tab -->
     <div v-show="activeTab === 'preferences'" class="space-y-6">
       <Card>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Bildirishnomalar</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Bildirishnomalar</h2>
         <form @submit.prevent="updatePreferences">
           <div class="space-y-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
               <div>
-                <p class="font-medium text-gray-900">Email Bildirishnomalar</p>
-                <p class="text-sm text-gray-500">Muhim yangiliklarni email orqali qabul qiling</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">Email Bildirishnomalar</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Muhim yangiliklarni email orqali qabul qiling</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input
@@ -155,14 +155,14 @@
                   type="checkbox"
                   class="sr-only peer"
                 />
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
               <div>
-                <p class="font-medium text-gray-900">Brauzer Bildirishnomalar</p>
-                <p class="text-sm text-gray-500">Real vaqt bildirishnomalarini yoqish</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">Brauzer Bildirishnomalar</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Real vaqt bildirishnomalarini yoqish</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input
@@ -170,14 +170,14 @@
                   type="checkbox"
                   class="sr-only peer"
                 />
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-xl border border-pink-100 dark:border-pink-800">
               <div>
-                <p class="font-medium text-gray-900">Marketing Xabarlari</p>
-                <p class="text-sm text-gray-500">Yangi funksiyalar va takliflar haqida xabar olish</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">Marketing Xabarlari</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Yangi funksiyalar va takliflar haqida xabar olish</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input
@@ -185,22 +185,22 @@
                   type="checkbox"
                   class="sr-only peer"
                 />
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
               </label>
             </div>
 
-            <div class="pt-4 border-t border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Til</label>
-              <select v-model="preferencesForm.language" class="input max-w-xs">
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Til</label>
+              <select v-model="preferencesForm.language" class="input max-w-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
                 <option value="uz">O'zbekcha</option>
                 <option value="ru">Русский</option>
                 <option value="en">English</option>
               </select>
             </div>
 
-            <div class="border-t border-gray-200 pt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Tema</label>
-              <select v-model="preferencesForm.theme" class="input max-w-xs">
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema</label>
+              <select v-model="preferencesForm.theme" class="input max-w-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
                 <option value="light">Yorug'</option>
                 <option value="dark">Qorong'i</option>
                 <option value="auto">Avtomatik</option>
@@ -208,9 +208,9 @@
             </div>
 
             <div class="pt-4">
-              <button type="submit" :disabled="preferencesForm.processing" class="btn-primary">
+              <button type="submit" :disabled="preferencesForm.processing" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 dark:hover:from-purple-600 dark:hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg">
                 <span v-if="preferencesForm.processing">Saqlanmoqda...</span>
-                <span v-else>Saqlash</span>
+                <span v-else>O'zgarishlarni Saqlash</span>
               </button>
             </div>
           </div>
@@ -419,31 +419,6 @@
         </div>
       </Card>
 
-      <!-- Coming Soon -->
-      <Card>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Tez Kunda</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex items-center p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
-            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-              <span class="text-xl">✈️</span>
-            </div>
-            <div>
-              <h3 class="font-medium text-gray-700">Telegram Bot</h3>
-              <p class="text-xs text-gray-500">Tez kunda...</p>
-            </div>
-          </div>
-
-          <div class="flex items-center p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
-            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-              <span class="text-xl">👥</span>
-            </div>
-            <div>
-              <h3 class="font-medium text-gray-700">Facebook Messenger</h3>
-              <p class="text-xs text-gray-500">Tez kunda...</p>
-            </div>
-          </div>
-        </div>
-      </Card>
     </div>
     </div>
   </BusinessLayout>

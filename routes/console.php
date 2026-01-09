@@ -199,3 +199,15 @@ Schedule::job(new \App\Jobs\ScrapeCompetitorData())
     ->timezone('Asia/Tashkent')
     ->name('competitor-monitoring')
     ->onOneServer();
+
+// ==========================================
+// TODO RECURRING TASKS
+// ==========================================
+
+// Generate Recurring Todos - Har kuni ertalab 6:00 da
+// Takrorlanadigan vazifalarni avtomatik yaratadi
+Schedule::command('todos:generate-recurring')
+    ->dailyAt('06:00')
+    ->timezone('Asia/Tashkent')
+    ->name('generate-recurring-todos')
+    ->onOneServer();
