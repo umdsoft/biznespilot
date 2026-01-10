@@ -1,0 +1,101 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class SipuniAccount extends Model
+{
+    use BelongsToBusiness, HasUuid;
+
+    protected $fillable = [
+        'business_id',
+        'name',
+        'api_key',
+        'api_secret',
+        'caller_id',
+        'extension',
+        'callback_url',
+        'is_active',
+        'balance',
+        'settings',
+        'last_sync_at',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'settings' => 'array',
+        'last_sync_at' => 'datetime',
+    ];
+
+    protected $hidden = [
+        'api_key',
+        'api_secret',
+    ];
+
+    /**
+     * SipUni API base URL
+     */
+    public const API_BASE_URL = 'https://sipuni.com/api';
+
+    /**
+     * Get the business that owns this account
+     */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
+    }
+
+    /**
+     * Scope: Only active accounts
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Check if account is properly configured
+     */
+    public function isConfigured(): bool
+    {
+        return !empty($this->api_key) && !empty($this->api_secret);
+    }
+
+    /**
+     * Generate API signature for SipUni
+     */
+    public function generateSignature(array $params): string
+    {
+        ksort($params);
+        $signString = '';
+        foreach ($params as $key => $value) {
+            $signString .= $key . '=' . $value;
+        }
+        $signString .= $this->api_secret;
+
+        return md5($signString);
+    }
+
+    /**
+     * Get setting value
+     */
+    public function getSetting(string $key, $default = null)
+    {
+        return $this->settings[$key] ?? $default;
+    }
+
+    /**
+     * Set setting value
+     */
+    public function setSetting(string $key, $value): void
+    {
+        $settings = $this->settings ?? [];
+        $settings[$key] = $value;
+        $this->settings = $settings;
+        $this->save();
+    }
+}

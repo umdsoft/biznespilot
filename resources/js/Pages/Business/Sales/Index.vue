@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
@@ -24,9 +24,104 @@ import {
     ClockIcon,
     CheckIcon,
     XMarkIcon,
-    ArrowsPointingOutIcon
+    ArrowsPointingOutIcon,
+    ChartPieIcon,
+    PresentationChartLineIcon,
 } from '@heroicons/vue/24/outline';
 import { StarIcon } from '@heroicons/vue/24/solid';
+import BulkSmsModal from '@/components/BulkSmsModal.vue';
+import BulkAssignModal from '@/components/BulkAssignModal.vue';
+import SalesFunnelChart from '@/components/SalesFunnelChart.vue';
+import SourceAnalyticsChart from '@/components/SourceAnalyticsChart.vue';
+import LostReasonModal from '@/components/LostReasonModal.vue';
+
+// SMS state
+const showBulkSmsModal = ref(false);
+const selectedLeads = ref([]);
+const smsConnected = ref(false);
+
+// Bulk Assign state
+const showBulkAssignModal = ref(false);
+
+// Check SMS status
+const checkSmsStatus = async () => {
+    try {
+        const response = await fetch(route('business.sms.status'), {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            smsConnected.value = data.connected;
+        }
+    } catch (error) {
+        console.error('Failed to check SMS status:', error);
+    }
+};
+
+// Toggle lead selection
+const toggleLeadSelection = (lead) => {
+    const index = selectedLeads.value.findIndex(l => l.id === lead.id);
+    if (index === -1) {
+        selectedLeads.value.push(lead);
+    } else {
+        selectedLeads.value.splice(index, 1);
+    }
+};
+
+// Check if lead is selected
+const isLeadSelected = (lead) => {
+    return selectedLeads.value.some(l => l.id === lead.id);
+};
+
+// Select all visible leads
+const selectAllLeads = () => {
+    if (selectedLeads.value.length === filteredLeads.value.length) {
+        selectedLeads.value = [];
+    } else {
+        selectedLeads.value = [...filteredLeads.value];
+    }
+};
+
+// Clear selection
+const clearSelection = () => {
+    selectedLeads.value = [];
+};
+
+// Open bulk SMS modal
+const openBulkSmsModal = () => {
+    if (selectedLeads.value.length > 0) {
+        showBulkSmsModal.value = true;
+    }
+};
+
+// Handle bulk SMS button click
+const handleBulkSmsClick = () => {
+    if (!smsConnected.value) {
+        // Redirect to SMS settings
+        router.visit(route('business.settings.sms'));
+        return;
+    }
+    openBulkSmsModal();
+};
+
+// Handle SMS sent
+const handleSmsSent = () => {
+    clearSelection();
+};
+
+// Handle bulk assign
+const handleBulkAssignClick = () => {
+    if (selectedLeads.value.length > 0) {
+        showBulkAssignModal.value = true;
+    }
+};
+
+// Handle bulk assigned
+const handleBulkAssigned = (data) => {
+    // Refresh leads to get updated data
+    fetchLeads();
+    clearSelection();
+};
 
 const props = defineProps({
     leads: {
@@ -56,12 +151,17 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    canAssignLeads: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 // Lazy loading state
 const isLoading = ref(false);
 const loadedLeads = ref([]);
 const loadedStats = ref(null);
+const localStateInitialized = ref(false); // Flag to track when local state is ready
 const pagination = ref({
     current_page: 1,
     last_page: 1,
@@ -69,8 +169,13 @@ const pagination = ref({
     total: 0,
 });
 
-// Use loaded data or fall back to props
-const leads = computed(() => loadedLeads.value.length ? loadedLeads.value : (props.leads || []));
+// Use local state after initialization - never fall back to props after init
+const leads = computed(() => {
+    if (localStateInitialized.value) {
+        return loadedLeads.value;
+    }
+    return props.leads || [];
+});
 const stats = computed(() => loadedStats.value || props.stats || {
     total_leads: 0,
     new_leads: 0,
@@ -84,8 +189,17 @@ const stats = computed(() => loadedStats.value || props.stats || {
 const viewMode = ref('kanban');
 const searchQuery = ref('');
 const sourceFilter = ref('');
+const operatorFilter = ref('');
+const operators = ref([]);
 const deletingLead = ref(null);
 const isDragging = ref(false);
+
+// Analytics state
+const funnelData = ref([]);
+const sourceData = ref([]);
+const analyticsLoading = ref(false);
+const showLostReasonModal = ref(false);
+const leadToMarkLost = ref(null);
 const draggedLead = ref(null);
 const dragOverColumn = ref(null);
 const showLeadMenu = ref(null);
@@ -101,15 +215,27 @@ const pipelineStages = [
     { value: 'lost', label: 'Yo\'qoldi', color: 'red', bgColor: 'bg-red-500', lightBg: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800' },
 ];
 
+// Load operators
+const loadOperators = async () => {
+    try {
+        const response = await axios.get('/business/api/sales/operators');
+        operators.value = response.data.operators || [];
+    } catch (err) {
+        console.error('Error fetching operators:', err);
+    }
+};
+
 // Fetch leads with pagination
 const fetchLeads = async (page = 1) => {
     try {
         const params = { page, per_page: 25 };
         if (searchQuery.value) params.search = searchQuery.value;
         if (sourceFilter.value) params.source = sourceFilter.value;
+        if (operatorFilter.value) params.operator = operatorFilter.value;
 
         const response = await axios.get('/business/api/sales/leads', { params });
         loadedLeads.value = response.data.data || [];
+        localStateInitialized.value = true; // Mark local state as initialized
         pagination.value = {
             current_page: response.data.current_page,
             last_page: response.data.last_page,
@@ -142,6 +268,117 @@ const fetchData = async () => {
     }
 };
 
+// Fetch funnel stats
+const fetchFunnelStats = async () => {
+    try {
+        const response = await axios.get('/business/api/sales/funnel-stats');
+        funnelData.value = response.data.funnel || [];
+    } catch (err) {
+        console.error('Error fetching funnel stats:', err);
+    }
+};
+
+// Fetch source stats
+const fetchSourceStats = async () => {
+    try {
+        const response = await axios.get('/business/api/sales/source-stats');
+        sourceData.value = response.data.sources || [];
+    } catch (err) {
+        console.error('Error fetching source stats:', err);
+    }
+};
+
+// Fetch analytics data
+const fetchAnalytics = async () => {
+    analyticsLoading.value = true;
+    try {
+        await Promise.all([fetchFunnelStats(), fetchSourceStats()]);
+    } finally {
+        analyticsLoading.value = false;
+    }
+};
+
+// Mark lead as lost
+const openLostReasonModal = (lead) => {
+    leadToMarkLost.value = lead;
+    showLostReasonModal.value = true;
+};
+
+// Handle lost reason confirm
+const handleLostReasonConfirm = async ({ leadId, reason, details }) => {
+    try {
+        await axios.post(`/business/api/sales/leads/${leadId}/mark-lost`, {
+            lost_reason: reason,
+            lost_reason_details: details,
+        });
+        showLostReasonModal.value = false;
+        leadToMarkLost.value = null;
+
+        // Update local state optimistically
+        if (!props.lazyLoad && localStateInitialized.value) {
+            const updatedLeads = loadedLeads.value.map(l => {
+                if (l.id === leadId) {
+                    return { ...l, status: 'lost', lost_reason: reason, lost_reason_details: details };
+                }
+                return { ...l };
+            });
+            loadedLeads.value = updatedLeads;
+            await nextTick();
+        }
+
+        // Refresh data for lazy load mode
+        if (props.lazyLoad) {
+            await fetchLeads();
+        }
+
+        // Refresh stats
+        fetchStats();
+
+        // Refresh analytics if in analytics view
+        if (viewMode.value === 'analytics') {
+            await fetchAnalytics();
+        }
+    } catch (err) {
+        console.error('Error marking lead as lost:', err);
+    }
+};
+
+// Watch for view mode changes to load analytics
+watch(viewMode, async (newMode) => {
+    if (newMode === 'analytics' && funnelData.value.length === 0) {
+        await fetchAnalytics();
+    }
+});
+
+// Initialize local state from props (for non-lazy mode)
+// This runs once on mount - after that, local state is independent
+const initializeLocalState = () => {
+    if (!props.lazyLoad && props.leads?.length > 0 && !localStateInitialized.value) {
+        loadedLeads.value = JSON.parse(JSON.stringify(props.leads));
+        localStateInitialized.value = true;
+    }
+};
+
+// Force refresh local state from props (used after server-side changes like delete error)
+const forceRefreshFromProps = () => {
+    if (props.leads?.length >= 0) {
+        loadedLeads.value = JSON.parse(JSON.stringify(props.leads || []));
+    }
+};
+
+// Watch for initial props - only initialize once
+// After initialization, local state is independent from props
+watch(() => props.leads, (newLeads, oldLeads) => {
+    if (!localStateInitialized.value) {
+        initializeLocalState();
+    }
+    // If props change dramatically (e.g., after Inertia router.reload), sync local state
+    // But only for significant changes (like full page reload)
+    else if (!props.lazyLoad && oldLeads === undefined && newLeads?.length > 0) {
+        forceRefreshFromProps();
+    }
+}, { immediate: true });
+
 // Debounced search
 let searchTimeout;
 const debouncedSearch = () => {
@@ -155,6 +392,9 @@ const debouncedSearch = () => {
 
 watch(searchQuery, debouncedSearch);
 watch(sourceFilter, () => {
+    if (props.lazyLoad) fetchLeads(1);
+});
+watch(operatorFilter, () => {
     if (props.lazyLoad) fetchLeads(1);
 });
 
@@ -253,6 +493,29 @@ const getScoreStars = (score) => {
     return 1;
 };
 
+// Format relative time (e.g., "2 soat oldin", "Bugun 14:30")
+const formatRelativeTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Hozirgina';
+    if (diffMins < 60) return `${diffMins} daq oldin`;
+    if (diffHours < 24) return `${diffHours} soat oldin`;
+    if (diffDays < 7) return `${diffDays} kun oldin`;
+
+    // Format as date
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const mins = date.getMinutes().toString().padStart(2, '0');
+    return `${day}.${month} ${hours}:${mins}`;
+};
+
 // Drag and Drop handlers
 const handleDragStart = (e, lead) => {
     isDragging.value = true;
@@ -286,26 +549,80 @@ const handleDragLeave = (e) => {
     }
 };
 
-const handleDrop = (e, newStatus) => {
+const handleDrop = async (e, newStatus) => {
     e.preventDefault();
     dragOverColumn.value = null;
 
     if (draggedLead.value && draggedLead.value.status !== newStatus) {
-        // Update lead status via API
-        router.put(route('business.sales.update', draggedLead.value.id), {
-            name: draggedLead.value.name,
-            email: draggedLead.value.email,
-            phone: draggedLead.value.phone,
-            company: draggedLead.value.company,
-            source_id: draggedLead.value.source?.id || null,
-            status: newStatus,
-            score: draggedLead.value.score,
-            estimated_value: draggedLead.value.estimated_value,
-        }, {
-            preserveScroll: true,
-            preserveState: true,
-            only: ['leads', 'stats'],
+        const lead = { ...draggedLead.value }; // Clone to avoid reference issues
+        const leadId = lead.id;
+        const oldStatus = lead.status;
+
+        // Handle "lost" status - need to show modal first
+        if (newStatus === 'lost') {
+            openLostReasonModal(lead);
+            isDragging.value = false;
+            draggedLead.value = null;
+            return;
+        }
+
+        // Clear drag state immediately
+        isDragging.value = false;
+        draggedLead.value = null;
+
+        // Optimistic update - create completely new array with new objects
+        const updatedLeads = loadedLeads.value.map(l => {
+            if (l.id === leadId) {
+                return { ...l, status: newStatus };
+            }
+            return { ...l }; // Clone all objects for reactivity
         });
+
+        // Assign new array to trigger Vue reactivity
+        loadedLeads.value = updatedLeads;
+
+        // Force Vue to process the update
+        await nextTick();
+
+        try {
+            // Send update to server with JSON headers to prevent Inertia redirect
+            await axios.put(route('business.sales.update', leadId), {
+                name: lead.name,
+                email: lead.email,
+                phone: lead.phone,
+                company: lead.company,
+                source_id: lead.source?.id || null,
+                status: newStatus,
+                score: lead.score,
+                estimated_value: lead.estimated_value,
+            }, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            // Refresh stats after successful update
+            fetchStats();
+
+            // Refresh analytics if in analytics view
+            if (viewMode.value === 'analytics') {
+                fetchAnalytics();
+            }
+        } catch (error) {
+            console.error('Error updating lead status:', error);
+            // Revert optimistic update on error
+            const revertedLeads = loadedLeads.value.map(l => {
+                if (l.id === leadId) {
+                    return { ...l, status: oldStatus };
+                }
+                return { ...l };
+            });
+            loadedLeads.value = revertedLeads;
+            await nextTick();
+        }
+
+        return;
     }
 
     isDragging.value = false;
@@ -317,14 +634,33 @@ const confirmDelete = (lead) => {
     showLeadMenu.value = null;
 };
 
-const deleteLead = () => {
+const deleteLead = async () => {
     if (deletingLead.value) {
-        router.delete(route('business.sales.destroy', deletingLead.value.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                deletingLead.value = null;
-            },
-        });
+        const leadId = deletingLead.value.id;
+
+        // Optimistic update - remove from local state immediately
+        const updatedLeads = loadedLeads.value.filter(l => l.id !== leadId);
+        loadedLeads.value = updatedLeads;
+        deletingLead.value = null;
+
+        try {
+            await axios.delete(route('business.sales.destroy', leadId), {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            fetchStats();
+        } catch (error) {
+            console.error('Error deleting lead:', error);
+            // Refresh leads to restore the deleted lead
+            if (props.lazyLoad) {
+                await fetchLeads();
+            } else {
+                // For non-lazy mode, we need to reload from server
+                router.reload({ only: ['leads'] });
+            }
+        }
     }
 };
 
@@ -345,10 +681,17 @@ const handleClickOutside = (e) => {
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
+    // Load operators
+    loadOperators();
     // Lazy load data if needed
     if (props.lazyLoad) {
         fetchData();
+    } else {
+        // Initialize local state from props for non-lazy mode
+        initializeLocalState();
     }
+    // Check SMS status
+    checkSmsStatus();
 });
 
 onUnmounted(() => {
@@ -423,6 +766,18 @@ onUnmounted(() => {
                             </option>
                         </select>
 
+                        <!-- Operator Filter -->
+                        <select
+                            v-model="operatorFilter"
+                            class="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900 dark:text-white"
+                        >
+                            <option value="">Barcha operatorlar</option>
+                            <option value="unassigned">Tayinlanmagan</option>
+                            <option v-for="op in operators" :key="op.id" :value="op.id">
+                                {{ op.name }}
+                            </option>
+                        </select>
+
                         <!-- View Toggle -->
                         <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                             <button
@@ -448,6 +803,18 @@ onUnmounted(() => {
                                 title="Ro'yxat ko'rinishi"
                             >
                                 <ListBulletIcon class="w-5 h-5" />
+                            </button>
+                            <button
+                                @click="viewMode = 'analytics'"
+                                :class="[
+                                    'p-2 rounded-md transition-colors',
+                                    viewMode === 'analytics'
+                                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                ]"
+                                title="Analitika"
+                            >
+                                <ChartPieIcon class="w-5 h-5" />
                             </button>
                         </div>
 
@@ -533,11 +900,28 @@ onUnmounted(() => {
                                     draggable="true"
                                     @dragstart="handleDragStart($event, lead)"
                                     @dragend="handleDragEnd"
-                                    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 cursor-grab active:cursor-grabbing hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all group"
+                                    :class="[
+                                        'bg-white dark:bg-gray-800 rounded-lg border p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group',
+                                        isLeadSelected(lead)
+                                            ? 'border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                                    ]"
                                 >
                                     <!-- Card Header -->
                                     <div class="flex items-start justify-between gap-2 mb-2">
                                         <div class="flex items-center gap-2 min-w-0">
+                                            <!-- Selection Checkbox (visible on hover or when selected) -->
+                                            <button
+                                                @click.stop="toggleLeadSelection(lead)"
+                                                :class="[
+                                                    'w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                                                    isLeadSelected(lead)
+                                                        ? 'bg-blue-500 border-blue-500 text-white'
+                                                        : 'border-gray-400 dark:border-gray-500 hover:border-blue-500 hover:bg-blue-500/10 opacity-0 group-hover:opacity-100'
+                                                ]"
+                                            >
+                                                <CheckIcon v-if="isLeadSelected(lead)" class="w-3 h-3" />
+                                            </button>
                                             <div :class="['w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-semibold flex-shrink-0', getAvatarColor(lead.name)]">
                                                 {{ getInitials(lead.name) }}
                                             </div>
@@ -591,6 +975,14 @@ onUnmounted(() => {
                                                         Tahrirlash
                                                     </Link>
                                                     <button
+                                                        v-if="lead.status !== 'won' && lead.status !== 'lost'"
+                                                        @click="openLostReasonModal(lead)"
+                                                        class="w-full flex items-center gap-2 px-3 py-2 text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                                                    >
+                                                        <XMarkIcon class="w-4 h-4" />
+                                                        Yo'qotilgan
+                                                    </button>
+                                                    <button
                                                         @click="confirmDelete(lead)"
                                                         class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                                                     >
@@ -616,15 +1008,17 @@ onUnmounted(() => {
 
                                     <!-- Card Footer -->
                                     <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                                        <!-- Value or Source -->
+                                        <!-- Source -->
+                                        <div v-if="lead.source" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500 dark:text-gray-400 truncate max-w-24">
+                                            {{ lead.source.name }}
+                                        </div>
+                                        <div v-else class="text-xs text-gray-400 italic">Noma'lum</div>
+
+                                        <!-- Value -->
                                         <div v-if="lead.estimated_value" class="flex items-center gap-1 text-green-600 dark:text-green-400">
                                             <CurrencyDollarIcon class="w-3.5 h-3.5" />
                                             <span class="text-xs font-semibold">{{ formatCurrency(lead.estimated_value) }}</span>
                                         </div>
-                                        <div v-else-if="lead.source" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500 dark:text-gray-400 truncate max-w-20">
-                                            {{ lead.source.name }}
-                                        </div>
-                                        <div v-else class="text-xs text-gray-400">-</div>
 
                                         <!-- Score Stars -->
                                         <div class="flex items-center gap-0.5">
@@ -640,6 +1034,26 @@ onUnmounted(() => {
                                             />
                                         </div>
                                     </div>
+
+                                    <!-- Created At & Operator -->
+                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                        <!-- Created At -->
+                                        <div class="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                                            <ClockIcon class="w-3 h-3" />
+                                            <span>{{ formatRelativeTime(lead.created_at) }}</span>
+                                        </div>
+
+                                        <!-- Assigned Operator -->
+                                        <div v-if="lead.assigned_to" class="flex items-center gap-1">
+                                            <span class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                                                {{ lead.assigned_to.name?.charAt(0)?.toUpperCase() }}
+                                            </span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-16">
+                                                {{ lead.assigned_to.name?.split(' ')[0] }}
+                                            </span>
+                                        </div>
+                                    </div>
+
                                 </div>
 
                                 <!-- Empty State -->
@@ -677,6 +1091,7 @@ onUnmounted(() => {
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Qiymat</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ball</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Manba</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Operator</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amallar</th>
                             </tr>
                         </thead>
@@ -696,6 +1111,7 @@ onUnmounted(() => {
                                 <td class="px-4 py-4"><div class="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                                 <td class="px-4 py-4"><div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                                 <td class="px-4 py-4"><div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                                <td class="px-4 py-4"><div class="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                                 <td class="px-4 py-4"><div class="w-20 h-6 bg-gray-200 dark:bg-gray-700 rounded float-right"></div></td>
                             </tr>
                         </tbody>
@@ -723,12 +1139,26 @@ onUnmounted(() => {
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
+                                <th class="px-4 py-3 w-12">
+                                    <button
+                                        @click="selectAllLeads"
+                                        :class="[
+                                            'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
+                                            selectedLeads.length === filteredLeads.length && filteredLeads.length > 0
+                                                ? 'bg-blue-500 border-blue-500 text-white'
+                                                : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+                                        ]"
+                                    >
+                                        <CheckIcon v-if="selectedLeads.length === filteredLeads.length && filteredLeads.length > 0" class="w-3 h-3" />
+                                    </button>
+                                </th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lead</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kontakt</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Holat</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Qiymat</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ball</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Manba</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Operator</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amallar</th>
                             </tr>
                         </thead>
@@ -736,8 +1166,26 @@ onUnmounted(() => {
                             <tr
                                 v-for="lead in filteredLeads"
                                 :key="lead.id"
-                                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                :class="[
+                                    'transition-colors',
+                                    isLeadSelected(lead)
+                                        ? 'bg-blue-50 dark:bg-blue-900/20'
+                                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                ]"
                             >
+                                <td class="px-4 py-4">
+                                    <button
+                                        @click="toggleLeadSelection(lead)"
+                                        :class="[
+                                            'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
+                                            isLeadSelected(lead)
+                                                ? 'bg-blue-500 border-blue-500 text-white'
+                                                : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+                                        ]"
+                                    >
+                                        <CheckIcon v-if="isLeadSelected(lead)" class="w-3 h-3" />
+                                    </button>
+                                </td>
                                 <td class="px-4 py-4">
                                     <div class="flex items-center gap-3">
                                         <div :class="['w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-sm font-semibold', getAvatarColor(lead.name)]">
@@ -804,6 +1252,17 @@ onUnmounted(() => {
                                     </span>
                                     <span v-else class="text-sm text-gray-400">-</span>
                                 </td>
+                                <td class="px-4 py-4">
+                                    <div v-if="lead.assigned_to" class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                            {{ lead.assigned_to.name?.charAt(0)?.toUpperCase() }}
+                                        </span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400 truncate">
+                                            {{ lead.assigned_to.name }}
+                                        </span>
+                                    </div>
+                                    <span v-else class="text-sm text-gray-400">-</span>
+                                </td>
                                 <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <Link
@@ -821,6 +1280,14 @@ onUnmounted(() => {
                                             <PencilIcon class="w-4 h-4" />
                                         </Link>
                                         <button
+                                            v-if="lead.status !== 'won' && lead.status !== 'lost'"
+                                            @click="openLostReasonModal(lead)"
+                                            class="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
+                                            title="Yo'qotilgan deb belgilash"
+                                        >
+                                            <XMarkIcon class="w-4 h-4" />
+                                        </button>
+                                        <button
                                             @click="confirmDelete(lead)"
                                             class="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                             title="O'chirish"
@@ -832,6 +1299,51 @@ onUnmounted(() => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div v-else-if="viewMode === 'analytics'" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                <!-- Loading State -->
+                <div v-if="analyticsLoading" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4"></div>
+                        <div class="h-80 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4"></div>
+                        <div class="h-80 bg-gray-100 dark:bg-gray-700/50 rounded-lg animate-pulse"></div>
+                    </div>
+                </div>
+
+                <!-- Analytics Content -->
+                <div v-else class="space-y-6">
+                    <!-- Header with refresh button -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Sotuv Analitikasi</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Voronka va kanal statistikasi</p>
+                        </div>
+                        <button
+                            @click="fetchAnalytics"
+                            :disabled="analyticsLoading"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            <svg class="w-4 h-4" :class="{ 'animate-spin': analyticsLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Yangilash
+                        </button>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <!-- Funnel Chart -->
+                        <SalesFunnelChart :funnel-data="funnelData" />
+
+                        <!-- Source Analytics Chart -->
+                        <SourceAnalyticsChart :source-data="sourceData" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -893,6 +1405,103 @@ onUnmounted(() => {
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- Bulk Selection Bar -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="opacity-0 translate-y-4"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-4"
+            >
+                <div v-if="selectedLeads.length > 0" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+                                <span class="text-white font-bold">{{ selectedLeads.length }}</span>
+                            </div>
+                            <span class="text-white font-medium">ta lead tanlandi</span>
+                        </div>
+
+                        <div class="h-8 w-px bg-slate-600"></div>
+
+                        <div class="flex items-center gap-3">
+                            <!-- Bulk SMS Button -->
+                            <button
+                                @click="handleBulkSmsClick"
+                                :title="!smsConnected ? 'SMS sozlamalarini sozlash uchun bosing' : 'Tanlangan leadlarga SMS yuborish'"
+                                :class="[
+                                    'inline-flex items-center gap-2 px-4 py-2 font-medium rounded-xl transition-all',
+                                    smsConnected
+                                        ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700'
+                                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                ]"
+                            >
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                                {{ smsConnected ? 'SMS yuborish' : 'SMS sozlash' }}
+                            </button>
+
+                            <!-- Bulk Assign Button (only for owner or sales head) -->
+                            <button
+                                v-if="canAssignLeads"
+                                @click="handleBulkAssignClick"
+                                title="Tanlangan leadlarni operatorga tayinlash"
+                                class="inline-flex items-center gap-2 px-4 py-2 font-medium rounded-xl transition-all bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700"
+                            >
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                                Operatorga tayinlash
+                            </button>
+
+                            <!-- Select All / Clear -->
+                            <button
+                                @click="selectAllLeads"
+                                class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors"
+                            >
+                                {{ selectedLeads.length === filteredLeads.length ? 'Tanlovni bekor qilish' : 'Barchasini tanlash' }}
+                            </button>
+
+                            <!-- Close -->
+                            <button
+                                @click="clearSelection"
+                                class="p-2 text-slate-400 hover:text-white transition-colors"
+                            >
+                                <XMarkIcon class="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Bulk SMS Modal -->
+        <BulkSmsModal
+            :show="showBulkSmsModal"
+            :leads="selectedLeads"
+            @close="showBulkSmsModal = false"
+            @sent="handleSmsSent"
+        />
+
+        <!-- Bulk Assign Modal -->
+        <BulkAssignModal
+            :show="showBulkAssignModal"
+            :leads="selectedLeads"
+            @close="showBulkAssignModal = false"
+            @assigned="handleBulkAssigned"
+        />
+
+        <!-- Lost Reason Modal -->
+        <LostReasonModal
+            :show="showLostReasonModal"
+            :lead="leadToMarkLost"
+            @close="showLostReasonModal = false; leadToMarkLost = null"
+            @confirm="handleLostReasonConfirm"
+        />
     </BusinessLayout>
 </template>
 

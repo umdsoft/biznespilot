@@ -251,7 +251,8 @@ class MarketingController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
-            'platform' => ['required', 'string', 'max:100'],
+            'platform' => ['required', 'array', 'min:1'],
+            'platform.*' => ['string', 'max:100'],
             'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
             'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
             'type' => ['nullable', 'string'], // Legacy field
@@ -374,7 +375,8 @@ class MarketingController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
-            'platform' => ['required'],
+            'platform' => ['required', 'array', 'min:1'],
+            'platform.*' => ['string', 'max:100'],
             'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
             'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
             'status' => ['required', 'in:draft,scheduled,published'],

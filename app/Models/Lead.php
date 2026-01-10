@@ -15,6 +15,21 @@ class Lead extends Model
     use BelongsToBusiness, SoftDeletes, HasUuid;
 
     /**
+     * Yo'qotilgan lid sabablari
+     */
+    public const LOST_REASONS = [
+        'price' => 'Narx qimmat',
+        'competitor' => 'Raqobatchini tanladi',
+        'no_budget' => 'Byudjet yo\'q',
+        'no_need' => 'Ehtiyoj yo\'q',
+        'no_response' => 'Javob bermadi',
+        'wrong_contact' => 'Noto\'g\'ri kontakt',
+        'low_quality' => 'Sifatsiz lid',
+        'timing' => 'Vaqt mos kelmadi',
+        'other' => 'Boshqa sabab',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<string>
@@ -29,6 +44,8 @@ class Lead extends Model
         'phone',
         'company',
         'status',
+        'lost_reason',
+        'lost_reason_details',
         'score',
         'estimated_value',
         'data',
@@ -79,5 +96,29 @@ class Lead extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(LeadFormSubmission::class);
+    }
+
+    /**
+     * Get the tasks for this lead.
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Scope: Filter by assigned operator.
+     */
+    public function scopeAssignedTo($query, $userId)
+    {
+        return $query->where('assigned_to', $userId);
+    }
+
+    /**
+     * Scope: Unassigned leads.
+     */
+    public function scopeUnassigned($query)
+    {
+        return $query->whereNull('assigned_to');
     }
 }

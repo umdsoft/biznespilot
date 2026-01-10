@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { useForm, Link, Head } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { useForm, Link, Head, usePage } from '@inertiajs/vue3';
 import { vMaska } from 'maska/vue';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import {
@@ -15,7 +15,9 @@ import {
     DocumentTextIcon,
     SparklesIcon,
     CheckIcon,
-    ExclamationCircleIcon
+    ExclamationCircleIcon,
+    ExclamationTriangleIcon,
+    EyeIcon
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -24,6 +26,21 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+// Get flash messages
+const page = usePage();
+
+// Duplicate warning from backend (via session flash)
+const duplicateWarning = computed(() => page.props.flash?.duplicate_warning);
+
+// Real-time duplicate check state
+const duplicateCheck = ref({
+    loading: false,
+    duplicates: null,
+});
+
+// Dismiss duplicate warning
+const forceCreate = ref(false);
 
 const form = useForm({
     name: '',
@@ -154,6 +171,46 @@ const handleCurrencyInput = (event) => {
     form.estimated_value = parseCurrency(value);
 };
 
+// Check for duplicates when phone is complete
+const checkDuplicates = async () => {
+    const cleanPhone = form.phone?.replace(/\s/g, '');
+    if (!cleanPhone || cleanPhone.length < 13) {
+        duplicateCheck.value.duplicates = null;
+        return;
+    }
+
+    duplicateCheck.value.loading = true;
+    try {
+        const response = await fetch(route('business.api.sales.check-duplicate'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ phone: form.phone }),
+        });
+        const data = await response.json();
+        duplicateCheck.value.duplicates = data.has_duplicates ? data.duplicates : null;
+    } catch (error) {
+        console.error('Duplicate check failed:', error);
+    } finally {
+        duplicateCheck.value.loading = false;
+    }
+};
+
+// Debounced duplicate check
+let duplicateTimeout;
+watch(() => form.phone, (newPhone) => {
+    clearTimeout(duplicateTimeout);
+    const cleanPhone = newPhone?.replace(/\s/g, '');
+    if (cleanPhone && cleanPhone.length >= 13) {
+        duplicateTimeout = setTimeout(checkDuplicates, 500);
+    } else {
+        duplicateCheck.value.duplicates = null;
+    }
+});
+
 const submit = () => {
     // Validate all fields before submit
     const isNameValid = validateName(form.name);
@@ -164,7 +221,21 @@ const submit = () => {
         return;
     }
 
-    form.post(route('business.sales.store'));
+    // Add force_create if user confirmed
+    if (forceCreate.value) {
+        form.transform((data) => ({
+            ...data,
+            force_create: true,
+        })).post(route('business.sales.store'));
+    } else {
+        form.post(route('business.sales.store'));
+    }
+};
+
+// Handle force create (user wants to create despite duplicate)
+const handleForceCreate = () => {
+    forceCreate.value = true;
+    submit();
 };
 
 const getScoreColor = (score) => {
@@ -204,6 +275,102 @@ const getScoreBg = (score) => {
                             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Yangi Lead Qo'shish</h1>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                 Potensial mijoz ma'lumotlarini kiriting
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backend Duplicate Warning (from session flash) -->
+                <div v-if="duplicateWarning && !forceCreate" class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0">
+                            <ExclamationTriangleIcon class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                                {{ duplicateWarning.message }}
+                            </h3>
+                            <div class="mt-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-amber-200 dark:border-amber-700">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">
+                                            {{ duplicateWarning.existing_lead.name }}
+                                        </p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ duplicateWarning.existing_lead.phone }}
+                                        </p>
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                            Yaratilgan: {{ duplicateWarning.existing_lead.created_at }}
+                                        </p>
+                                    </div>
+                                    <Link
+                                        :href="route('business.sales.show', duplicateWarning.existing_lead.id)"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                                    >
+                                        <EyeIcon class="w-4 h-4" />
+                                        Ko'rish
+                                    </Link>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    @click="handleForceCreate"
+                                    class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                >
+                                    Baribir yaratish
+                                </button>
+                                <Link
+                                    :href="route('business.sales.show', duplicateWarning.existing_lead.id)"
+                                    class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
+                                >
+                                    Mavjud lidga o'tish
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Duplicate Warning (from API check) -->
+                <div v-if="duplicateCheck.duplicates?.phone && !duplicateWarning" class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0">
+                            <ExclamationTriangleIcon class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                                Bu telefon raqami bilan lid(lar) mavjud
+                            </h3>
+                            <div class="mt-2 space-y-2">
+                                <div
+                                    v-for="lead in duplicateCheck.duplicates.phone"
+                                    :key="lead.id"
+                                    class="p-3 bg-white dark:bg-gray-800 rounded-lg border border-amber-200 dark:border-amber-700"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-gray-900 dark:text-white">
+                                                {{ lead.name }}
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                {{ lead.phone }} • {{ lead.status }}
+                                            </p>
+                                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                                {{ lead.created_at }}
+                                            </p>
+                                        </div>
+                                        <Link
+                                            :href="route('business.sales.show', lead.id)"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                                        >
+                                            <EyeIcon class="w-4 h-4" />
+                                            Ko'rish
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                                Agar yangi lid yaratmoqchi bo'lsangiz, davom eting. Tizim dublikat sifatida belgilaydi.
                             </p>
                         </div>
                     </div>

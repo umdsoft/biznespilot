@@ -7,6 +7,7 @@ use App\Models\DreamBuyer;
 use App\Models\MarketingChannel;
 use App\Models\Offer;
 use App\Models\Sale;
+use App\Models\Lead;
 use App\Models\ActivityLog;
 use App\Models\Alert;
 use App\Models\DashboardWidget;
@@ -123,22 +124,33 @@ class DashboardController extends Controller
 
         // Get basic stats with caching
         $statsCacheKey = "dashboard_stats_{$business->id}";
-        $stats = Cache::remember($statsCacheKey, 300, fn() => [
-            'total_leads' => Sale::where('business_id', $business->id)->count(),
-            'total_customers' => $this->kpiCalculator->getTotalCustomers($business->id),
-            'total_revenue' => $this->kpiCalculator->getTotalRevenue($business->id, $startDate, $endDate),
-            'conversion_rate' => $this->kpiCalculator->getConversionRate($business->id, $startDate, $endDate),
-        ]);
+        $stats = Cache::remember($statsCacheKey, 300, function() use ($business, $startDate, $endDate) {
+            $totalLeads = Lead::where('business_id', $business->id)->count();
+            $wonLeads = Lead::where('business_id', $business->id)->where('status', 'won')->count();
+            $totalRevenue = Lead::where('business_id', $business->id)
+                ->where('status', 'won')
+                ->whereBetween('converted_at', [$startDate, $endDate])
+                ->sum('estimated_value');
+            $conversionRate = $totalLeads > 0 ? round(($wonLeads / $totalLeads) * 100, 1) : 0;
+
+            return [
+                'total_leads' => $totalLeads,
+                'total_customers' => $wonLeads,
+                'total_revenue' => $totalRevenue,
+                'conversion_rate' => $conversionRate,
+            ];
+        });
 
         // Get ROAS and LTV/CAC benchmarks
         $roasBenchmark = $this->kpiCalculator->getROASBenchmark($kpis['roas']);
         $ltvCacBenchmark = $this->kpiCalculator->getLTVCACBenchmark($kpis['ltv_cac_ratio']);
 
-        // Sales trend (last 7 days) - cached
+        // Sales trend (last 7 days) - cached - shows won leads
         $trendCacheKey = "dashboard_sales_trend_{$business->id}";
-        $salesTrend = Cache::remember($trendCacheKey, 300, fn() => Sale::where('business_id', $business->id)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(amount) as revenue')
+        $salesTrend = Cache::remember($trendCacheKey, 300, fn() => Lead::where('business_id', $business->id)
+            ->where('status', 'won')
+            ->where('converted_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(converted_at) as date, COUNT(*) as count, SUM(estimated_value) as revenue')
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get()
