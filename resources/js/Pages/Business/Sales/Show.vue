@@ -40,6 +40,7 @@ import SmsModal from '@/components/SmsModal.vue';
 import CallWidget from '@/components/CallWidget.vue';
 import TaskModal from '@/components/TaskModal.vue';
 import LeadAssignModal from '@/components/LeadAssignModal.vue';
+import PaymentModal from '@/components/PaymentModal.vue';
 
 // SMS Modal state
 const showSmsModal = ref(false);
@@ -57,6 +58,9 @@ const tasksLoading = ref(false);
 // Assign modal state
 const showAssignModal = ref(false);
 const leadData = ref(null);
+
+// Payment modal state
+const showPaymentModal = ref(false);
 
 // Check SMS status
 const checkSmsStatus = async () => {
@@ -548,6 +552,13 @@ const tabs = [
                                 >
                                     <BellIcon class="w-6 h-6" />
                                     <span class="text-xs font-medium">Vazifa</span>
+                                </button>
+                                <button
+                                    @click="showPaymentModal = true"
+                                    class="flex flex-col items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl transition-colors"
+                                >
+                                    <CurrencyDollarIcon class="w-6 h-6" />
+                                    <span class="text-xs font-medium">To'lov</span>
                                 </button>
                                 <button
                                     v-if="canAssignLeads"
@@ -1053,6 +1064,14 @@ const tabs = [
             :lead="leadData || lead"
             @close="showAssignModal = false"
             @assigned="onLeadAssigned"
+        />
+
+        <!-- Payment Modal -->
+        <PaymentModal
+            :show="showPaymentModal"
+            :lead="lead"
+            @close="showPaymentModal = false"
+            @created="() => {}"
         />
     </BusinessLayout>
 </template>

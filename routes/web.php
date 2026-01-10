@@ -35,6 +35,7 @@ use App\Http\Controllers\SmsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TelephonyController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\TodoTemplateController;
 use App\Http\Controllers\LeadFormController;
@@ -47,6 +48,9 @@ use App\Http\Controllers\OnboardingWebController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\BusinessManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\FeedbackManagementController;
+use App\Http\Controllers\Admin\NotificationManagementController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\TargetAnalysisController;
 use App\Http\Controllers\InstagramAnalysisController;
 use App\Http\Controllers\InstagramChatbotController;
@@ -241,11 +245,13 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     Route::prefix('todos')->name('todos.')->group(function () {
         Route::get('/', [TodoController::class, 'index'])->name('index');
         Route::post('/', [TodoController::class, 'store'])->name('store');
+        Route::get('/{todo}', [TodoController::class, 'show'])->name('show');
         Route::put('/{todo}', [TodoController::class, 'update'])->name('update');
         Route::delete('/{todo}', [TodoController::class, 'destroy'])->name('destroy');
         Route::post('/{todo}/toggle', [TodoController::class, 'toggleComplete'])->name('toggle');
+        Route::post('/{todo}/toggle-user', [TodoController::class, 'toggleUserComplete'])->name('toggle-user');
         Route::post('/reorder', [TodoController::class, 'reorder'])->name('reorder');
-        Route::get('/dashboard', [TodoController::class, 'dashboard'])->name('dashboard');
+        Route::get('/api/dashboard', [TodoController::class, 'dashboard'])->name('dashboard');
 
         // Subtasks
         Route::post('/{todo}/subtasks', [TodoController::class, 'addSubtask'])->name('subtasks.store');
@@ -553,6 +559,15 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/telephony/onlinepbx/connect', [TelephonyController::class, 'connectOnlinePbx'])->name('telephony.onlinepbx.connect');
         Route::post('/telephony/onlinepbx/sync', [TelephonyController::class, 'syncOnlinePbxHistory'])->name('telephony.onlinepbx.sync');
 
+        // Payment Integration (Payme & Click)
+        Route::get('/payments', [PaymentController::class, 'settings'])->name('payments');
+        // Payme
+        Route::post('/payments/payme/connect', [PaymentController::class, 'connectPayme'])->name('payments.payme.connect');
+        Route::post('/payments/payme/disconnect', [PaymentController::class, 'disconnectPayme'])->name('payments.payme.disconnect');
+        // Click
+        Route::post('/payments/click/connect', [PaymentController::class, 'connectClick'])->name('payments.click.connect');
+        Route::post('/payments/click/disconnect', [PaymentController::class, 'disconnectClick'])->name('payments.click.disconnect');
+
         // 2FA routes
         Route::get('/two-factor', [TwoFactorAuthController::class, 'show'])->name('two-factor');
         Route::get('/two-factor/setup', [TwoFactorAuthController::class, 'setup'])->name('two-factor.setup');
@@ -614,6 +629,27 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
         // Balance
         Route::post('/refresh-balance', [TelephonyController::class, 'refreshBalance'])->name('refresh-balance');
+    });
+
+    // Payment routes (Payme & Click)
+    Route::prefix('payments')->name('payments.')->group(function () {
+        // Get available providers
+        Route::get('/providers', [PaymentController::class, 'getProviders'])->name('providers');
+
+        // Transactions
+        Route::get('/transactions', [PaymentController::class, 'transactions'])->name('transactions');
+
+        // Create payment link for lead
+        Route::post('/lead/{lead}/create-link', [PaymentController::class, 'createPaymentLink'])->name('lead.create-link');
+
+        // Get lead transactions
+        Route::get('/lead/{lead}/transactions', [PaymentController::class, 'getLeadTransactions'])->name('lead.transactions');
+
+        // Cancel transaction
+        Route::post('/transactions/{transaction}/cancel', [PaymentController::class, 'cancelTransaction'])->name('transactions.cancel');
+
+        // Success page
+        Route::get('/success', [PaymentController::class, 'success'])->name('success');
     });
 
     // Activity Logs routes
@@ -963,6 +999,13 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{notification}/clicked', [NotificationController::class, 'markAsClicked'])->name('clicked');
         Route::delete('/{notification}', [NotificationController::class, 'delete'])->name('delete');
     });
+
+    // Feedback routes (User submissions)
+    Route::prefix('feedback')->name('feedback.')->group(function () {
+        Route::post('/', [FeedbackController::class, 'store'])->name('store');
+        Route::get('/my', [FeedbackController::class, 'myFeedback'])->name('my');
+        Route::get('/types', [FeedbackController::class, 'getTypes'])->name('types');
+    });
 });
 
 // Admin Panel Routes (Platform Management)
@@ -992,6 +1035,30 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
         Route::put('/{user}', [UserManagementController::class, 'update'])->name('update');
         Route::delete('/{user}', [UserManagementController::class, 'destroy'])->name('destroy');
         Route::post('/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');
+    });
+
+    // Feedback Management (Admin)
+    Route::prefix('feedback')->name('feedback.')->group(function () {
+        Route::get('/', [FeedbackManagementController::class, 'index'])->name('index');
+        Route::get('/analytics', [FeedbackManagementController::class, 'analytics'])->name('analytics');
+        Route::get('/{feedback}', [FeedbackManagementController::class, 'show'])->name('show');
+        Route::post('/{feedback}/status', [FeedbackManagementController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{feedback}/priority', [FeedbackManagementController::class, 'updatePriority'])->name('update-priority');
+        Route::post('/{feedback}/note', [FeedbackManagementController::class, 'addNote'])->name('add-note');
+        Route::delete('/{feedback}', [FeedbackManagementController::class, 'destroy'])->name('destroy');
+    });
+
+    // Notification Management (Admin)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationManagementController::class, 'index'])->name('index');
+        Route::get('/create', [NotificationManagementController::class, 'create'])->name('create');
+        Route::post('/', [NotificationManagementController::class, 'store'])->name('store');
+        Route::get('/analytics', [NotificationManagementController::class, 'analytics'])->name('analytics');
+        Route::get('/users', [NotificationManagementController::class, 'getUsers'])->name('users');
+        Route::get('/businesses', [NotificationManagementController::class, 'getBusinesses'])->name('businesses');
+        Route::get('/{notification}', [NotificationManagementController::class, 'show'])->name('show');
+        Route::delete('/{notification}', [NotificationManagementController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-delete', [NotificationManagementController::class, 'bulkDestroy'])->name('bulk-destroy');
     });
 });
 
@@ -1037,6 +1104,10 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/pbx', [TelephonyController::class, 'pbxWebhook'])->name('pbx');
     Route::post('/sipuni', [TelephonyController::class, 'sipuniWebhook'])->name('sipuni');
     Route::post('/onlinepbx', [TelephonyController::class, 'onlinePbxWebhook'])->name('onlinepbx');
+
+    // Payment webhooks (Payme & Click)
+    Route::post('/payme', [PaymentController::class, 'paymeWebhook'])->name('payme');
+    Route::post('/click', [PaymentController::class, 'clickWebhook'])->name('click');
     Route::get('/whatsapp/{business}/info', [WhatsAppWebhookController::class, 'getWebhookInfo'])->name('whatsapp.info');
     Route::post('/whatsapp/{business}/test', [WhatsAppWebhookController::class, 'sendTestMessage'])->name('whatsapp.test');
     Route::post('/whatsapp/{business}/template', [WhatsAppWebhookController::class, 'sendTemplate'])->name('whatsapp.template');

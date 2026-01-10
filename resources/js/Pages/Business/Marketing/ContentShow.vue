@@ -245,87 +245,253 @@
                     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
                         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="showAddMaterialModal = false"></div>
 
-                        <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-auto overflow-hidden transform transition-all">
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Material Qo'shish</h3>
-                                <button @click="showAddMaterialModal = false" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden transform transition-all">
+                            <!-- Header -->
+                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-purple-600 to-indigo-600">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2 bg-white/20 rounded-xl">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-white">Kontent Tahrirlovchi</h3>
+                                        <p class="text-xs text-white/70">Telegram uchun tayyor post yarating</p>
+                                    </div>
+                                </div>
+                                <button @click="showAddMaterialModal = false" class="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
 
-                            <form @submit.prevent="saveMaterial" class="p-6 space-y-4">
-                                <!-- Material Type -->
-                                <div class="flex gap-2">
+                            <form @submit.prevent="saveMaterial" class="p-6 space-y-5">
+                                <!-- Material Type Tabs -->
+                                <div class="flex gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
                                     <button
                                         type="button"
                                         @click="materialForm.type = 'script'"
-                                        class="flex-1 flex items-center justify-center px-4 py-3 rounded-xl border transition-all"
+                                        class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all"
                                         :class="materialForm.type === 'script'
-                                            ? 'bg-purple-600 border-purple-600 text-white'
-                                            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-purple-300'"
+                                            ? 'bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
                                     >
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
-                                        Senariy
+                                        Senariy / Post
                                     </button>
                                     <button
                                         type="button"
                                         @click="materialForm.type = 'url'"
-                                        class="flex-1 flex items-center justify-center px-4 py-3 rounded-xl border transition-all"
+                                        class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all"
                                         :class="materialForm.type === 'url'
-                                            ? 'bg-blue-600 border-blue-600 text-white'
-                                            : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-blue-300'"
+                                            ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
                                     >
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                         </svg>
                                         Havola
                                     </button>
                                 </div>
 
-                                <!-- Script Input -->
-                                <div v-if="materialForm.type === 'script'">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Senariy matni</label>
-                                    <textarea
-                                        v-model="materialForm.script"
-                                        rows="6"
-                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
-                                        placeholder="Video yoki post uchun senariy yozing..."
-                                        required
-                                    ></textarea>
+                                <!-- Script Editor -->
+                                <div v-if="materialForm.type === 'script'" class="space-y-4">
+                                    <!-- Quick Emoji Categories -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tezkor emojilar</label>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button
+                                                v-for="(emojis, category) in emojiCategories"
+                                                :key="category"
+                                                type="button"
+                                                @click="activeEmojiCategory = activeEmojiCategory === category ? null : category"
+                                                class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                                                :class="activeEmojiCategory === category
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                                            >
+                                                {{ emojis[0] }} {{ category }}
+                                            </button>
+                                        </div>
+                                        <!-- Emoji Picker -->
+                                        <div v-if="activeEmojiCategory" class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                                            <div class="flex flex-wrap gap-1">
+                                                <button
+                                                    v-for="emoji in emojiCategories[activeEmojiCategory]"
+                                                    :key="emoji"
+                                                    type="button"
+                                                    @click="insertEmoji(emoji)"
+                                                    class="w-9 h-9 flex items-center justify-center text-xl hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                                                >
+                                                    {{ emoji }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Text Editor -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Post matni</label>
+                                            <div class="flex items-center gap-2">
+                                                <!-- Formatting buttons -->
+                                                <button
+                                                    type="button"
+                                                    @click="formatText('bold')"
+                                                    class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                    title="Qalin (Ctrl+B)"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                        <path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    @click="formatText('italic')"
+                                                    class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                    title="Kursiv (Ctrl+I)"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path d="M10 4h4m2 0l-6 16m-2 0h4" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    @click="formatText('code')"
+                                                    class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                    title="Kod"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                                    </svg>
+                                                </button>
+                                                <div class="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ scriptLength }}/4096</span>
+                                            </div>
+                                        </div>
+                                        <textarea
+                                            ref="scriptTextarea"
+                                            v-model="materialForm.script"
+                                            rows="8"
+                                            class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none font-mono text-sm"
+                                            placeholder="Post matningizni yozing...
+
+Masalan:
+🎯 Bugungi mavzu: Marketing sirlari
+
+✅ 1-maslahat
+✅ 2-maslahat
+✅ 3-maslahat
+
+👇 Savollaringiz bo'lsa yozing!"
+                                            @keydown="handleKeydown"
+                                        ></textarea>
+                                    </div>
+
+                                    <!-- Quick Templates -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tezkor shablonlar</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button
+                                                v-for="template in postTemplates"
+                                                :key="template.name"
+                                                type="button"
+                                                @click="applyTemplate(template.content)"
+                                                class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl text-left transition-colors"
+                                            >
+                                                <span class="text-xl">{{ template.icon }}</span>
+                                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ template.name }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Preview -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ko'rinishi</label>
+                                            <button
+                                                type="button"
+                                                @click="copyToClipboard"
+                                                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                                {{ copied ? 'Nusxalandi!' : 'Nusxalash' }}
+                                            </button>
+                                        </div>
+                                        <div class="p-4 bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border border-sky-200 dark:border-sky-800 rounded-xl">
+                                            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-sky-200 dark:border-sky-700">
+                                                <div class="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-sm font-semibold text-sky-700 dark:text-sky-300">Telegram Preview</span>
+                                            </div>
+                                            <p class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words" v-html="formattedPreview"></p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- URL Input -->
-                                <div v-if="materialForm.type === 'url'">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Post havolasi</label>
-                                    <input
-                                        v-model="materialForm.url"
-                                        type="url"
-                                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                        placeholder="https://instagram.com/p/..."
-                                        required
-                                    />
+                                <div v-if="materialForm.type === 'url'" class="space-y-4">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Post havolasi</label>
+                                        <input
+                                            v-model="materialForm.url"
+                                            type="url"
+                                            class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                            placeholder="https://t.me/channel/123"
+                                        />
+                                    </div>
+                                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                                        <div class="flex items-start gap-3">
+                                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <div class="text-sm text-blue-700 dark:text-blue-300">
+                                                <p class="font-medium">Qo'llab-quvvatlanadigan havolalar:</p>
+                                                <ul class="mt-1 text-xs space-y-0.5 text-blue-600 dark:text-blue-400">
+                                                    <li>• Telegram: t.me/channel/123</li>
+                                                    <li>• Instagram: instagram.com/p/ABC123</li>
+                                                    <li>• YouTube: youtube.com/watch?v=ABC123</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Actions -->
-                                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                     <button
                                         type="button"
                                         @click="showAddMaterialModal = false"
-                                        class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors"
+                                        class="px-5 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors"
                                     >
                                         Bekor qilish
                                     </button>
                                     <button
                                         type="submit"
-                                        :disabled="isSavingMaterial"
-                                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+                                        :disabled="isSavingMaterial || (materialForm.type === 'script' && !materialForm.script) || (materialForm.type === 'url' && !materialForm.url)"
+                                        class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/25"
                                     >
-                                        <span v-if="isSavingMaterial">Saqlanmoqda...</span>
-                                        <span v-else>Saqlash</span>
+                                        <span v-if="isSavingMaterial" class="flex items-center gap-2">
+                                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Saqlanmoqda...
+                                        </span>
+                                        <span v-else class="flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Saqlash
+                                        </span>
                                     </button>
                                 </div>
                             </form>
@@ -338,7 +504,7 @@
 </template>
 
 <script setup>
-import { ref, computed, h } from 'vue'
+import { ref, computed, h, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
 import BusinessLayout from '@/layouts/BusinessLayout.vue'
 
@@ -357,6 +523,165 @@ const materialForm = ref({
     script: '',
     url: ''
 })
+const activeEmojiCategory = ref(null)
+const copied = ref(false)
+const scriptTextarea = ref(null)
+
+// Emoji Categories
+const emojiCategories = {
+    'Mashhur': ['🔥', '✨', '💯', '🎯', '⭐', '💪', '🚀', '💡', '❤️', '👍', '🙌', '🎉'],
+    'Belgilar': ['✅', '❌', '⚠️', '📌', '🔴', '🟢', '🔵', '⚡', '💬', '📢', '🔔', '📍'],
+    'Strelkalar': ['👆', '👇', '👉', '👈', '↗️', '↘️', '⬆️', '⬇️', '➡️', '⬅️', '🔄', '↩️'],
+    'Raqamlar': ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '💲', '📊'],
+    'Yuzlar': ['😊', '😍', '🤔', '😎', '🥳', '😱', '🤩', '😅', '🙈', '👀', '💀', '🤝'],
+    'Biznes': ['💼', '📈', '📉', '💰', '🏆', '🎓', '📱', '💻', '🛒', '🎁', '📦', '✍️']
+}
+
+// Post Templates
+const postTemplates = [
+    {
+        name: 'Ro\'yxat post',
+        icon: '📝',
+        content: `🎯 [MAVZU]
+
+✅ 1. [Birinchi nuqta]
+✅ 2. [Ikkinchi nuqta]
+✅ 3. [Uchinchi nuqta]
+
+💬 Fikringizni yozing 👇`
+    },
+    {
+        name: 'Motivatsiya',
+        icon: '💪',
+        content: `💡 [IQTIBOS YOKI FIKR]
+
+✨ [Tushuntirish]
+
+🔥 Bugun boshla, ertaga natija ko'r!
+
+❤️ Yoqsa like bos`
+    },
+    {
+        name: 'E\'lon',
+        icon: '📢',
+        content: `🔔 E'LON!
+
+📌 [Asosiy xabar]
+
+📅 Sana: [kun/oy]
+📍 Manzil: [joy]
+💰 Narx: [summa]
+
+👇 Batafsil ma'lumot uchun yozing`
+    },
+    {
+        name: 'Savol-javob',
+        icon: '❓',
+        content: `❓ SAVOL: [Savol matni]
+
+👇 Javobingizni yozing!
+
+💡 To'g'ri javob [vaqt]da e'lon qilinadi`
+    }
+]
+
+// Computed
+const scriptLength = computed(() => materialForm.value.script?.length || 0)
+
+const formattedPreview = computed(() => {
+    if (!materialForm.value.script) return '<span class="text-gray-400 italic">Post matni shu yerda ko\'rinadi...</span>'
+    let text = materialForm.value.script
+    // Convert Telegram-style formatting
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    text = text.replace(/__(.*?)__/g, '<em>$1</em>')
+    text = text.replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">$1</code>')
+    return text
+})
+
+// Functions
+const insertEmoji = (emoji) => {
+    const textarea = scriptTextarea.value
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = materialForm.value.script || ''
+
+    materialForm.value.script = text.substring(0, start) + emoji + text.substring(end)
+
+    // Set cursor position after emoji
+    nextTick(() => {
+        textarea.focus()
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length
+    })
+}
+
+const formatText = (type) => {
+    const textarea = scriptTextarea.value
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = materialForm.value.script || ''
+    const selectedText = text.substring(start, end)
+
+    let formattedText = ''
+    let cursorOffset = 0
+
+    switch (type) {
+        case 'bold':
+            formattedText = `**${selectedText || 'matn'}**`
+            cursorOffset = selectedText ? formattedText.length : 2
+            break
+        case 'italic':
+            formattedText = `__${selectedText || 'matn'}__`
+            cursorOffset = selectedText ? formattedText.length : 2
+            break
+        case 'code':
+            formattedText = `\`${selectedText || 'kod'}\``
+            cursorOffset = selectedText ? formattedText.length : 1
+            break
+    }
+
+    materialForm.value.script = text.substring(0, start) + formattedText + text.substring(end)
+
+    nextTick(() => {
+        textarea.focus()
+        if (selectedText) {
+            textarea.selectionStart = start
+            textarea.selectionEnd = start + formattedText.length
+        } else {
+            textarea.selectionStart = textarea.selectionEnd = start + cursorOffset
+        }
+    })
+}
+
+const applyTemplate = (content) => {
+    materialForm.value.script = content
+    activeEmojiCategory.value = null
+}
+
+const handleKeydown = (e) => {
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'b') {
+            e.preventDefault()
+            formatText('bold')
+        } else if (e.key === 'i') {
+            e.preventDefault()
+            formatText('italic')
+        }
+    }
+}
+
+const copyToClipboard = async () => {
+    try {
+        await navigator.clipboard.writeText(materialForm.value.script)
+        copied.value = true
+        setTimeout(() => copied.value = false, 2000)
+    } catch (err) {
+        console.error('Copy failed:', err)
+    }
+}
 
 // Platform Icons
 const InstagramIcon = {

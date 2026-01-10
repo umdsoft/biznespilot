@@ -1129,14 +1129,11 @@
 
                   <!-- Click -->
                   <a
-                    href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-3 opacity-60"
+                    :href="route('business.settings.payments') + '?tab=click'"
+                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
                   >
-                    <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
-                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
+                      <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
@@ -1148,14 +1145,11 @@
 
                   <!-- Payme -->
                   <a
-                    href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/30 rounded-xl p-3 opacity-60"
+                    :href="route('business.settings.payments') + '?tab=payme'"
+                    class="group relative overflow-hidden bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-400 hover:bg-cyan-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
                   >
-                    <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
-                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
+                      <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>

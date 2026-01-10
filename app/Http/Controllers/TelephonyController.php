@@ -88,8 +88,8 @@ class TelephonyController extends Controller
             ->where('is_active', true)
             ->first();
 
-        // Get statistics
-        $stats = $this->pbxService->getStatistics($business->id);
+        // Get statistics from database
+        $stats = $this->getDefaultStatistics($business->id);
 
         return Inertia::render('Business/Settings/Telephony', [
             'pbxAccount' => $pbxAccount ? [
@@ -492,14 +492,45 @@ class TelephonyController extends Controller
 
         $provider = $this->getActiveProvider($business);
 
-        $stats = $provider['service']
-            ? $provider['service']->getStatistics($business->id)
-            : $this->pbxService->getStatistics($business->id);
+        // Get statistics from provider service or use default empty stats
+        $stats = null;
+        if ($provider['service'] && $provider['account']) {
+            $stats = $provider['service']->getStatistics($business->id);
+        }
+
+        // If no stats from provider, get from database directly
+        if (!$stats) {
+            $stats = $this->getDefaultStatistics($business->id);
+        }
 
         return Inertia::render('Business/Telephony/Statistics', [
             'stats' => $stats,
             'provider' => $provider['provider'],
         ]);
+    }
+
+    /**
+     * Get default statistics from database
+     */
+    protected function getDefaultStatistics(string $businessId): array
+    {
+        $stats = \App\Models\CallDailyStat::where('business_id', $businessId)
+            ->where('stat_date', '>=', now()->subDays(30))
+            ->get();
+
+        return [
+            'total_calls' => $stats->sum('total_calls'),
+            'outbound_calls' => $stats->sum('outbound_calls'),
+            'inbound_calls' => $stats->sum('inbound_calls'),
+            'answered_calls' => $stats->sum('answered_calls'),
+            'missed_calls' => $stats->sum('missed_calls'),
+            'failed_calls' => $stats->sum('failed_calls'),
+            'total_duration' => $stats->sum('total_duration'),
+            'avg_duration' => $stats->avg('avg_duration') ?? 0,
+            'answer_rate' => $stats->sum('total_calls') > 0
+                ? round(($stats->sum('answered_calls') / $stats->sum('total_calls')) * 100, 1)
+                : 0,
+        ];
     }
 
     /**

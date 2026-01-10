@@ -275,6 +275,9 @@
               </div>
             </div>
 
+            <!-- Notifications -->
+            <NotificationDropdown />
+
             <!-- Dark Mode Toggle -->
             <button
               @click="toggleDarkMode"
@@ -366,6 +369,9 @@
         </div>
       </main>
     </div>
+
+    <!-- Feedback Widget -->
+    <FeedbackWidget />
   </div>
 </template>
 
@@ -373,6 +379,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import NavLink from '@/components/NavLink.vue';
+import FeedbackWidget from '@/components/FeedbackWidget.vue';
+import NotificationDropdown from '@/components/NotificationDropdown.vue';
 import axios from 'axios';
 
 defineProps({

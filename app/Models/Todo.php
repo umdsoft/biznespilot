@@ -74,6 +74,8 @@ class Todo extends Model
         'completed_at',
         'order',
         'is_recurring',
+        'assignees_count',
+        'completed_assignees_count',
         'recurrence_id',
         'template_id',
         'metadata',
@@ -117,6 +119,18 @@ class Todo extends Model
     public function template(): BelongsTo
     {
         return $this->belongsTo(TodoTemplate::class, 'template_id');
+    }
+
+    public function assignees(): HasMany
+    {
+        return $this->hasMany(TodoAssignee::class);
+    }
+
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'todo_assignees')
+            ->withPivot(['is_completed', 'completed_at', 'note'])
+            ->withTimestamps();
     }
 
     // ==================== Scopes ====================
@@ -344,13 +358,212 @@ class Todo extends Model
         return $newTodo;
     }
 
-    public function addSubtask(array $data): Todo
+    /**
+     * Add subtask to this todo
+     *
+     * @param string|array $titleOrData - Title string or array with title/description
+     * @param string|null $description - Description (only used if first param is string)
+     */
+    public function addSubtask(string|array $titleOrData, ?string $description = null): Todo
     {
-        return $this->subtasks()->create(array_merge($data, [
+        // Support both signatures: addSubtask(['title' => '...']) and addSubtask('title', 'desc')
+        if (is_array($titleOrData)) {
+            $data = $titleOrData;
+        } else {
+            $data = [
+                'title' => $titleOrData,
+                'description' => $description,
+            ];
+        }
+
+        return $this->subtasks()->create([
             'business_id' => $this->business_id,
             'created_by' => $data['created_by'] ?? $this->created_by,
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
             'type' => $this->type,
-            'order' => $this->subtasks()->max('order') + 1,
-        ]));
+            'priority' => $data['priority'] ?? $this->priority,
+            'status' => self::STATUS_PENDING,
+            'order' => ($this->subtasks()->max('order') ?? -1) + 1,
+        ]);
+    }
+
+    // ==================== Team Task Methods ====================
+
+    /**
+     * Check if this is a team task with multiple assignees
+     */
+    public function getIsTeamTaskAttribute(): bool
+    {
+        return $this->type === self::TYPE_TEAM && $this->assignees_count > 0;
+    }
+
+    /**
+     * Check if all team members have completed
+     */
+    public function getIsTeamCompletedAttribute(): bool
+    {
+        if (!$this->is_team_task) {
+            return $this->status === self::STATUS_COMPLETED;
+        }
+
+        return $this->assignees_count > 0 && $this->completed_assignees_count >= $this->assignees_count;
+    }
+
+    /**
+     * Get team progress percentage
+     */
+    public function getTeamProgressAttribute(): int
+    {
+        if ($this->assignees_count === 0) {
+            return $this->status === self::STATUS_COMPLETED ? 100 : 0;
+        }
+
+        return (int) round(($this->completed_assignees_count / $this->assignees_count) * 100);
+    }
+
+    /**
+     * Sync assignees for team task
+     */
+    public function syncAssignees(array $userIds): void
+    {
+        // Delete removed assignees
+        $this->assignees()->whereNotIn('user_id', $userIds)->delete();
+
+        // Add new assignees
+        foreach ($userIds as $userId) {
+            $this->assignees()->firstOrCreate(['user_id' => $userId]);
+        }
+
+        $this->updateAssigneeCounts();
+    }
+
+    /**
+     * Update assignee counts
+     */
+    public function updateAssigneeCounts(): void
+    {
+        $this->update([
+            'assignees_count' => $this->assignees()->count(),
+            'completed_assignees_count' => $this->assignees()->where('is_completed', true)->count(),
+        ]);
+
+        // Auto-complete team task if all assignees completed
+        if ($this->is_team_completed && $this->status !== self::STATUS_COMPLETED) {
+            $this->update([
+                'status' => self::STATUS_COMPLETED,
+                'completed_at' => now(),
+            ]);
+        }
+
+        // Reopen if not all completed but was marked complete
+        if (!$this->is_team_completed && $this->status === self::STATUS_COMPLETED && $this->assignees_count > 0) {
+            $this->update([
+                'status' => self::STATUS_IN_PROGRESS,
+                'completed_at' => null,
+            ]);
+        }
+    }
+
+    /**
+     * Get current user's assignment
+     */
+    public function getMyAssignment(?string $userId = null): ?TodoAssignee
+    {
+        $userId = $userId ?? auth()->id();
+        return $this->assignees()->where('user_id', $userId)->first();
+    }
+
+    /**
+     * Check if current user can complete this task
+     */
+    public function canCurrentUserComplete(): bool
+    {
+        if ($this->type !== self::TYPE_TEAM || $this->assignees_count === 0) {
+            return true; // Personal tasks can be completed by anyone with access
+        }
+
+        // For team tasks, check if user is assigned
+        return $this->assignees()->where('user_id', auth()->id())->exists();
+    }
+
+    /**
+     * Toggle completion for current user (team task)
+     */
+    public function toggleUserCompletion(?string $userId = null): void
+    {
+        $userId = $userId ?? auth()->id();
+
+        $assignee = $this->assignees()->where('user_id', $userId)->first();
+
+        if ($assignee) {
+            $assignee->toggleComplete();
+        } else {
+            // If not a team task or user is creator, toggle the whole task
+            $this->toggleComplete();
+        }
+    }
+
+    /**
+     * Get formatted due date for display
+     */
+    public function getDueDateFormattedAttribute(): ?string
+    {
+        if (!$this->due_date) {
+            return null;
+        }
+
+        $date = $this->due_date;
+        $now = now();
+
+        if ($date->isToday()) {
+            return 'Bugun ' . $date->format('H:i');
+        }
+
+        if ($date->isTomorrow()) {
+            return 'Ertaga ' . $date->format('H:i');
+        }
+
+        if ($date->isYesterday()) {
+            return 'Kecha ' . $date->format('H:i');
+        }
+
+        if ($date->isSameWeek($now)) {
+            $days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+            return $days[$date->dayOfWeek] . ' ' . $date->format('H:i');
+        }
+
+        return $date->format('d.m.Y H:i');
+    }
+
+    /**
+     * Get time period for grouping
+     */
+    public function getTimePeriodAttribute(): string
+    {
+        if (!$this->due_date) {
+            return 'no_date';
+        }
+
+        $date = $this->due_date;
+        $now = now();
+
+        if ($date->isPast() && !in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED])) {
+            return 'overdue';
+        }
+
+        if ($date->isToday()) {
+            return 'today';
+        }
+
+        if ($date->isTomorrow()) {
+            return 'tomorrow';
+        }
+
+        if ($date->isSameWeek($now) && $date->isAfter($now)) {
+            return 'this_week';
+        }
+
+        return 'later';
     }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
@@ -161,6 +161,7 @@ const props = defineProps({
 const isLoading = ref(false);
 const loadedLeads = ref([]);
 const loadedStats = ref(null);
+const localStateInitialized = ref(false); // Flag to track when local state is ready
 const pagination = ref({
     current_page: 1,
     last_page: 1,
@@ -168,8 +169,13 @@ const pagination = ref({
     total: 0,
 });
 
-// Use loaded data or fall back to props
-const leads = computed(() => loadedLeads.value.length ? loadedLeads.value : (props.leads || []));
+// Use local state after initialization - never fall back to props after init
+const leads = computed(() => {
+    if (localStateInitialized.value) {
+        return loadedLeads.value;
+    }
+    return props.leads || [];
+});
 const stats = computed(() => loadedStats.value || props.stats || {
     total_leads: 0,
     new_leads: 0,
@@ -229,6 +235,7 @@ const fetchLeads = async (page = 1) => {
 
         const response = await axios.get('/business/api/sales/leads', { params });
         loadedLeads.value = response.data.data || [];
+        localStateInitialized.value = true; // Mark local state as initialized
         pagination.value = {
             current_page: response.data.current_page,
             last_page: response.data.last_page,
@@ -306,10 +313,27 @@ const handleLostReasonConfirm = async ({ leadId, reason, details }) => {
         });
         showLostReasonModal.value = false;
         leadToMarkLost.value = null;
-        // Refresh data
+
+        // Update local state optimistically
+        if (!props.lazyLoad && localStateInitialized.value) {
+            const updatedLeads = loadedLeads.value.map(l => {
+                if (l.id === leadId) {
+                    return { ...l, status: 'lost', lost_reason: reason, lost_reason_details: details };
+                }
+                return { ...l };
+            });
+            loadedLeads.value = updatedLeads;
+            await nextTick();
+        }
+
+        // Refresh data for lazy load mode
         if (props.lazyLoad) {
             await fetchLeads();
         }
+
+        // Refresh stats
+        fetchStats();
+
         // Refresh analytics if in analytics view
         if (viewMode.value === 'analytics') {
             await fetchAnalytics();
@@ -325,6 +349,35 @@ watch(viewMode, async (newMode) => {
         await fetchAnalytics();
     }
 });
+
+// Initialize local state from props (for non-lazy mode)
+// This runs once on mount - after that, local state is independent
+const initializeLocalState = () => {
+    if (!props.lazyLoad && props.leads?.length > 0 && !localStateInitialized.value) {
+        loadedLeads.value = JSON.parse(JSON.stringify(props.leads));
+        localStateInitialized.value = true;
+    }
+};
+
+// Force refresh local state from props (used after server-side changes like delete error)
+const forceRefreshFromProps = () => {
+    if (props.leads?.length >= 0) {
+        loadedLeads.value = JSON.parse(JSON.stringify(props.leads || []));
+    }
+};
+
+// Watch for initial props - only initialize once
+// After initialization, local state is independent from props
+watch(() => props.leads, (newLeads, oldLeads) => {
+    if (!localStateInitialized.value) {
+        initializeLocalState();
+    }
+    // If props change dramatically (e.g., after Inertia router.reload), sync local state
+    // But only for significant changes (like full page reload)
+    else if (!props.lazyLoad && oldLeads === undefined && newLeads?.length > 0) {
+        forceRefreshFromProps();
+    }
+}, { immediate: true });
 
 // Debounced search
 let searchTimeout;
@@ -496,26 +549,80 @@ const handleDragLeave = (e) => {
     }
 };
 
-const handleDrop = (e, newStatus) => {
+const handleDrop = async (e, newStatus) => {
     e.preventDefault();
     dragOverColumn.value = null;
 
     if (draggedLead.value && draggedLead.value.status !== newStatus) {
-        // Update lead status via API
-        router.put(route('business.sales.update', draggedLead.value.id), {
-            name: draggedLead.value.name,
-            email: draggedLead.value.email,
-            phone: draggedLead.value.phone,
-            company: draggedLead.value.company,
-            source_id: draggedLead.value.source?.id || null,
-            status: newStatus,
-            score: draggedLead.value.score,
-            estimated_value: draggedLead.value.estimated_value,
-        }, {
-            preserveScroll: true,
-            preserveState: true,
-            only: ['leads', 'stats'],
+        const lead = { ...draggedLead.value }; // Clone to avoid reference issues
+        const leadId = lead.id;
+        const oldStatus = lead.status;
+
+        // Handle "lost" status - need to show modal first
+        if (newStatus === 'lost') {
+            openLostReasonModal(lead);
+            isDragging.value = false;
+            draggedLead.value = null;
+            return;
+        }
+
+        // Clear drag state immediately
+        isDragging.value = false;
+        draggedLead.value = null;
+
+        // Optimistic update - create completely new array with new objects
+        const updatedLeads = loadedLeads.value.map(l => {
+            if (l.id === leadId) {
+                return { ...l, status: newStatus };
+            }
+            return { ...l }; // Clone all objects for reactivity
         });
+
+        // Assign new array to trigger Vue reactivity
+        loadedLeads.value = updatedLeads;
+
+        // Force Vue to process the update
+        await nextTick();
+
+        try {
+            // Send update to server with JSON headers to prevent Inertia redirect
+            await axios.put(route('business.sales.update', leadId), {
+                name: lead.name,
+                email: lead.email,
+                phone: lead.phone,
+                company: lead.company,
+                source_id: lead.source?.id || null,
+                status: newStatus,
+                score: lead.score,
+                estimated_value: lead.estimated_value,
+            }, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            // Refresh stats after successful update
+            fetchStats();
+
+            // Refresh analytics if in analytics view
+            if (viewMode.value === 'analytics') {
+                fetchAnalytics();
+            }
+        } catch (error) {
+            console.error('Error updating lead status:', error);
+            // Revert optimistic update on error
+            const revertedLeads = loadedLeads.value.map(l => {
+                if (l.id === leadId) {
+                    return { ...l, status: oldStatus };
+                }
+                return { ...l };
+            });
+            loadedLeads.value = revertedLeads;
+            await nextTick();
+        }
+
+        return;
     }
 
     isDragging.value = false;
@@ -527,14 +634,33 @@ const confirmDelete = (lead) => {
     showLeadMenu.value = null;
 };
 
-const deleteLead = () => {
+const deleteLead = async () => {
     if (deletingLead.value) {
-        router.delete(route('business.sales.destroy', deletingLead.value.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                deletingLead.value = null;
-            },
-        });
+        const leadId = deletingLead.value.id;
+
+        // Optimistic update - remove from local state immediately
+        const updatedLeads = loadedLeads.value.filter(l => l.id !== leadId);
+        loadedLeads.value = updatedLeads;
+        deletingLead.value = null;
+
+        try {
+            await axios.delete(route('business.sales.destroy', leadId), {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            fetchStats();
+        } catch (error) {
+            console.error('Error deleting lead:', error);
+            // Refresh leads to restore the deleted lead
+            if (props.lazyLoad) {
+                await fetchLeads();
+            } else {
+                // For non-lazy mode, we need to reload from server
+                router.reload({ only: ['leads'] });
+            }
+        }
     }
 };
 
@@ -560,6 +686,9 @@ onMounted(() => {
     // Lazy load data if needed
     if (props.lazyLoad) {
         fetchData();
+    } else {
+        // Initialize local state from props for non-lazy mode
+        initializeLocalState();
     }
     // Check SMS status
     checkSmsStatus();

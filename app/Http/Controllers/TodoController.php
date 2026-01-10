@@ -40,7 +40,7 @@ class TodoController extends Controller
 
         $query = Todo::where('business_id', $business->id)
             ->whereNull('parent_id') // Only root todos
-            ->with(['assignee:id,name', 'subtasks', 'recurrence'])
+            ->with(['assignee:id,name', 'subtasks', 'recurrence', 'assignees.user:id,name'])
             ->orderBy('order')
             ->orderBy('due_date');
 
@@ -145,6 +145,22 @@ class TodoController extends Controller
             'order' => $subtask->order,
         ])->toArray();
 
+        // Team assignees data
+        $assigneesData = $todo->assignees->map(fn($assignee) => [
+            'id' => $assignee->id,
+            'user_id' => $assignee->user_id,
+            'user' => $assignee->user ? [
+                'id' => $assignee->user->id,
+                'name' => $assignee->user->name,
+            ] : null,
+            'is_completed' => $assignee->is_completed,
+            'completed_at' => $assignee->completed_at?->format('d.m.Y H:i'),
+            'note' => $assignee->note,
+        ])->toArray();
+
+        // Check current user's assignment status
+        $myAssignment = $todo->assignees->where('user_id', Auth::id())->first();
+
         return [
             'id' => $todo->id,
             'title' => $todo->title,
@@ -157,13 +173,28 @@ class TodoController extends Controller
             'status' => $todo->status,
             'status_label' => $todo->status_label,
             'due_date' => $todo->due_date?->format('Y-m-d H:i'),
-            'due_date_formatted' => $todo->due_date?->format('d.m.Y H:i'),
+            'due_date_formatted' => $todo->due_date_formatted,
+            'time_period' => $todo->time_period,
             'is_overdue' => $todo->is_overdue,
             'is_recurring' => $todo->is_recurring,
             'assignee' => $todo->assignee ? [
                 'id' => $todo->assignee->id,
                 'name' => $todo->assignee->name,
             ] : null,
+            // Team task fields
+            'is_team_task' => $todo->is_team_task,
+            'assignees' => $assigneesData,
+            'assignees_count' => $todo->assignees_count,
+            'completed_assignees_count' => $todo->completed_assignees_count,
+            'team_progress' => $todo->team_progress,
+            'is_team_completed' => $todo->is_team_completed,
+            'my_assignment' => $myAssignment ? [
+                'id' => $myAssignment->id,
+                'is_completed' => $myAssignment->is_completed,
+                'completed_at' => $myAssignment->completed_at?->format('d.m.Y H:i'),
+            ] : null,
+            'can_complete' => $todo->canCurrentUserComplete(),
+            // Subtasks
             'subtasks' => $subtasksData,
             'subtasks_count' => count($subtasksData),
             'completed_subtasks_count' => collect($subtasksData)->where('is_completed', true)->count(),
@@ -176,6 +207,7 @@ class TodoController extends Controller
                 'is_active' => $todo->recurrence->is_active,
             ] : null,
             'order' => $todo->order,
+            'created_by' => $todo->created_by,
             'created_at' => $todo->created_at->format('d.m.Y H:i'),
         ];
     }
@@ -233,6 +265,8 @@ class TodoController extends Controller
             'due_date' => 'nullable|date',
             'reminder_at' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
+            'assignee_ids' => 'nullable|array', // For team tasks
+            'assignee_ids.*' => 'exists:users,id',
             'subtasks' => 'nullable|array',
             'subtasks.*.title' => 'required|string|max:255',
         ]);
@@ -266,7 +300,12 @@ class TodoController extends Controller
                 }
             }
 
-            $todo->load(['assignee:id,name', 'subtasks']);
+            // Handle team assignees
+            if ($validated['type'] === Todo::TYPE_TEAM && !empty($validated['assignee_ids'])) {
+                $todo->syncAssignees($validated['assignee_ids']);
+            }
+
+            $todo->load(['assignee:id,name', 'subtasks', 'assignees.user:id,name']);
 
             DB::commit();
 
@@ -304,6 +343,8 @@ class TodoController extends Controller
             'due_date' => 'nullable|date',
             'reminder_at' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
+            'assignee_ids' => 'nullable|array',
+            'assignee_ids.*' => 'exists:users,id',
         ]);
 
         // Handle status changes
@@ -315,8 +356,20 @@ class TodoController extends Controller
             }
         }
 
+        // Handle team assignees update
+        if (array_key_exists('assignee_ids', $validated)) {
+            if (!empty($validated['assignee_ids']) && ($validated['type'] ?? $todo->type) === Todo::TYPE_TEAM) {
+                $todo->syncAssignees($validated['assignee_ids']);
+            } else {
+                // Clear assignees if not team or empty
+                $todo->assignees()->delete();
+                $todo->updateAssigneeCounts();
+            }
+            unset($validated['assignee_ids']);
+        }
+
         $todo->update($validated);
-        $todo->load(['assignee:id,name', 'subtasks', 'recurrence']);
+        $todo->load(['assignee:id,name', 'subtasks', 'recurrence', 'assignees.user:id,name']);
 
         return response()->json([
             'success' => true,
@@ -336,13 +389,76 @@ class TodoController extends Controller
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
-        $todo->toggleComplete();
-        $todo->load(['assignee:id,name', 'subtasks', 'recurrence']);
+        // For team tasks, toggle user's completion instead of whole task
+        if ($todo->is_team_task) {
+            $todo->toggleUserCompletion();
+        } else {
+            $todo->toggleComplete();
+        }
+
+        $todo->load(['assignee:id,name', 'subtasks', 'recurrence', 'assignees.user:id,name']);
+        $todo->refresh();
 
         return response()->json([
             'success' => true,
             'message' => $todo->status === Todo::STATUS_COMPLETED ? 'Vazifa bajarildi' : 'Vazifa qayta ochildi',
             'todo' => $this->formatTodoForResponse($todo),
+        ]);
+    }
+
+    /**
+     * Toggle user completion for team task
+     */
+    public function toggleUserComplete(Todo $todo)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business || $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        if (!$todo->is_team_task) {
+            return response()->json(['error' => 'Bu jamoa vazifasi emas'], 400);
+        }
+
+        $assignee = $todo->getMyAssignment();
+
+        if (!$assignee) {
+            return response()->json(['error' => 'Siz bu vazifaga tayinlanmagansiz'], 403);
+        }
+
+        $assignee->toggleComplete();
+        $todo->load(['assignee:id,name', 'subtasks', 'recurrence', 'assignees.user:id,name']);
+        $todo->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => $assignee->is_completed ? 'Sizning qismingiz bajarildi' : 'Qayta ochildi',
+            'todo' => $this->formatTodoForResponse($todo),
+        ]);
+    }
+
+    /**
+     * Get single todo details
+     */
+    public function show(Todo $todo)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business || $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $todo->load(['assignee:id,name', 'subtasks', 'recurrence', 'assignees.user:id,name', 'creator:id,name']);
+
+        return response()->json([
+            'success' => true,
+            'todo' => array_merge($this->formatTodoForResponse($todo), [
+                'creator' => $todo->creator ? [
+                    'id' => $todo->creator->id,
+                    'name' => $todo->creator->name,
+                ] : null,
+            ]),
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -110,7 +111,8 @@ class TodoTemplate extends Model
         ?string $type = null,
         ?\DateTimeInterface $baseDate = null
     ): Collection {
-        $baseDate = $baseDate ?? now();
+        // Convert to Carbon for copy() method support
+        $baseDate = $baseDate ? Carbon::parse($baseDate) : now();
         $createdTodos = collect();
         $itemToTodoMap = [];
 
@@ -136,7 +138,7 @@ class TodoTemplate extends Model
         ?string $parentId,
         ?string $assigneeId,
         ?string $type,
-        \DateTimeInterface $baseDate,
+        Carbon $baseDate,
         array &$itemToTodoMap
     ): Todo {
         // Determine assignee

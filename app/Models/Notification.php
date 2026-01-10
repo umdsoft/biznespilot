@@ -3,31 +3,31 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
+
+    protected $table = 'in_app_notifications';
 
     protected $fillable = [
         'business_id',
         'user_id',
         'type',
-        'channel',
         'title',
         'message',
+        'icon',
         'action_url',
         'action_text',
-        'related_type',
-        'related_id',
-        'priority',
+        'is_read',
         'read_at',
-        'clicked_at',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
-        'clicked_at' => 'datetime',
+        'is_read' => 'boolean',
     ];
 
     public function business()
@@ -42,12 +42,12 @@ class Notification extends Model
 
     public function scopeUnread($query)
     {
-        return $query->whereNull('read_at');
+        return $query->where('is_read', false);
     }
 
     public function scopeRead($query)
     {
-        return $query->whereNotNull('read_at');
+        return $query->where('is_read', true);
     }
 
     public function scopeForUser($query, $userId)
@@ -60,11 +60,6 @@ class Notification extends Model
         return $query->where('type', $type);
     }
 
-    public function scopeByChannel($query, $channel)
-    {
-        return $query->where('channel', $channel);
-    }
-
     public function scopeRecent($query, $days = 7)
     {
         return $query->where('created_at', '>=', now()->subDays($days));
@@ -72,22 +67,25 @@ class Notification extends Model
 
     public function markAsRead()
     {
-        if (!$this->read_at) {
-            $this->update(['read_at' => now()]);
+        if (!$this->is_read) {
+            $this->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
         }
     }
 
     public function markAsClicked()
     {
         $this->update([
+            'is_read' => true,
             'read_at' => $this->read_at ?? now(),
-            'clicked_at' => now(),
         ]);
     }
 
     public function isRead()
     {
-        return !is_null($this->read_at);
+        return $this->is_read;
     }
 
     public function getTypeIcon()
@@ -114,14 +112,4 @@ class Notification extends Model
         };
     }
 
-    public function getPriorityColor()
-    {
-        return match ($this->priority) {
-            'critical' => 'red',
-            'high' => 'orange',
-            'medium' => 'yellow',
-            'low' => 'gray',
-            default => 'gray',
-        };
-    }
 }

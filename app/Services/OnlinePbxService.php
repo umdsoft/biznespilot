@@ -385,10 +385,13 @@ class OnlinePbxService
      */
     protected function getOrCreatePhoneSource(string $businessId): ?LeadSource
     {
+        // Use callback to keep business_id scope with orWhere clauses
         $source = LeadSource::where('business_id', $businessId)
-            ->where('name', 'like', '%telefon%')
-            ->orWhere('name', 'like', '%phone%')
-            ->orWhere('name', 'like', '%qo\'ng\'iroq%')
+            ->where(function ($query) {
+                $query->where('name', 'like', '%telefon%')
+                    ->orWhere('name', 'like', '%phone%')
+                    ->orWhere('name', 'like', '%qo\'ng\'iroq%');
+            })
             ->first();
 
         if (!$source) {

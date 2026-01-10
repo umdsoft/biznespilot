@@ -24,14 +24,11 @@ class NotificationService
             'business_id' => $business->id,
             'user_id' => $user?->id,
             'type' => $type,
-            'channel' => $options['channel'] ?? 'in_app',
             'title' => $title,
             'message' => $message,
+            'icon' => $options['icon'] ?? null,
             'action_url' => $options['action_url'] ?? null,
             'action_text' => $options['action_text'] ?? null,
-            'related_type' => $options['related_type'] ?? null,
-            'related_id' => $options['related_id'] ?? null,
-            'priority' => $options['priority'] ?? 'medium',
         ]);
     }
 
@@ -44,11 +41,9 @@ class NotificationService
             $alert->title,
             $alert->message,
             [
+                'icon' => 'bell-alert',
                 'action_url' => "/dashboard/alerts/{$alert->id}",
                 'action_text' => 'Ko\'rish',
-                'related_type' => Alert::class,
-                'related_id' => $alert->id,
-                'priority' => $alert->severity,
             ]
         );
     }
@@ -62,11 +57,9 @@ class NotificationService
             $report->title,
             $report->summary ?? 'Yangi hisobot tayyor.',
             [
+                'icon' => 'document-chart-bar',
                 'action_url' => "/dashboard/reports/{$report->id}",
                 'action_text' => 'Ko\'rish',
-                'related_type' => GeneratedReport::class,
-                'related_id' => $report->id,
-                'priority' => 'medium',
             ]
         );
     }
@@ -80,12 +73,12 @@ class NotificationService
             $title,
             $message,
             [
-                'priority' => 'high',
+                'icon' => 'trophy',
             ]
         );
     }
 
-    public function sendSystemNotification(Business $business, string $title, string $message, string $priority = 'low'): Notification
+    public function sendSystemNotification(Business $business, string $title, string $message): Notification
     {
         return $this->send(
             $business,
@@ -94,7 +87,7 @@ class NotificationService
             $title,
             $message,
             [
-                'priority' => $priority,
+                'icon' => 'cog',
             ]
         );
     }
@@ -132,7 +125,10 @@ class NotificationService
             });
         }
 
-        return $query->update(['read_at' => now()]);
+        return $query->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
     }
 
     public function getUnreadNotifications(Business $business, ?User $user = null, int $limit = 10): Collection
@@ -195,7 +191,7 @@ class NotificationService
     public function deleteOldNotifications(int $daysOld = 30): int
     {
         return Notification::where('created_at', '<', now()->subDays($daysOld))
-            ->whereNotNull('read_at')
+            ->where('is_read', true)
             ->delete();
     }
 

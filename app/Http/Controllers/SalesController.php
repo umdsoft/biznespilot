@@ -531,6 +531,19 @@ class SalesController extends Controller
         // Clear stats cache on lead update
         Cache::forget("lead_stats_{$currentBusiness->id}");
 
+        // Return JSON for AJAX requests (axios), redirect for form submissions
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Lead muvaffaqiyatli yangilandi!',
+                'lead' => [
+                    'id' => $lead->id,
+                    'status' => $lead->status,
+                    'name' => $lead->name,
+                ],
+            ]);
+        }
+
         return redirect()->route('business.sales.index')
             ->with('success', 'Lead muvaffaqiyatli yangilandi!');
     }
@@ -556,6 +569,14 @@ class SalesController extends Controller
 
         // Clear stats cache on lead deletion
         Cache::forget("lead_stats_{$currentBusiness->id}");
+
+        // Return JSON for AJAX requests, redirect for form submissions
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Lead muvaffaqiyatli o\'chirildi!',
+            ]);
+        }
 
         return redirect()->route('business.sales.index')
             ->with('success', 'Lead muvaffaqiyatli o\'chirildi!');
