@@ -47,7 +47,13 @@
       "Bash(php delete_business_only.php:*)",
       "Bash(php d:biznespilotartisan db:table competitors --show-columns)",
       "Bash(cd:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(net start:*)",
+      "Bash(sc start:*)",
+      "Bash(where:*)",
+      "Bash(mysqld:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)"
     ]
   }
 }

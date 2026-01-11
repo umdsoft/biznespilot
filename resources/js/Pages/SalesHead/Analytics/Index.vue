@@ -1,0 +1,158 @@
+<script setup>
+import { ref } from 'vue';
+import { Head, Link } from '@inertiajs/vue3';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import {
+    ChartBarIcon,
+    ChartPieIcon,
+    ArrowTrendingUpIcon,
+    CurrencyDollarIcon,
+    UsersIcon,
+    FunnelIcon,
+} from '@heroicons/vue/24/outline';
+
+const props = defineProps({
+    analytics: {
+        type: Object,
+        default: () => ({
+            conversion_rate: 0,
+            avg_deal_size: 0,
+            total_revenue: 0,
+            leads_count: 0,
+            won_count: 0,
+            lost_count: 0,
+        }),
+    },
+    period: {
+        type: String,
+        default: 'month',
+    },
+});
+
+const selectedPeriod = ref(props.period);
+
+const formatCurrency = (amount) => {
+    if (!amount) return '0 so\'m';
+    return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
+};
+
+const formatPercent = (value) => {
+    return (value || 0).toFixed(1) + '%';
+};
+</script>
+
+<template>
+    <SalesHeadLayout title="Analitika">
+        <Head title="Analitika" />
+
+        <div class="space-y-6">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Analitika</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Sotuv tahlili va ko'rsatkichlar</p>
+                </div>
+                <div class="flex gap-2">
+                    <Link
+                        href="/sales-head/analytics/conversion"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        Konversiya
+                    </Link>
+                    <Link
+                        href="/sales-head/analytics/revenue"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        Daromad
+                    </Link>
+                </div>
+            </div>
+
+            <!-- Period Selector -->
+            <div class="flex gap-2">
+                <button
+                    v-for="p in ['week', 'month', 'quarter', 'year']"
+                    :key="p"
+                    @click="selectedPeriod = p"
+                    :class="[
+                        'px-4 py-2 rounded-lg font-medium transition-colors',
+                        selectedPeriod === p
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    ]"
+                >
+                    {{ p === 'week' ? 'Hafta' : p === 'month' ? 'Oy' : p === 'quarter' ? 'Chorak' : 'Yil' }}
+                </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <UsersIcon class="w-5 h-5 text-blue-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ analytics.leads_count }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami leadlar</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <ChartPieIcon class="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatPercent(analytics.conversion_rate) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Konversiya</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <ArrowTrendingUpIcon class="w-5 h-5 text-green-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ analytics.won_count }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Yutilgan</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <FunnelIcon class="w-5 h-5 text-red-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ analytics.lost_count }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Yo'qotilgan</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <CurrencyDollarIcon class="w-5 h-5 text-purple-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ formatCurrency(analytics.avg_deal_size) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">O'rtacha bitim</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <CurrencyDollarIcon class="w-5 h-5 text-yellow-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ formatCurrency(analytics.total_revenue) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami daromad</p>
+                </div>
+            </div>
+
+            <!-- Charts Placeholder -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Sotuv Dinamikasi</h3>
+                    <div class="h-64 flex items-center justify-center text-gray-400">
+                        <div class="text-center">
+                            <ChartBarIcon class="w-12 h-12 mx-auto mb-2" />
+                            <p>Grafik tez orada qo'shiladi</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Konversiya Voronkasi</h3>
+                    <div class="h-64 flex items-center justify-center text-gray-400">
+                        <div class="text-center">
+                            <FunnelIcon class="w-12 h-12 mx-auto mb-2" />
+                            <p>Grafik tez orada qo'shiladi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </SalesHeadLayout>
+</template>

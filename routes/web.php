@@ -228,6 +228,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/source-stats', [SalesController::class, 'getSourceStats'])->name('source-stats');
         Route::get('/lost-reasons-stats', [SalesController::class, 'getLostReasonsStats'])->name('lost-reasons-stats');
         Route::post('/leads/{lead}/mark-lost', [SalesController::class, 'markAsLost'])->name('mark-lost');
+        Route::get('/leads/{lead}/activities', [SalesController::class, 'getActivities'])->name('activities');
+        Route::post('/leads/{lead}/notes', [SalesController::class, 'addNote'])->name('notes');
+        Route::post('/leads/{lead}/status', [SalesController::class, 'updateStatus'])->name('status');
     });
 
     // Tasks routes (Vazifalar)
@@ -1127,4 +1130,123 @@ Route::middleware('auth')->prefix('api/instagram/{business}')->name('api.instagr
     Route::get('/ai-config', [InstagramWebhookController::class, 'getAIConfig'])->name('ai-config');
     Route::post('/ai-config', [InstagramWebhookController::class, 'updateAIConfig'])->name('ai-config.update');
     Route::post('/ai-templates', [InstagramWebhookController::class, 'saveAITemplates'])->name('ai-templates');
+});
+
+// ==============================================
+// Sales Head Panel Routes (Sotuv Bo'limi Rahbari)
+// ==============================================
+Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-head.')->group(function () {
+    // Dashboard
+    Route::get('/', [App\Http\Controllers\SalesHead\DashboardController::class, 'index'])->name('dashboard');
+
+    // API Stats endpoint (for layout polling)
+    Route::get('/api/stats', [App\Http\Controllers\SalesHead\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // Leads Management
+    Route::prefix('leads')->name('leads.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\LeadController::class, 'index'])->name('index');
+        Route::get('/api', [App\Http\Controllers\SalesHead\LeadController::class, 'getLeads'])->name('api');
+        Route::get('/api/stats', [App\Http\Controllers\SalesHead\LeadController::class, 'getStats'])->name('api.stats');
+        Route::get('/create', [App\Http\Controllers\SalesHead\LeadController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\SalesHead\LeadController::class, 'store'])->name('store');
+        Route::get('/{lead}', [App\Http\Controllers\SalesHead\LeadController::class, 'show'])->name('show');
+        Route::put('/{lead}', [App\Http\Controllers\SalesHead\LeadController::class, 'update'])->name('update');
+        Route::delete('/{lead}', [App\Http\Controllers\SalesHead\LeadController::class, 'destroy'])->name('destroy');
+        Route::post('/{lead}/assign', [App\Http\Controllers\SalesHead\LeadController::class, 'assign'])->name('assign');
+        Route::post('/{lead}/status', [App\Http\Controllers\SalesHead\LeadController::class, 'updateStatus'])->name('status');
+        Route::post('/{lead}/mark-lost', [App\Http\Controllers\SalesHead\LeadController::class, 'markLost'])->name('mark-lost');
+        Route::get('/{lead}/tasks', [App\Http\Controllers\SalesHead\TaskController::class, 'leadTasks'])->name('tasks');
+        Route::get('/{lead}/activities', [App\Http\Controllers\SalesHead\LeadController::class, 'getActivities'])->name('activities');
+        Route::post('/{lead}/notes', [App\Http\Controllers\SalesHead\LeadController::class, 'addNote'])->name('notes');
+    });
+
+    // Deals
+    Route::prefix('deals')->name('deals.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\DealController::class, 'index'])->name('index');
+        Route::get('/{deal}', [App\Http\Controllers\SalesHead\DealController::class, 'show'])->name('show');
+    });
+
+    // Team Management (Operators)
+    Route::prefix('team')->name('team.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\TeamController::class, 'index'])->name('index');
+        Route::get('/{member}', [App\Http\Controllers\SalesHead\TeamController::class, 'show'])->name('show');
+        Route::get('/{member}/performance', [App\Http\Controllers\SalesHead\TeamController::class, 'performance'])->name('performance');
+    });
+
+    // Tasks
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\TaskController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\SalesHead\TaskController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\SalesHead\TaskController::class, 'store'])->name('store');
+        Route::get('/{task}', [App\Http\Controllers\SalesHead\TaskController::class, 'show'])->name('show');
+        Route::put('/{task}', [App\Http\Controllers\SalesHead\TaskController::class, 'update'])->name('update');
+        Route::delete('/{task}', [App\Http\Controllers\SalesHead\TaskController::class, 'destroy'])->name('destroy');
+        Route::post('/{task}/complete', [App\Http\Controllers\SalesHead\TaskController::class, 'complete'])->name('complete');
+    });
+
+    // Todos (Todo List tizimi)
+    Route::prefix('todos')->name('todos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\TodoController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\SalesHead\TodoController::class, 'store'])->name('store');
+        Route::get('/dashboard', [App\Http\Controllers\SalesHead\TodoController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{todo}', [App\Http\Controllers\SalesHead\TodoController::class, 'show'])->name('show');
+        Route::put('/{todo}', [App\Http\Controllers\SalesHead\TodoController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [App\Http\Controllers\SalesHead\TodoController::class, 'destroy'])->name('destroy');
+        Route::post('/{todo}/toggle', [App\Http\Controllers\SalesHead\TodoController::class, 'toggleComplete'])->name('toggle');
+        Route::post('/{todo}/subtasks', [App\Http\Controllers\SalesHead\TodoController::class, 'addSubtask'])->name('subtasks.store');
+        Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\SalesHead\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
+    });
+
+    // Unified Inbox
+    Route::prefix('inbox')->name('inbox.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\InboxController::class, 'index'])->name('index');
+        Route::get('/{conversation}', [App\Http\Controllers\SalesHead\InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [App\Http\Controllers\SalesHead\InboxController::class, 'sendMessage'])->name('send');
+    });
+
+    // Performance Tracking
+    Route::prefix('performance')->name('performance.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\PerformanceController::class, 'index'])->name('index');
+        Route::get('/team', [App\Http\Controllers\SalesHead\PerformanceController::class, 'team'])->name('team');
+        Route::get('/individual/{member}', [App\Http\Controllers\SalesHead\PerformanceController::class, 'individual'])->name('individual');
+    });
+
+    // Calls
+    Route::prefix('calls')->name('calls.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\CallController::class, 'index'])->name('index');
+        Route::get('/{call}', [App\Http\Controllers\SalesHead\CallController::class, 'show'])->name('show');
+    });
+
+    // Messages
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\MessageController::class, 'index'])->name('index');
+    });
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\ReportController::class, 'index'])->name('index');
+        Route::get('/daily', [App\Http\Controllers\SalesHead\ReportController::class, 'daily'])->name('daily');
+        Route::get('/weekly', [App\Http\Controllers\SalesHead\ReportController::class, 'weekly'])->name('weekly');
+        Route::get('/monthly', [App\Http\Controllers\SalesHead\ReportController::class, 'monthly'])->name('monthly');
+        Route::get('/export', [App\Http\Controllers\SalesHead\ReportController::class, 'export'])->name('export');
+    });
+
+    // Analytics
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/conversion', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'conversion'])->name('conversion');
+        Route::get('/revenue', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'revenue'])->name('revenue');
+    });
+
+    // KPI
+    Route::prefix('kpi')->name('kpi.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\KpiController::class, 'index'])->name('index');
+        Route::post('/targets', [App\Http\Controllers\SalesHead\KpiController::class, 'setTargets'])->name('targets');
+    });
+
+    // Profile & Settings
+    Route::get('/profile', [App\Http\Controllers\SalesHead\ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\SalesHead\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'index'])->name('settings');
+    Route::put('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'update'])->name('settings.update');
 });

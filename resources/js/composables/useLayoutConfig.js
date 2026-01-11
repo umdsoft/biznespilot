@@ -1,0 +1,470 @@
+import { h } from 'vue';
+import {
+  HomeIcon,
+  ChartBarIcon,
+  UsersIcon,
+  DocumentTextIcon,
+  CogIcon,
+  BellIcon,
+  InboxIcon,
+  MegaphoneIcon,
+  CalendarIcon,
+  UserGroupIcon,
+  ClipboardDocumentListIcon,
+  PhoneIcon,
+  ChatBubbleLeftRightIcon,
+  ShieldCheckIcon,
+  BuildingOfficeIcon,
+  CreditCardIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  BoltIcon,
+  PresentationChartLineIcon,
+  TagIcon,
+  LightBulbIcon,
+  DocumentChartBarIcon,
+  AdjustmentsHorizontalIcon,
+  UserIcon,
+  CurrencyDollarIcon,
+} from '@heroicons/vue/24/outline';
+
+// SVG Icons for social platforms
+const FacebookIcon = {
+  render() {
+    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' })
+    ]);
+  }
+};
+
+const InstagramIcon = {
+  render() {
+    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z' })
+    ]);
+  }
+};
+
+const TelegramIcon = {
+  render() {
+    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z' })
+    ]);
+  }
+};
+
+const YouTubeIcon = {
+  render() {
+    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z' })
+    ]);
+  }
+};
+
+const GoogleIcon = {
+  render() {
+    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z' })
+    ]);
+  }
+};
+
+// Business Layout Configuration
+export const businessLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/business',
+  brandName: 'BiznesPilot AI',
+  brandSubtitle: null,
+  logoGradient: 'bg-gradient-to-br from-blue-600 to-indigo-600',
+  logoTextGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600',
+  logoIcon: BoltIcon,
+
+  // Features
+  showBusinessSelector: true,
+  showBusinessInfo: false,
+  showNotifications: true,
+  showDarkModeToggle: true,
+  showFeedbackWidget: true,
+  showQuickStats: false,
+  showTitleIcon: false,
+
+  // Business avatar
+  businessAvatarClass: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: null, // Will show @login
+
+  // User menu
+  userMenuItems: [
+    { href: '/business/settings', label: 'Sozlamalar' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/business', label: 'Dashboard', icon: HomeIcon, exact: true },
+        { href: '/business/marketing', label: 'Marketing', icon: MegaphoneIcon },
+        { href: '/business/marketing/content', label: 'Kontent Reja', icon: CalendarIcon },
+        { href: '/business/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+      ]
+    },
+    {
+      title: 'Tadqiqot',
+      items: [
+        { href: '/business/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
+        { href: '/business/custdev', label: 'CustDev So\'rovnoma', icon: ClipboardDocumentListIcon },
+      ]
+    },
+    {
+      title: null,
+      items: [
+        { href: '/business/sales', label: 'Sotuv / Leadlar', icon: PresentationChartLineIcon },
+        { href: '/business/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
+        { href: '/business/todos', label: 'Todo List', icon: CheckCircleIcon },
+        { href: '/business/lead-forms', label: 'Lead Formalar', icon: DocumentTextIcon },
+      ]
+    },
+    {
+      title: 'AI Yordamchilar',
+      items: [
+        { href: '/business/target-analysis', label: 'Facebook analiz', icon: FacebookIcon },
+        { href: '/business/instagram-analysis', label: 'Instagram Tahlili', icon: InstagramIcon },
+        { href: '/business/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
+        { href: '/business/youtube-analytics', label: 'YouTube Analitika', icon: YouTubeIcon },
+        { href: '/business/google-ads-analytics', label: 'Google Ads', icon: GoogleIcon },
+      ]
+    },
+    {
+      title: 'Tahlillar',
+      items: [
+        { href: '/business/analytics', label: 'Sotuv Tahlili', icon: ChartBarIcon },
+        { href: '/business/reports', label: 'Hisobotlar', icon: DocumentChartBarIcon },
+        { href: '/business/kpi', label: 'KPI Reja', icon: PresentationChartLineIcon },
+      ]
+    },
+    {
+      title: null,
+      items: [
+        { href: '/business/settings', label: 'Sozlamalar', icon: CogIcon },
+      ]
+    },
+  ],
+};
+
+// SalesHead Layout Configuration
+export const salesHeadLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/sales-head',
+  brandName: 'Sotuv Bo\'limi',
+  brandSubtitle: 'Rahbar paneli',
+  logoGradient: 'bg-gradient-to-br from-emerald-600 to-teal-600',
+  logoTextGradient: 'bg-gradient-to-r from-emerald-600 to-teal-600',
+  logoIcon: PresentationChartLineIcon,
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: true,
+  showNotifications: false,
+  showDarkModeToggle: true,
+  showFeedbackWidget: false,
+  showQuickStats: true,
+  showTitleIcon: false,
+
+  // Business info
+  businessAvatarClass: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+  businessRoleClass: 'text-emerald-600 dark:text-emerald-400',
+  businessRoleLabel: 'Sotuv bo\'limi',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: 'Sotuv rahbari',
+
+  // User menu
+  userMenuItems: [
+    { href: '/sales-head/profile', label: 'Profil' },
+    { href: '/sales-head/settings', label: 'Sozlamalar' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/sales-head', label: 'Dashboard', icon: HomeIcon, exact: true },
+      ]
+    },
+    {
+      title: 'Sotuv',
+      items: [
+        { href: '/sales-head/leads', label: 'Leadlar', icon: UserGroupIcon },
+        { href: '/sales-head/deals', label: 'Bitimlar', icon: CurrencyDollarIcon },
+      ]
+    },
+    {
+      title: 'Jamoa',
+      items: [
+        { href: '/sales-head/team', label: 'Operatorlar', icon: UsersIcon },
+        { href: '/sales-head/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
+        { href: '/sales-head/todos', label: 'Todo List', icon: CheckCircleIcon },
+      ]
+    },
+    {
+      title: 'Kommunikatsiya',
+      items: [
+        { href: '/sales-head/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/sales-head/calls', label: 'Qo\'ng\'iroqlar', icon: PhoneIcon },
+        { href: '/sales-head/messages', label: 'Xabarlar', icon: ChatBubbleLeftRightIcon },
+      ]
+    },
+    {
+      title: 'Hisobotlar va Analitika',
+      items: [
+        { href: '/sales-head/reports', label: 'Hisobotlar', icon: DocumentChartBarIcon },
+        { href: '/sales-head/analytics', label: 'Analitika', icon: ChartBarIcon },
+        { href: '/sales-head/kpi', label: 'KPI', icon: PresentationChartLineIcon },
+      ]
+    },
+  ],
+};
+
+// Admin Layout Configuration
+export const adminLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-50',
+  sidebarClass: 'bg-white/80 backdrop-blur-xl border-r border-red-200/50 shadow-lg',
+  headerClass: 'bg-white/80 backdrop-blur-xl border-b border-red-200/50',
+  logoBorderClass: 'border-red-200/50 bg-gradient-to-r from-red-50/50 to-transparent',
+  sectionBorderClass: 'border-red-200/50',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/dashboard',
+  brandName: 'Admin Panel',
+  brandSubtitle: null,
+  logoGradient: 'bg-gradient-to-br from-red-600 to-rose-600',
+  logoTextGradient: 'bg-gradient-to-r from-red-600 to-rose-600',
+  logoIcon: ShieldCheckIcon,
+
+  // Badge
+  badge: 'Platform Administrator',
+  badgeClass: 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200/50',
+  badgeDotClass: 'bg-red-500',
+  badgeTextClass: 'text-red-700',
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: false,
+  showNotifications: false,
+  showDarkModeToggle: false,
+  showFeedbackWidget: false,
+  showQuickStats: false,
+  showTitleIcon: true,
+  titleIcon: ShieldCheckIcon,
+  titleIconBgClass: 'bg-gradient-to-br from-red-100 to-rose-100',
+  titleIconClass: 'text-red-600',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-red-100 to-rose-100',
+  userAvatarTextClass: 'bg-gradient-to-r from-red-600 to-rose-600',
+  userRoleClass: 'text-red-600 font-medium',
+  userRoleLabel: 'Admin',
+
+  // User menu
+  userMenuItems: [
+    { href: '/dashboard/settings', label: 'Sozlamalar' },
+    { href: '/business', label: 'Biznes Paneliga', class: 'text-blue-600 hover:bg-blue-50' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 hover:bg-red-50' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/dashboard', label: 'Dashboard', icon: HomeIcon, exact: true },
+      ]
+    },
+    {
+      title: 'Platform Boshqaruv',
+      items: [
+        { href: '/dashboard/businesses', label: 'Bizneslar', icon: BuildingOfficeIcon },
+        { href: '/dashboard/users', label: 'Foydalanuvchilar', icon: UsersIcon },
+        { href: '/dashboard/feedback', label: 'Fikr-mulohazalar', icon: ChatBubbleLeftRightIcon },
+        { href: '/dashboard/notifications', label: 'Bildirishnomalar', icon: BellIcon },
+        { href: '/dashboard/subscriptions', label: 'Obunalar', icon: CreditCardIcon },
+      ]
+    },
+    {
+      title: 'Monitoring',
+      items: [
+        { href: '/dashboard/analytics', label: 'Analytics', icon: ChartBarIcon },
+        { href: '/dashboard/system-health', label: 'Tizim Salomatligi', icon: CheckCircleIcon },
+        { href: '/dashboard/activity-logs', label: 'Activity Logs', icon: ClockIcon },
+      ]
+    },
+    {
+      title: 'Tizim',
+      items: [
+        { href: '/dashboard/settings', label: 'Sozlamalar', icon: CogIcon },
+      ]
+    },
+    {
+      title: null,
+      items: [
+        { href: '/business', label: 'Biznes Paneliga', icon: ArrowLeftIcon },
+      ]
+    },
+  ],
+};
+
+// App Layout Configuration (General)
+export const appLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
+  mainClass: 'p-6',
+  contentClass: '',
+  titleClass: 'text-gray-900 dark:text-gray-100',
+
+  // Logo
+  homeUrl: '/',
+  brandName: 'BiznesPilot AI',
+  brandSubtitle: null,
+  logoGradient: 'bg-gradient-to-br from-blue-600 to-indigo-600',
+  logoTextGradient: 'text-primary-600 dark:text-primary-400',
+  logoIcon: BoltIcon,
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: false,
+  showNotifications: false,
+  showDarkModeToggle: true,
+  showFeedbackWidget: false,
+  showQuickStats: false,
+  showTitleIcon: false,
+
+  // User styling
+  userAvatarClass: 'bg-primary-100 dark:bg-primary-900/50',
+  userAvatarTextClass: 'text-primary-700 dark:text-primary-300',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: null,
+
+  // User menu
+  userMenuItems: [
+    { href: '/business/settings', label: 'Sozlamalar' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: 'Asosiy',
+      items: [
+        { href: '/', label: 'Bosh Sahifa', icon: HomeIcon, exact: true },
+        { href: '/kpi-dashboard', label: 'KPI Dashboard', icon: ChartBarIcon },
+        { href: '/reports', label: 'Hisobotlar', icon: DocumentChartBarIcon },
+      ]
+    },
+    {
+      title: 'Biznes',
+      items: [
+        { href: '/business', label: 'Biznes', icon: BuildingOfficeIcon },
+        { href: '/business/dream-buyer', label: 'Ideal Mijoz', icon: UserIcon },
+        { href: '/business/marketing', label: 'Marketing', icon: MegaphoneIcon },
+        { href: '/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/business/sales', label: 'Sotuv / Leadlar', icon: PresentationChartLineIcon },
+        { href: '/business/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
+        { href: '/business/offers', label: 'Takliflar', icon: TagIcon },
+      ]
+    },
+    {
+      title: 'AI & Tahlil',
+      items: [
+        { href: '/ai', label: 'AI Tahlil', icon: LightBulbIcon },
+        { href: '/target-analysis', label: 'Facebook analiz', icon: FacebookIcon },
+        { href: '/analytics/channels', label: 'Kanal Tahlili', icon: ChartBarIcon },
+        { href: '/chatbot', label: 'Chatbot', icon: ChatBubbleLeftRightIcon },
+      ]
+    },
+    {
+      title: 'Sozlamalar',
+      items: [
+        { href: '/business/settings', label: 'Sozlamalar', icon: CogIcon },
+      ]
+    },
+  ],
+};
+
+// Helper to create config with badge counts
+export function useLayoutConfig(type, badgeCounts = {}) {
+  let config;
+
+  switch (type) {
+    case 'business':
+      config = { ...businessLayoutConfig };
+      break;
+    case 'saleshead':
+      config = { ...salesHeadLayoutConfig };
+      break;
+    case 'admin':
+      config = { ...adminLayoutConfig };
+      break;
+    case 'app':
+    default:
+      config = { ...appLayoutConfig };
+  }
+
+  // Apply badge counts
+  if (Object.keys(badgeCounts).length > 0) {
+    config.navigation = config.navigation.map(section => ({
+      ...section,
+      items: section.items.map(item => {
+        const badgeKey = item.href.split('/').pop();
+        if (badgeCounts[badgeKey]) {
+          return {
+            ...item,
+            badge: badgeCounts[badgeKey]
+          };
+        }
+        return item;
+      })
+    }));
+  }
+
+  return config;
+}

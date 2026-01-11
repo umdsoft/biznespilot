@@ -40,7 +40,7 @@ class HandleInertiaRequests extends Middleware
         $businesses = [];
 
         if ($user) {
-            // Get all user's businesses
+            // Get all user's businesses (owned)
             $businesses = $user->businesses()->select('id', 'name', 'slug', 'category', 'logo')->get()->map(fn($b) => [
                 'id' => $b->id,
                 'name' => $b->name,
@@ -49,11 +49,19 @@ class HandleInertiaRequests extends Middleware
                 'logo' => $b->logo,
             ])->toArray();
 
-            // Get current business from session or first business
+            // Get current business from session
             $currentBusinessId = session('current_business_id');
             if ($currentBusinessId) {
+                // First try to get from owned businesses
                 $currentBusiness = $user->businesses()->find($currentBusinessId);
+
+                // If not found, user might be a team member - get business directly
+                if (!$currentBusiness) {
+                    $currentBusiness = \App\Models\Business::find($currentBusinessId);
+                }
             }
+
+            // Fallback: get first owned business
             if (!$currentBusiness && count($businesses) > 0) {
                 $currentBusiness = $user->businesses()->first();
                 session(['current_business_id' => $currentBusiness?->id]);

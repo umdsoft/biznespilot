@@ -117,7 +117,7 @@
             </div>
           </div>
 
-          <form @submit.prevent="form.post('/login')" class="space-y-6">
+          <form @submit.prevent="handleLogin" class="space-y-6">
             <!-- Login Field -->
             <div>
               <label for="login" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -219,4 +219,15 @@ const form = useForm({
   password: '',
   remember: false,
 });
+
+// Handle login with proper error recovery
+const handleLogin = () => {
+  form.clearErrors();
+  form.post('/login', {
+    preserveScroll: true,
+    onError: () => {
+      form.password = '';
+    },
+  });
+};
 </script>

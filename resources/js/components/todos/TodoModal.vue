@@ -9,7 +9,15 @@ const props = defineProps({
     templates: Array,
     types: Object,
     priorities: Object,
+    panelType: {
+        type: String,
+        default: 'business',
+        validator: (value) => ['business', 'saleshead'].includes(value),
+    },
 });
+
+// Route prefix based on panel type
+const routePrefix = computed(() => props.panelType === 'saleshead' ? 'sales-head' : 'business');
 
 const emit = defineEmits(['close', 'saved']);
 
@@ -79,8 +87,8 @@ const submit = async () => {
     errors.value = {};
 
     const url = props.todo
-        ? route('business.todos.update', props.todo.id)
-        : route('business.todos.store');
+        ? route(`${routePrefix.value}.todos.update`, props.todo.id)
+        : route(`${routePrefix.value}.todos.store`);
 
     const method = props.todo ? 'PUT' : 'POST';
 

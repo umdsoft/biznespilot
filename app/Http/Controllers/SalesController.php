@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\Lead;
+use App\Models\LeadActivity;
 use App\Models\LeadSource;
 use App\Models\MarketingChannel;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -115,7 +117,7 @@ class SalesController extends Controller
         $operator = $request->input('operator');
 
         $query = Lead::where('business_id', $currentBusiness->id)
-            ->with(['source:id,name', 'assignedTo:id,name']);
+            ->with(['source', 'assignedTo:id,name']);
 
         // Apply filters
         if ($status && $status !== 'all') {
@@ -147,6 +149,11 @@ class SalesController extends Controller
 
         // Transform the data
         $leads->getCollection()->transform(function ($lead) {
+            // Load source relationship if source_id exists but source is not loaded
+            if ($lead->source_id && !$lead->relationLoaded('source')) {
+                $lead->load('source');
+            }
+
             return [
                 'id' => $lead->id,
                 'uuid' => $lead->uuid,
@@ -157,6 +164,7 @@ class SalesController extends Controller
                 'status' => $lead->status,
                 'score' => $lead->score,
                 'estimated_value' => $lead->estimated_value,
+                'source_id' => $lead->source_id,
                 'source' => $lead->source ? [
                     'id' => $lead->source->id,
                     'name' => $lead->source->name,
@@ -404,6 +412,17 @@ class SalesController extends Controller
 
         $lead->load(['source', 'assignedTo']);
 
+        // Get operators for this business
+        $operators = User::whereHas('businesses', function ($q) use ($currentBusiness) {
+            $q->where('business_id', $currentBusiness->id);
+        })->select('id', 'name', 'email')->get();
+
+        // Get sources for this business
+        $sources = LeadSource::forBusiness($currentBusiness->id)
+            ->active()
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'category', 'icon', 'color']);
+
         return Inertia::render('Business/Sales/Show', [
             'lead' => [
                 'id' => $lead->id,
@@ -411,12 +430,19 @@ class SalesController extends Controller
                 'name' => $lead->name,
                 'email' => $lead->email,
                 'phone' => $lead->phone,
+                'phone2' => $lead->phone2,
                 'company' => $lead->company,
+                'birth_date' => $lead->birth_date,
+                'gender' => $lead->gender,
+                'region' => $lead->region,
+                'district' => $lead->district,
+                'address' => $lead->address,
                 'status' => $lead->status,
                 'score' => $lead->score,
                 'estimated_value' => $lead->estimated_value,
                 'notes' => $lead->notes,
                 'data' => $lead->data,
+                'source_id' => $lead->source_id,
                 'source' => $lead->source ? [
                     'id' => $lead->source->id,
                     'name' => $lead->source->name,
@@ -431,6 +457,10 @@ class SalesController extends Controller
                 'converted_at' => $lead->converted_at?->format('d.m.Y H:i'),
                 'created_at' => $lead->created_at->format('d.m.Y H:i'),
             ],
+            'operators' => $operators,
+            'sources' => $sources,
+            'regions' => Lead::REGIONS,
+            'districts' => Lead::DISTRICTS,
             'canAssignLeads' => $this->canAssignLeads($currentBusiness),
         ]);
     }
@@ -508,13 +538,48 @@ class SalesController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
+            'phone2' => ['nullable', 'string', 'max:50'],
             'company' => ['nullable', 'string', 'max:255'],
+            'birth_date' => ['nullable', 'date'],
+            'gender' => ['nullable', 'string', 'in:male,female'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'district' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:500'],
             'source_id' => ['nullable', 'exists:lead_sources,id'],
-            'status' => ['required', 'in:new,contacted,qualified,proposal,negotiation,won,lost'],
+            'status' => ['nullable', 'in:new,contacted,qualified,proposal,negotiation,won,lost'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'estimated_value' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        // Track changes for activity log
+        $original = $lead->getOriginal();
+        $changes = [];
+        $fieldLabels = [
+            'name' => 'Ism',
+            'email' => 'Email',
+            'phone' => 'Telefon',
+            'phone2' => 'Qo\'shimcha telefon',
+            'company' => 'Kompaniya',
+            'birth_date' => 'Tug\'ilgan sana',
+            'region' => 'Viloyat',
+            'district' => 'Tuman',
+            'address' => 'Manzil',
+            'gender' => 'Jinsi',
+            'source_id' => 'Manba',
+            'notes' => 'Izoh',
+        ];
+
+        foreach ($validated as $key => $value) {
+            $originalValue = $original[$key] ?? null;
+            if ($originalValue != $value && isset($fieldLabels[$key])) {
+                $changes[$key] = [
+                    'label' => $fieldLabels[$key],
+                    'old' => $originalValue,
+                    'new' => $value,
+                ];
+            }
+        }
 
         // Update last_contacted_at if status changed to contacted or beyond
         if ($request->status !== 'new' && $lead->status === 'new') {
@@ -528,6 +593,18 @@ class SalesController extends Controller
 
         $lead->update($validated);
 
+        // Log activity if there are changes
+        if (!empty($changes)) {
+            $changedFields = array_map(fn($c) => $c['label'], $changes);
+            LeadActivity::log(
+                $lead->id,
+                LeadActivity::TYPE_UPDATED,
+                'Ma\'lumotlar yangilandi',
+                implode(', ', $changedFields) . ' o\'zgartirildi',
+                $changes
+            );
+        }
+
         // Clear stats cache on lead update
         Cache::forget("lead_stats_{$currentBusiness->id}");
 
@@ -536,11 +613,7 @@ class SalesController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Lead muvaffaqiyatli yangilandi!',
-                'lead' => [
-                    'id' => $lead->id,
-                    'status' => $lead->status,
-                    'name' => $lead->name,
-                ],
+                'lead' => $lead->fresh(['source', 'assignedTo']),
             ]);
         }
 
@@ -1019,6 +1092,16 @@ class SalesController extends Controller
         // Clear cache
         Cache::forget("lead_stats_{$currentBusiness->id}");
 
+        // Log activity
+        LeadActivity::log(
+            $lead->id,
+            LeadActivity::TYPE_STATUS_CHANGED,
+            'Yo\'qotildi deb belgilandi',
+            'Sabab: ' . (Lead::LOST_REASONS[$validated['lost_reason']] ?? $validated['lost_reason']) .
+                ($validated['lost_reason_details'] ? ' - ' . $validated['lost_reason_details'] : ''),
+            ['old_status' => 'active', 'new_status' => 'lost', 'lost_reason' => $validated['lost_reason']]
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Lead yo\'qotildi deb belgilandi',
@@ -1028,6 +1111,130 @@ class SalesController extends Controller
                 'lost_reason' => $lead->lost_reason,
                 'lost_reason_label' => Lead::LOST_REASONS[$lead->lost_reason] ?? null,
             ],
+        ]);
+    }
+
+    /**
+     * Get lead activities
+     */
+    public function getActivities(Lead $lead)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $activities = $lead->activities()
+            ->with('user:id,name')
+            ->latest()
+            ->take(50)
+            ->get()
+            ->map(fn($activity) => [
+                'id' => $activity->id,
+                'type' => $activity->type,
+                'title' => $activity->title,
+                'description' => $activity->description,
+                'changes' => $activity->changes,
+                'user' => $activity->user ? [
+                    'id' => $activity->user->id,
+                    'name' => $activity->user->name,
+                ] : null,
+                'created_at' => $activity->created_at->format('d.m.Y H:i'),
+                'created_at_human' => $activity->created_at->diffForHumans(),
+            ]);
+
+        return response()->json(['activities' => $activities]);
+    }
+
+    /**
+     * Add note to lead
+     */
+    public function addNote(Request $request, Lead $lead)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $validated = $request->validate([
+            'note' => 'required|string|max:5000',
+        ]);
+
+        // Log note activity
+        LeadActivity::log(
+            $lead->id,
+            LeadActivity::TYPE_NOTE_ADDED,
+            'Izoh qo\'shildi',
+            $validated['note']
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Izoh qo\'shildi',
+        ]);
+    }
+
+    /**
+     * Update lead status
+     */
+    public function updateStatus(Request $request, Lead $lead)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (!$currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $oldStatus = $lead->status;
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:new,contacted,qualified,proposal,negotiation,won,lost',
+        ]);
+
+        $lead->update($validated);
+
+        // Log status change activity
+        if ($oldStatus != $validated['status']) {
+            $statusLabels = [
+                'new' => 'Yangi',
+                'contacted' => 'Bog\'lanildi',
+                'qualified' => 'Qualified',
+                'proposal' => 'Taklif',
+                'negotiation' => 'Muzokara',
+                'won' => 'Yutildi',
+                'lost' => 'Yo\'qotildi',
+            ];
+
+            LeadActivity::log(
+                $lead->id,
+                LeadActivity::TYPE_STATUS_CHANGED,
+                'Holat o\'zgardi',
+                ($statusLabels[$oldStatus] ?? $oldStatus) . ' dan ' . ($statusLabels[$validated['status']] ?? $validated['status']) . ' ga o\'zgartirildi',
+                ['old_status' => $oldStatus, 'new_status' => $validated['status']]
+            );
+        }
+
+        // Clear cache
+        Cache::forget("lead_stats_{$currentBusiness->id}");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status yangilandi',
+            'lead' => $lead->fresh(),
         ]);
     }
 }

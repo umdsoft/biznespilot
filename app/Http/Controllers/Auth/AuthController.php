@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use App\Models\BusinessUser;
 use App\Services\TwoFactorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,12 +67,13 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            // Redirect based on user role
+            // Redirect based on user role or department
             if ($authenticatedUser->hasRole('admin') || $authenticatedUser->hasRole('super_admin')) {
                 return redirect()->intended(route('admin.dashboard'));
             }
 
-            return redirect()->intended(route('business.dashboard'));
+            // Check user's department in their businesses
+            return $this->redirectByDepartment($authenticatedUser);
         }
 
         // Increment failed login attempts
@@ -195,11 +197,56 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        // Redirect based on user role
+        // Redirect based on user role or department
         if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
             return redirect()->intended(route('admin.dashboard'));
         }
 
+        // Check user's department in their businesses
+        return $this->redirectByDepartment($user);
+    }
+
+    /**
+     * Redirect user based on their department
+     */
+    protected function redirectByDepartment(User $user)
+    {
+        // Get user's membership in any business
+        $membership = BusinessUser::where('user_id', $user->id)
+            ->whereNotNull('department')
+            ->first();
+
+        if ($membership) {
+            // Set current business in session
+            session(['current_business_id' => $membership->business_id]);
+
+            // Redirect based on department
+            switch ($membership->department) {
+                case 'sales_head':
+                    return redirect()->intended(route('sales-head.dashboard'));
+
+                case 'sales_operator':
+                    // TODO: Create sales operator panel later
+                    return redirect()->intended(route('business.dashboard'));
+
+                case 'marketing':
+                    // TODO: Create marketing panel later
+                    return redirect()->intended(route('business.dashboard'));
+
+                case 'hr':
+                    // TODO: Create HR panel later
+                    return redirect()->intended(route('business.dashboard'));
+
+                case 'finance':
+                    // TODO: Create finance panel later
+                    return redirect()->intended(route('business.dashboard'));
+
+                default:
+                    return redirect()->intended(route('business.dashboard'));
+            }
+        }
+
+        // Default: business owner or no specific department
         return redirect()->intended(route('business.dashboard'));
     }
 }

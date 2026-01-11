@@ -30,9 +30,17 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    panelType: {
+        type: String,
+        default: 'business',
+        validator: (value) => ['business', 'saleshead'].includes(value),
+    },
 });
 
 const emit = defineEmits(['close', 'saved']);
+
+// Route prefix based on panel type
+const routePrefix = computed(() => props.panelType === 'saleshead' ? 'sales-head' : 'business');
 
 // Form state
 const form = ref({
@@ -136,8 +144,8 @@ const submit = async () => {
         };
 
         const url = props.task
-            ? route('business.tasks.update', props.task.id)
-            : route('business.tasks.store');
+            ? route(`${routePrefix.value}.tasks.update`, props.task.id)
+            : route(`${routePrefix.value}.tasks.store`);
 
         const method = props.task ? 'PUT' : 'POST';
 

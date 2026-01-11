@@ -97,7 +97,7 @@ const passwordError = computed(() => {
     return '';
 });
 
-// Submit form
+// Submit form using axios (auto-handles CSRF)
 const submit = async () => {
     if (!isValid.value || isLoading.value) return;
 
@@ -105,33 +105,33 @@ const submit = async () => {
     error.value = '';
 
     try {
-        const response = await fetch(route('business.settings.team.invite'), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: form.value.name,
-                phone: form.value.phone,
-                password: form.value.password,
-                password_confirmation: form.value.password_confirmation,
-                department: form.value.department,
-            }),
+        const response = await window.axios.post(route('business.settings.team.invite'), {
+            name: form.value.name,
+            phone: form.value.phone,
+            password: form.value.password,
+            password_confirmation: form.value.password_confirmation,
+            department: form.value.department,
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            emit('added', data.member);
+        if (response.data.success) {
+            emit('added', response.data.member);
             emit('close');
         } else {
-            error.value = data.error || data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
         }
     } catch (err) {
         console.error('Failed to add member:', err);
-        error.value = 'Tarmoq xatosi';
+        if (err.response?.data?.error) {
+            error.value = err.response.data.error;
+        } else if (err.response?.data?.message) {
+            error.value = err.response.data.message;
+        } else if (err.response?.data?.errors) {
+            // Laravel validation errors
+            const errors = Object.values(err.response.data.errors).flat();
+            error.value = errors[0] || 'Validatsiya xatosi';
+        } else {
+            error.value = 'Tarmoq xatosi';
+        }
     } finally {
         isLoading.value = false;
     }

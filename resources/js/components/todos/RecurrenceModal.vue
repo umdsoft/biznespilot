@@ -5,7 +5,15 @@ import { XMarkIcon } from '@heroicons/vue/24/outline';
 const props = defineProps({
     show: Boolean,
     todo: Object,
+    panelType: {
+        type: String,
+        default: 'business',
+        validator: (value) => ['business', 'saleshead'].includes(value),
+    },
 });
+
+// Route prefix based on panel type
+const routePrefix = computed(() => props.panelType === 'saleshead' ? 'sales-head' : 'business');
 
 const emit = defineEmits(['close', 'saved']);
 
@@ -100,8 +108,8 @@ const submit = async () => {
     errors.value = {};
 
     const url = props.todo?.recurrence
-        ? route('business.todo-recurrences.update', props.todo.recurrence.id)
-        : route('business.todos.recurrence.store', props.todo.id);
+        ? route(`${routePrefix.value}.todo-recurrences.update`, props.todo.recurrence.id)
+        : route(`${routePrefix.value}.todos.recurrence.store`, props.todo.id);
 
     const method = props.todo?.recurrence ? 'PUT' : 'POST';
 
@@ -147,7 +155,7 @@ const deleteRecurrence = async () => {
     if (!confirm('Takrorlanishni o\'chirmoqchimisiz?')) return;
 
     try {
-        const response = await fetch(route('business.todo-recurrences.destroy', props.todo.recurrence.id), {
+        const response = await fetch(route(`${routePrefix.value}.todo-recurrences.destroy`, props.todo.recurrence.id), {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

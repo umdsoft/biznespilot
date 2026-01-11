@@ -28,12 +28,18 @@ return new class extends Migration
             $table->index(['business_id', 'is_active']);
         });
 
-        // Add provider column to sms_messages table
-        Schema::table('sms_messages', function (Blueprint $table) {
-            $table->string('provider')->default('eskiz')->after('business_id'); // eskiz or playmobile
-            $table->foreignUuid('playmobile_account_id')->nullable()->after('eskiz_account_id')
-                ->constrained('playmobile_accounts')->nullOnDelete();
-        });
+        // Add provider column to sms_messages table if it exists
+        if (Schema::hasTable('sms_messages')) {
+            Schema::table('sms_messages', function (Blueprint $table) {
+                if (!Schema::hasColumn('sms_messages', 'provider')) {
+                    $table->string('provider')->default('eskiz')->after('business_id');
+                }
+                if (!Schema::hasColumn('sms_messages', 'playmobile_account_id')) {
+                    $table->foreignUuid('playmobile_account_id')->nullable()->after('eskiz_account_id')
+                        ->constrained('playmobile_accounts')->nullOnDelete();
+                }
+            });
+        }
     }
 
     /**
@@ -41,10 +47,17 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sms_messages', function (Blueprint $table) {
-            $table->dropForeign(['playmobile_account_id']);
-            $table->dropColumn(['provider', 'playmobile_account_id']);
-        });
+        if (Schema::hasTable('sms_messages')) {
+            Schema::table('sms_messages', function (Blueprint $table) {
+                if (Schema::hasColumn('sms_messages', 'playmobile_account_id')) {
+                    $table->dropForeign(['playmobile_account_id']);
+                    $table->dropColumn('playmobile_account_id');
+                }
+                if (Schema::hasColumn('sms_messages', 'provider')) {
+                    $table->dropColumn('provider');
+                }
+            });
+        }
 
         Schema::dropIfExists('playmobile_accounts');
     }

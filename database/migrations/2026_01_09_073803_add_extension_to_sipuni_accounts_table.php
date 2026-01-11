@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sipuni_accounts', function (Blueprint $table) {
-            $table->string('extension')->nullable()->after('caller_id');
-        });
+        if (Schema::hasTable('sipuni_accounts') && !Schema::hasColumn('sipuni_accounts', 'extension')) {
+            Schema::table('sipuni_accounts', function (Blueprint $table) {
+                $table->string('extension')->nullable()->after('caller_id');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sipuni_accounts', function (Blueprint $table) {
-            $table->dropColumn('extension');
-        });
+        if (Schema::hasTable('sipuni_accounts') && Schema::hasColumn('sipuni_accounts', 'extension')) {
+            Schema::table('sipuni_accounts', function (Blueprint $table) {
+                $table->dropColumn('extension');
+            });
+        }
     }
 };

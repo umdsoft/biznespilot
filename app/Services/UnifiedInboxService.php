@@ -474,16 +474,25 @@ class UnifiedInboxService
      */
     protected function calculateResponseRate(Business $business): float
     {
-        $total = ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
-            $q->where('business_id', $business->id);
-        })->where('direction', 'inbound')->count();
+        try {
+            $total = ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
+                $q->where('business_id', $business->id);
+            })->where('direction', 'inbound')->count();
 
-        $responded = ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
-            $q->where('business_id', $business->id);
-        })->where('direction', 'inbound')
-            ->whereNotNull('response_time_ms')
-            ->count();
+            if ($total === 0) {
+                return 0;
+            }
 
-        return $total > 0 ? ($responded / $total) * 100 : 0;
+            $responded = ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
+                $q->where('business_id', $business->id);
+            })->where('direction', 'inbound')
+                ->whereNotNull('response_time_ms')
+                ->count();
+
+            return ($responded / $total) * 100;
+        } catch (\Exception $e) {
+            // Column may not exist yet, return 0 as fallback
+            return 0;
+        }
     }
 }
