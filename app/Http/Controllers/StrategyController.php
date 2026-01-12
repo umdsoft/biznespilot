@@ -59,7 +59,7 @@ class StrategyController extends Controller
         // Get budget summary
         $budgetSummary = $this->budgetService->getBudgetSummary($business, 'monthly', $year, now()->month);
 
-        return Inertia::render('Strategy/Index', [
+        return Inertia::render('Business/Strategy/Index', [
             'annual_strategy' => $annualStrategy,
             'quarterly_plan' => $quarterlyPlan,
             'monthly_plan' => $monthlyPlan,
@@ -96,7 +96,7 @@ class StrategyController extends Controller
             ->forYear($year)
             ->first();
 
-        return Inertia::render('Strategy/Wizard', [
+        return Inertia::render('Business/Strategy/Wizard', [
             'step' => $step,
             'year' => $year,
             'templates' => $templates,
@@ -171,7 +171,7 @@ class StrategyController extends Controller
 
         $annual->load(['quarterlyPlans', 'kpiTargets', 'budgetAllocations']);
 
-        return Inertia::render('Strategy/Annual/Show', [
+        return Inertia::render('Business/Strategy/Annual/Show', [
             'strategy' => $annual,
             'quarters' => $annual->quarterlyPlans,
             'kpis' => $annual->kpiTargets()->forPeriod('annual')->get(),
@@ -225,7 +225,7 @@ class StrategyController extends Controller
 
         $quarterly->load(['monthlyPlans', 'kpiTargets', 'budgetAllocations', 'annualStrategy']);
 
-        return Inertia::render('Strategy/Quarterly/Show', [
+        return Inertia::render('Business/Strategy/Quarterly/Show', [
             'plan' => $quarterly,
             'months' => $quarterly->monthlyPlans,
             'kpis' => $quarterly->kpiTargets,
@@ -278,7 +278,7 @@ class StrategyController extends Controller
 
         $monthly->load(['weeklyPlans', 'contentItems', 'kpiTargets', 'budgetAllocations', 'quarterlyPlan']);
 
-        return Inertia::render('Strategy/Monthly/Show', [
+        return Inertia::render('Business/Strategy/Monthly/Show', [
             'plan' => $monthly,
             'weeks' => $monthly->weeklyPlans,
             'content' => $monthly->contentItems()->upcoming()->limit(10)->get(),
@@ -336,7 +336,7 @@ class StrategyController extends Controller
 
         $weekly->load(['contentCalendarItems', 'monthlyPlan']);
 
-        return Inertia::render('Strategy/Weekly/Show', [
+        return Inertia::render('Business/Strategy/Weekly/Show', [
             'plan' => $weekly,
             'content' => $weekly->contentCalendarItems,
             'monthly' => $weekly->monthlyPlan,

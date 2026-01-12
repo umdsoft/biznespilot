@@ -130,6 +130,14 @@ export const businessLayoutConfig = {
       items: [
         { href: '/business/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
         { href: '/business/custdev', label: 'CustDev So\'rovnoma', icon: ClipboardDocumentListIcon },
+        { href: '/business/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
+      ]
+    },
+    {
+      title: 'Takliflar va Strategiya',
+      items: [
+        { href: '/business/offers', label: 'Takliflar', icon: TagIcon },
+        { href: '/business/strategy', label: 'Strategiya Rejasi', icon: DocumentChartBarIcon },
       ]
     },
     {

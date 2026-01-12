@@ -305,6 +305,41 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
+    // Offers routes (Shared Controller)
+    Route::prefix('offers')->name('offers.')->group(function () {
+        Route::get('/', [SharedOffersController::class, 'index'])->name('index');
+        Route::get('/create', [SharedOffersController::class, 'create'])->name('create');
+        Route::post('/', [SharedOffersController::class, 'store'])->name('store');
+        Route::post('/generate-ai', [SharedOffersController::class, 'generateAI'])->name('generate-ai');
+        Route::post('/generate-guarantee', [SharedOffersController::class, 'generateGuarantee'])->name('generate-guarantee');
+        Route::post('/calculate-value-score', [SharedOffersController::class, 'calculateValueScore'])->name('calculate-value-score');
+        Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
+        Route::get('/{offer}/edit', [SharedOffersController::class, 'edit'])->name('edit');
+        Route::put('/{offer}', [SharedOffersController::class, 'update'])->name('update');
+        Route::delete('/{offer}', [SharedOffersController::class, 'destroy'])->name('destroy');
+        Route::post('/{offer}/duplicate', [SharedOffersController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{offer}/generate-variations', [SharedOffersController::class, 'generateVariations'])->name('generate-variations');
+    });
+
+    // Competitors routes (Marketing Controller)
+    Route::prefix('competitors')->name('competitors.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
+        Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
+    });
+
+    // Strategy Planning routes
+    Route::prefix('strategy')->name('strategy.')->group(function () {
+        Route::get('/', [StrategyController::class, 'index'])->name('index');
+        Route::get('/wizard', [StrategyController::class, 'wizard'])->name('wizard');
+        Route::post('/', [StrategyController::class, 'store'])->name('store');
+        Route::get('/annual', [StrategyController::class, 'annual'])->name('annual');
+        Route::get('/quarterly', [StrategyController::class, 'quarterly'])->name('quarterly');
+        Route::get('/monthly', [StrategyController::class, 'monthly'])->name('monthly');
+        Route::get('/weekly', [StrategyController::class, 'weekly'])->name('weekly');
+        Route::get('/content-calendar', [StrategyController::class, 'contentCalendar'])->name('content-calendar');
+    });
+
     // Marketing routes
     Route::prefix('marketing')->name('marketing.')->group(function () {
         // Marketing Analytics Dashboard
