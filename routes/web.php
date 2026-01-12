@@ -321,11 +321,48 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{offer}/generate-variations', [SharedOffersController::class, 'generateVariations'])->name('generate-variations');
     });
 
-    // Competitors routes (Marketing Controller)
+    // Competitors routes - Full features with Monitoring & Alerts
     Route::prefix('competitors')->name('competitors.')->group(function () {
         Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
         Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/search-global', [App\Http\Controllers\Marketing\CompetitorController::class, 'searchGlobal'])->name('search-global');
+        Route::get('/global/{id}', [App\Http\Controllers\Marketing\CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
+        Route::get('/create', [App\Http\Controllers\Marketing\CompetitorController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'store'])->name('store');
+
+        // Alerts management
+        Route::get('/alerts', [App\Http\Controllers\Marketing\CompetitorController::class, 'alerts'])->name('alerts');
+        Route::post('/alerts/{alert}/read', [App\Http\Controllers\Marketing\CompetitorController::class, 'markAlertRead'])->name('alerts.read');
+        Route::post('/alerts/{alert}/archive', [App\Http\Controllers\Marketing\CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
+
+        // Lazy Loading API Endpoints
+        Route::get('/api/insights', [App\Http\Controllers\Marketing\CompetitorController::class, 'getInsights'])->name('api.insights');
+        Route::get('/api/dashboard-data', [App\Http\Controllers\Marketing\CompetitorController::class, 'getDashboardData'])->name('api.dashboard-data');
+
         Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
+        Route::get('/{competitor}/edit', [App\Http\Controllers\Marketing\CompetitorController::class, 'edit'])->name('edit');
+        Route::put('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'update'])->name('update');
+        Route::delete('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'destroy'])->name('destroy');
+
+        // Monitoring & Metrics
+        Route::post('/{competitor}/metrics', [App\Http\Controllers\Marketing\CompetitorController::class, 'recordMetrics'])->name('metrics.record');
+        Route::post('/{competitor}/monitor', [App\Http\Controllers\Marketing\CompetitorController::class, 'monitor'])->name('monitor');
+
+        // Competitor SWOT
+        Route::post('/{competitor}/swot/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
+        Route::put('/{competitor}/swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
+        Route::post('/{competitor}/generate-swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateSwot'])->name('generate-swot');
+
+        // Marketing Intelligence API routes
+        Route::post('/{competitor}/products', [App\Http\Controllers\Marketing\CompetitorController::class, 'addProduct'])->name('products.store');
+        Route::delete('/{competitor}/products/{product}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteProduct'])->name('products.destroy');
+        Route::post('/{competitor}/ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'addAd'])->name('ads.store');
+        Route::delete('/{competitor}/ads/{ad}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteAd'])->name('ads.destroy');
+        Route::post('/{competitor}/review-sources', [App\Http\Controllers\Marketing\CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
+        Route::delete('/{competitor}/review-sources/{source}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
+        Route::post('/{competitor}/analyze-content', [App\Http\Controllers\Marketing\CompetitorController::class, 'analyzeContent'])->name('content.analyze');
+        Route::post('/{competitor}/scan-ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanAds'])->name('ads.scan');
+        Route::post('/{competitor}/scan-reviews', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanReviews'])->name('reviews.scan');
     });
 
     // Strategy Planning routes
