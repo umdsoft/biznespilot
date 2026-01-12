@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
     PhoneIcon,
@@ -105,6 +106,9 @@ const submit = async () => {
     error.value = '';
 
     try {
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
         const response = await window.axios.post(route('business.settings.team.invite'), {
             name: form.value.name,
             phone: form.value.phone,
@@ -121,6 +125,15 @@ const submit = async () => {
         }
     } catch (err) {
         console.error('Failed to add member:', err);
+
+        // Handle 419 CSRF error specifically
+        if (isCsrfError(err)) {
+            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            // Refresh token for next attempt
+            await refreshCsrfToken();
+            return;
+        }
+
         if (err.response?.data?.error) {
             error.value = err.response.data.error;
         } else if (err.response?.data?.message) {

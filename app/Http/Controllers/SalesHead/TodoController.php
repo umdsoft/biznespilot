@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Todo;
 use App\Models\TodoRecurrence;
 use App\Models\TodoTemplate;
@@ -14,17 +15,7 @@ use Inertia\Inertia;
 
 class TodoController extends Controller
 {
-    /**
-     * Get current business from session
-     */
-    protected function getCurrentBusiness(): ?Business
-    {
-        $businessId = session('current_business_id');
-        if (!$businessId) {
-            return null;
-        }
-        return Business::find($businessId);
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display todos index page

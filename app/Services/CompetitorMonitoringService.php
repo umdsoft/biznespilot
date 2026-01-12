@@ -724,4 +724,29 @@ class CompetitorMonitoringService
 
         return $results;
     }
+
+    /**
+     * Check all competitors for a business (legacy compatibility with MonitorCompetitorsJob)
+     * Returns collection of alerts created
+     */
+    public function checkCompetitors(\App\Models\Business $business): \Illuminate\Support\Collection
+    {
+        $alerts = collect();
+        $competitors = Competitor::where('business_id', $business->id)
+            ->where('status', 'active')
+            ->get();
+
+        foreach ($competitors as $competitor) {
+            $result = $this->monitorCompetitor($competitor);
+
+            if ($result['alerts_created'] > 0) {
+                $newAlerts = CompetitorAlert::where('competitor_id', $competitor->id)
+                    ->where('created_at', '>=', now()->subMinutes(5))
+                    ->get();
+                $alerts = $alerts->merge($newAlerts);
+            }
+        }
+
+        return $alerts;
+    }
 }

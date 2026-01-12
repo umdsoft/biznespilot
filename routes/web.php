@@ -21,7 +21,7 @@ use App\Http\Controllers\CompetitorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\ContentCalendarController;
-use App\Http\Controllers\DreamBuyerController;
+use App\Http\Controllers\Shared\DreamBuyerController as SharedDreamBuyerController;
 use App\Http\Controllers\CustdevController;
 use App\Http\Controllers\PublicSurveyController;
 use App\Http\Controllers\MarketingController;
@@ -123,6 +123,149 @@ Route::middleware(['auth', 'has.business'])->prefix('onboarding')->name('onboard
     Route::post('/complete', [OnboardingWebController::class, 'complete'])->name('complete');
 });
 
+// ==============================================
+// Shared Integrations Routes (for all panels)
+// ==============================================
+Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integrations.')->group(function () {
+    // ==================== META (Facebook/Instagram) ====================
+    Route::prefix('meta')->name('meta.')->group(function () {
+        Route::get('/auth-url', [TargetAnalysisController::class, 'getMetaAuthUrl'])->name('auth-url');
+        Route::get('/callback', [TargetAnalysisController::class, 'handleMetaCallback'])->name('callback');
+        Route::post('/disconnect', [TargetAnalysisController::class, 'disconnectMeta'])->name('disconnect');
+        Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
+        Route::post('/refresh', [TargetAnalysisController::class, 'refreshMeta'])->name('refresh');
+        Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
+    });
+
+    // Meta API endpoints
+    Route::prefix('meta/api')->name('meta.api.')->group(function () {
+        Route::get('/overview', [TargetAnalysisController::class, 'getMetaOverview'])->name('overview');
+        Route::get('/campaigns', [TargetAnalysisController::class, 'getMetaCampaigns'])->name('campaigns');
+        Route::get('/demographics', [TargetAnalysisController::class, 'getMetaDemographics'])->name('demographics');
+        Route::get('/placements', [TargetAnalysisController::class, 'getMetaPlacements'])->name('placements');
+        Route::get('/trend', [TargetAnalysisController::class, 'getMetaTrend'])->name('trend');
+        Route::post('/ai-insights', [TargetAnalysisController::class, 'getMetaAIInsights'])->name('ai-insights');
+    });
+
+    // ==================== INSTAGRAM ====================
+    Route::prefix('instagram')->name('instagram.')->group(function () {
+        // Analysis
+        Route::get('/', [InstagramAnalysisController::class, 'index'])->name('index');
+        Route::post('/select-account', [InstagramAnalysisController::class, 'selectAccount'])->name('select-account');
+        Route::post('/sync', [InstagramAnalysisController::class, 'sync'])->name('sync');
+        Route::get('/check-permissions', [InstagramAnalysisController::class, 'checkPermissions'])->name('check-permissions');
+
+        // Analysis API endpoints
+        Route::prefix('api')->name('api.')->group(function () {
+            Route::get('/overview', [InstagramAnalysisController::class, 'getOverview'])->name('overview');
+            Route::get('/media-performance', [InstagramAnalysisController::class, 'getMediaPerformance'])->name('media-performance');
+            Route::get('/reels-analytics', [InstagramAnalysisController::class, 'getReelsAnalytics'])->name('reels-analytics');
+            Route::get('/engagement', [InstagramAnalysisController::class, 'getEngagementAnalytics'])->name('engagement');
+            Route::get('/audience', [InstagramAnalysisController::class, 'getAudienceDemographics'])->name('audience');
+            Route::get('/hashtags', [InstagramAnalysisController::class, 'getHashtagPerformance'])->name('hashtags');
+            Route::get('/growth-trend', [InstagramAnalysisController::class, 'getGrowthTrend'])->name('growth-trend');
+            Route::get('/content-comparison', [InstagramAnalysisController::class, 'getContentComparison'])->name('content-comparison');
+            Route::post('/ai-insights', [InstagramAnalysisController::class, 'getAIInsights'])->name('ai-insights');
+            Route::get('/business-insights', [InstagramAnalysisController::class, 'getBusinessInsights'])->name('business-insights');
+            Route::get('/content-winners', [InstagramAnalysisController::class, 'getContentWinners'])->name('content-winners');
+            Route::get('/growth-drivers', [InstagramAnalysisController::class, 'getGrowthDrivers'])->name('growth-drivers');
+            Route::get('/viral-analysis', [InstagramAnalysisController::class, 'getViralAnalysis'])->name('viral-analysis');
+        });
+
+        // Chatbot
+        Route::prefix('chatbot')->name('chatbot.')->group(function () {
+            Route::get('/', [InstagramChatbotController::class, 'index'])->name('index');
+
+            // Chatbot API
+            Route::prefix('api')->name('api.')->group(function () {
+                Route::get('/dashboard', [InstagramChatbotController::class, 'getDashboard'])->name('dashboard');
+                Route::get('/automations', [InstagramChatbotController::class, 'getAutomations'])->name('automations');
+                Route::post('/automations', [InstagramChatbotController::class, 'createAutomation'])->name('automations.create');
+                Route::put('/automations/{id}', [InstagramChatbotController::class, 'updateAutomation'])->name('automations.update');
+                Route::delete('/automations/{id}', [InstagramChatbotController::class, 'deleteAutomation'])->name('automations.delete');
+                Route::post('/automations/{id}/toggle', [InstagramChatbotController::class, 'toggleAutomation'])->name('automations.toggle');
+                Route::get('/conversations', [InstagramChatbotController::class, 'getConversations'])->name('conversations');
+                Route::get('/conversations/{id}', [InstagramChatbotController::class, 'getConversation'])->name('conversations.show');
+                Route::post('/conversations/{id}/message', [InstagramChatbotController::class, 'sendMessage'])->name('conversations.message');
+                Route::get('/trigger-types', [InstagramChatbotController::class, 'getTriggerTypes'])->name('trigger-types');
+                Route::get('/action-types', [InstagramChatbotController::class, 'getActionTypes'])->name('action-types');
+                Route::get('/quick-replies', [InstagramChatbotController::class, 'getQuickReplies'])->name('quick-replies');
+                Route::post('/quick-replies', [InstagramChatbotController::class, 'createQuickReply'])->name('quick-replies.create');
+                Route::get('/node-types', [InstagramChatbotController::class, 'getNodeTypes'])->name('node-types');
+                Route::get('/templates', [InstagramChatbotController::class, 'getTemplates'])->name('templates');
+                Route::post('/flow-automations', [InstagramChatbotController::class, 'createFlowAutomation'])->name('flow-automations.create');
+                Route::get('/flow-automations/{id}', [InstagramChatbotController::class, 'getFlowAutomation'])->name('flow-automations.show');
+                Route::put('/flow-automations/{id}', [InstagramChatbotController::class, 'updateFlowAutomation'])->name('flow-automations.update');
+            });
+        });
+    });
+
+    // ==================== YOUTUBE ====================
+    Route::prefix('youtube')->name('youtube.')->group(function () {
+        Route::get('/', [YouTubeAnalyticsController::class, 'index'])->name('index');
+        Route::post('/sync', [YouTubeAnalyticsController::class, 'sync'])->name('sync');
+        Route::get('/video/{videoId}', [YouTubeAnalyticsController::class, 'videoDetail'])->name('video');
+
+        // Connect/Disconnect (shared for all panels)
+        Route::get('/auth-url', [YouTubeAnalyticsController::class, 'getAuthUrl'])->name('auth-url');
+        Route::get('/callback', [YouTubeAnalyticsController::class, 'handleCallback'])->name('callback');
+        Route::post('/disconnect', [YouTubeAnalyticsController::class, 'disconnect'])->name('disconnect');
+    });
+
+    // ==================== GOOGLE ADS ====================
+    Route::prefix('google-ads')->name('google-ads.')->group(function () {
+        Route::get('/', [GoogleAdsAnalyticsController::class, 'index'])->name('index');
+
+        // Connect/Disconnect (shared for all panels)
+        Route::get('/auth-url', [GoogleAdsAnalyticsController::class, 'getAuthUrl'])->name('auth-url');
+        Route::get('/callback', [GoogleAdsAnalyticsController::class, 'handleCallback'])->name('callback');
+        Route::post('/disconnect', [GoogleAdsAnalyticsController::class, 'disconnect'])->name('disconnect');
+
+        // Campaigns page
+        Route::get('/campaigns/{id}', [GoogleAdsCampaignController::class, 'showPage'])->name('campaigns.show');
+
+        // Campaigns API
+        Route::prefix('api/campaigns')->name('api.campaigns.')->group(function () {
+            Route::get('/', [GoogleAdsCampaignController::class, 'index'])->name('index');
+            Route::get('/filters', [GoogleAdsCampaignController::class, 'filters'])->name('filters');
+            Route::post('/', [GoogleAdsCampaignController::class, 'store'])->name('store');
+            Route::get('/{id}', [GoogleAdsCampaignController::class, 'show'])->name('show');
+            Route::put('/{id}', [GoogleAdsCampaignController::class, 'update'])->name('update');
+            Route::patch('/{id}/status', [GoogleAdsCampaignController::class, 'updateStatus'])->name('status');
+            Route::delete('/{id}', [GoogleAdsCampaignController::class, 'destroy'])->name('destroy');
+            Route::post('/sync', [GoogleAdsCampaignController::class, 'sync'])->name('sync');
+            Route::get('/{id}/insights', [GoogleAdsCampaignController::class, 'getInsights'])->name('insights');
+            Route::get('/{id}/ad-groups', [GoogleAdsCampaignController::class, 'getAdGroups'])->name('ad-groups');
+            Route::get('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'getKeywords'])->name('keywords');
+            Route::post('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'addKeywords'])->name('keywords.add');
+            Route::delete('/keywords/{keywordId}', [GoogleAdsCampaignController::class, 'removeKeyword'])->name('keywords.remove');
+        });
+    });
+
+    // ==================== TELEPHONY (PBX/SIP) ====================
+    Route::prefix('telephony')->name('telephony.')->group(function () {
+        // Settings & Connection
+        Route::get('/settings', [TelephonyController::class, 'settings'])->name('settings');
+        Route::post('/pbx/connect', [TelephonyController::class, 'connectPbx'])->name('pbx.connect');
+        Route::post('/pbx/disconnect', [TelephonyController::class, 'disconnectPbx'])->name('pbx.disconnect');
+        Route::post('/sipuni/connect', [TelephonyController::class, 'connectSipuni'])->name('sipuni.connect');
+        Route::post('/sipuni/disconnect', [TelephonyController::class, 'disconnectSipuni'])->name('sipuni.disconnect');
+        Route::post('/onlinepbx/connect', [TelephonyController::class, 'connectOnlinePbx'])->name('onlinepbx.connect');
+        Route::post('/onlinepbx/sync', [TelephonyController::class, 'syncOnlinePbxHistory'])->name('onlinepbx.sync');
+
+        // Status & Data
+        Route::get('/status', [TelephonyController::class, 'status'])->name('status');
+        Route::get('/history', [TelephonyController::class, 'history'])->name('history');
+        Route::get('/statistics', [TelephonyController::class, 'statistics'])->name('statistics');
+
+        // Calls
+        Route::post('/call', [TelephonyController::class, 'makeCall'])->name('call');
+        Route::post('/call/{lead}', [TelephonyController::class, 'callLead'])->name('call.lead');
+        Route::get('/lead/{lead}/history', [TelephonyController::class, 'leadCallHistory'])->name('lead.history');
+        Route::post('/refresh-balance', [TelephonyController::class, 'refreshBalance'])->name('refresh-balance');
+    });
+});
+
 // Business Panel Routes (requires business)
 Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.')->group(function () {
     // Dashboard
@@ -131,19 +274,19 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     // Business routes
     Route::resource('business', BusinessController::class);
 
-    // Dream Buyer routes
+    // Dream Buyer routes (Shared Controller)
     Route::prefix('dream-buyer')->name('dream-buyer.')->group(function () {
-        Route::get('/', [DreamBuyerController::class, 'index'])->name('index');
-        Route::get('/create', [DreamBuyerController::class, 'create'])->name('create');
-        Route::post('/', [DreamBuyerController::class, 'store'])->name('store');
-        Route::post('/generate-profile', [DreamBuyerController::class, 'generateProfile'])->name('generate-profile');
-        Route::get('/{dreamBuyer}', [DreamBuyerController::class, 'show'])->name('show');
-        Route::get('/{dreamBuyer}/edit', [DreamBuyerController::class, 'edit'])->name('edit');
-        Route::put('/{dreamBuyer}', [DreamBuyerController::class, 'update'])->name('update');
-        Route::delete('/{dreamBuyer}', [DreamBuyerController::class, 'destroy'])->name('destroy');
-        Route::post('/{dreamBuyer}/set-primary', [DreamBuyerController::class, 'setPrimary'])->name('set-primary');
-        Route::post('/{dreamBuyer}/content-ideas', [DreamBuyerController::class, 'generateContentIdeas'])->name('content-ideas');
-        Route::post('/{dreamBuyer}/ad-copy', [DreamBuyerController::class, 'generateAdCopy'])->name('ad-copy');
+        Route::get('/', [SharedDreamBuyerController::class, 'index'])->name('index');
+        Route::get('/create', [SharedDreamBuyerController::class, 'create'])->name('create');
+        Route::post('/', [SharedDreamBuyerController::class, 'store'])->name('store');
+        Route::post('/generate-profile', [SharedDreamBuyerController::class, 'generateProfile'])->name('generate-profile');
+        Route::get('/{dreamBuyer}', [SharedDreamBuyerController::class, 'show'])->name('show');
+        Route::get('/{dreamBuyer}/edit', [SharedDreamBuyerController::class, 'edit'])->name('edit');
+        Route::put('/{dreamBuyer}', [SharedDreamBuyerController::class, 'update'])->name('update');
+        Route::delete('/{dreamBuyer}', [SharedDreamBuyerController::class, 'destroy'])->name('destroy');
+        Route::post('/{dreamBuyer}/set-primary', [SharedDreamBuyerController::class, 'setPrimary'])->name('set-primary');
+        Route::post('/{dreamBuyer}/content-ideas', [SharedDreamBuyerController::class, 'generateContentIdeas'])->name('content-ideas');
+        Route::post('/{dreamBuyer}/ad-copy', [SharedDreamBuyerController::class, 'generateAdCopy'])->name('ad-copy');
     });
 
     // CustDev (Customer Development) routes
@@ -185,6 +328,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::put('/content/{content}', [MarketingController::class, 'updateContent'])->name('content.update');
         Route::delete('/content/{content}', [MarketingController::class, 'deleteContent'])->name('content.destroy');
     });
+
+    // AI Analysis routes (Facebook, Instagram)
+    Route::get('/facebook-analysis', [App\Http\Controllers\Business\AIAnalysisController::class, 'facebook'])->name('facebook-analysis');
+    Route::get('/instagram-analysis', [App\Http\Controllers\Business\AIAnalysisController::class, 'instagram'])->name('instagram-analysis');
 
     // Marketing Campaigns routes
     Route::prefix('marketing/campaigns')->name('marketing.campaigns.')->group(function () {
@@ -550,17 +697,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/sms/playmobile/connect', [SmsController::class, 'connectPlaymobile'])->name('sms.playmobile.connect');
         Route::post('/sms/playmobile/disconnect', [SmsController::class, 'disconnectPlaymobile'])->name('sms.playmobile.disconnect');
 
-        // Telephony Integration (PBX & SipUni)
-        Route::get('/telephony', [TelephonyController::class, 'settings'])->name('telephony');
-        // PBX
-        Route::post('/telephony/pbx/connect', [TelephonyController::class, 'connectPbx'])->name('telephony.pbx.connect');
-        Route::post('/telephony/pbx/disconnect', [TelephonyController::class, 'disconnectPbx'])->name('telephony.pbx.disconnect');
-        // SipUni
-        Route::post('/telephony/sipuni/connect', [TelephonyController::class, 'connectSipuni'])->name('telephony.sipuni.connect');
-        Route::post('/telephony/sipuni/disconnect', [TelephonyController::class, 'disconnectSipuni'])->name('telephony.sipuni.disconnect');
-        // OnlinePBX
-        Route::post('/telephony/onlinepbx/connect', [TelephonyController::class, 'connectOnlinePbx'])->name('telephony.onlinepbx.connect');
-        Route::post('/telephony/onlinepbx/sync', [TelephonyController::class, 'syncOnlinePbxHistory'])->name('telephony.onlinepbx.sync');
+        // Telephony Integration - Note: Routes moved to /integrations/telephony
 
         // Payment Integration (Payme & Click)
         Route::get('/payments', [PaymentController::class, 'settings'])->name('payments');
@@ -616,23 +753,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/templates/{template}/preview', [SmsController::class, 'previewTemplate'])->name('templates.preview');
     });
 
-    // Telephony routes
-    Route::prefix('telephony')->name('telephony.')->group(function () {
-        // Status check
-        Route::get('/status', [TelephonyController::class, 'status'])->name('status');
-
-        // History & Statistics
-        Route::get('/history', [TelephonyController::class, 'history'])->name('history');
-        Route::get('/statistics', [TelephonyController::class, 'statistics'])->name('statistics');
-
-        // Make calls
-        Route::post('/call', [TelephonyController::class, 'makeCall'])->name('call');
-        Route::post('/call/{lead}', [TelephonyController::class, 'callLead'])->name('call.lead');
-        Route::get('/lead/{lead}/history', [TelephonyController::class, 'leadCallHistory'])->name('lead.history');
-
-        // Balance
-        Route::post('/refresh-balance', [TelephonyController::class, 'refreshBalance'])->name('refresh-balance');
-    });
+    // Telephony routes - Note: Moved to /integrations/telephony
 
     // Payment routes (Payme & Click)
     Route::prefix('payments')->name('payments.')->group(function () {
@@ -668,13 +789,15 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     Route::prefix('swot')->name('swot.')->group(function () {
         Route::get('/', [CompetitorController::class, 'swotIndex'])->name('index');
         Route::post('/generate', [CompetitorController::class, 'generateBusinessSwot'])->name('generate');
-        Route::post('/save', [CompetitorController::class, 'saveBusinessSwot'])->name('save');
+        Route::put('/', [CompetitorController::class, 'saveBusinessSwot'])->name('save');
     });
 
     // Competitor Intelligence routes
     Route::prefix('competitors')->name('competitors.')->group(function () {
         Route::get('/', [CompetitorController::class, 'index'])->name('index');
         Route::get('/dashboard', [CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/search-global', [CompetitorController::class, 'searchGlobal'])->name('search-global');
+        Route::get('/global/{id}', [CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
         Route::post('/', [CompetitorController::class, 'store'])->name('store');
         Route::get('/alerts', [CompetitorController::class, 'alerts'])->name('alerts');
         Route::post('/alerts/{alert}/read', [CompetitorController::class, 'markAlertRead'])->name('alerts.read');
@@ -685,7 +808,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::delete('/{competitor}', [CompetitorController::class, 'destroy'])->name('destroy');
         Route::post('/{competitor}/metrics', [CompetitorController::class, 'recordMetrics'])->name('metrics.record');
         Route::post('/{competitor}/monitor', [CompetitorController::class, 'monitor'])->name('monitor');
-        Route::post('/{competitor}/swot', [CompetitorController::class, 'generateSwot'])->name('swot.generate');
+        Route::post('/{competitor}/swot/generate', [CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
+        Route::put('/{competitor}/swot', [CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
 
         // Marketing Intelligence API routes
         Route::post('/{competitor}/products', [CompetitorController::class, 'addProduct'])->name('products.store');
@@ -715,25 +839,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/top-performers', [TargetAnalysisController::class, 'getTopPerformers'])->name('top-performers');
     });
 
-    // Meta Ads Integration routes (inside target-analysis)
-    Route::prefix('target-analysis/meta')->name('target-analysis.meta.')->group(function () {
-        Route::get('/auth-url', [TargetAnalysisController::class, 'getMetaAuthUrl'])->name('auth-url');
-        Route::get('/callback', [TargetAnalysisController::class, 'handleMetaCallback'])->name('callback');
-        Route::post('/disconnect', [TargetAnalysisController::class, 'disconnectMeta'])->name('disconnect');
-        Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
-        Route::post('/refresh', [TargetAnalysisController::class, 'refreshMeta'])->name('refresh');
-        Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
-    });
-
-    // Meta Ads API routes (inside target-analysis)
-    Route::prefix('api/target-analysis/meta')->name('api.target-analysis.meta.')->group(function () {
-        Route::get('/overview', [TargetAnalysisController::class, 'getMetaOverview'])->name('overview');
-        Route::get('/campaigns', [TargetAnalysisController::class, 'getMetaCampaigns'])->name('campaigns');
-        Route::get('/demographics', [TargetAnalysisController::class, 'getMetaDemographics'])->name('demographics');
-        Route::get('/placements', [TargetAnalysisController::class, 'getMetaPlacements'])->name('placements');
-        Route::get('/trend', [TargetAnalysisController::class, 'getMetaTrend'])->name('trend');
-        Route::post('/ai-insights', [TargetAnalysisController::class, 'getMetaAIInsights'])->name('ai-insights');
-    });
+    // Meta Ads Integration - Note: Routes moved to /integrations/meta
 
     // Meta Campaigns page routes
     Route::prefix('meta-campaigns')->name('meta-campaigns.')->group(function () {
@@ -750,95 +856,15 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/sync', [MetaCampaignController::class, 'sync'])->name('sync');
     });
 
-    // Instagram Analysis routes
-    Route::prefix('instagram-analysis')->name('instagram-analysis.')->group(function () {
-        Route::get('/', [InstagramAnalysisController::class, 'index'])->name('index');
-        Route::post('/select-account', [InstagramAnalysisController::class, 'selectAccount'])->name('select-account');
-        Route::post('/sync', [InstagramAnalysisController::class, 'sync'])->name('sync');
-        Route::get('/check-permissions', [InstagramAnalysisController::class, 'checkPermissions'])->name('check-permissions');
-    });
+    // Instagram Analysis - Note: Routes moved to /integrations/instagram
 
-    // Instagram Analysis API routes
-    Route::prefix('api/instagram-analysis')->name('api.instagram-analysis.')->group(function () {
-        Route::get('/overview', [InstagramAnalysisController::class, 'getOverview'])->name('overview');
-        Route::get('/media-performance', [InstagramAnalysisController::class, 'getMediaPerformance'])->name('media-performance');
-        Route::get('/reels-analytics', [InstagramAnalysisController::class, 'getReelsAnalytics'])->name('reels-analytics');
-        Route::get('/engagement', [InstagramAnalysisController::class, 'getEngagementAnalytics'])->name('engagement');
-        Route::get('/audience', [InstagramAnalysisController::class, 'getAudienceDemographics'])->name('audience');
-        Route::get('/hashtags', [InstagramAnalysisController::class, 'getHashtagPerformance'])->name('hashtags');
-        Route::get('/growth-trend', [InstagramAnalysisController::class, 'getGrowthTrend'])->name('growth-trend');
-        Route::get('/content-comparison', [InstagramAnalysisController::class, 'getContentComparison'])->name('content-comparison');
-        Route::post('/ai-insights', [InstagramAnalysisController::class, 'getAIInsights'])->name('ai-insights');
+    // YouTube Analytics - Note: Routes moved to /integrations/youtube
 
-        // Business Insights API - amaliy tavsiyalar
-        Route::get('/business-insights', [InstagramAnalysisController::class, 'getBusinessInsights'])->name('business-insights');
-        Route::get('/content-winners', [InstagramAnalysisController::class, 'getContentWinners'])->name('content-winners');
-        Route::get('/growth-drivers', [InstagramAnalysisController::class, 'getGrowthDrivers'])->name('growth-drivers');
-        Route::get('/viral-analysis', [InstagramAnalysisController::class, 'getViralAnalysis'])->name('viral-analysis');
-    });
+    // Google Ads Analytics - Note: Routes moved to /integrations/google-ads
 
-    // YouTube Analytics routes
-    Route::prefix('youtube-analytics')->name('youtube-analytics.')->group(function () {
-        Route::get('/', [YouTubeAnalyticsController::class, 'index'])->name('index');
-        Route::post('/sync', [YouTubeAnalyticsController::class, 'sync'])->name('sync');
-        Route::get('/video/{videoId}', [YouTubeAnalyticsController::class, 'videoDetail'])->name('video');
-    });
+    // Google Ads Campaigns - Note: Routes moved to /integrations/google-ads/campaigns
 
-    // Google Ads Analytics routes
-    Route::prefix('google-ads-analytics')->name('google-ads-analytics.')->group(function () {
-        Route::get('/', [GoogleAdsAnalyticsController::class, 'index'])->name('index');
-    });
-
-    // Google Ads Campaigns page routes
-    Route::prefix('google-ads-campaigns')->name('google-ads-campaigns.')->group(function () {
-        Route::get('/{id}', [GoogleAdsCampaignController::class, 'showPage'])->name('show');
-    });
-
-    // Google Ads Campaigns API routes
-    Route::prefix('api/google-ads-campaigns')->name('api.google-ads-campaigns.')->group(function () {
-        Route::get('/', [GoogleAdsCampaignController::class, 'index'])->name('index');
-        Route::get('/filters', [GoogleAdsCampaignController::class, 'filters'])->name('filters');
-        Route::post('/', [GoogleAdsCampaignController::class, 'store'])->name('store');
-        Route::get('/{id}', [GoogleAdsCampaignController::class, 'show'])->name('show');
-        Route::put('/{id}', [GoogleAdsCampaignController::class, 'update'])->name('update');
-        Route::patch('/{id}/status', [GoogleAdsCampaignController::class, 'updateStatus'])->name('status');
-        Route::delete('/{id}', [GoogleAdsCampaignController::class, 'destroy'])->name('destroy');
-        Route::post('/sync', [GoogleAdsCampaignController::class, 'sync'])->name('sync');
-        Route::get('/{id}/insights', [GoogleAdsCampaignController::class, 'getInsights'])->name('insights');
-        Route::get('/{id}/ad-groups', [GoogleAdsCampaignController::class, 'getAdGroups'])->name('ad-groups');
-        Route::get('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'getKeywords'])->name('keywords');
-        Route::post('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'addKeywords'])->name('keywords.add');
-        Route::delete('/keywords/{keywordId}', [GoogleAdsCampaignController::class, 'removeKeyword'])->name('keywords.remove');
-    });
-
-    // Instagram Chatbot routes
-    Route::prefix('instagram-chatbot')->name('instagram-chatbot.')->group(function () {
-        Route::get('/', [InstagramChatbotController::class, 'index'])->name('index');
-    });
-
-    // Instagram Chatbot API routes
-    Route::prefix('api/instagram-chatbot')->name('api.instagram-chatbot.')->group(function () {
-        Route::get('/dashboard', [InstagramChatbotController::class, 'getDashboard'])->name('dashboard');
-        Route::get('/automations', [InstagramChatbotController::class, 'getAutomations'])->name('automations');
-        Route::post('/automations', [InstagramChatbotController::class, 'createAutomation'])->name('automations.create');
-        Route::put('/automations/{id}', [InstagramChatbotController::class, 'updateAutomation'])->name('automations.update');
-        Route::delete('/automations/{id}', [InstagramChatbotController::class, 'deleteAutomation'])->name('automations.delete');
-        Route::post('/automations/{id}/toggle', [InstagramChatbotController::class, 'toggleAutomation'])->name('automations.toggle');
-        Route::get('/conversations', [InstagramChatbotController::class, 'getConversations'])->name('conversations');
-        Route::get('/conversations/{id}', [InstagramChatbotController::class, 'getConversation'])->name('conversations.show');
-        Route::post('/conversations/{id}/message', [InstagramChatbotController::class, 'sendMessage'])->name('conversations.message');
-        Route::get('/trigger-types', [InstagramChatbotController::class, 'getTriggerTypes'])->name('trigger-types');
-        Route::get('/action-types', [InstagramChatbotController::class, 'getActionTypes'])->name('action-types');
-        Route::get('/quick-replies', [InstagramChatbotController::class, 'getQuickReplies'])->name('quick-replies');
-        Route::post('/quick-replies', [InstagramChatbotController::class, 'createQuickReply'])->name('quick-replies.create');
-
-        // Flow Builder API routes
-        Route::get('/node-types', [InstagramChatbotController::class, 'getNodeTypes'])->name('node-types');
-        Route::get('/templates', [InstagramChatbotController::class, 'getTemplates'])->name('templates');
-        Route::post('/flow-automations', [InstagramChatbotController::class, 'createFlowAutomation'])->name('flow-automations.create');
-        Route::get('/flow-automations/{id}', [InstagramChatbotController::class, 'getFlowAutomation'])->name('flow-automations.show');
-        Route::put('/flow-automations/{id}', [InstagramChatbotController::class, 'updateFlowAutomation'])->name('flow-automations.update');
-    });
+    // Instagram Chatbot - Note: Routes moved to /integrations/instagram/chatbot
 
     // Algorithm Engine routes (Predictive Analytics without AI)
     Route::prefix('algorithm')->name('algorithm.')->group(function () {
@@ -1249,4 +1275,403 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
     Route::put('/profile', [App\Http\Controllers\SalesHead\ProfileController::class, 'update'])->name('profile.update');
     Route::get('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'update'])->name('settings.update');
+});
+
+// ==============================================
+// Marketing Panel Routes (Marketing Bo'limi)
+// ==============================================
+Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.')->group(function () {
+    // Marketing Hub (main page) - same design as Business panel
+    Route::get('/', [App\Http\Controllers\Marketing\DashboardController::class, 'marketingHub'])->name('hub');
+    Route::get('/dashboard', [App\Http\Controllers\Marketing\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/stats', [App\Http\Controllers\Marketing\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // Campaigns
+    Route::prefix('campaigns')->name('campaigns.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\CampaignController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Marketing\CampaignController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\CampaignController::class, 'store'])->name('store');
+        Route::get('/{campaign}', [App\Http\Controllers\Marketing\CampaignController::class, 'show'])->name('show');
+        Route::put('/{campaign}', [App\Http\Controllers\Marketing\CampaignController::class, 'update'])->name('update');
+        Route::delete('/{campaign}', [App\Http\Controllers\Marketing\CampaignController::class, 'destroy'])->name('destroy');
+    });
+
+    // Content Calendar - Full features with Advanced Functions
+    Route::prefix('content')->name('content.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ContentController::class, 'index'])->name('index');
+        Route::get('/calendar', [App\Http\Controllers\Marketing\ContentController::class, 'calendar'])->name('calendar');
+        Route::get('/analytics', [App\Http\Controllers\Marketing\ContentController::class, 'analytics'])->name('analytics');
+        Route::post('/bulk-status', [App\Http\Controllers\Marketing\ContentController::class, 'bulkUpdateStatus'])->name('bulk-status');
+        Route::get('/create', [App\Http\Controllers\Marketing\ContentController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\ContentController::class, 'store'])->name('store');
+        Route::get('/{content}', [App\Http\Controllers\Marketing\ContentController::class, 'show'])->name('show');
+        Route::get('/{content}/edit', [App\Http\Controllers\Marketing\ContentController::class, 'edit'])->name('edit');
+        Route::put('/{content}', [App\Http\Controllers\Marketing\ContentController::class, 'update'])->name('update');
+        Route::delete('/{content}', [App\Http\Controllers\Marketing\ContentController::class, 'destroy'])->name('destroy');
+        // Advanced content operations
+        Route::post('/{content}/publish', [App\Http\Controllers\Marketing\ContentController::class, 'publish'])->name('publish');
+        Route::post('/{content}/move', [App\Http\Controllers\Marketing\ContentController::class, 'move'])->name('move');
+        Route::post('/{content}/duplicate', [App\Http\Controllers\Marketing\ContentController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{content}/approve', [App\Http\Controllers\Marketing\ContentController::class, 'approve'])->name('approve');
+        Route::post('/{content}/schedule', [App\Http\Controllers\Marketing\ContentController::class, 'schedule'])->name('schedule');
+        Route::post('/{content}/metrics', [App\Http\Controllers\Marketing\ContentController::class, 'updateMetrics'])->name('metrics');
+        Route::post('/{content}/generate-ai', [App\Http\Controllers\Marketing\ContentController::class, 'generateAI'])->name('generate-ai');
+    });
+
+    // Analytics - Full features with API endpoints
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/social', [App\Http\Controllers\Marketing\AnalyticsController::class, 'social'])->name('social');
+        Route::get('/campaigns', [App\Http\Controllers\Marketing\AnalyticsController::class, 'campaigns'])->name('campaigns');
+        Route::get('/funnel', [App\Http\Controllers\Marketing\AnalyticsController::class, 'funnel'])->name('funnel');
+        Route::get('/content-performance', [App\Http\Controllers\Marketing\AnalyticsController::class, 'contentPerformance'])->name('content-performance');
+
+        // API Endpoints
+        Route::get('/api/initial', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getInitialData'])->name('api.initial');
+        Route::post('/data/funnel', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getFunnelData'])->name('data.funnel');
+        Route::post('/data/dream-buyer', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getDreamBuyerPerformance'])->name('data.dream-buyer');
+        Route::post('/data/offer', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getOfferPerformance'])->name('data.offer');
+        Route::post('/data/lead-source', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getLeadSourceAnalysis'])->name('data.lead-source');
+        Route::post('/data/revenue-trends', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getRevenueTrends'])->name('data.revenue-trends');
+
+        // Export
+        Route::post('/export/pdf', [App\Http\Controllers\Marketing\AnalyticsController::class, 'exportPDF'])->name('export.pdf');
+        Route::post('/export/excel', [App\Http\Controllers\Marketing\AnalyticsController::class, 'exportExcel'])->name('export.excel');
+    });
+
+    // Social Media Accounts
+    Route::prefix('social')->name('social.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\SocialController::class, 'index'])->name('index');
+        Route::post('/connect', [App\Http\Controllers\Marketing\SocialController::class, 'connect'])->name('connect');
+        Route::delete('/{account}', [App\Http\Controllers\Marketing\SocialController::class, 'disconnect'])->name('disconnect');
+        Route::post('/{account}/sync', [App\Http\Controllers\Marketing\SocialController::class, 'sync'])->name('sync');
+    });
+
+    // Channels
+    Route::prefix('channels')->name('channels.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ChannelController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\ChannelController::class, 'store'])->name('store');
+        Route::get('/{channel}', [App\Http\Controllers\Marketing\ChannelController::class, 'show'])->name('show');
+        Route::put('/{channel}', [App\Http\Controllers\Marketing\ChannelController::class, 'update'])->name('update');
+        Route::delete('/{channel}', [App\Http\Controllers\Marketing\ChannelController::class, 'destroy'])->name('destroy');
+    });
+
+    // Tasks
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\TaskController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\TaskController::class, 'store'])->name('store');
+        Route::put('/{task}', [App\Http\Controllers\Marketing\TaskController::class, 'update'])->name('update');
+        Route::delete('/{task}', [App\Http\Controllers\Marketing\TaskController::class, 'destroy'])->name('destroy');
+        Route::post('/{task}/complete', [App\Http\Controllers\Marketing\TaskController::class, 'complete'])->name('complete');
+    });
+
+    // Todos
+    Route::prefix('todos')->name('todos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\TodoController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\TodoController::class, 'store'])->name('store');
+        Route::get('/{todo}', [App\Http\Controllers\Marketing\TodoController::class, 'show'])->name('show');
+        Route::put('/{todo}', [App\Http\Controllers\Marketing\TodoController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [App\Http\Controllers\Marketing\TodoController::class, 'destroy'])->name('destroy');
+        Route::post('/{todo}/toggle', [App\Http\Controllers\Marketing\TodoController::class, 'toggle'])->name('toggle');
+        Route::post('/{todo}/subtasks', [App\Http\Controllers\Marketing\TodoController::class, 'storeSubtask'])->name('subtasks.store');
+        Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\Marketing\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
+    });
+
+    // TADQIQOT - Dream Buyer (Ideal Mijoz) - Shared Controller
+    Route::prefix('dream-buyer')->name('dream-buyer.')->group(function () {
+        Route::get('/', [SharedDreamBuyerController::class, 'index'])->name('index');
+        Route::get('/create', [SharedDreamBuyerController::class, 'create'])->name('create');
+        Route::post('/', [SharedDreamBuyerController::class, 'store'])->name('store');
+        Route::post('/generate-profile', [SharedDreamBuyerController::class, 'generateProfile'])->name('generate-profile');
+        Route::get('/{dreamBuyer}', [SharedDreamBuyerController::class, 'show'])->name('show');
+        Route::get('/{dreamBuyer}/edit', [SharedDreamBuyerController::class, 'edit'])->name('edit');
+        Route::put('/{dreamBuyer}', [SharedDreamBuyerController::class, 'update'])->name('update');
+        Route::delete('/{dreamBuyer}', [SharedDreamBuyerController::class, 'destroy'])->name('destroy');
+        Route::post('/{dreamBuyer}/set-primary', [SharedDreamBuyerController::class, 'setPrimary'])->name('set-primary');
+        Route::post('/{dreamBuyer}/content-ideas', [SharedDreamBuyerController::class, 'generateContentIdeas'])->name('content-ideas');
+        Route::post('/{dreamBuyer}/ad-copy', [SharedDreamBuyerController::class, 'generateAdCopy'])->name('ad-copy');
+    });
+
+    // TADQIQOT - CustDev So'rovnoma
+    Route::prefix('custdev')->name('custdev.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\CustdevController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Marketing\CustdevController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\CustdevController::class, 'store'])->name('store');
+        Route::get('/{custdev}', [App\Http\Controllers\Marketing\CustdevController::class, 'show'])->name('show');
+        Route::get('/{custdev}/edit', [App\Http\Controllers\Marketing\CustdevController::class, 'edit'])->name('edit');
+        Route::put('/{custdev}', [App\Http\Controllers\Marketing\CustdevController::class, 'update'])->name('update');
+        Route::delete('/{custdev}', [App\Http\Controllers\Marketing\CustdevController::class, 'destroy'])->name('destroy');
+        Route::post('/{custdev}/toggle-status', [App\Http\Controllers\Marketing\CustdevController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{custdev}/results', [App\Http\Controllers\Marketing\CustdevController::class, 'results'])->name('results');
+        Route::get('/{custdev}/export', [App\Http\Controllers\Marketing\CustdevController::class, 'export'])->name('export');
+        Route::post('/{custdev}/sync-dream-buyer', [App\Http\Controllers\Marketing\CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
+    });
+
+    // Raqobatchilar - Full features with Monitoring & Alerts
+    Route::prefix('competitors')->name('competitors.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
+        Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/search-global', [App\Http\Controllers\Marketing\CompetitorController::class, 'searchGlobal'])->name('search-global');
+        Route::get('/global/{id}', [App\Http\Controllers\Marketing\CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
+        Route::get('/create', [App\Http\Controllers\Marketing\CompetitorController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'store'])->name('store');
+
+        // Alerts management
+        Route::get('/alerts', [App\Http\Controllers\Marketing\CompetitorController::class, 'alerts'])->name('alerts');
+        Route::post('/alerts/{alert}/read', [App\Http\Controllers\Marketing\CompetitorController::class, 'markAlertRead'])->name('alerts.read');
+        Route::post('/alerts/{alert}/archive', [App\Http\Controllers\Marketing\CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
+
+        // Lazy Loading API Endpoints
+        Route::get('/api/insights', [App\Http\Controllers\Marketing\CompetitorController::class, 'getInsights'])->name('api.insights');
+        Route::get('/api/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'getDashboardData'])->name('api.dashboard');
+
+        Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
+        Route::get('/{competitor}/edit', [App\Http\Controllers\Marketing\CompetitorController::class, 'edit'])->name('edit');
+        Route::put('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'update'])->name('update');
+        Route::delete('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'destroy'])->name('destroy');
+
+        // Monitoring & Metrics
+        Route::post('/{competitor}/metrics', [App\Http\Controllers\Marketing\CompetitorController::class, 'recordMetrics'])->name('metrics.record');
+        Route::post('/{competitor}/monitor', [App\Http\Controllers\Marketing\CompetitorController::class, 'monitor'])->name('monitor');
+
+        // Competitor SWOT
+        Route::post('/{competitor}/swot/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
+        Route::put('/{competitor}/swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
+        Route::post('/{competitor}/generate-swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateSwot'])->name('generate-swot');
+
+        // Marketing Intelligence API routes
+        Route::post('/{competitor}/products', [App\Http\Controllers\Marketing\CompetitorController::class, 'addProduct'])->name('products.store');
+        Route::delete('/{competitor}/products/{product}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteProduct'])->name('products.destroy');
+        Route::post('/{competitor}/ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'addAd'])->name('ads.store');
+        Route::delete('/{competitor}/ads/{ad}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteAd'])->name('ads.destroy');
+        Route::post('/{competitor}/review-sources', [App\Http\Controllers\Marketing\CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
+        Route::delete('/{competitor}/review-sources/{source}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
+        Route::post('/{competitor}/analyze-content', [App\Http\Controllers\Marketing\CompetitorController::class, 'analyzeContent'])->name('content.analyze');
+        Route::post('/{competitor}/scan-ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanAds'])->name('ads.scan');
+        Route::post('/{competitor}/scan-reviews', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanReviews'])->name('reviews.scan');
+    });
+
+    // SWOT Tahlil
+    Route::prefix('swot')->name('swot.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'swotIndex'])->name('index');
+        Route::post('/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateBusinessSwot'])->name('generate');
+        Route::put('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveBusinessSwot'])->name('save');
+    });
+
+    // Takliflar (Offers) - Full features with AI
+    Route::prefix('offers')->name('offers.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\OffersController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Marketing\OffersController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\OffersController::class, 'store'])->name('store');
+        Route::post('/generate-ai', [App\Http\Controllers\Marketing\OffersController::class, 'generateAI'])->name('generate-ai');
+        Route::post('/generate-guarantee', [App\Http\Controllers\Marketing\OffersController::class, 'generateGuarantee'])->name('generate-guarantee');
+        Route::post('/calculate-value-score', [App\Http\Controllers\Marketing\OffersController::class, 'calculateValueScore'])->name('calculate-value-score');
+        Route::get('/{offer}', [App\Http\Controllers\Marketing\OffersController::class, 'show'])->name('show');
+        Route::get('/{offer}/edit', [App\Http\Controllers\Marketing\OffersController::class, 'edit'])->name('edit');
+        Route::put('/{offer}', [App\Http\Controllers\Marketing\OffersController::class, 'update'])->name('update');
+        Route::delete('/{offer}', [App\Http\Controllers\Marketing\OffersController::class, 'destroy'])->name('destroy');
+        Route::post('/{offer}/duplicate', [App\Http\Controllers\Marketing\OffersController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{offer}/generate-variations', [App\Http\Controllers\Marketing\OffersController::class, 'generateVariations'])->name('generate-variations');
+    });
+
+    // AI Yordamchilar
+    Route::get('/facebook-analysis', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'facebook'])->name('facebook-analysis');
+    Route::get('/instagram-analysis', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'instagram'])->name('instagram-analysis');
+    Route::get('/youtube-analytics', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'youtube'])->name('youtube-analytics');
+    Route::get('/google-ads', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'googleAds'])->name('google-ads');
+
+    // Target Analysis routes (Meta Ads Dashboard)
+    // Note: Meta integration routes are in shared /integrations/meta
+    Route::prefix('target-analysis')->name('target-analysis.')->group(function () {
+        Route::get('/', [TargetAnalysisController::class, 'index'])->name('index');
+        Route::get('/data', [TargetAnalysisController::class, 'getAnalysisData'])->name('data');
+    });
+
+    // Telegram Funnel Builder routes
+    Route::prefix('telegram-funnels')->name('telegram-funnels.')->group(function () {
+        // Bot management
+        Route::get('/', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'store'])->name('store');
+        Route::get('/{bot}', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'show'])->name('show');
+        Route::put('/{bot}', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'update'])->name('update');
+        Route::delete('/{bot}', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'destroy'])->name('destroy');
+        Route::post('/{bot}/toggle-active', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/{bot}/setup-webhook', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'setupWebhook'])->name('setup-webhook');
+        Route::get('/{bot}/stats', [App\Http\Controllers\Marketing\TelegramBotManagementController::class, 'stats'])->name('stats');
+
+        // Funnels for bot
+        Route::prefix('{bot}/funnels')->name('funnels.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'store'])->name('store');
+            Route::get('/{funnel}', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'show'])->name('show');
+            Route::put('/{funnel}', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'update'])->name('update');
+            Route::delete('/{funnel}', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'destroy'])->name('destroy');
+            Route::post('/{funnel}/toggle-active', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/{funnel}/duplicate', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'duplicate'])->name('duplicate');
+            Route::post('/{funnel}/save-steps', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'saveSteps'])->name('save-steps');
+        });
+
+        // Triggers for bot
+        Route::prefix('{bot}/triggers')->name('triggers.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\TelegramTriggerController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\Marketing\TelegramTriggerController::class, 'store'])->name('store');
+            Route::put('/{trigger}', [App\Http\Controllers\Marketing\TelegramTriggerController::class, 'update'])->name('update');
+            Route::delete('/{trigger}', [App\Http\Controllers\Marketing\TelegramTriggerController::class, 'destroy'])->name('destroy');
+            Route::post('/{trigger}/toggle-active', [App\Http\Controllers\Marketing\TelegramTriggerController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/test', [App\Http\Controllers\Marketing\TelegramTriggerController::class, 'test'])->name('test');
+        });
+
+        // Broadcasts for bot
+        Route::prefix('{bot}/broadcasts')->name('broadcasts.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'store'])->name('store');
+            Route::get('/{broadcast}', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'show'])->name('show');
+            Route::put('/{broadcast}', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'update'])->name('update');
+            Route::delete('/{broadcast}', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'destroy'])->name('destroy');
+            Route::post('/{broadcast}/start', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'start'])->name('start');
+            Route::post('/{broadcast}/pause', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'pause'])->name('pause');
+            Route::post('/{broadcast}/resume', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'resume'])->name('resume');
+            Route::post('/{broadcast}/cancel', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'cancel'])->name('cancel');
+            Route::post('/preview-recipients', [App\Http\Controllers\Marketing\TelegramBroadcastController::class, 'previewRecipients'])->name('preview-recipients');
+        });
+
+        // Users for bot
+        Route::prefix('{bot}/users')->name('users.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\TelegramUserController::class, 'index'])->name('index');
+            Route::get('/{user}', [App\Http\Controllers\Marketing\TelegramUserController::class, 'show'])->name('show');
+            Route::post('/{user}/send-message', [App\Http\Controllers\Marketing\TelegramUserController::class, 'sendMessage'])->name('send-message');
+            Route::post('/{user}/add-to-funnel', [App\Http\Controllers\Marketing\TelegramUserController::class, 'addToFunnel'])->name('add-to-funnel');
+            Route::post('/{user}/add-tag', [App\Http\Controllers\Marketing\TelegramUserController::class, 'addTag'])->name('add-tag');
+            Route::delete('/{user}/remove-tag/{tag}', [App\Http\Controllers\Marketing\TelegramUserController::class, 'removeTag'])->name('remove-tag');
+        });
+
+        // Conversations for bot
+        Route::prefix('{bot}/conversations')->name('conversations.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'index'])->name('index');
+            Route::get('/{conversation}', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'show'])->name('show');
+            Route::post('/{conversation}/send', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'send'])->name('send');
+            Route::post('/{conversation}/handoff', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'handoff'])->name('handoff');
+            Route::post('/{conversation}/release', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'release'])->name('release');
+            Route::post('/{conversation}/close', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'close'])->name('close');
+        });
+    });
+});
+
+// ==============================================
+// Finance Panel Routes (Moliya Bo'limi)
+// ==============================================
+Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->group(function () {
+    // Dashboard
+    Route::get('/', [App\Http\Controllers\Finance\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/stats', [App\Http\Controllers\Finance\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // Invoices
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Finance\InvoiceController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Finance\InvoiceController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Finance\InvoiceController::class, 'store'])->name('store');
+        Route::get('/{invoice}', [App\Http\Controllers\Finance\InvoiceController::class, 'show'])->name('show');
+        Route::put('/{invoice}', [App\Http\Controllers\Finance\InvoiceController::class, 'update'])->name('update');
+        Route::delete('/{invoice}', [App\Http\Controllers\Finance\InvoiceController::class, 'destroy'])->name('destroy');
+        Route::post('/{invoice}/reminder', [App\Http\Controllers\Finance\InvoiceController::class, 'sendReminder'])->name('reminder');
+        Route::post('/{invoice}/payment', [App\Http\Controllers\Finance\InvoiceController::class, 'recordPayment'])->name('payment');
+        Route::get('/{invoice}/pdf', [App\Http\Controllers\Finance\InvoiceController::class, 'downloadPdf'])->name('pdf');
+    });
+
+    // Expenses
+    Route::prefix('expenses')->name('expenses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Finance\ExpenseController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Finance\ExpenseController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Finance\ExpenseController::class, 'store'])->name('store');
+        Route::get('/{expense}', [App\Http\Controllers\Finance\ExpenseController::class, 'show'])->name('show');
+        Route::put('/{expense}', [App\Http\Controllers\Finance\ExpenseController::class, 'update'])->name('update');
+        Route::delete('/{expense}', [App\Http\Controllers\Finance\ExpenseController::class, 'destroy'])->name('destroy');
+        Route::post('/{expense}/approve', [App\Http\Controllers\Finance\ExpenseController::class, 'approve'])->name('approve');
+    });
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Finance\ReportController::class, 'index'])->name('index');
+        Route::get('/profit-loss', [App\Http\Controllers\Finance\ReportController::class, 'profitLoss'])->name('profit-loss');
+        Route::get('/cash-flow', [App\Http\Controllers\Finance\ReportController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('/accounts-receivable', [App\Http\Controllers\Finance\ReportController::class, 'accountsReceivable'])->name('accounts-receivable');
+        Route::get('/expense-summary', [App\Http\Controllers\Finance\ReportController::class, 'expenseSummary'])->name('expense-summary');
+        Route::get('/export', [App\Http\Controllers\Finance\ReportController::class, 'export'])->name('export');
+    });
+
+    // Budget
+    Route::prefix('budget')->name('budget.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Finance\BudgetController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Finance\BudgetController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Finance\BudgetController::class, 'store'])->name('store');
+        Route::put('/{budget}', [App\Http\Controllers\Finance\BudgetController::class, 'update'])->name('update');
+        Route::delete('/{budget}', [App\Http\Controllers\Finance\BudgetController::class, 'destroy'])->name('destroy');
+    });
+
+    // Tasks
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Finance\TaskController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Finance\TaskController::class, 'store'])->name('store');
+        Route::put('/{task}', [App\Http\Controllers\Finance\TaskController::class, 'update'])->name('update');
+        Route::delete('/{task}', [App\Http\Controllers\Finance\TaskController::class, 'destroy'])->name('destroy');
+        Route::post('/{task}/complete', [App\Http\Controllers\Finance\TaskController::class, 'complete'])->name('complete');
+    });
+
+    // Todos
+    Route::prefix('todos')->name('todos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Finance\TodoController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Finance\TodoController::class, 'store'])->name('store');
+        Route::put('/{todo}', [App\Http\Controllers\Finance\TodoController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [App\Http\Controllers\Finance\TodoController::class, 'destroy'])->name('destroy');
+        Route::post('/{todo}/toggle', [App\Http\Controllers\Finance\TodoController::class, 'toggleComplete'])->name('toggle');
+    });
+});
+
+// ==============================================
+// Operator Panel Routes (Sotuv Operatorlari)
+// ==============================================
+Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
+    // Dashboard
+    Route::get('/', [App\Http\Controllers\Operator\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/stats', [App\Http\Controllers\Operator\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // My Leads (O'zimga berilgan leadlar)
+    Route::prefix('leads')->name('leads.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Operator\LeadController::class, 'index'])->name('index');
+        Route::get('/{lead}', [App\Http\Controllers\Operator\LeadController::class, 'show'])->name('show');
+        Route::post('/{lead}/status', [App\Http\Controllers\Operator\LeadController::class, 'updateStatus'])->name('status');
+        Route::post('/{lead}/note', [App\Http\Controllers\Operator\LeadController::class, 'addNote'])->name('note');
+        Route::post('/{lead}/call', [App\Http\Controllers\Operator\LeadController::class, 'logCall'])->name('call');
+    });
+
+    // Unified Inbox
+    Route::prefix('inbox')->name('inbox.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Operator\InboxController::class, 'index'])->name('index');
+        Route::get('/{conversation}', [App\Http\Controllers\Operator\InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [App\Http\Controllers\Operator\InboxController::class, 'sendMessage'])->name('send');
+    });
+
+    // My KPI
+    Route::get('/kpi', [App\Http\Controllers\Operator\KpiController::class, 'index'])->name('kpi.index');
+
+    // My Tasks
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Operator\TaskController::class, 'index'])->name('index');
+        Route::put('/{task}', [App\Http\Controllers\Operator\TaskController::class, 'update'])->name('update');
+        Route::post('/{task}/complete', [App\Http\Controllers\Operator\TaskController::class, 'complete'])->name('complete');
+    });
+
+    // Todos routes
+    Route::prefix('todos')->name('todos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Operator\TodoController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Operator\TodoController::class, 'store'])->name('store');
+        Route::get('/{todo}', [App\Http\Controllers\Operator\TodoController::class, 'show'])->name('show');
+        Route::put('/{todo}', [App\Http\Controllers\Operator\TodoController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [App\Http\Controllers\Operator\TodoController::class, 'destroy'])->name('destroy');
+        Route::post('/{todo}/toggle', [App\Http\Controllers\Operator\TodoController::class, 'toggleComplete'])->name('toggle');
+        Route::post('/{todo}/toggle-user', [App\Http\Controllers\Operator\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
+        Route::post('/reorder', [App\Http\Controllers\Operator\TodoController::class, 'reorder'])->name('reorder');
+    });
 });

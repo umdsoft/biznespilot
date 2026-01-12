@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\TodoTemplate;
 use App\Models\TodoTemplateItem;
 use Illuminate\Http\Request;
@@ -11,15 +12,7 @@ use Inertia\Inertia;
 
 class TodoTemplateController extends Controller
 {
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display templates index page

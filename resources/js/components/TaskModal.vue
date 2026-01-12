@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
     PhoneIcon,
@@ -134,6 +135,9 @@ const submit = async () => {
     error.value = '';
 
     try {
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
         const payload = {
             title: form.value.title,
             description: form.value.description || null,
@@ -147,29 +151,33 @@ const submit = async () => {
             ? route(`${routePrefix.value}.tasks.update`, props.task.id)
             : route(`${routePrefix.value}.tasks.store`);
 
-        const method = props.task ? 'PUT' : 'POST';
+        const response = props.task
+            ? await window.axios.put(url, payload)
+            : await window.axios.post(url, payload);
 
-        const response = await fetch(url, {
-            method,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            emit('saved', data.task);
+        if (response.data.success) {
+            emit('saved', response.data.task);
             emit('close');
         } else {
-            error.value = data.error || data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
         }
     } catch (err) {
         console.error('Failed to save task:', err);
-        error.value = 'Tarmoq xatosi';
+
+        // Handle 419 CSRF error
+        if (isCsrfError(err)) {
+            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (err.response?.data?.error) {
+            error.value = err.response.data.error;
+        } else if (err.response?.data?.message) {
+            error.value = err.response.data.message;
+        } else {
+            error.value = 'Tarmoq xatosi';
+        }
     } finally {
         isLoading.value = false;
     }

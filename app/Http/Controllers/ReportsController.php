@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\Competitor;
 use App\Models\DreamBuyer;
@@ -21,6 +22,8 @@ use Inertia\Inertia;
 
 class ReportsController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected ReportGeneratorService $reportGenerator;
 
     public function __construct(ReportGeneratorService $reportGenerator)
@@ -28,22 +31,6 @@ class ReportsController extends Controller
         $this->reportGenerator = $reportGenerator;
     }
 
-    /**
-     * Get current business with validation
-     */
-    protected function getCurrentBusiness(): Business
-    {
-        $user = Auth::user();
-        $business = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
-
-        if (!$business) {
-            abort(400, 'Biznes tanlanmagan. Iltimos, avval biznes yarating yoki tanlang.');
-        }
-
-        return $business;
-    }
     public function index(Request $request)
     {
         $user = Auth::user();

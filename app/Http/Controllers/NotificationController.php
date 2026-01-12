@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\Notification;
 use App\Services\NotificationService;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class NotificationController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function __construct(
         protected NotificationService $notificationService
     ) {}
@@ -145,10 +148,5 @@ class NotificationController extends Controller
         return response()->json([
             'count' => $this->notificationService->getUnreadCount($business, $user),
         ]);
-    }
-
-    protected function getCurrentBusiness(): Business
-    {
-        return Auth::user()->currentBusiness ?? Auth::user()->businesses()->firstOrFail();
     }
 }

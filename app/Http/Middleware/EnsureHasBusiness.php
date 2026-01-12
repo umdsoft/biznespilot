@@ -128,7 +128,9 @@ class EnsureHasBusiness
         return $request->is('logout') ||
                $request->is('api/*') ||
                $request->is('sanctum/*') ||
-               $request->is('_debugbar/*');
+               $request->is('_debugbar/*') ||
+               $request->is('integrations/*/auth-url') ||
+               $request->is('integrations/*/callback');
     }
 
     /**
@@ -138,7 +140,8 @@ class EnsureHasBusiness
     {
         $departmentRoutes = [
             'sales_head' => ['sales-head*'],
-            'sales_operator' => ['sales-head*', 'operator*'],
+            'sales_operator' => ['operator*'],
+            'operator' => ['operator*'],
             'marketing' => ['marketing*'],
             'hr' => ['hr*'],
             'finance' => ['finance*'],
@@ -161,10 +164,11 @@ class EnsureHasBusiness
     private function redirectToDepartmentPanel(?string $department): Response
     {
         return match ($department) {
-            'sales_head', 'sales_operator' => redirect()->route('sales-head.dashboard'),
-            'marketing' => redirect()->route('business.dashboard'), // TODO: marketing panel
+            'sales_head' => redirect()->route('sales-head.dashboard'),
+            'sales_operator', 'operator' => redirect()->route('operator.dashboard'),
+            'marketing' => redirect()->route('marketing.dashboard'),
+            'finance' => redirect()->route('finance.dashboard'),
             'hr' => redirect()->route('business.dashboard'), // TODO: hr panel
-            'finance' => redirect()->route('business.dashboard'), // TODO: finance panel
             default => redirect()->route('business.dashboard'),
         };
     }

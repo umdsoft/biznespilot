@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\GeneratedReport;
 use App\Models\ScheduledReport;
@@ -15,6 +16,8 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function __construct(
         protected ReportingService $reportingService
     ) {}
@@ -271,10 +274,5 @@ class ReportController extends Controller
             'quarterly' => $now->copy()->startOfQuarter()->addQuarter()->setTime($time->hour, $time->minute),
             default => $now->addDay(),
         };
-    }
-
-    protected function getCurrentBusiness(): Business
-    {
-        return Auth::user()->currentBusiness ?? Auth::user()->businesses()->firstOrFail();
     }
 }

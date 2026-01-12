@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\Lead;
@@ -18,21 +19,7 @@ use Inertia\Inertia;
 
 class SalesController extends Controller
 {
-    /**
-     * Get current business helper
-     */
-    protected function getCurrentBusiness(): Business
-    {
-        $business = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
-
-        if (!$business) {
-            abort(400, 'Biznes tanlanmagan. Iltimos, avval biznes yarating yoki tanlang.');
-        }
-
-        return $business;
-    }
+    use HasCurrentBusiness;
 
     /**
      * Check if current user can assign leads (owner or sales head)

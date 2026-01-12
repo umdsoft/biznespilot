@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Competitor;
 use App\Models\CompetitorAlert;
 use App\Models\CompetitorMetric;
+use App\Models\GlobalCompetitor;
 use App\Services\CompetitorAnalysisService;
 use App\Services\CompetitorMonitoringService;
 use App\Services\ContentAnalysisService;
@@ -109,12 +110,13 @@ class CompetitorController extends Controller
         $businessData['industry_name'] = $business->industryRelation?->name_uz ?? $business->industry ?? $business->category ?? null;
 
         // Insights will be loaded via API (lazy loading)
-        return Inertia::render('Business/Competitors/Index', [
+        return Inertia::render('Shared/Competitors/Index', [
             'competitors' => $competitors,
             'currentBusiness' => $businessData,
             'insights' => null,
             'filters' => $request->only(['status', 'threat_level', 'search']),
             'lazyLoad' => true,
+            'panelType' => 'business',
         ]);
     }
 
@@ -301,6 +303,8 @@ class CompetitorController extends Controller
             'website' => 'nullable|url',
             'industry' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
+            'region' => 'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
             'instagram_handle' => 'nullable|string|max:255',
             'telegram_handle' => 'nullable|string|max:255',
             'facebook_page' => 'nullable|string|max:255',
@@ -311,12 +315,18 @@ class CompetitorController extends Controller
             'check_frequency_hours' => 'nullable|integer|min:1|max:168',
             'notes' => 'nullable|string',
             'tags' => 'nullable|array',
+            'global_competitor_id' => 'nullable|integer|exists:global_competitors,id',
         ]);
 
         $competitor = Competitor::create(array_merge($validated, [
             'business_id' => $business->id,
             'status' => 'active',
         ]));
+
+        // Sync with global competitor if not already linked
+        if (empty($validated['global_competitor_id'])) {
+            $competitor->syncWithGlobalCompetitor();
+        }
 
         // Auto-update SWOT analysis based on new competitor
         $this->analysisService->updateBusinessSwotFromCompetitor($business);
@@ -496,34 +506,39 @@ class CompetitorController extends Controller
             return redirect()->route('business.index');
         }
 
-        // Get existing SWOT data from business settings
-        $swot = $business->settings['swot'] ?? [
+        // Get existing SWOT data from business swot_data field
+        $swot = $business->swot_data ?? [
             'strengths' => [],
             'weaknesses' => [],
             'opportunities' => [],
             'threats' => [],
         ];
 
-        // Get competitor count for display
-        $competitorCount = Competitor::where('business_id', $business->id)
-            ->where('status', 'active')
-            ->count();
-
-        // Get last auto-update time
-        $lastUpdated = $business->settings['swot_auto_updated_at'] ?? null;
-
-        // Get competitor names for reference
+        // Get competitors with full data including swot_data and global competitor
         $competitors = Competitor::where('business_id', $business->id)
             ->where('status', 'active')
-            ->select('id', 'name', 'threat_level')
-            ->get();
+            ->with('globalCompetitor')
+            ->select('id', 'name', 'threat_level', 'instagram_handle', 'telegram_handle', 'swot_data', 'swot_analyzed_at', 'global_competitor_id', 'region', 'district')
+            ->orderBy('threat_level', 'desc')
+            ->get()
+            ->map(function ($competitor) {
+                // Use effective SWOT data (local or global)
+                $competitor->effective_swot_data = $competitor->effective_swot_data;
+                $competitor->global_swot_count = $competitor->globalCompetitor?->swot_count ?? 0;
+                $competitor->global_contributors = $competitor->globalCompetitor?->swot_contributors_count ?? 0;
+                return $competitor;
+            });
 
-        return Inertia::render('Business/Swot/Index', [
-            'currentBusiness' => $business,
+        return Inertia::render('Shared/Swot/Index', [
+            'currentBusiness' => [
+                'id' => $business->id,
+                'name' => $business->name,
+            ],
             'swot' => $swot,
-            'competitorCount' => $competitorCount,
-            'lastUpdated' => $lastUpdated,
+            'competitorCount' => $competitors->count(),
+            'lastUpdated' => $business->swot_updated_at,
             'competitors' => $competitors,
+            'panelType' => 'business',
         ]);
     }
 
@@ -571,27 +586,77 @@ class CompetitorController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
-        $request->validate([
-            'strengths' => 'nullable|array',
-            'weaknesses' => 'nullable|array',
-            'opportunities' => 'nullable|array',
-            'threats' => 'nullable|array',
-        ]);
+        $swotData = $request->input('swot_data', []);
 
-        $settings = $business->settings ?? [];
-        $settings['swot'] = [
-            'strengths' => $request->strengths ?? [],
-            'weaknesses' => $request->weaknesses ?? [],
-            'opportunities' => $request->opportunities ?? [],
-            'threats' => $request->threats ?? [],
-        ];
-        $business->settings = $settings;
+        $business->swot_data = $swotData;
+        $business->swot_updated_at = now();
         $business->save();
 
         return response()->json([
             'success' => true,
             'message' => 'SWOT saqlandi',
         ]);
+    }
+
+    /**
+     * Generate SWOT for a specific competitor
+     */
+    public function generateCompetitorSwot(Request $request, Competitor $competitor)
+    {
+        $this->authorizeCompetitor($request, $competitor);
+
+        // Generate mock SWOT for now - in production this would use AI
+        $swot = [
+            'strengths' => [
+                $competitor->name . ' kuchli brend nomiga ega',
+                'Keng mijozlar bazasi mavjud',
+                'Doimiy marketing faoliyati olib borilmoqda',
+            ],
+            'weaknesses' => [
+                'Narxlari bozor o\'rtachasidan yuqori',
+                'Onlayn mavjudligi cheklangan',
+                'Mijozlar xizmati sifati past',
+            ],
+            'opportunities' => [
+                'Ularning marketing strategiyalarini o\'rganish',
+                'Zaif tomonlaridan foydalanish',
+                'Yangi bozor segmentlariga kirish',
+            ],
+            'threats' => [
+                'Kuchli raqobatchi sifatida ta\'sir qilishi',
+                'Narx urushi boshlashi mumkin',
+                'Yangi mahsulotlar chiqarishi mumkin',
+            ],
+        ];
+
+        $competitor->swot_data = $swot;
+        $competitor->swot_analyzed_at = now();
+        $competitor->save();
+
+        return response()->json([
+            'success' => true,
+            'swot' => $swot,
+        ]);
+    }
+
+    /**
+     * Save competitor SWOT data manually
+     */
+    public function saveCompetitorSwot(Request $request, Competitor $competitor)
+    {
+        $this->authorizeCompetitor($request, $competitor);
+
+        $swotData = $request->input('swot_data');
+
+        // Save to local competitor
+        $competitor->swot_data = $swotData;
+        $competitor->swot_analyzed_at = now();
+        $competitor->save();
+
+        // Sync with global competitor
+        $competitor->syncWithGlobalCompetitor();
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -759,5 +824,87 @@ class CompetitorController extends Controller
             : 'Sharhlarni skanerlashda xatolik yuz berdi';
 
         return back()->with($results['success'] ? 'success' : 'error', $message);
+    }
+
+    /**
+     * Search global competitors for autocomplete
+     * Returns JSON array of matching competitors
+     */
+    public function searchGlobal(Request $request)
+    {
+        try {
+            $search = trim($request->input('q', ''));
+
+            // Minimum 3 characters
+            if (strlen($search) < 3) {
+                return response()->json([]);
+            }
+
+            $business = $request->user()->currentBusiness;
+            $industry = $business?->industryRelation?->name ?? $business?->industry ?? null;
+            $region = $business?->region ?? null;
+
+            // Query global_competitors table only
+            $results = GlobalCompetitor::query()
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "{$search}%")
+                          ->orWhere('name', 'like', "%{$search}%");
+                })
+                ->select(['id', 'name', 'industry', 'region', 'district', 'instagram_handle', 'telegram_handle', 'swot_contributors_count'])
+                ->limit(8)
+                ->get();
+
+            // Transform to plain array
+            $data = [];
+            foreach ($results as $item) {
+                $data[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'industry' => $item->industry,
+                    'region' => $item->region,
+                    'district' => $item->district,
+                    'instagram_handle' => $item->instagram_handle,
+                    'telegram_handle' => $item->telegram_handle,
+                    'swot_contributors_count' => $item->swot_contributors_count ?? 0,
+                    'has_swot' => ($item->swot_contributors_count ?? 0) > 0,
+                    'same_industry' => $item->industry === $industry,
+                    'same_region' => $item->region === $region,
+                ];
+            }
+
+            return response()->json($data);
+        } catch (\Exception $e) {
+            \Log::error('searchGlobal error: ' . $e->getMessage());
+            return response()->json([]);
+        }
+    }
+
+    /**
+     * Get global competitor details by ID
+     */
+    public function getGlobalCompetitor(Request $request, $id)
+    {
+        $globalCompetitor = GlobalCompetitor::find($id);
+
+        if (!$globalCompetitor) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        return response()->json([
+            'id' => $globalCompetitor->id,
+            'name' => $globalCompetitor->name,
+            'industry' => $globalCompetitor->industry,
+            'region' => $globalCompetitor->region,
+            'district' => $globalCompetitor->district,
+            'description' => $globalCompetitor->description,
+            'instagram_handle' => $globalCompetitor->instagram_handle,
+            'telegram_handle' => $globalCompetitor->telegram_handle,
+            'facebook_page' => $globalCompetitor->facebook_page,
+            'tiktok_handle' => $globalCompetitor->tiktok_handle,
+            'youtube_channel' => $globalCompetitor->youtube_channel,
+            'website' => $globalCompetitor->website,
+            'swot_data' => $globalCompetitor->swot_data,
+            'swot_contributors_count' => $globalCompetitor->swot_contributors_count ?? 0,
+        ]);
     }
 }

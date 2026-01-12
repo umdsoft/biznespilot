@@ -14,6 +14,9 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetBusinessContext;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SalesHeadMiddleware;
+use App\Http\Middleware\MarketingMiddleware;
+use App\Http\Middleware\FinanceMiddleware;
+use App\Http\Middleware\OperatorMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -82,6 +85,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'feature.limit' => CheckFeatureLimit::class,
             'admin' => AdminMiddleware::class,
             'sales.head' => SalesHeadMiddleware::class,
+            'marketing' => MarketingMiddleware::class,
+            'finance' => FinanceMiddleware::class,
+            'operator' => OperatorMiddleware::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         ]);
     })

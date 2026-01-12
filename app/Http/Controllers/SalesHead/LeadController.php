@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\Lead;
@@ -16,18 +17,7 @@ use Inertia\Inertia;
 
 class LeadController extends Controller
 {
-    /**
-     * Get current business for sales head
-     */
-    protected function getCurrentBusiness(): ?Business
-    {
-        $businessId = session('current_business_id');
-        if (!$businessId) {
-            return null;
-        }
-
-        return Business::find($businessId);
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display leads with pipeline view (like business owner)

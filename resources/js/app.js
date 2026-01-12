@@ -4,21 +4,54 @@ import { createInertiaApp, router } from '@inertiajs/vue3';
 import { createPinia } from 'pinia';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
+import axios from 'axios';
 
 const pinia = createPinia();
 
-// Global Inertia error handler - reload on 419 CSRF errors
-router.on('invalid', (event) => {
-  // Prevent default error behavior
-  event.preventDefault();
-  // Full page reload to get fresh session and CSRF token
-  window.location.reload();
+// CSRF token refresh helper
+const refreshCsrfToken = async () => {
+  try {
+    await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    if (match) {
+      const token = decodeURIComponent(match[1]);
+      axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
+      window.axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
+      // Update meta tag for Inertia
+      let meta = document.head.querySelector('meta[name="csrf-token"]');
+      if (meta) meta.content = token;
+    }
+    return true;
+  } catch (e) {
+    console.error('CSRF refresh failed:', e);
+    return false;
+  }
+};
+
+// Track if we're already handling a 419 error
+let isHandling419 = false;
+
+// Global Inertia error handler - handle 419 CSRF errors
+router.on('invalid', async (event) => {
+  const response = event.detail?.response;
+
+  if (response?.status === 419 && !isHandling419) {
+    event.preventDefault();
+    isHandling419 = true;
+
+    console.warn('CSRF token expired, refreshing and reloading...');
+
+    // Refresh token then reload
+    await refreshCsrfToken();
+    window.location.reload();
+  }
 });
 
 // Handle navigation errors (session expired, etc.)
-router.on('error', (errors) => {
-  // If it's a CSRF or session error, reload the page
-  if (errors.response?.status === 419 || errors.response?.status === 401) {
+router.on('error', async (errors) => {
+  if ((errors.response?.status === 419 || errors.response?.status === 401) && !isHandling419) {
+    isHandling419 = true;
+    await refreshCsrfToken();
     window.location.reload();
   }
 });

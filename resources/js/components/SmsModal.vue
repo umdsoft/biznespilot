@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 
 const props = defineProps({
     show: {
@@ -111,40 +112,41 @@ const sendSms = async () => {
     success.value = null;
 
     try {
-        const response = await fetch(route('business.sms.send', props.lead.id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                message: message.value,
-                template_id: selectedTemplate.value,
-            }),
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
+        const response = await window.axios.post(route('business.sms.send', props.lead.id), {
+            message: message.value,
+            template_id: selectedTemplate.value,
         });
 
-        const data = await response.json();
+        success.value = `SMS muvaffaqiyatli yuborildi! (${response.data.parts_count} qism)`;
+        message.value = '';
+        selectedTemplate.value = null;
+        emit('sent');
 
-        if (response.ok) {
-            success.value = `SMS muvaffaqiyatli yuborildi! (${data.parts_count} qism)`;
-            message.value = '';
-            selectedTemplate.value = null;
-            emit('sent');
+        // Refresh history
+        await fetchHistory();
 
-            // Refresh history
-            await fetchHistory();
-
-            // Auto close after 2 seconds
-            setTimeout(() => {
-                emit('close');
-            }, 2000);
-        } else {
-            error.value = data.error || 'SMS yuborishda xatolik yuz berdi';
-        }
+        // Auto close after 2 seconds
+        setTimeout(() => {
+            emit('close');
+        }, 2000);
     } catch (err) {
-        error.value = 'Tarmoq xatosi. Qaytadan urinib ko\'ring.';
         console.error('SMS send error:', err);
+
+        // Handle 419 CSRF error
+        if (isCsrfError(err)) {
+            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (err.response?.data?.error) {
+            error.value = err.response.data.error;
+        } else {
+            error.value = 'Tarmoq xatosi. Qaytadan urinib ko\'ring.';
+        }
     } finally {
         isSending.value = false;
     }

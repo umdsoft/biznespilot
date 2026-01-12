@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\Offer;
 use App\Models\DreamBuyer;
@@ -14,27 +15,13 @@ use Inertia\Inertia;
 
 class OffersController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected OfferBuilderService $offerBuilderService;
 
     public function __construct(OfferBuilderService $offerBuilderService)
     {
         $this->offerBuilderService = $offerBuilderService;
-    }
-
-    /**
-     * Get current business helper
-     */
-    protected function getCurrentBusiness(): Business
-    {
-        $business = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
-
-        if (!$business) {
-            abort(400, 'Biznes tanlanmagan. Iltimos, avval biznes yarating yoki tanlang.');
-        }
-
-        return $business;
     }
 
     /**
@@ -78,9 +65,10 @@ class OffersController extends Controller
             'total_value' => $offers->sum('total_value'),
         ];
 
-        return Inertia::render('Business/Offers/Index', [
+        return Inertia::render('Shared/Offers/Index', [
             'offers' => $offers,
             'stats' => $stats,
+            'panelType' => 'business',
         ]);
     }
 

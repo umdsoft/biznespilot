@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Business;
-use App\Services\CompetitorMonitorService;
+use App\Services\CompetitorMonitoringService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +23,7 @@ class MonitorCompetitorsJob implements ShouldQueue
         public ?Business $business = null
     ) {}
 
-    public function handle(CompetitorMonitorService $monitorService): void
+    public function handle(CompetitorMonitoringService $monitorService): void
     {
         if ($this->business) {
             $this->monitorForBusiness($monitorService, $this->business);
@@ -32,7 +32,7 @@ class MonitorCompetitorsJob implements ShouldQueue
         }
     }
 
-    protected function monitorForBusiness(CompetitorMonitorService $service, Business $business): void
+    protected function monitorForBusiness(CompetitorMonitoringService $service, Business $business): void
     {
         try {
             $alerts = $service->checkCompetitors($business);
@@ -50,7 +50,7 @@ class MonitorCompetitorsJob implements ShouldQueue
         }
     }
 
-    protected function monitorForAllBusinesses(CompetitorMonitorService $service): void
+    protected function monitorForAllBusinesses(CompetitorMonitoringService $service): void
     {
         $businesses = Business::where('is_active', true)
             ->whereHas('competitors', function ($query) {

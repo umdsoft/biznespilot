@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Services\UnifiedInboxService;
 use App\Models\Business;
 use Illuminate\Http\Request;
@@ -11,23 +12,13 @@ use Inertia\Inertia;
 
 class InboxController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected UnifiedInboxService $inboxService;
 
     public function __construct(UnifiedInboxService $inboxService)
     {
         $this->inboxService = $inboxService;
-    }
-
-    /**
-     * Get current business from session
-     */
-    protected function getCurrentBusiness(): ?Business
-    {
-        $businessId = session('current_business_id');
-        if (!$businessId) {
-            return null;
-        }
-        return Business::find($businessId);
     }
 
     /**

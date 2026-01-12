@@ -24,7 +24,7 @@ const props = defineProps({
     panelType: {
         type: String,
         default: 'business',
-        validator: (value) => ['business', 'saleshead'].includes(value),
+        validator: (value) => ['business', 'saleshead', 'operator', 'marketing', 'finance'].includes(value),
     },
 });
 
@@ -44,6 +44,27 @@ const panelConfig = computed(() => {
             leadRoute: 'sales-head.leads.show',
             buttonClass: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25',
             addButtonClass: 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30',
+        },
+        operator: {
+            primaryColor: 'blue',
+            routePrefix: 'operator',
+            leadRoute: 'operator.leads.show',
+            buttonClass: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25',
+            addButtonClass: 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30',
+        },
+        marketing: {
+            primaryColor: 'blue',
+            routePrefix: 'marketing',
+            leadRoute: 'business.sales.show',
+            buttonClass: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25',
+            addButtonClass: 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30',
+        },
+        finance: {
+            primaryColor: 'green',
+            routePrefix: 'finance',
+            leadRoute: 'business.sales.show',
+            buttonClass: 'bg-green-600 hover:bg-green-700 shadow-green-500/25',
+            addButtonClass: 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30',
         },
     };
     return configs[props.panelType];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Task;
 use App\Models\Lead;
 use Illuminate\Http\Request;
@@ -10,15 +11,7 @@ use Inertia\Inertia;
 
 class TaskController extends Controller
 {
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display tasks index - Kanban Board

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\DreamBuyer;
 use App\Models\MarketingChannel;
@@ -23,6 +24,8 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected $kpiCalculator;
     protected $analyticsService;
     protected $dashboardService;
@@ -547,20 +550,4 @@ class DashboardController extends Controller
         return redirect()->route('business.kpi')->with('success', 'KPI rejasi muvaffaqiyatli saqlandi!');
     }
 
-    /**
-     * Get current business helper
-     */
-    protected function getCurrentBusiness(): Business
-    {
-        $user = Auth::user();
-        $business = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
-
-        if (!$business) {
-            abort(400, 'Biznes tanlanmagan. Iltimos, avval biznes yarating yoki tanlang.');
-        }
-
-        return $business;
-    }
 }

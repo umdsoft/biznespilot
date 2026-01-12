@@ -2,21 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class InsightController extends Controller
 {
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display insights index

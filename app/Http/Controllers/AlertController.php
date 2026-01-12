@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Alert;
 use App\Models\AlertRule;
 use App\Models\Business;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class AlertController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function __construct(
         protected AlertService $alertService
     ) {}
@@ -169,10 +172,5 @@ class AlertController extends Controller
         $rule->delete();
 
         return response()->json(['success' => true]);
-    }
-
-    protected function getCurrentBusiness(): Business
-    {
-        return Auth::user()->currentBusiness ?? Auth::user()->businesses()->firstOrFail();
     }
 }

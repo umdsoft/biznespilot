@@ -56,6 +56,8 @@ class Business extends Model
         'country',
         'status',
         'settings',
+        'swot_data',
+        'swot_updated_at',
     ];
 
     /**
@@ -66,10 +68,12 @@ class Business extends Model
     protected $casts = [
         'settings' => 'array',
         'main_goals' => 'array',
+        'swot_data' => 'array',
         'founding_date' => 'date',
         'is_onboarding_completed' => 'boolean',
         'onboarding_completed_at' => 'datetime',
         'launched_at' => 'datetime',
+        'swot_updated_at' => 'datetime',
     ];
 
     /**

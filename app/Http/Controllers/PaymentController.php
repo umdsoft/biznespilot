@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Lead;
 use App\Models\PaymentAccount;
 use App\Models\PaymentTransaction;
@@ -14,20 +15,12 @@ use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function __construct(
         protected PaymeService $paymeService,
         protected ClickService $clickService
     ) {}
-
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
 
     // ==================== Settings ====================
 

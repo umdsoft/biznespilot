@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Todo;
 use App\Models\TodoRecurrence;
 use App\Models\TodoTemplate;
@@ -13,15 +14,7 @@ use Inertia\Inertia;
 
 class TodoController extends Controller
 {
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display todos index page

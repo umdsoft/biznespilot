@@ -30,9 +30,12 @@ class AuthController extends Controller
         // Check if account is locked
         if ($user && $user->locked_until && now()->lt($user->locked_until)) {
             $minutesLeft = now()->diffInMinutes($user->locked_until);
-            return back()->withErrors([
-                'login' => "Hisobingiz vaqtincha bloklangan. {$minutesLeft} daqiqadan so'ng qayta urinib ko'ring.",
-            ])->onlyInput('login');
+            $error = "Hisobingiz vaqtincha bloklangan. {$minutesLeft} daqiqadan so'ng qayta urinib ko'ring.";
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $error], 422);
+            }
+            return back()->withErrors(['login' => $error])->onlyInput('login');
         }
 
         $credentials = [
@@ -54,6 +57,9 @@ class AuthController extends Controller
                     'two_factor_remember' => $request->boolean('remember'),
                 ]);
 
+                if ($request->wantsJson()) {
+                    return response()->json(['redirect' => route('two-factor.verify')]);
+                }
                 return redirect()->route('two-factor.verify');
             }
 
@@ -67,13 +73,14 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            // Redirect based on user role or department
-            if ($authenticatedUser->hasRole('admin') || $authenticatedUser->hasRole('super_admin')) {
-                return redirect()->intended(route('admin.dashboard'));
+            // Get redirect URL based on user role/department
+            $redirectUrl = $this->getRedirectUrl($authenticatedUser);
+
+            if ($request->wantsJson()) {
+                return response()->json(['redirect' => $redirectUrl]);
             }
 
-            // Check user's department in their businesses
-            return $this->redirectByDepartment($authenticatedUser);
+            return redirect()->intended($redirectUrl);
         }
 
         // Increment failed login attempts
@@ -86,20 +93,59 @@ class AuthController extends Controller
                     'locked_until' => now()->addMinutes(15),
                 ]);
 
-                return back()->withErrors([
-                    'login' => 'Hisobingiz 15 daqiqaga bloklandi. Ko\'p marta noto\'g\'ri parol kiritildi.',
-                ])->onlyInput('login');
+                $error = 'Hisobingiz 15 daqiqaga bloklandi. Ko\'p marta noto\'g\'ri parol kiritildi.';
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => $error], 422);
+                }
+                return back()->withErrors(['login' => $error])->onlyInput('login');
             }
 
             $attemptsLeft = 5 - $user->failed_login_attempts;
-            return back()->withErrors([
-                'login' => "Login yoki parol noto'g'ri. Qolgan urinishlar: {$attemptsLeft}",
-            ])->onlyInput('login');
+            $error = "Login yoki parol noto'g'ri. Qolgan urinishlar: {$attemptsLeft}";
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $error], 422);
+            }
+            return back()->withErrors(['login' => $error])->onlyInput('login');
         }
 
-        return back()->withErrors([
-            'login' => 'Login yoki parol noto\'g\'ri.',
-        ])->onlyInput('login');
+        $error = 'Login yoki parol noto\'g\'ri.';
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $error], 422);
+        }
+        return back()->withErrors(['login' => $error])->onlyInput('login');
+    }
+
+    /**
+     * Get redirect URL based on user role/department
+     */
+    protected function getRedirectUrl(User $user): string
+    {
+        // Admin users
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return route('admin.dashboard');
+        }
+
+        // Get user's membership in any business
+        $membership = BusinessUser::where('user_id', $user->id)
+            ->whereNotNull('department')
+            ->first();
+
+        if ($membership) {
+            // Set current business in session
+            session(['current_business_id' => $membership->business_id]);
+
+            // Return URL based on department
+            return match ($membership->department) {
+                'sales_head' => route('sales-head.dashboard'),
+                'sales_operator', 'operator' => route('operator.dashboard'),
+                'marketing' => route('marketing.dashboard'),
+                'finance' => route('finance.dashboard'),
+                default => route('business.dashboard'),
+            };
+        }
+
+        // Default: business owner
+        return route('business.dashboard');
     }
 
     public function showRegister()
@@ -198,55 +244,6 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         // Redirect based on user role or department
-        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        // Check user's department in their businesses
-        return $this->redirectByDepartment($user);
-    }
-
-    /**
-     * Redirect user based on their department
-     */
-    protected function redirectByDepartment(User $user)
-    {
-        // Get user's membership in any business
-        $membership = BusinessUser::where('user_id', $user->id)
-            ->whereNotNull('department')
-            ->first();
-
-        if ($membership) {
-            // Set current business in session
-            session(['current_business_id' => $membership->business_id]);
-
-            // Redirect based on department
-            switch ($membership->department) {
-                case 'sales_head':
-                    return redirect()->intended(route('sales-head.dashboard'));
-
-                case 'sales_operator':
-                    // TODO: Create sales operator panel later
-                    return redirect()->intended(route('business.dashboard'));
-
-                case 'marketing':
-                    // TODO: Create marketing panel later
-                    return redirect()->intended(route('business.dashboard'));
-
-                case 'hr':
-                    // TODO: Create HR panel later
-                    return redirect()->intended(route('business.dashboard'));
-
-                case 'finance':
-                    // TODO: Create finance panel later
-                    return redirect()->intended(route('business.dashboard'));
-
-                default:
-                    return redirect()->intended(route('business.dashboard'));
-            }
-        }
-
-        // Default: business owner or no specific department
-        return redirect()->intended(route('business.dashboard'));
+        return redirect()->intended($this->getRedirectUrl($user));
     }
 }

@@ -1,7 +1,6 @@
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
-import TodosIndex from '@/components/todos/TodosIndex.vue';
-import { Head } from '@inertiajs/vue3';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import TodosPage from '@/components/todos/TodosPage.vue';
 
 defineProps({
     todos: Object,
@@ -18,8 +17,7 @@ defineProps({
 
 <template>
     <BusinessLayout title="Vazifalar">
-        <Head title="Vazifalar" />
-        <TodosIndex
+        <TodosPage
             :todos="todos"
             :stats="stats"
             :team-members="teamMembers"

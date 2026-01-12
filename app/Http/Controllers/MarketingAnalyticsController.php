@@ -18,7 +18,7 @@ class MarketingAnalyticsController extends Controller
     protected int $cacheTTL = 300; // 5 minutes
 
     /**
-     * Display the marketing analytics dashboard - LAZY LOADING
+     * Display the Marketing Hub (Marketing Markazi) - shared between Business and Marketing panels
      */
     public function index(Request $request)
     {
@@ -28,18 +28,67 @@ class MarketingAnalyticsController extends Controller
             return redirect()->route('business.index');
         }
 
-        // Only load lightweight data for initial page render
-        $channelCounts = Cache::remember("marketing_channel_counts_{$businessId}", $this->cacheTTL, function () use ($businessId) {
-            return [
-                'total_channels' => MarketingChannel::where('business_id', $businessId)->count(),
-                'active_channels' => MarketingChannel::where('business_id', $businessId)->where('is_active', true)->count(),
-            ];
-        });
+        $business = \App\Models\Business::find($businessId);
 
-        return Inertia::render('Business/Marketing/Dashboard', [
-            'channels' => null,
-            'analytics' => $channelCounts,
-            'lazyLoad' => true,
+        // Get marketing channels
+        $channels = MarketingChannel::where('business_id', $businessId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($channel) {
+                return [
+                    'id' => $channel->id,
+                    'uuid' => $channel->uuid ?? null,
+                    'name' => $channel->name,
+                    'type' => $channel->type,
+                    'status' => $channel->is_active ? 'active' : 'inactive',
+                    'followers' => $channel->followers_count ?? 0,
+                    'engagement_rate' => $channel->engagement_rate ?? 0,
+                    'last_synced' => $channel->last_synced_at?->diffForHumans(),
+                ];
+            });
+
+        // Recent posts from content calendar
+        $recentPosts = \App\Models\ContentCalendar::where('business_id', $businessId)
+            ->whereIn('status', ['published', 'scheduled', 'draft'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($content) {
+                return [
+                    'id' => $content->id,
+                    'uuid' => $content->uuid ?? null,
+                    'title' => $content->title,
+                    'platform' => $content->channel,
+                    'status' => $content->status,
+                    'engagement' => $content->engagement_rate ?? 0,
+                    'reach' => $content->reach ?? 0,
+                    'scheduled_date' => $content->scheduled_date?->format('Y-m-d'),
+                    'published_at' => $content->published_at?->format('Y-m-d'),
+                    'created_at' => $content->created_at?->format('Y-m-d'),
+                ];
+            });
+
+        // Stats for Marketing Hub
+        $stats = [
+            'dream_buyers' => \App\Models\DreamBuyer::where('business_id', $businessId)->count(),
+            'competitors' => \App\Models\Competitor::where('business_id', $businessId)->count(),
+            'offers' => \App\Models\Offer::where('business_id', $businessId)->count(),
+            'total_posts' => \App\Models\ContentCalendar::where('business_id', $businessId)->count(),
+            'published_posts' => \App\Models\ContentCalendar::where('business_id', $businessId)->where('status', 'published')->count(),
+            'scheduled_posts' => \App\Models\ContentCalendar::where('business_id', $businessId)->where('status', 'scheduled')->count(),
+            'total_channels' => MarketingChannel::where('business_id', $businessId)->count(),
+            'campaigns' => \App\Models\Campaign::where('business_id', $businessId)->count(),
+            'total_spend' => \App\Models\Campaign::where('business_id', $businessId)->sum('budget') ?? 0,
+        ];
+
+        return Inertia::render('Business/Marketing/Index', [
+            'channels' => $channels,
+            'recentPosts' => $recentPosts,
+            'stats' => $stats,
+            'currentBusiness' => [
+                'id' => $business->id,
+                'name' => $business->name,
+            ],
         ]);
     }
 

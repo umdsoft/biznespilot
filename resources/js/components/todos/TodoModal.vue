@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -90,39 +91,48 @@ const submit = async () => {
         ? route(`${routePrefix.value}.todos.update`, props.todo.id)
         : route(`${routePrefix.value}.todos.store`);
 
-    const method = props.todo ? 'PUT' : 'POST';
-
     try {
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                title: form.value.title,
-                description: form.value.description || null,
-                type: form.value.type,
-                priority: form.value.priority,
-                due_date: form.value.due_date || null,
-                assigned_to: form.value.assigned_to || null,
-                subtasks: form.value.subtasks,
-            }),
-        });
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
 
-        const data = await response.json();
+        const payload = {
+            title: form.value.title,
+            description: form.value.description || null,
+            type: form.value.type,
+            priority: form.value.priority,
+            due_date: form.value.due_date || null,
+            assigned_to: form.value.assigned_to || null,
+            subtasks: form.value.subtasks,
+        };
 
-        if (response.ok) {
+        const response = props.todo
+            ? await window.axios.put(url, payload)
+            : await window.axios.post(url, payload);
+
+        if (response.data.success !== false) {
             emit('saved');
             emit('close');
             resetForm();
         } else {
-            errors.value = data.errors || { general: data.error || 'Xatolik yuz berdi' };
+            errors.value = response.data.errors || { general: response.data.error || 'Xatolik yuz berdi' };
         }
     } catch (error) {
         console.error('Failed to save todo:', error);
-        errors.value = { general: 'Tarmoq xatosi' };
+
+        // Handle 419 CSRF error
+        if (isCsrfError(error)) {
+            errors.value = { general: 'Sessiya muddati tugadi. Qayta urinib ko\'ring.' };
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (error.response?.data?.errors) {
+            errors.value = error.response.data.errors;
+        } else if (error.response?.data?.error) {
+            errors.value = { general: error.response.data.error };
+        } else {
+            errors.value = { general: 'Tarmoq xatosi' };
+        }
     } finally {
         loading.value = false;
     }

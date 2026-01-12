@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
     UserPlusIcon,
@@ -95,30 +96,37 @@ const submit = async () => {
     error.value = '';
 
     try {
-        const response = await fetch(route('business.api.sales.assign', { lead: props.lead.id }), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                operator_id: selectedOperator.value,
-                reassign_tasks: reassignTasks.value,
-            }),
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
+        const response = await window.axios.post(route('business.api.sales.assign', { lead: props.lead.id }), {
+            operator_id: selectedOperator.value,
+            reassign_tasks: reassignTasks.value,
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            emit('assigned', data.lead);
+        if (response.data.success) {
+            emit('assigned', response.data.lead);
             emit('close');
         } else {
-            error.value = data.error || data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
         }
     } catch (err) {
         console.error('Failed to assign lead:', err);
-        error.value = 'Tarmoq xatosi';
+
+        // Handle 419 CSRF error
+        if (isCsrfError(err)) {
+            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (err.response?.data?.error) {
+            error.value = err.response.data.error;
+        } else if (err.response?.data?.message) {
+            error.value = err.response.data.message;
+        } else {
+            error.value = 'Tarmoq xatosi';
+        }
     } finally {
         isLoading.value = false;
     }

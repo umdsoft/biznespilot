@@ -10,7 +10,227 @@ use Inertia\Inertia;
 
 class GoogleAdsAnalyticsController extends Controller
 {
-    public function index()
+    /**
+     * Determine panel type from request
+     */
+    protected function getPanelType(Request $request): string
+    {
+        $prefix = $request->route()->getPrefix();
+
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
+
+        // For /integrations route, check referer
+        $referer = $request->headers->get('referer', '');
+        if (str_contains($referer, '/marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($referer, '/finance')) {
+            return 'finance';
+        }
+        if (str_contains($referer, '/operator')) {
+            return 'operator';
+        }
+        if (str_contains($referer, '/saleshead')) {
+            return 'saleshead';
+        }
+
+        return 'business';
+    }
+
+    /**
+     * Get current business
+     */
+    protected function getCurrentBusiness()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return null;
+        }
+        return session('current_business_id')
+            ? $user->businesses()->find(session('current_business_id'))
+            : $user->businesses()->first();
+    }
+
+    /**
+     * Get Google Ads OAuth URL
+     */
+    public function getAuthUrl(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json(['error' => 'Foydalanuvchi topilmadi'], 401);
+            }
+
+            $business = $this->getCurrentBusiness();
+
+            if (!$business) {
+                return response()->json(['error' => 'Biznes topilmadi'], 404);
+            }
+
+            // Store panel type in session for callback
+            $referer = $request->headers->get('referer', '');
+            $panelType = 'business';
+            if (str_contains($referer, '/marketing')) {
+                $panelType = 'marketing';
+            } elseif (str_contains($referer, '/finance')) {
+                $panelType = 'finance';
+            } elseif (str_contains($referer, '/operator')) {
+                $panelType = 'operator';
+            } elseif (str_contains($referer, '/saleshead')) {
+                $panelType = 'saleshead';
+            }
+
+            session(['google_ads_oauth_panel_type' => $panelType]);
+
+            $clientId = config('services.google.client_id');
+            $clientSecret = config('services.google.client_secret');
+
+            // Detailed validation
+            if (empty($clientId) || empty($clientSecret)) {
+                \Log::warning('Google Ads OAuth not configured', [
+                    'has_client_id' => !empty($clientId),
+                    'has_client_secret' => !empty($clientSecret),
+                ]);
+                return response()->json([
+                    'error' => 'Google OAuth sozlanmagan. .env faylida GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET qo\'shing.',
+                    'setup_required' => true,
+                ], 500);
+            }
+
+            $redirectUri = route('integrations.google-ads.callback');
+
+            $url = "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
+                'client_id' => $clientId,
+                'redirect_uri' => $redirectUri,
+                'response_type' => 'code',
+                'scope' => 'https://www.googleapis.com/auth/adwords',
+                'access_type' => 'offline',
+                'prompt' => 'consent',
+            ]);
+
+            \Log::info('Google Ads OAuth URL generated', ['redirect_uri' => $redirectUri]);
+
+            return response()->json(['url' => $url]);
+        } catch (\Exception $e) {
+            \Log::error('Google Ads getAuthUrl error', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Xatolik yuz berdi: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Handle Google Ads OAuth callback
+     */
+    public function handleCallback(Request $request)
+    {
+        $code = $request->get('code');
+        $error = $request->get('error');
+        $panelType = session('google_ads_oauth_panel_type', 'business');
+
+        // Redirect to integrations page
+        $getRedirectRoute = function () {
+            return redirect()->route('integrations.google-ads.index');
+        };
+
+        if ($error || !$code) {
+            return $getRedirectRoute()->with('error', 'Google Ads bilan ulanish bekor qilindi: ' . ($error ?? 'kod topilmadi'));
+        }
+
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return $getRedirectRoute()->with('error', 'Biznes topilmadi.');
+        }
+
+        try {
+            // Exchange code for tokens
+            $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
+                'code' => $code,
+                'client_id' => config('services.google.client_id'),
+                'client_secret' => config('services.google.client_secret'),
+                'redirect_uri' => route('integrations.google-ads.callback'),
+                'grant_type' => 'authorization_code',
+            ]);
+
+            if (!$tokenResponse->successful()) {
+                \Log::error('Google Ads token exchange failed', ['response' => $tokenResponse->body()]);
+                return $getRedirectRoute()->with('error', 'Token olishda xatolik: ' . $tokenResponse->body());
+            }
+
+            $tokens = $tokenResponse->json();
+            $accessToken = $tokens['access_token'] ?? null;
+            $refreshToken = $tokens['refresh_token'] ?? null;
+            $expiresIn = $tokens['expires_in'] ?? 3600;
+
+            if (!$accessToken) {
+                return $getRedirectRoute()->with('error', 'Access token olinmadi.');
+            }
+
+            // Get Google user info for account name
+            $userInfoResponse = Http::withToken($accessToken)
+                ->get('https://www.googleapis.com/oauth2/v2/userinfo');
+
+            $accountName = null;
+            $accountId = null;
+
+            if ($userInfoResponse->successful()) {
+                $userInfo = $userInfoResponse->json();
+                $accountName = $userInfo['name'] ?? $userInfo['email'] ?? null;
+                $accountId = $userInfo['id'] ?? null;
+            }
+
+            // Save or update integration
+            $business->adIntegrations()->updateOrCreate(
+                ['platform' => 'google_ads'],
+                [
+                    'account_id' => $accountId,
+                    'account_name' => $accountName,
+                    'access_token' => $accessToken,
+                    'refresh_token' => $refreshToken,
+                    'token_expires_at' => now()->addSeconds($expiresIn),
+                    'is_active' => true,
+                    'last_synced_at' => now(),
+                    'sync_status' => 'completed',
+                ]
+            );
+
+            return $getRedirectRoute()->with('success', 'Google Ads muvaffaqiyatli ulandi!' . ($accountName ? " Hisob: {$accountName}" : ''));
+
+        } catch (\Exception $e) {
+            \Log::error('Google Ads callback error', ['error' => $e->getMessage()]);
+            return $getRedirectRoute()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Disconnect Google Ads integration
+     */
+    public function disconnect(Request $request)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if ($business) {
+            $business->adIntegrations()
+                ->where('platform', 'google_ads')
+                ->delete();
+        }
+
+        return redirect()->back()->with('success', 'Google Ads integratsiyasi o\'chirildi!');
+    }
+
+    public function index(Request $request)
     {
         $user = Auth::user();
         $currentBusiness = session('current_business_id')
@@ -67,7 +287,8 @@ class GoogleAdsAnalyticsController extends Controller
             }
         }
 
-        return Inertia::render('Business/GoogleAdsAnalytics/Index', [
+        return Inertia::render('Shared/GoogleAdsAnalytics/Index', [
+            'panelType' => $this->getPanelType($request),
             'currentBusiness' => [
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,

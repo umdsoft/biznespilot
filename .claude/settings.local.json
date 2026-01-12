@@ -53,7 +53,13 @@
       "Bash(where:*)",
       "Bash(mysqld:*)",
       "Bash(cat:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(for file in d:/biznespilot/resources/js/Pages/Marketing/Campaigns/Index.vue d:/biznespilot/resources/js/Pages/Marketing/Tasks/Index.vue d:/biznespilot/resources/js/Pages/Marketing/Todos/Index.vue)",
+      "Bash(do touch \"$file\")",
+      "Bash(for:*)",
+      "Bash(do wc -l \"$file\")",
+      "Bash(sort:*)",
+      "Bash(wc:*)"
     ]
   }
 }

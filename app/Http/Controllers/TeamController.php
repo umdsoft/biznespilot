@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\User;
 use App\Models\Business;
 use App\Models\BusinessUser;
@@ -12,15 +13,7 @@ use Illuminate\Validation\Rules\Password;
 
 class TeamController extends Controller
 {
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
+    use HasCurrentBusiness;
 
     /**
      * Get team members for the current business

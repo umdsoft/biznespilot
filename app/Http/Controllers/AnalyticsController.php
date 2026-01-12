@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Services\SalesAnalyticsService;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Inertia\Inertia;
 
 class AnalyticsController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected SalesAnalyticsService $analyticsService;
     protected ExportService $exportService;
     protected int $cacheTTL = 300; // 5 minutes
@@ -21,16 +24,6 @@ class AnalyticsController extends Controller
     ) {
         $this->analyticsService = $analyticsService;
         $this->exportService = $exportService;
-    }
-
-    /**
-     * Get current business helper
-     */
-    protected function getCurrentBusiness()
-    {
-        return session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\CallLog;
 use App\Models\Lead;
 use App\Models\PbxAccount;
@@ -16,21 +17,13 @@ use Inertia\Inertia;
 
 class TelephonyController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function __construct(
         protected PbxService $pbxService,
         protected SipuniService $sipuniService,
         protected OnlinePbxService $onlinePbxService
     ) {}
-
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness()
-    {
-        return Auth::user()->businesses()
-            ->where('businesses.id', session('current_business_id'))
-            ->first();
-    }
 
     /**
      * Get active telephony provider

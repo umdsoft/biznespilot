@@ -144,7 +144,7 @@ export const businessLayoutConfig = {
     {
       title: 'AI Yordamchilar',
       items: [
-        { href: '/business/target-analysis', label: 'Facebook analiz', icon: FacebookIcon },
+        { href: '/business/facebook-analysis', label: 'Facebook analiz', icon: FacebookIcon },
         { href: '/business/instagram-analysis', label: 'Instagram Tahlili', icon: InstagramIcon },
         { href: '/business/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
         { href: '/business/youtube-analytics', label: 'YouTube Analitika', icon: YouTubeIcon },
@@ -349,6 +349,261 @@ export const adminLayoutConfig = {
   ],
 };
 
+// Marketing Layout Configuration
+export const marketingLayoutConfig = {
+  // Styling - same as business layout (professional look)
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/marketing',
+  brandName: 'Marketing',
+  brandSubtitle: 'Bo\'limi',
+  logoGradient: 'bg-gradient-to-br from-blue-600 to-indigo-600',
+  logoTextGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600',
+  logoIcon: MegaphoneIcon,
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: true,
+  showNotifications: true,
+  showDarkModeToggle: true,
+  showFeedbackWidget: false,
+  showQuickStats: false,
+  showTitleIcon: false,
+  titleIcon: MegaphoneIcon,
+  titleIconBgClass: 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30',
+  titleIconClass: 'text-blue-600 dark:text-blue-400',
+
+  // Business info
+  businessAvatarClass: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+  businessRoleClass: 'text-blue-600 dark:text-blue-400',
+  businessRoleLabel: 'Marketing bo\'limi',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: 'Marketing mutaxassisi',
+
+  // User menu
+  userMenuItems: [
+    { href: '/marketing/profile', label: 'Profil' },
+    { href: '/business', label: 'Biznes Paneliga', class: 'text-blue-600 hover:bg-blue-50' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/marketing', label: 'Marketing Markazi', icon: HomeIcon, exact: true },
+        { href: '/marketing/dashboard', label: 'Dashboard', icon: ChartBarIcon },
+        { href: '/marketing/campaigns', label: 'Kampaniyalar', icon: PresentationChartLineIcon },
+        { href: '/marketing/content', label: 'Kontent Reja', icon: CalendarIcon },
+        { href: '/marketing/channels', label: 'Kanallar', icon: UsersIcon },
+      ]
+    },
+    {
+      title: 'Tadqiqot',
+      items: [
+        { href: '/marketing/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
+        { href: '/marketing/custdev', label: 'CustDev So\'rovnoma', icon: ClipboardDocumentListIcon },
+      ]
+    },
+    {
+      title: null,
+      items: [
+        { href: '/marketing/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
+        { href: '/marketing/todos', label: 'Todo List', icon: CheckCircleIcon },
+      ]
+    },
+    {
+      title: 'AI Yordamchilar',
+      items: [
+        { href: '/marketing/facebook-analysis', label: 'Facebook analiz', icon: FacebookIcon },
+        { href: '/marketing/instagram-analysis', label: 'Instagram Tahlili', icon: InstagramIcon },
+        { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
+        { href: '/marketing/youtube-analytics', label: 'YouTube Analitika', icon: YouTubeIcon },
+        { href: '/marketing/google-ads', label: 'Google Ads', icon: GoogleIcon },
+      ]
+    },
+    {
+      title: 'Tahlillar',
+      items: [
+        { href: '/marketing/analytics', label: 'Umumiy Analitika', icon: ChartBarIcon },
+        { href: '/marketing/analytics/campaigns', label: 'Kampaniya Analitika', icon: PresentationChartLineIcon },
+      ]
+    },
+  ],
+};
+
+// Finance Layout Configuration
+export const financeLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gradient-to-br from-green-50/30 via-emerald-50/20 to-teal-50/30 dark:from-gray-900 dark:via-green-900/10 dark:to-gray-900',
+  sidebarClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-r border-green-200/50 dark:border-green-700/30 shadow-lg',
+  headerClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-b border-green-200/50 dark:border-green-700/30',
+  logoBorderClass: 'border-green-200/50 dark:border-green-700/30',
+  sectionBorderClass: 'border-green-200/50 dark:border-green-700/30',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/finance',
+  brandName: 'Moliya',
+  brandSubtitle: 'Bo\'limi',
+  logoGradient: 'bg-gradient-to-br from-green-600 to-teal-600',
+  logoTextGradient: 'bg-gradient-to-r from-green-600 to-teal-600',
+  logoIcon: CurrencyDollarIcon,
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: true,
+  showNotifications: true,
+  showDarkModeToggle: true,
+  showFeedbackWidget: false,
+  showQuickStats: true,
+  showTitleIcon: true,
+  titleIcon: CurrencyDollarIcon,
+  titleIconBgClass: 'bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-900/30 dark:to-teal-900/30',
+  titleIconClass: 'text-green-600 dark:text-green-400',
+
+  // Business info
+  businessAvatarClass: 'bg-gradient-to-br from-green-500 to-teal-600',
+  businessRoleClass: 'text-green-600 dark:text-green-400',
+  businessRoleLabel: 'Moliya bo\'limi',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-900/50 dark:to-teal-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: 'Moliya mutaxassisi',
+
+  // User menu
+  userMenuItems: [
+    { href: '/finance/profile', label: 'Profil' },
+    { href: '/business', label: 'Biznes Paneliga', class: 'text-blue-600 hover:bg-blue-50' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/finance', label: 'Dashboard', icon: HomeIcon, exact: true },
+      ]
+    },
+    {
+      title: 'Moliyaviy Operatsiyalar',
+      items: [
+        { href: '/finance/invoices', label: 'Hisob-fakturalar', icon: DocumentTextIcon },
+        { href: '/finance/expenses', label: 'Xarajatlar', icon: CreditCardIcon },
+        { href: '/finance/budget', label: 'Byudjet', icon: PresentationChartLineIcon },
+      ]
+    },
+    {
+      title: 'Hisobotlar',
+      items: [
+        { href: '/finance/reports', label: 'Barcha Hisobotlar', icon: DocumentChartBarIcon },
+        { href: '/finance/reports/profit-loss', label: 'Foyda va Zarar', icon: ChartBarIcon },
+        { href: '/finance/reports/cash-flow', label: 'Pul Oqimi', icon: CurrencyDollarIcon },
+      ]
+    },
+    {
+      title: 'Vazifalar',
+      items: [
+        { href: '/finance/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
+        { href: '/finance/todos', label: 'Todo List', icon: CheckCircleIcon },
+      ]
+    },
+  ],
+};
+
+// Operator Layout Configuration
+export const operatorLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-cyan-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900',
+  sidebarClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-r border-blue-200/50 dark:border-blue-700/30 shadow-lg',
+  headerClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-b border-blue-200/50 dark:border-blue-700/30',
+  logoBorderClass: 'border-blue-200/50 dark:border-blue-700/30',
+  sectionBorderClass: 'border-blue-200/50 dark:border-blue-700/30',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/operator',
+  brandName: 'Operator',
+  brandSubtitle: 'Panel',
+  logoGradient: 'bg-gradient-to-br from-blue-600 to-indigo-600',
+  logoTextGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600',
+  logoIcon: PhoneIcon,
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: true,
+  showNotifications: true,
+  showDarkModeToggle: true,
+  showFeedbackWidget: false,
+  showQuickStats: true,
+  showTitleIcon: true,
+  titleIcon: PhoneIcon,
+  titleIconBgClass: 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30',
+  titleIconClass: 'text-blue-600 dark:text-blue-400',
+
+  // Business info
+  businessAvatarClass: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+  businessRoleClass: 'text-blue-600 dark:text-blue-400',
+  businessRoleLabel: 'Sotuv operatori',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: 'Operator',
+
+  // User menu
+  userMenuItems: [
+    { href: '/business', label: 'Biznes Paneliga', class: 'text-blue-600 hover:bg-blue-50' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/operator', label: 'Dashboard', icon: HomeIcon, exact: true },
+      ]
+    },
+    {
+      title: 'Ishim',
+      items: [
+        { href: '/operator/leads', label: 'Mening Leadlarim', icon: UserGroupIcon },
+        { href: '/operator/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/operator/tasks', label: 'Vazifalarim', icon: ClipboardDocumentListIcon },
+        { href: '/operator/todos', label: 'Todo List', icon: CheckCircleIcon },
+      ]
+    },
+    {
+      title: 'Statistika',
+      items: [
+        { href: '/operator/kpi', label: 'Mening KPI', icon: PresentationChartLineIcon },
+      ]
+    },
+  ],
+};
+
 // App Layout Configuration (General)
 export const appLayoutConfig = {
   // Styling
@@ -440,6 +695,15 @@ export function useLayoutConfig(type, badgeCounts = {}) {
       break;
     case 'saleshead':
       config = { ...salesHeadLayoutConfig };
+      break;
+    case 'marketing':
+      config = { ...marketingLayoutConfig };
+      break;
+    case 'finance':
+      config = { ...financeLayoutConfig };
+      break;
+    case 'operator':
+      config = { ...operatorLayoutConfig };
       break;
     case 'admin':
       config = { ...adminLayoutConfig };

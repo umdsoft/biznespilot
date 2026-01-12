@@ -281,10 +281,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, h } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 import NavLink from '@/components/NavLink.vue';
 import FeedbackWidget from '@/components/FeedbackWidget.vue';
 import NotificationDropdown from '@/components/NotificationDropdown.vue';
+import axios from 'axios';
 import {
   Bars3Icon as MenuIcon,
   ChevronDownIcon,
@@ -293,6 +294,25 @@ import {
   SunIcon,
   MoonIcon,
 } from '@heroicons/vue/24/outline';
+
+// CSRF token refresh utility
+const refreshCsrfToken = async () => {
+  try {
+    await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    if (match) {
+      const token = decodeURIComponent(match[1]);
+      axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
+      window.axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
+      let meta = document.head.querySelector('meta[name="csrf-token"]');
+      if (meta) meta.content = token;
+    }
+    return true;
+  } catch (e) {
+    console.error('CSRF refresh failed:', e);
+    return false;
+  }
+};
 
 const props = defineProps({
   title: {
@@ -375,12 +395,24 @@ const closeDropdowns = (e) => {
   }
 };
 
-onMounted(() => {
+// Periodic CSRF refresh interval (every 10 minutes)
+let csrfRefreshInterval = null;
+
+onMounted(async () => {
   document.addEventListener('click', closeDropdowns);
   initDarkMode();
+
+  // Refresh CSRF token on mount to ensure fresh state
+  await refreshCsrfToken();
+
+  // Setup periodic CSRF refresh (every 10 minutes)
+  csrfRefreshInterval = setInterval(refreshCsrfToken, 10 * 60 * 1000);
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', closeDropdowns);
+  if (csrfRefreshInterval) {
+    clearInterval(csrfRefreshInterval);
+  }
 });
 </script>

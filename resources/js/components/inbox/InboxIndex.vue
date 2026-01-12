@@ -411,7 +411,7 @@ const props = defineProps({
     panelType: {
         type: String,
         default: 'business',
-        validator: (value) => ['business', 'saleshead'].includes(value),
+        validator: (value) => ['business', 'saleshead', 'operator'].includes(value),
     },
 });
 
@@ -449,6 +449,22 @@ const panelConfig = computed(() => {
             outboundMessageClass: 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-br-md',
             outboundTimeClass: 'text-emerald-200',
             sendButtonClass: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/30',
+        },
+        operator: {
+            routePrefix: 'operator',
+            buttonClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30',
+            filterActiveClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30',
+            statsBorderHover: 'hover:border-blue-300 dark:hover:border-blue-600',
+            statsIconBg: 'bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-900/30 dark:to-indigo-800/30',
+            statsIconColor: 'text-blue-600 dark:text-blue-400',
+            statsValueColor: 'text-blue-600 dark:text-blue-400',
+            emptyStatePulseBg: 'bg-blue-500/20',
+            emptyStateIconBg: 'bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-900/30 dark:to-indigo-800/30',
+            emptyStateIconColor: 'text-blue-500 dark:text-blue-400',
+            loadingSpinnerColor: 'text-blue-500',
+            outboundMessageClass: 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-br-md',
+            outboundTimeClass: 'text-blue-200',
+            sendButtonClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30',
         },
     };
     return configs[props.panelType];

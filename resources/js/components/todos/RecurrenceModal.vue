@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -111,39 +112,48 @@ const submit = async () => {
         ? route(`${routePrefix.value}.todo-recurrences.update`, props.todo.recurrence.id)
         : route(`${routePrefix.value}.todos.recurrence.store`, props.todo.id);
 
-    const method = props.todo?.recurrence ? 'PUT' : 'POST';
-
     try {
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                frequency: form.value.frequency,
-                interval: form.value.interval,
-                days_of_week: form.value.frequency === 'weekly' ? form.value.days_of_week : null,
-                day_of_month: form.value.frequency === 'monthly' ? form.value.day_of_month : null,
-                start_date: form.value.start_date,
-                end_date: form.value.end_date || null,
-                generation_mode: form.value.generation_mode,
-            }),
-        });
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
 
-        const data = await response.json();
+        const payload = {
+            frequency: form.value.frequency,
+            interval: form.value.interval,
+            days_of_week: form.value.frequency === 'weekly' ? form.value.days_of_week : null,
+            day_of_month: form.value.frequency === 'monthly' ? form.value.day_of_month : null,
+            start_date: form.value.start_date,
+            end_date: form.value.end_date || null,
+            generation_mode: form.value.generation_mode,
+        };
 
-        if (response.ok) {
+        const response = props.todo?.recurrence
+            ? await window.axios.put(url, payload)
+            : await window.axios.post(url, payload);
+
+        if (response.data.success !== false) {
             emit('saved');
             emit('close');
             resetForm();
         } else {
-            errors.value = data.errors || { general: data.error || 'Xatolik yuz berdi' };
+            errors.value = response.data.errors || { general: response.data.error || 'Xatolik yuz berdi' };
         }
     } catch (error) {
         console.error('Failed to save recurrence:', error);
-        errors.value = { general: 'Tarmoq xatosi' };
+
+        // Handle 419 CSRF error
+        if (isCsrfError(error)) {
+            errors.value = { general: 'Sessiya muddati tugadi. Qayta urinib ko\'ring.' };
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (error.response?.data?.errors) {
+            errors.value = error.response.data.errors;
+        } else if (error.response?.data?.error) {
+            errors.value = { general: error.response.data.error };
+        } else {
+            errors.value = { general: 'Tarmoq xatosi' };
+        }
     } finally {
         loading.value = false;
     }
@@ -155,20 +165,25 @@ const deleteRecurrence = async () => {
     if (!confirm('Takrorlanishni o\'chirmoqchimisiz?')) return;
 
     try {
-        const response = await fetch(route(`${routePrefix.value}.todo-recurrences.destroy`, props.todo.recurrence.id), {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-            },
-        });
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
 
-        if (response.ok) {
+        const response = await window.axios.delete(
+            route(`${routePrefix.value}.todo-recurrences.destroy`, props.todo.recurrence.id)
+        );
+
+        if (response.data.success !== false) {
             emit('saved');
             emit('close');
         }
     } catch (error) {
         console.error('Failed to delete recurrence:', error);
+
+        // Handle 419 CSRF error
+        if (isCsrfError(error)) {
+            errors.value = { general: 'Sessiya muddati tugadi. Qayta urinib ko\'ring.' };
+            await refreshCsrfToken();
+        }
     }
 };
 

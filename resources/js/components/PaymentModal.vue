@@ -264,6 +264,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
     CreditCardIcon,
@@ -345,32 +346,37 @@ const createPaymentLink = async () => {
     error.value = null;
 
     try {
-        const response = await fetch(route('business.payments.lead.create-link', props.lead.id), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-            body: JSON.stringify({
-                provider: selectedProvider.value,
-                amount: amount.value,
-                description: description.value || `To'lov - ${props.lead.name}`,
-            }),
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
+        const response = await window.axios.post(route('business.payments.lead.create-link', props.lead.id), {
+            provider: selectedProvider.value,
+            amount: amount.value,
+            description: description.value || `To'lov - ${props.lead.name}`,
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            paymentData.value = data;
+        if (response.data.success) {
+            paymentData.value = response.data;
             step.value = 2;
-            emit('created', data);
+            emit('created', response.data);
         } else {
-            error.value = data.error || 'To\'lov havolasini yaratishda xatolik';
+            error.value = response.data.error || 'To\'lov havolasini yaratishda xatolik';
         }
     } catch (err) {
         console.error('Failed to create payment link:', err);
-        error.value = 'Tarmoq xatosi yuz berdi';
+
+        // Handle 419 CSRF error
+        if (isCsrfError(err)) {
+            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (err.response?.data?.error) {
+            error.value = err.response.data.error;
+        } else {
+            error.value = 'Tarmoq xatosi yuz berdi';
+        }
     } finally {
         creating.value = false;
     }

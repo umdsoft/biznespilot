@@ -30,6 +30,21 @@ class TargetAnalysisController extends Controller
     ) {}
 
     /**
+     * Get panel type from request
+     */
+    protected function getPanelType(Request $request): string
+    {
+        $prefix = $request->route()->getPrefix();
+
+        if (str_contains($prefix, 'marketing')) return 'marketing';
+        if (str_contains($prefix, 'finance')) return 'finance';
+        if (str_contains($prefix, 'operator')) return 'operator';
+        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+
+        return 'business';
+    }
+
+    /**
      * Display target analysis dashboard
      * OPTIMIZED: Only sends minimal data on initial load
      * Heavy data is loaded lazily via API calls
@@ -37,11 +52,13 @@ class TargetAnalysisController extends Controller
     public function index(Request $request): Response
     {
         $businessId = $request->input('business_id') ?? session('current_business_id');
+        $panelType = $this->getPanelType($request);
 
         if (!$businessId) {
-            return Inertia::render('Business/TargetAnalysis/Index', [
+            return Inertia::render('Shared/TargetAnalysis/Index', [
                 'error' => 'Biznes tanlanmagan',
                 'analysis' => null,
+                'panelType' => $panelType,
             ]);
         }
 
@@ -70,7 +87,7 @@ class TargetAnalysisController extends Controller
                 ?? $metaAdAccounts->first();
         }
 
-        return Inertia::render('Business/TargetAnalysis/Index', [
+        return Inertia::render('Shared/TargetAnalysis/Index', [
             'business' => [
                 'id' => $business->id,
                 'name' => $business->name,
@@ -80,6 +97,7 @@ class TargetAnalysisController extends Controller
             'analysis' => null,
             'lazyLoad' => true, // Flag to tell frontend to fetch data
             'lastUpdated' => now()->format('d.m.Y H:i'),
+            'panelType' => $panelType,
             // Meta Ads data
             'metaIntegration' => $metaIntegration ? [
                 'id' => $metaIntegration->id,
@@ -323,10 +341,28 @@ class TargetAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        $state = Str::random(40);
-        session(['meta_oauth_state' => $state, 'meta_oauth_business_id' => $business->id]);
+        // Determine panel type from referer URL
+        $referer = $request->headers->get('referer', '');
+        $panelType = 'business';
+        if (str_contains($referer, '/marketing')) {
+            $panelType = 'marketing';
+        } elseif (str_contains($referer, '/finance')) {
+            $panelType = 'finance';
+        } elseif (str_contains($referer, '/operator')) {
+            $panelType = 'operator';
+        } elseif (str_contains($referer, '/saleshead')) {
+            $panelType = 'saleshead';
+        }
 
-        $redirectUri = route('business.target-analysis.meta.callback');
+        $state = Str::random(40);
+        session([
+            'meta_oauth_state' => $state,
+            'meta_oauth_business_id' => $business->id,
+            'meta_oauth_panel_type' => $panelType,
+        ]);
+
+        // Use shared integrations callback route
+        $redirectUri = route('integrations.meta.callback');
         $authUrl = $this->oauthService->getAuthorizationUrl($redirectUri, $state);
 
         return response()->json(['url' => $authUrl]);
@@ -337,11 +373,15 @@ class TargetAnalysisController extends Controller
      */
     public function handleMetaCallback(Request $request)
     {
+        // Get panel type from session (set in getMetaAuthUrl)
+        $panelType = session('meta_oauth_panel_type', 'business');
+
         \Log::info('=== Meta OAuth Callback Started ===', [
             'all_params' => $request->all(),
             'state' => $request->state,
             'session_state' => session('meta_oauth_state'),
             'business_id' => session('meta_oauth_business_id'),
+            'panel_type' => $panelType,
             'current_business_id' => session('current_business_id'),
             'has_code' => $request->has('code'),
             'has_error' => $request->has('error'),
@@ -354,10 +394,20 @@ class TargetAnalysisController extends Controller
 
         \Log::info('Meta OAuth: Business ID resolved', ['business_id' => $businessId]);
 
+        // Helper function to get redirect route based on panel
+        $getRedirectRoute = function($route, $params = []) use ($panelType, $businessId) {
+            // For marketing panel, redirect to facebook-analysis page
+            if ($panelType === 'marketing') {
+                return redirect()->route('marketing.facebook-analysis')
+                    ->with($params);
+            }
+            return redirect()->route('business.target-analysis.index', ['business_id' => $businessId])
+                ->with($params);
+        };
+
         if (!$businessId) {
             \Log::error('Meta OAuth: No business found');
-            return redirect()->route('business.target-analysis.index')
-                ->with('error', 'Biznes topilmadi. Iltimos, qayta urinib ko\'ring.');
+            return $getRedirectRoute('index', ['error' => 'Biznes topilmadi. Iltimos, qayta urinib ko\'ring.']);
         }
 
         // Check for error from Facebook
@@ -366,19 +416,18 @@ class TargetAnalysisController extends Controller
                 'error' => $request->error,
                 'description' => $request->error_description,
             ]);
-            return redirect()->route('business.target-analysis.index', ['business_id' => $businessId])
-                ->with('error', $request->error_description ?? 'OAuth xatolik');
+            return $getRedirectRoute('index', ['error' => $request->error_description ?? 'OAuth xatolik']);
         }
 
         // Ensure we have code
         if (!$request->has('code')) {
             \Log::error('Meta OAuth: No code received');
-            return redirect()->route('business.target-analysis.index', ['business_id' => $businessId])
-                ->with('error', 'Authorization code olinmadi');
+            return $getRedirectRoute('index', ['error' => 'Authorization code olinmadi']);
         }
 
         try {
-            $redirectUri = route('business.target-analysis.meta.callback');
+            // Use shared integrations callback route
+            $redirectUri = route('integrations.meta.callback');
             \Log::info('Meta OAuth: Exchanging code for token', ['redirect_uri' => $redirectUri]);
 
             $tokenData = $this->oauthService->exchangeCodeForToken($request->code, $redirectUri);
@@ -415,10 +464,9 @@ class TargetAnalysisController extends Controller
             ]);
 
             // Clear OAuth session data
-            session()->forget(['meta_oauth_state', 'meta_oauth_business_id']);
+            session()->forget(['meta_oauth_state', 'meta_oauth_business_id', 'meta_oauth_panel_type']);
 
-            return redirect()->route('business.target-analysis.index', ['business_id' => $businessId])
-                ->with('success', 'Meta Ads muvaffaqiyatli ulandi! "Ma\'lumotlarni yuklash" tugmasini bosib ma\'lumotlarni oling.');
+            return $getRedirectRoute('index', ['success' => 'Meta Ads muvaffaqiyatli ulandi!']);
 
         } catch (\Exception $e) {
             \Log::error('Meta OAuth: Exception occurred', [
@@ -426,8 +474,7 @@ class TargetAnalysisController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            return redirect()->route('business.target-analysis.index', ['business_id' => $businessId])
-                ->with('error', 'Ulanishda xatolik: ' . $e->getMessage());
+            return $getRedirectRoute('index', ['error' => 'Ulanishda xatolik: ' . $e->getMessage()]);
         }
     }
 

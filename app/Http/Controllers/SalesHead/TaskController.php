@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Task;
 use App\Models\Lead;
 use App\Models\Business;
@@ -12,17 +13,7 @@ use Inertia\Inertia;
 
 class TaskController extends Controller
 {
-    /**
-     * Get current business from session
-     */
-    protected function getCurrentBusiness(): ?Business
-    {
-        $businessId = session('current_business_id');
-        if (!$businessId) {
-            return null;
-        }
-        return Business::find($businessId);
-    }
+    use HasCurrentBusiness;
 
     /**
      * Display tasks index - Kanban Board

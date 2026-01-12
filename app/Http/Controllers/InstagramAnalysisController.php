@@ -23,6 +23,25 @@ class InstagramAnalysisController extends Controller
     ) {}
 
     /**
+     * Determine panel type from request
+     */
+    protected function getPanelType(Request $request): string
+    {
+        $prefix = $request->route()->getPrefix();
+        if (str_contains($prefix, 'marketing')) return 'marketing';
+        if (str_contains($prefix, 'finance')) return 'finance';
+        if (str_contains($prefix, 'operator')) return 'operator';
+        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        // For /integrations route, check referer
+        $referer = $request->headers->get('referer', '');
+        if (str_contains($referer, '/marketing')) return 'marketing';
+        if (str_contains($referer, '/finance')) return 'finance';
+        if (str_contains($referer, '/operator')) return 'operator';
+        if (str_contains($referer, '/saleshead')) return 'saleshead';
+        return 'business';
+    }
+
+    /**
      * Display Instagram Analysis dashboard
      */
     public function index(Request $request): Response
@@ -42,7 +61,8 @@ class InstagramAnalysisController extends Controller
                 ?? $instagramAccounts->first();
         }
 
-        return Inertia::render('Business/InstagramAnalysis/Index', [
+        return Inertia::render('Shared/InstagramAnalysis/Index', [
+            'panelType' => $this->getPanelType($request),
             'business' => [
                 'id' => $business->id,
                 'name' => $business->name,

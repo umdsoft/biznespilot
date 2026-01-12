@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\EskizAccount;
 use App\Models\PlayMobileAccount;
 use App\Models\Lead;
@@ -16,6 +17,8 @@ use Inertia\Inertia;
 
 class SmsController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected EskizSmsService $eskizService;
     protected PlayMobileSmsService $playmobileService;
 
@@ -23,16 +26,6 @@ class SmsController extends Controller
     {
         $this->eskizService = $eskizService;
         $this->playmobileService = $playmobileService;
-    }
-
-    /**
-     * Get current business helper
-     */
-    protected function getCurrentBusiness()
-    {
-        return session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
     }
 
     /**
