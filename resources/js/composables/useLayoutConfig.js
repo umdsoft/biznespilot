@@ -254,6 +254,15 @@ export const salesHeadLayoutConfig = {
         { href: '/sales-head/kpi', label: 'KPI', icon: PresentationChartLineIcon },
       ]
     },
+    {
+      title: 'Marketing Ma\'lumotlari',
+      items: [
+        { href: '/sales-head/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
+        { href: '/sales-head/campaigns', label: 'Kampaniyalar', icon: PresentationChartLineIcon },
+        { href: '/sales-head/offers', label: 'Takliflar', icon: TagIcon },
+        { href: '/sales-head/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
+      ]
+    },
   ],
 };
 
@@ -419,6 +428,23 @@ export const marketingLayoutConfig = {
       ]
     },
     {
+      title: 'Strategiya',
+      items: [
+        { href: '/marketing/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
+        { href: '/marketing/competitors/dashboard', label: 'Raqobat Dashboard', icon: PresentationChartLineIcon },
+        { href: '/marketing/offers', label: 'Takliflar', icon: TagIcon },
+        { href: '/marketing/swot', label: 'SWOT Tahlil', icon: AdjustmentsHorizontalIcon },
+      ]
+    },
+    {
+      title: 'Kommunikatsiya',
+      items: [
+        { href: '/marketing/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/marketing/lead-forms', label: 'Lead Formalar', icon: DocumentTextIcon },
+        { href: '/marketing/chatbot', label: 'Chatbot', icon: ChatBubbleLeftRightIcon },
+      ]
+    },
+    {
       title: null,
       items: [
         { href: '/marketing/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
@@ -440,6 +466,12 @@ export const marketingLayoutConfig = {
       items: [
         { href: '/marketing/analytics', label: 'Umumiy Analitika', icon: ChartBarIcon },
         { href: '/marketing/analytics/campaigns', label: 'Kampaniya Analitika', icon: PresentationChartLineIcon },
+      ]
+    },
+    {
+      title: null,
+      items: [
+        { href: '/marketing/settings', label: 'Sozlamalar', icon: CogIcon },
       ]
     },
   ],
@@ -526,6 +558,13 @@ export const financeLayoutConfig = {
         { href: '/finance/todos', label: 'Todo List', icon: CheckCircleIcon },
       ]
     },
+    {
+      title: 'Marketing Ma\'lumotlari',
+      items: [
+        { href: '/finance/campaigns', label: 'Kampaniya Byudjetlari', icon: PresentationChartLineIcon },
+        { href: '/finance/marketing-analytics', label: 'Marketing ROI', icon: ChartBarIcon },
+      ]
+    },
   ],
 };
 
@@ -599,6 +638,13 @@ export const operatorLayoutConfig = {
       title: 'Statistika',
       items: [
         { href: '/operator/kpi', label: 'Mening KPI', icon: PresentationChartLineIcon },
+      ]
+    },
+    {
+      title: 'Bilimlar Bazasi',
+      items: [
+        { href: '/operator/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
+        { href: '/operator/offers', label: 'Takliflar', icon: TagIcon },
       ]
     },
   ],

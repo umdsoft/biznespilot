@@ -22,6 +22,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\ContentCalendarController;
 use App\Http\Controllers\Shared\DreamBuyerController as SharedDreamBuyerController;
+use App\Http\Controllers\Shared\OffersController as SharedOffersController;
 use App\Http\Controllers\CustdevController;
 use App\Http\Controllers\PublicSurveyController;
 use App\Http\Controllers\MarketingController;
@@ -1275,6 +1276,29 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
     Route::put('/profile', [App\Http\Controllers\SalesHead\ProfileController::class, 'update'])->name('profile.update');
     Route::get('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'update'])->name('settings.update');
+
+    // Marketing Information (Read-Only)
+    Route::prefix('dream-buyer')->name('dream-buyer.')->group(function () {
+        Route::get('/', [SharedDreamBuyerController::class, 'index'])->name('index');
+        Route::get('/{dreamBuyer}', [SharedDreamBuyerController::class, 'show'])->name('show');
+        Route::post('/{dreamBuyer}/content-ideas', [SharedDreamBuyerController::class, 'generateContentIdeas'])->name('content-ideas');
+    });
+
+    Route::prefix('campaigns')->name('campaigns.')->group(function () {
+        Route::get('/', [MarketingCampaignController::class, 'index'])->name('index');
+        Route::get('/{campaign}', [MarketingCampaignController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('offers')->name('offers.')->group(function () {
+        Route::get('/', [SharedOffersController::class, 'index'])->name('index');
+        Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('competitors')->name('competitors.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
+        Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
+    });
 });
 
 // ==============================================
@@ -1458,20 +1482,20 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::put('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveBusinessSwot'])->name('save');
     });
 
-    // Takliflar (Offers) - Full features with AI
+    // Takliflar (Offers) - Full features with AI - Using Shared Controller
     Route::prefix('offers')->name('offers.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\OffersController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\Marketing\OffersController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Marketing\OffersController::class, 'store'])->name('store');
-        Route::post('/generate-ai', [App\Http\Controllers\Marketing\OffersController::class, 'generateAI'])->name('generate-ai');
-        Route::post('/generate-guarantee', [App\Http\Controllers\Marketing\OffersController::class, 'generateGuarantee'])->name('generate-guarantee');
-        Route::post('/calculate-value-score', [App\Http\Controllers\Marketing\OffersController::class, 'calculateValueScore'])->name('calculate-value-score');
-        Route::get('/{offer}', [App\Http\Controllers\Marketing\OffersController::class, 'show'])->name('show');
-        Route::get('/{offer}/edit', [App\Http\Controllers\Marketing\OffersController::class, 'edit'])->name('edit');
-        Route::put('/{offer}', [App\Http\Controllers\Marketing\OffersController::class, 'update'])->name('update');
-        Route::delete('/{offer}', [App\Http\Controllers\Marketing\OffersController::class, 'destroy'])->name('destroy');
-        Route::post('/{offer}/duplicate', [App\Http\Controllers\Marketing\OffersController::class, 'duplicate'])->name('duplicate');
-        Route::post('/{offer}/generate-variations', [App\Http\Controllers\Marketing\OffersController::class, 'generateVariations'])->name('generate-variations');
+        Route::get('/', [SharedOffersController::class, 'index'])->name('index');
+        Route::get('/create', [SharedOffersController::class, 'create'])->name('create');
+        Route::post('/', [SharedOffersController::class, 'store'])->name('store');
+        Route::post('/generate-ai', [SharedOffersController::class, 'generateAI'])->name('generate-ai');
+        Route::post('/generate-guarantee', [SharedOffersController::class, 'generateGuarantee'])->name('generate-guarantee');
+        Route::post('/calculate-value-score', [SharedOffersController::class, 'calculateValueScore'])->name('calculate-value-score');
+        Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
+        Route::get('/{offer}/edit', [SharedOffersController::class, 'edit'])->name('edit');
+        Route::put('/{offer}', [SharedOffersController::class, 'update'])->name('update');
+        Route::delete('/{offer}', [SharedOffersController::class, 'destroy'])->name('destroy');
+        Route::post('/{offer}/duplicate', [SharedOffersController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{offer}/generate-variations', [SharedOffersController::class, 'generateVariations'])->name('generate-variations');
     });
 
     // AI Yordamchilar
@@ -1557,6 +1581,31 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
             Route::post('/{conversation}/close', [App\Http\Controllers\Marketing\TelegramConversationController::class, 'close'])->name('close');
         });
     });
+
+    // Lead Forms (Read-only for Marketing)
+    Route::prefix('lead-forms')->name('lead-forms.')->group(function () {
+        Route::get('/', [LeadFormController::class, 'index'])->name('index');
+        Route::get('/{leadForm}', [LeadFormController::class, 'show'])->name('show');
+        Route::get('/{leadForm}/responses', [LeadFormController::class, 'responses'])->name('responses');
+    });
+
+    // Unified Inbox
+    Route::prefix('inbox')->name('inbox.')->group(function () {
+        Route::get('/', [UnifiedInboxController::class, 'index'])->name('index');
+        Route::get('/{conversation}', [UnifiedInboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [UnifiedInboxController::class, 'sendMessage'])->name('send');
+        Route::post('/{conversation}/mark-read', [UnifiedInboxController::class, 'markRead'])->name('mark-read');
+    });
+
+    // Chatbot (Read-only for Marketing)
+    Route::prefix('chatbot')->name('chatbot.')->group(function () {
+        Route::get('/', [ChatbotController::class, 'index'])->name('index');
+        Route::get('/{chatbot}', [ChatbotController::class, 'show'])->name('show');
+    });
+
+    // Settings
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 
 // ==============================================
@@ -1627,6 +1676,14 @@ Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->gro
         Route::delete('/{todo}', [App\Http\Controllers\Finance\TodoController::class, 'destroy'])->name('destroy');
         Route::post('/{todo}/toggle', [App\Http\Controllers\Finance\TodoController::class, 'toggleComplete'])->name('toggle');
     });
+
+    // Marketing Budget Visibility (Read-Only)
+    Route::prefix('campaigns')->name('campaigns.')->group(function () {
+        Route::get('/', [MarketingCampaignController::class, 'index'])->name('index');
+        Route::get('/{campaign}', [MarketingCampaignController::class, 'show'])->name('show');
+    });
+
+    Route::get('/marketing-analytics', [App\Http\Controllers\Finance\ReportController::class, 'marketingROI'])->name('marketing-analytics');
 });
 
 // ==============================================
@@ -1673,5 +1730,16 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
         Route::post('/{todo}/toggle', [App\Http\Controllers\Operator\TodoController::class, 'toggleComplete'])->name('toggle');
         Route::post('/{todo}/toggle-user', [App\Http\Controllers\Operator\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
         Route::post('/reorder', [App\Http\Controllers\Operator\TodoController::class, 'reorder'])->name('reorder');
+    });
+
+    // Knowledge Base (Read-Only)
+    Route::prefix('dream-buyer')->name('dream-buyer.')->group(function () {
+        Route::get('/', [SharedDreamBuyerController::class, 'index'])->name('index');
+        Route::get('/{dreamBuyer}', [SharedDreamBuyerController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('offers')->name('offers.')->group(function () {
+        Route::get('/', [SharedOffersController::class, 'index'])->name('index');
+        Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
     });
 });
