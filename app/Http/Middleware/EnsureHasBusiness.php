@@ -48,18 +48,32 @@ class EnsureHasBusiness
             return $this->redirectToDepartmentPanel($userContext['department']);
         }
 
-        // Handle business owners
+        // Handle users with roles but no business (e.g., manually assigned operators/hr without team membership)
         if (!$userContext['has_business']) {
+            // Check if user has a specific role that grants access to a panel
+            $roleRedirect = $this->getRedirectForUserRole($user);
+
+            if ($roleRedirect) {
+                // Redirect to appropriate dashboard
+                return $roleRedirect;
+            }
+
+            // If user has role and is already on correct route, allow access
+            if ($this->userHasRoleAndOnCorrectRoute($user)) {
+                return $next($request);
+            }
+
+            // Only new users without roles should go to welcome page
             return redirect()->route('welcome.index');
         }
 
         // Set business context
         $this->setBusinessContext($userContext);
 
-        // Check onboarding status
-        if ($userContext['needs_onboarding'] && !$this->isOnboardingRoute($request)) {
-            return redirect()->route('onboarding.index');
-        }
+        // Skip onboarding check for now (will be re-enabled after AI integration)
+        // if ($userContext['needs_onboarding'] && !$this->isOnboardingRoute($request)) {
+        //     return redirect()->route('onboarding.index');
+        // }
 
         return $next($request);
     }
@@ -143,7 +157,7 @@ class EnsureHasBusiness
             'sales_operator' => ['operator*'],
             'operator' => ['operator*'],
             'marketing' => ['marketing*'],
-            'hr' => ['hr*'],
+            'hr' => ['hr*'], // HR has dedicated panel
             'finance' => ['finance*'],
         ];
 
@@ -166,9 +180,9 @@ class EnsureHasBusiness
         return match ($department) {
             'sales_head' => redirect()->route('sales-head.dashboard'),
             'sales_operator', 'operator' => redirect()->route('operator.dashboard'),
-            'marketing' => redirect()->route('marketing.dashboard'),
+            'marketing' => redirect()->route('marketing.hub'),
             'finance' => redirect()->route('finance.dashboard'),
-            'hr' => redirect()->route('business.dashboard'), // TODO: hr panel
+            'hr' => redirect()->route('hr.dashboard'), // HR has dedicated panel
             default => redirect()->route('business.dashboard'),
         };
     }
@@ -195,6 +209,57 @@ class EnsureHasBusiness
                $request->is('switch-business*') ||
                $request->is('new-business*') ||
                $request->is('welcome*');
+    }
+
+    /**
+     * Get redirect URL for user based on their role (if they have no business/team membership)
+     */
+    private function getRedirectForUserRole($user): ?Response
+    {
+        $redirectMap = [
+            'operator' => 'operator.dashboard',
+            'sales_operator' => 'operator.dashboard',
+            'sales_head' => 'sales-head.dashboard',
+            'marketing' => 'marketing.hub',
+            'finance' => 'finance.dashboard',
+            'hr' => 'hr.dashboard',
+        ];
+
+        foreach ($redirectMap as $role => $routeName) {
+            if ($user->hasRole($role)) {
+                // Check if already on the target route to prevent infinite loop
+                if (request()->routeIs($routeName)) {
+                    return null; // Will be handled by userHasRoleAndOnCorrectRoute
+                }
+                return redirect()->route($routeName);
+            }
+        }
+
+        // No matching role
+        return null;
+    }
+
+    /**
+     * Check if user has role and is already on their correct route
+     */
+    private function userHasRoleAndOnCorrectRoute($user): bool
+    {
+        $roleRouteMap = [
+            'operator' => 'operator*',
+            'sales_operator' => 'operator*',
+            'sales_head' => 'sales-head*',
+            'marketing' => 'marketing*',
+            'finance' => 'finance*',
+            'hr' => 'hr*',
+        ];
+
+        foreach ($roleRouteMap as $role => $routePattern) {
+            if ($user->hasRole($role) && request()->is($routePattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

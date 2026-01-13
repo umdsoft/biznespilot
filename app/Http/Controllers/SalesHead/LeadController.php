@@ -332,7 +332,7 @@ class LeadController extends Controller
             'gender' => 'nullable|in:male,female',
             'source_id' => 'nullable',
             'assigned_to' => 'nullable|exists:users,id',
-            'status' => 'sometimes|required|string|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'status' => 'sometimes|required|string|in:new,contacted,callback,considering,meeting_scheduled,meeting_attended,won,lost',
             'notes' => 'nullable|string',
             'lost_reason' => 'nullable|string',
             'lost_reason_details' => 'nullable|string',
@@ -410,27 +410,6 @@ class LeadController extends Controller
     }
 
     /**
-     * Delete lead
-     */
-    public function destroy($leadId)
-    {
-        $business = $this->getCurrentBusiness();
-
-        if (!$business) {
-            return response()->json(['error' => 'Business not found'], 404);
-        }
-
-        $lead = Lead::where('business_id', $business->id)->findOrFail($leadId);
-        $lead->delete();
-
-        if (request()->wantsJson() || request()->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Lead o\'chirildi']);
-        }
-
-        return back()->with('success', 'Lead o\'chirildi');
-    }
-
-    /**
      * Assign lead to operator
      */
     public function assign(Request $request, $leadId)
@@ -498,7 +477,7 @@ class LeadController extends Controller
         $oldStatus = $lead->status;
 
         $validated = $request->validate([
-            'status' => 'required|string|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'status' => 'required|string|in:new,contacted,callback,considering,meeting_scheduled,meeting_attended,won,lost',
             'lost_reason' => 'nullable|string',
             'lost_reason_details' => 'nullable|string',
         ]);
@@ -510,11 +489,12 @@ class LeadController extends Controller
             $statusLabels = [
                 'new' => 'Yangi',
                 'contacted' => 'Bog\'lanildi',
-                'qualified' => 'Qualified',
-                'proposal' => 'Taklif',
-                'negotiation' => 'Muzokara',
-                'won' => 'Yutildi',
-                'lost' => 'Yo\'qotildi',
+                'callback' => 'Keyinroq bog\'lanish qilamiz',
+                'considering' => 'O\'ylab ko\'radi',
+                'meeting_scheduled' => 'Uchrashuv belgilandi',
+                'meeting_attended' => 'Uchrashuvga keldi',
+                'won' => 'Sotuv',
+                'lost' => 'Sifatsiz lid',
             ];
 
             LeadActivity::log(

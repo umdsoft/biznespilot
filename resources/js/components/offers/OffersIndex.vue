@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import {
     PlusIcon,
@@ -39,6 +39,9 @@ const getRoute = (action, id = null) => {
     };
     return routes[action] || routes.index;
 };
+
+// Check if panel is read-only (operator and saleshead can only view)
+const isReadOnly = computed(() => ['operator', 'saleshead'].includes(props.panelType));
 
 const getStatusColor = (status) => {
     const colors = {
@@ -104,6 +107,7 @@ const formatPrice = (price) => {
                 </div>
             </div>
             <Link
+                v-if="!isReadOnly"
                 :href="route(getRoute('create'))"
                 class="inline-flex items-center px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors gap-2"
             >
@@ -173,12 +177,16 @@ const formatPrice = (price) => {
                 AI yordamida irresistible offer yaratish orqali boshlang
             </p>
             <Link
+                v-if="!isReadOnly"
                 :href="route(getRoute('create'))"
                 class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors gap-2"
             >
                 <PlusIcon class="w-5 h-5" />
                 Offer Yaratish
             </Link>
+            <p v-else class="text-gray-500 dark:text-gray-400">
+                Hozircha Takliflar yaratilmagan
+            </p>
         </div>
 
         <!-- Offers Grid -->
@@ -251,12 +259,16 @@ const formatPrice = (price) => {
                     <div class="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
                         <Link
                             :href="route(getRoute('show'), offer.id)"
-                            class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-400 font-medium rounded-lg transition-colors text-sm"
+                            :class="[
+                                'inline-flex items-center justify-center gap-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-400 font-medium rounded-lg transition-colors text-sm',
+                                isReadOnly ? 'flex-1' : ''
+                            ]"
                         >
                             <EyeIcon class="w-4 h-4" />
                             Ko'rish
                         </Link>
                         <Link
+                            v-if="!isReadOnly"
                             :href="route(getRoute('edit'), offer.id)"
                             class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400 rounded-lg transition-colors"
                             title="Tahrirlash"
@@ -264,6 +276,7 @@ const formatPrice = (price) => {
                             <PencilIcon class="w-4 h-4" />
                         </Link>
                         <button
+                            v-if="!isReadOnly"
                             @click="duplicateOffer(offer)"
                             class="p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
                             title="Nusxa olish"
@@ -271,6 +284,7 @@ const formatPrice = (price) => {
                             <DocumentDuplicateIcon class="w-4 h-4" />
                         </button>
                         <button
+                            v-if="!isReadOnly"
                             @click="confirmDelete(offer)"
                             class="p-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg transition-colors"
                             title="O'chirish"

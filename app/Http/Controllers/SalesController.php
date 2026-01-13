@@ -250,7 +250,7 @@ class SalesController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'company' => ['nullable', 'string', 'max:255'],
             'source_id' => ['nullable', 'exists:lead_sources,id'],
-            'status' => ['required', 'in:new,contacted,qualified,proposal,negotiation,won,lost'],
+            'status' => ['required', 'in:new,contacted,callback,considering,meeting_scheduled,meeting_attended,won,lost'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'estimated_value' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
@@ -533,7 +533,7 @@ class SalesController extends Controller
             'district' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:500'],
             'source_id' => ['nullable', 'exists:lead_sources,id'],
-            'status' => ['nullable', 'in:new,contacted,qualified,proposal,negotiation,won,lost'],
+            'status' => ['nullable', 'in:new,contacted,callback,considering,meeting_scheduled,meeting_attended,won,lost'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'estimated_value' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
@@ -611,36 +611,6 @@ class SalesController extends Controller
     /**
      * Remove the specified lead.
      */
-    public function destroy(Lead $lead)
-    {
-        $currentBusiness = $this->getCurrentBusiness();
-
-        if (!$currentBusiness) {
-            return redirect()->route('business.index')
-                ->with('error', 'Avval biznes tanlang');
-        }
-
-        // Compare as strings to avoid type mismatch
-        if ((string) $lead->business_id !== (string) $currentBusiness->id) {
-            abort(403);
-        }
-
-        $lead->delete();
-
-        // Clear stats cache on lead deletion
-        Cache::forget("lead_stats_{$currentBusiness->id}");
-
-        // Return JSON for AJAX requests, redirect for form submissions
-        if (request()->wantsJson() || request()->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Lead muvaffaqiyatli o\'chirildi!',
-            ]);
-        }
-
-        return redirect()->route('business.sales.index')
-            ->with('success', 'Lead muvaffaqiyatli o\'chirildi!');
-    }
 
     /**
      * API: Get sales operators for the current business
@@ -893,11 +863,12 @@ class SalesController extends Controller
         $stages = [
             ['key' => 'new', 'label' => 'Yangi', 'color' => '#3B82F6'],
             ['key' => 'contacted', 'label' => 'Bog\'lanildi', 'color' => '#6366F1'],
-            ['key' => 'qualified', 'label' => 'Qualified', 'color' => '#8B5CF6'],
-            ['key' => 'proposal', 'label' => 'Taklif', 'color' => '#F97316'],
-            ['key' => 'negotiation', 'label' => 'Muzokara', 'color' => '#EAB308'],
-            ['key' => 'won', 'label' => 'Yutildi', 'color' => '#22C55E'],
-            ['key' => 'lost', 'label' => 'Yo\'qotildi', 'color' => '#EF4444'],
+            ['key' => 'callback', 'label' => 'Keyinroq bog\'lanish qilamiz', 'color' => '#8B5CF6'],
+            ['key' => 'considering', 'label' => 'O\'ylab ko\'radi', 'color' => '#F97316'],
+            ['key' => 'meeting_scheduled', 'label' => 'Uchrashuv belgilandi', 'color' => '#EAB308'],
+            ['key' => 'meeting_attended', 'label' => 'Uchrashuvga keldi', 'color' => '#14B8A6'],
+            ['key' => 'won', 'label' => 'Sotuv', 'color' => '#22C55E'],
+            ['key' => 'lost', 'label' => 'Sifatsiz lid', 'color' => '#EF4444'],
         ];
 
         $total = array_sum($statusCounts);
@@ -1199,11 +1170,12 @@ class SalesController extends Controller
             $statusLabels = [
                 'new' => 'Yangi',
                 'contacted' => 'Bog\'lanildi',
-                'qualified' => 'Qualified',
-                'proposal' => 'Taklif',
-                'negotiation' => 'Muzokara',
-                'won' => 'Yutildi',
-                'lost' => 'Yo\'qotildi',
+                'callback' => 'Keyinroq bog\'lanish qilamiz',
+                'considering' => 'O\'ylab ko\'radi',
+                'meeting_scheduled' => 'Uchrashuv belgilandi',
+                'meeting_attended' => 'Uchrashuvga keldi',
+                'won' => 'Sotuv',
+                'lost' => 'Sifatsiz lid',
             ];
 
             LeadActivity::log(

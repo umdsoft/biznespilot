@@ -16,6 +16,7 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SalesHeadMiddleware;
 use App\Http\Middleware\MarketingMiddleware;
 use App\Http\Middleware\FinanceMiddleware;
+use App\Http\Middleware\HRMiddleware;
 use App\Http\Middleware\OperatorMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -87,6 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'sales.head' => SalesHeadMiddleware::class,
             'marketing' => MarketingMiddleware::class,
             'finance' => FinanceMiddleware::class,
+            'hr' => HRMiddleware::class,
             'operator' => OperatorMiddleware::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         ]);

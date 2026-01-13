@@ -17,6 +17,9 @@ const getRoute = (name, params = null) => {
     return params ? route(prefix + name, params) : route(prefix + name);
 };
 
+// Check if panel is read-only (operator and saleshead can only view)
+const isReadOnly = computed(() => ['operator', 'saleshead'].includes(props.panelType));
+
 const deletingBuyer = ref(null);
 const selectedBuyerId = ref(null);
 
@@ -125,6 +128,7 @@ const getColorClasses = (color) => {
                 </div>
             </div>
             <Link
+                v-if="!isReadOnly"
                 :href="getRoute('dream-buyer.create')"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
             >
@@ -172,6 +176,7 @@ const getColorClasses = (color) => {
                 </div>
 
                 <Link
+                    v-if="!isReadOnly"
                     :href="getRoute('dream-buyer.create')"
                     class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
                 >
@@ -180,6 +185,9 @@ const getColorClasses = (color) => {
                     </svg>
                     Ideal Mijoz Yaratish
                 </Link>
+                <div v-else class="text-gray-500 dark:text-gray-400">
+                    <p class="text-center">Hozircha Ideal Mijoz profillari yaratilmagan</p>
+                </div>
             </div>
         </div>
 
@@ -233,7 +241,7 @@ const getColorClasses = (color) => {
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-2">
+                    <div v-if="!isReadOnly" class="flex flex-wrap gap-2">
                         <Link
                             :href="getRoute('dream-buyer.edit', selectedBuyer.id)"
                             class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
@@ -279,6 +287,7 @@ const getColorClasses = (color) => {
                             Ideal mijoz profilini to'ldiring - bu sizga marketing va savdoda katta yordam beradi.
                         </p>
                         <Link
+                            v-if="!isReadOnly"
                             :href="getRoute('dream-buyer.edit', selectedBuyer.id)"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition-colors"
                         >

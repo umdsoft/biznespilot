@@ -71,6 +71,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Alias for businesses() - get businesses owned by the user
+     */
+    public function ownedBusinesses()
+    {
+        return $this->businesses();
+    }
+
+    /**
      * Get the businesses the user is a member of
      */
     public function teamBusinesses()

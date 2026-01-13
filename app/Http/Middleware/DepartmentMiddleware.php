@@ -12,7 +12,7 @@ class DepartmentMiddleware
 {
     /**
      * Handle an incoming request.
-     * Check if user is a member of the specified department
+     * Check if user is a member of the specified department or has the appropriate role
      */
     public function handle(Request $request, Closure $next, string $department): Response
     {
@@ -22,10 +22,37 @@ class DepartmentMiddleware
             return redirect()->route('login');
         }
 
+        // Check if user has the appropriate Spatie role (for role-based access without team membership)
+        $roleMap = [
+            'operator' => ['operator', 'sales_operator'],
+            'sales_head' => ['sales_head'],
+            'marketing' => ['marketing'],
+            'finance' => ['finance'],
+            'hr' => ['hr'],
+        ];
+
+        $allowedRoles = $roleMap[$department] ?? [];
+        foreach ($allowedRoles as $role) {
+            if ($user->hasRole($role)) {
+                // User has role - allow access even without business context
+                return $next($request);
+            }
+        }
+
+        // For team members, check business context
         $businessId = session('current_business_id');
 
         if (!$businessId) {
-            return redirect('/business')->with('error', 'Biznes tanlanmagan');
+            $departmentNames = [
+                'marketing' => 'Marketing bo\'limi',
+                'finance' => 'Moliya bo\'limi',
+                'operator' => 'Operator',
+                'sales_head' => 'Sotuv boshlig\'i',
+                'hr' => 'HR bo\'limi',
+            ];
+
+            $deptName = $departmentNames[$department] ?? $department;
+            return redirect()->route('business.dashboard')->with('error', "Biznes tanlanmagan. {$deptName} panelidan foydalanish uchun biznesni tanlang.");
         }
 
         // Check if user is business owner (has access to all departments)
@@ -37,19 +64,26 @@ class DepartmentMiddleware
         // Check if user is member of the specified department
         $membership = BusinessUser::where('business_id', $businessId)
             ->where('user_id', $user->id)
-            ->where('department', $department)
+            ->where(function($query) use ($department) {
+                $query->where('department', $department);
+                // Allow 'sales_operator' department to access 'operator' routes
+                if ($department === 'operator') {
+                    $query->orWhere('department', 'sales_operator');
+                }
+            })
             ->first();
 
         if (!$membership) {
             $departmentNames = [
-                'marketing' => 'marketing bo\'limi',
-                'finance' => 'moliya bo\'limi',
-                'operator' => 'operator',
-                'sales_head' => 'sotuv boshlig\'i',
+                'marketing' => 'Marketing bo\'limi',
+                'finance' => 'Moliya bo\'limi',
+                'operator' => 'Operator',
+                'sales_head' => 'Sotuv boshlig\'i',
+                'hr' => 'HR bo\'limi',
             ];
 
             $deptName = $departmentNames[$department] ?? $department;
-            return redirect('/business')->with('error', "Sizda {$deptName} huquqlari yo'q");
+            return redirect()->route('business.dashboard')->with('error', "Sizda {$deptName} huquqlari yo'q");
         }
 
         return $next($request);

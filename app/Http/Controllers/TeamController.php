@@ -10,22 +10,34 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
 
 class TeamController extends Controller
 {
     use HasCurrentBusiness;
 
     /**
-     * Get team members for the current business
+     * Get team members for the current business (for Inertia page)
      */
     public function index()
     {
         $business = $this->getCurrentBusiness();
 
         if (!$business) {
-            return response()->json(['error' => 'Biznes topilmadi'], 404);
+            return redirect()->route('login');
         }
 
+        $membersData = $this->getMembersData($business);
+
+        // Return Inertia page
+        return Inertia::render('HR/Team/Index', $membersData);
+    }
+
+    /**
+     * Helper method to get members data
+     */
+    private function getMembersData($business)
+    {
         // Get business owner
         $owner = $business->owner;
         $ownerData = null;
@@ -74,11 +86,11 @@ class TeamController extends Controller
             array_unshift($members, $ownerData);
         }
 
-        return response()->json([
+        return [
             'members' => $members,
             'departments' => BusinessUser::DEPARTMENTS,
             'roles' => BusinessUser::ROLES,
-        ]);
+        ];
     }
 
     /**

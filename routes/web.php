@@ -105,7 +105,7 @@ Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->n
 // Business switching route
 Route::middleware('auth')->post('/switch-business/{business}', [WelcomeController::class, 'switchBusiness'])->name('switch-business');
 
-// Welcome routes (for users without business)
+// Welcome routes (for users without business) - WITHOUT has.business middleware to prevent redirect loop
 Route::middleware('auth')->prefix('welcome')->name('welcome.')->group(function () {
     Route::get('/', [WelcomeController::class, 'index'])->name('index');
     Route::get('/create-business', [WelcomeController::class, 'createBusiness'])->name('create-business');
@@ -1250,7 +1250,6 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::post('/', [App\Http\Controllers\SalesHead\LeadController::class, 'store'])->name('store');
         Route::get('/{lead}', [App\Http\Controllers\SalesHead\LeadController::class, 'show'])->name('show');
         Route::put('/{lead}', [App\Http\Controllers\SalesHead\LeadController::class, 'update'])->name('update');
-        Route::delete('/{lead}', [App\Http\Controllers\SalesHead\LeadController::class, 'destroy'])->name('destroy');
         Route::post('/{lead}/assign', [App\Http\Controllers\SalesHead\LeadController::class, 'assign'])->name('assign');
         Route::post('/{lead}/status', [App\Http\Controllers\SalesHead\LeadController::class, 'updateStatus'])->name('status');
         Route::post('/{lead}/mark-lost', [App\Http\Controllers\SalesHead\LeadController::class, 'markLost'])->name('mark-lost');
@@ -1759,6 +1758,208 @@ Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->gro
 });
 
 // ==============================================
+// HR Panel Routes (Kadrlar Bo'limi)
+// ==============================================
+Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () {
+    // Dashboard
+    Route::get('/', [App\Http\Controllers\HR\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/stats', [App\Http\Controllers\HR\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // Team Management (Jamoa boshqaruvi)
+    Route::prefix('team')->name('team.')->group(function () {
+        Route::get('/', [App\Http\Controllers\TeamController::class, 'index'])->name('index');
+        Route::post('/invite', [App\Http\Controllers\TeamController::class, 'invite'])->name('invite');
+        Route::put('/{member}', [App\Http\Controllers\TeamController::class, 'update'])->name('update');
+        Route::delete('/{member}', [App\Http\Controllers\TeamController::class, 'remove'])->name('remove');
+        Route::post('/{member}/reset-password', [App\Http\Controllers\TeamController::class, 'resetPassword'])->name('reset-password');
+    });
+
+    // Departments (Bo'limlar)
+    Route::prefix('departments')->name('departments.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\HR\DepartmentsController::class, 'index'])->name('index');
+    });
+
+    // Invitations (Taklifnomalar)
+    Route::prefix('invitations')->name('invitations.')->group(function () {
+        Route::get('/', function () {
+            $business = auth()->user()->ownedBusinesses()->first() ?? auth()->user()->businesses()->first();
+
+            if (!$business) {
+                return redirect()->route('login');
+            }
+
+            $pendingInvitations = \App\Models\BusinessUser::where('business_id', $business->id)
+                ->whereNull('accepted_at')
+                ->with(['user:id,name,phone,login'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(fn($inv) => [
+                    'id' => $inv->id,
+                    'name' => $inv->user->name ?? 'N/A',
+                    'phone' => $inv->user->phone ?? $inv->user->login ?? 'N/A',
+                    'department' => $inv->department_label,
+                    'invited_at' => $inv->created_at->format('d.m.Y H:i'),
+                ]);
+            return inertia('HR/Invitations/Index', ['invitations' => $pendingInvitations]);
+        })->name('index');
+    });
+
+    // Tasks (Vazifalar)
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', function () {
+            return inertia('HR/Tasks/Index', ['tasks' => []]);
+        })->name('index');
+    });
+
+    // Todo List
+    Route::prefix('todos')->name('todos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\TodoController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\HR\TodoController::class, 'store'])->name('store');
+        Route::get('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'show'])->name('show');
+        Route::put('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'destroy'])->name('destroy');
+        Route::post('/{todo}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleComplete'])->name('toggle');
+        Route::post('/{todo}/toggle-user', [App\Http\Controllers\HR\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
+        Route::post('/reorder', [App\Http\Controllers\HR\TodoController::class, 'reorder'])->name('reorder');
+
+        // Subtasks
+        Route::post('/{todo}/subtasks', [App\Http\Controllers\HR\TodoController::class, 'addSubtask'])->name('subtasks.store');
+        Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
+    });
+
+    // Attendance (Davomat)
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\AttendanceController::class, 'index'])->name('index');
+        Route::post('/check-in', [App\Http\Controllers\HR\AttendanceController::class, 'checkIn'])->name('check-in');
+        Route::post('/check-out', [App\Http\Controllers\HR\AttendanceController::class, 'checkOut'])->name('check-out');
+        Route::post('/', [App\Http\Controllers\HR\AttendanceController::class, 'store'])->name('store');
+        Route::put('/{attendance}', [App\Http\Controllers\HR\AttendanceController::class, 'update'])->name('update');
+        Route::delete('/{attendance}', [App\Http\Controllers\HR\AttendanceController::class, 'destroy'])->name('destroy');
+        Route::get('/monthly-report', [App\Http\Controllers\HR\AttendanceController::class, 'monthlyReport'])->name('monthly-report');
+        Route::get('/settings', [App\Http\Controllers\HR\AttendanceController::class, 'settings'])->name('settings');
+        Route::put('/settings', [App\Http\Controllers\HR\AttendanceController::class, 'updateSettings'])->name('settings.update');
+    });
+
+    // Leave Management (Ta'til tizimi)
+    Route::prefix('leave')->name('leave.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\LeaveController::class, 'index'])->name('index');
+        Route::get('/approvals', [App\Http\Controllers\HR\LeaveController::class, 'approvals'])->name('approvals');
+        Route::get('/calendar', [App\Http\Controllers\HR\LeaveController::class, 'calendar'])->name('calendar');
+        Route::post('/', [App\Http\Controllers\HR\LeaveController::class, 'store'])->name('store');
+        Route::post('/{leaveRequest}/approve', [App\Http\Controllers\HR\LeaveController::class, 'approve'])->name('approve');
+        Route::post('/{leaveRequest}/reject', [App\Http\Controllers\HR\LeaveController::class, 'reject'])->name('reject');
+        Route::post('/{leaveRequest}/cancel', [App\Http\Controllers\HR\LeaveController::class, 'cancel'])->name('cancel');
+    });
+
+    // Performance (Samaradorlik)
+    Route::prefix('performance')->name('performance.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\PerformanceController::class, 'index'])->name('index');
+
+        // Goals Management
+        Route::prefix('goals')->name('goals.')->group(function () {
+            Route::post('/', [App\Http\Controllers\HR\PerformanceController::class, 'storeGoal'])->name('store');
+            Route::put('/{goal}', [App\Http\Controllers\HR\PerformanceController::class, 'updateGoal'])->name('update');
+        });
+
+        // KPI Templates
+        Route::get('/kpi', [App\Http\Controllers\HR\PerformanceController::class, 'kpiTemplates'])->name('kpi');
+        Route::post('/kpi', [App\Http\Controllers\HR\PerformanceController::class, 'storeKpiTemplate'])->name('kpi.store');
+    });
+
+    // Payroll (Ish Haqi)
+    Route::prefix('payroll')->name('payroll.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\PayrollController::class, 'index'])->name('index');
+
+        // Salary Structures
+        Route::get('/salary-structures', [App\Http\Controllers\HR\PayrollController::class, 'salaryStructures'])->name('salary-structures');
+        Route::post('/salary-structures', [App\Http\Controllers\HR\PayrollController::class, 'storeSalaryStructure'])->name('salary-structures.store');
+
+        // Bonuses
+        Route::get('/bonuses', [App\Http\Controllers\HR\PayrollController::class, 'bonuses'])->name('bonuses');
+        Route::post('/bonuses', [App\Http\Controllers\HR\PayrollController::class, 'storeBonus'])->name('bonuses.store');
+    });
+
+    // Job Descriptions (Lavozim Majburiyatlari)
+    Route::prefix('job-descriptions')->name('job-descriptions.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\JobDescriptionsController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\HR\JobDescriptionsController::class, 'show'])->name('show');
+        Route::post('/', [App\Http\Controllers\HR\JobDescriptionsController::class, 'store'])->name('store');
+        Route::put('/{id}', [App\Http\Controllers\HR\JobDescriptionsController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\HR\JobDescriptionsController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [App\Http\Controllers\HR\JobDescriptionsController::class, 'toggleStatus'])->name('toggle-status');
+    });
+
+    // Recruiting (Ishga Qabul)
+    Route::prefix('recruiting')->name('recruiting.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\RecruitingController::class, 'index'])->name('index');
+        Route::get('/applications', [App\Http\Controllers\HR\RecruitingController::class, 'applications'])->name('applications');
+        Route::post('/job-postings', [App\Http\Controllers\HR\RecruitingController::class, 'storeJobPosting'])->name('job-postings.store');
+        Route::post('/job-postings/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateJobPostingStatus'])->name('job-postings.update-status');
+        Route::delete('/job-postings/{id}', [App\Http\Controllers\HR\RecruitingController::class, 'destroyJobPosting'])->name('job-postings.destroy');
+        Route::post('/applications/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateApplicationStatus'])->name('applications.update-status');
+    });
+
+    // Organizational Structure (Tashkiliy Tuzilma)
+    Route::prefix('org-structure')->name('org-structure.')->group(function () {
+        Route::get('/', [App\Http\Controllers\OrgStructureController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\OrgStructureController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\OrgStructureController::class, 'store'])->name('store');
+        Route::get('/{orgStructure}', [App\Http\Controllers\OrgStructureController::class, 'show'])->name('show');
+        Route::get('/{orgStructure}/edit', [App\Http\Controllers\OrgStructureController::class, 'edit'])->name('edit');
+        Route::put('/{orgStructure}', [App\Http\Controllers\OrgStructureController::class, 'update'])->name('update');
+        Route::delete('/{orgStructure}', [App\Http\Controllers\OrgStructureController::class, 'destroy'])->name('destroy');
+
+        // Department management
+        Route::post('/{orgStructure}/departments', [App\Http\Controllers\OrgStructureController::class, 'storeDepartment'])->name('departments.store');
+        Route::put('/departments/{department}', [App\Http\Controllers\OrgStructureController::class, 'updateDepartment'])->name('departments.update');
+        Route::delete('/departments/{department}', [App\Http\Controllers\OrgStructureController::class, 'destroyDepartment'])->name('departments.destroy');
+
+        // Position management
+        Route::post('/departments/{department}/positions', [App\Http\Controllers\OrgStructureController::class, 'storePosition'])->name('positions.store');
+        Route::put('/positions/{position}', [App\Http\Controllers\OrgStructureController::class, 'updatePosition'])->name('positions.update');
+        Route::delete('/positions/{position}', [App\Http\Controllers\OrgStructureController::class, 'destroyPosition'])->name('positions.destroy');
+
+        // Assignment management
+        Route::post('/positions/{position}/assign', [App\Http\Controllers\OrgStructureController::class, 'assignUser'])->name('assignments.store');
+        Route::put('/assignments/{assignment}', [App\Http\Controllers\OrgStructureController::class, 'updateAssignment'])->name('assignments.update');
+        Route::delete('/assignments/{assignment}', [App\Http\Controllers\OrgStructureController::class, 'destroyAssignment'])->name('assignments.destroy');
+    });
+
+    // Reports (Hisobotlar)
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', function () {
+            return inertia('HR/Reports/Index');
+        })->name('index');
+    });
+
+    // Settings (Sozlamalar)
+    Route::get('/settings', function () {
+        return inertia('HR/Settings/Index');
+    })->name('settings');
+});
+
+// ==============================================
+// Employee Self-Service Routes (Barcha xodimlar uchun)
+// These routes are accessible to all employees regardless of department
+// ==============================================
+Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
+    // My Attendance
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\AttendanceController::class, 'index'])->name('index');
+        Route::post('/check-in', [App\Http\Controllers\HR\AttendanceController::class, 'checkIn'])->name('check-in');
+        Route::post('/check-out', [App\Http\Controllers\HR\AttendanceController::class, 'checkOut'])->name('check-out');
+    });
+
+    // My Leave Requests
+    Route::prefix('leave')->name('leave.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\LeaveController::class, 'index'])->name('index');
+        Route::get('/calendar', [App\Http\Controllers\HR\LeaveController::class, 'calendar'])->name('calendar');
+        Route::post('/', [App\Http\Controllers\HR\LeaveController::class, 'store'])->name('store');
+        Route::post('/{leaveRequest}/cancel', [App\Http\Controllers\HR\LeaveController::class, 'cancel'])->name('cancel');
+    });
+});
+
+// ==============================================
 // Operator Panel Routes (Sotuv Operatorlari)
 // ==============================================
 Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
@@ -1769,6 +1970,8 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     // My Leads (O'zimga berilgan leadlar)
     Route::prefix('leads')->name('leads.')->group(function () {
         Route::get('/', [App\Http\Controllers\Operator\LeadController::class, 'index'])->name('index');
+        Route::get('/api/list', [App\Http\Controllers\Operator\LeadController::class, 'getLeads'])->name('api.list');
+        Route::get('/api/stats', [App\Http\Controllers\Operator\LeadController::class, 'getStats'])->name('api.stats');
         Route::get('/{lead}', [App\Http\Controllers\Operator\LeadController::class, 'show'])->name('show');
         Route::post('/{lead}/status', [App\Http\Controllers\Operator\LeadController::class, 'updateStatus'])->name('status');
         Route::post('/{lead}/note', [App\Http\Controllers\Operator\LeadController::class, 'addNote'])->name('note');
@@ -1788,8 +1991,10 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     // My Tasks
     Route::prefix('tasks')->name('tasks.')->group(function () {
         Route::get('/', [App\Http\Controllers\Operator\TaskController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Operator\TaskController::class, 'store'])->name('store');
         Route::put('/{task}', [App\Http\Controllers\Operator\TaskController::class, 'update'])->name('update');
         Route::post('/{task}/complete', [App\Http\Controllers\Operator\TaskController::class, 'complete'])->name('complete');
+        Route::delete('/{task}', [App\Http\Controllers\Operator\TaskController::class, 'destroy'])->name('destroy');
     });
 
     // Todos routes

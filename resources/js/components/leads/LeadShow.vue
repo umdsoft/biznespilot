@@ -61,18 +61,30 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-    // Panel type: 'saleshead' or 'business'
+    // Panel type: 'saleshead', 'business', or 'operator'
     panelType: {
         type: String,
         required: true,
-        validator: (value) => ['saleshead', 'business'].includes(value),
+        validator: (value) => ['saleshead', 'business', 'operator'].includes(value),
     },
 });
 
 // Computed route prefixes based on panel type
-const routePrefix = computed(() => props.panelType === 'saleshead' ? '/sales-head' : '/business/api/sales');
-const indexRoute = computed(() => props.panelType === 'saleshead' ? '/sales-head/leads' : route('business.sales.index'));
-const backRoute = computed(() => props.panelType === 'saleshead' ? '/sales-head/leads' : route('business.sales.index'));
+const routePrefix = computed(() => {
+    if (props.panelType === 'saleshead') return '/sales-head';
+    if (props.panelType === 'operator') return '/operator/leads';
+    return '/business/api/sales';
+});
+const indexRoute = computed(() => {
+    if (props.panelType === 'saleshead') return '/sales-head/leads';
+    if (props.panelType === 'operator') return '/operator/leads';
+    return route('business.sales.index');
+});
+const backRoute = computed(() => {
+    if (props.panelType === 'saleshead') return '/sales-head/leads';
+    if (props.panelType === 'operator') return '/operator/leads';
+    return route('business.sales.index');
+});
 
 // Theme colors based on panel type
 const themeColors = computed(() => {
@@ -277,14 +289,15 @@ const checkSmsStatus = async () => {
 const statusConfig = {
     new: { label: 'Yangi', color: 'bg-blue-500', bgLight: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', icon: SparklesIcon },
     contacted: { label: "Bog'lanildi", color: 'bg-indigo-500', bgLight: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400', icon: PhoneIcon },
-    qualified: { label: 'Qualified', color: 'bg-purple-500', bgLight: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', icon: CheckCircleIcon },
-    proposal: { label: 'Taklif', color: 'bg-orange-500', bgLight: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400', icon: DocumentTextIcon },
-    negotiation: { label: 'Muzokara', color: 'bg-yellow-500', bgLight: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400', icon: ChatBubbleLeftRightIcon },
-    won: { label: 'Yutildi', color: 'bg-green-500', bgLight: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: CheckCircleIcon },
-    lost: { label: "Yo'qoldi", color: 'bg-red-500', bgLight: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', icon: XCircleIcon },
+    callback: { label: "Keyinroq bog'lanish qilamiz", color: 'bg-purple-500', bgLight: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', icon: ClockIcon },
+    considering: { label: "O'ylab ko'radi", color: 'bg-orange-500', bgLight: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400', icon: DocumentTextIcon },
+    meeting_scheduled: { label: 'Uchrashuv belgilandi', color: 'bg-yellow-500', bgLight: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400', icon: CalendarIcon },
+    meeting_attended: { label: 'Uchrashuvga keldi', color: 'bg-teal-500', bgLight: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400', icon: ChatBubbleLeftRightIcon },
+    won: { label: 'Sotuv', color: 'bg-green-500', bgLight: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: CheckCircleIcon },
+    lost: { label: 'Sifatsiz lid', color: 'bg-red-500', bgLight: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', icon: XCircleIcon },
 };
 
-const pipelineStages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won'];
+const pipelineStages = ['new', 'contacted', 'callback', 'considering', 'meeting_scheduled', 'meeting_attended', 'won'];
 
 const currentStatus = computed(() => statusConfig[props.lead.status] || statusConfig.new);
 const currentStageIndex = computed(() => pipelineStages.indexOf(props.lead.status));

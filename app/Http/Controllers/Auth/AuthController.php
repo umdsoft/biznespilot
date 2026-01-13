@@ -138,14 +138,23 @@ class AuthController extends Controller
             return match ($membership->department) {
                 'sales_head' => route('sales-head.dashboard'),
                 'sales_operator', 'operator' => route('operator.dashboard'),
-                'marketing' => route('marketing.dashboard'),
+                'marketing' => route('marketing.hub'),
                 'finance' => route('finance.dashboard'),
+                'hr' => route('hr.dashboard'), // HR has dedicated panel
                 default => route('business.dashboard'),
             };
         }
 
-        // Default: business owner
-        return route('business.dashboard');
+        // Check if user owns any business
+        $ownsBusiness = \App\Models\Business::where('user_id', $user->id)->exists();
+
+        if ($ownsBusiness) {
+            // User has business, redirect to dashboard
+            return route('business.dashboard');
+        }
+
+        // New user without business, redirect to welcome page
+        return route('welcome.index');
     }
 
     public function showRegister()
@@ -165,8 +174,8 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        // Redirect new users to business dashboard
-        return redirect()->route('business.dashboard');
+        // Redirect new users to welcome page (they need to create a business first)
+        return redirect()->route('welcome.create-business');
     }
 
     public function logout(Request $request)

@@ -27,6 +27,8 @@ import {
   AdjustmentsHorizontalIcon,
   UserIcon,
   CurrencyDollarIcon,
+  BriefcaseIcon,
+  UserPlusIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -488,11 +490,11 @@ export const marketingLayoutConfig = {
 // Finance Layout Configuration
 export const financeLayoutConfig = {
   // Styling
-  bgClass: 'bg-gradient-to-br from-green-50/30 via-emerald-50/20 to-teal-50/30 dark:from-gray-900 dark:via-green-900/10 dark:to-gray-900',
-  sidebarClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-r border-green-200/50 dark:border-green-700/30 shadow-lg',
-  headerClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-b border-green-200/50 dark:border-green-700/30',
-  logoBorderClass: 'border-green-200/50 dark:border-green-700/30',
-  sectionBorderClass: 'border-green-200/50 dark:border-green-700/30',
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
   mainClass: 'p-6',
   contentClass: 'max-w-screen-2xl mx-auto',
   titleClass: 'bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400 bg-clip-text text-transparent',
@@ -576,14 +578,109 @@ export const financeLayoutConfig = {
   ],
 };
 
+// HR Layout Configuration
+export const hrLayoutConfig = {
+  // Styling
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
+  mainClass: 'p-6',
+  contentClass: 'max-w-screen-2xl mx-auto',
+  titleClass: 'bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent',
+
+  // Logo
+  homeUrl: '/hr',
+  brandName: 'Kadrlar',
+  brandSubtitle: 'Bo\'limi',
+  logoGradient: 'bg-gradient-to-br from-purple-600 to-pink-600',
+  logoTextGradient: 'bg-gradient-to-r from-purple-600 to-pink-600',
+  logoIcon: UserGroupIcon,
+
+  // Features
+  showBusinessSelector: false,
+  showBusinessInfo: true,
+  showNotifications: true,
+  showDarkModeToggle: true,
+  showFeedbackWidget: false,
+  showQuickStats: true,
+  showTitleIcon: true,
+  titleIcon: UserGroupIcon,
+  titleIconBgClass: 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30',
+  titleIconClass: 'text-purple-600 dark:text-purple-400',
+
+  // Business info
+  businessAvatarClass: 'bg-gradient-to-br from-purple-500 to-pink-600',
+  businessRoleClass: 'text-purple-600 dark:text-purple-400',
+  businessRoleLabel: 'Kadrlar bo\'limi',
+
+  // User styling
+  userAvatarClass: 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400',
+  userRoleClass: 'text-gray-500 dark:text-gray-400',
+  userRoleLabel: 'HR mutaxassisi',
+
+  // User menu
+  userMenuItems: [
+    { href: '/hr/profile', label: 'Profil' },
+    { href: '/business', label: 'Biznes Paneliga', class: 'text-blue-600 hover:bg-blue-50' },
+    { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
+  ],
+
+  // Navigation
+  navigation: [
+    {
+      title: null,
+      items: [
+        { href: '/hr', label: 'Dashboard', icon: HomeIcon, exact: true },
+      ]
+    },
+    {
+      title: 'Jamoa Boshqaruvi',
+      items: [
+        { href: '/hr/org-structure', label: 'Tashkiliy Tuzilma', icon: BuildingOfficeIcon },
+        { href: '/hr/team', label: 'Xodimlar', icon: UsersIcon },
+        { href: '/hr/departments', label: 'Bo\'limlar', icon: BuildingOfficeIcon },
+        { href: '/hr/invitations', label: 'Taklifnomalar', icon: BellIcon },
+        { href: '/hr/job-descriptions', label: 'Lavozim Majburiyatlari', icon: BriefcaseIcon },
+        { href: '/hr/recruiting', label: 'Ishga Qabul', icon: UserPlusIcon },
+      ]
+    },
+    {
+      title: 'Ish Jarayonlari',
+      items: [
+        { href: '/hr/attendance', label: 'Davomat', icon: ClockIcon },
+        { href: '/hr/leave', label: 'Ta\'til', icon: CalendarIcon },
+        { href: '/hr/performance', label: 'Samaradorlik', icon: ChartBarIcon },
+        { href: '/hr/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
+        { href: '/hr/todos', label: 'Todo List', icon: CheckCircleIcon },
+      ]
+    },
+    {
+      title: 'Moliyaviy',
+      items: [
+        { href: '/hr/payroll', label: 'Ish Haqi', icon: CurrencyDollarIcon },
+      ]
+    },
+    {
+      title: 'Hisobotlar',
+      items: [
+        { href: '/hr/reports', label: 'Barcha Hisobotlar', icon: DocumentChartBarIcon },
+        { href: '/hr/reports/team-analytics', label: 'Jamoa Analitika', icon: PresentationChartLineIcon },
+      ]
+    },
+  ],
+};
+
 // Operator Layout Configuration
 export const operatorLayoutConfig = {
   // Styling
-  bgClass: 'bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-cyan-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900',
-  sidebarClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-r border-blue-200/50 dark:border-blue-700/30 shadow-lg',
-  headerClass: 'bg-white/90 backdrop-blur-xl dark:bg-gray-800/90 border-b border-blue-200/50 dark:border-blue-700/30',
-  logoBorderClass: 'border-blue-200/50 dark:border-blue-700/30',
-  sectionBorderClass: 'border-blue-200/50 dark:border-blue-700/30',
+  bgClass: 'bg-gray-50 dark:bg-gray-900',
+  sidebarClass: 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm',
+  headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+  logoBorderClass: 'border-gray-200 dark:border-gray-700',
+  sectionBorderClass: 'border-gray-200 dark:border-gray-700',
   mainClass: 'p-6',
   contentClass: 'max-w-screen-2xl mx-auto',
   titleClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent',
@@ -755,6 +852,9 @@ export function useLayoutConfig(type, badgeCounts = {}) {
       break;
     case 'finance':
       config = { ...financeLayoutConfig };
+      break;
+    case 'hr':
+      config = { ...hrLayoutConfig };
       break;
     case 'operator':
       config = { ...operatorLayoutConfig };

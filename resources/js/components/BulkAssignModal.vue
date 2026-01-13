@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
     UserPlusIcon,
@@ -74,36 +75,43 @@ const submit = async () => {
     error.value = '';
 
     try {
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
         const leadIds = props.leads.map(lead => lead.id);
 
-        const response = await fetch(route('business.api.sales.bulk-assign'), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                lead_ids: leadIds,
-                operator_id: selectedOperator.value,
-                reassign_tasks: reassignTasks.value,
-            }),
+        const response = await window.axios.post(route('business.api.sales.bulk-assign'), {
+            lead_ids: leadIds,
+            operator_id: selectedOperator.value,
+            reassign_tasks: reassignTasks.value,
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
+        if (response.data.success) {
             emit('assigned', {
-                leads: data.leads,
+                leads: response.data.leads,
                 operator_id: selectedOperator.value,
             });
             emit('close');
         } else {
-            error.value = data.error || data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
         }
     } catch (err) {
         console.error('Failed to bulk assign leads:', err);
-        error.value = 'Tarmoq xatosi';
+
+        // Handle 419 CSRF error
+        if (isCsrfError(err)) {
+            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            await refreshCsrfToken();
+            return;
+        }
+
+        if (err.response?.data?.error) {
+            error.value = err.response.data.error;
+        } else if (err.response?.data?.message) {
+            error.value = err.response.data.message;
+        } else {
+            error.value = 'Tarmoq xatosi';
+        }
     } finally {
         isLoading.value = false;
     }

@@ -1023,7 +1023,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <!-- SipUNI -->
                   <a
-                    :href="route('business.settings.telephony') + '?provider=sipuni'"
+                    :href="route('integrations.telephony.settings') + '?provider=sipuni'"
                     class="group relative overflow-hidden bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/30 rounded-xl p-3 hover:border-purple-400 hover:bg-purple-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
@@ -1039,7 +1039,7 @@
 
                   <!-- PBX -->
                   <a
-                    :href="route('business.settings.telephony') + '?provider=pbx'"
+                    :href="route('integrations.telephony.settings') + '?provider=pbx'"
                     class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
                   >
                     <div class="flex flex-col items-center text-center">

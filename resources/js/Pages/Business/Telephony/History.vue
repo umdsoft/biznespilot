@@ -71,7 +71,7 @@ const getProviderLabel = (provider) => {
 };
 
 const applyFilters = () => {
-    router.get(route('business.telephony.history'), {
+    router.get(route('integrations.telephony.history'), {
         status: status.value === 'all' ? null : status.value,
         direction: direction.value === 'all' ? null : direction.value,
         search: search.value || null,
@@ -118,7 +118,7 @@ const playRecording = (url) => {
             <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-4">
                     <Link
-                        :href="route('business.settings.telephony')"
+                        :href="route('integrations.telephony.settings')"
                         class="p-2 bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors"
                     >
                         <ArrowLeftIcon class="w-5 h-5 text-white" />

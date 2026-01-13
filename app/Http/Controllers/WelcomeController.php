@@ -22,7 +22,8 @@ class WelcomeController extends Controller
             return redirect()->route('business.dashboard');
         }
 
-        return Inertia::render('Welcome');
+        // Redirect to create business page directly
+        return redirect()->route('welcome.create-business');
     }
 
     /**
@@ -148,8 +149,17 @@ class WelcomeController extends Controller
         // Set the new business as current
         session(['current_business_id' => $business->id]);
 
-        // Redirect to welcome/start page for new businesses
-        return redirect()->route('welcome.start')
+        // Clear user context cache to force refresh
+        session()->forget("user_context_{$business->user_id}");
+
+        // Mark onboarding as completed (skip onboarding for now)
+        $business->update([
+            'onboarding_status' => 'completed',
+            'onboarding_completed_at' => now(),
+        ]);
+
+        // Redirect directly to business dashboard
+        return redirect()->route('business.dashboard')
             ->with('success', 'Biznes muvaffaqiyatli yaratildi!');
     }
 
@@ -168,12 +178,7 @@ class WelcomeController extends Controller
         // Set the business as current
         session(['current_business_id' => $business->id]);
 
-        // Check if business needs onboarding
-        if ($business->onboarding_status !== 'completed') {
-            return redirect()->route('onboarding.index')
-                ->with('info', "{$business->name} biznesiga o'tdingiz.");
-        }
-
+        // Skip onboarding check for now - go directly to dashboard
         return redirect()->route('business.dashboard')
             ->with('success', "{$business->name} biznesiga o'tdingiz.");
     }

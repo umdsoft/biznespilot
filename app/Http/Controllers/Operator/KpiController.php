@@ -49,9 +49,9 @@ class KpiController extends Controller
                 'within_target' => 89, // percentage
             ],
             'tasks' => [
-                'completed_today' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->where('status', 'completed')->whereDate('completed_at', today())->count(),
-                'completed_this_week' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->where('status', 'completed')->whereBetween('completed_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                'overdue' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->where('status', '!=', 'completed')->where('due_date', '<', now())->count(),
+                'completed_today' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'completed')->whereDate('completed_at', today())->count(),
+                'completed_this_week' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'completed')->whereBetween('completed_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'overdue' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', '!=', 'completed')->where('due_date', '<', now())->count(),
             ],
             'satisfaction' => [
                 'rating' => 4.5,

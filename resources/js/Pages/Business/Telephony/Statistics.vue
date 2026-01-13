@@ -37,7 +37,7 @@ const getProviderLabel = () => {
             <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-4">
                     <Link
-                        :href="route('business.settings.telephony')"
+                        :href="route('integrations.telephony.settings')"
                         class="p-2 bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors"
                     >
                         <ArrowLeftIcon class="w-5 h-5 text-white" />
@@ -166,21 +166,21 @@ const getProviderLabel = () => {
                 <h3 class="text-lg font-semibold text-white mb-6">Status bo'yicha taqsimot</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Link
-                        :href="route('business.telephony.history', { status: 'completed' })"
+                        :href="route('integrations.telephony.history', { status: 'completed' })"
                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                     >
                         <p class="text-2xl font-bold text-green-400">{{ stats?.answered_calls || 0 }}</p>
                         <p class="text-sm text-slate-400">Tugallangan</p>
                     </Link>
                     <Link
-                        :href="route('business.telephony.history', { status: 'missed' })"
+                        :href="route('integrations.telephony.history', { status: 'missed' })"
                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                     >
                         <p class="text-2xl font-bold text-yellow-400">{{ stats?.missed_calls || 0 }}</p>
                         <p class="text-sm text-slate-400">Javobsiz</p>
                     </Link>
                     <Link
-                        :href="route('business.telephony.history', { status: 'failed' })"
+                        :href="route('integrations.telephony.history', { status: 'failed' })"
                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                     >
                         <p class="text-2xl font-bold text-red-400">{{ stats?.failed_calls || 0 }}</p>
@@ -196,13 +196,13 @@ const getProviderLabel = () => {
             <!-- Quick Actions -->
             <div class="mt-8 flex justify-center gap-4">
                 <Link
-                    :href="route('business.telephony.history')"
+                    :href="route('integrations.telephony.history')"
                     class="px-6 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors"
                 >
                     Barcha qo'ng'iroqlarni ko'rish
                 </Link>
                 <Link
-                    :href="route('business.settings.telephony')"
+                    :href="route('integrations.telephony.settings')"
                     class="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
                 >
                     Sozlamalarga o'tish

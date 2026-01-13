@@ -54,7 +54,7 @@ const sipuniForm = useForm({
 
 const connectPbx = () => {
     isConnecting.value = true;
-    pbxForm.post(route('business.settings.telephony.pbx.connect'), {
+    pbxForm.post(route('integrations.telephony.pbx.connect'), {
         onFinish: () => {
             isConnecting.value = false;
             if (!pbxForm.hasErrors) {
@@ -68,7 +68,7 @@ const disconnectPbx = () => {
     if (!confirm('PBX integratsiyasini o\'chirmoqchimisiz?')) return;
 
     isDisconnecting.value = true;
-    router.post(route('business.settings.telephony.pbx.disconnect'), {}, {
+    router.post(route('integrations.telephony.pbx.disconnect'), {}, {
         preserveScroll: true,
         onFinish: () => {
             isDisconnecting.value = false;
@@ -78,7 +78,7 @@ const disconnectPbx = () => {
 
 const connectSipuni = () => {
     isConnecting.value = true;
-    sipuniForm.post(route('business.settings.telephony.sipuni.connect'), {
+    sipuniForm.post(route('integrations.telephony.sipuni.connect'), {
         onFinish: () => {
             isConnecting.value = false;
             if (!sipuniForm.hasErrors) {
@@ -92,7 +92,7 @@ const disconnectSipuni = () => {
     if (!confirm('SipUni integratsiyasini o\'chirmoqchimisiz?')) return;
 
     isDisconnecting.value = true;
-    router.post(route('business.settings.telephony.sipuni.disconnect'), {}, {
+    router.post(route('integrations.telephony.sipuni.disconnect'), {}, {
         preserveScroll: true,
         onFinish: () => {
             isDisconnecting.value = false;
@@ -103,7 +103,7 @@ const disconnectSipuni = () => {
 const refreshBalance = async () => {
     isRefreshingBalance.value = true;
     try {
-        const response = await fetch(route('business.telephony.refresh-balance'), {
+        const response = await fetch(route('integrations.telephony.refresh-balance'), {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -452,27 +452,27 @@ const formatDuration = (seconds) => {
                             <div v-if="stats" class="mt-6 pt-6 border-t border-slate-700/50">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-white">Qo'ng'iroqlar Statistikasi (30 kun)</h3>
-                                    <Link :href="route('business.telephony.history')" class="text-blue-400 hover:text-blue-300 text-sm">
+                                    <Link :href="route('integrations.telephony.history')" class="text-blue-400 hover:text-blue-300 text-sm">
                                         Batafsil ko'rish
                                     </Link>
                                 </div>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <Link
-                                        :href="route('business.telephony.history')"
+                                        :href="route('integrations.telephony.history')"
                                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                                     >
                                         <p class="text-2xl font-bold text-white">{{ stats.total_calls }}</p>
                                         <p class="text-sm text-slate-400">Jami</p>
                                     </Link>
                                     <Link
-                                        :href="route('business.telephony.history', { status: 'completed' })"
+                                        :href="route('integrations.telephony.history', { status: 'completed' })"
                                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                                     >
                                         <p class="text-2xl font-bold text-green-400">{{ stats.answered_calls }}</p>
                                         <p class="text-sm text-slate-400">Javob berilgan</p>
                                     </Link>
                                     <Link
-                                        :href="route('business.telephony.history', { status: 'missed' })"
+                                        :href="route('integrations.telephony.history', { status: 'missed' })"
                                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                                     >
                                         <p class="text-2xl font-bold text-yellow-400">{{ stats.missed_calls }}</p>
@@ -711,27 +711,27 @@ const formatDuration = (seconds) => {
                             <div v-if="stats" class="mt-6 pt-6 border-t border-slate-700/50">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-white">Qo'ng'iroqlar Statistikasi (30 kun)</h3>
-                                    <Link :href="route('business.telephony.history')" class="text-purple-400 hover:text-purple-300 text-sm">
+                                    <Link :href="route('integrations.telephony.history')" class="text-purple-400 hover:text-purple-300 text-sm">
                                         Batafsil ko'rish
                                     </Link>
                                 </div>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <Link
-                                        :href="route('business.telephony.history')"
+                                        :href="route('integrations.telephony.history')"
                                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                                     >
                                         <p class="text-2xl font-bold text-white">{{ stats.total_calls }}</p>
                                         <p class="text-sm text-slate-400">Jami</p>
                                     </Link>
                                     <Link
-                                        :href="route('business.telephony.history', { status: 'completed' })"
+                                        :href="route('integrations.telephony.history', { status: 'completed' })"
                                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                                     >
                                         <p class="text-2xl font-bold text-green-400">{{ stats.answered_calls }}</p>
                                         <p class="text-sm text-slate-400">Javob berilgan</p>
                                     </Link>
                                     <Link
-                                        :href="route('business.telephony.history', { status: 'missed' })"
+                                        :href="route('integrations.telephony.history', { status: 'missed' })"
                                         class="bg-slate-700/30 rounded-xl p-4 text-center hover:bg-slate-700/50 transition-colors"
                                     >
                                         <p class="text-2xl font-bold text-yellow-400">{{ stats.missed_calls }}</p>
@@ -766,7 +766,7 @@ const formatDuration = (seconds) => {
                     <h3 class="text-lg font-semibold text-white mb-4">Tezkor harakatlar</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Link
-                            :href="route('business.telephony.history')"
+                            :href="route('integrations.telephony.history')"
                             class="flex items-center gap-4 p-4 bg-slate-700/30 rounded-xl hover:bg-slate-700/50 transition-colors"
                         >
                             <div class="w-12 h-12 bg-slate-600 rounded-xl flex items-center justify-center">
@@ -780,7 +780,7 @@ const formatDuration = (seconds) => {
                             </div>
                         </Link>
                         <Link
-                            :href="route('business.telephony.statistics')"
+                            :href="route('integrations.telephony.statistics')"
                             class="flex items-center gap-4 p-4 bg-slate-700/30 rounded-xl hover:bg-slate-700/50 transition-colors"
                         >
                             <div class="w-12 h-12 bg-slate-600 rounded-xl flex items-center justify-center">

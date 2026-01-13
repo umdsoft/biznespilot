@@ -31,7 +31,7 @@ const props = defineProps({
     panelType: {
         type: String,
         default: 'business',
-        validator: (value) => ['business', 'saleshead', 'marketing', 'finance', 'operator'].includes(value),
+        validator: (value) => ['business', 'saleshead', 'marketing', 'finance', 'operator', 'hr'].includes(value),
     },
 });
 
@@ -67,6 +67,12 @@ const panelConfig = computed(() => {
             routePrefix: 'operator',
             buttonClass: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25',
             templatesRoute: 'operator.todo-templates.index',
+        },
+        hr: {
+            primaryColor: 'purple',
+            routePrefix: 'hr',
+            buttonClass: 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/25',
+            templatesRoute: 'hr.todo-templates.index',
         },
     };
     return configs[props.panelType];

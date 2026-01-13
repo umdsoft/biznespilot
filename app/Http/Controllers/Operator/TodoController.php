@@ -34,7 +34,7 @@ class TodoController extends Controller
         $query = Todo::where('business_id', $business->id)
             ->whereNull('parent_id')
             ->where(function ($q) {
-                $q->where('assignee_id', Auth::id())
+                $q->where('assigned_to', Auth::id())
                     ->orWhereHas('assignees', function ($q) {
                         $q->where('user_id', Auth::id());
                     });
@@ -132,7 +132,7 @@ class TodoController extends Controller
             'total' => Todo::where('business_id', $businessId)
                 ->whereNull('parent_id')
                 ->where(function ($q) use ($userId) {
-                    $q->where('assignee_id', $userId)
+                    $q->where('assigned_to', $userId)
                         ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId));
                 })
                 ->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS])
@@ -140,7 +140,7 @@ class TodoController extends Controller
             'overdue' => Todo::where('business_id', $businessId)
                 ->whereNull('parent_id')
                 ->where(function ($q) use ($userId) {
-                    $q->where('assignee_id', $userId)
+                    $q->where('assigned_to', $userId)
                         ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId));
                 })
                 ->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS])
@@ -149,7 +149,7 @@ class TodoController extends Controller
             'completed_today' => Todo::where('business_id', $businessId)
                 ->whereNull('parent_id')
                 ->where(function ($q) use ($userId) {
-                    $q->where('assignee_id', $userId)
+                    $q->where('assigned_to', $userId)
                         ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId));
                 })
                 ->where('status', Todo::STATUS_COMPLETED)
@@ -176,7 +176,7 @@ class TodoController extends Controller
             'priority' => 'nullable|string',
             'due_date' => 'nullable|date',
             'due_time' => 'nullable|string',
-            'assignee_id' => 'nullable|exists:users,id',
+            'assigned_to' => 'nullable|exists:users,id',
             'assignees' => 'nullable|array',
             'tags' => 'nullable|array',
         ]);
@@ -184,7 +184,7 @@ class TodoController extends Controller
         $todo = Todo::create([
             'business_id' => $business->id,
             'user_id' => Auth::id(),
-            'assignee_id' => $validated['assignee_id'] ?? Auth::id(),
+            'assigned_to' => $validated['assigned_to'] ?? Auth::id(),
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'type' => $validated['type'],
@@ -228,7 +228,7 @@ class TodoController extends Controller
             'status' => 'sometimes|required|string',
             'due_date' => 'nullable|date',
             'due_time' => 'nullable|string',
-            'assignee_id' => 'nullable|exists:users,id',
+            'assigned_to' => 'nullable|exists:users,id',
             'assignees' => 'nullable|array',
             'tags' => 'nullable|array',
         ]);

@@ -15,28 +15,49 @@ class LeadController extends Controller
 {
     use HasCurrentBusiness;
 
-    public function index(Request $request)
+    public function index()
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return redirect()->route('login')->with('error', 'Biznes topilmadi');
+        }
+
+        return Inertia::render('Operator/Leads/Index', [
+            'leads' => null, // Lazy load via API
+            'stats' => null, // Lazy load via API
+            'channels' => [],
+            'operators' => [],
+            'lazyLoad' => true,
+        ]);
+    }
+
+    /**
+     * API: Get my assigned leads with pagination for lazy loading
+     */
+    public function getLeads(Request $request)
     {
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
         if (!$business) {
-            return Inertia::render('Operator/Leads/Index', [
-                'leads' => [],
-                'stats' => ['total' => 0, 'new' => 0, 'in_progress' => 0],
-            ]);
+            return response()->json(['error' => 'Business not found'], 404);
         }
+
+        $perPage = $request->input('per_page', 100);
+        $status = $request->input('status');
+        $search = $request->input('search');
 
         $query = Lead::where('business_id', $business->id)
             ->where('assigned_to', $userId)
-            ->orderBy('created_at', 'desc');
+            ->with(['source']);
 
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+        // Apply filters
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
         }
 
-        if ($request->has('search')) {
-            $search = $request->search;
+        if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
@@ -44,31 +65,48 @@ class LeadController extends Controller
             });
         }
 
-        $leads = $query->paginate(20)->through(fn($lead) => [
+        $query->orderBy('created_at', 'desc');
+
+        $leads = $query->paginate($perPage)->through(fn($lead) => [
             'id' => $lead->id,
             'name' => $lead->name,
             'phone' => $lead->phone,
             'email' => $lead->email,
             'status' => $lead->status,
-            'source' => $lead->source,
+            'source' => $lead->source?->name ?? 'Unknown',
+            'source_id' => $lead->source_id,
             'notes' => $lead->notes,
+            'priority' => $lead->priority ?? null,
+            'value' => $lead->value ?? 0,
             'created_at' => $lead->created_at->format('Y-m-d H:i'),
             'last_contact' => $lead->last_contact?->format('Y-m-d H:i'),
         ]);
 
+        return response()->json($leads);
+    }
+
+    /**
+     * API: Get stats for my assigned leads
+     */
+    public function getStats()
+    {
+        $business = $this->getCurrentBusiness();
+        $userId = Auth::id();
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
         $stats = [
-            'total' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->count(),
-            'new' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'new')->count(),
-            'in_progress' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'in_progress')->count(),
-            'contacted' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'contacted')->count(),
-            'converted' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'converted')->count(),
+            'total_leads' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->count(),
+            'new_leads' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'new')->count(),
+            'qualified_leads' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'qualified')->count(),
+            'pipeline_value' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->whereNotIn('status', ['converted', 'lost'])->sum('value'),
+            'won_deals' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'converted')->count(),
+            'total_value' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'converted')->sum('value'),
         ];
 
-        return Inertia::render('Operator/Leads/Index', [
-            'leads' => $leads,
-            'stats' => $stats,
-            'filters' => $request->only(['status', 'search']),
-        ]);
+        return response()->json($stats);
     }
 
     public function show($id)
@@ -76,35 +114,54 @@ class LeadController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
+        if (!$business) {
+            return redirect()->route('login');
+        }
+
         $lead = Lead::where('business_id', $business->id)
             ->where('assigned_to', $userId)
+            ->with(['source', 'assignedTo', 'tasks'])
             ->findOrFail($id);
 
-        $activities = LeadActivity::where('lead_id', $id)
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get()
-            ->map(fn($a) => [
-                'id' => $a->id,
-                'type' => $a->type,
-                'description' => $a->description,
-                'created_at' => $a->created_at->format('Y-m-d H:i'),
-                'user' => $a->user?->name,
-            ]);
+        // Format dates for display
+        $lead->created_at_formatted = $lead->created_at?->format('d.m.Y H:i');
+        $lead->last_contacted_at_formatted = $lead->last_contacted_at?->format('d.m.Y H:i');
 
         return Inertia::render('Operator/Leads/Show', [
             'lead' => [
                 'id' => $lead->id,
                 'name' => $lead->name,
-                'phone' => $lead->phone,
                 'email' => $lead->email,
+                'phone' => $lead->phone,
+                'company' => $lead->company,
+                'position' => $lead->position,
+                'source_id' => $lead->source_id,
+                'source_name' => $lead->source?->name,
+                'assigned_to' => $lead->assigned_to,
+                'assigned_to_name' => $lead->assignedTo?->name,
                 'status' => $lead->status,
-                'source' => $lead->source,
+                'priority' => $lead->priority,
+                'score' => $lead->score,
+                'tags' => $lead->tags ?? [],
                 'notes' => $lead->notes,
-                'created_at' => $lead->created_at->format('Y-m-d H:i'),
-                'last_contact' => $lead->last_contact?->format('Y-m-d H:i'),
+                'address' => $lead->address,
+                'city' => $lead->city,
+                'region' => $lead->region,
+                'district' => $lead->district,
+                'estimated_value' => $lead->estimated_value,
+                'actual_value' => $lead->actual_value,
+                'created_at' => $lead->created_at_formatted,
+                'last_contacted_at' => $lead->last_contacted_at_formatted,
+                'converted_at' => $lead->converted_at?->format('d.m.Y H:i'),
+                'lost_at' => $lead->lost_at?->format('d.m.Y H:i'),
+                'lost_reason' => $lead->lost_reason,
+                'tasks_count' => $lead->tasks->count(),
+                'activities_count' => $lead->activities_count ?? 0,
             ],
-            'activities' => $activities,
+            'operators' => [],
+            'sources' => [],
+            'regions' => [],
+            'districts' => [],
         ]);
     }
 
@@ -118,7 +175,7 @@ class LeadController extends Controller
             ->findOrFail($id);
 
         $validated = $request->validate([
-            'status' => 'required|in:new,contacted,in_progress,qualified,converted,lost',
+            'status' => 'required|in:new,contacted,callback,considering,meeting_scheduled,meeting_attended,won,lost',
         ]);
 
         $oldStatus = $lead->status;

@@ -46,7 +46,7 @@ class DashboardController extends Controller
 
         // My tasks
         $myTasks = Task::where('business_id', $business->id)
-            ->where('assignee_id', $userId)
+            ->where('assigned_to', $userId)
             ->where('status', '!=', 'completed')
             ->orderBy('due_date', 'asc')
             ->limit(10)
@@ -69,10 +69,10 @@ class DashboardController extends Controller
                 'converted' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'converted')->count(),
             ],
             'my_tasks' => [
-                'total' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->count(),
-                'pending' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->where('status', 'pending')->count(),
-                'overdue' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->where('status', '!=', 'completed')->where('due_date', '<', now())->count(),
-                'completed_today' => Task::where('business_id', $business->id)->where('assignee_id', $userId)->where('status', 'completed')->whereDate('completed_at', today())->count(),
+                'total' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->count(),
+                'pending' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'pending')->count(),
+                'overdue' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', '!=', 'completed')->where('due_date', '<', now())->count(),
+                'completed_today' => Task::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'completed')->whereDate('completed_at', today())->count(),
             ],
             'kpi' => [
                 'calls_today' => 12, // Sample data
@@ -84,8 +84,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Operator/Dashboard', [
             'stats' => $stats,
-            'myLeads' => $myLeads,
-            'myTasks' => $myTasks,
+            'recentLeads' => $myLeads,
+            'todayTasks' => $myTasks,
             'currentBusiness' => $business ? [
                 'id' => $business->id,
                 'name' => $business->name,
@@ -99,7 +99,7 @@ class DashboardController extends Controller
         $userId = Auth::id();
 
         $tasksCount = $business ? Task::where('business_id', $business->id)
-            ->where('assignee_id', $userId)
+            ->where('assigned_to', $userId)
             ->where('status', '!=', 'completed')
             ->where('due_date', '<', now())
             ->count() : 0;

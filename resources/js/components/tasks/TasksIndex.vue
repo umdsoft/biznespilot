@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     PlusIcon,
     CalendarIcon,
@@ -92,18 +93,23 @@ const closeTaskModal = () => {
 // Complete task
 const completeTask = async (task) => {
     try {
-        const response = await fetch(route(`${panelConfig.value.routePrefix}.tasks.complete`, task.id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-            },
-        });
-        if (response.ok) {
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
+        const response = await window.axios.post(route(`${panelConfig.value.routePrefix}.tasks.complete`, task.id));
+
+        if (response.data.success) {
             router.reload();
         }
     } catch (error) {
         console.error('Failed to complete task:', error);
+
+        // Handle 419 CSRF error
+        if (isCsrfError(error)) {
+            await refreshCsrfToken();
+            alert('Sessiya muddati tugadi. Qayta urinib ko\'ring.');
+            return;
+        }
     }
 };
 
@@ -112,18 +118,23 @@ const deleteTask = async (task) => {
     if (!confirm('Vazifani o\'chirmoqchimisiz?')) return;
 
     try {
-        const response = await fetch(route(`${panelConfig.value.routePrefix}.tasks.destroy`, task.id), {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-            },
-        });
-        if (response.ok) {
+        // Refresh CSRF token before request
+        await refreshCsrfToken();
+
+        const response = await window.axios.delete(route(`${panelConfig.value.routePrefix}.tasks.destroy`, task.id));
+
+        if (response.data.success) {
             router.reload();
         }
     } catch (error) {
         console.error('Failed to delete task:', error);
+
+        // Handle 419 CSRF error
+        if (isCsrfError(error)) {
+            await refreshCsrfToken();
+            alert('Sessiya muddati tugadi. Qayta urinib ko\'ring.');
+            return;
+        }
     }
 };
 

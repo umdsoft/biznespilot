@@ -12,7 +12,6 @@ import {
     FunnelIcon,
     EyeIcon,
     PencilIcon,
-    TrashIcon,
     PhoneIcon,
     EnvelopeIcon,
     BuildingOfficeIcon,
@@ -36,7 +35,7 @@ const props = defineProps({
     panelType: {
         type: String,
         required: true,
-        validator: (value) => ['saleshead', 'business'].includes(value),
+        validator: (value) => ['saleshead', 'business', 'operator'].includes(value),
     },
     leads: {
         type: Array,
@@ -111,12 +110,12 @@ const themeColors = computed(() => {
 
 // API endpoints based on panel type
 const getApiEndpoint = (action) => {
-    const baseUrl = props.panelType === 'saleshead' ? '/sales-head/leads' : '/business/api/sales';
+    const baseUrl = props.panelType === 'saleshead' ? '/sales-head/leads' : props.panelType === 'operator' ? '/operator/leads' : '/business/api/sales';
     switch (action) {
         case 'leads':
-            return props.panelType === 'saleshead' ? '/sales-head/leads/api' : '/business/api/sales/leads';
+            return props.panelType === 'saleshead' ? '/sales-head/leads/api' : props.panelType === 'operator' ? '/operator/leads/api/list' : '/business/api/sales/leads';
         case 'stats':
-            return props.panelType === 'saleshead' ? '/sales-head/leads/api/stats' : '/business/api/sales/stats';
+            return props.panelType === 'saleshead' ? '/sales-head/leads/api/stats' : props.panelType === 'operator' ? '/operator/leads/api/stats' : '/business/api/sales/stats';
         case 'operators':
             return props.panelType === 'saleshead' ? '/sales-head/operators' : '/business/api/sales/operators';
         case 'funnel':
@@ -137,9 +136,16 @@ const getRouteUrl = (action, id = null) => {
             case 'show': return `/sales-head/leads/${id}`;
             case 'edit': return `/sales-head/leads/${id}/edit`;
             case 'status': return `/sales-head/leads/${id}/status`;
-            case 'delete': return `/sales-head/leads/${id}`;
             case 'markLost': return `/sales-head/leads/${id}/mark-lost`;
             default: return '/sales-head/leads';
+        }
+    } else if (props.panelType === 'operator') {
+        switch (action) {
+            case 'show': return `/operator/leads/${id}`;
+            case 'status': return `/operator/leads/${id}/status`;
+            case 'note': return `/operator/leads/${id}/note`;
+            case 'call': return `/operator/leads/${id}/call`;
+            default: return '/operator/leads';
         }
     } else {
         switch (action) {
@@ -147,7 +153,6 @@ const getRouteUrl = (action, id = null) => {
             case 'show': return `/business/sales/${id}`;
             case 'edit': return `/business/sales/${id}/edit`;
             case 'update': return `/business/sales/${id}`;
-            case 'delete': return `/business/sales/${id}`;
             case 'markLost': return `/business/api/sales/leads/${id}/mark-lost`;
             default: return '/business/sales';
         }
@@ -278,7 +283,6 @@ const searchQuery = ref('');
 const sourceFilter = ref('');
 const operatorFilter = ref('');
 const localOperators = ref([]);
-const deletingLead = ref(null);
 const isDragging = ref(false);
 const draggedLead = ref(null);
 const dragOverColumn = ref(null);
@@ -297,11 +301,12 @@ const operatorsList = computed(() => {
 const pipelineStages = [
     { value: 'new', label: 'Yangi', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50 dark:bg-blue-900/20', borderColor: 'border-blue-200 dark:border-blue-800' },
     { value: 'contacted', label: 'Bog\'lanildi', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50 dark:bg-indigo-900/20', borderColor: 'border-indigo-200 dark:border-indigo-800' },
-    { value: 'qualified', label: 'Qualified', color: 'purple', bgColor: 'bg-purple-500', lightBg: 'bg-purple-50 dark:bg-purple-900/20', borderColor: 'border-purple-200 dark:border-purple-800' },
-    { value: 'proposal', label: 'Taklif', color: 'orange', bgColor: 'bg-orange-500', lightBg: 'bg-orange-50 dark:bg-orange-900/20', borderColor: 'border-orange-200 dark:border-orange-800' },
-    { value: 'negotiation', label: 'Muzokara', color: 'yellow', bgColor: 'bg-yellow-500', lightBg: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-800' },
-    { value: 'won', label: 'Yutildi', color: 'green', bgColor: 'bg-green-500', lightBg: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-200 dark:border-green-800' },
-    { value: 'lost', label: 'Yo\'qoldi', color: 'red', bgColor: 'bg-red-500', lightBg: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800' },
+    { value: 'callback', label: 'Keyinroq bog\'lanish qilamiz', color: 'purple', bgColor: 'bg-purple-500', lightBg: 'bg-purple-50 dark:bg-purple-900/20', borderColor: 'border-purple-200 dark:border-purple-800' },
+    { value: 'considering', label: 'O\'ylab ko\'radi', color: 'orange', bgColor: 'bg-orange-500', lightBg: 'bg-orange-50 dark:bg-orange-900/20', borderColor: 'border-orange-200 dark:border-orange-800' },
+    { value: 'meeting_scheduled', label: 'Uchrashuv belgilandi', color: 'yellow', bgColor: 'bg-yellow-500', lightBg: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-800' },
+    { value: 'meeting_attended', label: 'Uchrashuvga keldi', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50 dark:bg-teal-900/20', borderColor: 'border-teal-200 dark:border-teal-800' },
+    { value: 'won', label: 'Sotuv', color: 'green', bgColor: 'bg-green-500', lightBg: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-200 dark:border-green-800' },
+    { value: 'lost', label: 'Sifatsiz lid', color: 'red', bgColor: 'bg-red-500', lightBg: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800' },
 ];
 
 // Load operators
@@ -645,36 +650,6 @@ const handleDrop = async (e, newStatus) => {
     draggedLead.value = null;
 };
 
-const confirmDelete = (lead) => {
-    deletingLead.value = lead;
-    showLeadMenu.value = null;
-};
-
-const deleteLead = async () => {
-    if (deletingLead.value) {
-        const leadId = deletingLead.value.id;
-        const updatedLeads = loadedLeads.value.filter(l => l.id !== leadId);
-        loadedLeads.value = updatedLeads;
-        deletingLead.value = null;
-
-        try {
-            await axios.delete(getRouteUrl('delete', leadId), {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-            fetchStats();
-        } catch (error) {
-            console.error('Error deleting lead:', error);
-            await fetchLeads();
-        }
-    }
-};
-
-const cancelDelete = () => {
-    deletingLead.value = null;
-};
 
 const toggleLeadMenu = (leadId) => {
     showLeadMenu.value = showLeadMenu.value === leadId ? null : leadId;
@@ -1000,13 +975,6 @@ onUnmounted(() => {
                                                     <XMarkIcon class="w-4 h-4" />
                                                     Yo'qotilgan
                                                 </button>
-                                                <button
-                                                    @click="confirmDelete(lead)"
-                                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                >
-                                                    <TrashIcon class="w-4 h-4" />
-                                                    O'chirish
-                                                </button>
                                             </div>
                                         </Transition>
                                     </div>
@@ -1255,13 +1223,6 @@ onUnmounted(() => {
                                     >
                                         <XMarkIcon class="w-4 h-4" />
                                     </button>
-                                    <button
-                                        @click="confirmDelete(lead)"
-                                        class="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        title="O'chirish"
-                                    >
-                                        <TrashIcon class="w-4 h-4" />
-                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -1270,54 +1231,6 @@ onUnmounted(() => {
             </div>
         </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
-    <Teleport to="body">
-        <Transition
-            enter-active-class="transition ease-out duration-200"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition ease-in duration-150"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div v-if="deletingLead" class="fixed inset-0 z-50 overflow-y-auto">
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div class="fixed inset-0 bg-black/50" @click="cancelDelete"></div>
-                    <div class="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 z-10">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-                                <TrashIcon class="w-6 h-6 text-red-600 dark:text-red-400" />
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Lead o'chirish</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Bu amalni qaytarib bo'lmaydi</p>
-                            </div>
-                        </div>
-
-                        <p class="text-gray-700 dark:text-gray-300 mb-6">
-                            <strong class="text-gray-900 dark:text-white">{{ deletingLead.name }}</strong> nomli Leadni o'chirishni xohlaysizmi?
-                        </p>
-
-                        <div class="flex gap-3">
-                            <button
-                                @click="cancelDelete"
-                                class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
-                            >
-                                Bekor qilish
-                            </button>
-                            <button
-                                @click="deleteLead"
-                                class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
-                            >
-                                O'chirish
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
 
     <!-- Bulk Selection Bar -->
     <Teleport to="body">
