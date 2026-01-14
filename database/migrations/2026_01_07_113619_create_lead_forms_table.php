@@ -35,7 +35,7 @@ return new class extends Migration
             $table->text('lead_magnet_text')->nullable(); // Coupon code or custom text
 
             // After submission
-            $table->text('success_message')->default('Rahmat! Ma\'lumotlaringiz qabul qilindi.');
+            $table->text('success_message')->nullable();
             $table->string('redirect_url')->nullable(); // Optional redirect after success
             $table->boolean('show_lead_magnet_on_success')->default(true);
 

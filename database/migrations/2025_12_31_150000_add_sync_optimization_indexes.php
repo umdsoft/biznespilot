@@ -11,27 +11,47 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Use raw SQL to create indexes if not exists
-        $connection = Schema::getConnection();
+        // Helper function to check if index exists
+        $indexExists = function ($table, $indexName) {
+            $result = Schema::getConnection()->select(
+                "SHOW INDEX FROM {$table} WHERE Key_name = ?",
+                [$indexName]
+            );
+            return count($result) > 0;
+        };
 
         // Optimize kpi_daily_actuals table
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_source_date ON kpi_daily_actuals (data_source, date)');
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_status_business_date ON kpi_daily_actuals (status, business_id, date)');
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_verified_date ON kpi_daily_actuals (is_verified, date)');
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_anomaly_business_date ON kpi_daily_actuals (is_anomaly, business_id, date)');
+        if (!$indexExists('kpi_daily_actuals', 'idx_source_date')) {
+            Schema::table('kpi_daily_actuals', fn ($t) => $t->index(['data_source', 'date'], 'idx_source_date'));
+        }
+        if (!$indexExists('kpi_daily_actuals', 'idx_status_business_date')) {
+            Schema::table('kpi_daily_actuals', fn ($t) => $t->index(['status', 'business_id', 'date'], 'idx_status_business_date'));
+        }
+        if (!$indexExists('kpi_daily_actuals', 'idx_verified_date')) {
+            Schema::table('kpi_daily_actuals', fn ($t) => $t->index(['is_verified', 'date'], 'idx_verified_date'));
+        }
+        if (!$indexExists('kpi_daily_actuals', 'idx_anomaly_business_date')) {
+            Schema::table('kpi_daily_actuals', fn ($t) => $t->index(['is_anomaly', 'business_id', 'date'], 'idx_anomaly_business_date'));
+        }
 
         // Optimize business_kpi_configurations
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_status_business ON business_kpi_configurations (status, business_id)');
+        if (!$indexExists('business_kpi_configurations', 'idx_status_business')) {
+            Schema::table('business_kpi_configurations', fn ($t) => $t->index(['status', 'business_id'], 'idx_status_business'));
+        }
 
         // Optimize kpi_weekly_summaries
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_business_kpi_year ON kpi_weekly_summaries (business_id, kpi_code, year)');
+        if (!$indexExists('kpi_weekly_summaries', 'idx_business_kpi_year')) {
+            Schema::table('kpi_weekly_summaries', fn ($t) => $t->index(['business_id', 'kpi_code', 'year'], 'idx_business_kpi_year'));
+        }
 
         // Optimize kpi_monthly_summaries
-        $connection->statement('CREATE INDEX IF NOT EXISTS idx_business_kpi_year_month ON kpi_monthly_summaries (business_id, kpi_code, year, month_number)');
+        if (!$indexExists('kpi_monthly_summaries', 'idx_business_kpi_year_month')) {
+            Schema::table('kpi_monthly_summaries', fn ($t) => $t->index(['business_id', 'kpi_code', 'year', 'month_number'], 'idx_business_kpi_year_month'));
+        }
 
         // Optimize businesses table
-        if (Schema::hasColumn('businesses', 'status')) {
-            $connection->statement('CREATE INDEX IF NOT EXISTS idx_business_status ON businesses (status)');
+        if (Schema::hasColumn('businesses', 'status') && !$indexExists('businesses', 'idx_business_status')) {
+            Schema::table('businesses', fn ($t) => $t->index(['status'], 'idx_business_status'));
         }
     }
 
