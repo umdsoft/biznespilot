@@ -64,8 +64,15 @@ use App\Http\Controllers\AlgorithmController;
 use App\Http\Controllers\YouTubeAnalyticsController;
 use App\Http\Controllers\GoogleAdsAnalyticsController;
 use App\Http\Controllers\GoogleAdsCampaignController;
+use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// ==============================================
+// Landing Page (Public)
+// ==============================================
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
 
 // ==============================================
 // Health Check Routes (No Authentication)
@@ -92,22 +99,6 @@ Route::post('/invite/{token}/accept', [TeamController::class, 'acceptInvite'])->
 // 2FA verification routes (accessible without full auth)
 Route::get('/two-factor/verify', [AuthController::class, 'showTwoFactorVerify'])->name('two-factor.verify');
 Route::post('/two-factor/verify', [AuthController::class, 'verifyTwoFactor']);
-
-// Root redirect based on role and business status
-Route::middleware('auth')->get('/', function () {
-    $user = auth()->user();
-
-    if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
-        return redirect()->route('admin.dashboard');
-    }
-
-    // Check if user has a business
-    if (!$user->businesses()->exists()) {
-        return redirect()->route('welcome.index');
-    }
-
-    return redirect()->route('business.dashboard');
-});
 
 // Logout route (accessible from both panels)
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
