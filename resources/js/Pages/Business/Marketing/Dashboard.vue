@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingDashboard from '@/components/marketing/MarketingDashboard.vue';
 
 defineProps({

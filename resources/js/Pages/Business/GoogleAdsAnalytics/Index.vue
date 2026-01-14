@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import CampaignsTab from '@/components/GoogleAds/CampaignsTab.vue';
 import CreateCampaignModal from '@/components/GoogleAds/CreateCampaignModal.vue';
 import { ref, computed } from 'vue';

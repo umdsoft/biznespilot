@@ -951,7 +951,7 @@
 import { ref, computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 
 const props = defineProps({

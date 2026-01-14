@@ -146,7 +146,7 @@
 
 <script setup>
 import { useForm, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';

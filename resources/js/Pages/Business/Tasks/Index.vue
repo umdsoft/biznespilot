@@ -1,5 +1,5 @@
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import TasksIndex from '@/components/tasks/TasksIndex.vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';

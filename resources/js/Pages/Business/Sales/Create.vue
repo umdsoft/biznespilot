@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useForm, Link, Head, usePage } from '@inertiajs/vue3';
 import { vMaska } from 'maska/vue';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
     ArrowLeftIcon,
     UserPlusIcon,

@@ -301,7 +301,7 @@
 <script setup>
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
-import BusinessLayout from '@/Layouts/BusinessLayout.vue'
+import BusinessLayout from '@/layouts/BusinessLayout.vue'
 import axios from 'axios'
 
 const props = defineProps({

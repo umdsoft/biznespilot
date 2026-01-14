@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingChannelsIndex from '@/components/marketing/MarketingChannelsIndex.vue';
 
 defineProps({

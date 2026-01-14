@@ -1,5 +1,5 @@
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import LeadShow from '@/components/leads/LeadShow.vue';
 
 defineProps({

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
     SparklesIcon,
     ChatBubbleLeftRightIcon,

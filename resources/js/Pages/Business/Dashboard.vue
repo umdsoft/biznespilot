@@ -234,7 +234,7 @@
 </template>
 
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';

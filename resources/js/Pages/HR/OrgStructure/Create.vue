@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import HRLayout from '@/Layouts/HRLayout.vue';
+import HRLayout from '@/layouts/HRLayout.vue';
 import {
     BuildingOfficeIcon,
     CheckCircleIcon,

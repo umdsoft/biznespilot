@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';

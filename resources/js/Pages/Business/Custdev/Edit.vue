@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 
 const props = defineProps({
     survey: Object,

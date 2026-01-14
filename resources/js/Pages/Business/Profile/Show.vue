@@ -143,7 +143,7 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 
 defineProps({

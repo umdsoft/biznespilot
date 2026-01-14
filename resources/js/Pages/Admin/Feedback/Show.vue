@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import {
     ArrowLeftIcon,
     BugAntIcon,

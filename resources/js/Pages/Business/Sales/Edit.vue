@@ -443,7 +443,7 @@
 import { ref, computed } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
 import { vMaska } from 'maska/vue';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
   ArrowLeftIcon,
   CheckIcon,

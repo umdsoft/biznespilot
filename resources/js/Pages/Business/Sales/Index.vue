@@ -1,5 +1,5 @@
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import LeadIndex from '@/components/leads/LeadIndex.vue';
 import { useI18n } from '@/i18n';
 

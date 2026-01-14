@@ -1,6 +1,6 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import CustdevIndex from '@/components/custdev/CustdevIndex.vue';
 import { useI18n } from '@/i18n';
 

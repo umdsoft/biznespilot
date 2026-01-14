@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingChannelDetail from '@/components/marketing/MarketingChannelDetail.vue';
 
 defineProps({

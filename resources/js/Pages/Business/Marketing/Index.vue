@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingHubIndex from '@/components/marketing/MarketingHubIndex.vue';
 import { useI18n } from '@/i18n';
 

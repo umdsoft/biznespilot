@@ -270,7 +270,7 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
-import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 
 const props = defineProps({
     report: Object,
