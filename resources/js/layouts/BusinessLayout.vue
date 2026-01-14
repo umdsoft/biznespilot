@@ -63,7 +63,7 @@ import axios from 'axios';
 defineProps({
   title: {
     type: String,
-    default: 'Dashboard',
+    default: 'Bosh sahifa',
   },
 });
 

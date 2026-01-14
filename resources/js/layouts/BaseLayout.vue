@@ -48,13 +48,13 @@
           <template v-for="(section, sectionIndex) in config.navigation" :key="sectionIndex">
             <!-- Section Divider -->
             <div v-if="sectionIndex > 0" :class="['pt-3 mt-3 border-t', config.sectionBorderClass]">
-              <p v-if="section.title" class="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {{ section.title }}
+              <p v-if="section.title || section.titleKey" class="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                {{ translateSectionTitle(section) }}
               </p>
             </div>
-            <div v-else-if="section.title" class="mb-2">
+            <div v-else-if="section.title || section.titleKey" class="mb-2">
               <p class="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {{ section.title }}
+                {{ translateSectionTitle(section) }}
               </p>
             </div>
 
@@ -66,7 +66,7 @@
               :active="isActive(item)"
             >
               <component :is="item.icon" class="w-5 h-5 mr-3" />
-              <span class="flex-1">{{ item.label }}</span>
+              <span class="flex-1">{{ translateLabel(item) }}</span>
               <span
                 v-if="item.badge && item.badge.value > 0"
                 :class="[
@@ -136,7 +136,7 @@
                 </div>
                 <div class="text-left hidden sm:block">
                   <p class="text-sm font-medium text-gray-900 dark:text-gray-100 max-w-[150px] truncate">
-                    {{ $page.props.currentBusiness?.name || 'Biznes tanlang' }}
+                    {{ $page.props.currentBusiness?.name || t('layout.select_business') }}
                   </p>
                 </div>
                 <ChevronDownIcon class="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -148,7 +148,7 @@
                 class="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
               >
                 <div class="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
-                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bizneslaringiz</p>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('layout.your_businesses') }}</p>
                 </div>
                 <div class="max-h-64 overflow-y-auto">
                   <Link
@@ -186,7 +186,7 @@
                     class="flex items-center w-full px-3 py-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                   >
                     <PlusIcon class="w-5 h-5 mr-2" />
-                    <span class="text-sm font-medium">Yangi biznes yaratish</span>
+                    <span class="text-sm font-medium">{{ t('layout.new_business') }}</span>
                   </Link>
                 </div>
               </div>
@@ -201,7 +201,7 @@
               </div>
               <div class="text-left hidden sm:block">
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100 max-w-[150px] truncate">
-                  {{ $page.props.currentBusiness?.name || 'Biznes' }}
+                  {{ $page.props.currentBusiness?.name || t('common.select_business') }}
                 </p>
                 <p :class="['text-xs', config.businessRoleClass]">{{ config.businessRoleLabel }}</p>
               </div>
@@ -211,6 +211,9 @@
             <slot name="notifications">
               <NotificationDropdown v-if="config.showNotifications" />
             </slot>
+
+            <!-- Language Switcher -->
+            <LanguageSwitcher />
 
             <!-- Dark Mode Toggle -->
             <button
@@ -258,7 +261,7 @@
                     item.class || 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   ]"
                 >
-                  {{ item.label }}
+                  {{ translateMenuLabel(item.label) }}
                 </Link>
               </div>
             </div>
@@ -285,7 +288,12 @@ import { Link, usePage, router } from '@inertiajs/vue3';
 import NavLink from '@/components/NavLink.vue';
 import FeedbackWidget from '@/components/FeedbackWidget.vue';
 import NotificationDropdown from '@/components/NotificationDropdown.vue';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
+import { useI18n } from '@/i18n';
 import axios from 'axios';
+
+// i18n - get translations reactive reference
+const { t, translations } = useI18n();
 import {
   Bars3Icon as MenuIcon,
   ChevronDownIcon,
@@ -317,7 +325,7 @@ const refreshCsrfToken = async () => {
 const props = defineProps({
   title: {
     type: String,
-    default: 'Dashboard',
+    default: 'Bosh sahifa',
   },
   config: {
     type: Object,
@@ -385,6 +393,50 @@ const isActive = (item) => {
     return item.activeMatch(url);
   }
   return url.startsWith(item.href);
+};
+
+// Translate label - uses labelKey if available, otherwise falls back to label
+// Access translations.value to trigger reactivity
+const translateLabel = (item) => {
+  // Touch translations to make this reactive
+  const _ = translations.value;
+  if (item.labelKey) {
+    const translated = t(item.labelKey);
+    // If translation returns the key itself, use fallback label
+    return translated !== item.labelKey ? translated : item.label;
+  }
+  return item.label;
+};
+
+// Translate section title
+const translateSectionTitle = (section) => {
+  // Touch translations to make this reactive
+  const _ = translations.value;
+  if (section.titleKey) {
+    const translated = t(section.titleKey);
+    return translated !== section.titleKey ? translated : section.title;
+  }
+  return section.title;
+};
+
+// Menu label translations mapping
+const menuLabelMap = {
+  'Sozlamalar': 'layout.settings',
+  'Chiqish': 'layout.logout',
+  'Profil': 'common.profile',
+  'Biznes Paneliga': 'layout.to_business_panel',
+};
+
+// Translate user menu labels
+const translateMenuLabel = (label) => {
+  // Touch translations to make this reactive
+  const _ = translations.value;
+  const key = menuLabelMap[label];
+  if (key) {
+    const translated = t(key);
+    return translated !== key ? translated : label;
+  }
+  return label;
 };
 
 // Close dropdowns

@@ -1,82 +1,66 @@
 <template>
     <nav v-if="links.length > 3" class="flex items-center justify-between">
-        <div class="flex-1 flex justify-between sm:hidden">
+        <div class="flex flex-1 justify-between sm:hidden">
             <Link
                 v-if="links[0].url"
                 :href="links[0].url"
-                class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
                 Oldingi
             </Link>
-            <span v-else class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-400 bg-gray-100 dark:bg-gray-900 cursor-not-allowed">
+            <span
+                v-else
+                class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-300"
+            >
                 Oldingi
             </span>
-
             <Link
                 v-if="links[links.length - 1].url"
                 :href="links[links.length - 1].url"
-                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
                 Keyingi
             </Link>
-            <span v-else class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-400 bg-gray-100 dark:bg-gray-900 cursor-not-allowed">
+            <span
+                v-else
+                class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-300"
+            >
                 Keyingi
             </span>
         </div>
-
-        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
-                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <p v-if="from && to && total" class="text-sm text-gray-700">
+                    <span class="font-medium">{{ from }}</span>
+                    -
+                    <span class="font-medium">{{ to }}</span>
+                    dan
+                    <span class="font-medium">{{ total }}</span>
+                    ta
+                </p>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                     <template v-for="(link, index) in links" :key="index">
-                        <!-- Previous button -->
                         <Link
-                            v-if="index === 0 && link.url"
+                            v-if="link.url"
                             :href="link.url"
-                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                            <span class="sr-only">Oldingi</span>
-                            <ChevronLeftIcon class="h-5 w-5" />
-                        </Link>
-                        <span
-                            v-else-if="index === 0"
-                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-sm font-medium text-gray-400 cursor-not-allowed"
-                        >
-                            <span class="sr-only">Oldingi</span>
-                            <ChevronLeftIcon class="h-5 w-5" />
-                        </span>
-
-                        <!-- Next button -->
-                        <Link
-                            v-else-if="index === links.length - 1 && link.url"
-                            :href="link.url"
-                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                            <span class="sr-only">Keyingi</span>
-                            <ChevronRightIcon class="h-5 w-5" />
-                        </Link>
-                        <span
-                            v-else-if="index === links.length - 1"
-                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-sm font-medium text-gray-400 cursor-not-allowed"
-                        >
-                            <span class="sr-only">Keyingi</span>
-                            <ChevronRightIcon class="h-5 w-5" />
-                        </span>
-
-                        <!-- Number pages -->
-                        <Link
-                            v-else-if="link.url && !link.active"
-                            :href="link.url"
-                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            v-html="link.label"
-                        />
-                        <span
-                            v-else-if="link.active"
-                            class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 dark:bg-blue-900/50 text-sm font-medium text-blue-600 dark:text-blue-400 z-10"
+                            class="relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0"
+                            :class="{
+                                'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600': link.active,
+                                'text-gray-900 hover:bg-gray-50 focus:outline-offset-0': !link.active,
+                                'rounded-l-md': index === 0,
+                                'rounded-r-md': index === links.length - 1,
+                            }"
                             v-html="link.label"
                         />
                         <span
                             v-else
-                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300"
+                            class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-300"
+                            :class="{
+                                'rounded-l-md': index === 0,
+                                'rounded-r-md': index === links.length - 1,
+                            }"
                             v-html="link.label"
                         />
                     </template>
@@ -86,17 +70,25 @@
     </nav>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Link } from '@inertiajs/vue3';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline';
 
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
-defineProps<{
-    links: PaginationLink[];
-}>();
+defineProps({
+    links: {
+        type: Array,
+        default: () => [],
+    },
+    from: {
+        type: Number,
+        default: null,
+    },
+    to: {
+        type: Number,
+        default: null,
+    },
+    total: {
+        type: Number,
+        default: null,
+    },
+});
 </script>

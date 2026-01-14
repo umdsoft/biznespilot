@@ -1,113 +1,86 @@
 <template>
-  <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-    <div
-      class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-      :class="priorityBgClass"
-    >
-      <span class="text-sm font-medium" :class="priorityTextClass">{{ index + 1 }}</span>
-    </div>
-
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between">
-        <h4 class="font-medium text-gray-900">{{ goal.name }}</h4>
-        <span
-          v-if="goal.target"
-          class="text-sm font-medium text-indigo-600"
-        >
-          {{ goal.target }} {{ goal.metric }}
-        </span>
-      </div>
-
-      <p v-if="goal.description" class="text-sm text-gray-600 mt-1">
-        {{ goal.description }}
-      </p>
-
-      <!-- Progress bar if has target -->
-      <div v-if="goal.target && goal.current !== undefined" class="mt-2">
-        <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
-          <span>{{ goal.current }} / {{ goal.target }}</span>
-          <span>{{ progressPercent }}%</span>
+    <div class="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <h3 class="font-semibold text-gray-900">{{ goal.title }}</h3>
+                <p v-if="goal.description" class="text-sm text-gray-500 mt-1">{{ goal.description }}</p>
+                <div class="flex items-center gap-4 mt-2 text-sm">
+                    <span v-if="goal.target_value" class="text-gray-600">
+                        Maqsad: {{ formatNumber(goal.target_value) }}
+                    </span>
+                    <span v-if="goal.current_value !== undefined" class="text-gray-600">
+                        Hozirgi: {{ formatNumber(goal.current_value) }}
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span :class="statusClass" class="px-2 py-1 rounded-full text-xs font-medium">
+                    {{ statusLabel }}
+                </span>
+                <span class="text-lg font-bold" :class="progressColor">{{ goal.progress || 0 }}%</span>
+            </div>
         </div>
-        <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-indigo-500 rounded-full transition-all"
-            :style="{ width: `${Math.min(progressPercent, 100)}%` }"
-          ></div>
+        <div class="mt-3">
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                    class="h-full rounded-full transition-all duration-300"
+                    :class="progressBarColor"
+                    :style="{ width: `${Math.min(goal.progress || 0, 100)}%` }"
+                ></div>
+            </div>
         </div>
-      </div>
-
-      <!-- Deadline -->
-      <div v-if="goal.deadline" class="mt-2 flex items-center text-xs text-gray-500">
-        <CalendarIcon class="w-3.5 h-3.5 mr-1" />
-        {{ formatDate(goal.deadline) }}
-      </div>
     </div>
-
-    <!-- Actions -->
-    <div v-if="editable" class="flex items-center space-x-1">
-      <button
-        @click="$emit('edit')"
-        class="p-1 text-gray-400 hover:text-gray-600"
-      >
-        <PencilIcon class="w-4 h-4" />
-      </button>
-      <button
-        @click="$emit('delete')"
-        class="p-1 text-gray-400 hover:text-red-600"
-      >
-        <TrashIcon class="w-4 h-4" />
-      </button>
-    </div>
-  </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
-import { CalendarIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-  goal: {
-    type: Object,
-    required: true,
-  },
-  index: {
-    type: Number,
-    default: 0,
-  },
-  editable: {
-    type: Boolean,
-    default: false,
-  },
+    goal: {
+        type: Object,
+        required: true,
+    },
 });
 
-defineEmits(['edit', 'delete']);
+const formatNumber = (num) => {
+    return new Intl.NumberFormat('uz-UZ').format(num || 0);
+};
 
-const priorityBgClass = computed(() => {
-  const priority = props.goal.priority || props.index + 1;
-  if (priority <= 1) return 'bg-red-100';
-  if (priority <= 2) return 'bg-orange-100';
-  if (priority <= 3) return 'bg-yellow-100';
-  return 'bg-gray-100';
+const statusClass = computed(() => {
+    const status = props.goal.status;
+    const classes = {
+        completed: 'bg-green-100 text-green-800',
+        in_progress: 'bg-blue-100 text-blue-800',
+        pending: 'bg-gray-100 text-gray-800',
+        delayed: 'bg-red-100 text-red-800',
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
 });
 
-const priorityTextClass = computed(() => {
-  const priority = props.goal.priority || props.index + 1;
-  if (priority <= 1) return 'text-red-700';
-  if (priority <= 2) return 'text-orange-700';
-  if (priority <= 3) return 'text-yellow-700';
-  return 'text-gray-700';
+const statusLabel = computed(() => {
+    const status = props.goal.status;
+    const labels = {
+        completed: 'Bajarildi',
+        in_progress: 'Jarayonda',
+        pending: 'Kutilmoqda',
+        delayed: 'Kechikkan',
+    };
+    return labels[status] || status;
 });
 
-const progressPercent = computed(() => {
-  if (!props.goal.target || props.goal.current === undefined) return 0;
-  return Math.round((props.goal.current / props.goal.target) * 100);
+const progressColor = computed(() => {
+    const progress = props.goal.progress || 0;
+    if (progress >= 100) return 'text-green-600';
+    if (progress >= 70) return 'text-blue-600';
+    if (progress >= 40) return 'text-yellow-600';
+    return 'text-gray-600';
 });
 
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('uz-UZ', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+const progressBarColor = computed(() => {
+    const progress = props.goal.progress || 0;
+    if (progress >= 100) return 'bg-green-500';
+    if (progress >= 70) return 'bg-blue-500';
+    if (progress >= 40) return 'bg-yellow-500';
+    return 'bg-gray-400';
+});
 </script>

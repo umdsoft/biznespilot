@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\KpiDailyDataController;
 use App\Http\Controllers\Api\KpiDashboardController;
 use App\Http\Controllers\Api\IntegrationsController;
 use App\Http\Controllers\Api\KpiEntryController;
+use App\Http\Controllers\Api\TranslationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,11 @@ Route::prefix('v1')->group(function () {
         Route::get('onboarding/steps', [OnboardingController::class, 'steps']);
     });
 });
+
+// Public translations endpoint (no auth required)
+Route::get('translations/{locale}', [TranslationController::class, 'index'])
+    ->middleware('throttle:60,1')
+    ->name('api.translations');
 
 // Protected routes - API v1 (Rate limited - 120 requests per minute for authenticated users)
 Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(function () {

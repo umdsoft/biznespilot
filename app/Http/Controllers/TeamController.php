@@ -17,19 +17,28 @@ class TeamController extends Controller
     use HasCurrentBusiness;
 
     /**
-     * Get team members for the current business (for Inertia page)
+     * Get team members for the current business
+     * Returns JSON for API requests, Inertia page for regular requests
      */
-    public function index()
+    public function index(Request $request)
     {
         $business = $this->getCurrentBusiness();
 
         if (!$business) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Biznes topilmadi'], 404);
+            }
             return redirect()->route('login');
         }
 
         $membersData = $this->getMembersData($business);
 
-        // Return Inertia page
+        // Return JSON for API/AJAX requests
+        if ($request->wantsJson()) {
+            return response()->json($membersData);
+        }
+
+        // Return Inertia page for regular requests
         return Inertia::render('HR/Team/Index', $membersData);
     }
 

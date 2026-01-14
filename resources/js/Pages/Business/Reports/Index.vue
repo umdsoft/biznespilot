@@ -1,5 +1,5 @@
 <template>
-    <BusinessLayout title="Hisobotlar">
+    <BusinessLayout :title="t('nav.reports')">
         <div class="mb-8">
             <!-- Page Header with Generate Button -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -442,6 +442,9 @@ import { router, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import Card from '@/Components/Card.vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stats: Object,

@@ -184,6 +184,12 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        // Use Inertia::location for full page reload to refresh CSRF token in meta tag
+        // This prevents 419 errors when logging back in
+        if ($request->hasHeader('X-Inertia')) {
+            return \Inertia\Inertia::location(route('login'));
+        }
+
         return redirect()->route('login');
     }
 

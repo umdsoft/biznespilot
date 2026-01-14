@@ -2,6 +2,9 @@
 import { Head } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import CustdevIndex from '@/components/custdev/CustdevIndex.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     surveys: Array,
@@ -9,8 +12,8 @@ defineProps({
 </script>
 
 <template>
-    <BusinessLayout title="CustDev So'rovnomalar">
-        <Head title="CustDev So'rovnomalar" />
+    <BusinessLayout :title="t('nav.custdev')">
+        <Head :title="t('nav.custdev')" />
         <CustdevIndex :surveys="surveys" panel-type="business" />
     </BusinessLayout>
 </template>

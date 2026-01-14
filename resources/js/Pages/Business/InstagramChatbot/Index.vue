@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
-import FlowBuilder from '@/Components/FlowBuilder/FlowBuilder.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -24,7 +23,6 @@ const actionTypes = ref([]);
 
 // Modals
 const showAutomationModal = ref(false);
-const showFlowBuilder = ref(false);
 const editingAutomation = ref(null);
 
 // New automation form
@@ -115,11 +113,6 @@ const loadAll = async () => {
 // Automation CRUD
 const openNewAutomation = () => {
     editingAutomation.value = null;
-    showFlowBuilder.value = true;
-};
-
-const openOldAutomationModal = () => {
-    editingAutomation.value = null;
     automationForm.value = {
         name: '',
         description: '',
@@ -130,17 +123,6 @@ const openOldAutomationModal = () => {
         actions: [{ action_type: 'send_dm', message_template: '' }],
     };
     showAutomationModal.value = true;
-};
-
-const openFlowEditor = (automation) => {
-    editingAutomation.value = automation;
-    showFlowBuilder.value = true;
-};
-
-const onFlowBuilderSaved = () => {
-    showFlowBuilder.value = false;
-    editingAutomation.value = null;
-    loadAutomations();
 };
 
 const editAutomation = (automation) => {
@@ -523,14 +505,14 @@ onMounted(() => {
                                 </svg>
                             </div>
                             <h3 class="text-xl font-bold text-gray-900 mb-2">Hozircha avtomatlar yo'q</h3>
-                            <p class="text-gray-500 mb-6">Vizual flow builder yordamida oson avtomat yarating</p>
+                            <p class="text-gray-500 mb-6">Yangi avtomat yaratib Instagram DM avtomatizatsiyasini boshlang</p>
                             <button @click="openNewAutomation"
                                 class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all">
                                 <span class="flex items-center gap-2">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
-                                    Flow Builder orqali yaratish
+                                    Yangi avtomat yaratish
                                 </span>
                             </button>
                         </div>
@@ -544,12 +526,6 @@ onMounted(() => {
                                             <h3 class="text-lg font-bold text-gray-900">{{ automation.name }}</h3>
                                             <span :class="getStatusColor(automation.status)" class="text-xs px-2 py-1 rounded-full font-medium">
                                                 {{ getStatusLabel(automation.status) }}
-                                            </span>
-                                            <span v-if="automation.is_flow_based" class="text-xs px-2 py-1 rounded-full font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z" />
-                                                </svg>
-                                                Flow
                                             </span>
                                         </div>
                                         <p v-if="automation.description" class="text-gray-500 text-sm mb-3">{{ automation.description }}</p>
@@ -586,14 +562,7 @@ onMounted(() => {
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </button>
-                                        <button v-if="automation.is_flow_based" @click="openFlowEditor(automation)"
-                                            class="p-2 bg-purple-100 text-purple-700 rounded-lg hover:scale-105 transition-all"
-                                            title="Flow Builder">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                                            </svg>
-                                        </button>
-                                        <button v-else @click="editAutomation(automation)"
+                                        <button @click="editAutomation(automation)"
                                             class="p-2 bg-blue-100 text-blue-700 rounded-lg hover:scale-105 transition-all"
                                             title="Tahrirlash">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -847,13 +816,6 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- Flow Builder -->
-            <FlowBuilder
-                :is-open="showFlowBuilder"
-                :automation="editingAutomation"
-                @close="showFlowBuilder = false; editingAutomation = null"
-                @saved="onFlowBuilderSaved"
-            />
         </div>
     </BusinessLayout>
 </template>

@@ -11,7 +11,7 @@ defineProps({
 </script>
 
 <template>
-    <OperatorLayout title="Inbox">
+    <OperatorLayout title="Yagona Inbox">
         <Head title="Yagona Inbox" />
         <InboxIndex :conversations="conversations" :stats="stats" :filters="filters" panel-type="operator" />
     </OperatorLayout>

@@ -1,11 +1,11 @@
 <template>
-    <AdminLayout title="Admin Dashboard">
+    <AdminLayout title="Admin Bosh Sahifa">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8 flex items-center justify-between">
                     <div>
-                        <h2 class="text-3xl font-bold text-gray-900">Admin Panel</h2>
+                        <h2 class="text-3xl font-bold text-gray-900">Admin Paneli</h2>
                         <p class="mt-2 text-sm text-gray-600">
                             Platform statistikasi va boshqaruv
                         </p>
@@ -97,7 +97,7 @@
                                 >
                                     <div class="flex-1">
                                         <h4 class="font-semibold text-gray-900">{{ business.name }}</h4>
-                                        <p class="text-sm text-gray-600">Owner: {{ business.owner }}</p>
+                                        <p class="text-sm text-gray-600">Egasi: {{ business.owner }}</p>
                                         <p class="text-xs text-gray-500 mt-1">{{ business.created_at }}</p>
                                     </div>
                                     <span
@@ -145,7 +145,7 @@
                 <!-- Top Performing Businesses -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
                     <div class="p-6 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Top Performing Bizneslar</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">Eng faol Bizneslar</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -209,7 +209,7 @@
                                 'bg-red-100': systemHealth.overall.status === 'unhealthy'
                             }">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-semibold">Overall Health</span>
+                                    <span class="font-semibold">Umumiy Holat</span>
                                     <span class="text-lg font-bold">{{ systemHealth.overall.percentage }}%</span>
                                 </div>
                             </div>

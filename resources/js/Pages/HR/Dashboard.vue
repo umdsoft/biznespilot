@@ -13,8 +13,8 @@ defineProps({
 </script>
 
 <template>
-    <HRLayout title="Dashboard">
-        <Head title="HR Dashboard" />
+    <HRLayout title="Bosh sahifa">
+        <Head title="Kadrlar bo'limi - Bosh sahifa" />
         <HRDashboard
             :stats="stats"
             :recent-activities="recentActivities"

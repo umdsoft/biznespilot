@@ -212,95 +212,70 @@
 
 <script setup>
 import { onMounted, ref, reactive } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import TestimonialCarousel from '@/Components/Auth/TestimonialCarousel.vue';
-import axios from 'axios';
+import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 
 // Use reactive form instead of Inertia useForm to have full control
 const form = reactive({
-  login: '',
-  password: '',
-  remember: false,
-  processing: false,
-  errors: {},
+    login: '',
+    password: '',
+    remember: false,
+    processing: false,
+    errors: {},
 });
 
 const isReady = ref(false);
 
-// Refresh CSRF token
-const refreshCsrfToken = async () => {
-  try {
-    await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    if (match) {
-      const token = decodeURIComponent(match[1]);
-      axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
-      if (window.axios) {
-        window.axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
-      }
-      // Update meta tag for any Inertia requests
-      let meta = document.head.querySelector('meta[name="csrf-token"]');
-      if (meta) meta.content = token;
-    }
-    return true;
-  } catch (e) {
-    console.error('CSRF refresh failed:', e);
-    return false;
-  }
-};
-
 // Initialize CSRF token when login page loads (after logout)
 onMounted(async () => {
-  await refreshCsrfToken();
-  isReady.value = true;
+    await refreshCsrfToken();
+    isReady.value = true;
 });
 
 // Handle login with axios directly to avoid Inertia CSRF issues
 const handleLogin = async () => {
-  if (!isReady.value || form.processing) return;
+    if (!isReady.value || form.processing) return;
 
-  form.errors = {};
-  form.processing = true;
+    form.errors = {};
+    form.processing = true;
 
-  try {
-    // Refresh CSRF token right before login
-    await refreshCsrfToken();
+    try {
+        // Refresh CSRF token right before login
+        await refreshCsrfToken();
 
-    // Use axios directly for login
-    const response = await axios.post('/login', {
-      login: form.login,
-      password: form.password,
-      remember: form.remember,
-    });
+        // Use axios directly for login
+        const response = await window.axios.post('/login', {
+            login: form.login,
+            password: form.password,
+            remember: form.remember,
+        });
 
-    // If login successful, redirect to the intended URL or dashboard
-    if (response.data.redirect) {
-      window.location.href = response.data.redirect;
-    } else {
-      // Default redirect - let server handle it
-      window.location.href = '/';
+        // If login successful, redirect to the intended URL or dashboard
+        if (response.data.redirect) {
+            window.location.href = response.data.redirect;
+        } else {
+            window.location.href = '/';
+        }
+    } catch (error) {
+        form.password = '';
+
+        if (isCsrfError(error)) {
+            await refreshCsrfToken();
+            form.errors.login = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+        } else if (error.response?.status === 422) {
+            const errors = error.response.data.errors || {};
+            form.errors = {
+                login: errors.login?.[0] || error.response.data.message,
+                password: errors.password?.[0],
+            };
+        } else if (error.response?.data?.message) {
+            form.errors.login = error.response.data.message;
+        } else {
+            form.errors.login = 'Tizimga kirishda xatolik yuz berdi';
+        }
+    } finally {
+        form.processing = false;
     }
-  } catch (error) {
-    form.password = '';
-
-    if (error.response?.status === 419) {
-      // CSRF token mismatch - refresh and show error
-      await refreshCsrfToken();
-      form.errors.login = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
-    } else if (error.response?.status === 422) {
-      // Validation errors
-      const errors = error.response.data.errors || {};
-      form.errors = {
-        login: errors.login?.[0] || error.response.data.message,
-        password: errors.password?.[0],
-      };
-    } else if (error.response?.data?.message) {
-      form.errors.login = error.response.data.message;
-    } else {
-      form.errors.login = 'Tizimga kirishda xatolik yuz berdi';
-    }
-  } finally {
-    form.processing = false;
-  }
 };
 </script>

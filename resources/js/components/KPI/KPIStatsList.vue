@@ -1,40 +1,49 @@
-<script setup>
-defineProps({
-    title: { type: String, required: true },
-    items: {
-        type: Array,
-        default: () => [],
-        // Each item: { label, value, icon?, iconColor?, dotColor? }
-    },
-});
-</script>
-
 <template>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ title }}</h3>
-        <div class="space-y-4">
-            <div
-                v-for="(item, index) in items"
-                :key="index"
-                :class="[
-                    'flex items-center justify-between p-3 rounded-xl',
-                    item.highlight ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-50 dark:bg-gray-700/50'
-                ]"
-            >
-                <div class="flex items-center gap-3">
-                    <component
-                        v-if="item.icon"
-                        :is="item.icon"
-                        :class="['w-5 h-5', item.iconColor || 'text-gray-600']"
-                    />
-                    <div
-                        v-else-if="item.dotColor"
-                        :class="['w-3 h-3 rounded-full', item.dotColor]"
-                    ></div>
-                    <span class="text-gray-700 dark:text-gray-300">{{ item.label }}</span>
+    <div class="space-y-3">
+        <div v-if="stats.length === 0" class="text-center py-6 text-gray-500">
+            Statistika yo'q
+        </div>
+        <div
+            v-for="(stat, index) in stats"
+            :key="stat.id || index"
+            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+        >
+            <div class="flex items-center gap-3">
+                <div :class="stat.iconBg || 'bg-indigo-100'" class="w-10 h-10 rounded-lg flex items-center justify-center">
+                    <svg :class="stat.iconColor || 'text-indigo-600'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                 </div>
-                <span class="font-bold text-gray-900 dark:text-white">{{ item.value }}</span>
+                <div>
+                    <p class="font-medium text-gray-900">{{ stat.label }}</p>
+                    <p v-if="stat.description" class="text-xs text-gray-500">{{ stat.description }}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-lg font-bold text-gray-900">{{ formatValue(stat.value, stat.format) }}</p>
+                <p v-if="stat.target" class="text-xs text-gray-500">
+                    Maqsad: {{ formatValue(stat.target, stat.format) }}
+                </p>
             </div>
         </div>
     </div>
 </template>
+
+<script setup>
+defineProps({
+    stats: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const formatValue = (value, format) => {
+    if (format === 'currency') {
+        return new Intl.NumberFormat('uz-UZ').format(value || 0) + ' so\'m';
+    }
+    if (format === 'percent') {
+        return (value || 0) + '%';
+    }
+    return new Intl.NumberFormat('uz-UZ').format(value || 0);
+};
+</script>

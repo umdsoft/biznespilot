@@ -581,7 +581,7 @@ const hasTemplatesRoute = computed(() => {
                             <!-- Subtasks progress -->
                             <div v-else-if="todo.subtasks_count > 0" class="mt-3">
                                 <div class="flex items-center justify-between text-xs mb-1">
-                                    <span class="text-gray-500 dark:text-gray-400">Sub-tasklar</span>
+                                    <span class="text-gray-500 dark:text-gray-400">Sub-vazifalar</span>
                                     <span class="font-medium text-gray-700 dark:text-gray-300">
                                         {{ todo.completed_subtasks_count }}/{{ todo.subtasks_count }}
                                     </span>

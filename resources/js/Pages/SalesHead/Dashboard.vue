@@ -15,8 +15,8 @@ defineProps({
 </script>
 
 <template>
-    <SalesHeadLayout title="Dashboard">
-        <Head title="Sotuv Bo'limi Dashboard" />
+    <SalesHeadLayout title="Bosh sahifa">
+        <Head title="Sotuv bo'limi - Bosh sahifa" />
         <SalesHeadDashboard
             :team-members="teamMembers"
             :lead-stats="leadStats"

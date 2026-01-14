@@ -59,7 +59,14 @@
       "Bash(for:*)",
       "Bash(do wc -l \"$file\")",
       "Bash(sort:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(powershell -Command \"\\(Get-ChildItem -Path ''d:\\\\biznespilot'' -Recurse | Measure-Object -Property Length -Sum\\).Sum / 1MB\")",
+      "Bash(git grep:*)",
+      "Bash(do)",
+      "Bash(if [ -f \"$file\" ])",
+      "Bash(then echo \"$file exists\")",
+      "Bash(else echo \"$file NOT FOUND\")",
+      "Bash(fi)"
     ]
   }
 }

@@ -58,6 +58,13 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        // Production stack - separate files for different concerns
+        'production' => [
+            'driver' => 'stack',
+            'channels' => ['daily', 'critical'],
+            'ignore_exceptions' => false,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
@@ -69,17 +76,81 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => env('LOG_DAILY_DAYS', 14),
+            'days' => env('LOG_DAILY_DAYS', 30),
+            'replace_placeholders' => true,
+            'permission' => 0664,
+        ],
+
+        // Critical errors - separate file for easy monitoring
+        'critical' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/critical.log'),
+            'level' => 'critical',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
+        // Security events logging
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'info',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
+        // API requests logging
+        'api' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/api.log'),
+            'level' => 'info',
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        // Queue/Jobs logging
+        'queue' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/queue.log'),
+            'level' => 'info',
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        // Slow queries logging
+        'slow-queries' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/slow-queries.log'),
+            'level' => 'warning',
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
+        // Authentication events
+        'auth' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/auth.log'),
+            'level' => 'info',
+            'days' => 90,
             'replace_placeholders' => true,
         ],
 
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => env('LOG_SLACK_USERNAME', 'Laravel Log'),
-            'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
-            'level' => env('LOG_LEVEL', 'critical'),
+            'username' => env('LOG_SLACK_USERNAME', 'BiznesPilot Alerts'),
+            'emoji' => env('LOG_SLACK_EMOJI', ':warning:'),
+            'level' => 'critical',
             'replace_placeholders' => true,
+        ],
+
+        // Telegram alerts channel
+        'telegram' => [
+            'driver' => 'custom',
+            'via' => \App\Logging\TelegramLogChannel::class,
+            'level' => 'critical',
+            'chat_id' => env('LOG_TELEGRAM_CHAT_ID'),
+            'token' => env('LOG_TELEGRAM_BOT_TOKEN'),
         ],
 
         'papertrail' => [

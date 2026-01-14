@@ -1,11 +1,11 @@
 <template>
-  <BusinessLayout title="Dashboard">
+  <BusinessLayout :title="t('nav.dashboard')">
     <!-- Welcome Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Xush kelibsiz, {{ $page.props.auth?.user?.name }}!
+            {{ t('dashboard.welcome') }}, {{ $page.props.auth?.user?.name }}!
           </h2>
           <p class="mt-2 text-gray-600 dark:text-gray-400 flex items-center">
             <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,7 +22,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Lidlar
+            {{ t('common.leads') }}
           </Link>
         </div>
       </div>
@@ -41,7 +41,7 @@
               </svg>
             </div>
           </div>
-          <p class="text-purple-100 text-sm font-medium mb-1">Jami Leadlar</p>
+          <p class="text-purple-100 text-sm font-medium mb-1">{{ t('dashboard.total_leads') }}</p>
           <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
           <p v-else class="text-white text-3xl font-bold">{{ formatNumber(stats.total_leads) }}</p>
         </div>
@@ -58,7 +58,7 @@
               </svg>
             </div>
           </div>
-          <p class="text-green-100 text-sm font-medium mb-1">Mijozlar</p>
+          <p class="text-green-100 text-sm font-medium mb-1">{{ t('dashboard.customers') }}</p>
           <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
           <p v-else class="text-white text-3xl font-bold">{{ formatNumber(stats.total_customers) }}</p>
         </div>
@@ -75,7 +75,7 @@
               </svg>
             </div>
           </div>
-          <p class="text-blue-100 text-sm font-medium mb-1">Daromad (30 kun)</p>
+          <p class="text-blue-100 text-sm font-medium mb-1">{{ t('dashboard.revenue_30d') }}</p>
           <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
           <p v-else class="text-white text-3xl font-bold">{{ formatCurrency(stats.total_revenue) }}</p>
         </div>
@@ -92,7 +92,7 @@
               </svg>
             </div>
           </div>
-          <p class="text-orange-100 text-sm font-medium mb-1">Konversiya</p>
+          <p class="text-orange-100 text-sm font-medium mb-1">{{ t('dashboard.conversion') }}</p>
           <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
           <p v-else class="text-white text-3xl font-bold">{{ stats.conversion_rate }}%</p>
         </div>
@@ -102,21 +102,21 @@
     <!-- KPI Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
       <!-- CAC -->
-      <Card title="CAC (Customer Acquisition Cost)">
+      <Card :title="t('dashboard.cac')">
         <div class="flex flex-col">
           <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ formatCurrency(kpis.cac) }}</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Har bir mijozni jalb qilish narxi</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.cac_desc') }}</p>
           <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            <span class="font-medium">Benchmark:</span> CLV/3 dan kam bo'lishi kerak
+            <span class="font-medium">{{ t('dashboard.benchmark') }}:</span> {{ t('dashboard.cac_benchmark') }}
           </div>
         </div>
       </Card>
 
       <!-- CLV -->
-      <Card title="CLV (Customer Lifetime Value)">
+      <Card :title="t('dashboard.clv')">
         <div class="flex flex-col">
           <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ formatCurrency(kpis.clv) }}</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Mijozning umrbod qiymati</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.clv_desc') }}</p>
           <div class="mt-3 flex items-center">
             <span class="text-xs font-medium mr-2 text-gray-600 dark:text-gray-400">LTV/CAC Ratio:</span>
             <span
@@ -135,10 +135,10 @@
       </Card>
 
       <!-- ROAS -->
-      <Card title="ROAS (Return on Ad Spend)">
+      <Card :title="t('dashboard.roas')">
         <div class="flex flex-col">
           <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.roas }}x</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Reklama xarajatlaridan daromad</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.roas_desc') }}</p>
           <div class="mt-3 flex items-center">
             <span
               class="px-2 py-1 rounded text-xs font-medium"
@@ -157,10 +157,10 @@
       </Card>
 
       <!-- ROI -->
-      <Card title="ROI (Return on Investment)">
+      <Card :title="t('dashboard.roi')">
         <div class="flex flex-col">
           <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.roi }}%</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Investitsiyadan daromad</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.roi_desc') }}</p>
           <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
             <span class="font-medium">Target:</span>
             <span :class="kpis.roi >= 100 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
@@ -171,32 +171,32 @@
       </Card>
 
       <!-- Churn Rate -->
-      <Card title="Churn Rate">
+      <Card :title="t('dashboard.churn_rate')">
         <div class="flex flex-col">
           <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.churn_rate }}%</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Mijozlar yo'qotilish darajasi</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.churn_desc') }}</p>
           <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            <span class="font-medium">Benchmark:</span>
+            <span class="font-medium">{{ t('dashboard.benchmark') }}:</span>
             <span :class="kpis.churn_rate < 5 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-              {{ kpis.churn_rate < 5 ? '✓ Yaxshi' : '✗ Yuqori' }} (< 5%)
+              {{ kpis.churn_rate < 5 ? '✓ ' + t('dashboard.good') : '✗ ' + t('dashboard.high') }} (< 5%)
             </span>
           </div>
         </div>
       </Card>
 
       <!-- Module Stats -->
-      <Card title="Modul Statistikasi">
+      <Card :title="t('dashboard.module_stats')">
         <div class="space-y-3">
           <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">Ideal Mijozlar:</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.ideal_customers') }}:</span>
             <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.dream_buyers }}</span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">Marketing Kanallari:</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.marketing_channels') }}:</span>
             <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.marketing_channels }}</span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">Faol Takliflar:</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.active_offers') }}:</span>
             <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.active_offers }}</span>
           </div>
         </div>
@@ -204,14 +204,14 @@
     </div>
 
     <!-- Sales Trend Chart -->
-    <Card title="Sotuvlar tendensiyasi (oxirgi 7 kun)">
+    <Card :title="t('dashboard.sales_trend')">
       <div v-if="salesTrend?.length > 0" class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Sana</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Sotuvlar</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Daromad</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.date') }}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.sales') }}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.revenue') }}</th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -227,7 +227,7 @@
         <svg class="w-12 h-12 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <p>Hali sotuvlar yo'q</p>
+        <p>{{ t('dashboard.no_sales') }}</p>
       </div>
     </Card>
   </BusinessLayout>
@@ -239,6 +239,9 @@ import Card from '@/Components/Card.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   stats: Object,
@@ -340,8 +343,8 @@ const formatNumber = (value) => {
 };
 
 const formatCurrency = (value) => {
-  if (!value) return '0 so\'m';
-  return new Intl.NumberFormat('uz-UZ').format(value) + ' so\'m';
+  if (!value) return '0 ' + t('common.currency');
+  return new Intl.NumberFormat('uz-UZ').format(value) + ' ' + t('common.currency');
 };
 
 const formatDate = (dateString) => {

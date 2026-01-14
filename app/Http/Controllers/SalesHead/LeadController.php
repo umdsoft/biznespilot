@@ -65,6 +65,7 @@ class LeadController extends Controller
 
     /**
      * API: Get leads with pagination for lazy loading
+     * Optimized for fast kanban board loading
      */
     public function getLeads(Request $request)
     {
@@ -74,14 +75,16 @@ class LeadController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
-        $perPage = $request->input('per_page', 100);
+        $perPage = min($request->input('per_page', 50), 100); // Max 100 for performance
         $status = $request->input('status');
         $source = $request->input('source');
         $search = $request->input('search');
         $operator = $request->input('operator');
 
+        // Optimized query - only select needed columns
         $query = Lead::where('business_id', $business->id)
-            ->with(['source', 'assignedTo:id,name']);
+            ->select(['id', 'name', 'email', 'phone', 'company', 'status', 'score', 'estimated_value', 'source_id', 'assigned_to', 'created_at', 'last_contacted_at'])
+            ->with(['source:id,name', 'assignedTo:id,name']);
 
         // Apply filters
         if ($status && $status !== 'all') {
@@ -143,7 +146,7 @@ class LeadController extends Controller
     }
 
     /**
-     * API: Get stats
+     * API: Get stats - optimized with single query
      */
     public function getStats()
     {
@@ -153,18 +156,30 @@ class LeadController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
-        $stats = [
-            'total_leads' => Lead::where('business_id', $business->id)->count(),
-            'new_leads' => Lead::where('business_id', $business->id)->where('status', 'new')->count(),
-            'qualified_leads' => Lead::where('business_id', $business->id)->where('status', 'qualified')->count(),
-            'won_deals' => Lead::where('business_id', $business->id)->where('status', 'won')->count(),
-            'pipeline_value' => Lead::where('business_id', $business->id)
-                ->whereNotIn('status', ['won', 'lost'])
-                ->sum('estimated_value'),
-            'total_value' => Lead::where('business_id', $business->id)
-                ->where('status', 'won')
-                ->sum('estimated_value'),
-        ];
+        // Cache stats for 30 seconds to reduce DB load
+        $cacheKey = "lead_stats_{$business->id}";
+        $stats = Cache::remember($cacheKey, 30, function () use ($business) {
+            // Single optimized query with aggregations
+            $result = Lead::where('business_id', $business->id)
+                ->selectRaw('
+                    COUNT(*) as total_leads,
+                    SUM(CASE WHEN status = "new" THEN 1 ELSE 0 END) as new_leads,
+                    SUM(CASE WHEN status = "qualified" THEN 1 ELSE 0 END) as qualified_leads,
+                    SUM(CASE WHEN status = "won" THEN 1 ELSE 0 END) as won_deals,
+                    SUM(CASE WHEN status NOT IN ("won", "lost") THEN COALESCE(estimated_value, 0) ELSE 0 END) as pipeline_value,
+                    SUM(CASE WHEN status = "won" THEN COALESCE(estimated_value, 0) ELSE 0 END) as total_value
+                ')
+                ->first();
+
+            return [
+                'total_leads' => (int) ($result->total_leads ?? 0),
+                'new_leads' => (int) ($result->new_leads ?? 0),
+                'qualified_leads' => (int) ($result->qualified_leads ?? 0),
+                'won_deals' => (int) ($result->won_deals ?? 0),
+                'pipeline_value' => (float) ($result->pipeline_value ?? 0),
+                'total_value' => (float) ($result->total_value ?? 0),
+            ];
+        });
 
         return response()->json($stats);
     }

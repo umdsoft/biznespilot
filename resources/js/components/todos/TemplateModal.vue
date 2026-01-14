@@ -307,7 +307,7 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                                     type="text"
                                                     @keyup.enter="(e) => { addChildItem(index, e.target.value); e.target.value = ''; }"
                                                     class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
-                                                    placeholder="Sub-task qo'shish (Enter)"
+                                                    placeholder="Sub-vazifa qo'shish (Enter)"
                                                 />
                                             </div>
                                         </div>

@@ -101,6 +101,7 @@ class SalesAnalyticsService
 
     /**
      * Get Dream Buyer performance analysis
+     * Optimized: Single query with aggregation instead of N+1
      *
      * @param string $businessId
      * @param array $filters
@@ -108,34 +109,48 @@ class SalesAnalyticsService
      */
     public function getDreamBuyerPerformance(string $businessId, array $filters = []): array
     {
-        $dreamBuyers = DreamBuyer::where('business_id', $businessId)->get();
+        // Get all dream buyers with pre-calculated lead stats in a single query
+        $query = DB::table('dream_buyers')
+            ->leftJoin('customers', 'dream_buyers.id', '=', 'customers.dream_buyer_id')
+            ->leftJoin('leads', function ($join) use ($businessId) {
+                $join->on('customers.id', '=', 'leads.customer_id')
+                    ->where('leads.business_id', '=', $businessId);
+            })
+            ->where('dream_buyers.business_id', $businessId)
+            ->select(
+                'dream_buyers.id as dream_buyer_id',
+                'dream_buyers.name as dream_buyer_name',
+                DB::raw('COUNT(DISTINCT leads.id) as total_leads'),
+                DB::raw('COUNT(DISTINCT CASE WHEN leads.status = "won" THEN leads.id END) as won_leads'),
+                DB::raw('COALESCE(SUM(CASE WHEN leads.status = "won" THEN leads.estimated_value ELSE 0 END), 0) as total_revenue')
+            )
+            ->groupBy('dream_buyers.id', 'dream_buyers.name');
 
-        $performance = [];
+        // Apply date filters
+        if (!empty($filters['date_from'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereNull('leads.created_at')
+                    ->orWhere('leads.created_at', '>=', Carbon::parse($filters['date_from']));
+            });
+        }
+        if (!empty($filters['date_to'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereNull('leads.created_at')
+                    ->orWhere('leads.created_at', '<=', Carbon::parse($filters['date_to']));
+            });
+        }
 
-        foreach ($dreamBuyers as $dreamBuyer) {
-            // Get all leads associated with this Dream Buyer through customers
-            $leadsQuery = Lead::where('business_id', $businessId)
-                ->whereHas('customer', function ($q) use ($dreamBuyer) {
-                    $q->where('dream_buyer_id', $dreamBuyer->id);
-                });
+        $results = $query->get();
 
-            // Apply date filters
-            if (!empty($filters['date_from'])) {
-                $leadsQuery->where('created_at', '>=', Carbon::parse($filters['date_from']));
-            }
-            if (!empty($filters['date_to'])) {
-                $leadsQuery->where('created_at', '<=', Carbon::parse($filters['date_to']));
-            }
-
-            $leads = $leadsQuery->get();
-            $totalLeads = $leads->count();
-            $wonLeads = $leads->where('status', 'won')->count();
-            $totalRevenue = $leads->where('status', 'won')->sum('estimated_value');
+        $performance = $results->map(function ($row) {
+            $totalLeads = (int) $row->total_leads;
+            $wonLeads = (int) $row->won_leads;
+            $totalRevenue = (float) $row->total_revenue;
             $avgDealSize = $wonLeads > 0 ? $totalRevenue / $wonLeads : 0;
 
-            $performance[] = [
-                'dream_buyer_id' => $dreamBuyer->id,
-                'dream_buyer_name' => $dreamBuyer->name,
+            return [
+                'dream_buyer_id' => $row->dream_buyer_id,
+                'dream_buyer_name' => $row->dream_buyer_name,
                 'total_leads' => $totalLeads,
                 'won_leads' => $wonLeads,
                 'conversion_rate' => $totalLeads > 0
@@ -143,9 +158,9 @@ class SalesAnalyticsService
                     : 0,
                 'total_revenue' => $totalRevenue,
                 'avg_deal_size' => round($avgDealSize, 2),
-                'lifetime_value' => round($avgDealSize, 2), // Can be enhanced with repeat purchases
+                'lifetime_value' => round($avgDealSize, 2),
             ];
-        }
+        })->toArray();
 
         // Sort by conversion rate
         usort($performance, function ($a, $b) {
@@ -157,6 +172,7 @@ class SalesAnalyticsService
 
     /**
      * Get Offer performance metrics
+     * Optimized: Reduced queries using eager loading and collection processing
      *
      * @param string $businessId
      * @param array $filters
@@ -164,32 +180,48 @@ class SalesAnalyticsService
      */
     public function getOfferPerformance(string $businessId, array $filters = []): array
     {
+        // Get all offers in one query
         $offers = Offer::where('business_id', $businessId)
             ->where('status', 'active')
-            ->get();
+            ->get()
+            ->keyBy('id');
 
+        if ($offers->isEmpty()) {
+            return [];
+        }
+
+        // Build leads query with date filters
+        $leadsQuery = Lead::where('business_id', $businessId)
+            ->whereNotNull('data');
+
+        if (!empty($filters['date_from'])) {
+            $leadsQuery->where('created_at', '>=', Carbon::parse($filters['date_from']));
+        }
+        if (!empty($filters['date_to'])) {
+            $leadsQuery->where('created_at', '<=', Carbon::parse($filters['date_to']));
+        }
+
+        // Get all leads in one query
+        $allLeads = $leadsQuery->get();
+
+        // Pre-calculate performance for each offer from loaded data
         $performance = [];
 
         foreach ($offers as $offer) {
-            // Get leads associated with this offer (assuming data->offer_id in leads)
-            $leadsQuery = Lead::where('business_id', $businessId)
-                ->where(function ($q) use ($offer) {
-                    $q->whereJsonContains('data->offer_id', $offer->id)
-                        ->orWhereJsonContains('data->selected_offer', $offer->id);
-                });
+            // Filter leads that belong to this offer using collection methods
+            $offerLeads = $allLeads->filter(function ($lead) use ($offer) {
+                $data = is_array($lead->data) ? $lead->data : json_decode($lead->data, true);
+                if (!$data) return false;
 
-            // Apply date filters
-            if (!empty($filters['date_from'])) {
-                $leadsQuery->where('created_at', '>=', Carbon::parse($filters['date_from']));
-            }
-            if (!empty($filters['date_to'])) {
-                $leadsQuery->where('created_at', '<=', Carbon::parse($filters['date_to']));
-            }
+                $offerId = $data['offer_id'] ?? null;
+                $selectedOffer = $data['selected_offer'] ?? null;
 
-            $leads = $leadsQuery->get();
-            $totalLeads = $leads->count();
-            $wonLeads = $leads->where('status', 'won')->count();
-            $totalRevenue = $leads->where('status', 'won')->sum('estimated_value');
+                return $offerId == $offer->id || $selectedOffer == $offer->id;
+            });
+
+            $totalLeads = $offerLeads->count();
+            $wonLeads = $offerLeads->where('status', 'won')->count();
+            $totalRevenue = $offerLeads->where('status', 'won')->sum('estimated_value');
 
             $performance[] = [
                 'offer_id' => $offer->id,
@@ -220,6 +252,7 @@ class SalesAnalyticsService
 
     /**
      * Get lead source performance analysis
+     * Optimized: Single query with aggregation instead of N+1
      *
      * @param string $businessId
      * @param array $filters
@@ -227,32 +260,55 @@ class SalesAnalyticsService
      */
     public function getLeadSourceAnalysis(string $businessId, array $filters = []): array
     {
-        $sources = MarketingChannel::where('business_id', $businessId)->get();
+        // Get all sources with pre-calculated lead stats in a single query
+        $query = DB::table('marketing_channels')
+            ->leftJoin('leads', function ($join) use ($businessId) {
+                $join->on('marketing_channels.id', '=', 'leads.source_id')
+                    ->where('leads.business_id', '=', $businessId);
+            })
+            ->where('marketing_channels.business_id', $businessId)
+            ->select(
+                'marketing_channels.id as source_id',
+                'marketing_channels.name as source_name',
+                'marketing_channels.channel_type',
+                'marketing_channels.total_spent',
+                DB::raw('COUNT(DISTINCT leads.id) as total_leads'),
+                DB::raw('COUNT(DISTINCT CASE WHEN leads.status = "won" THEN leads.id END) as won_leads'),
+                DB::raw('COALESCE(SUM(CASE WHEN leads.status = "won" THEN leads.estimated_value ELSE 0 END), 0) as total_revenue')
+            )
+            ->groupBy(
+                'marketing_channels.id',
+                'marketing_channels.name',
+                'marketing_channels.channel_type',
+                'marketing_channels.total_spent'
+            );
 
-        $analysis = [];
+        // Apply date filters
+        if (!empty($filters['date_from'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereNull('leads.created_at')
+                    ->orWhere('leads.created_at', '>=', Carbon::parse($filters['date_from']));
+            });
+        }
+        if (!empty($filters['date_to'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereNull('leads.created_at')
+                    ->orWhere('leads.created_at', '<=', Carbon::parse($filters['date_to']));
+            });
+        }
 
-        foreach ($sources as $source) {
-            $leadsQuery = Lead::where('business_id', $businessId)
-                ->where('source_id', $source->id);
+        $results = $query->get();
 
-            // Apply date filters
-            if (!empty($filters['date_from'])) {
-                $leadsQuery->where('created_at', '>=', Carbon::parse($filters['date_from']));
-            }
-            if (!empty($filters['date_to'])) {
-                $leadsQuery->where('created_at', '<=', Carbon::parse($filters['date_to']));
-            }
+        $analysis = $results->map(function ($row) {
+            $totalLeads = (int) $row->total_leads;
+            $wonLeads = (int) $row->won_leads;
+            $totalRevenue = (float) $row->total_revenue;
+            $totalCost = (float) ($row->total_spent ?? 0);
 
-            $leads = $leadsQuery->get();
-            $totalLeads = $leads->count();
-            $wonLeads = $leads->where('status', 'won')->count();
-            $totalRevenue = $leads->where('status', 'won')->sum('estimated_value');
-            $totalCost = $source->total_spent ?? 0;
-
-            $analysis[] = [
-                'source_id' => $source->id,
-                'source_name' => $source->name,
-                'channel_type' => $source->channel_type,
+            return [
+                'source_id' => $row->source_id,
+                'source_name' => $row->source_name,
+                'channel_type' => $row->channel_type,
                 'total_leads' => $totalLeads,
                 'won_leads' => $wonLeads,
                 'conversion_rate' => $totalLeads > 0
@@ -273,7 +329,7 @@ class SalesAnalyticsService
                     ? round($totalRevenue / $totalCost, 2)
                     : 0,
             ];
-        }
+        })->toArray();
 
         // Sort by ROI
         usort($analysis, function ($a, $b) {

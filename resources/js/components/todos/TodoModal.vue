@@ -284,7 +284,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <!-- Subtasks -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Sub-tasklar
+                                        Sub-vazifalar
                                     </label>
                                     <div class="space-y-2 mb-2">
                                         <div
@@ -308,7 +308,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                             type="text"
                                             @keyup.enter="addSubtask"
                                             class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                                            placeholder="Yangi sub-task..."
+                                            placeholder="Yangi sub-vazifa..."
                                         />
                                         <button
                                             type="button"

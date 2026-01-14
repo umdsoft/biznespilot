@@ -102,37 +102,47 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
 
     /**
      * Analyze customers for churn risk
+     * Optimized: Uses chunking to avoid memory issues with large datasets
      */
     protected function analyzeCustomers(Business $business): array
     {
         try {
-            $customers = DB::table('customers')
+            $customersAtRisk = [];
+            $chunkSize = 500; // Process 500 customers at a time
+
+            // Use cursor for memory-efficient iteration on large datasets
+            DB::table('customers')
                 ->where('business_id', $business->id)
                 ->where('status', 'active')
-                ->get();
+                ->orderBy('id')
+                ->chunk($chunkSize, function ($customers) use ($business, &$customersAtRisk) {
+                    foreach ($customers as $customer) {
+                        $riskScore = $this->calculateCustomerRisk($customer, $business);
 
-            $customersAtRisk = [];
+                        if ($riskScore['total'] > 30) { // Only include those with some risk
+                            $customersAtRisk[] = [
+                                'id' => $customer->id,
+                                'name' => $customer->name ?? 'Mijoz #' . $customer->id,
+                                'email' => $customer->email ?? null,
+                                'phone' => $customer->phone ?? null,
+                                'risk_score' => $riskScore['total'],
+                                'risk_level' => $this->getRiskLevel($riskScore['total']),
+                                'risk_factors' => $riskScore['factors'],
+                                'last_purchase' => $customer->last_purchase_at,
+                                'total_spent' => $customer->total_spent ?? 0,
+                                'recommended_action' => $this->getRecommendedAction($riskScore),
+                            ];
+                        }
+                    }
 
-            foreach ($customers as $customer) {
-                $riskScore = $this->calculateCustomerRisk($customer, $business);
+                    // Limit to top 1000 at-risk customers to prevent memory overflow
+                    if (count($customersAtRisk) > 1000) {
+                        usort($customersAtRisk, fn($a, $b) => $b['risk_score'] <=> $a['risk_score']);
+                        $customersAtRisk = array_slice($customersAtRisk, 0, 1000);
+                    }
+                });
 
-                if ($riskScore['total'] > 30) { // Only include those with some risk
-                    $customersAtRisk[] = [
-                        'id' => $customer->id,
-                        'name' => $customer->name ?? 'Mijoz #' . $customer->id,
-                        'email' => $customer->email ?? null,
-                        'phone' => $customer->phone ?? null,
-                        'risk_score' => $riskScore['total'],
-                        'risk_level' => $this->getRiskLevel($riskScore['total']),
-                        'risk_factors' => $riskScore['factors'],
-                        'last_purchase' => $customer->last_purchase_at,
-                        'total_spent' => $customer->total_spent ?? 0,
-                        'recommended_action' => $this->getRecommendedAction($riskScore),
-                    ];
-                }
-            }
-
-            // Sort by risk score descending
+            // Final sort by risk score descending
             usort($customersAtRisk, fn($a, $b) => $b['risk_score'] <=> $a['risk_score']);
 
             return $customersAtRisk;

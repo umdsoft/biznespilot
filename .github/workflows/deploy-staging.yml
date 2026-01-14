@@ -1,0 +1,102 @@
+# =============================================================================
+# BIZNESPILOT - STAGING DEPLOYMENT
+# =============================================================================
+# Triggers: Push to develop branch
+# Actions: Deploy to staging server for testing
+# =============================================================================
+
+name: CD - Deploy Staging
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: '8.2'
+  NODE_VERSION: '20'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build & Deploy to Staging
+  # ---------------------------------------------------------------------------
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.biznespilot.uz
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install & Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging
+        env:
+          SERVER_HOST: ${{ secrets.STAGING_HOST }}
+          SERVER_USER: ${{ secrets.STAGING_USER }}
+          DEPLOY_PATH: ${{ secrets.STAGING_PATH }}
+        run: |
+          ssh $SERVER_USER@$SERVER_HOST << EOF
+            cd $DEPLOY_PATH
+
+            echo "📦 Pulling latest code..."
+            git fetch origin develop
+            git reset --hard origin/develop
+
+            echo "📥 Installing dependencies..."
+            composer install --optimize-autoloader --no-interaction
+
+            echo "🔄 Running migrations..."
+            php artisan migrate --force
+
+            echo "🧹 Clearing caches..."
+            php artisan optimize:clear
+
+            echo "⚡ Caching..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "🔄 Restarting workers..."
+            php artisan queue:restart
+
+            echo "✅ Staging deployment completed!"
+          EOF
+
+      - name: Sync build assets
+        env:
+          SERVER_HOST: ${{ secrets.STAGING_HOST }}
+          SERVER_USER: ${{ secrets.STAGING_USER }}
+          DEPLOY_PATH: ${{ secrets.STAGING_PATH }}
+        run: |
+          rsync -avz --delete public/build/ $SERVER_USER@$SERVER_HOST:$DEPLOY_PATH/public/build/
+
+      - name: Health check
+        run: |
+          sleep 3
+          curl -f https://staging.biznespilot.uz/health/ping || exit 1

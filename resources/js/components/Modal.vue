@@ -1,124 +1,164 @@
-<template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="modelValue" class="fixed inset-0 z-50 overflow-y-auto" @click.self="closeOnBackdrop && close()">
-        <div class="flex min-h-screen items-center justify-center p-4">
-          <Transition name="modal-backdrop">
-            <div v-if="modelValue" class="fixed inset-0 bg-black/50" @click="closeOnBackdrop && close()" />
-          </Transition>
-
-          <Transition name="modal-content">
-            <div
-              v-if="modelValue"
-              :class="modalClasses"
-              class="relative bg-white rounded-lg shadow-xl transform transition-all"
-            >
-              <div v-if="$slots.header || title" class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <slot name="header">
-                  <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
-                </slot>
-                <button
-                  v-if="closable"
-                  type="button"
-                  class="text-gray-400 hover:text-gray-500 focus:outline-none"
-                  @click="close"
-                >
-                  <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div class="px-6 py-4">
-                <slot />
-              </div>
-
-              <div v-if="$slots.footer" class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <slot name="footer" />
-              </div>
-            </div>
-          </Transition>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
-</template>
-
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  title: {
-    type: String,
-    default: '',
-  },
-  size: {
-    type: String,
-    default: 'md',
-    validator: (value) => ['sm', 'md', 'lg', 'xl'].includes(value),
-  },
-  closable: {
-    type: Boolean,
-    default: true,
-  },
-  closeOnBackdrop: {
-    type: Boolean,
-    default: true,
-  },
+    show: {
+        type: Boolean,
+        default: false,
+    },
+    modelValue: {
+        type: Boolean,
+        default: undefined,
+    },
+    maxWidth: {
+        type: String,
+        default: '2xl',
+    },
+    size: {
+        type: String,
+        default: null,
+    },
+    closeable: {
+        type: Boolean,
+        default: true,
+    },
+    title: {
+        type: String,
+        default: '',
+    },
 });
 
-const emit = defineEmits(['update:modelValue', 'close']);
+const emit = defineEmits(['close', 'update:modelValue']);
+const dialog = ref();
 
-const modalClasses = computed(() => {
-  const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-  };
+// Support both show prop and v-model
+const isVisible = computed(() => props.modelValue !== undefined ? props.modelValue : props.show);
+const showSlot = ref(isVisible.value);
 
-  return `w-full ${sizes[props.size]}`;
+watch(
+    () => isVisible.value,
+    (newVal) => {
+        if (newVal) {
+            document.body.style.overflow = 'hidden';
+            showSlot.value = true;
+            dialog.value?.showModal();
+        } else {
+            document.body.style.overflow = '';
+            setTimeout(() => {
+                dialog.value?.close();
+                showSlot.value = false;
+            }, 200);
+        }
+    },
+);
+
+const close = () => {
+    if (props.closeable) {
+        emit('close');
+        emit('update:modelValue', false);
+    }
+};
+
+const closeOnEscape = (e) => {
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isVisible.value) {
+            close();
+        }
+    }
+};
+
+onMounted(() => document.addEventListener('keydown', closeOnEscape));
+
+onUnmounted(() => {
+    document.removeEventListener('keydown', closeOnEscape);
+    document.body.style.overflow = '';
 });
 
-function close() {
-  emit('update:modelValue', false);
-  emit('close');
-}
+// Support both maxWidth and size props
+const maxWidthClass = computed(() => {
+    const sizeMap = {
+        sm: 'sm:max-w-sm',
+        md: 'sm:max-w-md',
+        lg: 'sm:max-w-lg',
+        xl: 'sm:max-w-xl',
+        '2xl': 'sm:max-w-2xl',
+        '3xl': 'sm:max-w-3xl',
+        '4xl': 'sm:max-w-4xl',
+        '5xl': 'sm:max-w-5xl',
+        full: 'sm:max-w-full',
+    };
+    return sizeMap[props.size || props.maxWidth] || sizeMap['2xl'];
+});
 </script>
 
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
-}
+<template>
+    <dialog
+        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+        ref="dialog"
+    >
+        <div
+            class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
+            scroll-region
+        >
+            <Transition
+                enter-active-class="ease-out duration-300"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="ease-in duration-200"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div
+                    v-show="isVisible"
+                    class="fixed inset-0 transform transition-all"
+                    @click="close"
+                >
+                    <div class="absolute inset-0 bg-gray-500 opacity-75" />
+                </div>
+            </Transition>
 
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
+            <Transition
+                enter-active-class="ease-out duration-300"
+                enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+                leave-active-class="ease-in duration-200"
+                leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+                leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+                <div
+                    v-show="isVisible"
+                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full"
+                    :class="maxWidthClass"
+                >
+                    <!-- Header with title -->
+                    <div v-if="title" class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+                            <button
+                                v-if="closeable"
+                                type="button"
+                                class="text-gray-400 hover:text-gray-600 transition-colors"
+                                @click="close"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
 
-.modal-backdrop-enter-active,
-.modal-backdrop-leave-active {
-  transition: opacity 0.3s ease;
-}
+                    <!-- Content -->
+                    <div v-if="showSlot" class="px-6 py-4">
+                        <slot />
+                    </div>
 
-.modal-backdrop-enter-from,
-.modal-backdrop-leave-to {
-  opacity: 0;
-}
-
-.modal-content-enter-active,
-.modal-content-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-content-enter-from,
-.modal-content-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
-</style>
+                    <!-- Footer slot -->
+                    <div v-if="$slots.footer" class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+                        <slot name="footer" />
+                    </div>
+                </div>
+            </Transition>
+        </div>
+    </dialog>
+</template>

@@ -1,93 +1,85 @@
-<script setup>
-import { Link } from '@inertiajs/vue3';
+<template>
+    <div class="space-y-3">
+        <div v-if="leads.length === 0" class="text-center py-8 text-gray-500">
+            Leadlar yo'q
+        </div>
+        <div
+            v-for="lead in leads"
+            :key="lead.id"
+            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            @click="$emit('click', lead)"
+        >
+            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <span class="text-indigo-600 font-semibold text-sm">
+                    {{ getInitials(lead.name) }}
+                </span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-medium text-gray-900 truncate">{{ lead.name }}</p>
+                <p class="text-sm text-gray-500 truncate">{{ lead.phone || lead.email }}</p>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+                <span
+                    :class="statusColor(lead.status)"
+                    class="px-2 py-0.5 rounded-full text-xs font-medium"
+                >
+                    {{ statusLabel(lead.status) }}
+                </span>
+                <span v-if="lead.estimated_value" class="text-sm font-medium text-gray-900">
+                    {{ formatCurrency(lead.estimated_value) }}
+                </span>
+            </div>
+        </div>
+    </div>
+</template>
 
+<script setup>
 defineProps({
-    leads: { type: Array, default: () => [] },
-    showAvatar: { type: Boolean, default: false },
-    showDate: { type: Boolean, default: false },
-    basePath: { type: String, default: '/operator/leads' },
-    emptyText: { type: String, default: 'Hozircha leadlar yo\'q' },
+    leads: {
+        type: Array,
+        default: () => [],
+    },
 });
 
-const getStatusClass = (status) => {
-    const classes = {
-        new: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-        contacted: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-        qualified: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-        proposal: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-        negotiation: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
-        won: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-        lost: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    };
-    return classes[status] || 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
+defineEmits(['click']);
+
+const getInitials = (name) => {
+    if (!name) return 'L';
+    return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
 };
 
-const getStatusLabel = (status) => {
+const statusColor = (status) => {
+    const colors = {
+        new: 'bg-blue-100 text-blue-700',
+        contacted: 'bg-yellow-100 text-yellow-700',
+        qualified: 'bg-purple-100 text-purple-700',
+        proposal: 'bg-indigo-100 text-indigo-700',
+        negotiation: 'bg-orange-100 text-orange-700',
+        won: 'bg-green-100 text-green-700',
+        lost: 'bg-red-100 text-red-700',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
+};
+
+const statusLabel = (status) => {
     const labels = {
         new: 'Yangi',
-        contacted: "Bog'lanildi",
-        qualified: 'Kvalifikatsiya',
+        contacted: 'Bog\'lanildi',
+        qualified: 'Malakali',
         proposal: 'Taklif',
         negotiation: 'Muzokara',
         won: 'Yutildi',
-        lost: "Yo'qotildi",
+        lost: 'Yo\'qotildi',
     };
     return labels[status] || status;
 };
 
-const getInitials = (name) => {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-};
-
-const formatDate = (date) => {
-    if (!date) return '';
-    return new Date(date).toLocaleDateString('uz-UZ', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('uz-UZ').format(value || 0) + ' so\'m';
 };
 </script>
-
-<template>
-    <div>
-        <template v-if="leads?.length">
-            <Link
-                v-for="lead in leads"
-                :key="lead.id"
-                :href="`${basePath}/${lead.id}`"
-                class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div
-                            v-if="showAvatar"
-                            class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center"
-                        >
-                            <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                                {{ getInitials(lead.name) }}
-                            </span>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900 dark:text-white">{{ lead.name }}</h4>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ lead.phone || lead.email }}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span :class="['px-2.5 py-1 text-xs font-medium rounded-full', getStatusClass(lead.status)]">
-                            {{ getStatusLabel(lead.status) }}
-                        </span>
-                        <p v-if="showDate" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {{ formatDate(lead.created_at) }}
-                        </p>
-                    </div>
-                </div>
-            </Link>
-        </template>
-        <div v-else class="p-8 text-center text-gray-500 dark:text-gray-400">
-            {{ emptyText }}
-        </div>
-    </div>
-</template>

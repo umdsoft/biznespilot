@@ -249,14 +249,15 @@ const handleBulkAssigned = (data) => {
 };
 
 // Lazy loading state
-const isLoading = ref(false);
+const isLoading = ref(true); // Start with loading true for skeleton
 const loadedLeads = ref([]);
 const loadedStats = ref(null);
 const localStateInitialized = ref(false);
+const initialLoadComplete = ref(false);
 const pagination = ref({
     current_page: 1,
     last_page: 1,
-    per_page: 25,
+    per_page: 50, // Reduced for faster initial load
     total: 0,
 });
 
@@ -321,10 +322,19 @@ const loadOperators = async () => {
     }
 };
 
-// Fetch leads with pagination
-const fetchLeads = async (page = 1) => {
+// Fetch leads with pagination - optimized for speed
+const fetchLeads = async (page = 1, showLoading = true) => {
+    if (showLoading && !initialLoadComplete.value) {
+        isLoading.value = true;
+    }
+
     try {
-        const params = { page, per_page: 25 };
+        const params = {
+            page,
+            per_page: pagination.value.per_page,
+            // Request minimal fields for kanban view
+            fields: 'id,name,phone,email,company,status,source_id,assigned_to,estimated_value,created_at'
+        };
         if (searchQuery.value) params.search = searchQuery.value;
         if (sourceFilter.value) params.source = sourceFilter.value;
         if (operatorFilter.value) params.operator = operatorFilter.value;
@@ -332,6 +342,7 @@ const fetchLeads = async (page = 1) => {
         const response = await axios.get(getApiEndpoint('leads'), { params });
         loadedLeads.value = response.data.data || [];
         localStateInitialized.value = true;
+
         if (response.data.current_page) {
             pagination.value = {
                 current_page: response.data.current_page,
@@ -342,10 +353,15 @@ const fetchLeads = async (page = 1) => {
         }
     } catch (err) {
         console.error('Error fetching leads:', err);
+    } finally {
+        if (showLoading) {
+            isLoading.value = false;
+            initialLoadComplete.value = true;
+        }
     }
 };
 
-// Fetch stats
+// Fetch stats - runs in background, doesn't block UI
 const fetchStats = async () => {
     try {
         const response = await axios.get(getApiEndpoint('stats'));
@@ -355,14 +371,12 @@ const fetchStats = async () => {
     }
 };
 
-// Fetch all data
+// Fetch all data - parallel requests for speed
 const fetchData = async () => {
-    isLoading.value = true;
-    try {
-        await Promise.all([fetchLeads(), fetchStats()]);
-    } finally {
-        isLoading.value = false;
-    }
+    // Don't await stats - let it load in background
+    fetchStats();
+    // Only await leads since that's what user sees first
+    await fetchLeads();
 };
 
 // Initialize local state from props (for non-lazy mode)
@@ -382,18 +396,18 @@ watch(() => props.leads, (newLeads, oldLeads) => {
     }
 }, { immediate: true });
 
-// Debounced search
+// Debounced search - faster response
 let searchTimeout;
 const debouncedSearch = () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        fetchLeads(1);
-    }, 300);
+        fetchLeads(1, false); // Don't show full loading for search
+    }, 200); // Reduced from 300ms
 };
 
 watch(searchQuery, debouncedSearch);
-watch(sourceFilter, () => fetchLeads(1));
-watch(operatorFilter, () => fetchLeads(1));
+watch(sourceFilter, () => fetchLeads(1, false)); // Silent refresh
+watch(operatorFilter, () => fetchLeads(1, false)); // Silent refresh
 
 // Filter leads based on search and source (for non-lazy mode)
 const filteredLeads = computed(() => {

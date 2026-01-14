@@ -120,59 +120,66 @@ export const businessLayoutConfig = {
   navigation: [
     {
       title: null,
+      titleKey: null,
       items: [
-        { href: '/business', label: 'Dashboard', icon: HomeIcon, exact: true },
-        { href: '/business/marketing', label: 'Marketing', icon: MegaphoneIcon },
-        { href: '/business/marketing/content', label: 'Kontent Reja', icon: CalendarIcon },
-        { href: '/business/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/business', label: 'Bosh sahifa', labelKey: 'nav.dashboard', icon: HomeIcon, exact: true },
+        { href: '/business/marketing', label: 'Marketing', labelKey: 'nav.marketing', icon: MegaphoneIcon },
+        { href: '/business/marketing/content', label: 'Kontent Reja', labelKey: 'nav.content_plan', icon: CalendarIcon },
+        { href: '/business/inbox', label: 'Yagona Inbox', labelKey: 'nav.inbox', icon: InboxIcon },
       ]
     },
     {
       title: 'Tadqiqot',
+      titleKey: 'nav.research',
       items: [
-        { href: '/business/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
-        { href: '/business/custdev', label: 'CustDev So\'rovnoma', icon: ClipboardDocumentListIcon },
-        { href: '/business/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
+        { href: '/business/dream-buyer', label: 'Ideal Mijoz', labelKey: 'nav.dream_buyer', icon: UserGroupIcon },
+        { href: '/business/custdev', label: 'CustDev So\'rovnoma', labelKey: 'nav.custdev', icon: ClipboardDocumentListIcon },
+        { href: '/business/competitors', label: 'Raqobatchilar', labelKey: 'nav.competitors', icon: ChartBarIcon },
       ]
     },
     {
       title: 'Takliflar va Strategiya',
+      titleKey: 'nav.offers_strategy',
       items: [
-        { href: '/business/offers', label: 'Takliflar', icon: TagIcon },
-        { href: '/business/strategy', label: 'Strategiya Rejasi', icon: DocumentChartBarIcon },
+        { href: '/business/offers', label: 'Takliflar', labelKey: 'nav.offers', icon: TagIcon },
+        { href: '/business/strategy', label: 'Strategiya Rejasi', labelKey: 'nav.strategy', icon: DocumentChartBarIcon },
       ]
     },
     {
       title: null,
+      titleKey: null,
       items: [
-        { href: '/business/sales', label: 'Sotuv / Leadlar', icon: PresentationChartLineIcon },
-        { href: '/business/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/business/todos', label: 'Todo List', icon: CheckCircleIcon },
-        { href: '/business/lead-forms', label: 'Lead Formalar', icon: DocumentTextIcon },
+        { href: '/business/sales', label: 'Sotuv / Leadlar', labelKey: 'nav.sales_leads', icon: PresentationChartLineIcon },
+        { href: '/business/tasks', label: 'Vazifalar', labelKey: 'nav.tasks', icon: ClipboardDocumentListIcon },
+        { href: '/business/todos', label: 'Kunlik vazifalar', labelKey: 'nav.daily_tasks', icon: CheckCircleIcon },
+        { href: '/business/lead-forms', label: 'Lead Formalar', labelKey: 'nav.lead_forms', icon: DocumentTextIcon },
       ]
     },
     {
       title: 'AI Yordamchilar',
+      titleKey: 'nav.ai_helpers',
       items: [
-        { href: '/business/facebook-analysis', label: 'Facebook analiz', icon: FacebookIcon },
-        { href: '/business/instagram-analysis', label: 'Instagram Tahlili', icon: InstagramIcon },
-        { href: '/business/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
-        { href: '/business/youtube-analytics', label: 'YouTube Analitika', icon: YouTubeIcon },
-        { href: '/business/google-ads-analytics', label: 'Google Ads', icon: GoogleIcon },
+        { href: '/business/facebook-analysis', label: 'Facebook analiz', labelKey: 'nav.facebook_analysis', icon: FacebookIcon },
+        { href: '/business/instagram-analysis', label: 'Instagram Tahlili', labelKey: 'nav.instagram_analysis', icon: InstagramIcon },
+        { href: '/business/telegram-funnels', label: 'Telegram Funnel', labelKey: 'nav.telegram_funnel', icon: TelegramIcon },
+        { href: '/business/youtube-analytics', label: 'YouTube Analitika', labelKey: 'nav.youtube_analytics', icon: YouTubeIcon },
+        { href: '/business/google-ads-analytics', label: 'Google Ads', labelKey: 'nav.google_ads', icon: GoogleIcon },
       ]
     },
     {
       title: 'Tahlillar',
+      titleKey: 'nav.analytics_section',
       items: [
-        { href: '/business/analytics', label: 'Sotuv Tahlili', icon: ChartBarIcon },
-        { href: '/business/reports', label: 'Hisobotlar', icon: DocumentChartBarIcon },
-        { href: '/business/kpi', label: 'KPI Reja', icon: PresentationChartLineIcon },
+        { href: '/business/analytics', label: 'Sotuv Tahlili', labelKey: 'nav.sales_analytics', icon: ChartBarIcon },
+        { href: '/business/reports', label: 'Hisobotlar', labelKey: 'nav.reports', icon: DocumentChartBarIcon },
+        { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
       ]
     },
     {
       title: null,
+      titleKey: null,
       items: [
-        { href: '/business/settings', label: 'Sozlamalar', icon: CogIcon },
+        { href: '/business/settings', label: 'Sozlamalar', labelKey: 'nav.settings', icon: CogIcon },
       ]
     },
   ],
@@ -230,7 +237,7 @@ export const salesHeadLayoutConfig = {
     {
       title: null,
       items: [
-        { href: '/sales-head', label: 'Dashboard', icon: HomeIcon, exact: true },
+        { href: '/sales-head', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
       ]
     },
     {
@@ -245,7 +252,7 @@ export const salesHeadLayoutConfig = {
       items: [
         { href: '/sales-head/team', label: 'Operatorlar', icon: UsersIcon },
         { href: '/sales-head/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/sales-head/todos', label: 'Todo List', icon: CheckCircleIcon },
+        { href: '/sales-head/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
       ]
     },
     {
@@ -297,7 +304,7 @@ export const adminLayoutConfig = {
   logoIcon: ShieldCheckIcon,
 
   // Badge
-  badge: 'Platform Administrator',
+  badge: 'Platforma Administratori',
   badgeClass: 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200/50',
   badgeDotClass: 'bg-red-500',
   badgeTextClass: 'text-red-700',
@@ -332,7 +339,7 @@ export const adminLayoutConfig = {
     {
       title: null,
       items: [
-        { href: '/dashboard', label: 'Dashboard', icon: HomeIcon, exact: true },
+        { href: '/dashboard', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
       ]
     },
     {
@@ -348,9 +355,9 @@ export const adminLayoutConfig = {
     {
       title: 'Monitoring',
       items: [
-        { href: '/dashboard/analytics', label: 'Analytics', icon: ChartBarIcon },
+        { href: '/dashboard/analytics', label: 'Analitika', icon: ChartBarIcon },
         { href: '/dashboard/system-health', label: 'Tizim Salomatligi', icon: CheckCircleIcon },
-        { href: '/dashboard/activity-logs', label: 'Activity Logs', icon: ClockIcon },
+        { href: '/dashboard/activity-logs', label: 'Faoliyat jurnali', icon: ClockIcon },
       ]
     },
     {
@@ -424,7 +431,7 @@ export const marketingLayoutConfig = {
       title: null,
       items: [
         { href: '/marketing', label: 'Marketing Markazi', icon: HomeIcon, exact: true },
-        { href: '/marketing/dashboard', label: 'Dashboard', icon: ChartBarIcon },
+        { href: '/marketing/dashboard', label: 'Bosh sahifa', icon: ChartBarIcon },
         { href: '/marketing/campaigns', label: 'Kampaniyalar', icon: PresentationChartLineIcon },
         { href: '/marketing/content', label: 'Kontent Reja', icon: CalendarIcon },
         { href: '/marketing/channels', label: 'Kanallar', icon: UsersIcon },
@@ -458,7 +465,7 @@ export const marketingLayoutConfig = {
       title: null,
       items: [
         { href: '/marketing/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/marketing/todos', label: 'Todo List', icon: CheckCircleIcon },
+        { href: '/marketing/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
       ]
     },
     {
@@ -542,7 +549,7 @@ export const financeLayoutConfig = {
     {
       title: null,
       items: [
-        { href: '/finance', label: 'Dashboard', icon: HomeIcon, exact: true },
+        { href: '/finance', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
       ]
     },
     {
@@ -565,7 +572,7 @@ export const financeLayoutConfig = {
       title: 'Vazifalar',
       items: [
         { href: '/finance/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/finance/todos', label: 'Todo List', icon: CheckCircleIcon },
+        { href: '/finance/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
       ]
     },
     {
@@ -633,7 +640,7 @@ export const hrLayoutConfig = {
     {
       title: null,
       items: [
-        { href: '/hr', label: 'Dashboard', icon: HomeIcon, exact: true },
+        { href: '/hr', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
       ]
     },
     {
@@ -654,7 +661,7 @@ export const hrLayoutConfig = {
         { href: '/hr/leave', label: 'Ta\'til', icon: CalendarIcon },
         { href: '/hr/performance', label: 'Samaradorlik', icon: ChartBarIcon },
         { href: '/hr/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/hr/todos', label: 'Todo List', icon: CheckCircleIcon },
+        { href: '/hr/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
       ]
     },
     {
@@ -727,7 +734,7 @@ export const operatorLayoutConfig = {
     {
       title: null,
       items: [
-        { href: '/operator', label: 'Dashboard', icon: HomeIcon, exact: true },
+        { href: '/operator', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
       ]
     },
     {
@@ -736,7 +743,7 @@ export const operatorLayoutConfig = {
         { href: '/operator/leads', label: 'Mening Leadlarim', icon: UserGroupIcon },
         { href: '/operator/inbox', label: 'Yagona Inbox', icon: InboxIcon },
         { href: '/operator/tasks', label: 'Vazifalarim', icon: ClipboardDocumentListIcon },
-        { href: '/operator/todos', label: 'Todo List', icon: CheckCircleIcon },
+        { href: '/operator/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
       ]
     },
     {
@@ -802,7 +809,7 @@ export const appLayoutConfig = {
       title: 'Asosiy',
       items: [
         { href: '/', label: 'Bosh Sahifa', icon: HomeIcon, exact: true },
-        { href: '/kpi-dashboard', label: 'KPI Dashboard', icon: ChartBarIcon },
+        { href: '/kpi-dashboard', label: 'KPI Boshqaruv', icon: ChartBarIcon },
         { href: '/reports', label: 'Hisobotlar', icon: DocumentChartBarIcon },
       ]
     },

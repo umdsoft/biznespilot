@@ -66,16 +66,6 @@ class JobApplication extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function interviews(): HasMany
-    {
-        return $this->hasMany(Interview::class);
-    }
-
-    public function evaluations(): HasMany
-    {
-        return $this->hasMany(CandidateEvaluation::class);
-    }
-
     // ==================== Scopes ====================
 
     public function scopeNew($query)

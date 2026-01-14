@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SalesHead;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Models\Lead;
 use App\Models\Task;
@@ -127,49 +128,46 @@ class DashboardController extends Controller
 
     /**
      * Get team performance stats
+     * Optimized: Single query with aggregation instead of N+1
      */
     private function getTeamPerformance($businessId, $startOfMonth): array
     {
-        $operators = BusinessUser::where('business_id', $businessId)
-            ->where('department', 'sales_operator')
-            ->with('user:id,name')
-            ->get();
+        // Get all operator performance in a single optimized query
+        $performance = DB::table('business_users')
+            ->join('users', 'business_users.user_id', '=', 'users.id')
+            ->leftJoin('leads', function ($join) use ($businessId, $startOfMonth) {
+                $join->on('business_users.user_id', '=', 'leads.assigned_to')
+                    ->where('leads.business_id', '=', $businessId)
+                    ->where('leads.updated_at', '>=', $startOfMonth);
+            })
+            ->where('business_users.business_id', $businessId)
+            ->where('business_users.department', 'sales_operator')
+            ->select(
+                'business_users.id',
+                'business_users.user_id',
+                'users.name',
+                DB::raw('COUNT(DISTINCT leads.id) as leads_handled'),
+                DB::raw('COUNT(DISTINCT CASE WHEN leads.status = "won" THEN leads.id END) as leads_won'),
+                DB::raw('COALESCE(SUM(CASE WHEN leads.status = "won" THEN leads.estimated_value ELSE 0 END), 0) as revenue')
+            )
+            ->groupBy('business_users.id', 'business_users.user_id', 'users.name')
+            ->orderByDesc('revenue')
+            ->get()
+            ->map(function ($row) {
+                $leadsHandled = (int) $row->leads_handled;
+                $leadsWon = (int) $row->leads_won;
 
-        $performance = [];
-
-        foreach ($operators as $operator) {
-            $userId = $operator->user_id;
-
-            $leadsHandled = Lead::where('business_id', $businessId)
-                ->where('assigned_to', $userId)
-                ->where('updated_at', '>=', $startOfMonth)
-                ->count();
-
-            $leadsWon = Lead::where('business_id', $businessId)
-                ->where('assigned_to', $userId)
-                ->where('status', 'won')
-                ->where('updated_at', '>=', $startOfMonth)
-                ->count();
-
-            $revenue = Lead::where('business_id', $businessId)
-                ->where('assigned_to', $userId)
-                ->where('status', 'won')
-                ->where('updated_at', '>=', $startOfMonth)
-                ->sum('estimated_value') ?? 0;
-
-            $performance[] = [
-                'id' => $operator->id,
-                'user_id' => $userId,
-                'name' => $operator->user->name ?? 'Noma\'lum',
-                'leads_handled' => $leadsHandled,
-                'leads_won' => $leadsWon,
-                'conversion_rate' => $leadsHandled > 0 ? round(($leadsWon / $leadsHandled) * 100, 1) : 0,
-                'revenue' => $revenue,
-            ];
-        }
-
-        // Sort by revenue
-        usort($performance, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
+                return [
+                    'id' => $row->id,
+                    'user_id' => $row->user_id,
+                    'name' => $row->name ?? 'Noma\'lum',
+                    'leads_handled' => $leadsHandled,
+                    'leads_won' => $leadsWon,
+                    'conversion_rate' => $leadsHandled > 0 ? round(($leadsWon / $leadsHandled) * 100, 1) : 0,
+                    'revenue' => (float) $row->revenue,
+                ];
+            })
+            ->toArray();
 
         return $performance;
     }

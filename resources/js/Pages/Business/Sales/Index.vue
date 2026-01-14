@@ -1,6 +1,9 @@
 <script setup>
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
 import LeadIndex from '@/components/leads/LeadIndex.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     leads: {
@@ -38,7 +41,7 @@ defineProps({
 </script>
 
 <template>
-    <BusinessLayout title="Sotuv Pipeline">
+    <BusinessLayout :title="t('nav.sales_leads')">
         <LeadIndex
             :leads="leads"
             :stats="stats"

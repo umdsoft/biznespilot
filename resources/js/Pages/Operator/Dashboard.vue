@@ -12,8 +12,8 @@ defineProps({
 </script>
 
 <template>
-    <OperatorLayout title="Dashboard">
-        <Head title="Operator Dashboard" />
+    <OperatorLayout title="Bosh sahifa">
+        <Head title="Operator - Bosh sahifa" />
         <OperatorDashboard
             :stats="stats"
             :recent-leads="recentLeads"

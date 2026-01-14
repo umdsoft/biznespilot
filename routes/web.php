@@ -29,7 +29,6 @@ use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\MarketingAnalyticsController;
 use App\Http\Controllers\MarketingCampaignController;
 use App\Http\Controllers\MetaCampaignController;
-use App\Http\Controllers\OffersController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SmsController;
@@ -48,6 +47,7 @@ use App\Http\Controllers\UnifiedInboxController;
 use App\Http\Controllers\OnboardingWebController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\BusinessManagementController;
+use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\FeedbackManagementController;
 use App\Http\Controllers\Admin\NotificationManagementController;
@@ -66,6 +66,16 @@ use App\Http\Controllers\GoogleAdsAnalyticsController;
 use App\Http\Controllers\GoogleAdsCampaignController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// ==============================================
+// Health Check Routes (No Authentication)
+// ==============================================
+Route::prefix('health')->group(function () {
+    Route::get('/ping', [HealthCheckController::class, 'ping'])->name('health.ping');
+    Route::get('/status', [HealthCheckController::class, 'status'])->name('health.status');
+    Route::get('/ready', [HealthCheckController::class, 'ready'])->name('health.ready');
+    Route::get('/live', [HealthCheckController::class, 'live'])->name('health.live');
+});
 
 // Guest routes
 Route::middleware('guest')->group(function () {
@@ -526,20 +536,20 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/{leadForm}/embed-code', [LeadFormController::class, 'getEmbedCode'])->name('embed-code');
     });
 
-    // Offers routes
+    // Offers routes (using SharedOffersController)
     Route::prefix('offers')->name('offers.')->group(function () {
-        Route::get('/', [OffersController::class, 'index'])->name('index');
-        Route::get('/create', [OffersController::class, 'create'])->name('create');
-        Route::post('/', [OffersController::class, 'store'])->name('store');
-        Route::post('/generate-ai', [OffersController::class, 'generateAI'])->name('generate-ai');
-        Route::post('/generate-guarantee', [OffersController::class, 'generateGuarantee'])->name('generate-guarantee');
-        Route::post('/calculate-value-score', [OffersController::class, 'calculateValueScore'])->name('calculate-value-score');
-        Route::get('/{offer}', [OffersController::class, 'show'])->name('show');
-        Route::get('/{offer}/edit', [OffersController::class, 'edit'])->name('edit');
-        Route::put('/{offer}', [OffersController::class, 'update'])->name('update');
-        Route::delete('/{offer}', [OffersController::class, 'destroy'])->name('destroy');
-        Route::post('/{offer}/duplicate', [OffersController::class, 'duplicate'])->name('duplicate');
-        Route::post('/{offer}/generate-variations', [OffersController::class, 'generateVariations'])->name('generate-variations');
+        Route::get('/', [SharedOffersController::class, 'index'])->name('index');
+        Route::get('/create', [SharedOffersController::class, 'create'])->name('create');
+        Route::post('/', [SharedOffersController::class, 'store'])->name('store');
+        Route::post('/generate-ai', [SharedOffersController::class, 'generateAI'])->name('generate-ai');
+        Route::post('/generate-guarantee', [SharedOffersController::class, 'generateGuarantee'])->name('generate-guarantee');
+        Route::post('/calculate-value-score', [SharedOffersController::class, 'calculateValueScore'])->name('calculate-value-score');
+        Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
+        Route::get('/{offer}/edit', [SharedOffersController::class, 'edit'])->name('edit');
+        Route::put('/{offer}', [SharedOffersController::class, 'update'])->name('update');
+        Route::delete('/{offer}', [SharedOffersController::class, 'destroy'])->name('destroy');
+        Route::post('/{offer}/duplicate', [SharedOffersController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{offer}/generate-variations', [SharedOffersController::class, 'generateVariations'])->name('generate-variations');
     });
 
     // Sales Analytics routes

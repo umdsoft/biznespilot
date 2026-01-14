@@ -5,7 +5,7 @@
       <div>
         <div class="flex items-center gap-3 mb-2">
           <span v-if="industryIcon" class="text-3xl">{{ industryIcon }}</span>
-          <h1 class="text-2xl font-bold text-gray-900">KPI Dashboard</h1>
+          <h1 class="text-2xl font-bold text-gray-900">KPI Boshqaruv Paneli</h1>
         </div>
         <p class="text-sm text-gray-500">
           <span class="font-medium">{{ businessName }}</span> - {{ industryName }}
@@ -42,7 +42,7 @@
           <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          Export
+          Eksport
         </button>
 
         <!-- Refresh Button -->
@@ -406,14 +406,14 @@ const exportDashboard = async () => {
 
 // Generate CSV from data
 const generateCSV = (data) => {
-  let csv = `KPI Dashboard - ${data.business}\n`;
-  csv += `Industry: ${data.industry}\n`;
-  csv += `Period: ${data.period}\n`;
-  csv += `Exported: ${new Date().toLocaleString()}\n\n`;
+  let csv = `KPI Boshqaruv Paneli - ${data.business}\n`;
+  csv += `Soha: ${data.industry}\n`;
+  csv += `Davr: ${data.period}\n`;
+  csv += `Eksport vaqti: ${new Date().toLocaleString()}\n\n`;
 
   // Summary Cards
-  csv += `SUMMARY CARDS\n`;
-  csv += `KPI,Current Value,Target,Performance %,Status\n`;
+  csv += `UMUMIY KO'RSATKICHLAR\n`;
+  csv += `KPI,Joriy Qiymat,Maqsad,Bajarilish %,Holat\n`;
   data.summary_cards.forEach(card => {
     csv += `"${card.name}","${card.value}","${card.target}",${card.performance_percent},"${card.performance_status}"\n`;
   });
@@ -421,10 +421,10 @@ const generateCSV = (data) => {
   csv += `\n`;
 
   // KPI Table
-  csv += `DETAILED KPIs\n`;
+  csv += `BATAFSIL KPI'LAR\n`;
   data.kpi_table.sections?.forEach(section => {
     csv += `\n${section.name}\n`;
-    csv += `KPI,Current,Target,Performance %,Status\n`;
+    csv += `KPI,Joriy,Maqsad,Bajarilish %,Holat\n`;
     section.rows?.forEach(row => {
       csv += `"${row.name}","${row.current_value}","${row.target_value}",${row.performance_percent},"${row.performance_status}"\n`;
     });

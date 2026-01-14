@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/Layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     leadForms: Array,
@@ -66,8 +69,8 @@ const getLeadMagnetLabel = (type) => {
 </script>
 
 <template>
-    <BusinessLayout title="Lead Formalar">
-        <Head title="Lead Formalar" />
+    <BusinessLayout :title="t('nav.lead_forms')">
+        <Head :title="t('nav.lead_forms')" />
 
         <div class="p-6 space-y-6">
             <!-- Header -->

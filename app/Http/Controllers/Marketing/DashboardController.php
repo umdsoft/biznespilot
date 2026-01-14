@@ -9,6 +9,8 @@ use App\Models\Campaign;
 use App\Models\ContentCalendar;
 use App\Models\Lead;
 use App\Models\Task;
+use App\Services\LeadStatisticsService;
+use App\Services\ContentStatisticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -16,6 +18,15 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     use HasCurrentBusiness;
+
+    protected LeadStatisticsService $leadStats;
+    protected ContentStatisticsService $contentStats;
+
+    public function __construct(LeadStatisticsService $leadStats, ContentStatisticsService $contentStats)
+    {
+        $this->leadStats = $leadStats;
+        $this->contentStats = $contentStats;
+    }
 
     public function index()
     {
@@ -28,17 +39,17 @@ class DashboardController extends Controller
         // Real campaign statistics
         $campaignStats = $this->getCampaignStats($business->id);
 
-        // Real lead statistics
-        $leadStats = $this->getLeadStats($business->id);
+        // Real lead statistics (using centralized service)
+        $leadStats = $this->leadStats->getLeadStats($business->id);
 
-        // Real content statistics
-        $contentStats = $this->getContentStats($business->id);
+        // Real content statistics (using centralized service)
+        $contentStats = $this->contentStats->getContentStats($business->id);
 
         // Budget (from campaigns)
         $budgetStats = $this->getBudgetStats($business->id);
 
-        // Social stats (aggregated from content)
-        $socialStats = $this->getSocialStats($business->id);
+        // Social stats (using centralized service)
+        $socialStats = $this->contentStats->getSocialStats($business->id);
 
         // Recent active campaigns
         $recentCampaigns = $this->getRecentCampaigns($business->id);
@@ -84,67 +95,6 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getLeadStats($businessId): array
-    {
-        $total = Lead::where('business_id', $businessId)->count();
-
-        $thisMonth = Lead::where('business_id', $businessId)
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
-
-        $lastMonth = Lead::where('business_id', $businessId)
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->count();
-
-        $won = Lead::where('business_id', $businessId)->where('status', 'won')->count();
-        $conversionRate = $total > 0 ? round(($won / $total) * 100, 1) : 0;
-
-        // Month over month growth
-        $growth = $lastMonth > 0 ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1) : 0;
-
-        return [
-            'total' => $total,
-            'this_month' => $thisMonth,
-            'last_month' => $lastMonth,
-            'won' => $won,
-            'conversion_rate' => $conversionRate,
-            'growth' => $growth,
-        ];
-    }
-
-    private function getContentStats($businessId): array
-    {
-        $published = ContentCalendar::where('business_id', $businessId)->where('status', 'published')->count();
-        $scheduled = ContentCalendar::where('business_id', $businessId)->whereIn('status', ['scheduled', 'approved'])->count();
-        $draft = ContentCalendar::where('business_id', $businessId)->where('status', 'draft')->count();
-
-        // Average engagement rate
-        $avgEngagement = ContentCalendar::where('business_id', $businessId)
-            ->where('status', 'published')
-            ->whereNotNull('engagement_rate')
-            ->avg('engagement_rate') ?? 0;
-
-        // Total reach
-        $totalReach = ContentCalendar::where('business_id', $businessId)
-            ->where('status', 'published')
-            ->sum('reach') ?? 0;
-
-        // Total views
-        $totalViews = ContentCalendar::where('business_id', $businessId)
-            ->where('status', 'published')
-            ->sum('views') ?? 0;
-
-        return [
-            'posts_published' => $published,
-            'posts_scheduled' => $scheduled,
-            'posts_draft' => $draft,
-            'engagement_rate' => round($avgEngagement, 2),
-            'total_reach' => $totalReach,
-            'total_views' => $totalViews,
-        ];
-    }
 
     private function getBudgetStats($businessId): array
     {
@@ -175,43 +125,6 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getSocialStats($businessId): array
-    {
-        // Total engagement metrics
-        $totalLikes = ContentCalendar::where('business_id', $businessId)->where('status', 'published')->sum('likes') ?? 0;
-        $totalComments = ContentCalendar::where('business_id', $businessId)->where('status', 'published')->sum('comments') ?? 0;
-        $totalShares = ContentCalendar::where('business_id', $businessId)->where('status', 'published')->sum('shares') ?? 0;
-        $totalReach = ContentCalendar::where('business_id', $businessId)->where('status', 'published')->sum('reach') ?? 0;
-
-        // Calculate follower equivalent (estimated from reach)
-        $followers = $totalReach > 0 ? intval($totalReach * 0.12) : 0;
-
-        // This month vs last month for growth (using created_at as fallback)
-        $thisMonthReach = ContentCalendar::where('business_id', $businessId)
-            ->where('status', 'published')
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->sum('reach') ?? 0;
-
-        $lastMonthReach = ContentCalendar::where('business_id', $businessId)
-            ->where('status', 'published')
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->sum('reach') ?? 0;
-
-        $growth = $lastMonthReach > 0
-            ? round((($thisMonthReach - $lastMonthReach) / $lastMonthReach) * 100, 1)
-            : 0;
-
-        return [
-            'followers' => $followers,
-            'growth' => $growth,
-            'reach' => $totalReach,
-            'likes' => $totalLikes,
-            'comments' => $totalComments,
-            'shares' => $totalShares,
-        ];
-    }
 
     private function getRecentCampaigns($businessId): array
     {

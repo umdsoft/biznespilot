@@ -1,49 +1,59 @@
-<script setup>
-defineProps({
-    members: { type: Array, default: () => [] },
-    limit: { type: Number, default: 5 },
-    emptyText: { type: String, default: 'Hali operator yo\'q' },
-});
-
-const formatCurrency = (value) => {
-    if (!value) return "0 so'm";
-    return new Intl.NumberFormat('uz-UZ').format(value) + " so'm";
-};
-</script>
-
 <template>
-    <div class="space-y-4">
-        <template v-if="members?.length">
-            <div
-                v-for="(member, index) in members.slice(0, limit)"
-                :key="member.id"
-                class="flex items-center gap-3"
-            >
-                <div
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                    :class="index === 0
-                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'"
-                >
-                    {{ index + 1 }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ member.name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ member.leads_won || member.deals || 0 }} bitim</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                        {{ formatCurrency(member.revenue || member.total_revenue) }}
-                    </p>
+    <div class="space-y-3">
+        <div v-if="members.length === 0" class="text-center py-8 text-gray-500">
+            Jamoa a'zolari yo'q
+        </div>
+        <div
+            v-for="member in members"
+            :key="member.id"
+            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+        >
+            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <span class="text-indigo-600 font-semibold text-sm">
+                    {{ getInitials(member.name) }}
+                </span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-medium text-gray-900 truncate">{{ member.name }}</p>
+                <div class="flex items-center gap-4 text-sm text-gray-500">
+                    <span>{{ member.leads_count || 0 }} lead</span>
+                    <span>{{ member.won_count || 0 }} yutildi</span>
+                    <span class="text-green-600 font-medium">{{ member.conversion_rate || 0 }}% CR</span>
                 </div>
             </div>
-        </template>
-
-        <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-            <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <p>{{ emptyText }}</p>
+            <div class="text-right">
+                <p class="font-semibold text-gray-900">{{ formatCurrency(member.revenue || 0) }}</p>
+                <p class="text-xs text-gray-500">daromad</p>
+            </div>
         </div>
     </div>
 </template>
+
+<script setup>
+defineProps({
+    members: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const getInitials = (name) => {
+    if (!name) return 'U';
+    return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+};
+
+const formatCurrency = (value) => {
+    if (value >= 1000000) {
+        return (value / 1000000).toFixed(1) + 'M';
+    }
+    if (value >= 1000) {
+        return (value / 1000).toFixed(0) + 'K';
+    }
+    return new Intl.NumberFormat('uz-UZ').format(value || 0) + ' so\'m';
+};
+</script>

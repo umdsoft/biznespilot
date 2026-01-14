@@ -12,8 +12,8 @@ defineProps({
 </script>
 
 <template>
-    <FinanceLayout title="Dashboard">
-        <Head title="Moliya Dashboard" />
+    <FinanceLayout title="Bosh sahifa">
+        <Head title="Moliya bo'limi - Bosh sahifa" />
         <FinanceDashboard
             :stats="stats"
             :recent-transactions="recentTransactions"
