@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('name')->after('step_id')->default('Trigger');
         });
 
-        // Update type enum to include more options
-        DB::statement("ALTER TABLE telegram_triggers MODIFY COLUMN type ENUM('command', 'callback', 'keyword', 'event', 'start_payload', 'text') DEFAULT 'keyword'");
+        // Update type enum to include more options (MySQL only)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE telegram_triggers MODIFY COLUMN type ENUM('command', 'callback', 'keyword', 'event', 'start_payload', 'text') DEFAULT 'keyword'");
+        }
     }
 
     /**
@@ -30,6 +32,9 @@ return new class extends Migration
             $table->dropColumn('name');
         });
 
-        DB::statement("ALTER TABLE telegram_triggers MODIFY COLUMN type ENUM('command', 'callback', 'keyword', 'event') DEFAULT 'keyword'");
+        // Revert type enum (MySQL only)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE telegram_triggers MODIFY COLUMN type ENUM('command', 'callback', 'keyword', 'event') DEFAULT 'keyword'");
+        }
     }
 };

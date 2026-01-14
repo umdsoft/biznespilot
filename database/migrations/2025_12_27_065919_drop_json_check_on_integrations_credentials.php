@@ -14,7 +14,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Modify column to LONGTEXT removes the JSON CHECK constraint in MariaDB
+        // Skip for SQLite (used in tests) - constraint doesn't exist there
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
+        // Modify column to LONGTEXT removes the JSON CHECK constraint in MariaDB/MySQL
         DB::statement('ALTER TABLE integrations MODIFY COLUMN credentials LONGTEXT NULL');
     }
 
@@ -23,6 +28,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Re-add the JSON column type (which adds the constraint back)
         DB::statement('ALTER TABLE integrations MODIFY COLUMN credentials JSON NULL');
     }

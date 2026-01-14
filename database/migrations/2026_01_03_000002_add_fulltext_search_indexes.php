@@ -15,6 +15,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite (used in tests) - FULLTEXT indexes not supported
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Activity logs - search by description
         if (Schema::hasTable('activity_logs') && $this->hasColumn('activity_logs', 'description')) {
             if (!$this->fullTextIndexExists('activity_logs', 'activity_logs_description_fulltext')) {
@@ -108,6 +113,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Drop fulltext indexes
         $this->dropFullTextIndexIfExists('activity_logs', 'activity_logs_description_fulltext');
         $this->dropFullTextIndexIfExists('ai_insights', 'ai_insights_title_fulltext');
