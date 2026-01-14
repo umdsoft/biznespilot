@@ -22,6 +22,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite (used in tests) - SHOW INDEX not supported
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Leads table indexes
         Schema::table('leads', function (Blueprint $table) {
             // Index for assigned_to queries (operator performance)
@@ -122,6 +127,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('leads', function (Blueprint $table) {
             $table->dropIndex('leads_assigned_to_index');
             $table->dropIndex('leads_business_status_index');

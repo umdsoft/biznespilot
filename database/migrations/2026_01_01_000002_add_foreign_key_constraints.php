@@ -9,25 +9,23 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * CRITICAL DATA INTEGRITY FIX: Add foreign key constraints
-     *
-     * Issue: Without foreign keys, orphaned records accumulate when businesses are deleted
-     * Impact: Database bloat, incorrect analytics, wasted storage
-     *
-     * Solution: Add CASCADE/RESTRICT policies to maintain data integrity
      */
     public function up(): void
     {
+        // Skip for SQLite (used in tests) - foreign key handling is different
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Clean up orphaned records before adding constraints
         $this->cleanupOrphanedRecords();
 
-        // KPI Daily Actuals - Skip, foreign key already exists in create table migration
+        // KPI Daily Actuals
         if (!$this->foreignKeyExists('kpi_daily_actuals', 'kpi_daily_actuals_business_id_foreign')) {
             Schema::table('kpi_daily_actuals', function (Blueprint $table) {
                 $table->foreign('business_id')
                     ->references('id')->on('businesses')
-                    ->onDelete('cascade'); // Delete KPIs when business deleted
+                    ->onDelete('cascade');
             });
         }
 
@@ -104,9 +102,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Check if a foreign key constraint exists
-     */
     protected function foreignKeyExists(string $table, string $foreignKey): bool
     {
         $conn = Schema::getConnection();
@@ -121,102 +116,43 @@ return new class extends Migration
         return !empty($result);
     }
 
-    /**
-     * Clean up orphaned records before adding constraints
-     */
     protected function cleanupOrphanedRecords(): void
     {
-        // Get list of valid business IDs
         $validBusinessIds = DB::table('businesses')->pluck('id')->toArray();
 
         if (empty($validBusinessIds)) {
-            // No businesses, skip cleanup
             return;
         }
 
-        // Clean up orphaned records from tables that exist
         $tablesToClean = [
-            'kpi_daily_actuals',
-            'leads',
-            'instagram_accounts',
-            'facebook_pages',
-            'sales_metrics',
-            'marketing_metrics',
-            'kpi_configurations',
-            'competitors',
-            'dream_buyers',
+            'kpi_daily_actuals', 'leads', 'instagram_accounts', 'facebook_pages',
+            'sales_metrics', 'marketing_metrics', 'kpi_configurations', 'competitors', 'dream_buyers',
         ];
 
-        $existingTables = [];
         foreach ($tablesToClean as $table) {
             if (Schema::hasTable($table)) {
-                DB::table($table)
-                    ->whereNotIn('business_id', $validBusinessIds)
-                    ->delete();
-                $existingTables[] = $table;
-            }
-        }
-
-        // Optimize only existing tables
-        if (!empty($existingTables)) {
-            $tableList = implode(', ', $existingTables);
-            try {
-                DB::statement("OPTIMIZE TABLE {$tableList}");
-            } catch (\Exception $e) {
-                // Ignore optimize errors
+                DB::table($table)->whereNotIn('business_id', $validBusinessIds)->delete();
             }
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('kpi_daily_actuals', function (Blueprint $table) {
-            $table->dropForeign(['business_id']);
-        });
-
-        Schema::table('leads', function (Blueprint $table) {
-            $table->dropForeign(['business_id']);
-        });
-
-        Schema::table('instagram_accounts', function (Blueprint $table) {
-            $table->dropForeign(['business_id']);
-        });
-
-        Schema::table('facebook_pages', function (Blueprint $table) {
-            $table->dropForeign(['business_id']);
-        });
-
-        if (Schema::hasTable('sales_metrics')) {
-            Schema::table('sales_metrics', function (Blueprint $table) {
-                $table->dropForeign(['business_id']);
-            });
+        if (DB::getDriverName() === 'sqlite') {
+            return;
         }
 
-        if (Schema::hasTable('marketing_metrics')) {
-            Schema::table('marketing_metrics', function (Blueprint $table) {
-                $table->dropForeign(['business_id']);
-            });
-        }
+        $tables = ['kpi_daily_actuals', 'leads', 'instagram_accounts', 'facebook_pages',
+            'sales_metrics', 'marketing_metrics', 'kpi_configurations', 'competitors', 'dream_buyers'];
 
-        if (Schema::hasTable('kpi_configurations')) {
-            Schema::table('kpi_configurations', function (Blueprint $table) {
-                $table->dropForeign(['business_id']);
-            });
-        }
-
-        if (Schema::hasTable('competitors')) {
-            Schema::table('competitors', function (Blueprint $table) {
-                $table->dropForeign(['business_id']);
-            });
-        }
-
-        if (Schema::hasTable('dream_buyers')) {
-            Schema::table('dream_buyers', function (Blueprint $table) {
-                $table->dropForeign(['business_id']);
-            });
+        foreach ($tables as $table) {
+            if (Schema::hasTable($table)) {
+                try {
+                    Schema::table($table, fn ($t) => $t->dropForeign(['business_id']));
+                } catch (\Exception $e) {
+                    // Ignore if foreign key doesn't exist
+                }
+            }
         }
     }
 };

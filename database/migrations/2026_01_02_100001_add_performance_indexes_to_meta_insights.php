@@ -21,6 +21,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite (used in tests) - information_schema not supported
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Skip if table doesn't exist
         if (!Schema::hasTable('meta_insights')) {
             return;
@@ -92,6 +97,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (!Schema::hasTable('meta_insights')) {
             return;
         }

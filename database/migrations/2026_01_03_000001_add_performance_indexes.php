@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,6 +15,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite (used in tests) - information_schema not supported
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
         // Leads table indexes
         if (Schema::hasTable('leads')) {
             Schema::table('leads', function (Blueprint $table) {
@@ -149,6 +154,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Drop leads indexes
         if (Schema::hasTable('leads')) {
             Schema::table('leads', function (Blueprint $table) {
