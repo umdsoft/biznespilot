@@ -1,6 +1,6 @@
 <script setup>
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
-import FinanceDashboard from '@/components/dashboard/FinanceDashboard.vue';
+import FinanceDashboard from '@/components/Dashboard/FinanceDashboard.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({

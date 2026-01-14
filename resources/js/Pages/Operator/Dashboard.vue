@@ -1,6 +1,6 @@
 <script setup>
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
-import OperatorDashboard from '@/components/dashboard/OperatorDashboard.vue';
+import OperatorDashboard from '@/components/Dashboard/OperatorDashboard.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({

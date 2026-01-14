@@ -1,6 +1,6 @@
 <script setup>
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
-import SalesHeadDashboard from '@/components/dashboard/SalesHeadDashboard.vue';
+import SalesHeadDashboard from '@/components/Dashboard/SalesHeadDashboard.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({

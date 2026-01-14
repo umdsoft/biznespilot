@@ -1,6 +1,6 @@
 <script setup>
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
-import OperatorKPI from '@/components/kpi/OperatorKPI.vue';
+import OperatorKPI from '@/components/KPI/OperatorKPI.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({

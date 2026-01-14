@@ -1,6 +1,6 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
-import HRDashboard from '@/components/dashboard/HRDashboard.vue';
+import HRDashboard from '@/components/Dashboard/HRDashboard.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({

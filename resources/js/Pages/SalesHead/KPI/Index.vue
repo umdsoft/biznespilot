@@ -1,6 +1,6 @@
 <script setup>
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
-import SalesHeadKPI from '@/components/kpi/SalesHeadKPI.vue';
+import SalesHeadKPI from '@/components/KPI/SalesHeadKPI.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
