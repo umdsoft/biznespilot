@@ -241,7 +241,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
 import axios from 'axios'
 
 const props = defineProps({

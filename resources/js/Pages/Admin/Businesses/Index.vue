@@ -302,7 +302,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
 import { router } from '@inertiajs/vue3'
 
 const props = defineProps({

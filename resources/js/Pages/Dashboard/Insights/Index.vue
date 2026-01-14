@@ -149,7 +149,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import InsightCard from '@/Components/Dashboard/InsightCard.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
