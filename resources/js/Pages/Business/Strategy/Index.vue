@@ -301,7 +301,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import StrategyCard from '@/Components/strategy/StrategyCard.vue';
+import StrategyCard from '@/components/strategy/StrategyCard.vue';
 import {
   PlusIcon,
   RocketLaunchIcon,

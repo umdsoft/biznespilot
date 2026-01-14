@@ -311,7 +311,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useStrategyStore } from '@/stores/strategy';
-import WizardStep from '@/Components/strategy/WizardStep.vue';
+import WizardStep from '@/components/strategy/WizardStep.vue';
 import {
   ArrowLeftIcon,
   SparklesIcon,

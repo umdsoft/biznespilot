@@ -263,10 +263,10 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
-import Card from '@/Components/Card.vue';
-import Input from '@/Components/Input.vue';
-import Button from '@/Components/Button.vue';
-import Modal from '@/Components/Modal.vue';
+import Card from '@/components/Card.vue';
+import Input from '@/components/Input.vue';
+import Button from '@/components/Button.vue';
+import Modal from '@/components/Modal.vue';
 
 const props = defineProps({
   panelType: {

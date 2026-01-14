@@ -494,8 +494,8 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
-import GoalItem from '@/Components/strategy/GoalItem.vue';
-import TaskItem from '@/Components/strategy/TaskItem.vue';
+import GoalItem from '@/components/strategy/GoalItem.vue';
+import TaskItem from '@/components/strategy/TaskItem.vue';
 import {
   ArrowLeftIcon,
   PencilIcon,

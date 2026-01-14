@@ -8,7 +8,7 @@ import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import axios from 'axios';
-import CampaignsTab from '@/Components/Meta/CampaignsTab.vue';
+import CampaignsTab from '@/components/Meta/CampaignsTab.vue';
 
 const props = defineProps({
     business: Object,

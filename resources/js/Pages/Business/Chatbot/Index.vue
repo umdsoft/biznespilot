@@ -142,7 +142,7 @@
 import { ref, nextTick, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import Card from '@/Components/Card.vue';
+import Card from '@/components/Card.vue';
 import axios from 'axios';
 
 const props = defineProps({

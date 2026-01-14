@@ -138,9 +138,9 @@
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import Card from '@/Components/Card.vue';
-import Input from '@/Components/Input.vue';
-import Button from '@/Components/Button.vue';
+import Card from '@/components/Card.vue';
+import Input from '@/components/Input.vue';
+import Button from '@/components/Button.vue';
 
 const form = useForm({
   name: '',

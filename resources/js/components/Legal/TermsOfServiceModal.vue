@@ -223,7 +223,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import Modal from '@/Components/Modal.vue';
+import Modal from '@/components/Modal.vue';
 
 const props = defineProps({
   modelValue: {

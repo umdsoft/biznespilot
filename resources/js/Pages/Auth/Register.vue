@@ -278,9 +278,9 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
-import TermsOfServiceModal from '@/Components/Legal/TermsOfServiceModal.vue';
-import PrivacyPolicyModal from '@/Components/Legal/PrivacyPolicyModal.vue';
-import TestimonialCarousel from '@/Components/Auth/TestimonialCarousel.vue';
+import TermsOfServiceModal from '@/components/Legal/TermsOfServiceModal.vue';
+import PrivacyPolicyModal from '@/components/Legal/PrivacyPolicyModal.vue';
+import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 
 const form = useForm({
   name: '',

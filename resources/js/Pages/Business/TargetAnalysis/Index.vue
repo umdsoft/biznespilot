@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
-import CampaignsTab from '@/Components/Meta/CampaignsTab.vue';
+import CampaignsTab from '@/components/Meta/CampaignsTab.vue';
 
 const props = defineProps({
     business: Object,

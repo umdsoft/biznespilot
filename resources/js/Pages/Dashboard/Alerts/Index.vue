@@ -178,9 +178,9 @@
 import { ref, reactive } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import AlertCard from '@/Components/Dashboard/AlertCard.vue';
-import Modal from '@/Components/Modal.vue';
-import Pagination from '@/Components/Pagination.vue';
+import AlertCard from '@/components/Dashboard/AlertCard.vue';
+import Modal from '@/components/Modal.vue';
+import Pagination from '@/components/Pagination.vue';
 import { CogIcon, BellSlashIcon } from '@heroicons/vue/24/outline';
 
 interface Props {

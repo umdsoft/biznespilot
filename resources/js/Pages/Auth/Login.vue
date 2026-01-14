@@ -213,7 +213,7 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import TestimonialCarousel from '@/Components/Auth/TestimonialCarousel.vue';
+import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 
 // Use reactive form instead of Inertia useForm to have full control

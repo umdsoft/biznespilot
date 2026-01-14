@@ -150,9 +150,9 @@
 import { ref, reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import InsightCard from '@/Components/Dashboard/InsightCard.vue';
-import Modal from '@/Components/Modal.vue';
-import Pagination from '@/Components/Pagination.vue';
+import InsightCard from '@/components/Dashboard/InsightCard.vue';
+import Modal from '@/components/Modal.vue';
+import Pagination from '@/components/Pagination.vue';
 import { ArrowPathIcon, LightBulbIcon } from '@heroicons/vue/24/outline';
 
 interface Props {

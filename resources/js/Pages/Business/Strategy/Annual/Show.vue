@@ -381,8 +381,8 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
-import GoalItem from '@/Components/strategy/GoalItem.vue';
-import KPICard from '@/Components/strategy/KPICard.vue';
+import GoalItem from '@/components/strategy/GoalItem.vue';
+import KPICard from '@/components/strategy/KPICard.vue';
 import {
   ArrowLeftIcon,
   PencilIcon,

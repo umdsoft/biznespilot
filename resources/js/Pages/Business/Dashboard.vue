@@ -235,7 +235,7 @@
 
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import Card from '@/Components/Card.vue';
+import Card from '@/components/Card.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';

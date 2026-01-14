@@ -348,7 +348,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useContentCalendarStore } from '@/stores/contentCalendar';
-import ContentCalendarItem from '@/Components/strategy/ContentCalendarItem.vue';
+import ContentCalendarItem from '@/components/strategy/ContentCalendarItem.vue';
 import {
   PlusIcon,
   ChevronLeftIcon,

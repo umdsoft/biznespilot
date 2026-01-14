@@ -440,7 +440,7 @@
 import { ref, reactive } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import Card from '@/Components/Card.vue';
+import Card from '@/components/Card.vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
 
