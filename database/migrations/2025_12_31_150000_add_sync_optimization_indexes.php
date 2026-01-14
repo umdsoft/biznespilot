@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,7 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Helper function to check if index exists
+        // Skip for SQLite (used in tests) - these are performance optimizations
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
+        // Helper function to check if index exists (MySQL only)
         $indexExists = function ($table, $indexName) {
             $result = Schema::getConnection()->select(
                 "SHOW INDEX FROM {$table} WHERE Key_name = ?",
@@ -60,6 +66,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('kpi_daily_actuals', function (Blueprint $table) {
             $table->dropIndex('idx_source_date');
             $table->dropIndex('idx_status_business_date');
