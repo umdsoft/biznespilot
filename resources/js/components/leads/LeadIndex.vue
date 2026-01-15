@@ -702,6 +702,9 @@ onUnmounted(() => {
     if (removeNavigateListener) {
         removeNavigateListener();
     }
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
 });
 </script>
 

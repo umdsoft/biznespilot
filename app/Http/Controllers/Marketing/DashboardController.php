@@ -28,9 +28,9 @@ class DashboardController extends Controller
         $this->contentStats = $contentStats;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $business = $this->getCurrentBusiness();
+        $business = $this->getCurrentBusiness($request);
 
         if (!$business) {
             return redirect()->route('login');

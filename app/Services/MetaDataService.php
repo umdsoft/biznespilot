@@ -401,10 +401,17 @@ class MetaDataService
 
     /**
      * Get aggregated insights for a date range
+     * IMPORTANT: Only use account-level insights to avoid duplicates
      */
     private function getAggregatedInsights(string $adAccountId, ?Carbon $startDate, ?Carbon $endDate, bool $noFilter = false): array
     {
-        $query = MetaInsight::withoutGlobalScope('business')->where('ad_account_id', $adAccountId);
+        $query = MetaInsight::withoutGlobalScope('business')
+            ->where('ad_account_id', $adAccountId)
+            ->where('object_type', 'account')
+            ->whereNull('age_range')
+            ->whereNull('gender')
+            ->whereNull('publisher_platform')
+            ->whereNull('platform_position');
 
         // Apply date filter only if not 'maximum'
         if (!$noFilter && $startDate && $endDate) {
@@ -577,5 +584,405 @@ class MetaDataService
             'active_campaigns' => count(array_filter($campaigns, fn($c) => $c['status'] === 'ACTIVE')),
             'total_campaigns' => count($campaigns),
         ];
+    }
+
+    /**
+     * Get analytics breakdown by campaign objectives (leads, messages, sales, etc.)
+     */
+    public function getObjectivesAnalytics(string $adAccountId, string $datePreset = 'last_30d'): array
+    {
+        $cacheKey = "meta_objectives_{$adAccountId}_{$datePreset}";
+
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId) {
+            // Get aggregated stats by objective from campaigns
+            $objectiveStats = MetaCampaign::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->select(
+                    'objective',
+                    DB::raw('COUNT(*) as campaigns_count'),
+                    DB::raw('SUM(total_spend) as total_spend'),
+                    DB::raw('SUM(total_leads) as total_leads'),
+                    DB::raw('SUM(total_messages) as total_messages'),
+                    DB::raw('SUM(total_purchases) as total_purchases'),
+                    DB::raw('SUM(total_link_clicks) as total_link_clicks'),
+                    DB::raw('SUM(total_video_views) as total_video_views'),
+                    DB::raw('SUM(total_impressions) as total_impressions'),
+                    DB::raw('SUM(total_clicks) as total_clicks'),
+                    DB::raw('SUM(total_conversions) as total_conversions')
+                )
+                ->groupBy('objective')
+                ->get();
+
+            $result = [];
+
+            // Process leads objectives
+            $leadObjectives = ['OUTCOME_LEADS', 'LEAD_GENERATION'];
+            $leadStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $leadObjectives));
+            if ($leadStats->isNotEmpty()) {
+                $totalLeads = $leadStats->sum('total_leads');
+                $totalSpend = $leadStats->sum('total_spend');
+                $result['leads'] = [
+                    'label' => 'Lidlar',
+                    'icon' => 'users',
+                    'color' => 'blue',
+                    'total' => (int) $totalLeads,
+                    'spend' => (float) $totalSpend,
+                    'cost_per' => $totalLeads > 0 ? round($totalSpend / $totalLeads, 2) : 0,
+                    'campaigns' => (int) $leadStats->sum('campaigns_count'),
+                ];
+            }
+
+            // Process messages objectives
+            $messageObjectives = ['MESSAGES'];
+            $messageStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $messageObjectives));
+            if ($messageStats->isNotEmpty()) {
+                $totalMessages = $messageStats->sum('total_messages');
+                $totalSpend = $messageStats->sum('total_spend');
+                $result['messages'] = [
+                    'label' => 'Xabarlar',
+                    'icon' => 'chat',
+                    'color' => 'purple',
+                    'total' => (int) $totalMessages,
+                    'spend' => (float) $totalSpend,
+                    'cost_per' => $totalMessages > 0 ? round($totalSpend / $totalMessages, 2) : 0,
+                    'campaigns' => (int) $messageStats->sum('campaigns_count'),
+                ];
+            }
+
+            // Process sales/conversion objectives
+            $salesObjectives = ['OUTCOME_SALES', 'CONVERSIONS', 'PRODUCT_CATALOG_SALES'];
+            $salesStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $salesObjectives));
+            if ($salesStats->isNotEmpty()) {
+                $totalPurchases = $salesStats->sum('total_purchases') ?: $salesStats->sum('total_conversions');
+                $totalSpend = $salesStats->sum('total_spend');
+                $result['sales'] = [
+                    'label' => 'Sotuvlar',
+                    'icon' => 'shopping-cart',
+                    'color' => 'green',
+                    'total' => (int) $totalPurchases,
+                    'spend' => (float) $totalSpend,
+                    'cost_per' => $totalPurchases > 0 ? round($totalSpend / $totalPurchases, 2) : 0,
+                    'campaigns' => (int) $salesStats->sum('campaigns_count'),
+                ];
+            }
+
+            // Process traffic objectives
+            $trafficObjectives = ['OUTCOME_TRAFFIC', 'LINK_CLICKS'];
+            $trafficStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $trafficObjectives));
+            if ($trafficStats->isNotEmpty()) {
+                $totalClicks = $trafficStats->sum('total_link_clicks');
+                $totalSpend = $trafficStats->sum('total_spend');
+                $result['traffic'] = [
+                    'label' => 'Trafik',
+                    'icon' => 'cursor-click',
+                    'color' => 'orange',
+                    'total' => (int) $totalClicks,
+                    'spend' => (float) $totalSpend,
+                    'cost_per' => $totalClicks > 0 ? round($totalSpend / $totalClicks, 2) : 0,
+                    'campaigns' => (int) $trafficStats->sum('campaigns_count'),
+                ];
+            }
+
+            // Process engagement objectives
+            $engagementObjectives = ['OUTCOME_ENGAGEMENT', 'POST_ENGAGEMENT', 'PAGE_LIKES'];
+            $engagementStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $engagementObjectives));
+            if ($engagementStats->isNotEmpty()) {
+                $totalClicks = $engagementStats->sum('total_clicks');
+                $totalSpend = $engagementStats->sum('total_spend');
+                $result['engagement'] = [
+                    'label' => 'Engagement',
+                    'icon' => 'heart',
+                    'color' => 'pink',
+                    'total' => (int) $totalClicks,
+                    'spend' => (float) $totalSpend,
+                    'cost_per' => $totalClicks > 0 ? round($totalSpend / $totalClicks, 2) : 0,
+                    'campaigns' => (int) $engagementStats->sum('campaigns_count'),
+                ];
+            }
+
+            // Process video views objectives
+            $videoObjectives = ['VIDEO_VIEWS'];
+            $videoStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $videoObjectives));
+            if ($videoStats->isNotEmpty()) {
+                $totalViews = $videoStats->sum('total_video_views');
+                $totalSpend = $videoStats->sum('total_spend');
+                $result['video'] = [
+                    'label' => 'Video ko\'rishlar',
+                    'icon' => 'play',
+                    'color' => 'red',
+                    'total' => (int) $totalViews,
+                    'spend' => (float) $totalSpend,
+                    'cost_per' => $totalViews > 0 ? round($totalSpend / $totalViews, 4) : 0,
+                    'campaigns' => (int) $videoStats->sum('campaigns_count'),
+                ];
+            }
+
+            return $result;
+        });
+    }
+
+    /**
+     * Get comprehensive audience analytics with performance insights
+     */
+    public function getAudienceAnalytics(string $adAccountId, string $datePreset = 'last_30d'): array
+    {
+        $cacheKey = "meta_audience_{$adAccountId}_{$datePreset}";
+
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($adAccountId, $datePreset) {
+            $dateRange = $this->getDateRange($datePreset);
+            $startDate = $dateRange['start'];
+            $endDate = $dateRange['end'];
+            $noFilter = $dateRange['no_filter'];
+
+            // Get age performance data
+            $ageQuery = MetaInsight::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('age_range')
+                ->whereNull('gender')
+                ->whereNull('publisher_platform');
+
+            if (!$noFilter && $startDate && $endDate) {
+                $ageQuery->whereBetween('date_start', [$startDate, $endDate]);
+            }
+
+            $ageData = $ageQuery->select(
+                    'age_range',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
+                    DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
+                )
+                ->groupBy('age_range')
+                ->orderByDesc(DB::raw('SUM(spend)'))
+                ->get();
+
+            // Get gender performance data
+            $genderQuery = MetaInsight::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('gender')
+                ->whereNull('age_range')
+                ->whereNull('publisher_platform');
+
+            if (!$noFilter && $startDate && $endDate) {
+                $genderQuery->whereBetween('date_start', [$startDate, $endDate]);
+            }
+
+            $genderData = $genderQuery->select(
+                    'gender',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
+                    DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
+                )
+                ->groupBy('gender')
+                ->orderByDesc(DB::raw('SUM(spend)'))
+                ->get();
+
+            // Get platform performance data
+            $platformQuery = MetaInsight::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('publisher_platform')
+                ->whereNull('age_range')
+                ->whereNull('gender')
+                ->whereNull('platform_position');
+
+            if (!$noFilter && $startDate && $endDate) {
+                $platformQuery->whereBetween('date_start', [$startDate, $endDate]);
+            }
+
+            $platformData = $platformQuery->select(
+                    'publisher_platform',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
+                    DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
+                )
+                ->groupBy('publisher_platform')
+                ->orderByDesc(DB::raw('SUM(spend)'))
+                ->get();
+
+            // Calculate totals for percentage calculations
+            $totalSpend = $ageData->sum('spend');
+            $totalClicks = $ageData->sum('clicks');
+            $totalImpressions = $ageData->sum('impressions');
+
+            // Find best performers
+            $bestAge = $ageData->sortByDesc('ctr')->first();
+            $bestGender = $genderData->sortByDesc('ctr')->first();
+            $bestPlatform = $platformData->sortByDesc('ctr')->first();
+
+            // Cheapest CPC performers
+            $cheapestAge = $ageData->filter(fn($a) => $a->clicks > 0)->sortBy('cpc')->first();
+            $cheapestGender = $genderData->filter(fn($g) => $g->clicks > 0)->sortBy('cpc')->first();
+
+            // Calculate average CTR for performance comparison
+            $avgCtr = $ageData->avg('ctr') ?? 0;
+
+            // Format age data with performance metrics
+            $agePerformance = $ageData->map(function ($item) use ($totalSpend, $bestAge, $avgCtr) {
+                $isBest = $bestAge && $item->age_range === $bestAge->age_range;
+                return [
+                    'label' => $item->age_range,
+                    'impressions' => (int) $item->impressions,
+                    'reach' => (int) $item->reach,
+                    'clicks' => (int) $item->clicks,
+                    'spend' => round((float) $item->spend, 2),
+                    'ctr' => round((float) $item->ctr, 2),
+                    'cpc' => round((float) $item->cpc, 2),
+                    'spend_percentage' => $totalSpend > 0 ? round(($item->spend / $totalSpend) * 100, 1) : 0,
+                    'is_best' => $isBest,
+                    'performance' => $this->getPerformanceLevel($item->ctr, $avgCtr),
+                ];
+            })->values()->toArray();
+
+            // Format gender data with performance metrics
+            $genderPerformance = $genderData->map(function ($item) use ($totalSpend, $bestGender) {
+                $isBest = $bestGender && $item->gender === $bestGender->gender;
+                $label = match($item->gender) {
+                    'male' => 'Erkaklar',
+                    'female' => 'Ayollar',
+                    default => 'Noma\'lum',
+                };
+                return [
+                    'key' => $item->gender,
+                    'label' => $label,
+                    'impressions' => (int) $item->impressions,
+                    'reach' => (int) $item->reach,
+                    'clicks' => (int) $item->clicks,
+                    'spend' => round((float) $item->spend, 2),
+                    'ctr' => round((float) $item->ctr, 2),
+                    'cpc' => round((float) $item->cpc, 2),
+                    'spend_percentage' => $totalSpend > 0 ? round(($item->spend / $totalSpend) * 100, 1) : 0,
+                    'is_best' => $isBest,
+                ];
+            })->values()->toArray();
+
+            // Format platform data
+            $platformPerformance = $platformData->map(function ($item) use ($bestPlatform) {
+                $isBest = $bestPlatform && $item->publisher_platform === $bestPlatform->publisher_platform;
+                $label = match($item->publisher_platform) {
+                    'facebook' => 'Facebook',
+                    'instagram' => 'Instagram',
+                    'messenger' => 'Messenger',
+                    'audience_network' => 'Audience Network',
+                    default => ucfirst($item->publisher_platform ?? 'Boshqa'),
+                };
+                return [
+                    'key' => $item->publisher_platform,
+                    'label' => $label,
+                    'impressions' => (int) $item->impressions,
+                    'reach' => (int) $item->reach,
+                    'clicks' => (int) $item->clicks,
+                    'spend' => round((float) $item->spend, 2),
+                    'ctr' => round((float) $item->ctr, 2),
+                    'cpc' => round((float) $item->cpc, 2),
+                    'is_best' => $isBest,
+                ];
+            })->values()->toArray();
+
+            // Generate audience insights
+            $insights = [];
+
+            // Best age insight
+            if ($bestAge && $bestAge->ctr > 0) {
+                $insights[] = [
+                    'type' => 'best_age',
+                    'icon' => 'users',
+                    'color' => 'blue',
+                    'title' => 'Eng yaxshi yosh guruhi',
+                    'value' => $bestAge->age_range,
+                    'metric' => round($bestAge->ctr, 2) . '% CTR',
+                    'description' => "Bu yosh guruhi eng yuqori CTR ko'rsatmoqda",
+                ];
+            }
+
+            // Best gender insight
+            if ($bestGender && $bestGender->ctr > 0) {
+                $genderLabel = $bestGender->gender === 'male' ? 'Erkaklar' : ($bestGender->gender === 'female' ? 'Ayollar' : 'Noma\'lum');
+                $insights[] = [
+                    'type' => 'best_gender',
+                    'icon' => 'user',
+                    'color' => $bestGender->gender === 'male' ? 'blue' : 'pink',
+                    'title' => 'Eng faol jins',
+                    'value' => $genderLabel,
+                    'metric' => round($bestGender->ctr, 2) . '% CTR',
+                    'description' => "Bu jins ko'proq bosimlar qilmoqda",
+                ];
+            }
+
+            // Best platform insight
+            if ($bestPlatform && $bestPlatform->ctr > 0) {
+                $insights[] = [
+                    'type' => 'best_platform',
+                    'icon' => 'device-mobile',
+                    'color' => 'purple',
+                    'title' => 'Eng samarali platforma',
+                    'value' => ucfirst($bestPlatform->publisher_platform),
+                    'metric' => round($bestPlatform->ctr, 2) . '% CTR',
+                    'description' => "Bu platformada reklamalar yaxshiroq ishlaydi",
+                ];
+            }
+
+            // Cheapest CPC insight
+            if ($cheapestAge && $cheapestAge->cpc > 0) {
+                $insights[] = [
+                    'type' => 'cheapest_cpc',
+                    'icon' => 'currency-dollar',
+                    'color' => 'green',
+                    'title' => 'Eng arzon klik',
+                    'value' => $cheapestAge->age_range,
+                    'metric' => '$' . round($cheapestAge->cpc, 2) . '/klik',
+                    'description' => "Bu yosh guruhida klik narxi eng past",
+                ];
+            }
+
+            // Ideal audience recommendation
+            $idealAudience = [];
+            if ($bestAge) {
+                $idealAudience['age'] = $bestAge->age_range;
+            }
+            if ($bestGender) {
+                $idealAudience['gender'] = $bestGender->gender === 'male' ? 'Erkaklar' : ($bestGender->gender === 'female' ? 'Ayollar' : null);
+            }
+            if ($bestPlatform) {
+                $idealAudience['platform'] = ucfirst($bestPlatform->publisher_platform);
+            }
+
+            return [
+                'age' => $agePerformance,
+                'gender' => $genderPerformance,
+                'platform' => $platformPerformance,
+                'insights' => $insights,
+                'ideal_audience' => $idealAudience,
+                'summary' => [
+                    'total_spend' => round($totalSpend, 2),
+                    'total_clicks' => (int) $totalClicks,
+                    'total_impressions' => (int) $totalImpressions,
+                    'avg_ctr' => $totalImpressions > 0 ? round(($totalClicks / $totalImpressions) * 100, 2) : 0,
+                    'avg_cpc' => $totalClicks > 0 ? round($totalSpend / $totalClicks, 2) : 0,
+                ],
+            ];
+        });
+    }
+
+    /**
+     * Get performance level based on CTR comparison
+     */
+    private function getPerformanceLevel(float $value, float $average): string
+    {
+        if ($average <= 0) return 'normal';
+
+        $ratio = $value / $average;
+        if ($ratio >= 1.3) return 'excellent';
+        if ($ratio >= 1.1) return 'good';
+        if ($ratio >= 0.9) return 'normal';
+        if ($ratio >= 0.7) return 'below';
+        return 'poor';
     }
 }

@@ -12,52 +12,36 @@ class InstagramDailyInsight extends Model
     use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
-        'instagram_account_id',
-        'business_id',
-        'date',
+        'account_id',
+        'insight_date',
         'impressions',
         'reach',
         'profile_views',
         'website_clicks',
         'email_contacts',
-        'phone_call_clicks',
-        'text_message_clicks',
-        'get_directions_clicks',
         'follower_count',
-        'followers_gained',
-        'followers_lost',
-        'online_followers',
-        'audience_city',
-        'audience_country',
-        'audience_gender_age',
-        'metadata',
+        'new_followers',
+        'unfollowers',
+        'audience_demographics',
     ];
 
     protected $casts = [
-        'date' => 'date',
-        'online_followers' => 'array',
-        'audience_city' => 'array',
-        'audience_country' => 'array',
-        'audience_gender_age' => 'array',
-        'metadata' => 'array',
+        'insight_date' => 'date',
+        'audience_demographics' => 'array',
     ];
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function getTotalActionsAttribute(): int
     {
-        return $this->website_clicks
-            + $this->email_contacts
-            + $this->phone_call_clicks
-            + $this->text_message_clicks
-            + $this->get_directions_clicks;
+        return ($this->website_clicks ?? 0) + ($this->email_contacts ?? 0);
     }
 
     public function getNetFollowersAttribute(): int
     {
-        return $this->followers_gained - $this->followers_lost;
+        return ($this->new_followers ?? 0) - ($this->unfollowers ?? 0);
     }
 }

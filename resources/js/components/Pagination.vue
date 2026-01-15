@@ -52,8 +52,7 @@
                                 'rounded-l-md': index === 0,
                                 'rounded-r-md': index === links.length - 1,
                             }"
-                            v-html="link.label"
-                        />
+                        >{{ decodeLabel(link.label) }}</Link>
                         <span
                             v-else
                             class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-300"
@@ -61,8 +60,7 @@
                                 'rounded-l-md': index === 0,
                                 'rounded-r-md': index === links.length - 1,
                             }"
-                            v-html="link.label"
-                        />
+                        >{{ decodeLabel(link.label) }}</span>
                     </template>
                 </nav>
             </div>
@@ -91,4 +89,17 @@ defineProps({
         default: null,
     },
 });
+
+// Xavfsiz HTML entity decode (faqat pagination labels uchun)
+const decodeLabel = (label) => {
+    if (!label) return '';
+    // Faqat ruxsat etilgan HTML entities
+    return label
+        .replace(/&laquo;/g, '«')
+        .replace(/&raquo;/g, '»')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/<[^>]*>/g, ''); // Barcha HTML taglarni olib tashlash
+};
 </script>

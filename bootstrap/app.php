@@ -79,6 +79,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'f/*',
             'api/lead-forms/*',
             'webhooks/*',
+            'login', // Vaqtincha test uchun
+            'sanctum/csrf-cookie',
         ]);
 
         // Enable throttle middleware for API

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -20,59 +21,90 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Only add indexes if they don't already exist
+        // KPI Daily Actuals indexes
         if (Schema::hasTable('kpi_daily_actuals')) {
-            // Skip this migration if indexes already exist
-            // This prevents duplicate key errors
-            return;
-        }
-
-        Schema::table('kpi_daily_actuals', function (Blueprint $table) {
-            // CRITICAL: Most queries filter by business_id + date + kpi_code
-            $table->index(['business_id', 'date', 'kpi_code'], 'idx_kpi_business_date_code');
-
-            // CRITICAL: Sync status queries (used in monitoring)
-            $table->index(['business_id', 'date', 'sync_status'], 'idx_kpi_sync_status');
-
-            // HIGH: Data source filtering (integration statistics)
-            $table->index(['data_source', 'date'], 'idx_kpi_source_date');
-
-            // MEDIUM: Manual override queries
-            $table->index('overridden_at', 'idx_kpi_overridden_at');
-        });
-
-        // Check if leads table has required columns before adding indexes
-        if (Schema::hasTable('leads')) {
-            Schema::table('leads', function (Blueprint $table) {
-                // HIGH: Lead status queries (status column exists in leads table)
-                if (Schema::hasColumn('leads', 'status')) {
-                    $table->index(['business_id', 'status', 'created_at'], 'idx_leads_status');
+            Schema::table('kpi_daily_actuals', function (Blueprint $table) {
+                // Try-catch har bir index uchun - agar mavjud bo'lsa xato bermaydi
+                try {
+                    $table->index(['business_id', 'date', 'kpi_code'], 'idx_kpi_business_date_code');
+                } catch (\Exception $e) {
+                    // Index already exists
                 }
 
-                // Note: stage column doesn't exist yet, skip this index
-                // Will be added when leads migration is updated
+                try {
+                    $table->index(['business_id', 'date', 'sync_status'], 'idx_kpi_sync_status');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+
+                try {
+                    $table->index(['data_source', 'date'], 'idx_kpi_source_date');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+
+                try {
+                    $table->index('overridden_at', 'idx_kpi_overridden_at');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
             });
         }
 
-        Schema::table('instagram_accounts', function (Blueprint $table) {
-            // HIGH: Business integration queries
-            $table->index(['business_id', 'is_active'], 'idx_instagram_business_active');
-        });
+        // Leads indexes
+        if (Schema::hasTable('leads') && Schema::hasColumn('leads', 'status')) {
+            Schema::table('leads', function (Blueprint $table) {
+                try {
+                    $table->index(['business_id', 'status', 'created_at'], 'idx_leads_status');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+            });
+        }
 
-        Schema::table('facebook_pages', function (Blueprint $table) {
-            // HIGH: Business integration queries
-            $table->index(['business_id', 'is_active'], 'idx_facebook_business_active');
-        });
+        // Instagram accounts indexes
+        if (Schema::hasTable('instagram_accounts')) {
+            Schema::table('instagram_accounts', function (Blueprint $table) {
+                try {
+                    $table->index(['business_id', 'is_active'], 'idx_instagram_business_active');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+            });
+        }
 
-        Schema::table('jobs', function (Blueprint $table) {
-            // MEDIUM: Job monitoring queries
-            $table->index(['queue', 'reserved_at'], 'idx_jobs_queue_reserved');
-        });
+        // Facebook pages indexes
+        if (Schema::hasTable('facebook_pages')) {
+            Schema::table('facebook_pages', function (Blueprint $table) {
+                try {
+                    $table->index(['business_id', 'is_active'], 'idx_facebook_business_active');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+            });
+        }
 
-        Schema::table('failed_jobs', function (Blueprint $table) {
-            // MEDIUM: Failed job cleanup queries
-            $table->index('failed_at', 'idx_failed_jobs_failed_at');
-        });
+        // Jobs indexes
+        if (Schema::hasTable('jobs')) {
+            Schema::table('jobs', function (Blueprint $table) {
+                try {
+                    $table->index(['queue', 'reserved_at'], 'idx_jobs_queue_reserved');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+            });
+        }
+
+        // Failed jobs indexes
+        if (Schema::hasTable('failed_jobs')) {
+            Schema::table('failed_jobs', function (Blueprint $table) {
+                try {
+                    $table->index('failed_at', 'idx_failed_jobs_failed_at');
+                } catch (\Exception $e) {
+                    // Index already exists
+                }
+            });
+        }
     }
 
     /**
@@ -80,40 +112,43 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('kpi_daily_actuals', function (Blueprint $table) {
-            $table->dropIndex('idx_kpi_business_date_code');
-            $table->dropIndex('idx_kpi_sync_status');
-            $table->dropIndex('idx_kpi_source_date');
-            $table->dropIndex('idx_kpi_overridden_at');
-        });
-
-        if (Schema::hasTable('leads')) {
-            Schema::table('leads', function (Blueprint $table) {
-                // Drop indexes if they exist
-                if (Schema::hasColumn('leads', 'status')) {
-                    try {
-                        $table->dropIndex('idx_leads_status');
-                    } catch (\Exception $e) {
-                        // Index might not exist
-                    }
-                }
+        if (Schema::hasTable('kpi_daily_actuals')) {
+            Schema::table('kpi_daily_actuals', function (Blueprint $table) {
+                try { $table->dropIndex('idx_kpi_business_date_code'); } catch (\Exception $e) {}
+                try { $table->dropIndex('idx_kpi_sync_status'); } catch (\Exception $e) {}
+                try { $table->dropIndex('idx_kpi_source_date'); } catch (\Exception $e) {}
+                try { $table->dropIndex('idx_kpi_overridden_at'); } catch (\Exception $e) {}
             });
         }
 
-        Schema::table('instagram_accounts', function (Blueprint $table) {
-            $table->dropIndex('idx_instagram_business_active');
-        });
+        if (Schema::hasTable('leads')) {
+            Schema::table('leads', function (Blueprint $table) {
+                try { $table->dropIndex('idx_leads_status'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('facebook_pages', function (Blueprint $table) {
-            $table->dropIndex('idx_facebook_business_active');
-        });
+        if (Schema::hasTable('instagram_accounts')) {
+            Schema::table('instagram_accounts', function (Blueprint $table) {
+                try { $table->dropIndex('idx_instagram_business_active'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('jobs', function (Blueprint $table) {
-            $table->dropIndex('idx_jobs_queue_reserved');
-        });
+        if (Schema::hasTable('facebook_pages')) {
+            Schema::table('facebook_pages', function (Blueprint $table) {
+                try { $table->dropIndex('idx_facebook_business_active'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('failed_jobs', function (Blueprint $table) {
-            $table->dropIndex('idx_failed_jobs_failed_at');
-        });
+        if (Schema::hasTable('jobs')) {
+            Schema::table('jobs', function (Blueprint $table) {
+                try { $table->dropIndex('idx_jobs_queue_reserved'); } catch (\Exception $e) {}
+            });
+        }
+
+        if (Schema::hasTable('failed_jobs')) {
+            Schema::table('failed_jobs', function (Blueprint $table) {
+                try { $table->dropIndex('idx_failed_jobs_failed_at'); } catch (\Exception $e) {}
+            });
+        }
     }
 };

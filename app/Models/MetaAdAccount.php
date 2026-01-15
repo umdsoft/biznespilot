@@ -15,6 +15,7 @@ class MetaAdAccount extends Model
     protected $fillable = [
         'integration_id',
         'business_id',
+        'account_id',
         'meta_account_id',
         'name',
         'currency',
@@ -48,9 +49,12 @@ class MetaAdAccount extends Model
         return $this->hasMany(MetaInsight::class, 'ad_account_id');
     }
 
-    public function getAccountIdAttribute(): string
+    /**
+     * Get clean account ID without act_ prefix
+     */
+    public function getCleanAccountIdAttribute(): string
     {
-        return str_replace('act_', '', $this->meta_account_id);
+        return str_replace('act_', '', $this->meta_account_id ?? $this->account_id ?? '');
     }
 
     public function scopePrimary($query)

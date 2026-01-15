@@ -145,8 +145,34 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
         Route::get('/campaigns', [TargetAnalysisController::class, 'getMetaCampaigns'])->name('campaigns');
         Route::get('/demographics', [TargetAnalysisController::class, 'getMetaDemographics'])->name('demographics');
         Route::get('/placements', [TargetAnalysisController::class, 'getMetaPlacements'])->name('placements');
+        Route::get('/objectives', [TargetAnalysisController::class, 'getMetaObjectives'])->name('objectives');
+        Route::get('/audience', [TargetAnalysisController::class, 'getMetaAudience'])->name('audience');
         Route::get('/trend', [TargetAnalysisController::class, 'getMetaTrend'])->name('trend');
         Route::post('/ai-insights', [TargetAnalysisController::class, 'getMetaAIInsights'])->name('ai-insights');
+
+        // Campaign management
+        Route::get('/management-info', [TargetAnalysisController::class, 'getCampaignManagementInfo'])->name('management-info');
+        Route::post('/campaign/status', [TargetAnalysisController::class, 'updateCampaignStatus'])->name('campaign.status');
+        Route::post('/campaign/budget', [TargetAnalysisController::class, 'updateCampaignBudget'])->name('campaign.budget');
+        Route::post('/campaigns/batch', [TargetAnalysisController::class, 'batchUpdateCampaigns'])->name('campaigns.batch');
+
+        // Campaign creation
+        Route::get('/creation-options', [TargetAnalysisController::class, 'getCampaignCreationOptions'])->name('creation-options');
+        Route::get('/optimization-goals', [TargetAnalysisController::class, 'getOptimizationGoals'])->name('optimization-goals');
+        Route::get('/search-interests', [TargetAnalysisController::class, 'searchInterests'])->name('search-interests');
+        Route::get('/search-locations', [TargetAnalysisController::class, 'searchLocations'])->name('search-locations');
+        Route::get('/search-behaviors', [TargetAnalysisController::class, 'searchBehaviors'])->name('search-behaviors');
+        Route::get('/browse-interests', [TargetAnalysisController::class, 'browseInterests'])->name('browse-interests');
+        Route::post('/reach-estimate', [TargetAnalysisController::class, 'getReachEstimate'])->name('reach-estimate');
+        Route::post('/campaign/create', [TargetAnalysisController::class, 'createCampaign'])->name('campaign.create');
+        Route::post('/adset/create', [TargetAnalysisController::class, 'createAdSet'])->name('adset.create');
+
+        // Full Ad Creation Wizard
+        Route::get('/wizard-options', [TargetAnalysisController::class, 'getWizardOptions'])->name('wizard-options');
+        Route::post('/upload-image', [TargetAnalysisController::class, 'uploadAdImage'])->name('upload-image');
+        Route::post('/ad/create', [TargetAnalysisController::class, 'createAd'])->name('ad.create');
+        Route::post('/full-ad/create', [TargetAnalysisController::class, 'createFullAd'])->name('full-ad.create');
+        Route::get('/lead-forms', [TargetAnalysisController::class, 'getLeadForms'])->name('lead-forms');
     });
 
     // ==================== INSTAGRAM ====================
@@ -917,6 +943,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
     // Meta Campaigns page routes
     Route::prefix('meta-campaigns')->name('meta-campaigns.')->group(function () {
+        Route::get('/create', [MetaCampaignController::class, 'createPage'])->name('create');
         Route::get('/{id}', [MetaCampaignController::class, 'showPage'])->name('show');
     });
 
@@ -1218,15 +1245,15 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/whatsapp/{business}/media', [WhatsAppWebhookController::class, 'sendMedia'])->name('whatsapp.media');
 });
 
-// WhatsApp AI API routes (authenticated)
-Route::middleware('auth')->prefix('api/whatsapp/{business}')->name('api.whatsapp.')->group(function () {
+// WhatsApp AI API routes (authenticated + business access)
+Route::middleware(['auth', 'business.access'])->prefix('api/whatsapp/{business}')->name('api.whatsapp.')->group(function () {
     Route::get('/ai-config', [WhatsAppWebhookController::class, 'getAIConfig'])->name('ai-config');
     Route::post('/ai-config', [WhatsAppWebhookController::class, 'updateAIConfig'])->name('ai-config.update');
     Route::post('/ai-templates', [WhatsAppWebhookController::class, 'saveAITemplates'])->name('ai-templates');
 });
 
-// Instagram AI API routes (authenticated)
-Route::middleware('auth')->prefix('api/instagram/{business}')->name('api.instagram.')->group(function () {
+// Instagram AI API routes (authenticated + business access)
+Route::middleware(['auth', 'business.access'])->prefix('api/instagram/{business}')->name('api.instagram.')->group(function () {
     Route::get('/ai-config', [InstagramWebhookController::class, 'getAIConfig'])->name('ai-config');
     Route::post('/ai-config', [InstagramWebhookController::class, 'updateAIConfig'])->name('ai-config.update');
     Route::post('/ai-templates', [InstagramWebhookController::class, 'saveAITemplates'])->name('ai-templates');

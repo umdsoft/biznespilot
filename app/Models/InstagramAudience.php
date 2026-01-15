@@ -14,7 +14,7 @@ class InstagramAudience extends Model
     protected $table = 'instagram_audience';
 
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
         'business_id',
         'age_gender',
         'top_cities',
@@ -35,7 +35,7 @@ class InstagramAudience extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function getBestPostingTimesAttribute(): array

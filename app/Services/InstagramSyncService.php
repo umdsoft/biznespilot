@@ -21,7 +21,7 @@ class InstagramSyncService
 
     private string $accessToken;
     private Integration $integration;
-    private int $businessId;
+    private string $businessId;
 
     public function initialize(Integration $integration): self
     {
@@ -171,7 +171,8 @@ class InstagramSyncService
                 'fields' => 'id,username,name,biography,profile_picture_url,website,followers_count,follows_count,media_count',
             ]);
 
-            $account = InstagramAccount::updateOrCreate(
+            // Use withoutGlobalScope to avoid issues with business scope during sync
+            $account = InstagramAccount::withoutGlobalScope('business')->updateOrCreate(
                 [
                     'integration_id' => $this->integration->id,
                     'instagram_id' => $igAccountId,
@@ -240,7 +241,7 @@ class InstagramSyncService
     public function syncNewMedia(InstagramAccount $account): int
     {
         $count = 0;
-        $latestMedia = InstagramMedia::where('instagram_account_id', $account->id)
+        $latestMedia = InstagramMedia::where('account_id', $account->id)
             ->orderByDesc('posted_at')
             ->first();
 
@@ -272,7 +273,7 @@ class InstagramSyncService
         $count = 0;
 
         // Get media from last 7 days that needs updating
-        $recentMedia = InstagramMedia::where('instagram_account_id', $account->id)
+        $recentMedia = InstagramMedia::where('account_id', $account->id)
             ->where('posted_at', '>=', now()->subDays(7))
             ->get();
 
@@ -308,12 +309,6 @@ class InstagramSyncService
     private function saveMedia(InstagramAccount $account, array $mediaData): InstagramMedia
     {
         $mediaType = $mediaData['media_type'] ?? 'IMAGE';
-        $productType = $mediaData['media_product_type'] ?? 'FEED';
-
-        // Parse hashtags and mentions from caption
-        $caption = $mediaData['caption'] ?? '';
-        $hashtags = $this->extractHashtags($caption);
-        $mentions = $this->extractMentions($caption);
 
         // Get insights for this media
         $insights = [];
@@ -330,27 +325,20 @@ class InstagramSyncService
         return InstagramMedia::updateOrCreate(
             ['media_id' => $mediaData['id']],
             [
-                'instagram_account_id' => $account->id,
-                'business_id' => $this->businessId,
+                'account_id' => $account->id,
                 'media_type' => $mediaType,
-                'media_product_type' => $productType,
-                'caption' => $caption,
+                'caption' => $mediaData['caption'] ?? '',
                 'permalink' => $mediaData['permalink'] ?? null,
-                'thumbnail_url' => $mediaData['thumbnail_url'] ?? null,
                 'media_url' => $mediaData['media_url'] ?? null,
+                'thumbnail_url' => $mediaData['thumbnail_url'] ?? null,
                 'like_count' => $mediaData['like_count'] ?? 0,
                 'comments_count' => $mediaData['comments_count'] ?? 0,
-                'shares_count' => $insights['shares'] ?? 0,
-                'saves_count' => $insights['saved'] ?? 0,
                 'reach' => $insights['reach'] ?? 0,
-                'impressions' => $insights['impressions'] ?? 0,
-                'video_views' => $insights['video_views'] ?? 0,
-                'plays' => $insights['plays'] ?? 0,
+                'impressions' => $insights['reach'] ?? 0,
+                'saved' => $insights['saved'] ?? 0,
+                'shares' => 0,
                 'engagement_rate' => $engagementRate,
                 'posted_at' => isset($mediaData['timestamp']) ? Carbon::parse($mediaData['timestamp']) : now(),
-                'hashtags' => $hashtags,
-                'mentions' => $mentions,
-                'insights_data' => $insights,
             ]
         );
     }
@@ -456,19 +444,15 @@ class InstagramSyncService
         foreach ($dailyData as $date => $data) {
             InstagramDailyInsight::updateOrCreate(
                 [
-                    'instagram_account_id' => $account->id,
-                    'date' => $date,
+                    'account_id' => $account->id,
+                    'insight_date' => $date,
                 ],
                 [
-                    'business_id' => $this->businessId,
-                    'impressions' => $data['impressions'] ?? $data['reach'] ?? 0, // Use reach as fallback
+                    'impressions' => $data['impressions'] ?? $data['reach'] ?? 0,
                     'reach' => $data['reach'] ?? 0,
                     'profile_views' => $data['profile_views'] ?? 0,
                     'website_clicks' => $data['website_clicks'] ?? 0,
                     'email_contacts' => $data['email_contacts'] ?? 0,
-                    'phone_call_clicks' => $data['phone_call_clicks'] ?? 0,
-                    'text_message_clicks' => $data['text_message_clicks'] ?? 0,
-                    'get_directions_clicks' => $data['get_directions_clicks'] ?? 0,
                     'follower_count' => $data['follower_count'] ?? 0,
                 ]
             );
@@ -525,12 +509,11 @@ class InstagramSyncService
         if (!empty($todayData)) {
             InstagramDailyInsight::updateOrCreate(
                 [
-                    'instagram_account_id' => $account->id,
-                    'date' => now()->format('Y-m-d'),
+                    'account_id' => $account->id,
+                    'insight_date' => now()->format('Y-m-d'),
                 ],
                 [
-                    'business_id' => $this->businessId,
-                    'impressions' => $todayData['reach'] ?? 0, // Use reach as fallback
+                    'impressions' => $todayData['reach'] ?? 0,
                     'reach' => $todayData['reach'] ?? 0,
                     'profile_views' => $todayData['profile_views'] ?? 0,
                     'follower_count' => $todayData['follower_count'] ?? 0,
@@ -663,7 +646,7 @@ class InstagramSyncService
 
         // Save to database
         InstagramAudience::updateOrCreate(
-            ['instagram_account_id' => $account->id],
+            ['account_id' => $account->id],
             [
                 'business_id' => $this->businessId,
                 'age_gender' => $demographicData['age_gender'],
@@ -680,7 +663,7 @@ class InstagramSyncService
      */
     public function calculateHashtagStats(InstagramAccount $account): void
     {
-        $media = InstagramMedia::where('instagram_account_id', $account->id)
+        $media = InstagramMedia::where('account_id', $account->id)
             ->whereNotNull('hashtags')
             ->get();
 
@@ -719,7 +702,7 @@ class InstagramSyncService
 
             InstagramHashtagStat::updateOrCreate(
                 [
-                    'instagram_account_id' => $account->id,
+                    'account_id' => $account->id,
                     'hashtag' => $hashtag,
                 ],
                 [
@@ -836,7 +819,7 @@ class InstagramSyncService
     private function startSyncLog(InstagramAccount $account, string $type): InstagramSyncLog
     {
         return InstagramSyncLog::create([
-            'instagram_account_id' => $account->id,
+            'account_id' => $account->id,
             'sync_type' => $type,
             'status' => 'running',
             'started_at' => now(),

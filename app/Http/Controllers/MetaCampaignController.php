@@ -114,6 +114,26 @@ class MetaCampaignController extends Controller
     }
 
     /**
+     * Show create ad page (Inertia)
+     */
+    public function createPage(Request $request): InertiaResponse|\Illuminate\Http\RedirectResponse
+    {
+        $business = $this->getCurrentBusiness($request);
+        $adAccount = $this->getSelectedMetaAccount($business->id);
+
+        if (!$adAccount) {
+            return redirect()->route('business.target-analysis.index')
+                ->with('error', 'Meta Ad hesob tanlanmagan');
+        }
+
+        return Inertia::render('Business/MetaCampaigns/Create', [
+            'businessId' => $business->id,
+            'adAccountId' => $adAccount->id,
+            'currency' => $adAccount->currency ?? 'USD',
+        ]);
+    }
+
+    /**
      * Show campaign detail page (Inertia)
      */
     public function showPage(Request $request, string $id): InertiaResponse|\Illuminate\Http\RedirectResponse

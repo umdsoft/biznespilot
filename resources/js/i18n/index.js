@@ -481,8 +481,8 @@ const state = reactive({
     isLoaded: true,
 });
 
-// Log initialization
-if (typeof window !== 'undefined') {
+// Log initialization (faqat development rejimida)
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
     console.log(`[i18n] Initialized with locale: ${state.currentLocale}`);
     console.log(`[i18n] Translations loaded: ${Object.keys(state.translations).length} keys`);
 }
@@ -499,7 +499,7 @@ export function setLocale(locale) {
         return;
     }
 
-    console.log(`[i18n] Switching to locale: ${locale}`);
+    if (import.meta.env.DEV) console.log(`[i18n] Switching to locale: ${locale}`);
     saveLocale(locale);
 
     // Reload page to apply new locale
@@ -521,7 +521,7 @@ export async function loadTranslations(locale = null) {
     Object.assign(state.translations, newTranslations);
 
     state.isLoaded = true;
-    console.log(`[i18n] Loaded translations for: ${targetLocale}`);
+    if (import.meta.env.DEV) console.log(`[i18n] Loaded translations for: ${targetLocale}`);
 
     // Also try to fetch from API for extended translations
     try {
@@ -543,10 +543,10 @@ export async function loadTranslations(locale = null) {
                     state.translations[key.replace('app.', '')] = value;
                 }
             });
-            console.log(`[i18n] Merged ${Object.keys(data).length} API translations`);
+            if (import.meta.env.DEV) console.log(`[i18n] Merged ${Object.keys(data).length} API translations`);
         }
     } catch (e) {
-        console.log('[i18n] API fetch skipped, using bundled translations');
+        if (import.meta.env.DEV) console.log('[i18n] API fetch skipped, using bundled translations');
     }
 
     return state.translations;

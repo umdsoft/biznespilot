@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Business;
 use App\Models\Integration;
 use App\Services\MetaSyncService;
+use App\Services\InstagramSyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,7 +26,7 @@ class SyncMetaInsightsJob implements ShouldQueue
         protected bool $fullSync = true
     ) {}
 
-    public function handle(MetaSyncService $syncService): void
+    public function handle(MetaSyncService $syncService, InstagramSyncService $instagramSyncService): void
     {
         $business = Business::find($this->businessId);
         if (!$business) {
@@ -59,10 +60,55 @@ class SyncMetaInsightsJob implements ShouldQueue
                 $results = $syncService->quickSync();
             }
 
-            Log::info('SyncMetaInsightsJob: Completed successfully', [
+            Log::info('SyncMetaInsightsJob: Meta sync completed', [
                 'business_id' => $this->businessId,
                 'results' => $results,
             ]);
+
+            // Sync Instagram accounts
+            try {
+                $instagramSyncService->initialize($integration);
+                $igAccounts = $instagramSyncService->syncInstagramAccounts();
+
+                if (!empty($igAccounts)) {
+                    // Get access token from integration
+                    $credentials = json_decode($integration->credentials, true);
+
+                    // Create/update Instagram integration
+                    Integration::updateOrCreate(
+                        [
+                            'business_id' => $this->businessId,
+                            'type' => 'instagram',
+                        ],
+                        [
+                            'name' => 'Instagram',
+                            'is_active' => true,
+                            'status' => 'connected',
+                            'credentials' => json_encode([
+                                'access_token' => $credentials['access_token'] ?? '',
+                                'token_type' => $credentials['token_type'] ?? 'bearer',
+                                'linked_to' => 'meta_ads',
+                            ]),
+                            'connected_at' => now(),
+                            'expires_at' => $integration->expires_at,
+                            'metadata' => json_encode([
+                                'accounts_count' => count($igAccounts),
+                                'meta_integration_id' => $integration->id,
+                            ]),
+                        ]
+                    );
+
+                    Log::info('SyncMetaInsightsJob: Instagram accounts synced', [
+                        'business_id' => $this->businessId,
+                        'accounts_count' => count($igAccounts),
+                    ]);
+                }
+            } catch (\Exception $igError) {
+                Log::warning('SyncMetaInsightsJob: Instagram sync failed', [
+                    'business_id' => $this->businessId,
+                    'error' => $igError->getMessage(),
+                ]);
+            }
 
             if (!empty($results['errors'])) {
                 Log::warning('SyncMetaInsightsJob: Completed with errors', [

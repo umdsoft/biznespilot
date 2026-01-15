@@ -591,4 +591,40 @@ class Business extends Model
     {
         return $this->hasMany(ReportSchedule::class)->where('is_active', true);
     }
+
+    // ==================== ACCESS CONTROL ====================
+
+    /**
+     * Check if a user has access to this business
+     * User has access if they are: owner, team member, or admin
+     *
+     * @param \App\Models\User|null $user
+     * @return bool
+     */
+    public function userHasAccess($user = null): bool
+    {
+        if (!$user) {
+            $user = auth()->user();
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        // Business owner always has access
+        if ($this->user_id === $user->id) {
+            return true;
+        }
+
+        // Admins have access to all businesses
+        if ($user->hasRole(['admin', 'super_admin'])) {
+            return true;
+        }
+
+        // Team members have access (check business_user pivot table)
+        return $this->users()
+            ->where('users.id', $user->id)
+            ->whereNotNull('business_user.accepted_at')
+            ->exists();
+    }
 }

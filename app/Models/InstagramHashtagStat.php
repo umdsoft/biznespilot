@@ -12,7 +12,7 @@ class InstagramHashtagStat extends Model
     use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
         'business_id',
         'hashtag',
         'usage_count',
@@ -30,7 +30,7 @@ class InstagramHashtagStat extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function getAvgReachPerUseAttribute(): float

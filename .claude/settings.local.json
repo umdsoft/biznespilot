@@ -66,7 +66,11 @@
       "Bash(if [ -f \"$file\" ])",
       "Bash(then echo \"$file exists\")",
       "Bash(else echo \"$file NOT FOUND\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(npm audit:*)",
+      "Bash(composer audit:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(more:*)"
     ]
   }
 }

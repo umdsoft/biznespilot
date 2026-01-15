@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\Integration;
 use App\Models\MetaAdAccount;
@@ -12,6 +13,7 @@ use App\Services\Integration\MetaAdsService;
 use App\Services\Integration\MetaOAuthService;
 use App\Services\MetaDataService;
 use App\Services\MetaSyncService;
+use App\Services\InstagramSyncService;
 use App\Jobs\SyncMetaInsightsJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -21,12 +23,14 @@ use Inertia\Response;
 
 class TargetAnalysisController extends Controller
 {
+    use HasCurrentBusiness;
     public function __construct(
         protected TargetAnalysisService $analysisService,
         protected MetaAdsService $metaService,
         protected MetaOAuthService $oauthService,
         protected MetaDataService $metaDataService,
-        protected MetaSyncService $metaSyncService
+        protected MetaSyncService $metaSyncService,
+        protected InstagramSyncService $instagramSyncService
     ) {}
 
     /**
@@ -51,22 +55,15 @@ class TargetAnalysisController extends Controller
      */
     public function index(Request $request): Response
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
         $panelType = $this->getPanelType($request);
+        $business = $this->getCurrentBusiness();
 
-        if (!$businessId) {
+        if (!$business) {
             return Inertia::render('Shared/TargetAnalysis/Index', [
                 'error' => 'Biznes tanlanmagan',
                 'analysis' => null,
                 'panelType' => $panelType,
             ]);
-        }
-
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            abort(403, 'Sizda bu biznesga kirish huquqi yo\'q');
         }
 
         // OPTIMIZATION: Don't load heavy analysis data on initial page load
@@ -80,11 +77,29 @@ class TargetAnalysisController extends Controller
 
         $metaAdAccounts = collect([]);
         $selectedMetaAccount = null;
+        $tokenStatus = null;
 
-        if ($metaIntegration && $metaIntegration->status === 'connected') {
-            $metaAdAccounts = MetaAdAccount::where('integration_id', $metaIntegration->id)->get();
-            $selectedMetaAccount = $metaAdAccounts->where('is_primary', true)->first()
-                ?? $metaAdAccounts->first();
+        if ($metaIntegration && in_array($metaIntegration->status, ['connected', 'expired'])) {
+            // For expired status, check if token might still work (don't block user)
+            if ($metaIntegration->status === 'expired') {
+                // Try to validate - maybe token was refreshed or still valid
+                $tokenStatus = $this->validateAndRefreshMetaToken($metaIntegration, false);
+                if ($tokenStatus['valid']) {
+                    // Token is actually valid - restore connected status
+                    $metaIntegration->update(['status' => 'connected']);
+                    $metaIntegration->refresh();
+                }
+            } else {
+                // Connected status - do light validation (don't call Meta API on every page load)
+                $tokenStatus = $this->validateAndRefreshMetaToken($metaIntegration, true);
+            }
+
+            // Load accounts regardless - let actual API calls determine if token works
+            if ($metaIntegration->status === 'connected' || ($tokenStatus['valid'] ?? false)) {
+                $metaAdAccounts = MetaAdAccount::where('integration_id', $metaIntegration->id)->get();
+                $selectedMetaAccount = $metaAdAccounts->where('is_primary', true)->first()
+                    ?? $metaAdAccounts->first();
+            }
         }
 
         return Inertia::render('Shared/TargetAnalysis/Index', [
@@ -105,6 +120,10 @@ class TargetAnalysisController extends Controller
                 'connected_at' => $metaIntegration->connected_at?->format('d.m.Y H:i'),
                 'expires_at' => $metaIntegration->expires_at?->format('d.m.Y H:i'),
                 'last_sync_at' => $metaIntegration->last_sync_at?->format('d.m.Y H:i'),
+                'token_status' => $tokenStatus,
+                'days_until_expiry' => $metaIntegration->expires_at
+                    ? max(0, now()->diffInDays($metaIntegration->expires_at, false))
+                    : null,
             ] : null,
             'metaAdAccounts' => $metaAdAccounts->map(fn($acc) => [
                 'id' => $acc->id,
@@ -130,23 +149,9 @@ class TargetAnalysisController extends Controller
      */
     public function getAnalysisData(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-
-        if (!$businessId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Biznes tanlanmagan',
-            ], 400);
-        }
-
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         $analysis = $this->analysisService->getTargetAnalysis($business);
@@ -163,15 +168,9 @@ class TargetAnalysisController extends Controller
      */
     public function getDreamBuyerMatch(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         $matchAnalysis = $this->analysisService->analyzeDreamBuyerMatch($business);
@@ -187,15 +186,9 @@ class TargetAnalysisController extends Controller
      */
     public function getSegments(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         $segments = $this->analysisService->getCustomerSegments($business);
@@ -211,19 +204,12 @@ class TargetAnalysisController extends Controller
      */
     public function getGrowthTrends(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $months = $request->input('months', 6);
-
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
+        $months = $request->input('months', 6);
         $trends = $this->analysisService->getGrowthTrends($business, $months);
 
         return response()->json([
@@ -237,15 +223,9 @@ class TargetAnalysisController extends Controller
      */
     public function regenerateInsights(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         // Get full analysis which includes AI insights
@@ -262,15 +242,9 @@ class TargetAnalysisController extends Controller
      */
     public function getChurnRisk(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         $churnRisk = $this->analysisService->getChurnRiskAnalysis($business);
@@ -286,15 +260,9 @@ class TargetAnalysisController extends Controller
      */
     public function export(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         $analysis = $this->analysisService->exportAnalysis($business);
@@ -311,19 +279,12 @@ class TargetAnalysisController extends Controller
      */
     public function getTopPerformers(Request $request)
     {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-        $limit = $request->input('limit', 10);
-
-        $business = Business::findOrFail($businessId);
-
-        // Check access
-        if ($business->user_id !== auth()->id() && !auth()->user()->hasRole(['admin', 'super_admin'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ruxsat yo\'q',
-            ], 403);
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
+        $limit = $request->input('limit', 10);
         $topPerformers = $this->analysisService->getTopPerformingCustomers($business, $limit);
 
         return response()->json([
@@ -463,10 +424,20 @@ class TargetAnalysisController extends Controller
                 'status' => $integration->status,
             ]);
 
+            // Dispatch FULL sync job in background (ad accounts, instagram, campaigns, insights)
+            // This avoids timeout issues during OAuth callback
+            \App\Jobs\SyncMetaInsightsJob::dispatch($businessId, true)->onQueue('default');
+            \Log::info('Meta OAuth: Full sync job dispatched to background', [
+                'business_id' => $businessId,
+                'integration_id' => $integration->id,
+            ]);
+
             // Clear OAuth session data
             session()->forget(['meta_oauth_state', 'meta_oauth_business_id', 'meta_oauth_panel_type']);
 
-            return $getRedirectRoute('index', ['success' => 'Meta Ads muvaffaqiyatli ulandi!']);
+            $successMessage = 'Meta Ads muvaffaqiyatli ulandi! Ma\'lumotlar sinxronlanmoqda...';
+
+            return $getRedirectRoute('index', ['success' => $successMessage]);
 
         } catch (\Exception $e) {
             \Log::error('Meta OAuth: Exception occurred', [
@@ -498,6 +469,182 @@ class TargetAnalysisController extends Controller
             'success' => true,
             'message' => 'Meta Ads disconnected',
         ]);
+    }
+
+    /**
+     * Validate Meta token and refresh if needed
+     * Returns token status information
+     *
+     * @param Integration $integration
+     * @param bool $lightValidation If true, only check stored expires_at without calling Meta API
+     * @return array
+     */
+    protected function validateAndRefreshMetaToken(Integration $integration, bool $lightValidation = false): array
+    {
+        $accessToken = $integration->getAccessToken();
+
+        if (!$accessToken) {
+            \Log::warning('Meta token validation: No access token found', [
+                'integration_id' => $integration->id,
+            ]);
+            return [
+                'valid' => false,
+                'message' => 'Access token topilmadi',
+                'needs_reconnect' => true,
+            ];
+        }
+
+        try {
+            // Check if token is about to expire based on stored expires_at
+            $expiresAt = $integration->expires_at;
+            $now = now();
+
+            // If expires_at is stored and valid
+            if ($expiresAt) {
+                // Token already expired
+                if ($expiresAt->isPast()) {
+                    \Log::info('Meta token validation: Token expired', [
+                        'integration_id' => $integration->id,
+                        'expired_at' => $expiresAt->toDateTimeString(),
+                    ]);
+                    return [
+                        'valid' => false,
+                        'message' => 'Token muddati tugagan. Qayta ulaning.',
+                        'needs_reconnect' => true,
+                        'expired_at' => $expiresAt->format('d.m.Y H:i'),
+                    ];
+                }
+
+                $daysUntilExpiry = $now->diffInDays($expiresAt, false);
+
+                // Light validation - don't make API calls, just check stored expiry
+                if ($lightValidation) {
+                    return [
+                        'valid' => true,
+                        'message' => 'Token faol',
+                        'days_until_expiry' => $daysUntilExpiry,
+                    ];
+                }
+
+                // Token expiring within 7 days - try to refresh
+                if ($daysUntilExpiry <= 7 && $daysUntilExpiry > 0) {
+                    \Log::info('Meta token validation: Token expiring soon, attempting refresh', [
+                        'integration_id' => $integration->id,
+                        'days_until_expiry' => $daysUntilExpiry,
+                    ]);
+
+                    $refreshResult = $this->attemptTokenRefresh($integration, $accessToken);
+                    if ($refreshResult['refreshed']) {
+                        return [
+                            'valid' => true,
+                            'message' => 'Token yangilandi',
+                            'refreshed' => true,
+                            'new_expiry' => $refreshResult['new_expiry'],
+                        ];
+                    }
+                }
+
+                // Token is valid and not expiring soon
+                return [
+                    'valid' => true,
+                    'message' => 'Token faol',
+                    'days_until_expiry' => $daysUntilExpiry,
+                ];
+            }
+
+            // No expires_at stored
+            // For light validation, assume token is valid (don't call Meta API)
+            if ($lightValidation) {
+                return [
+                    'valid' => true,
+                    'message' => 'Token faol (tekshirilmagan)',
+                ];
+            }
+
+            // Full validation - validate with Meta API
+            $isValid = $this->oauthService->isTokenValid($accessToken);
+
+            if (!$isValid) {
+                \Log::warning('Meta token validation: Token invalid per Meta API', [
+                    'integration_id' => $integration->id,
+                ]);
+                return [
+                    'valid' => false,
+                    'message' => 'Token yaroqsiz. Qayta ulaning.',
+                    'needs_reconnect' => true,
+                ];
+            }
+
+            // Token is valid, get debug info to store expiry
+            $debugInfo = $this->oauthService->debugToken($accessToken);
+            if (!empty($debugInfo['expires_at'])) {
+                $integration->update([
+                    'expires_at' => \Carbon\Carbon::createFromTimestamp($debugInfo['expires_at']),
+                ]);
+            }
+
+            return [
+                'valid' => true,
+                'message' => 'Token faol',
+            ];
+
+        } catch (\Exception $e) {
+            \Log::error('Meta token validation error', [
+                'integration_id' => $integration->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            // On error, assume token is still valid to avoid blocking user
+            // Let actual API calls handle the error
+            return [
+                'valid' => true,
+                'message' => 'Token tekshirishda xatolik, ammo davom etamiz',
+                'warning' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Attempt to refresh Meta access token
+     */
+    protected function attemptTokenRefresh(Integration $integration, string $currentToken): array
+    {
+        try {
+            // Exchange current token for a new long-lived token
+            $newTokenData = $this->oauthService->exchangeForLongLivedToken($currentToken);
+
+            if (!empty($newTokenData['access_token'])) {
+                // Update integration with new token
+                $credentials = json_decode($integration->credentials, true) ?? [];
+                $credentials['access_token'] = $newTokenData['access_token'];
+
+                $newExpiresAt = now()->addSeconds($newTokenData['expires_in'] ?? 5184000);
+
+                $integration->update([
+                    'credentials' => json_encode($credentials),
+                    'expires_at' => $newExpiresAt,
+                ]);
+
+                \Log::info('Meta token refresh successful', [
+                    'integration_id' => $integration->id,
+                    'new_expires_at' => $newExpiresAt->toDateTimeString(),
+                ]);
+
+                return [
+                    'refreshed' => true,
+                    'new_expiry' => $newExpiresAt->format('d.m.Y H:i'),
+                ];
+            }
+
+            return ['refreshed' => false];
+
+        } catch (\Exception $e) {
+            \Log::warning('Meta token refresh failed', [
+                'integration_id' => $integration->id,
+                'error' => $e->getMessage(),
+            ]);
+            return ['refreshed' => false, 'error' => $e->getMessage()];
+        }
     }
 
     /**
@@ -607,7 +754,8 @@ class TargetAnalysisController extends Controller
     }
 
     /**
-     * Select Meta ad account as primary
+     * Select Meta ad account as primary and delete others
+     * Each business can only have ONE ad account
      */
     public function selectMetaAccount(Request $request): JsonResponse
     {
@@ -623,16 +771,30 @@ class TargetAnalysisController extends Controller
             return response()->json(['error' => 'Not connected'], 400);
         }
 
-        // Reset all
+        // Get the selected account
+        $selectedAccount = MetaAdAccount::where('integration_id', $integration->id)
+            ->where('meta_account_id', $request->account_id)
+            ->first();
+
+        if (!$selectedAccount) {
+            return response()->json(['error' => 'Account not found'], 404);
+        }
+
+        // Delete all OTHER accounts (each business can only have one)
         MetaAdAccount::where('integration_id', $integration->id)
-            ->update(['is_primary' => false]);
+            ->where('meta_account_id', '!=', $request->account_id)
+            ->delete();
 
         // Set selected as primary
-        MetaAdAccount::where('integration_id', $integration->id)
-            ->where('meta_account_id', $request->account_id)
-            ->update(['is_primary' => true]);
+        $selectedAccount->update(['is_primary' => true]);
 
-        return response()->json(['success' => true]);
+        // Dispatch background sync job to sync campaigns and insights
+        SyncMetaInsightsJob::dispatch($business->id, true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Hisob tanlandi. Ma\'lumotlar orqada sinxronlanmoqda...'
+        ]);
     }
 
     /**
@@ -779,6 +941,72 @@ class TargetAnalysisController extends Controller
     }
 
     /**
+     * Get Meta objectives analytics (leads, messages, sales breakdown)
+     */
+    public function getMetaObjectives(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->date_preset ?? 'maximum';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'objectives' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan.',
+                ]);
+            }
+
+            $objectives = $this->metaDataService->getObjectivesAnalytics($adAccount->id, $datePreset);
+            return response()->json([
+                'success' => true,
+                'objectives' => $objectives,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Meta Objectives Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'objectives' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Meta audience analytics (age, gender, platform performance)
+     */
+    public function getMetaAudience(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $datePreset = $request->date_preset ?? 'maximum';
+
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+            if (!$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'audience' => [],
+                    'message' => 'Meta Ad hesob tanlanmagan.',
+                ]);
+            }
+
+            $audience = $this->metaDataService->getAudienceAnalytics($adAccount->id, $datePreset);
+            return response()->json([
+                'success' => true,
+                'audience' => $audience,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Meta Audience Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'audience' => [],
+            ], 500);
+        }
+    }
+
+    /**
      * Get Meta daily trend (from local database)
      */
     public function getMetaTrend(Request $request): JsonResponse
@@ -853,21 +1081,6 @@ class TargetAnalysisController extends Controller
     }
 
     // ==================== HELPER METHODS ====================
-
-    protected function getCurrentBusiness(Request $request): Business
-    {
-        $businessId = $request->input('business_id') ?? session('current_business_id');
-
-        if (!$businessId) {
-            $business = auth()->user()->businesses()->first();
-            if (!$business) {
-                abort(400, 'Biznes tanlanmagan');
-            }
-            return $business;
-        }
-
-        return Business::findOrFail($businessId);
-    }
 
     protected function getMetaIntegration(string $businessId): ?Integration
     {
@@ -950,6 +1163,9 @@ class TargetAnalysisController extends Controller
                 }
             }
 
+            // account_id is the clean ID without act_ prefix (legacy column)
+            $cleanAccountId = str_replace('act_', '', $account['id']);
+
             MetaAdAccount::updateOrCreate(
                 [
                     'integration_id' => $integration->id,
@@ -957,6 +1173,7 @@ class TargetAnalysisController extends Controller
                 ],
                 [
                     'business_id' => $integration->business_id,
+                    'account_id' => $cleanAccountId,
                     'name' => $account['name'],
                     'currency' => $account['currency'] ?? 'USD',
                     'timezone' => $account['timezone_name'] ?? null,
@@ -1144,5 +1361,1129 @@ class TargetAnalysisController extends Controller
             'recommendations' => $recommendations,
             'audience' => $audience,
         ];
+    }
+
+    // ==================== CAMPAIGN MANAGEMENT ====================
+
+    /**
+     * Update campaign status (toggle on/off)
+     */
+    public function updateCampaignStatus(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'campaign_id' => 'required|string',
+                'status' => 'required|in:ACTIVE,PAUSED',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Get campaign from local DB
+            $campaign = MetaCampaign::withoutGlobalScope('business')
+                ->where('meta_campaign_id', $request->campaign_id)
+                ->first();
+
+            if (!$campaign) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kampaniya topilmadi.',
+                ], 404);
+            }
+
+            // Update via Meta API
+            $result = $this->metaService->updateCampaignStatus($request->campaign_id, $request->status);
+
+            // Update local DB
+            $campaign->update([
+                'status' => $request->status,
+                'effective_status' => $request->status,
+            ]);
+
+            \Log::info('Campaign status updated', [
+                'campaign_id' => $request->campaign_id,
+                'new_status' => $request->status,
+                'result' => $result,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $request->status === 'ACTIVE' ? 'Kampaniya yoqildi' : 'Kampaniya to\'xtatildi',
+                'campaign' => [
+                    'id' => $campaign->id,
+                    'meta_campaign_id' => $campaign->meta_campaign_id,
+                    'status' => $request->status,
+                    'effective_status' => $request->status,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Campaign status update error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Update campaign budget
+     */
+    public function updateCampaignBudget(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'campaign_id' => 'required|string',
+                'budget' => 'required|numeric|min:1',
+                'budget_type' => 'in:daily,lifetime',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            $campaign = MetaCampaign::withoutGlobalScope('business')
+                ->where('meta_campaign_id', $request->campaign_id)
+                ->first();
+
+            if (!$campaign) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kampaniya topilmadi.',
+                ], 404);
+            }
+
+            $budgetType = $request->budget_type ?? 'daily';
+
+            // Update via Meta API
+            $result = $this->metaService->updateCampaignBudget(
+                $request->campaign_id,
+                $request->budget,
+                $budgetType
+            );
+
+            // Update local DB
+            if ($budgetType === 'daily') {
+                $campaign->update(['daily_budget' => $request->budget]);
+            } else {
+                $campaign->update(['lifetime_budget' => $request->budget]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Byudjet yangilandi',
+                'campaign' => [
+                    'id' => $campaign->id,
+                    'meta_campaign_id' => $campaign->meta_campaign_id,
+                    'daily_budget' => $campaign->daily_budget,
+                    'lifetime_budget' => $campaign->lifetime_budget,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Campaign budget update error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Batch update campaign statuses
+     */
+    public function batchUpdateCampaigns(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'campaign_ids' => 'required|array|min:1',
+                'campaign_ids.*' => 'string',
+                'status' => 'required|in:ACTIVE,PAUSED',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            $results = $this->metaService->batchUpdateCampaignStatus(
+                $request->campaign_ids,
+                $request->status
+            );
+
+            // Update local DB
+            $successCount = 0;
+            foreach ($request->campaign_ids as $campaignId) {
+                if (!isset($results[$campaignId]['error'])) {
+                    MetaCampaign::withoutGlobalScope('business')
+                        ->where('meta_campaign_id', $campaignId)
+                        ->update([
+                            'status' => $request->status,
+                            'effective_status' => $request->status,
+                        ]);
+                    $successCount++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$successCount} ta kampaniya yangilandi",
+                'results' => $results,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Batch campaign update error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get campaign management capabilities
+     */
+    public function getCampaignManagementInfo(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            $capabilities = [
+                'can_manage' => false,
+                'permissions' => [],
+                'limitations' => [],
+            ];
+
+            if (!$integration) {
+                $capabilities['limitations'][] = 'Meta integratsiyasi topilmadi';
+                return response()->json(['success' => true, 'capabilities' => $capabilities]);
+            }
+
+            // Check token validity
+            $isValid = $this->oauthService->isTokenValid($integration->getAccessToken());
+            if (!$isValid) {
+                $capabilities['limitations'][] = 'Access token muddati tugagan. Qayta ulaning.';
+                return response()->json(['success' => true, 'capabilities' => $capabilities]);
+            }
+
+            // Token debug info
+            $tokenInfo = $this->oauthService->debugToken($integration->getAccessToken());
+            $scopes = $tokenInfo['scopes'] ?? [];
+
+            $capabilities['can_manage'] = in_array('ads_management', $scopes);
+            $capabilities['permissions'] = [
+                'ads_read' => in_array('ads_read', $scopes),
+                'ads_management' => in_array('ads_management', $scopes),
+                'business_management' => in_array('business_management', $scopes),
+            ];
+
+            if (!$capabilities['can_manage']) {
+                $capabilities['limitations'][] = 'ads_management ruxsati yo\'q. Qayta ulaning.';
+            }
+
+            $capabilities['available_actions'] = [
+                'toggle_campaign' => $capabilities['can_manage'],
+                'update_budget' => $capabilities['can_manage'],
+                'batch_update' => $capabilities['can_manage'],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'capabilities' => $capabilities,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'capabilities' => ['can_manage' => false],
+            ], 500);
+        }
+    }
+
+    // ==================== CAMPAIGN CREATION ====================
+
+    /**
+     * Get campaign creation options (objectives, pages, etc.)
+     */
+    public function getCampaignCreationOptions(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Get available objectives
+            $objectives = $this->metaService->getAvailableObjectives();
+
+            // Get Facebook pages
+            $pagesResponse = $this->metaService->getPages();
+            $pages = collect($pagesResponse['data'] ?? [])->map(function ($page) {
+                return [
+                    'id' => $page['id'],
+                    'name' => $page['name'],
+                    'category' => $page['category'] ?? '',
+                    'picture' => $page['picture']['data']['url'] ?? null,
+                ];
+            })->values()->all();
+
+            // Get ad accounts
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            return response()->json([
+                'success' => true,
+                'objectives' => $objectives,
+                'pages' => $pages,
+                'ad_account' => $adAccount ? [
+                    'id' => $adAccount->meta_account_id,
+                    'name' => $adAccount->name,
+                    'currency' => $adAccount->currency,
+                ] : null,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Get campaign creation options error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Ma\'lumotlarni yuklashda xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get optimization goals for objective
+     */
+    public function getOptimizationGoals(Request $request): JsonResponse
+    {
+        try {
+            $objective = $request->objective;
+            if (!$objective) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Objective parametri kerak.',
+                ], 400);
+            }
+
+            $goals = $this->metaService->getOptimizationGoals($objective);
+
+            return response()->json([
+                'success' => true,
+                'goals' => $goals,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Search interests for targeting
+     */
+    public function searchInterests(Request $request): JsonResponse
+    {
+        try {
+            $query = $request->q;
+            if (!$query || strlen($query) < 2) {
+                return response()->json([
+                    'success' => true,
+                    'interests' => [],
+                ]);
+            }
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+            $response = $this->metaService->searchInterests($query);
+
+            $interests = collect($response['data'] ?? [])->map(function ($item) {
+                return [
+                    'id' => $item['id'],
+                    'name' => $item['name'],
+                    'audience_size' => $item['audience_size'] ?? 0,
+                    'path' => $item['path'] ?? [],
+                ];
+            })->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'interests' => $interests,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'interests' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Search locations for targeting
+     */
+    public function searchLocations(Request $request): JsonResponse
+    {
+        try {
+            $query = $request->q;
+            if (!$query || strlen($query) < 2) {
+                return response()->json([
+                    'success' => true,
+                    'locations' => [],
+                ]);
+            }
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+            $response = $this->metaService->searchLocations($query);
+
+            $locations = collect($response['data'] ?? [])->map(function ($item) {
+                return [
+                    'key' => $item['key'],
+                    'name' => $item['name'],
+                    'type' => $item['type'],
+                    'country_code' => $item['country_code'] ?? '',
+                    'country_name' => $item['country_name'] ?? '',
+                    'region' => $item['region'] ?? '',
+                ];
+            })->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'locations' => $locations,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'locations' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Get reach estimate
+     */
+    public function getReachEstimate(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            $targeting = $request->targeting ?? [
+                'geo_locations' => ['countries' => ['UZ']],
+            ];
+
+            $response = $this->metaService->getReachEstimate($adAccount->meta_account_id, $targeting);
+
+            return response()->json([
+                'success' => true,
+                'users' => $response['data']['users'] ?? 0,
+                'users_lower_bound' => $response['data']['users_lower_bound'] ?? 0,
+                'users_upper_bound' => $response['data']['users_upper_bound'] ?? 0,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'users_lower_bound' => 0,
+                'users_upper_bound' => 0,
+            ], 500);
+        }
+    }
+
+    /**
+     * Search behaviors for targeting
+     */
+    public function searchBehaviors(Request $request): JsonResponse
+    {
+        try {
+            $query = $request->q;
+            if (!$query || strlen($query) < 2) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                ]);
+            }
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+
+            if (!$integration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+            $response = $this->metaService->searchBehaviors($query);
+
+            $behaviors = collect($response['data'] ?? [])->map(function ($item) {
+                return [
+                    'id' => $item['id'],
+                    'name' => $item['name'],
+                    'description' => $item['description'] ?? '',
+                    'audience_size_lower_bound' => $item['audience_size_lower_bound'] ?? 0,
+                    'audience_size_upper_bound' => $item['audience_size_upper_bound'] ?? 0,
+                    'path' => $item['path'] ?? [],
+                ];
+            })->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'data' => $behaviors,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Browse interests by category
+     */
+    public function browseInterests(Request $request): JsonResponse
+    {
+        try {
+            $category = $request->category;
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Get targeting browse for category
+            $response = $this->metaService->getTargetingCategories($adAccount->meta_account_id);
+
+            $interests = collect($response['data'] ?? [])->map(function ($item) {
+                return [
+                    'id' => $item['id'],
+                    'name' => $item['name'],
+                    'description' => $item['description'] ?? '',
+                    'audience_size_lower_bound' => $item['audience_size_lower_bound'] ?? 0,
+                    'type' => $item['type'] ?? 'interests',
+                    'path' => $item['path'] ?? [],
+                ];
+            })->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'data' => $interests,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new campaign
+     */
+    public function createCampaign(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'objective' => 'required|string',
+                'daily_budget' => 'nullable|numeric|min:1',
+                'lifetime_budget' => 'nullable|numeric|min:1',
+                'status' => 'in:ACTIVE,PAUSED',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Create campaign via Meta API
+            $result = $this->metaService->createCampaign($adAccount->meta_account_id, [
+                'name' => $request->name,
+                'objective' => $request->objective,
+                'daily_budget' => $request->daily_budget,
+                'lifetime_budget' => $request->lifetime_budget,
+                'status' => $request->status ?? 'PAUSED',
+                'special_ad_categories' => $request->special_ad_categories ?? [],
+            ]);
+
+            $metaCampaignId = $result['id'] ?? null;
+
+            if (!$metaCampaignId) {
+                \Log::error('Campaign creation failed - no ID returned', ['result' => $result]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kampaniya yaratishda xatolik: Meta javob bermadi',
+                    'details' => $result,
+                ], 500);
+            }
+
+            // Save to local database
+            $campaign = MetaCampaign::create([
+                'ad_account_id' => $adAccount->id,
+                'business_id' => $business->id,
+                'meta_campaign_id' => $metaCampaignId,
+                'name' => $request->name,
+                'objective' => $request->objective,
+                'status' => $request->status ?? 'PAUSED',
+                'effective_status' => $request->status ?? 'PAUSED',
+                'daily_budget' => $request->daily_budget,
+                'lifetime_budget' => $request->lifetime_budget,
+                'created_time' => now(),
+            ]);
+
+            \Log::info('Campaign created', [
+                'campaign_id' => $campaign->id,
+                'meta_campaign_id' => $metaCampaignId,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kampaniya muvaffaqiyatli yaratildi',
+                'campaign' => [
+                    'id' => $campaign->id,
+                    'meta_campaign_id' => $metaCampaignId,
+                    'name' => $campaign->name,
+                    'objective' => $campaign->objective,
+                    'status' => $campaign->status,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Create campaign error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new AdSet
+     */
+    public function createAdSet(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'campaign_id' => 'required|string',
+                'name' => 'required|string|max:255',
+                'daily_budget' => 'nullable|numeric|min:1',
+                'optimization_goal' => 'required|string',
+                'billing_event' => 'required|string',
+                'targeting' => 'required|array',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Create AdSet via Meta API
+            $result = $this->metaService->createAdSet($adAccount->meta_account_id, $request->campaign_id, [
+                'name' => $request->name,
+                'daily_budget' => $request->daily_budget,
+                'lifetime_budget' => $request->lifetime_budget,
+                'optimization_goal' => $request->optimization_goal,
+                'billing_event' => $request->billing_event,
+                'targeting' => $request->targeting,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'status' => $request->status ?? 'PAUSED',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'AdSet muvaffaqiyatli yaratildi',
+                'adset' => $result,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Create AdSet error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get wizard options for full ad creation
+     */
+    public function getWizardOptions(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Get pages
+            $pagesResponse = $this->metaService->getPages();
+            $pages = collect($pagesResponse['data'] ?? [])->map(fn($page) => [
+                'id' => $page['id'],
+                'name' => $page['name'],
+                'picture' => $page['picture']['data']['url'] ?? null,
+            ])->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'objectives' => $this->metaService->getAvailableObjectives(),
+                'countries' => $this->metaService->getCountries(),
+                'call_to_actions' => $this->metaService->getCallToActionTypes(),
+                'pages' => $pages,
+                'ad_account' => [
+                    'id' => $adAccount->meta_account_id,
+                    'name' => $adAccount->name,
+                    'currency' => $adAccount->currency ?? 'USD',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Get wizard options error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload image for ad creative
+     */
+    public function uploadAdImage(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'image' => 'required|string', // base64 encoded image
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            $result = $this->metaService->uploadImageBase64($adAccount->meta_account_id, $request->image);
+
+            // Get image hash from response
+            $images = $result['images'] ?? [];
+            $imageHash = null;
+            foreach ($images as $name => $data) {
+                $imageHash = $data['hash'] ?? null;
+                break;
+            }
+
+            return response()->json([
+                'success' => true,
+                'image_hash' => $imageHash,
+                'result' => $result,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Upload ad image error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Rasm yuklashda xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get lead forms for lead campaigns
+     */
+    public function getLeadForms(Request $request): JsonResponse
+    {
+        try {
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                    'data' => [],
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            // Get pages first
+            $pagesResponse = $this->metaService->getPages();
+            $pages = $pagesResponse['data'] ?? [];
+
+            $leadForms = [];
+
+            // For each page, get lead forms
+            foreach ($pages as $page) {
+                try {
+                    $pageId = $page['id'];
+                    $pageAccessToken = $page['access_token'] ?? null;
+
+                    if (!$pageAccessToken) {
+                        continue;
+                    }
+
+                    // Fetch lead forms from page using Meta service
+                    $forms = $this->metaService->getPageLeadForms($pageId, $pageAccessToken);
+
+                    foreach ($forms as $form) {
+                        if (($form['status'] ?? '') === 'ACTIVE') {
+                            $leadForms[] = [
+                                'id' => $form['id'],
+                                'name' => $form['name'] ?? 'Nomsiz forma',
+                                'page_id' => $pageId,
+                                'page_name' => $page['name'] ?? '',
+                                'leads_count' => $form['leads_count'] ?? 0,
+                            ];
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Error fetching lead forms for page', [
+                        'page_id' => $page['id'] ?? 'unknown',
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $leadForms,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Get lead forms error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Create ad with creative
+     */
+    public function createAd(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'adset_id' => 'required|string',
+                'page_id' => 'required|string',
+                'name' => 'required|string|max:255',
+                'primary_text' => 'required|string',
+                'headline' => 'nullable|string|max:255',
+                'link' => 'required|url',
+                'call_to_action' => 'required|string',
+                'image_hash' => 'nullable|string',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+
+            $result = $this->metaService->createAdWithCreative(
+                $adAccount->meta_account_id,
+                $request->adset_id,
+                $request->page_id,
+                [
+                    'ad_name' => $request->name,
+                    'primary_text' => $request->primary_text,
+                    'headline' => $request->headline,
+                    'description' => $request->description,
+                    'link' => $request->link,
+                    'call_to_action' => $request->call_to_action,
+                    'image_hash' => $request->image_hash,
+                ],
+                $request->status ?? 'PAUSED'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reklama muvaffaqiyatli yaratildi',
+                'ad' => $result,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Create ad error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Create full ad (Campaign + AdSet + Ad) in one wizard step
+     */
+    public function createFullAd(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                // Campaign
+                'campaign_name' => 'required|string|max:255',
+                'objective' => 'required|string',
+                // AdSet
+                'adset_name' => 'required|string|max:255',
+                'daily_budget' => 'required|numeric|min:1',
+                'optimization_goal' => 'required|string',
+                'targeting' => 'required|array',
+                // Ad
+                'ad_name' => 'required|string|max:255',
+                'page_id' => 'required|string',
+                'primary_text' => 'required|string',
+                'link' => 'required|url',
+                'call_to_action' => 'required|string',
+            ]);
+
+            $business = $this->getCurrentBusiness($request);
+            $integration = $this->getMetaIntegration($business->id);
+            $adAccount = $this->getSelectedMetaAccount($business->id);
+
+            if (!$integration || !$adAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta integratsiyasi topilmadi.',
+                ], 400);
+            }
+
+            $this->setupMetaService($integration);
+            $status = $request->status ?? 'PAUSED';
+
+            // Step 1: Create Campaign
+            $campaignResult = $this->metaService->createCampaign($adAccount->meta_account_id, [
+                'name' => $request->campaign_name,
+                'objective' => $request->objective,
+                'status' => $status,
+                'special_ad_categories' => [],
+            ]);
+
+            $campaignId = $campaignResult['id'] ?? null;
+            if (!$campaignId) {
+                throw new \Exception('Kampaniya yaratishda xatolik');
+            }
+
+            // Save campaign to DB
+            $campaign = MetaCampaign::create([
+                'ad_account_id' => $adAccount->id,
+                'business_id' => $business->id,
+                'meta_campaign_id' => $campaignId,
+                'name' => $request->campaign_name,
+                'objective' => $request->objective,
+                'status' => $status,
+            ]);
+
+            // Step 2: Create AdSet
+            $billingEvent = $this->getBillingEventForGoal($request->optimization_goal);
+            $adSetResult = $this->metaService->createAdSet($adAccount->meta_account_id, $campaignId, [
+                'name' => $request->adset_name,
+                'daily_budget' => $request->daily_budget,
+                'optimization_goal' => $request->optimization_goal,
+                'billing_event' => $billingEvent,
+                'targeting' => $request->targeting,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'status' => $status,
+            ]);
+
+            $adSetId = $adSetResult['id'] ?? null;
+            if (!$adSetId) {
+                throw new \Exception('AdSet yaratishda xatolik');
+            }
+
+            // Save adset to DB
+            $adSet = MetaAdSet::create([
+                'ad_account_id' => $adAccount->id,
+                'campaign_id' => $campaign->id,
+                'meta_campaign_id' => $campaignId,
+                'business_id' => $business->id,
+                'meta_adset_id' => $adSetId,
+                'name' => $request->adset_name,
+                'status' => $status,
+                'optimization_goal' => $request->optimization_goal,
+                'billing_event' => $billingEvent,
+                'daily_budget' => $request->daily_budget,
+                'targeting' => $request->targeting,
+            ]);
+
+            // Step 3: Create Ad with Creative
+            $adResult = $this->metaService->createAdWithCreative(
+                $adAccount->meta_account_id,
+                $adSetId,
+                $request->page_id,
+                [
+                    'ad_name' => $request->ad_name,
+                    'primary_text' => $request->primary_text,
+                    'headline' => $request->headline,
+                    'description' => $request->description,
+                    'link' => $request->link,
+                    'call_to_action' => $request->call_to_action,
+                    'image_hash' => $request->image_hash,
+                ],
+                $status
+            );
+
+            $adId = $adResult['id'] ?? null;
+
+            // Save ad to DB
+            if ($adId) {
+                MetaAd::create([
+                    'ad_account_id' => $adAccount->id,
+                    'adset_id' => $adSet->id,
+                    'campaign_id' => $campaign->id,
+                    'meta_adset_id' => $adSetId,
+                    'meta_campaign_id' => $campaignId,
+                    'business_id' => $business->id,
+                    'meta_ad_id' => $adId,
+                    'name' => $request->ad_name,
+                    'status' => $status,
+                    'creative_body' => $request->primary_text,
+                    'creative_title' => $request->headline,
+                    'creative_link_url' => $request->link,
+                    'creative_call_to_action' => $request->call_to_action,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reklama to\'liq yaratildi!',
+                'data' => [
+                    'campaign_id' => $campaignId,
+                    'adset_id' => $adSetId,
+                    'ad_id' => $adId,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Create full ad error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get billing event for optimization goal
+     */
+    private function getBillingEventForGoal(string $goal): string
+    {
+        return match ($goal) {
+            'LINK_CLICKS' => 'LINK_CLICKS',
+            default => 'IMPRESSIONS',
+        };
     }
 }

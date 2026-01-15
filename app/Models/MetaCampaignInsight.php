@@ -29,6 +29,7 @@ class MetaCampaignInsight extends Model
         'add_to_cart',
         'link_clicks',
         'video_views',
+        'messages',
         'cost_per_conversion',
         'cost_per_lead',
         'actions',
@@ -53,6 +54,7 @@ class MetaCampaignInsight extends Model
         'add_to_cart' => 'integer',
         'link_clicks' => 'integer',
         'video_views' => 'integer',
+        'messages' => 'integer',
         'actions' => 'array',
         'action_values' => 'array',
     ];

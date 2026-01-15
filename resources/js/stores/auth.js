@@ -4,8 +4,8 @@ import axios from 'axios';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
-  const token = ref(localStorage.getItem('auth_token') || null);
-  const currentBusiness = ref(JSON.parse(localStorage.getItem('current_business')) || null);
+  const token = ref(sessionStorage.getItem('auth_token') || null);
+  const currentBusiness = ref(JSON.parse(sessionStorage.getItem('current_business')) || null);
 
   const isAuthenticated = computed(() => !!token.value);
 
@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.data.token;
       user.value = response.data.data.user;
 
-      localStorage.setItem('auth_token', token.value);
+      sessionStorage.setItem('auth_token', token.value);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
 
       return response.data;
@@ -41,7 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.data.token;
       user.value = response.data.data.user;
 
-      localStorage.setItem('auth_token', token.value);
+      sessionStorage.setItem('auth_token', token.value);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
 
       // Set default business if user has businesses
@@ -65,8 +65,8 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = null;
       currentBusiness.value = null;
 
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('current_business');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('current_business');
       delete axios.defaults.headers.common['Authorization'];
       delete axios.defaults.headers.common['X-Business-ID'];
     }
@@ -86,7 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setCurrentBusiness(business) {
     currentBusiness.value = business;
-    localStorage.setItem('current_business', JSON.stringify(business));
+    sessionStorage.setItem('current_business', JSON.stringify(business));
     axios.defaults.headers.common['X-Business-ID'] = business.id;
   }
 

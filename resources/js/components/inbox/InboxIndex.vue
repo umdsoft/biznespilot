@@ -703,5 +703,9 @@ onMounted(() => {
 
 onUnmounted(() => {
     stopPolling();
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+        searchTimeout = null;
+    }
 });
 </script>

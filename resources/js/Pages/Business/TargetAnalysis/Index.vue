@@ -728,31 +728,31 @@ onMounted(() => {
                                 <div v-if="metaPlacements.platforms?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div v-for="item in metaPlacements.platforms" :key="item.label" class="flex items-center gap-4 p-5 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                                         <!-- Facebook -->
-                                        <div v-if="item.platform === 'facebook'" class="w-14 h-14 rounded-xl bg-blue-600 dark:bg-blue-700 flex items-center justify-center flex-shrink-0">
+                                        <div v-if="item.platform === 'facebook'" class="w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                                             <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                             </svg>
                                         </div>
                                         <!-- Instagram -->
-                                        <div v-else-if="item.platform === 'instagram'" class="w-14 h-14 rounded-xl bg-pink-600 dark:bg-pink-700 flex items-center justify-center flex-shrink-0">
+                                        <div v-else-if="item.platform === 'instagram'" class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center flex-shrink-0 shadow-lg">
                                             <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
+                                                <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3Z"/>
                                             </svg>
                                         </div>
                                         <!-- Messenger -->
-                                        <div v-else-if="item.platform === 'messenger'" class="w-14 h-14 rounded-xl bg-purple-600 dark:bg-purple-700 flex items-center justify-center flex-shrink-0">
+                                        <div v-else-if="item.platform === 'messenger'" class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                                             <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0z"/>
+                                                <path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0zm1.205 14.916l-3.063-3.27-5.978 3.27L10.282 8.5l3.135 3.27 5.906-3.27-6.118 6.416z"/>
                                             </svg>
                                         </div>
                                         <!-- Audience Network -->
-                                        <div v-else-if="item.platform === 'audience_network'" class="w-14 h-14 rounded-xl bg-green-600 dark:bg-green-700 flex items-center justify-center flex-shrink-0">
+                                        <div v-else-if="item.platform === 'audience_network'" class="w-14 h-14 rounded-xl bg-green-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                                             </svg>
                                         </div>
                                         <!-- Threads -->
-                                        <div v-else-if="item.platform === 'threads'" class="w-14 h-14 rounded-xl bg-gray-900 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+                                        <div v-else-if="item.platform === 'threads'" class="w-14 h-14 rounded-xl bg-black flex items-center justify-center flex-shrink-0 shadow-lg">
                                             <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.182.408-2.256 1.332-3.023.9-.747 2.132-1.186 3.574-1.27.976-.057 1.954.02 2.918.228-.104-.9-.47-1.575-1.089-2.015-.764-.544-1.905-.81-3.395-.79l-.06-2.119c1.87-.053 3.452.343 4.713 1.179 1.186.786 1.942 1.9 2.253 3.311.104.378.165.778.192 1.196.996.378 1.876.916 2.604 1.602 1.218 1.148 1.895 2.62 1.96 4.26.084 2.097-.797 4.153-2.479 5.791C18.455 23.145 15.643 24 12.186 24z"/>
                                             </svg>

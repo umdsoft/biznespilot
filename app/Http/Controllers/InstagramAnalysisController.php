@@ -48,6 +48,12 @@ class InstagramAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
+        // Check for instagram-specific integration first (created after OAuth if Instagram found)
+        $instagramIntegration = Integration::where('business_id', $business->id)
+            ->where('type', 'instagram')
+            ->first();
+
+        // Meta Ads integration (parent that holds Instagram accounts)
         $metaIntegration = Integration::where('business_id', $business->id)
             ->where('type', 'meta_ads')
             ->first();
@@ -55,11 +61,18 @@ class InstagramAnalysisController extends Controller
         $instagramAccounts = collect([]);
         $selectedAccount = null;
 
-        if ($metaIntegration && $metaIntegration->status === 'connected') {
+        // Use instagram integration status for display, but get accounts from meta_ads
+        $isConnected = ($instagramIntegration && $instagramIntegration->status === 'connected')
+            || ($metaIntegration && $metaIntegration->status === 'connected');
+
+        if ($isConnected && $metaIntegration) {
             $instagramAccounts = InstagramAccount::where('integration_id', $metaIntegration->id)->get();
             $selectedAccount = $instagramAccounts->where('is_primary', true)->first()
                 ?? $instagramAccounts->first();
         }
+
+        // Use instagram integration for display if available, otherwise meta_ads
+        $displayIntegration = $instagramIntegration ?? $metaIntegration;
 
         return Inertia::render('Shared/InstagramAnalysis/Index', [
             'panelType' => $this->getPanelType($request),
@@ -67,11 +80,12 @@ class InstagramAnalysisController extends Controller
                 'id' => $business->id,
                 'name' => $business->name,
             ],
-            'metaIntegration' => $metaIntegration ? [
-                'id' => $metaIntegration->id,
-                'status' => $metaIntegration->status,
-                'connected_at' => $metaIntegration->connected_at?->format('d.m.Y H:i'),
-                'last_sync_at' => $metaIntegration->last_sync_at?->format('d.m.Y H:i'),
+            'metaIntegration' => $displayIntegration ? [
+                'id' => $displayIntegration->id,
+                'type' => $displayIntegration->type, // 'instagram' or 'meta_ads'
+                'status' => $displayIntegration->status,
+                'connected_at' => $displayIntegration->connected_at?->format('d.m.Y H:i'),
+                'last_sync_at' => $displayIntegration->last_sync_at?->format('d.m.Y H:i'),
             ] : null,
             'instagramAccounts' => $instagramAccounts->map(fn($acc) => [
                 'id' => $acc->id,
@@ -595,7 +609,14 @@ class InstagramAnalysisController extends Controller
             if (!$business) {
                 abort(400, 'Biznes tanlanmagan');
             }
+            // Save to session for persistence
+            session(['current_business_id' => $business->id]);
             return $business;
+        }
+
+        // Save to session when coming from request
+        if ($request->has('business_id')) {
+            session(['current_business_id' => $businessId]);
         }
 
         return Business::findOrFail($businessId);

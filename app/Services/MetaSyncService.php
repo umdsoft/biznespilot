@@ -54,9 +54,19 @@ class MetaSyncService
         ];
 
         try {
-            // 1. Sync Ad Accounts
-            $accounts = $this->syncAdAccounts();
-            $results['accounts'] = count($accounts);
+            // 1. Check if business already has accounts selected
+            // If yes, use existing accounts (don't re-fetch from API to avoid re-adding deleted accounts)
+            $existingAccounts = MetaAdAccount::where('integration_id', $this->integration->id)->get();
+
+            if ($existingAccounts->isNotEmpty()) {
+                // Use existing accounts only
+                $accounts = $existingAccounts;
+                $results['accounts'] = count($accounts);
+            } else {
+                // No accounts yet - fetch from Meta API (first time setup)
+                $accounts = $this->syncAdAccounts();
+                $results['accounts'] = count($accounts);
+            }
 
             // 2. For each account, sync campaigns, adsets, ads, and insights
             foreach ($accounts as $account) {
@@ -122,13 +132,18 @@ class MetaSyncService
         $data = $response['data'] ?? [];
 
         foreach ($data as $accountData) {
-            $account = MetaAdAccount::updateOrCreate(
+            // account_id is the clean ID without act_ prefix (legacy column)
+            $cleanAccountId = str_replace('act_', '', $accountData['id']);
+
+            // Use withoutGlobalScope to avoid issues with business scope
+            $account = MetaAdAccount::withoutGlobalScope('business')->updateOrCreate(
                 [
                     'integration_id' => $this->integration->id,
                     'meta_account_id' => $accountData['id'],
                 ],
                 [
                     'business_id' => $this->businessId,
+                    'account_id' => $cleanAccountId,
                     'name' => $accountData['name'] ?? $accountData['id'],
                     'currency' => $accountData['currency'] ?? 'USD',
                     'timezone' => $accountData['timezone_name'] ?? null,
@@ -166,7 +181,8 @@ class MetaSyncService
         $data = $response['data'] ?? [];
 
         foreach ($data as $campaignData) {
-            $campaign = MetaCampaign::updateOrCreate(
+            // Use withoutGlobalScope to avoid issues with business scope
+            $campaign = MetaCampaign::withoutGlobalScope('business')->updateOrCreate(
                 [
                     'ad_account_id' => $account->id,
                     'meta_campaign_id' => $campaignData['id'],
@@ -182,8 +198,8 @@ class MetaSyncService
                     'budget_remaining' => $campaignData['budget_remaining'] ?? null,
                     'start_time' => $this->parseDateTime($campaignData['start_time'] ?? null),
                     'stop_time' => $this->parseDateTime($campaignData['stop_time'] ?? null),
+                    'created_time' => $this->parseDateTime($campaignData['created_time'] ?? null),
                     'metadata' => [
-                        'created_time' => $campaignData['created_time'] ?? null,
                         'updated_time' => $campaignData['updated_time'] ?? null,
                     ],
                 ]
@@ -209,17 +225,20 @@ class MetaSyncService
         $data = $response['data'] ?? [];
 
         foreach ($data as $adsetData) {
-            // Find campaign
-            $campaign = MetaCampaign::where('ad_account_id', $account->id)
+            // Find campaign (bypass business scope)
+            $campaign = MetaCampaign::withoutGlobalScope('business')
+                ->where('ad_account_id', $account->id)
                 ->where('meta_campaign_id', $adsetData['campaign_id'])
                 ->first();
 
-            $adset = MetaAdSet::updateOrCreate(
+            // Use withoutGlobalScope to avoid duplicate entries when business scope is active
+            // meta_adset_id is globally unique in Meta's API
+            $adset = MetaAdSet::withoutGlobalScope('business')->updateOrCreate(
                 [
-                    'ad_account_id' => $account->id,
                     'meta_adset_id' => $adsetData['id'],
                 ],
                 [
+                    'ad_account_id' => $account->id,
                     'business_id' => $this->businessId,
                     'campaign_id' => $campaign?->id,
                     'meta_campaign_id' => $adsetData['campaign_id'],
@@ -258,22 +277,26 @@ class MetaSyncService
         $data = $response['data'] ?? [];
 
         foreach ($data as $adData) {
-            // Find adset
-            $adset = MetaAdSet::where('ad_account_id', $account->id)
+            // Find adset (bypass business scope)
+            $adset = MetaAdSet::withoutGlobalScope('business')
+                ->where('ad_account_id', $account->id)
                 ->where('meta_adset_id', $adData['adset_id'] ?? '')
                 ->first();
 
-            // Find campaign
-            $campaign = MetaCampaign::where('ad_account_id', $account->id)
+            // Find campaign (bypass business scope)
+            $campaign = MetaCampaign::withoutGlobalScope('business')
+                ->where('ad_account_id', $account->id)
                 ->where('meta_campaign_id', $adData['campaign_id'] ?? '')
                 ->first();
 
-            $ad = MetaAd::updateOrCreate(
+            // Use withoutGlobalScope to avoid duplicate entries when business scope is active
+            // meta_ad_id is globally unique in Meta's API
+            $ad = MetaAd::withoutGlobalScope('business')->updateOrCreate(
                 [
-                    'ad_account_id' => $account->id,
                     'meta_ad_id' => $adData['id'],
                 ],
                 [
+                    'ad_account_id' => $account->id,
                     'business_id' => $this->businessId,
                     'adset_id' => $adset?->id,
                     'campaign_id' => $campaign?->id,
@@ -302,13 +325,14 @@ class MetaSyncService
     }
 
     /**
-     * Sync Insights for an Ad Account (last 12 months)
+     * Sync Insights for an Ad Account (maximum 37 months - Meta API limit)
      */
     public function syncInsights(MetaAdAccount $account): int
     {
         $count = 0;
         $endDate = Carbon::today();
-        $startDate = Carbon::today()->subMonths(12);
+        // Meta API allows maximum 37 months of historical data
+        $startDate = Carbon::today()->subMonths(36);
 
         // 1. Account level insights (daily breakdown)
         $count += $this->syncAccountInsights($account, $startDate, $endDate);
@@ -349,27 +373,32 @@ class MetaSyncService
     {
         $count = 0;
 
-        // Sync in 3-month chunks to avoid API limits
+        // Sync in 1-month chunks to avoid API limits
         $currentStart = clone $startDate;
 
         while ($currentStart < $endDate) {
-            $currentEnd = (clone $currentStart)->addMonths(3);
+            $currentEnd = (clone $currentStart)->addMonth(); // Changed to 1 month
             if ($currentEnd > $endDate) {
                 $currentEnd = $endDate;
             }
 
-            $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
-                'fields' => $this->getInsightFields(),
-                'time_range' => json_encode([
-                    'since' => $currentStart->format('Y-m-d'),
-                    'until' => $currentEnd->format('Y-m-d'),
-                ]),
-                'time_increment' => 1, // Daily breakdown
-                'level' => 'account',
-                'limit' => 500,
-            ]);
+            try {
+                $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
+                    'fields' => $this->getInsightFields(),
+                    'time_range' => json_encode([
+                        'since' => $currentStart->format('Y-m-d'),
+                        'until' => $currentEnd->format('Y-m-d'),
+                    ]),
+                    'time_increment' => 1, // Daily breakdown
+                    'level' => 'account',
+                    'limit' => 500,
+                ]);
 
-            $count += $this->saveInsights($account, $response['data'] ?? [], 'account', $account->meta_account_id, $account->name);
+                $count += $this->saveInsights($account, $response['data'] ?? [], 'account', $account->meta_account_id, $account->name);
+            } catch (\Exception $e) {
+                Log::warning("Error syncing account insights for {$currentStart->format('Y-m')}: " . $e->getMessage());
+                // Continue with next month instead of failing completely
+            }
 
             $currentStart = $currentEnd->addDay();
         }
@@ -384,25 +413,42 @@ class MetaSyncService
     {
         $count = 0;
 
-        $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
-            'fields' => $this->getInsightFields() . ',campaign_id,campaign_name',
-            'time_range' => json_encode([
-                'since' => $startDate->format('Y-m-d'),
-                'until' => $endDate->format('Y-m-d'),
-            ]),
-            'time_increment' => 'monthly', // Monthly for campaigns
-            'level' => 'campaign',
-            'limit' => 1000,
-        ]);
+        // Sync in 1-month chunks to avoid API limits for accounts with many campaigns
+        $currentStart = clone $startDate;
 
-        foreach ($response['data'] ?? [] as $insight) {
-            $count += $this->saveInsights(
-                $account,
-                [$insight],
-                'campaign',
-                $insight['campaign_id'] ?? null,
-                $insight['campaign_name'] ?? null
-            );
+        while ($currentStart < $endDate) {
+            $currentEnd = (clone $currentStart)->addMonth();
+            if ($currentEnd > $endDate) {
+                $currentEnd = $endDate;
+            }
+
+            try {
+                $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
+                    'fields' => $this->getInsightFields() . ',campaign_id,campaign_name',
+                    'time_range' => json_encode([
+                        'since' => $currentStart->format('Y-m-d'),
+                        'until' => $currentEnd->format('Y-m-d'),
+                    ]),
+                    'time_increment' => 'monthly',
+                    'level' => 'campaign',
+                    'limit' => 500,
+                ]);
+
+                foreach ($response['data'] ?? [] as $insight) {
+                    $count += $this->saveInsights(
+                        $account,
+                        [$insight],
+                        'campaign',
+                        $insight['campaign_id'] ?? null,
+                        $insight['campaign_name'] ?? null
+                    );
+                }
+            } catch (\Exception $e) {
+                Log::warning("Error syncing campaign insights for {$currentStart->format('Y-m')}: " . $e->getMessage());
+                // Continue with next month instead of failing completely
+            }
+
+            $currentStart = $currentEnd->addDay();
         }
 
         // Also sync to meta_campaign_insights table with daily breakdown
@@ -428,11 +474,11 @@ class MetaSyncService
             return 0;
         }
 
-        // Sync in chunks to avoid API limits
+        // Sync in 1-month chunks to avoid API limits (especially for accounts with many campaigns)
         $currentStart = clone $startDate;
 
         while ($currentStart < $endDate) {
-            $currentEnd = (clone $currentStart)->addMonths(3);
+            $currentEnd = (clone $currentStart)->addMonth(); // Changed from 3 months to 1 month
             if ($currentEnd > $endDate) {
                 $currentEnd = $endDate;
             }
@@ -446,7 +492,7 @@ class MetaSyncService
                     ]),
                     'time_increment' => 1, // Daily breakdown
                     'level' => 'campaign',
-                    'limit' => 5000,
+                    'limit' => 2000, // Reduced from 5000
                 ]);
 
                 foreach ($response['data'] ?? [] as $insight) {
@@ -479,6 +525,7 @@ class MetaSyncService
                             'add_to_cart' => $this->getActionValue($insight['actions'] ?? [], 'omni_add_to_cart'),
                             'link_clicks' => $this->getActionValue($insight['actions'] ?? [], 'link_click'),
                             'video_views' => $this->getActionValue($insight['actions'] ?? [], 'video_view'),
+                            'messages' => $this->getMessagesFromActions($insight['actions'] ?? []),
                             'cost_per_conversion' => isset($insight['cost_per_action_type'])
                                 ? $this->getActionValue($insight['cost_per_action_type'], 'purchase')
                                 : 0,
@@ -720,6 +767,30 @@ class MetaSyncService
             }
         }
         return $sum;
+    }
+
+    /**
+     * Get messages count from actions array (for messaging campaigns)
+     */
+    private function getMessagesFromActions(array $actions): int
+    {
+        $messageActionTypes = [
+            'onsite_conversion.messaging_conversation_started_7d',
+            'onsite_conversion.messaging_first_reply',
+            'messaging_conversation_started_7d',
+            'messaging_first_reply',
+            'onsite_conversion.messaging_user_depth_2_message_send',
+            'onsite_conversion.messaging_user_depth_3_message_send',
+        ];
+
+        $total = 0;
+        foreach ($actions as $action) {
+            if (in_array($action['action_type'] ?? '', $messageActionTypes)) {
+                $total += (int) ($action['value'] ?? 0);
+            }
+        }
+
+        return $total;
     }
 
     /**

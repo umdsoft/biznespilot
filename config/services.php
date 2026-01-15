@@ -39,6 +39,13 @@ return [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
+        'app_secret' => env('META_APP_SECRET'), // For webhook signature verification
+    ],
+
+    'instagram' => [
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        'webhook_verify_token' => env('INSTAGRAM_WEBHOOK_VERIFY_TOKEN', 'biznespilot_webhook_token'),
     ],
 
     'meta' => [

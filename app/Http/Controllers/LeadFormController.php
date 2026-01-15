@@ -108,7 +108,7 @@ class LeadFormController extends Controller
             'default_score' => 'nullable|integer|min:0|max:100',
             'lead_magnet_type' => 'nullable|in:none,file,video,link,coupon,text',
             'lead_magnet_title' => 'nullable|string|max:255',
-            'lead_magnet_file' => 'nullable|file|max:10240', // 10MB max
+            'lead_magnet_file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,jpg,jpeg,png,gif,webp,mp4,webm', // 10MB max, xavfsiz formatlar
             'lead_magnet_link' => 'nullable|url',
             'lead_magnet_text' => 'nullable|string',
             'success_message' => 'nullable|string',
@@ -276,7 +276,7 @@ class LeadFormController extends Controller
             'default_score' => 'nullable|integer|min:0|max:100',
             'lead_magnet_type' => 'nullable|in:none,file,video,link,coupon,text',
             'lead_magnet_title' => 'nullable|string|max:255',
-            'lead_magnet_file' => 'nullable|file|max:10240',
+            'lead_magnet_file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,jpg,jpeg,png,gif,webp,mp4,webm', // Xavfsiz formatlar
             'lead_magnet_link' => 'nullable|url',
             'lead_magnet_text' => 'nullable|string',
             'success_message' => 'nullable|string',

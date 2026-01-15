@@ -14,45 +14,31 @@ class InstagramMedia extends Model
     protected $table = 'instagram_media';
 
     protected $fillable = [
-        'instagram_account_id',
-        'business_id',
+        'account_id',
         'media_id',
         'media_type',
-        'media_product_type',
         'caption',
         'permalink',
-        'thumbnail_url',
         'media_url',
+        'thumbnail_url',
         'like_count',
         'comments_count',
-        'shares_count',
-        'saves_count',
         'reach',
         'impressions',
-        'video_views',
-        'plays',
-        'replies',
-        'taps_forward',
-        'taps_back',
-        'exits',
+        'saved',
+        'shares',
         'engagement_rate',
         'posted_at',
-        'hashtags',
-        'mentions',
-        'insights_data',
     ];
 
     protected $casts = [
         'posted_at' => 'datetime',
-        'hashtags' => 'array',
-        'mentions' => 'array',
-        'insights_data' => 'array',
         'engagement_rate' => 'decimal:4',
     ];
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function scopeReels($query)

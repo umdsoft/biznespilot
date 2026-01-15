@@ -5,21 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\ChatbotConfig;
 use App\Services\InstagramDMService;
-use App\Services\InstagramAIChatService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class InstagramWebhookController extends Controller
 {
     protected InstagramDMService $instagramService;
-    protected InstagramAIChatService $aiChatService;
+    protected ?object $aiChatService = null;
 
     public function __construct(
-        InstagramDMService $instagramService,
-        InstagramAIChatService $aiChatService
+        InstagramDMService $instagramService
     ) {
         $this->instagramService = $instagramService;
-        $this->aiChatService = $aiChatService;
+
+        // InstagramAIChatService optional - if it exists, load it
+        if (class_exists(\App\Services\InstagramAIChatService::class)) {
+            $this->aiChatService = app(\App\Services\InstagramAIChatService::class);
+        }
     }
 
     /**
@@ -31,6 +33,15 @@ class InstagramWebhookController extends Controller
             // Facebook webhook verification (GET request)
             if ($request->isMethod('get')) {
                 return $this->verifyWebhook($request);
+            }
+
+            // POST request uchun signature verification
+            if (!$this->verifySignature($request)) {
+                Log::warning('Instagram webhook signature verification failed', [
+                    'business_id' => $businessId,
+                    'ip' => $request->ip(),
+                ]);
+                return response()->json(['error' => 'Invalid signature'], 403);
             }
 
             // Validate business
@@ -89,6 +100,39 @@ class InstagramWebhookController extends Controller
     }
 
     /**
+     * Verify webhook signature (HMAC-SHA256)
+     * Meta/Facebook webhooks include X-Hub-Signature-256 header
+     */
+    private function verifySignature(Request $request): bool
+    {
+        $signature = $request->header('X-Hub-Signature-256');
+        $appSecret = config('services.instagram.app_secret', config('services.facebook.app_secret'));
+
+        // Agar app_secret sozlanmagan bo'lsa, log qilib true qaytaramiz (development uchun)
+        if (empty($appSecret)) {
+            Log::warning('Instagram app_secret not configured - signature verification skipped');
+            return true;
+        }
+
+        // Signature yo'q bo'lsa, rad etamiz
+        if (empty($signature)) {
+            Log::warning('Instagram webhook received without signature header');
+            return false;
+        }
+
+        // Signature formatini tekshirish: sha256=HASH
+        if (!str_starts_with($signature, 'sha256=')) {
+            return false;
+        }
+
+        $expectedHash = substr($signature, 7); // "sha256=" ni olib tashlaymiz
+        $payload = $request->getContent();
+        $calculatedHash = hash_hmac('sha256', $payload, $appSecret);
+
+        return hash_equals($expectedHash, $calculatedHash);
+    }
+
+    /**
      * Verify webhook (Facebook/Instagram webhook verification)
      */
     private function verifyWebhook(Request $request)
@@ -122,6 +166,12 @@ class InstagramWebhookController extends Controller
      */
     private function processWithAI(array $entry, Business $business): void
     {
+        // Skip if AI service is not available
+        if (!$this->aiChatService) {
+            Log::debug('Instagram AI service not available, skipping AI processing');
+            return;
+        }
+
         try {
             $messaging = $entry['messaging'] ?? [];
 

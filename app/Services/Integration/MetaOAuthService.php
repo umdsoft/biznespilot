@@ -55,6 +55,12 @@ class MetaOAuthService
      */
     public function exchangeCodeForToken(string $code, string $redirectUri): array
     {
+        Log::info('Meta OAuth: Starting code exchange', [
+            'has_app_id' => !empty($this->appId),
+            'has_app_secret' => !empty($this->appSecret),
+            'redirect_uri' => $redirectUri,
+        ]);
+
         $response = Http::get("{$this->baseUrl}/oauth/access_token", [
             'client_id' => $this->appId,
             'client_secret' => $this->appSecret,
@@ -64,11 +70,20 @@ class MetaOAuthService
 
         if ($response->failed()) {
             $error = $response->json('error.message', 'Unknown error');
-            Log::error('Meta OAuth token exchange failed', ['error' => $error]);
+            Log::error('Meta OAuth token exchange failed', [
+                'error' => $error,
+                'response_status' => $response->status(),
+                'response_body' => $response->body(),
+            ]);
             throw new \Exception('Token exchange failed: ' . $error);
         }
 
         $data = $response->json();
+        Log::info('Meta OAuth: Short-lived token received', [
+            'has_token' => !empty($data['access_token']),
+            'expires_in' => $data['expires_in'] ?? 'not specified',
+            'token_type' => $data['token_type'] ?? 'not specified',
+        ]);
 
         // Short-lived token ni long-lived ga almashtirish
         return $this->exchangeForLongLivedToken($data['access_token']);
@@ -79,6 +94,8 @@ class MetaOAuthService
      */
     public function exchangeForLongLivedToken(string $shortLivedToken): array
     {
+        Log::info('Meta OAuth: Exchanging for long-lived token');
+
         $response = Http::get("{$this->baseUrl}/oauth/access_token", [
             'grant_type' => 'fb_exchange_token',
             'client_id' => $this->appId,
@@ -87,16 +104,39 @@ class MetaOAuthService
         ]);
 
         if ($response->failed()) {
-            Log::error('Meta long-lived token exchange failed');
+            Log::error('Meta long-lived token exchange failed', [
+                'response_status' => $response->status(),
+                'response_body' => $response->body(),
+            ]);
             throw new \Exception('Long-lived token exchange failed');
         }
 
         $data = $response->json();
+        $expiresIn = $data['expires_in'] ?? null;
+
+        // Calculate expiry in days for logging
+        $expiryDays = $expiresIn ? round($expiresIn / 86400, 1) : 'unknown';
+
+        Log::info('Meta OAuth: Long-lived token received', [
+            'has_token' => !empty($data['access_token']),
+            'expires_in_seconds' => $expiresIn,
+            'expires_in_days' => $expiryDays,
+            'token_type' => $data['token_type'] ?? 'not specified',
+        ]);
+
+        // Warn if token seems short-lived (less than 7 days)
+        if ($expiresIn && $expiresIn < 604800) {
+            Log::warning('Meta OAuth: Token expiry is shorter than expected!', [
+                'expires_in_seconds' => $expiresIn,
+                'expires_in_hours' => round($expiresIn / 3600, 1),
+                'expected_days' => 60,
+            ]);
+        }
 
         return [
             'access_token' => $data['access_token'],
             'token_type' => $data['token_type'] ?? 'bearer',
-            'expires_in' => $data['expires_in'] ?? 5184000, // 60 days default
+            'expires_in' => $expiresIn ?? 5184000, // 60 days default only if not specified
         ];
     }
 
