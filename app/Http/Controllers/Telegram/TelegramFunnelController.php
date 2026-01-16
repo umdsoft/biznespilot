@@ -88,6 +88,7 @@ class TelegramFunnelController extends Controller
             'quiz' => $step->quiz,
             'ab_test' => $step->ab_test,
             'tag' => $step->tag,
+            'trigger' => $step->trigger,
         ]);
 
         return Inertia::render('Business/Telegram/Funnels/Builder', [
@@ -940,7 +941,7 @@ class TelegramFunnelController extends Controller
             'steps' => 'required|array',
             'steps.*.id' => 'nullable',
             'steps.*.name' => 'required|string|max:255',
-            'steps.*.step_type' => 'required|in:message,input,condition,action,delay,subscribe_check,quiz,ab_test,tag',
+            'steps.*.step_type' => 'required|in:message,input,condition,action,delay,subscribe_check,quiz,ab_test,tag,trigger_keyword',
             'steps.*.content' => 'nullable|array',
             'steps.*.keyboard' => 'nullable|array',
             'steps.*.input_type' => 'nullable|in:none,text,email,phone,number,photo,location,any',
@@ -962,6 +963,7 @@ class TelegramFunnelController extends Controller
             'steps.*.quiz' => 'nullable|array',
             'steps.*.ab_test' => 'nullable|array',
             'steps.*.tag' => 'nullable|array',
+            'steps.*.trigger' => 'nullable|array',
             'first_step_id' => 'nullable|string',
         ]);
 
@@ -1003,6 +1005,7 @@ class TelegramFunnelController extends Controller
                     'quiz' => $stepData['quiz'] ?? null,
                     'ab_test' => $stepData['ab_test'] ?? null,
                     'tag' => $stepData['tag'] ?? null,
+                    'trigger' => $stepData['trigger'] ?? null,
                 ]);
 
                 if ($stepId) {
@@ -1031,6 +1034,7 @@ class TelegramFunnelController extends Controller
                         'quiz' => $stepData['quiz'] ?? null,
                         'ab_test' => $stepData['ab_test'] ?? null,
                         'tag' => $stepData['tag'] ?? null,
+                        'trigger' => $stepData['trigger'] ?? null,
                     ]);
 
                 $tempIdMap[$stepId] = $stepId;
@@ -1132,6 +1136,7 @@ class TelegramFunnelController extends Controller
             'quiz' => $step->quiz,
             'ab_test' => $step->ab_test,
             'tag' => $step->tag,
+            'trigger' => $step->trigger,
         ]);
 
         return response()->json([

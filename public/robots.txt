@@ -1,2 +1,70 @@
+# =====================================================
+# BiznesPilot - Robots.txt
+# Last Updated: 2025-01-16
+# =====================================================
+
+# Default rules for all crawlers
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /business/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+Disallow: /email/
+Disallow: /verify-email
+Disallow: /sanctum/
+Disallow: /livewire/
+Disallow: /_debugbar/
+Disallow: /telescope/
+Disallow: /horizon/
+Disallow: /*.json$
+Disallow: /*?*
+Allow: /lang/*
+
+# Google specific rules
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /business/
+Disallow: /api/
+Crawl-delay: 1
+
+# Bing specific rules
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /business/
+Disallow: /api/
+Crawl-delay: 2
+
+# Yandex specific rules
+User-agent: Yandex
+Allow: /
+Disallow: /admin/
+Disallow: /business/
+Disallow: /api/
+Crawl-delay: 2
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://biznespilot.uz/sitemap.xml
+
+# Host directive (for Yandex)
+Host: https://biznespilot.uz

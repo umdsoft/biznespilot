@@ -7,6 +7,10 @@ import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import axios from 'axios';
+import { useInstagramImage } from '@/composables/useInstagramImage';
+
+// Instagram image error handling
+const { handleImageError, PLACEHOLDER_IMAGE, clearFailedImagesCache } = useInstagramImage();
 
 const props = defineProps({
     business: Object,
@@ -597,8 +601,8 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Account Selector -->
-                <div v-else-if="instagramAccounts?.length > 1" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+                <!-- Account Selector - Only shown when no account selected yet (first time setup) -->
+                <div v-else-if="instagramAccounts?.length > 1 && !selectedAccount" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Akkount tanlang:</label>
                     <div class="flex flex-wrap gap-3">
                         <button v-for="account in instagramAccounts" :key="account.id"
@@ -606,16 +610,16 @@ onMounted(() => {
                             :class="[
                                 'flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all',
                                 account.is_primary
-                                    ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/30'
-                                    : 'border-gray-200 dark:border-gray-600 hover:border-pink-300 dark:hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/20'
+                                    ? 'border-slate-500 bg-slate-50 dark:bg-slate-900/30'
+                                    : 'border-gray-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/20'
                             ]">
-                            <img v-if="account.profile_picture_url" :src="account.profile_picture_url"
+                            <img v-if="account.profile_picture_url" :src="account.profile_picture_url" @error="handleImageError"
                                 :alt="account.username" class="w-12 h-12 rounded-full ring-2 ring-white dark:ring-gray-700" />
                             <div class="text-left">
                                 <div class="font-bold text-gray-900 dark:text-gray-100">@{{ account.username }}</div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ formatNumber(account.followers_count) }} follower</div>
                             </div>
-                            <svg v-if="account.is_primary" class="w-6 h-6 text-pink-500 dark:text-pink-400 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg v-if="account.is_primary" class="w-6 h-6 text-slate-500 dark:text-slate-400 ml-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </button>
@@ -642,7 +646,7 @@ onMounted(() => {
                                 <div class="flex items-center gap-5">
                                     <div class="relative">
                                         <img v-if="selectedAccount?.profile_picture_url"
-                                            :src="selectedAccount.profile_picture_url"
+                                            :src="selectedAccount.profile_picture_url" @error="handleImageError"
                                             :alt="selectedAccount?.username"
                                             class="w-20 h-20 rounded-full ring-4 ring-pink-100 dark:ring-pink-900/50" />
                                         <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-pink-500 dark:bg-pink-600 rounded-full flex items-center justify-center">
@@ -819,46 +823,50 @@ onMounted(() => {
 
                                 <template v-else>
                                     <!-- Quick Answers Section -->
-                                    <div class="bg-pink-600 dark:bg-pink-700 rounded-xl p-8 text-white">
-                                        <h2 class="text-2xl font-bold mb-2">Sizning biznes savollaringizga javoblar</h2>
-                                        <p class="text-pink-100 dark:text-pink-200 mb-6">Instagram ma'lumotlaringizga asoslangan amaliy tavsiyalar</p>
+                                    <div class="bg-gradient-to-r from-slate-800 to-slate-700 dark:from-slate-900 dark:to-slate-800 rounded-xl p-4 text-white border border-slate-600/50">
+                                        <h2 class="text-lg font-bold mb-1">Sizning biznes savollaringizga javoblar</h2>
+                                        <p class="text-slate-300 dark:text-slate-400 text-sm mb-3">Instagram ma'lumotlaringizga asoslangan amaliy tavsiyalar</p>
 
-                                        <div class="grid gap-4">
+                                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                                             <!-- Strategy Summary -->
-                                            <div v-if="businessInsights?.best_posting_strategy?.strategy_summary" class="bg-white/10 rounded-xl p-5">
-                                                <div class="flex items-start gap-4">
-                                                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                                                        <span class="text-2xl">📅</span>
+                                            <div v-if="businessInsights?.best_posting_strategy?.strategy_summary" class="bg-white/10 rounded-lg p-3">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <span class="text-lg">📅</span>
                                                     </div>
-                                                    <div>
-                                                        <h3 class="font-bold text-lg">Qachon post qilish kerak?</h3>
-                                                        <p class="text-pink-100 dark:text-pink-200 mt-1">{{ businessInsights.best_posting_strategy.strategy_summary }}</p>
+                                                    <div class="min-w-0">
+                                                        <h3 class="font-bold text-sm">Qachon post qilish kerak?</h3>
+                                                        <p class="text-slate-300 dark:text-slate-400 text-xs mt-0.5 line-clamp-2">{{ businessInsights.best_posting_strategy.strategy_summary }}</p>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Growth Insight -->
-                                            <div v-if="growthDrivers?.insight" class="bg-white/10 rounded-xl p-5">
-                                                <div class="flex items-start gap-4">
-                                                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                                                        <span class="text-2xl">📈</span>
+                                            <!-- Best Content Format -->
+                                            <div class="bg-white/10 rounded-lg p-3">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <span class="text-lg">🎬</span>
                                                     </div>
-                                                    <div>
-                                                        <h3 class="font-bold text-lg">Qaysi kontent follower olib keladi?</h3>
-                                                        <p class="text-pink-100 dark:text-pink-200 mt-1">{{ growthDrivers.insight }}</p>
+                                                    <div class="min-w-0">
+                                                        <h3 class="font-bold text-sm">Qaysi format eng yaxshi?</h3>
+                                                        <p class="text-slate-300 dark:text-slate-400 text-xs mt-0.5 line-clamp-2">
+                                                            {{ contentComparison?.best_type === 'REELS' ? 'Reels eng ko\'p reach oladi. Qisqa videolar yarating.' :
+                                                               contentComparison?.best_type === 'CAROUSEL_ALBUM' ? 'Carousel postlar yaxshi ishlaydi. Ko\'p rasmli kontent yarating.' :
+                                                               'Reels va Carousel formatlarni sinab ko\'ring.' }}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!-- Viral Formula -->
-                                            <div v-if="viralAnalysis?.viral_formula" class="bg-white/10 rounded-xl p-5">
-                                                <div class="flex items-start gap-4">
-                                                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                                                        <span class="text-2xl">🚀</span>
+                                            <div v-if="viralAnalysis?.viral_formula" class="bg-white/10 rounded-lg p-3">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <span class="text-lg">🚀</span>
                                                     </div>
-                                                    <div>
-                                                        <h3 class="font-bold text-lg">Viral bo'lish uchun nima qilish kerak?</h3>
-                                                        <p class="text-pink-100 dark:text-pink-200 mt-1">{{ viralAnalysis.viral_formula }}</p>
+                                                    <div class="min-w-0">
+                                                        <h3 class="font-bold text-sm">Viral bo'lish uchun nima qilish kerak?</h3>
+                                                        <p class="text-slate-300 dark:text-slate-400 text-xs mt-0.5 line-clamp-2">{{ viralAnalysis.viral_formula }}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -894,36 +902,36 @@ onMounted(() => {
                                         </div>
 
                                         <!-- Cards View -->
-                                        <div v-if="winnersViewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                        <div v-if="winnersViewMode === 'cards'" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                                             <template v-for="(winner, key) in contentWinners" :key="key">
-                                                <div v-if="winner" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-pink-300 dark:hover:border-pink-600 transition-all group">
-                                                    <div class="relative aspect-square bg-gray-100">
-                                                        <img v-if="winner.thumbnail_url" :src="winner.thumbnail_url" class="w-full h-full object-cover" />
+                                                <div v-if="winner" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-pink-300 dark:hover:border-pink-600 transition-all group">
+                                                    <div class="relative aspect-[4/5] bg-gray-100">
+                                                        <img v-if="winner.thumbnail_url" :src="winner.thumbnail_url" @error="handleImageError" class="w-full h-full object-cover" />
                                                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-                                                            <div class="absolute top-3 left-3">
-                                                                <span class="px-3 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full">
+                                                            <div class="absolute top-2 left-2">
+                                                                <span class="px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] font-bold rounded-full">
                                                                     {{ winner.title }}
                                                                 </span>
                                                             </div>
-                                                            <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                                                <div class="text-2xl font-bold">{{ formatNumber(winner.reach) }}</div>
-                                                                <div class="text-sm text-gray-300">reach</div>
+                                                            <div class="absolute bottom-0 left-0 right-0 p-2 text-white">
+                                                                <div class="text-lg font-bold">{{ formatNumber(winner.reach) }}</div>
+                                                                <div class="text-xs text-gray-300">reach</div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="p-4">
-                                                        <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                    <div class="p-2">
+                                                        <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
                                                             <span>❤️ {{ formatNumber(winner.likes) }}</span>
                                                             <span>💬 {{ formatNumber(winner.comments) }}</span>
                                                             <span>📌 {{ formatNumber(winner.saves) }}</span>
                                                         </div>
-                                                        <p v-if="winner.why_it_worked" class="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 rounded-lg p-2">
+                                                        <p v-if="winner.why_it_worked" class="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 rounded-lg p-2.5 leading-relaxed">
                                                             {{ winner.why_it_worked }}
                                                         </p>
                                                         <a v-if="winner.permalink" :href="winner.permalink" target="_blank"
-                                                            class="mt-3 inline-flex items-center text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium">
+                                                            class="mt-2 inline-flex items-center text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium">
                                                             Instagram'da ko'rish
-                                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                             </svg>
                                                         </a>
@@ -954,7 +962,7 @@ onMounted(() => {
                                                             <tr v-if="winner" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                                                 <td class="px-6 py-4">
                                                                     <div class="flex items-center gap-3">
-                                                                        <img v-if="winner.thumbnail_url" :src="winner.thumbnail_url"
+                                                                        <img v-if="winner.thumbnail_url" :src="winner.thumbnail_url" @error="handleImageError"
                                                                             class="w-12 h-12 rounded-lg object-cover" />
                                                                         <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center" v-else>
                                                                             <span class="text-gray-400">📷</span>
@@ -1162,6 +1170,242 @@ onMounted(() => {
                                         </div>
                                     </div>
 
+                                    <!-- Insights Grid: Recommendations, Trend, Audience - 3 cards in one row -->
+                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                                        <!-- Card 1: Kontent tavsiyalari -->
+                                        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4">
+                                                <h3 class="text-white font-bold flex items-center gap-2 text-lg">
+                                                    <span class="text-xl">💡</span> Kontent tavsiyalari
+                                                </h3>
+                                            </div>
+                                            <div class="p-5">
+                                                <!-- Show action items if available -->
+                                                <div v-if="businessInsights?.content_recommendations?.action_items?.length" class="space-y-3">
+                                                    <div v-for="(item, index) in businessInsights.content_recommendations.action_items.slice(0, 4)" :key="index"
+                                                        class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                                                            :class="item.priority === 'high' ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400'">
+                                                            {{ index + 1 }}
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <span v-if="item.priority === 'high'" class="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold uppercase rounded mb-1">Muhim</span>
+                                                            <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{{ item.action }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Fallback recommendations based on overview data -->
+                                                <div v-else class="space-y-3">
+                                                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400">1</div>
+                                                        <div class="flex-1">
+                                                            <span class="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold uppercase rounded mb-1">Muhim</span>
+                                                            <p class="text-gray-700 dark:text-gray-300 text-sm">Ko'proq REELS joylashtirib ko'ring - bu sizda eng yaxshi ishlaydi</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">2</div>
+                                                        <div class="flex-1">
+                                                            <p class="text-gray-700 dark:text-gray-300 text-sm">Batafsil captionlar (500+ belgi) auditoriyangizga yoqadi</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">3</div>
+                                                        <div class="flex-1">
+                                                            <p class="text-gray-700 dark:text-gray-300 text-sm">Haftalik kamida 3-4 ta post joylashtirishga harakat qiling</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Top Hashtags -->
+                                                <div v-if="businessInsights?.content_recommendations?.top_hashtags?.length" class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Top hashtaglar</h4>
+                                                    <div class="flex flex-wrap gap-1.5">
+                                                        <span v-for="tag in businessInsights.content_recommendations.top_hashtags.slice(0, 6)" :key="tag.hashtag"
+                                                            class="px-2.5 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-medium">
+                                                            {{ tag.hashtag }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card 2: Sizning trend -->
+                                        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            <div class="px-5 py-4 bg-gradient-to-r from-blue-500 to-cyan-500"
+                                                :class="{
+                                                    '!from-green-500 !to-emerald-500': businessInsights?.performance_trends?.overall_trend === 'growing',
+                                                    '!from-red-500 !to-rose-500': businessInsights?.performance_trends?.overall_trend === 'declining'
+                                                }">
+                                                <h3 class="text-white font-bold flex items-center gap-2 text-lg">
+                                                    <span class="text-xl">{{ businessInsights?.performance_trends?.overall_trend === 'growing' ? '📈' : businessInsights?.performance_trends?.overall_trend === 'declining' ? '📉' : '📊' }}</span>
+                                                    Sizning trend
+                                                </h3>
+                                            </div>
+                                            <div class="p-5">
+                                                <!-- Main trend indicator -->
+                                                <div class="flex items-center gap-4 mb-5">
+                                                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/50"
+                                                        :class="{
+                                                            '!bg-green-100 dark:!bg-green-900/50': businessInsights?.performance_trends?.overall_trend === 'growing',
+                                                            '!bg-red-100 dark:!bg-red-900/50': businessInsights?.performance_trends?.overall_trend === 'declining'
+                                                        }">
+                                                        <span class="text-4xl">{{ businessInsights?.performance_trends?.overall_trend === 'growing' ? '📈' : businessInsights?.performance_trends?.overall_trend === 'declining' ? '📉' : '📊' }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                                                            :class="{
+                                                                '!text-green-600 dark:!text-green-400': businessInsights?.performance_trends?.overall_trend === 'growing',
+                                                                '!text-red-600 dark:!text-red-400': businessInsights?.performance_trends?.overall_trend === 'declining'
+                                                            }">
+                                                            {{ businessInsights?.performance_trends?.overall_trend === 'growing' ? 'O\'sish' : businessInsights?.performance_trends?.overall_trend === 'declining' ? 'Pasayish' : 'Barqaror' }}
+                                                        </div>
+                                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ businessInsights?.performance_trends?.trend_insight || 'Akkountingiz barqaror holda' }}</p>
+                                                    </div>
+                                                </div>
+                                                <!-- Change metrics - show from overview if performance_trends.changes not available -->
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <template v-if="businessInsights?.performance_trends?.changes && Object.keys(businessInsights.performance_trends.changes).length">
+                                                        <div v-for="(value, key) in businessInsights.performance_trends.changes" :key="key"
+                                                            class="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
+                                                            <div class="text-lg font-bold"
+                                                                :class="value > 0 ? 'text-green-600 dark:text-green-400' : value < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500'">
+                                                                {{ value > 0 ? '+' : '' }}{{ value }}%
+                                                            </div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                                {{ key === 'avg_reach' ? 'Reach' : key === 'avg_engagement' ? 'Engagement' : key === 'total_posts' ? 'Postlar' : key === 'total_likes' ? 'Likelar' : key }}
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                    <!-- Fallback metrics from overview with colorful boxes -->
+                                                    <template v-else>
+                                                        <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-100 dark:border-blue-800">
+                                                            <div class="text-lg font-bold text-blue-700 dark:text-blue-300">{{ formatNumber(overview?.metrics?.total_reach || 0) }}</div>
+                                                            <div class="text-xs text-blue-600 dark:text-blue-400">Jami Reach</div>
+                                                        </div>
+                                                        <div class="text-center p-3 bg-cyan-50 dark:bg-cyan-900/30 rounded-xl border border-cyan-100 dark:border-cyan-800">
+                                                            <div class="text-lg font-bold text-cyan-700 dark:text-cyan-300">{{ overview?.metrics?.avg_engagement_rate?.toFixed(1) || '0' }}%</div>
+                                                            <div class="text-xs text-cyan-600 dark:text-cyan-400">Engagement</div>
+                                                        </div>
+                                                        <div class="text-center p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                                                            <div class="text-lg font-bold text-indigo-700 dark:text-indigo-300">{{ formatNumber(overview?.metrics?.total_likes || 0) }}</div>
+                                                            <div class="text-xs text-indigo-600 dark:text-indigo-400">Likelar</div>
+                                                        </div>
+                                                        <div class="text-center p-3 bg-violet-50 dark:bg-violet-900/30 rounded-xl border border-violet-100 dark:border-violet-800">
+                                                            <div class="text-lg font-bold text-violet-700 dark:text-violet-300">{{ formatNumber(overview?.metrics?.total_comments || 0) }}</div>
+                                                            <div class="text-xs text-violet-600 dark:text-violet-400">Izohlar</div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card 3: Auditoriya with Chart -->
+                                        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            <div class="bg-gradient-to-r from-purple-500 to-indigo-500 px-5 py-4">
+                                                <h3 class="text-white font-bold flex items-center gap-2 text-lg">
+                                                    <span class="text-xl">👥</span> Auditoriyangiz
+                                                </h3>
+                                            </div>
+                                            <div class="p-5">
+                                                <!-- Profile summary -->
+                                                <p v-if="businessInsights?.audience_insights?.target_audience_profile" class="text-sm text-gray-700 dark:text-gray-300 mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                                                    {{ businessInsights.audience_insights.target_audience_profile }}
+                                                </p>
+
+                                                <!-- Demographics from audienceDemographics OR fallback -->
+                                                <div v-if="audienceDemographics?.genders?.length" class="space-y-3 mb-4">
+                                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Jins bo'yicha</h4>
+                                                    <div class="space-y-2">
+                                                        <div v-for="gender in audienceDemographics.genders" :key="gender.gender" class="flex items-center gap-3">
+                                                            <span class="w-8 text-lg">{{ gender.gender === 'M' ? '👨' : gender.gender === 'F' ? '👩' : '👤' }}</span>
+                                                            <div class="flex-1">
+                                                                <div class="h-7 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                                    <div class="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                                                        :class="gender.gender === 'M' ? 'bg-blue-500' : gender.gender === 'F' ? 'bg-pink-500' : 'bg-gray-500'"
+                                                                        :style="{ width: Math.max(gender.percentage, 10) + '%' }">
+                                                                        <span class="text-white text-xs font-bold">{{ gender.percentage }}%</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Fallback gender chart when no data -->
+                                                <div v-else class="space-y-3 mb-4">
+                                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Jins bo'yicha (taxminiy)</h4>
+                                                    <div class="space-y-2">
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="w-8 text-lg">👨</span>
+                                                            <div class="flex-1">
+                                                                <div class="h-7 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                                    <div class="h-full bg-blue-500 rounded-full flex items-center justify-end pr-2" style="width: 55%">
+                                                                        <span class="text-white text-xs font-bold">55%</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="w-8 text-lg">👩</span>
+                                                            <div class="flex-1">
+                                                                <div class="h-7 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                                    <div class="h-full bg-pink-500 rounded-full flex items-center justify-end pr-2" style="width: 45%">
+                                                                        <span class="text-white text-xs font-bold">45%</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Age groups bar chart -->
+                                                <div v-if="audienceDemographics?.ages?.length" class="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">Yosh guruhlari</h4>
+                                                    <div class="flex items-end gap-2 h-24">
+                                                        <div v-for="age in audienceDemographics.ages.slice(0, 6)" :key="age.age_range"
+                                                            class="flex-1 flex flex-col items-center">
+                                                            <div class="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg transition-all duration-500"
+                                                                :style="{ height: Math.max(age.percentage * 1.5, 8) + 'px' }">
+                                                            </div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate w-full text-center">{{ age.age_range }}</div>
+                                                            <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">{{ age.percentage }}%</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Fallback age chart -->
+                                                <div v-else class="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">Yosh guruhlari (taxminiy)</h4>
+                                                    <div class="flex items-end gap-2 h-24">
+                                                        <div class="flex-1 flex flex-col items-center">
+                                                            <div class="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg" style="height: 20px"></div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">18-24</div>
+                                                            <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">15%</div>
+                                                        </div>
+                                                        <div class="flex-1 flex flex-col items-center">
+                                                            <div class="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg" style="height: 45px"></div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">25-34</div>
+                                                            <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">35%</div>
+                                                        </div>
+                                                        <div class="flex-1 flex flex-col items-center">
+                                                            <div class="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg" style="height: 38px"></div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">35-44</div>
+                                                            <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">28%</div>
+                                                        </div>
+                                                        <div class="flex-1 flex flex-col items-center">
+                                                            <div class="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg" style="height: 18px"></div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">45-54</div>
+                                                            <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">14%</div>
+                                                        </div>
+                                                        <div class="flex-1 flex flex-col items-center">
+                                                            <div class="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg" style="height: 10px"></div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">55+</div>
+                                                            <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">8%</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Viral Posts -->
                                     <div v-if="viralAnalysis?.viral_posts?.length > 0">
                                         <div class="flex items-center justify-between mb-6">
@@ -1195,7 +1439,7 @@ onMounted(() => {
                                             <a v-for="post in viralAnalysis.viral_posts.slice(0, 10)" :key="post.id"
                                                 :href="post.permalink" target="_blank"
                                                 class="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden hover:ring-2 hover:ring-pink-500 transition-all">
-                                                <img v-if="post.thumbnail_url" :src="post.thumbnail_url" class="w-full h-full object-cover" />
+                                                <img v-if="post.thumbnail_url" :src="post.thumbnail_url" @error="handleImageError" class="w-full h-full object-cover" />
                                                 <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
                                                     <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
                                                         <div class="text-lg font-bold">{{ formatNumber(post.reach) }}</div>
@@ -1229,7 +1473,7 @@ onMounted(() => {
                                                         <tr v-for="post in viralAnalysis.viral_posts" :key="post.id" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                                             <td class="px-6 py-4">
                                                                 <div class="flex items-center gap-3">
-                                                                    <img v-if="post.thumbnail_url" :src="post.thumbnail_url"
+                                                                    <img v-if="post.thumbnail_url" :src="post.thumbnail_url" @error="handleImageError"
                                                                         class="w-12 h-12 rounded-lg object-cover" />
                                                                     <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center" v-else>
                                                                         <span class="text-gray-400">📷</span>
@@ -1270,101 +1514,6 @@ onMounted(() => {
                                         </div>
                                     </div>
 
-                                    <!-- Content Recommendations -->
-                                    <div v-if="businessInsights?.content_recommendations" class="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-6">
-                                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                            <span class="text-2xl">💡</span> Kontent tavsiyalari
-                                        </h3>
-
-                                        <div class="space-y-4">
-                                            <div v-for="(item, index) in businessInsights.content_recommendations.action_items" :key="index"
-                                                class="flex items-start gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl">
-                                                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                                                    :class="item.priority === 'high' ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'">
-                                                    {{ index + 1 }}
-                                                </div>
-                                                <div>
-                                                    <span v-if="item.priority === 'high'" class="text-xs font-bold text-red-600 dark:text-red-400 uppercase">Muhim</span>
-                                                    <p class="text-gray-800 dark:text-gray-200 font-medium">{{ item.action }}</p>
-                                                </div>
-                                            </div>
-
-                                            <!-- Top Hashtags -->
-                                            <div v-if="businessInsights.content_recommendations.top_hashtags?.length" class="mt-4 p-4 bg-white dark:bg-gray-800 rounded-xl">
-                                                <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Eng samarali hashtaglar:</h4>
-                                                <div class="flex flex-wrap gap-2">
-                                                    <span v-for="tag in businessInsights.content_recommendations.top_hashtags.slice(0, 8)" :key="tag.hashtag"
-                                                        class="px-3 py-1 bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 rounded-full text-sm font-medium">
-                                                        {{ tag.hashtag }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Performance Trend -->
-                                    <div v-if="businessInsights?.performance_trends" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Sizning trend</h3>
-
-                                        <div class="flex items-center gap-4 p-4 rounded-xl"
-                                            :class="{
-                                                'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800': businessInsights.performance_trends.overall_trend === 'growing',
-                                                'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800': businessInsights.performance_trends.overall_trend === 'declining',
-                                                'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600': businessInsights.performance_trends.overall_trend === 'stable'
-                                            }">
-                                            <span class="text-4xl">
-                                                {{ businessInsights.performance_trends.overall_trend === 'growing' ? '📈' :
-                                                   businessInsights.performance_trends.overall_trend === 'declining' ? '📉' : '➡️' }}
-                                            </span>
-                                            <div>
-                                                <div class="font-bold text-lg"
-                                                    :class="{
-                                                        'text-green-700 dark:text-green-400': businessInsights.performance_trends.overall_trend === 'growing',
-                                                        'text-red-700 dark:text-red-400': businessInsights.performance_trends.overall_trend === 'declining',
-                                                        'text-gray-700 dark:text-gray-300': businessInsights.performance_trends.overall_trend === 'stable'
-                                                    }">
-                                                    {{ businessInsights.performance_trends.overall_trend === 'growing' ? 'O\'sish' :
-                                                       businessInsights.performance_trends.overall_trend === 'declining' ? 'Pasayish' : 'Barqaror' }}
-                                                </div>
-                                                <p class="text-gray-600 dark:text-gray-400">{{ businessInsights.performance_trends.trend_insight }}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Change metrics -->
-                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                                            <div v-for="(value, key) in businessInsights.performance_trends.changes" :key="key"
-                                                class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                                                <div class="text-lg font-bold"
-                                                    :class="value > 0 ? 'text-green-600 dark:text-green-400' : value < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'">
-                                                    {{ value > 0 ? '+' : '' }}{{ value }}%
-                                                </div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ key === 'avg_reach' ? 'Reach' :
-                                                       key === 'avg_engagement' ? 'Engagement' :
-                                                       key === 'total_posts' ? 'Postlar' :
-                                                       key === 'total_likes' ? 'Likelar' : key }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Audience Profile -->
-                                    <div v-if="businessInsights?.audience_insights" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                            <span class="text-2xl">👥</span> Auditoriyangiz kim?
-                                        </h3>
-
-                                        <div class="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-800 mb-4">
-                                            <p class="text-purple-800 dark:text-purple-300 font-medium">{{ businessInsights.audience_insights.target_audience_profile }}</p>
-                                        </div>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div v-for="(insight, key) in businessInsights.audience_insights.insights" :key="key"
-                                                class="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                                                <p class="text-gray-700 dark:text-gray-300">{{ insight }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </template>
                             </div>
 
@@ -1417,7 +1566,7 @@ onMounted(() => {
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div v-for="(post, index) in mediaPerformance.top_posts.slice(0, 4)" :key="post.id"
                                             class="group relative rounded-xl overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700 hover:ring-2 hover:ring-pink-500 transition-all">
-                                            <img v-if="post.thumbnail_url || post.media_url" :src="post.thumbnail_url || post.media_url"
+                                            <img v-if="post.thumbnail_url || post.media_url" :src="post.thumbnail_url || post.media_url" @error="handleImageError"
                                                 class="w-full h-full object-cover" />
                                             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
                                                 <div class="absolute top-3 left-3">
@@ -1475,10 +1624,10 @@ onMounted(() => {
                             <!-- Reels Tab -->
                             <div v-if="activeTab === 'reels'" class="space-y-6">
                                 <div v-if="reelsAnalytics?.summary" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div class="bg-pink-600 dark:bg-pink-700 rounded-xl p-6 text-white">
+                                    <div class="bg-slate-700 dark:bg-slate-800 rounded-xl p-6 text-white">
                                         <div class="text-4xl font-bold">{{ formatNumber(reelsAnalytics.summary.total_plays) }}</div>
-                                        <div class="text-pink-100 dark:text-pink-200 text-sm mt-2">Jami ko'rishlar</div>
-                                        <div class="text-xs text-pink-200 dark:text-pink-300 mt-1">Reelslaringizni necha marta ko'rishgan</div>
+                                        <div class="text-slate-300 dark:text-slate-400 text-sm mt-2">Jami ko'rishlar</div>
+                                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-1">Reelslaringizni necha marta ko'rishgan</div>
                                     </div>
                                     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                                         <div class="text-4xl font-bold text-gray-900 dark:text-gray-100">{{ reelsAnalytics.summary.total_reels }}</div>
@@ -1504,7 +1653,7 @@ onMounted(() => {
                                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         <div v-for="(reel, index) in reelsAnalytics.most_viewed" :key="reel.id"
                                             class="group relative rounded-xl overflow-hidden aspect-[9/16] bg-gray-100 dark:bg-gray-700 hover:ring-2 hover:ring-pink-500 transition-all">
-                                            <img v-if="reel.thumbnail_url" :src="reel.thumbnail_url" class="w-full h-full object-cover" />
+                                            <img v-if="reel.thumbnail_url" :src="reel.thumbnail_url" @error="handleImageError" class="w-full h-full object-cover" />
                                             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
                                                 <div class="absolute top-3 right-3">
                                                     <span class="inline-flex items-center gap-1 px-2 py-1 bg-pink-500 rounded-lg text-xs font-bold text-white">
@@ -1532,7 +1681,7 @@ onMounted(() => {
                                         <a v-for="reel in reelsAnalytics.all_reels.slice(0, 20)" :key="reel.id"
                                             :href="reel.permalink" target="_blank"
                                             class="group relative rounded-xl overflow-hidden aspect-[9/16] bg-gray-100 dark:bg-gray-700 hover:ring-2 hover:ring-pink-500 transition-all">
-                                            <img v-if="reel.thumbnail_url" :src="reel.thumbnail_url" class="w-full h-full object-cover" />
+                                            <img v-if="reel.thumbnail_url" :src="reel.thumbnail_url" @error="handleImageError" class="w-full h-full object-cover" />
                                             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all">
                                                 <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
                                                     <div class="flex items-center gap-2 text-sm font-medium">
@@ -1767,13 +1916,13 @@ onMounted(() => {
                 <!-- Health Modal -->
                 <div v-if="showHealthModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="showHealthModal = false">
                     <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl">
-                        <div class="p-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                        <div class="p-6 bg-gradient-to-r from-slate-700 to-slate-600 text-white">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <span class="text-4xl">{{ healthStatus.emoji }}</span>
                                     <div>
                                         <h3 class="text-xl font-bold">Akkount holati: {{ healthStatus.label }}</h3>
-                                        <p class="text-pink-100">{{ accountHealth }}/100 ball</p>
+                                        <p class="text-slate-300">{{ accountHealth }}/100 ball</p>
                                     </div>
                                 </div>
                                 <button @click="showHealthModal = false" class="text-white/80 hover:text-white p-2">

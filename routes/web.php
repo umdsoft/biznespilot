@@ -74,6 +74,10 @@ use Inertia\Inertia;
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
 
+// Privacy Policy & Terms (Public - Meta App Review uchun kerak)
+Route::get('/privacy-policy', fn() => view('privacy-policy'))->name('privacy-policy');
+Route::get('/terms', fn() => view('privacy-policy'))->name('terms'); // Vaqtincha bir xil sahifa
+
 // ==============================================
 // Health Check Routes (No Authentication)
 // ==============================================
@@ -429,9 +433,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::delete('/content/{content}', [MarketingController::class, 'deleteContent'])->name('content.destroy');
     });
 
-    // AI Analysis routes (Facebook, Instagram)
+    // AI Analysis routes (Facebook) - Instagram moved to /integrations/instagram
     Route::get('/facebook-analysis', [App\Http\Controllers\Business\AIAnalysisController::class, 'facebook'])->name('facebook-analysis');
-    Route::get('/instagram-analysis', [App\Http\Controllers\Business\AIAnalysisController::class, 'instagram'])->name('instagram-analysis');
 
     // Marketing Campaigns routes
     Route::prefix('marketing/campaigns')->name('marketing.campaigns.')->group(function () {
@@ -1597,9 +1600,8 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::post('/{offer}/generate-variations', [SharedOffersController::class, 'generateVariations'])->name('generate-variations');
     });
 
-    // AI Yordamchilar
+    // AI Yordamchilar - Instagram moved to /integrations/instagram
     Route::get('/facebook-analysis', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'facebook'])->name('facebook-analysis');
-    Route::get('/instagram-analysis', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'instagram'])->name('instagram-analysis');
     Route::get('/youtube-analytics', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'youtube'])->name('youtube-analytics');
     Route::get('/google-ads', [App\Http\Controllers\Marketing\AIAnalysisController::class, 'googleAds'])->name('google-ads');
 

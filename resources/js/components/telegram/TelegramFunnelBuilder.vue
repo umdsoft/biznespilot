@@ -67,23 +67,52 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-3 space-y-2">
-          <!-- Start Node -->
-          <div
-            draggable="true"
-            @dragstart="onDragStart($event, 'start')"
-            class="p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg cursor-move hover:shadow-lg transition-shadow"
-          >
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                </svg>
-              </div>
-              <div>
-                <p class="font-medium text-sm">Boshlash</p>
-                <p class="text-xs opacity-80">Funnel boshi</p>
+          <!-- Triggers Section -->
+          <div class="mb-3">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">Triggerlar</p>
+
+            <!-- Start Node -->
+            <div
+              draggable="true"
+              @dragstart="onDragStart($event, 'start')"
+              class="p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg cursor-move hover:shadow-lg transition-shadow mb-2"
+            >
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-sm">Boshlash</p>
+                  <p class="text-xs opacity-80">Funnel boshi</p>
+                </div>
               </div>
             </div>
+
+            <!-- Keyword Trigger Node -->
+            <div
+              draggable="true"
+              @dragstart="onDragStart($event, 'trigger_keyword')"
+              class="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg cursor-move hover:shadow-lg hover:shadow-purple-500/20 transition-all"
+            >
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-sm">Kalit so'z</p>
+                  <p class="text-xs opacity-80">Xabarda topilganda</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions Section -->
+          <div class="mb-3">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">Xabarlar</p>
           </div>
 
           <!-- Message Node -->
@@ -400,8 +429,25 @@
 
             <!-- Node Body -->
             <div class="bg-white dark:bg-gray-800 rounded-b-xl p-3">
+              <!-- Trigger Keyword node content -->
+              <template v-if="node.type === 'trigger_keyword'">
+                <div class="text-xs space-y-1">
+                  <div class="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <span v-if="node.trigger?.is_all_messages">Barcha xabarlar</span>
+                    <span v-else-if="node.trigger?.keywords" class="truncate">{{ node.trigger.keywords }}</span>
+                    <span v-else class="text-gray-400 italic">Kalit so'z kiriting</span>
+                  </div>
+                  <div v-if="node.trigger?.match_type && !node.trigger?.is_all_messages" class="text-gray-500 pl-4">
+                    {{ getMatchTypeLabel(node.trigger.match_type) }}
+                  </div>
+                </div>
+              </template>
+
               <!-- Regular node content (message, input, action, delay, start, end) -->
-              <template v-if="!['condition', 'subscribe_check', 'quiz', 'ab_test', 'tag'].includes(node.type)">
+              <template v-if="!['condition', 'subscribe_check', 'quiz', 'ab_test', 'tag', 'trigger_keyword'].includes(node.type)">
                 <p v-if="node.content?.text" class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
                   {{ node.content.text }}
                 </p>
@@ -743,6 +789,67 @@
             />
           </div>
 
+          <!-- Trigger Keyword Settings -->
+          <div v-if="selectedNode.type === 'trigger_keyword'" class="space-y-3">
+            <div class="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+              <div class="flex items-center gap-2 text-purple-700 dark:text-purple-400 mb-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-xs font-medium">Kalit so'z triggeri</span>
+              </div>
+              <p class="text-xs text-purple-600 dark:text-purple-400">
+                Foydalanuvchi xabarida kalit so'z topilganda bu trigger ishga tushadi.
+              </p>
+            </div>
+
+            <!-- All Messages Toggle -->
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Barcha xabarlar uchun</label>
+              <button
+                @click="selectedNode.trigger.is_all_messages = !selectedNode.trigger.is_all_messages"
+                :class="[
+                  'relative w-11 h-6 rounded-full transition-colors',
+                  selectedNode.trigger?.is_all_messages ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                ]"
+              >
+                <span
+                  :class="[
+                    'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform',
+                    selectedNode.trigger?.is_all_messages ? 'translate-x-5' : 'translate-x-0'
+                  ]"
+                ></span>
+              </button>
+            </div>
+
+            <!-- Keywords Input (shown if not all messages) -->
+            <div v-if="!selectedNode.trigger?.is_all_messages">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Kalit so'zlar</label>
+              <input
+                v-model="selectedNode.trigger.keywords"
+                type="text"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 dark:placeholder-gray-500"
+                placeholder="narx, price, baho"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Vergul bilan ajrating: narx, price, baho</p>
+            </div>
+
+            <!-- Match Type (shown if not all messages) -->
+            <div v-if="!selectedNode.trigger?.is_all_messages">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mos kelish turi</label>
+              <select
+                v-model="selectedNode.trigger.match_type"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="contains">Ichida bor (tavsiya etiladi)</option>
+                <option value="exact">To'liq mos</option>
+                <option value="starts_with">Bilan boshlanadi</option>
+                <option value="ends_with">Bilan tugaydi</option>
+                <option value="regex">Regex (ilg'or)</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Content Type Selection -->
           <div v-if="['message', 'input', 'start'].includes(selectedNode.type)">
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Kontent turi</label>
@@ -867,6 +974,7 @@
 <script setup>
 import { ref, reactive, onMounted, h } from 'vue'
 import { Link } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   bot: Object,
@@ -1002,7 +1110,7 @@ const onDrop = (e) => {
     delay_seconds: type === 'delay' ? 5 : null,
     next_step_id: null,
     order: nodes.value.length,
-    is_first: type === 'start' || nodes.value.length === 0,
+    is_first: type === 'start' || type === 'trigger_keyword' || nodes.value.length === 0,
     condition: type === 'condition' ? { field: '', operator: '', value: '', custom_field: '' } : null,
     condition_true_step_id: null,
     condition_false_step_id: null,
@@ -1011,7 +1119,8 @@ const onDrop = (e) => {
     subscribe_false_step_id: null,
     quiz: type === 'quiz' ? { question: '', options: [{ text: '', next_step_id: null }, { text: '', next_step_id: null }], allow_multiple: false, save_answer_to: '' } : null,
     ab_test: type === 'ab_test' ? { variants: [{ name: 'A', percentage: 50, next_step_id: null }, { name: 'B', percentage: 50, next_step_id: null }] } : null,
-    tag: type === 'tag' ? { action: 'add', tags: [], new_tag: '' } : null
+    tag: type === 'tag' ? { action: 'add', tags: [], new_tag: '' } : null,
+    trigger: type === 'trigger_keyword' ? { keywords: '', match_type: 'contains', is_all_messages: false } : null
   }
 
   nodes.value.push(newNode)
@@ -1391,6 +1500,7 @@ const onButtonActionChange = (button) => {
 const getNodeHeaderClass = (type) => {
   const classes = {
     start: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+    trigger_keyword: 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white',
     message: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
     input: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white',
     condition: 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white',
@@ -1406,7 +1516,7 @@ const getNodeHeaderClass = (type) => {
 }
 
 const getNodeLabel = (type) => {
-  const labels = { start: 'Boshlash', message: 'Xabar', input: "Ma'lumot", condition: 'Shart', action: 'Amal', delay: 'Kutish', end: 'Tugatish', subscribe_check: 'Obuna tekshir', quiz: 'Savol/Quiz', ab_test: 'A/B Test', tag: 'Teg' }
+  const labels = { start: 'Boshlash', trigger_keyword: "Kalit so'z", message: 'Xabar', input: "Ma'lumot", condition: 'Shart', action: 'Amal', delay: 'Kutish', end: 'Tugatish', subscribe_check: 'Obuna tekshir', quiz: 'Savol/Quiz', ab_test: 'A/B Test', tag: 'Teg' }
   return labels[type] || type
 }
 
@@ -1415,6 +1525,7 @@ const getNodeIcon = (type) => {
     render() {
       const icons = {
         start: h('svg', { class: 'w-5 h-5', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z' })]),
+        trigger_keyword: h('svg', { class: 'w-5 h-5', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' })]),
         message: h('svg', { class: 'w-5 h-5', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' })]),
         input: h('svg', { class: 'w-5 h-5', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' })]),
         condition: h('svg', { class: 'w-5 h-5', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' })]),
@@ -1434,6 +1545,11 @@ const getInputTypeLabel = (type) => {
 
 const getActionTypeLabel = (type) => {
   const labels = { none: 'Hech narsa', create_lead: 'Lid yaratish', update_user: 'Foydalanuvchi yangilash', handoff: 'Operatorga', send_notification: 'Xabarnoma', webhook: 'Webhook' }
+  return labels[type] || type
+}
+
+const getMatchTypeLabel = (type) => {
+  const labels = { exact: "To'liq mos", contains: "Ichida bor", starts_with: "Bilan boshlanadi", ends_with: "Bilan tugaydi", regex: "Regex" }
   return labels[type] || type
 }
 
@@ -1476,23 +1592,19 @@ const saveSteps = async () => {
       subscribe_false_step_id: node.subscribe_false_step_id || null,
       quiz: node.type === 'quiz' ? node.quiz : null,
       ab_test: node.type === 'ab_test' ? node.ab_test : null,
-      tag: node.type === 'tag' ? node.tag : null
+      tag: node.type === 'tag' ? node.tag : null,
+      trigger: node.type === 'trigger_keyword' ? node.trigger : null
     }))
 
     const firstStep = nodes.value.find(n => n.is_first) || nodes.value[0]
 
-    const response = await fetch(getRoute('telegram-funnels.funnels.save-steps', [props.bot.id, props.funnel.id]), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ steps: stepsData, first_step_id: firstStep?.id })
-    })
+    const response = await axios.post(
+      getRoute('telegram-funnels.funnels.save-steps', [props.bot.id, props.funnel.id]),
+      { steps: stepsData, first_step_id: firstStep?.id }
+    )
 
-    const data = await response.json()
-
-    if (data.success) {
+    if (response.data.success) {
+      const data = response.data
       if (data.steps) {
         const endNodes = nodes.value.filter(n => n.type === 'end')
 
@@ -1511,7 +1623,8 @@ const saveSteps = async () => {
           subscribe_false_step_id: step.subscribe_false_step_id || null,
           quiz: step.quiz || { question: '', options: [], allow_multiple: false, save_answer_to: '' },
           ab_test: step.ab_test || { variants: [] },
-          tag: step.tag || { action: 'add', tags: [], new_tag: '' }
+          tag: step.tag || { action: 'add', tags: [], new_tag: '' },
+          trigger: step.trigger || { keywords: '', match_type: 'contains', is_all_messages: false }
         }))
 
         nodes.value.push(...endNodes)
@@ -1533,11 +1646,15 @@ const saveSteps = async () => {
       }
       alert('Funnel saqlandi!')
     } else {
-      alert(data.message || 'Xatolik yuz berdi')
+      alert(response.data.message || 'Xatolik yuz berdi')
     }
   } catch (error) {
     console.error('Save error:', error)
-    alert('Saqlashda xatolik')
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    } else {
+      alert(error.response?.data?.message || 'Saqlashda xatolik')
+    }
   } finally {
     isSaving.value = false
   }

@@ -24,7 +24,7 @@ class InstagramInsightsService
      * Get comprehensive business insights
      * Bu biznesga amaliy tavsiyalar beradi
      */
-    public function getBusinessInsights(int $accountId): array
+    public function getBusinessInsights(string $accountId): array
     {
         $account = InstagramAccount::find($accountId);
         if (!$account) {
@@ -46,11 +46,11 @@ class InstagramInsightsService
      * Qaysi kontentlar o'sishga eng ko'p hissa qo'shgan?
      * Follower o'sishi bilan kontent o'rtasidagi bog'liqlikni tahlil qiladi
      */
-    public function analyzeGrowthDrivers(int $accountId): array
+    public function analyzeGrowthDrivers(string $accountId): array
     {
         // Kunlik follower o'sishi va o'sha kungi postlarni solishtirish
-        $dailyInsights = InstagramDailyInsight::where('instagram_account_id', $accountId)
-            ->orderBy('date')
+        $dailyInsights = InstagramDailyInsight::where('account_id', $accountId)
+            ->orderBy('insight_date')
             ->get();
 
         if ($dailyInsights->count() < 2) {
@@ -64,7 +64,7 @@ class InstagramInsightsService
         foreach ($dailyInsights as $insight) {
             if ($previousFollowers !== null && $insight->follower_count > 0) {
                 $growth = $insight->follower_count - $previousFollowers;
-                $growthData[$insight->date->format('Y-m-d')] = $growth;
+                $growthData[$insight->insight_date->format('Y-m-d')] = $growth;
             }
             $previousFollowers = $insight->follower_count;
         }
@@ -76,7 +76,7 @@ class InstagramInsightsService
         // O'sha kunlardagi postlarni topish
         $growthDriverPosts = [];
         foreach ($topGrowthDays as $date => $growth) {
-            $posts = InstagramMedia::where('instagram_account_id', $accountId)
+            $posts = InstagramMedia::where('account_id', $accountId)
                 ->whereDate('posted_at', $date)
                 ->orWhere(function ($q) use ($date) {
                     // 1 kun oldin joylangan postlar ham ta'sir qiladi
@@ -122,36 +122,36 @@ class InstagramInsightsService
      * Eng yaxshi ishlagan kontentlarni tahlil qilish
      * Har bir kategoriyada "g'olib"larni aniqlash
      */
-    public function getContentWinners(int $accountId): array
+    public function getContentWinners(string $accountId): array
     {
         // Eng ko'p reach olgan post
-        $topReachPost = InstagramMedia::where('instagram_account_id', $accountId)
+        $topReachPost = InstagramMedia::where('account_id', $accountId)
             ->orderByDesc('reach')
             ->first();
 
         // Eng ko'p engagement olgan post
-        $topEngagementPost = InstagramMedia::where('instagram_account_id', $accountId)
+        $topEngagementPost = InstagramMedia::where('account_id', $accountId)
             ->orderByDesc('engagement_rate')
             ->first();
 
         // Eng ko'p comment olgan post (odamlar bilan muloqot)
-        $topCommentedPost = InstagramMedia::where('instagram_account_id', $accountId)
+        $topCommentedPost = InstagramMedia::where('account_id', $accountId)
             ->orderByDesc('comments_count')
             ->first();
 
         // Eng ko'p saqlanganlar (foydalanuvchilar qayta ko'rish uchun saqlagan)
-        $topSavedPost = InstagramMedia::where('instagram_account_id', $accountId)
-            ->orderByDesc('saves_count')
+        $topSavedPost = InstagramMedia::where('account_id', $accountId)
+            ->orderByDesc('saved')
             ->first();
 
         // Reelslar ichida eng yaxshisi
-        $topReel = InstagramMedia::where('instagram_account_id', $accountId)
+        $topReel = InstagramMedia::where('account_id', $accountId)
             ->where('media_product_type', 'REELS')
             ->orderByDesc('reach')
             ->first();
 
         // Carousel ichida eng yaxshisi
-        $topCarousel = InstagramMedia::where('instagram_account_id', $accountId)
+        $topCarousel = InstagramMedia::where('account_id', $accountId)
             ->where('media_product_type', 'CAROUSEL_ALBUM')
             ->orderByDesc('reach')
             ->first();
@@ -169,9 +169,9 @@ class InstagramInsightsService
     /**
      * Eng yaxshi post qilish strategiyasini aniqlash
      */
-    public function getBestPostingStrategy(int $accountId): array
+    public function getBestPostingStrategy(string $accountId): array
     {
-        $media = InstagramMedia::where('instagram_account_id', $accountId)
+        $media = InstagramMedia::where('account_id', $accountId)
             ->whereNotNull('posted_at')
             ->get();
 
@@ -243,7 +243,7 @@ class InstagramInsightsService
         $bestHours = array_slice($hourAnalysis, 0, 3, true);
 
         // Content type bo'yicha tahlil
-        $typePerformance = InstagramMedia::where('instagram_account_id', $accountId)
+        $typePerformance = InstagramMedia::where('account_id', $accountId)
             ->select(
                 'media_product_type',
                 DB::raw('COUNT(*) as count'),
@@ -269,9 +269,9 @@ class InstagramInsightsService
     /**
      * Auditoriya haqida amaliy insights
      */
-    public function getAudienceActionableInsights(int $accountId): array
+    public function getAudienceActionableInsights(string $accountId): array
     {
-        $audience = InstagramAudience::where('instagram_account_id', $accountId)->first();
+        $audience = InstagramAudience::where('account_id', $accountId)->first();
         $account = InstagramAccount::find($accountId);
 
         if (!$audience || !$account) {
@@ -326,10 +326,10 @@ class InstagramInsightsService
     /**
      * Content tavsiyalari - nima haqida post qilish kerak?
      */
-    public function getContentRecommendations(int $accountId): array
+    public function getContentRecommendations(string $accountId): array
     {
         // Eng yaxshi ishlagan postlar captionlarini tahlil qilish
-        $topPosts = InstagramMedia::where('instagram_account_id', $accountId)
+        $topPosts = InstagramMedia::where('account_id', $accountId)
             ->orderByDesc('reach')
             ->limit(20)
             ->get();
@@ -340,13 +340,13 @@ class InstagramInsightsService
 
         // Hashtag tahlili - qaysi hashtaglar yaxshi ishlaydi
         $hashtagPerformance = DB::table('instagram_hashtag_stats')
-            ->where('instagram_account_id', $accountId)
+            ->where('account_id', $accountId)
             ->orderByDesc('avg_engagement_rate')
             ->limit(10)
             ->get();
 
         // Content turi tavsiyasi
-        $contentTypeStats = InstagramMedia::where('instagram_account_id', $accountId)
+        $contentTypeStats = InstagramMedia::where('account_id', $accountId)
             ->select(
                 'media_product_type',
                 DB::raw('AVG(reach) as avg_reach'),
@@ -384,14 +384,14 @@ class InstagramInsightsService
     /**
      * Performance trendlari - o'sish yoki pasayish bormi?
      */
-    public function getPerformanceTrends(int $accountId): array
+    public function getPerformanceTrends(string $accountId): array
     {
         // Oxirgi 4 hafta vs oldingi 4 hafta
-        $last4Weeks = InstagramMedia::where('instagram_account_id', $accountId)
+        $last4Weeks = InstagramMedia::where('account_id', $accountId)
             ->where('posted_at', '>=', now()->subWeeks(4))
             ->get();
 
-        $previous4Weeks = InstagramMedia::where('instagram_account_id', $accountId)
+        $previous4Weeks = InstagramMedia::where('account_id', $accountId)
             ->whereBetween('posted_at', [now()->subWeeks(8), now()->subWeeks(4)])
             ->get();
 
@@ -442,7 +442,7 @@ class InstagramInsightsService
     /**
      * Viral potensial - qaysi postlar viral bo'lish imkoniga ega?
      */
-    public function analyzeViralPotential(int $accountId): array
+    public function analyzeViralPotential(string $accountId): array
     {
         $account = InstagramAccount::find($accountId);
         if (!$account) {
@@ -450,7 +450,7 @@ class InstagramInsightsService
         }
 
         // Viral = reach > followers * 2 (yoki reach/followers ratio > 2)
-        $viralPosts = InstagramMedia::where('instagram_account_id', $accountId)
+        $viralPosts = InstagramMedia::where('account_id', $accountId)
             ->where('reach', '>', $account->followers_count)
             ->orderByDesc('reach')
             ->limit(10)
@@ -512,7 +512,7 @@ class InstagramInsightsService
             'engagement_rate' => round($post->engagement_rate, 2),
             'likes' => $post->like_count,
             'comments' => $post->comments_count,
-            'saves' => $post->saves_count,
+            'saves' => $post->saved,
             'posted_at' => $post->posted_at->format('d.m.Y'),
             'why_it_worked' => $this->analyzeWhyItWorked($post),
         ];
@@ -530,7 +530,7 @@ class InstagramInsightsService
             $reasons[] = 'Ko\'p muhokama qilingan';
         }
 
-        if ($post->saves_count > 100) {
+        if (($post->saved ?? 0) > 100) {
             $reasons[] = 'Ko\'p saqlangan (foydali kontent)';
         }
 
@@ -629,9 +629,9 @@ class InstagramInsightsService
         return 'Sizning tipik followeringiz: ' . implode(', ', $parts) . '.';
     }
 
-    private function analyzeCaptionLength(int $accountId): array
+    private function analyzeCaptionLength(string $accountId): array
     {
-        $media = InstagramMedia::where('instagram_account_id', $accountId)->get();
+        $media = InstagramMedia::where('account_id', $accountId)->get();
 
         $shortCaptions = $media->filter(fn($m) => strlen($m->caption ?? '') < 100);
         $mediumCaptions = $media->filter(fn($m) => strlen($m->caption ?? '') >= 100 && strlen($m->caption ?? '') < 500);

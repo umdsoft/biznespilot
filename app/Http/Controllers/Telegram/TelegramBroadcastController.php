@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessTelegramBroadcast;
 use App\Models\TelegramBot;
 use App\Models\TelegramBroadcast;
 use App\Models\TelegramUser;
@@ -296,9 +297,13 @@ class TelegramBroadcastController extends Controller
 
         $broadcast->start();
 
-        // Dispatch broadcast job
-        // TODO: Dispatch job to process broadcast in background
-        // \App\Jobs\ProcessTelegramBroadcast::dispatch($broadcast);
+        // For small broadcasts (< 50 users), process synchronously
+        // For larger broadcasts, use queue
+        if ($broadcast->total_recipients < 50) {
+            ProcessTelegramBroadcast::dispatchSync($broadcast->id);
+        } else {
+            ProcessTelegramBroadcast::dispatch($broadcast->id);
+        }
 
         return response()->json([
             'success' => true,
@@ -360,8 +365,14 @@ class TelegramBroadcastController extends Controller
 
         $broadcast->resume();
 
-        // Dispatch broadcast job
-        // TODO: Dispatch job to continue broadcast
+        // For small broadcasts (< 50 users), process synchronously
+        // For larger broadcasts, use queue
+        $remaining = $broadcast->total_recipients - $broadcast->sent_count;
+        if ($remaining < 50) {
+            ProcessTelegramBroadcast::dispatchSync($broadcast->id);
+        } else {
+            ProcessTelegramBroadcast::dispatch($broadcast->id);
+        }
 
         return response()->json([
             'success' => true,

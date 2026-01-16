@@ -379,6 +379,182 @@
       </div>
     </section>
 
+    <!-- All-in-One Platform Section -->
+    <section class="py-20 bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+          <div class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full text-sm font-medium text-blue-700 mb-8 shadow-sm">
+            <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span class="mr-1">✨</span>
+            Bitta platforma — cheksiz imkoniyat
+          </div>
+          <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            Hammasi shu yerda. Boshqa hech narsa kerak emas.
+          </h2>
+          <p class="text-xl text-gray-600">
+            6 ta modul. 1 ta narx. Cheksiz foydalanish.
+          </p>
+        </div>
+
+        <!-- 6 Module Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Card 1: Marketing Automation -->
+          <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold rounded-full shadow-lg">
+              3x ko'proq lead
+            </div>
+            <!-- Icon -->
+            <div class="mt-6 mb-6">
+              <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="24" width="8" height="32" rx="2" fill="#60A5FA"/>
+                <rect x="20" y="16" width="8" height="40" rx="2" fill="#3B82F6"/>
+                <rect x="32" y="8" width="8" height="48" rx="2" fill="#2563EB"/>
+                <path d="M52 8L58 14L52 20" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M44 14H58" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+              <span class="mr-2">📈</span>
+              Marketing Automation
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Leadlar avtomatik keladi. AI kampaniyalarni optimallashtiradi. Siz faqat natijani ko'rasiz.
+            </p>
+          </div>
+
+          <!-- Card 2: Sotuv va CRM -->
+          <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold rounded-full shadow-lg">
+              40% ko'proq sotuv
+            </div>
+            <!-- Icon -->
+            <div class="mt-6 mb-6">
+              <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="20" r="8" fill="#10B981"/>
+                <circle cx="40" cy="20" r="8" fill="#34D399"/>
+                <circle cx="32" cy="36" r="8" fill="#6EE7B7"/>
+                <path d="M16 52C16 44 23 40 32 40C41 40 48 44 48 52" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+              <span class="mr-2">💰</span>
+              Sotuv va CRM
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Har bir mijoz, har bir deal nazoratda. Sotuvchilar samaradorligi real-time'da.
+            </p>
+          </div>
+
+          <!-- Card 3: Moliya Boshqaruvi -->
+          <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-semibold rounded-full shadow-lg">
+              0 xatolik
+            </div>
+            <!-- Icon -->
+            <div class="mt-6 mb-6">
+              <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="12" y="8" width="40" height="48" rx="4" fill="#8B5CF6" opacity="0.2"/>
+                <rect x="16" y="12" width="32" height="40" rx="2" fill="#8B5CF6"/>
+                <circle cx="32" cy="28" r="10" fill="#A78BFA"/>
+                <text x="32" y="32" text-anchor="middle" fill="white" font-size="12" font-weight="bold">$</text>
+                <path d="M24 44H40" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="44" cy="12" r="6" fill="#22C55E"/>
+                <path d="M42 12L43.5 13.5L46 11" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+              <span class="mr-2">🧾</span>
+              Moliya Boshqaruvi
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Kirim-chiqim, fakturalar, to'lovlar — hammasi avtomatik. Buxgalterga tayyor hisobot.
+            </p>
+          </div>
+
+          <!-- Card 4: AI Tahlil -->
+          <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-violet-500 text-white text-sm font-semibold rounded-full shadow-lg">
+              60% vaqt tejash
+            </div>
+            <!-- Icon -->
+            <div class="mt-6 mb-6">
+              <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="24" stroke="#F472B6" stroke-width="4" stroke-dasharray="8 4"/>
+                <path d="M32 16V32L44 44" stroke="#EC4899" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="32" cy="32" r="4" fill="#EC4899"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+              <span class="mr-2">⏱️</span>
+              Vaqt Tejash
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Kundalik rutinlarni AI avtomatlashtiradi. Strategik ishlarga ko'proq vaqt.
+            </p>
+          </div>
+
+          <!-- Card 5: Onlayn Nazorat -->
+          <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-full shadow-lg">
+              Onlayn nazorat
+            </div>
+            <!-- Icon -->
+            <div class="mt-6 mb-6">
+              <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="16" width="20" height="14" rx="2" fill="#06B6D4"/>
+                <rect x="8" y="34" width="20" height="14" rx="2" fill="#0891B2"/>
+                <rect x="36" y="16" width="20" height="32" rx="2" fill="#22D3EE"/>
+                <path d="M46 32L42 36L44 38L50 32L44 26L42 28L46 32Z" fill="white"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+              <span class="mr-2">📊</span>
+              Onlayn Nazorat
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Istalgan joydan, istalgan vaqtda biznesingizni nazorat qiling. Mobile-ready dashboard.
+            </p>
+          </div>
+
+          <!-- Card 6: Jamoa Samaradorligi -->
+          <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold rounded-full shadow-lg">
+              2x samaradorlik
+            </div>
+            <!-- Icon -->
+            <div class="mt-6 mb-6">
+              <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="24" r="8" fill="#F472B6"/>
+                <circle cx="44" cy="24" r="8" fill="#FB7185"/>
+                <circle cx="32" cy="44" r="10" fill="#EC4899"/>
+                <path d="M20 36C14 38 12 44 12 48" stroke="#F472B6" stroke-width="3" stroke-linecap="round"/>
+                <path d="M44 36C50 38 52 44 52 48" stroke="#FB7185" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+              <span class="mr-2">👥</span>
+              Jamoa Samaradorligi
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Har bir xodim ishlari, natijalari, KPI'lari — barchasi shaffof va nazoratda.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Powered Features Carousel -->
+    <FeaturesCarousel />
+
     <!-- Testimonials Section -->
     <section class="py-16 bg-gradient-to-r from-blue-600 to-indigo-600 relative overflow-hidden">
       <!-- Background pattern -->
@@ -521,4 +697,5 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import FeaturesCarousel from '@/components/Landing/FeaturesCarousel.vue';
 </script>

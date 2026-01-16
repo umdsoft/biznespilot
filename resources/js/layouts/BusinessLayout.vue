@@ -90,7 +90,10 @@ const fetchInboxUnreadCount = async () => {
       inboxUnreadCount.value = response.data.stats.unread.total;
     }
   } catch (error) {
-    console.error('Failed to fetch inbox stats:', error);
+    // Silently fail - stats are optional UI enhancement
+    if (error.response?.status !== 404) {
+      console.error('Failed to fetch inbox stats:', error);
+    }
   }
 };
 
@@ -104,13 +107,16 @@ const fetchTaskStats = async () => {
       };
     }
   } catch (error) {
-    console.error('Failed to fetch task stats:', error);
+    // Silently fail - stats are optional UI enhancement
+    if (error.response?.status !== 404) {
+      console.error('Failed to fetch task stats:', error);
+    }
   }
 };
 
 const fetchTodoStats = async () => {
   try {
-    const response = await axios.get('/business/todos/dashboard');
+    const response = await axios.get('/business/todos/api/dashboard');
     if (response.data?.stats) {
       todoStats.value = {
         total: response.data.stats.total_today || 0,
@@ -118,7 +124,10 @@ const fetchTodoStats = async () => {
       };
     }
   } catch (error) {
-    console.error('Failed to fetch todo stats:', error);
+    // Silently fail - stats are optional UI enhancement
+    if (error.response?.status !== 404) {
+      console.error('Failed to fetch todo stats:', error);
+    }
   }
 };
 

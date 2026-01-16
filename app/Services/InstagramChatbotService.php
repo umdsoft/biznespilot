@@ -21,7 +21,7 @@ class InstagramChatbotService
     /**
      * Get chatbot dashboard stats
      */
-    public function getDashboardStats(int $accountId): array
+    public function getDashboardStats(string $accountId): array
     {
         $account = InstagramAccount::findOrFail($accountId);
 
@@ -123,9 +123,9 @@ class InstagramChatbotService
     /**
      * Get all automations for an account
      */
-    public function getAutomations(int $accountId): array
+    public function getAutomations(string $accountId): array
     {
-        $automations = InstagramAutomation::where('instagram_account_id', $accountId)
+        $automations = InstagramAutomation::where('account_id', $accountId)
             ->with(['triggers', 'actions'])
             ->orderByDesc('updated_at')
             ->get();
@@ -136,10 +136,10 @@ class InstagramChatbotService
     /**
      * Create a new automation
      */
-    public function createAutomation(int $accountId, array $data): InstagramAutomation
+    public function createAutomation(string $accountId, array $data): InstagramAutomation
     {
         $automation = InstagramAutomation::create([
-            'instagram_account_id' => $accountId,
+            'account_id' => $accountId,
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? 'draft',
@@ -184,7 +184,7 @@ class InstagramChatbotService
     /**
      * Update an automation
      */
-    public function updateAutomation(int $automationId, array $data): InstagramAutomation
+    public function updateAutomation(string $automationId, array $data): InstagramAutomation
     {
         $automation = InstagramAutomation::findOrFail($automationId);
 
@@ -235,7 +235,7 @@ class InstagramChatbotService
     /**
      * Delete an automation
      */
-    public function deleteAutomation(int $automationId): bool
+    public function deleteAutomation(string $automationId): bool
     {
         $automation = InstagramAutomation::findOrFail($automationId);
         return $automation->delete();
@@ -244,7 +244,7 @@ class InstagramChatbotService
     /**
      * Toggle automation status
      */
-    public function toggleAutomation(int $automationId): InstagramAutomation
+    public function toggleAutomation(string $automationId): InstagramAutomation
     {
         $automation = InstagramAutomation::findOrFail($automationId);
 
@@ -257,9 +257,9 @@ class InstagramChatbotService
     /**
      * Get conversations list
      */
-    public function getConversations(int $accountId, array $filters = []): array
+    public function getConversations(string $accountId, array $filters = []): array
     {
-        $query = InstagramConversation::where('instagram_account_id', $accountId)
+        $query = InstagramConversation::where('account_id', $accountId)
             ->with(['latestMessage', 'currentAutomation']);
 
         // Apply filters
@@ -298,7 +298,7 @@ class InstagramChatbotService
     /**
      * Get conversation detail with messages
      */
-    public function getConversation(int $conversationId): array
+    public function getConversation(string $conversationId): array
     {
         $conversation = InstagramConversation::with(['messages', 'currentAutomation'])
             ->findOrFail($conversationId);
@@ -335,7 +335,7 @@ class InstagramChatbotService
     /**
      * Send a manual message
      */
-    public function sendMessage(int $conversationId, string $message): ?InstagramMessage
+    public function sendMessage(string $conversationId, string $message): ?InstagramMessage
     {
         $conversation = InstagramConversation::with('instagramAccount.integration')
             ->findOrFail($conversationId);
@@ -417,13 +417,17 @@ class InstagramChatbotService
             return;
         }
 
+        // Generate unique conversation_id based on account and sender
+        $conversationId = 'conv_' . md5($account->instagram_id . '_' . $senderId);
+
         // Get or create conversation
         $conversation = InstagramConversation::firstOrCreate(
             [
-                'instagram_account_id' => $account->id,
+                'account_id' => $account->id,
                 'participant_id' => $senderId,
             ],
             [
+                'conversation_id' => $conversationId,
                 'participant_username' => $data['sender_username'] ?? null,
                 'participant_name' => $data['sender_name'] ?? null,
                 'profile_picture_url' => $data['sender_profile_picture'] ?? null,
@@ -432,9 +436,11 @@ class InstagramChatbotService
         );
 
         // Save incoming message
+        $instagramMsgId = $data['message_id'] ?? ('msg_' . uniqid());
         InstagramMessage::create([
             'conversation_id' => $conversation->id,
-            'instagram_message_id' => $data['message_id'] ?? null,
+            'instagram_message_id' => $instagramMsgId,
+            'message_id' => $instagramMsgId,
             'direction' => 'incoming',
             'message_type' => 'text',
             'content' => $messageText,
@@ -535,7 +541,7 @@ class InstagramChatbotService
         string $text,
         string $triggerType
     ): void {
-        // Get active automations with matching trigger type
+        // Get active automations with matching trigger type (traditional)
         $automations = $account->automations()
             ->active()
             ->whereHas('triggers', fn($q) => $q->where('trigger_type', $triggerType))
@@ -554,9 +560,338 @@ class InstagramChatbotService
                         ['keyword' => $keyword, 'text' => $text],
                         $conversation
                     );
-                    break 2; // Only trigger first matching automation
+                    return; // Only trigger first matching automation
                 }
             }
+        }
+
+        // Also check flow-based automations
+        $this->checkAndTriggerFlowAutomations($account, $conversation, $text, $triggerType);
+    }
+
+    /**
+     * Check and trigger flow-based automations
+     */
+    protected function checkAndTriggerFlowAutomations(
+        InstagramAccount $account,
+        InstagramConversation $conversation,
+        string $text,
+        string $triggerType
+    ): void {
+        // Map trigger type to flow node type
+        $nodeTypeMap = [
+            'keyword_dm' => 'trigger_keyword_dm',
+            'keyword_comment' => 'trigger_keyword_comment',
+            'story_mention' => 'trigger_story_mention',
+            'story_reply' => 'trigger_story_reply',
+            'new_follower' => 'trigger_new_follower',
+        ];
+
+        $flowNodeType = $nodeTypeMap[$triggerType] ?? null;
+        if (!$flowNodeType) {
+            return;
+        }
+
+        // Get active flow-based automations
+        $flowAutomations = $account->automations()
+            ->active()
+            ->where('is_flow_based', true)
+            ->whereNotNull('flow_data')
+            ->get();
+
+        foreach ($flowAutomations as $automation) {
+            $flowData = $automation->flow_data;
+            $nodes = $flowData['nodes'] ?? [];
+
+            // Find trigger node
+            $triggerNode = null;
+            foreach ($nodes as $node) {
+                if (($node['node_type'] ?? '') === $flowNodeType) {
+                    $triggerNode = $node;
+                    break;
+                }
+            }
+
+            if (!$triggerNode) {
+                continue;
+            }
+
+            // Check if keywords match
+            $nodeData = $triggerNode['data'] ?? [];
+            $keywords = $nodeData['keywords'] ?? '';
+
+            // Handle keywords as array or string
+            $keywordList = [];
+            if (is_array($keywords)) {
+                $keywordList = $keywords;
+            } elseif (is_string($keywords) && !empty($keywords)) {
+                // Parse keywords (comma or space separated)
+                $keywordList = preg_split('/[\s,]+/', $keywords, -1, PREG_SPLIT_NO_EMPTY);
+            }
+
+            // If keywords is "__all__" or empty, match all messages
+            if (empty($keywordList) || (count($keywordList) === 1 && ($keywordList[0] === '__all__' || $keywordList[0] === '+'))) {
+                Log::info('Flow automation triggered (match all)', [
+                    'automation_id' => $automation->id,
+                    'text' => $text,
+                ]);
+                $this->executeFlowAutomation($automation, $account, $conversation, $text, $triggerNode);
+                return;
+            }
+
+            foreach ($keywordList as $keyword) {
+                $keyword = trim(mb_strtolower((string)$keyword));
+                if (empty($keyword) || $keyword === '+') {
+                    continue;
+                }
+
+                // Check if message contains keyword
+                if (mb_stripos(mb_strtolower($text), $keyword) !== false) {
+                    Log::info('Flow automation triggered (keyword match)', [
+                        'automation_id' => $automation->id,
+                        'keyword' => $keyword,
+                        'text' => $text,
+                    ]);
+                    $this->executeFlowAutomation($automation, $account, $conversation, $text, $triggerNode, $keyword);
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * Execute a flow-based automation
+     */
+    protected function executeFlowAutomation(
+        InstagramAutomation $automation,
+        InstagramAccount $account,
+        InstagramConversation $conversation,
+        string $text,
+        array $triggerNode,
+        ?string $matchedKeyword = null
+    ): void {
+        // Log the trigger
+        $log = InstagramAutomationLog::logTrigger(
+            $automation,
+            $triggerNode['node_type'],
+            $matchedKeyword,
+            $conversation,
+            ['text' => $text]
+        );
+
+        $automation->incrementTriggerCount();
+
+        try {
+            // Start automation on conversation
+            $conversation->startAutomation($automation);
+
+            $flowData = $automation->flow_data;
+            $nodes = $flowData['nodes'] ?? [];
+            $edges = $flowData['edges'] ?? [];
+
+            // Build adjacency list for navigation
+            $adjacencyList = [];
+            foreach ($edges as $edge) {
+                $sourceId = $edge['source_node_id'];
+                if (!isset($adjacencyList[$sourceId])) {
+                    $adjacencyList[$sourceId] = [];
+                }
+                $adjacencyList[$sourceId][] = [
+                    'target' => $edge['target_node_id'],
+                    'handle' => $edge['source_handle'] ?? null,
+                ];
+            }
+
+            // Execute nodes starting from trigger
+            $this->executeFlowNode(
+                $triggerNode['node_id'],
+                $nodes,
+                $adjacencyList,
+                $automation,
+                $account,
+                $conversation,
+                ['text' => $text, 'keyword' => $matchedKeyword, 'name' => $conversation->display_name]
+            );
+
+            // End automation
+            $conversation->endAutomation();
+            $automation->incrementConversionCount();
+            $log->markCompleted();
+
+        } catch (\Exception $e) {
+            Log::error('Flow automation execution failed', [
+                'automation_id' => $automation->id,
+                'error' => $e->getMessage(),
+            ]);
+            $log->markFailed($e->getMessage());
+        }
+    }
+
+    /**
+     * Execute a single flow node and continue to connected nodes
+     */
+    protected function executeFlowNode(
+        string $nodeId,
+        array $nodes,
+        array $adjacencyList,
+        InstagramAutomation $automation,
+        InstagramAccount $account,
+        InstagramConversation $conversation,
+        array $variables
+    ): void {
+        // Find the node
+        $node = null;
+        foreach ($nodes as $n) {
+            if (($n['node_id'] ?? '') === $nodeId) {
+                $node = $n;
+                break;
+            }
+        }
+
+        if (!$node) {
+            return;
+        }
+
+        $nodeType = $node['node_type'] ?? '';
+        $nodeData = $node['data'] ?? [];
+
+        Log::info('Executing flow node', [
+            'node_id' => $nodeId,
+            'node_type' => $nodeType,
+        ]);
+
+        // Execute action based on node type
+        $conditionResult = null;
+        switch ($nodeType) {
+            case 'action_send_dm':
+                $message = $nodeData['message'] ?? '';
+                // Replace variables - support multiple variable formats
+                $name = $variables['name'] ?? '';
+                $username = $conversation->participant_username ?? '';
+                $message = str_replace(
+                    ['{name}', '{full_name}', '{username}', '{keyword}', '{text}'],
+                    [$name, $name, $username, $variables['keyword'] ?? '', $variables['text'] ?? ''],
+                    $message
+                );
+                $this->sendFlowDM($account, $conversation, $message, $automation);
+                break;
+
+            case 'action_delay':
+                $delayType = $nodeData['delay_type'] ?? 'seconds';
+                $delayValue = (int)($nodeData['delay_value'] ?? 0);
+                $seconds = match($delayType) {
+                    'minutes' => $delayValue * 60,
+                    'hours' => $delayValue * 3600,
+                    default => $delayValue,
+                };
+                // Only wait up to 60 seconds synchronously
+                if ($seconds > 0 && $seconds <= 60) {
+                    sleep($seconds);
+                }
+                break;
+
+            case 'action_add_tag':
+                $tag = $nodeData['tag'] ?? null;
+                if ($tag) {
+                    $conversation->addTag($tag);
+                }
+                break;
+
+            case 'action_remove_tag':
+                $tag = $nodeData['tag'] ?? null;
+                if ($tag) {
+                    $conversation->removeTag($tag);
+                }
+                break;
+
+            case 'action_send_link':
+                $url = $nodeData['url'] ?? '';
+                $linkMessage = $nodeData['message'] ?? 'Link';
+                $fullMessage = $linkMessage . "\n" . $url;
+                $this->sendFlowDM($account, $conversation, $fullMessage, $automation);
+                break;
+
+            case 'condition_is_follower':
+                // For now, assume they are followers (would need API call to check)
+                $conditionResult = 'yes';
+                break;
+
+            case 'action_reply_comment':
+                // Comment reply handled elsewhere
+                break;
+
+            // Trigger nodes don't execute anything
+            case 'trigger_keyword_dm':
+            case 'trigger_keyword_comment':
+            case 'trigger_story_mention':
+            case 'trigger_story_reply':
+            case 'trigger_new_follower':
+                break;
+        }
+
+        // Continue to connected nodes
+        $nextNodes = $adjacencyList[$nodeId] ?? [];
+        foreach ($nextNodes as $next) {
+            // If this was a condition node, only follow matching handle
+            if ($conditionResult !== null) {
+                if ($next['handle'] !== $conditionResult) {
+                    continue;
+                }
+            }
+
+            $this->executeFlowNode(
+                $next['target'],
+                $nodes,
+                $adjacencyList,
+                $automation,
+                $account,
+                $conversation,
+                $variables
+            );
+        }
+    }
+
+    /**
+     * Send DM via flow automation
+     */
+    protected function sendFlowDM(
+        InstagramAccount $account,
+        InstagramConversation $conversation,
+        string $message,
+        InstagramAutomation $automation
+    ): void {
+        $integration = $account->integration;
+        if (!$integration || !$integration->access_token) {
+            Log::warning('Cannot send DM - no access token', ['account_id' => $account->id]);
+            return;
+        }
+
+        $response = $this->sendDM(
+            $account->instagram_id,
+            $conversation->participant_id,
+            $message,
+            $integration->access_token
+        );
+
+        if ($response['success']) {
+            // Save outgoing message
+            InstagramMessage::create([
+                'conversation_id' => $conversation->id,
+                'automation_id' => $automation->id,
+                'instagram_message_id' => $response['message_id'] ?? null,
+                'direction' => 'outgoing',
+                'message_type' => 'text',
+                'content' => $message,
+                'is_automated' => true,
+                'sent_at' => now(),
+            ]);
+
+            $conversation->update(['last_message_at' => now()]);
+        } else {
+            Log::error('Failed to send flow DM', [
+                'account_id' => $account->id,
+                'error' => $response['error'] ?? 'Unknown error',
+            ]);
         }
     }
 
@@ -623,7 +958,7 @@ class InstagramChatbotService
             if (!$conversation) {
                 $conversation = InstagramConversation::firstOrCreate(
                     [
-                        'instagram_account_id' => $account->id,
+                        'account_id' => $account->id,
                         'participant_id' => $targetUserId,
                     ],
                     [
@@ -783,6 +1118,8 @@ class InstagramChatbotService
             'status' => $automation->status,
             'type' => $automation->type,
             'is_ai_enabled' => $automation->is_ai_enabled,
+            'is_flow_based' => $automation->is_flow_based,
+            'flow_data' => $automation->flow_data,
             'trigger_count' => $automation->trigger_count,
             'conversion_count' => $automation->conversion_count,
             'conversion_rate' => $automation->conversion_rate,
@@ -815,9 +1152,9 @@ class InstagramChatbotService
     /**
      * Get quick replies
      */
-    public function getQuickReplies(int $accountId): array
+    public function getQuickReplies(string $accountId): array
     {
-        return InstagramQuickReply::where('instagram_account_id', $accountId)
+        return InstagramQuickReply::where('account_id', $accountId)
             ->orderByDesc('usage_count')
             ->get()
             ->toArray();
@@ -826,10 +1163,10 @@ class InstagramChatbotService
     /**
      * Create quick reply
      */
-    public function createQuickReply(int $accountId, array $data): InstagramQuickReply
+    public function createQuickReply(string $accountId, array $data): InstagramQuickReply
     {
         return InstagramQuickReply::create([
-            'instagram_account_id' => $accountId,
+            'account_id' => $accountId,
             'title' => $data['title'],
             'content' => $data['content'],
             'shortcut' => $data['shortcut'] ?? null,

@@ -67,8 +67,22 @@ class InstagramAnalysisController extends Controller
 
         if ($isConnected && $metaIntegration) {
             $instagramAccounts = InstagramAccount::where('integration_id', $metaIntegration->id)->get();
-            $selectedAccount = $instagramAccounts->where('is_primary', true)->first()
-                ?? $instagramAccounts->first();
+
+            // First try to get saved account from business
+            if ($business->instagram_account_id) {
+                $selectedAccount = $instagramAccounts->firstWhere('id', $business->instagram_account_id);
+            }
+
+            // Fallback to is_primary or first account
+            if (!$selectedAccount) {
+                $selectedAccount = $instagramAccounts->where('is_primary', true)->first()
+                    ?? $instagramAccounts->first();
+
+                // Auto-save the first account to business
+                if ($selectedAccount) {
+                    $business->update(['instagram_account_id' => $selectedAccount->id]);
+                }
+            }
         }
 
         // Use instagram integration for display if available, otherwise meta_ads
@@ -368,11 +382,11 @@ class InstagramAnalysisController extends Controller
     }
 
     /**
-     * Select Instagram account as primary
+     * Select Instagram account as primary and save to business
      */
     public function selectAccount(Request $request): JsonResponse
     {
-        $request->validate(['account_id' => 'required|integer']);
+        $request->validate(['account_id' => 'required|uuid|exists:instagram_accounts,id']);
 
         $business = $this->getCurrentBusiness($request);
 
@@ -384,14 +398,23 @@ class InstagramAnalysisController extends Controller
             return response()->json(['error' => 'Not connected'], 400);
         }
 
-        // Reset all
+        // Verify account belongs to this integration
+        $account = InstagramAccount::where('integration_id', $integration->id)
+            ->where('id', $request->account_id)
+            ->first();
+
+        if (!$account) {
+            return response()->json(['error' => 'Account not found'], 404);
+        }
+
+        // Save selected account to business (persistent selection)
+        $business->update(['instagram_account_id' => $account->id]);
+
+        // Also set as primary for backward compatibility
         InstagramAccount::where('integration_id', $integration->id)
             ->update(['is_primary' => false]);
 
-        // Set selected as primary
-        InstagramAccount::where('integration_id', $integration->id)
-            ->where('id', $request->account_id)
-            ->update(['is_primary' => true]);
+        $account->update(['is_primary' => true]);
 
         return response()->json(['success' => true]);
     }
@@ -634,6 +657,17 @@ class InstagramAnalysisController extends Controller
             return null;
         }
 
+        // First try to get saved account from business
+        if ($business->instagram_account_id) {
+            $account = InstagramAccount::where('integration_id', $integration->id)
+                ->where('id', $business->instagram_account_id)
+                ->first();
+            if ($account) {
+                return $account;
+            }
+        }
+
+        // Fallback to is_primary
         $account = InstagramAccount::where('integration_id', $integration->id)
             ->where('is_primary', true)
             ->first();

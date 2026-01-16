@@ -13,7 +13,7 @@ class InstagramAutomation extends Model
     use SoftDeletes, HasUuid;
 
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
         'name',
         'description',
         'status',
@@ -48,7 +48,7 @@ class InstagramAutomation extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function triggers(): HasMany

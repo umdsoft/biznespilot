@@ -160,7 +160,7 @@ export const businessLayoutConfig = {
       titleKey: 'nav.ai_helpers',
       items: [
         { href: '/business/facebook-analysis', label: 'Facebook analiz', labelKey: 'nav.facebook_analysis', icon: FacebookIcon },
-        { href: '/business/instagram-analysis', label: 'Instagram Tahlili', labelKey: 'nav.instagram_analysis', icon: InstagramIcon },
+        { href: '/integrations/instagram', label: 'Instagram Tahlili', labelKey: 'nav.instagram_analysis', icon: InstagramIcon },
         { href: '/business/telegram-funnels', label: 'Telegram Funnel', labelKey: 'nav.telegram_funnel', icon: TelegramIcon },
         { href: '/business/youtube-analytics', label: 'YouTube Analitika', labelKey: 'nav.youtube_analytics', icon: YouTubeIcon },
         { href: '/business/google-ads-analytics', label: 'Google Ads', labelKey: 'nav.google_ads', icon: GoogleIcon },
@@ -472,7 +472,7 @@ export const marketingLayoutConfig = {
       title: 'AI Yordamchilar',
       items: [
         { href: '/marketing/facebook-analysis', label: 'Facebook analiz', icon: FacebookIcon },
-        { href: '/marketing/instagram-analysis', label: 'Instagram Tahlili', icon: InstagramIcon },
+        { href: '/integrations/instagram', label: 'Instagram Tahlili', icon: InstagramIcon },
         { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
         { href: '/marketing/youtube-analytics', label: 'YouTube Analitika', icon: YouTubeIcon },
         { href: '/marketing/google-ads', label: 'Google Ads', icon: GoogleIcon },

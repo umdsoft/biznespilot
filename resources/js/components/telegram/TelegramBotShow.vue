@@ -43,17 +43,28 @@
                 <span :class="['w-1.5 h-1.5 rounded-full mr-1.5', bot.is_active ? 'bg-green-400' : 'bg-red-400']"></span>
                 {{ bot.is_active ? 'Faol' : 'Nofaol' }}
               </span>
-              <span :class="[
-                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                bot.is_verified
-                  ? 'bg-blue-400/20 text-blue-100'
-                  : 'bg-yellow-400/20 text-yellow-100'
-              ]">
-                <svg v-if="bot.is_verified" class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <!-- Webhook holati -->
+              <span v-if="bot.is_verified" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-400/20 text-green-100">
+                <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
-                {{ bot.is_verified ? 'Tasdiqlangan' : 'Tasdiqlanmagan' }}
+                Webhook ulangan
               </span>
+              <button
+                v-else
+                @click="setupWebhook"
+                :disabled="isSettingUpWebhook"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 transition-colors cursor-pointer"
+              >
+                <svg v-if="isSettingUpWebhook" class="animate-spin w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg v-else class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                {{ isSettingUpWebhook ? 'Ulanmoqda...' : 'Webhookni ulash' }}
+              </button>
             </div>
           </div>
         </div>
@@ -278,88 +289,58 @@
       </Link>
     </div>
 
-    <!-- Webhook & Settings Grid -->
+    <!-- Stats & Settings Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Webhook Status Card -->
+      <!-- Recent Stats Card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              Webhook Holati
-            </h3>
-            <span :class="[
-              'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
-              bot.is_verified
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-            ]">
-              <span :class="['w-2 h-2 rounded-full mr-1.5 animate-pulse', bot.is_verified ? 'bg-green-500' : 'bg-yellow-500']"></span>
-              {{ bot.is_verified ? 'Ulangan' : 'Ulanmagan' }}
-            </span>
-          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+            <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            So'nggi 7 kun statistikasi
+          </h3>
         </div>
 
-        <div class="p-6">
-          <div v-if="bot.is_verified" class="mb-4">
-            <div class="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-              <svg class="w-10 h-10 text-green-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p class="text-sm font-medium text-green-800 dark:text-green-200">Webhook muvaffaqiyatli ulangan</p>
-                <p class="text-xs text-green-600 dark:text-green-400">Bot xabarlarni qabul qilishga tayyor</p>
-              </div>
-            </div>
-          </div>
+        <div v-if="recentStats.length > 0" class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                <th class="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sana</th>
+                <th class="text-right py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Yangi</th>
+                <th class="text-right py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kiruvchi</th>
+                <th class="text-right py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Chiquvchi</th>
+                <th class="text-right py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lidlar</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="stat in recentStats" :key="stat.date" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{{ stat.date }}</td>
+                <td class="py-3 px-4 text-sm text-right">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                    +{{ stat.new_users }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-sm text-right text-gray-900 dark:text-white">{{ stat.messages_in }}</td>
+                <td class="py-3 px-4 text-sm text-right text-gray-900 dark:text-white">{{ stat.messages_out }}</td>
+                <td class="py-3 px-4 text-sm text-right">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                    {{ stat.leads_captured }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-          <div v-else class="mb-4">
-            <div class="flex items-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-              <svg class="w-10 h-10 text-yellow-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div>
-                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Webhook ulanmagan</p>
-                <p class="text-xs text-yellow-600 dark:text-yellow-400">Bot xabarlarni qabul qila olmaydi</p>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="bot.webhook_url" class="mb-4">
-            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Webhook URL:</label>
-            <div class="flex items-center bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-              <code class="text-xs text-gray-700 dark:text-gray-300 break-all flex-1">{{ bot.webhook_url }}</code>
-              <button @click="copyWebhookUrl" class="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Webhook Error Message -->
-          <div v-if="webhookError" class="mb-4">
-            <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-              <p class="text-sm text-red-700 dark:text-red-300">{{ webhookError }}</p>
-            </div>
-          </div>
-
-          <button
-            @click="setupWebhook"
-            :disabled="isSettingUpWebhook"
-            class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-          >
-            <svg v-if="isSettingUpWebhook" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <div v-else class="p-8 text-center">
+          <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-            {{ isSettingUpWebhook ? 'Ulanmoqda...' : (bot.is_verified ? 'Webhookni Yangilash' : 'Webhookni Ulash') }}
-          </button>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400 font-medium">Hali statistika yo'q</p>
+          <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Bot ishlay boshlaganda ko'rinadi</p>
         </div>
       </div>
 
@@ -455,64 +436,13 @@
       </div>
     </div>
 
-    <!-- Recent Stats -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-          <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          So'nggi 7 kun statistikasi
-        </h3>
-      </div>
-
-      <div v-if="recentStats.length > 0" class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50 dark:bg-gray-900/50">
-            <tr>
-              <th class="text-left py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sana</th>
-              <th class="text-right py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Yangi</th>
-              <th class="text-right py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kiruvchi</th>
-              <th class="text-right py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Chiquvchi</th>
-              <th class="text-right py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lidlar</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="stat in recentStats" :key="stat.date" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-              <td class="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{{ stat.date }}</td>
-              <td class="py-4 px-6 text-sm text-right">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                  +{{ stat.new_users }}
-                </span>
-              </td>
-              <td class="py-4 px-6 text-sm text-right text-gray-900 dark:text-white">{{ stat.messages_in }}</td>
-              <td class="py-4 px-6 text-sm text-right text-gray-900 dark:text-white">{{ stat.messages_out }}</td>
-              <td class="py-4 px-6 text-sm text-right">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                  {{ stat.leads_captured }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-else class="p-12 text-center">
-        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-        <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Hali statistika yo'q</p>
-        <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Bot ishlay boshlaganda statistika ko'rinadi</p>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   bot: Object,
@@ -547,35 +477,26 @@ const defaultFunnelId = ref(props.bot.default_funnel_id || '')
 
 const isSettingUpWebhook = ref(false)
 const isSavingSettings = ref(false)
-const webhookError = ref(null)
-
-const copyWebhookUrl = () => {
-  navigator.clipboard.writeText(props.bot.webhook_url)
-}
 
 const setupWebhook = async () => {
   isSettingUpWebhook.value = true
-  webhookError.value = null
 
   try {
-    const response = await fetch(getRoute('telegram-funnels.setup-webhook', props.bot.id), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        'Accept': 'application/json'
-      }
-    })
+    const response = await axios.post(getRoute('telegram-funnels.setup-webhook', props.bot.id))
 
-    const data = await response.json()
-
-    if (data.success) {
+    if (response.data.success) {
       router.reload()
     } else {
-      webhookError.value = data.error || 'Webhook o\'rnatishda xatolik yuz berdi'
+      alert(response.data.error || 'Webhook o\'rnatishda xatolik yuz berdi')
     }
   } catch (error) {
-    webhookError.value = 'Server bilan bog\'lanishda xatolik. Iltimos APP_URL sozlamasini tekshiring.'
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    } else if (error.response?.data?.error) {
+      alert(error.response.data.error)
+    } else {
+      alert('Webhook o\'rnatishda xatolik yuz berdi')
+    }
   } finally {
     isSettingUpWebhook.value = false
   }
@@ -584,24 +505,19 @@ const setupWebhook = async () => {
 const saveSettings = async () => {
   isSavingSettings.value = true
   try {
-    const response = await fetch(getRoute('telegram-funnels.update', props.bot.id), {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        settings,
-        default_funnel_id: defaultFunnelId.value || null
-      })
+    const response = await axios.put(getRoute('telegram-funnels.update', props.bot.id), {
+      settings,
+      default_funnel_id: defaultFunnelId.value || null
     })
-    const data = await response.json()
-    if (!data.success) {
-      alert(data.message || 'Xatolik yuz berdi')
+    if (!response.data.success) {
+      alert(response.data.message || 'Xatolik yuz berdi')
     }
   } catch (error) {
-    alert('Server bilan bog\'lanishda xatolik')
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    } else {
+      alert('Server bilan bog\'lanishda xatolik')
+    }
   } finally {
     isSavingSettings.value = false
   }
@@ -609,25 +525,27 @@ const saveSettings = async () => {
 
 const toggleActive = async () => {
   if (confirm(props.bot.is_active ? 'Botni o\'chirishni xohlaysizmi?' : 'Botni yoqishni xohlaysizmi?')) {
-    await fetch(getRoute('telegram-funnels.toggle-active', props.bot.id), {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    try {
+      await axios.post(getRoute('telegram-funnels.toggle-active', props.bot.id))
+      router.reload()
+    } catch (error) {
+      if (error.response?.status === 419) {
+        alert('Sessiya tugagan. Sahifani yangilang.')
       }
-    })
-    router.reload()
+    }
   }
 }
 
 const deleteBot = async () => {
   if (confirm('Botni o\'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo\'lmaydi!')) {
-    await fetch(getRoute('telegram-funnels.destroy', props.bot.id), {
-      method: 'DELETE',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    try {
+      await axios.delete(getRoute('telegram-funnels.destroy', props.bot.id))
+      router.visit(getRoute('telegram-funnels.index'))
+    } catch (error) {
+      if (error.response?.status === 419) {
+        alert('Sessiya tugagan. Sahifani yangilang.')
       }
-    })
-    router.visit(getRoute('telegram-funnels.index'))
+    }
   }
 }
 </script>

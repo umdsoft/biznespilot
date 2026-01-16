@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstagramMedia extends Model
 {
-    use BelongsToBusiness, HasUuid;
+    use HasUuid;
 
     protected $table = 'instagram_media';
 
@@ -17,6 +16,7 @@ class InstagramMedia extends Model
         'account_id',
         'media_id',
         'media_type',
+        'media_product_type',
         'caption',
         'permalink',
         'media_url',
@@ -27,6 +27,7 @@ class InstagramMedia extends Model
         'impressions',
         'saved',
         'shares',
+        'plays',
         'engagement_rate',
         'posted_at',
     ];
@@ -63,7 +64,7 @@ class InstagramMedia extends Model
 
     public function getTotalEngagementAttribute(): int
     {
-        return $this->like_count + $this->comments_count + $this->shares_count + $this->saves_count;
+        return ($this->like_count ?? 0) + ($this->comments_count ?? 0) + ($this->shares ?? 0) + ($this->saved ?? 0);
     }
 
     public function getIsReelAttribute(): bool

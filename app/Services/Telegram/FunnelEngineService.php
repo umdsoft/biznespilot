@@ -94,15 +94,23 @@ class FunnelEngineService
             return; // Let operator handle
         }
 
-        // Handle contact message (phone number)
-        if (isset($message['contact'])) {
-            $this->handleContactMessage($message['contact']);
+        // Check if waiting for input FIRST (before handling contact separately)
+        if ($this->state->isWaitingForInput()) {
+            // If contact message and waiting for phone/contact input, process as input
+            if (isset($message['contact'])) {
+                $waitingFor = $this->state->waiting_for;
+                if (in_array($waitingFor, ['phone', 'contact', 'text', 'any'])) {
+                    $this->processInput($message);
+                    return;
+                }
+            }
+            $this->processInput($message);
             return;
         }
 
-        // Check if waiting for input
-        if ($this->state->isWaitingForInput()) {
-            $this->processInput($message);
+        // Handle contact message (phone number) - only if NOT in funnel input mode
+        if (isset($message['contact'])) {
+            $this->handleContactMessage($message['contact']);
             return;
         }
 
@@ -112,10 +120,17 @@ class FunnelEngineService
             return;
         }
 
-        // Check for triggers
+        // Check for triggers from TelegramTrigger table
         $trigger = $this->findTrigger($this->getMessageText($message));
         if ($trigger) {
             $this->processTrigger($trigger, $message);
+            return;
+        }
+
+        // Check for trigger_keyword steps in funnels
+        $funnelTrigger = $this->findFunnelByKeyword($messageText);
+        if ($funnelTrigger) {
+            $this->startFunnelFromTriggerStep($funnelTrigger['funnel'], $funnelTrigger['step']);
             return;
         }
 
@@ -448,6 +463,12 @@ class FunnelEngineService
 
             case 'tag':
                 $this->executeTagStep($step);
+                return;
+
+            case 'trigger_keyword':
+                // Trigger keyword step - just proceed to next step
+                // This step is primarily used as an entry point
+                $this->executeTriggerKeywordStep($step);
                 return;
         }
 
@@ -804,6 +825,25 @@ class FunnelEngineService
     }
 
     /**
+     * Execute trigger keyword step - just proceed to next step
+     * This step is primarily used as an entry point for keyword-triggered funnels
+     */
+    protected function executeTriggerKeywordStep(TelegramFunnelStep $step): void
+    {
+        Log::info('Executing trigger keyword step', [
+            'step_id' => $step->id,
+            'user_id' => $this->user->id,
+            'trigger' => $step->trigger,
+        ]);
+
+        // Continue to next step if available
+        if ($step->next_step_id) {
+            usleep(200000);
+            $this->goToStep($step->next_step_id);
+        }
+    }
+
+    /**
      * Send step content
      */
     protected function sendStepContent(
@@ -982,6 +1022,20 @@ class FunnelEngineService
         // Store collected data
         $this->state->setCollectedValue($inputField, $value);
 
+        // If phone input and contact was received, also update user's phone
+        if ($inputType === 'phone' && isset($message['contact'])) {
+            $this->user->update([
+                'phone' => $message['contact']['phone_number'],
+                'first_name' => $message['contact']['first_name'] ?? $this->user->first_name,
+                'last_name' => $message['contact']['last_name'] ?? $this->user->last_name,
+            ]);
+
+            Log::info('User phone updated from funnel input', [
+                'user_id' => $this->user->id,
+                'phone' => $message['contact']['phone_number'],
+            ]);
+        }
+
         // Clear waiting state
         $this->state->update(['waiting_for' => 'none']);
 
@@ -1026,8 +1080,14 @@ class FunnelEngineService
         switch ($type) {
             case 'text':
             case 'email':
-            case 'phone':
             case 'number':
+                return $message['text'] ?? null;
+
+            case 'phone':
+                // Phone can be text or contact
+                if (isset($message['contact'])) {
+                    return $message['contact']['phone_number'];
+                }
                 return $message['text'] ?? null;
 
             case 'contact':
@@ -1414,6 +1474,118 @@ class FunnelEngineService
             ->where('type', 'callback')
             ->where('value', $callbackData)
             ->first();
+    }
+
+    /**
+     * Find funnel by trigger_keyword step
+     */
+    protected function findFunnelByKeyword(string $text): ?array
+    {
+        $text = mb_strtolower(trim($text));
+
+        if (empty($text)) {
+            return null;
+        }
+
+        // Get all active funnels for this bot
+        $funnels = TelegramFunnel::where('telegram_bot_id', $this->bot->id)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($funnels as $funnel) {
+            // Find trigger_keyword steps in this funnel
+            $triggerSteps = TelegramFunnelStep::where('funnel_id', $funnel->id)
+                ->where('step_type', 'trigger_keyword')
+                ->get();
+
+            foreach ($triggerSteps as $step) {
+                $trigger = $step->trigger ?? [];
+
+                // Check if is_all_messages is true
+                if (!empty($trigger['is_all_messages'])) {
+                    Log::info('Trigger matched: is_all_messages', [
+                        'funnel_id' => $funnel->id,
+                        'step_id' => $step->id,
+                    ]);
+                    return ['funnel' => $funnel, 'step' => $step];
+                }
+
+                // Check keywords
+                $keywords = $trigger['keywords'] ?? '';
+                $matchType = $trigger['match_type'] ?? 'contains';
+
+                if (empty($keywords)) {
+                    continue;
+                }
+
+                // Split keywords by comma or newline
+                $keywordList = preg_split('/[,\n]+/', $keywords);
+                $keywordList = array_map(fn($k) => mb_strtolower(trim($k)), $keywordList);
+                $keywordList = array_filter($keywordList);
+
+                foreach ($keywordList as $keyword) {
+                    $matched = match ($matchType) {
+                        'exact' => $text === $keyword,
+                        'contains' => str_contains($text, $keyword),
+                        'starts_with' => str_starts_with($text, $keyword),
+                        'ends_with' => str_ends_with($text, $keyword),
+                        'regex' => @preg_match('/' . $keyword . '/iu', $text) === 1,
+                        default => str_contains($text, $keyword),
+                    };
+
+                    if ($matched) {
+                        Log::info('Trigger keyword matched', [
+                            'funnel_id' => $funnel->id,
+                            'step_id' => $step->id,
+                            'keyword' => $keyword,
+                            'match_type' => $matchType,
+                            'text' => $text,
+                        ]);
+                        return ['funnel' => $funnel, 'step' => $step];
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Start funnel from a trigger_keyword step
+     */
+    protected function startFunnelFromTriggerStep(TelegramFunnel $funnel, TelegramFunnelStep $triggerStep): void
+    {
+        Log::info('Starting funnel from trigger step', [
+            'funnel_id' => $funnel->id,
+            'funnel_name' => $funnel->name,
+            'trigger_step_id' => $triggerStep->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        // Reset state and set funnel
+        $this->state->update([
+            'current_funnel_id' => $funnel->id,
+            'current_step_id' => $triggerStep->id,
+            'collected_data' => [],
+            'waiting_for' => 'none',
+            'context' => [],
+        ]);
+
+        // Update conversation
+        $this->conversation->update(['started_funnel_id' => $funnel->id]);
+
+        // Increment funnel start stat
+        $this->incrementFunnelStat($funnel->id, 'started');
+
+        // Go to the trigger's next step or execute the trigger step
+        if ($triggerStep->next_step_id) {
+            $this->goToStep($triggerStep->next_step_id);
+        } else {
+            // If no next step, send a message or do nothing
+            Log::warning('Trigger step has no next_step_id', [
+                'step_id' => $triggerStep->id,
+            ]);
+        }
     }
 
     /**

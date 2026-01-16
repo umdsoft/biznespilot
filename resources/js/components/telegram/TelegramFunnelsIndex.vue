@@ -445,6 +445,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   bot: Object,
@@ -501,20 +502,18 @@ onUnmounted(() => {
 const createFunnel = async () => {
   isCreating.value = true
   try {
-    const response = await fetch(getRoute('telegram-funnels.funnels.store', props.bot.id), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({
-        ...newFunnel,
-        template: selectedTemplate.value
-      })
+    const response = await axios.post(getRoute('telegram-funnels.funnels.store', props.bot.id), {
+      ...newFunnel,
+      template: selectedTemplate.value
     })
-    const data = await response.json()
-    if (data.success) {
-      router.visit(getRoute('telegram-funnels.funnels.show', [props.bot.id, data.funnel.id]))
+    if (response.data.success) {
+      router.visit(getRoute('telegram-funnels.funnels.show', [props.bot.id, response.data.funnel.id]))
+    }
+  } catch (error) {
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    } else {
+      alert(error.response?.data?.message || 'Xatolik yuz berdi')
     }
   } finally {
     isCreating.value = false
@@ -522,34 +521,37 @@ const createFunnel = async () => {
 }
 
 const toggleFunnelActive = async (funnel) => {
-  await fetch(getRoute('telegram-funnels.funnels.toggle-active', [props.bot.id, funnel.id]), {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+  try {
+    await axios.post(getRoute('telegram-funnels.funnels.toggle-active', [props.bot.id, funnel.id]))
+    router.reload()
+  } catch (error) {
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
     }
-  })
-  router.reload()
+  }
 }
 
 const duplicateFunnel = async (funnel) => {
-  await fetch(getRoute('telegram-funnels.funnels.duplicate', [props.bot.id, funnel.id]), {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+  try {
+    await axios.post(getRoute('telegram-funnels.funnels.duplicate', [props.bot.id, funnel.id]))
+    router.reload()
+  } catch (error) {
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
     }
-  })
-  router.reload()
+  }
 }
 
 const deleteFunnel = async (funnel) => {
   if (confirm(`"${funnel.name}" funnelini o'chirishni xohlaysizmi?`)) {
-    await fetch(getRoute('telegram-funnels.funnels.destroy', [props.bot.id, funnel.id]), {
-      method: 'DELETE',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    try {
+      await axios.delete(getRoute('telegram-funnels.funnels.destroy', [props.bot.id, funnel.id]))
+      router.reload()
+    } catch (error) {
+      if (error.response?.status === 419) {
+        alert('Sessiya tugagan. Sahifani yangilang.')
       }
-    })
-    router.reload()
+    }
   }
 }
 </script>

@@ -11,7 +11,8 @@ class InstagramConversation extends Model
 {
     use HasUuid;
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
+        'conversation_id', // Instagram API conversation ID
         'participant_id',
         'participant_username',
         'participant_name',
@@ -42,7 +43,7 @@ class InstagramConversation extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function currentAutomation(): BelongsTo

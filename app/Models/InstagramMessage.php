@@ -13,6 +13,7 @@ class InstagramMessage extends Model
         'conversation_id',
         'automation_id',
         'instagram_message_id',
+        'message_id', // legacy field for backwards compatibility
         'direction',
         'message_type',
         'content',

@@ -102,6 +102,22 @@ class TelegramBotManagementController extends Controller
             ],
         ]);
 
+        // Avtomatik webhook o'rnatish (APP_URL dan foydalanib)
+        $webhookUrl = config('app.url') . '/webhooks/telegram-funnel/' . $bot->id;
+        $webhookResult = $api->setWebhook($webhookUrl, $bot->webhook_secret);
+
+        $webhookMessage = '';
+        if ($webhookResult['success']) {
+            $bot->update([
+                'webhook_url' => $webhookUrl,
+                'is_verified' => true,
+                'verified_at' => now(),
+            ]);
+            $webhookMessage = ' Webhook avtomatik ulandi.';
+        } else {
+            $webhookMessage = ' Lekin webhook ulanmadi - keyinroq qayta urinib ko\'ring.';
+        }
+
         return response()->json([
             'success' => true,
             'bot' => [
@@ -109,7 +125,8 @@ class TelegramBotManagementController extends Controller
                 'username' => $bot->bot_username,
                 'first_name' => $bot->bot_first_name,
             ],
-            'message' => 'Bot muvaffaqiyatli qo\'shildi',
+            'webhook_connected' => $webhookResult['success'],
+            'message' => 'Bot muvaffaqiyatli qo\'shildi.' . $webhookMessage,
         ]);
     }
 
@@ -274,8 +291,8 @@ class TelegramBotManagementController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        // Generate webhook URL
-        $webhookUrl = route('webhooks.telegram.funnel.webhook', ['botId' => $bot->id]);
+        // Generate webhook URL (APP_URL dan foydalanib)
+        $webhookUrl = config('app.url') . '/webhooks/telegram-funnel/' . $bot->id;
 
         // Set webhook via Telegram API
         $api = new TelegramApiService($bot);
@@ -295,9 +312,26 @@ class TelegramBotManagementController extends Controller
             ]);
         }
 
+        // Xatolik sababini aniqlash
+        $errorDescription = $result['description'] ?? 'Noma\'lum xatolik';
+        $errorMessage = 'Webhook o\'rnatishda xatolik: ' . $errorDescription;
+
+        // Umumiy xatoliklar uchun yaxshiroq xabarlar
+        if (str_contains($errorDescription, 'HTTPS')) {
+            $errorMessage = 'Telegram faqat HTTPS URL qabul qiladi. APP_URL sozlamasini https:// bilan boshlang.';
+        } elseif (str_contains($errorDescription, 'certificate')) {
+            $errorMessage = 'SSL sertifikati bilan muammo. Haqiqiy SSL sertifikati o\'rnatilganligini tekshiring.';
+        } elseif (str_contains($errorDescription, 'Connection') || str_contains($errorDescription, 'resolve')) {
+            $errorMessage = 'Telegram serveringizga ulana olmadi. APP_URL ochiq internetdan kirish mumkin ekanligini tekshiring.';
+        } elseif (str_contains($errorDescription, 'wrong response')) {
+            $errorMessage = 'Server noto\'g\'ri javob qaytardi. Route va controller to\'g\'ri sozlanganligini tekshiring.';
+        }
+
         return response()->json([
             'success' => false,
-            'error' => $result['description'] ?? 'Webhook o\'rnatishda xatolik',
+            'error' => $errorMessage,
+            'technical_error' => $errorDescription,
+            'webhook_url' => $webhookUrl,
         ], 400);
     }
 

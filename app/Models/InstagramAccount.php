@@ -56,52 +56,52 @@ class InstagramAccount extends Model
 
     public function media(): HasMany
     {
-        return $this->hasMany(InstagramMedia::class);
+        return $this->hasMany(InstagramMedia::class, 'account_id');
     }
 
     public function dailyInsights(): HasMany
     {
-        return $this->hasMany(InstagramDailyInsight::class);
+        return $this->hasMany(InstagramDailyInsight::class, 'account_id');
     }
 
     public function audience(): HasOne
     {
-        return $this->hasOne(InstagramAudience::class);
+        return $this->hasOne(InstagramAudience::class, 'account_id');
     }
 
     public function dmStats(): HasMany
     {
-        return $this->hasMany(InstagramDmStat::class);
+        return $this->hasMany(InstagramDmStat::class, 'account_id');
     }
 
     public function hashtagStats(): HasMany
     {
-        return $this->hasMany(InstagramHashtagStat::class);
+        return $this->hasMany(InstagramHashtagStat::class, 'account_id');
     }
 
     public function syncLogs(): HasMany
     {
-        return $this->hasMany(InstagramSyncLog::class);
+        return $this->hasMany(InstagramSyncLog::class, 'account_id');
     }
 
     public function automations(): HasMany
     {
-        return $this->hasMany(InstagramAutomation::class);
+        return $this->hasMany(InstagramAutomation::class, 'account_id');
     }
 
     public function conversations(): HasMany
     {
-        return $this->hasMany(InstagramConversation::class);
+        return $this->hasMany(InstagramConversation::class, 'account_id');
     }
 
     public function quickReplies(): HasMany
     {
-        return $this->hasMany(InstagramQuickReply::class);
+        return $this->hasMany(InstagramQuickReply::class, 'account_id');
     }
 
     public function broadcasts(): HasMany
     {
-        return $this->hasMany(InstagramBroadcast::class);
+        return $this->hasMany(InstagramBroadcast::class, 'account_id');
     }
 
     public function reels(): HasMany

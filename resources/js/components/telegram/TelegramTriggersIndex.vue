@@ -424,6 +424,7 @@
 <script setup>
 import { ref, reactive, computed, h } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   bot: Object,
@@ -629,36 +630,34 @@ const saveTrigger = async () => {
       ? getRoute('telegram-funnels.triggers.update', [props.bot.id, editingTrigger.value.id])
       : getRoute('telegram-funnels.triggers.store', props.bot.id)
 
-    const response = await fetch(url, {
-      method: editingTrigger.value ? 'PUT' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({
-        name: formData.name,
-        type: formData.type,
-        value: formData.value,
-        match_type: formData.match_type,
-        funnel_id: formData.funnel_id,
-        step_id: formData.step_id || null,
-        priority: formData.priority,
-        is_active: formData.is_active
-      })
-    })
+    const payload = {
+      name: formData.name,
+      type: formData.type,
+      value: formData.value,
+      match_type: formData.match_type,
+      funnel_id: formData.funnel_id,
+      step_id: formData.step_id || null,
+      priority: formData.priority,
+      is_active: formData.is_active
+    }
 
-    const data = await response.json()
+    const response = editingTrigger.value
+      ? await axios.put(url, payload)
+      : await axios.post(url, payload)
 
-    if (data.success) {
+    if (response.data.success) {
       closeModal()
       router.reload()
     } else {
-      alert(data.message || 'Xatolik yuz berdi')
+      alert(response.data.message || 'Xatolik yuz berdi')
     }
   } catch (error) {
     console.error('Error saving trigger:', error)
-    alert('Xatolik yuz berdi')
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    } else {
+      alert(error.response?.data?.message || 'Xatolik yuz berdi')
+    }
   } finally {
     isSaving.value = false
   }
@@ -666,15 +665,13 @@ const saveTrigger = async () => {
 
 const toggleTriggerActive = async (trigger) => {
   try {
-    await fetch(getRoute('telegram-funnels.triggers.toggle-active', [props.bot.id, trigger.id]), {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      }
-    })
+    await axios.post(getRoute('telegram-funnels.triggers.toggle-active', [props.bot.id, trigger.id]))
     trigger.is_active = !trigger.is_active
   } catch (error) {
     console.error('Error toggling trigger:', error)
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    }
   }
 }
 
@@ -682,15 +679,13 @@ const deleteTrigger = async (trigger) => {
   if (!confirm(`"${trigger.name}" triggerini o'chirishni xohlaysizmi?`)) return
 
   try {
-    await fetch(getRoute('telegram-funnels.triggers.destroy', [props.bot.id, trigger.id]), {
-      method: 'DELETE',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      }
-    })
+    await axios.delete(getRoute('telegram-funnels.triggers.destroy', [props.bot.id, trigger.id]))
     router.reload()
   } catch (error) {
     console.error('Error deleting trigger:', error)
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    }
   }
 }
 
@@ -701,19 +696,15 @@ const testTrigger = async () => {
   testResult.value = null
 
   try {
-    const response = await fetch(getRoute('telegram-funnels.triggers.test', props.bot.id), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ text: testText.value })
+    const response = await axios.post(getRoute('telegram-funnels.triggers.test', props.bot.id), {
+      text: testText.value
     })
-
-    testResult.value = await response.json()
+    testResult.value = response.data
   } catch (error) {
     console.error('Error testing trigger:', error)
+    if (error.response?.status === 419) {
+      alert('Sessiya tugagan. Sahifani yangilang.')
+    }
   } finally {
     isTesting.value = false
   }

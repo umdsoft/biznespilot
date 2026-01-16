@@ -30,24 +30,51 @@
 
             <!-- Right side actions -->
             <div class="hidden lg:flex items-center space-x-4">
-                <!-- Language Switcher -->
-                <div class="relative group">
-                    <button class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                        <span>{{ $locales[$locale]['flag'] }}</span>
-                        <span>{{ $locales[$locale]['name'] }}</span>
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                <!-- Language Switcher with Flags -->
+                <div class="flex items-center space-x-1 bg-gray-100 rounded-full p-1">
+                    <a href="{{ route('landing.language', 'uz') }}"
+                       class="flex items-center justify-center w-9 h-9 rounded-full transition-all {{ $locale === 'uz' ? 'bg-white shadow-sm ring-2 ring-blue-500' : 'hover:bg-gray-200' }}"
+                       title="O'zbekcha">
+                        {{-- Uzbekistan Flag --}}
+                        <svg class="w-6 h-6 rounded-full shadow-sm" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                            <mask id="uzMask"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+                            <g mask="url(#uzMask)">
+                                <path fill="#0099b5" d="M0 0h512v167H0z"/>
+                                <path fill="#fff" d="M0 178h512v156H0z"/>
+                                <path fill="#1eb53a" d="M0 345h512v167H0z"/>
+                                <path fill="#ce1126" d="M0 167h512v11H0zM0 334h512v11H0z"/>
+                                <circle cx="163" cy="89" r="45" fill="#fff"/>
+                                <circle cx="176" cy="89" r="40" fill="#0099b5"/>
+                                <g fill="#fff">
+                                    <path d="m224 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m272 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m320 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m368 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m416 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m248 89 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m296 89 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m344 89 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m392 89 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m272 125 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m320 125 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m368 125 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                </g>
+                            </g>
                         </svg>
-                    </button>
-                    <div class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                        @foreach($locales as $code => $localeInfo)
-                            <a href="{{ route('landing.language', $code) }}"
-                               class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg {{ $locale === $code ? 'bg-blue-50 text-blue-600' : 'text-gray-700' }}">
-                                <span>{{ $localeInfo['flag'] }}</span>
-                                <span>{{ $localeInfo['name'] }}</span>
-                            </a>
-                        @endforeach
-                    </div>
+                    </a>
+                    <a href="{{ route('landing.language', 'ru') }}"
+                       class="flex items-center justify-center w-9 h-9 rounded-full transition-all {{ $locale === 'ru' ? 'bg-white shadow-sm ring-2 ring-blue-500' : 'hover:bg-gray-200' }}"
+                       title="Русский">
+                        {{-- Russia Flag --}}
+                        <svg class="w-6 h-6 rounded-full shadow-sm" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                            <mask id="ruMask"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+                            <g mask="url(#ruMask)">
+                                <path fill="#fff" d="M0 0h512v170.7H0z"/>
+                                <path fill="#0039a6" d="M0 170.7h512v170.6H0z"/>
+                                <path fill="#d52b1e" d="M0 341.3h512V512H0z"/>
+                            </g>
+                        </svg>
+                    </a>
                 </div>
 
                 <!-- Login Button -->
@@ -87,15 +114,42 @@
                     {{ $translations['nav']['faq'] }}
                 </a>
 
-                <!-- Language switcher mobile -->
-                <div class="px-4 py-2 flex items-center space-x-2">
-                    @foreach($locales as $code => $localeInfo)
-                        <a href="{{ route('landing.language', $code) }}"
-                           class="flex items-center space-x-1 px-3 py-1.5 rounded-lg {{ $locale === $code ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600' }}">
-                            <span>{{ $localeInfo['flag'] }}</span>
-                            <span class="text-sm">{{ $localeInfo['name'] }}</span>
-                        </a>
-                    @endforeach
+                <!-- Language switcher mobile with Flags -->
+                <div class="px-4 py-2 flex items-center justify-center space-x-3">
+                    <a href="{{ route('landing.language', 'uz') }}"
+                       class="flex items-center justify-center w-12 h-12 rounded-xl transition-all {{ $locale === 'uz' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-gray-100 hover:bg-gray-200' }}"
+                       title="O'zbekcha">
+                        <svg class="w-8 h-8 rounded-full shadow-sm" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                            <mask id="uzMaskM"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+                            <g mask="url(#uzMaskM)">
+                                <path fill="#0099b5" d="M0 0h512v167H0z"/>
+                                <path fill="#fff" d="M0 178h512v156H0z"/>
+                                <path fill="#1eb53a" d="M0 345h512v167H0z"/>
+                                <path fill="#ce1126" d="M0 167h512v11H0zM0 334h512v11H0z"/>
+                                <circle cx="163" cy="89" r="45" fill="#fff"/>
+                                <circle cx="176" cy="89" r="40" fill="#0099b5"/>
+                                <g fill="#fff">
+                                    <path d="m224 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m272 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m320 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m368 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                    <path d="m416 53 4 12h13l-11 7 4 12-10-8-11 8 5-12-11-7h13z"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </a>
+                    <a href="{{ route('landing.language', 'ru') }}"
+                       class="flex items-center justify-center w-12 h-12 rounded-xl transition-all {{ $locale === 'ru' ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-gray-100 hover:bg-gray-200' }}"
+                       title="Русский">
+                        <svg class="w-8 h-8 rounded-full shadow-sm" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                            <mask id="ruMaskM"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+                            <g mask="url(#ruMaskM)">
+                                <path fill="#fff" d="M0 0h512v170.7H0z"/>
+                                <path fill="#0039a6" d="M0 170.7h512v170.6H0z"/>
+                                <path fill="#d52b1e" d="M0 341.3h512V512H0z"/>
+                            </g>
+                        </svg>
+                    </a>
                 </div>
 
                 <div class="pt-4 space-y-2 border-t border-gray-100">

@@ -42,6 +42,7 @@ class TelegramFunnelStep extends Model
         'quiz',
         'ab_test',
         'tag',
+        'trigger',
     ];
 
     protected $casts = [
@@ -63,6 +64,7 @@ class TelegramFunnelStep extends Model
         'quiz' => 'array',
         'ab_test' => 'array',
         'tag' => 'array',
+        'trigger' => 'array',
     ];
 
     // Relations

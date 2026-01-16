@@ -238,6 +238,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   bot: Object,
@@ -319,56 +320,31 @@ const getStatusIconClass = (status) => {
 
 const startBroadcast = async (broadcast) => {
   if (confirm('Broadcastni boshlashni xohlaysizmi?')) {
-    await fetch(getRoute('telegram-funnels.broadcasts.start', [props.bot.id, broadcast.id]), {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      }
-    })
+    await axios.post(getRoute('telegram-funnels.broadcasts.start', [props.bot.id, broadcast.id]))
     router.reload()
   }
 }
 
 const pauseBroadcast = async (broadcast) => {
-  await fetch(getRoute('telegram-funnels.broadcasts.pause', [props.bot.id, broadcast.id]), {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-    }
-  })
+  await axios.post(getRoute('telegram-funnels.broadcasts.pause', [props.bot.id, broadcast.id]))
   router.reload()
 }
 
 const resumeBroadcast = async (broadcast) => {
-  await fetch(getRoute('telegram-funnels.broadcasts.resume', [props.bot.id, broadcast.id]), {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-    }
-  })
+  await axios.post(getRoute('telegram-funnels.broadcasts.resume', [props.bot.id, broadcast.id]))
   router.reload()
 }
 
 const cancelBroadcast = async (broadcast) => {
   if (confirm('Broadcastni bekor qilishni xohlaysizmi?')) {
-    await fetch(getRoute('telegram-funnels.broadcasts.cancel', [props.bot.id, broadcast.id]), {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      }
-    })
+    await axios.post(getRoute('telegram-funnels.broadcasts.cancel', [props.bot.id, broadcast.id]))
     router.reload()
   }
 }
 
 const deleteBroadcast = async (broadcast) => {
   if (confirm('Broadcastni o\'chirishni xohlaysizmi?')) {
-    await fetch(getRoute('telegram-funnels.broadcasts.destroy', [props.bot.id, broadcast.id]), {
-      method: 'DELETE',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      }
-    })
+    await axios.delete(getRoute('telegram-funnels.broadcasts.destroy', [props.bot.id, broadcast.id]))
     router.reload()
   }
 }

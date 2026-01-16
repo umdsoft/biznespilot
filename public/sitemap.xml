@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+    <!-- Homepage - Uzbek (Default) -->
+    <url>
+        <loc>https://biznespilot.uz/</loc>
+        <xhtml:link rel="alternate" hreflang="uz" href="https://biznespilot.uz/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://biznespilot.uz/lang/ru"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/"/>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+        <image:image>
+            <image:loc>https://biznespilot.uz/images/og-image.png</image:loc>
+            <image:title>BiznesPilot - Biznes Boshqaruv Platformasi</image:title>
+            <image:caption>O'zbekistondagi #1 biznes boshqaruv platformasi</image:caption>
+        </image:image>
+    </url>
+
+    <!-- Homepage - Russian -->
+    <url>
+        <loc>https://biznespilot.uz/lang/ru</loc>
+        <xhtml:link rel="alternate" hreflang="uz" href="https://biznespilot.uz/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://biznespilot.uz/lang/ru"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/"/>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+        <image:image>
+            <image:loc>https://biznespilot.uz/images/og-image.png</image:loc>
+            <image:title>BiznesPilot - Платформа управления бизнесом</image:title>
+            <image:caption>Платформа управления бизнесом #1 в Узбекистане</image:caption>
+        </image:image>
+    </url>
+
+    <!-- Login Page -->
+    <url>
+        <loc>https://biznespilot.uz/login</loc>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- Register Page -->
+    <url>
+        <loc>https://biznespilot.uz/register</loc>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Features Section (Anchor) -->
+    <url>
+        <loc>https://biznespilot.uz/#features</loc>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- How It Works Section (Anchor) -->
+    <url>
+        <loc>https://biznespilot.uz/#how-it-works</loc>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Benefits Section (Anchor) -->
+    <url>
+        <loc>https://biznespilot.uz/#benefits</loc>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- FAQ Section (Anchor) -->
+    <url>
+        <loc>https://biznespilot.uz/#faq</loc>
+        <lastmod>2025-01-16</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+</urlset>

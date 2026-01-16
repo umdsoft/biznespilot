@@ -9,13 +9,14 @@ use App\Models\InstagramAudience;
 use App\Models\InstagramHashtagStat;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class InstagramDataService
 {
     /**
      * Get account overview stats
      */
-    public function getOverview(int $accountId, string $datePreset = 'last_30d'): array
+    public function getOverview(string $accountId, string $datePreset = 'last_30d'): array
     {
         $account = InstagramAccount::find($accountId);
         if (!$account) {
@@ -46,20 +47,20 @@ class InstagramDataService
     /**
      * Get media performance analysis
      */
-    public function getMediaPerformance(int $accountId, string $datePreset = 'last_30d'): array
+    public function getMediaPerformance(string $accountId, string $datePreset = 'last_30d'): array
     {
         // Use smart date range - falls back to all data if preset range is empty
         $dates = $this->getSmartDateRange($accountId, $datePreset);
 
         // All media for filtering/pagination in frontend
-        $allMedia = InstagramMedia::where('instagram_account_id', $accountId)
+        $allMedia = InstagramMedia::where('account_id', $accountId)
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->orderByDesc('engagement_rate')
             ->get()
             ->map(fn($m) => $this->formatMediaFull($m));
 
         // Top performing posts (FEED + CAROUSEL)
-        $topPosts = InstagramMedia::where('instagram_account_id', $accountId)
+        $topPosts = InstagramMedia::where('account_id', $accountId)
             ->whereIn('media_product_type', ['FEED', 'CAROUSEL_ALBUM'])
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->orderByDesc('engagement_rate')
@@ -68,7 +69,7 @@ class InstagramDataService
             ->map(fn($m) => $this->formatMediaFull($m));
 
         // Top performing reels
-        $topReels = InstagramMedia::where('instagram_account_id', $accountId)
+        $topReels = InstagramMedia::where('account_id', $accountId)
             ->where('media_product_type', 'REELS')
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->orderByDesc('reach')
@@ -77,7 +78,7 @@ class InstagramDataService
             ->map(fn($m) => $this->formatMediaFull($m));
 
         // Media by type stats
-        $mediaByType = InstagramMedia::where('instagram_account_id', $accountId)
+        $mediaByType = InstagramMedia::where('account_id', $accountId)
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->select(
                 'media_product_type',
@@ -107,12 +108,12 @@ class InstagramDataService
     /**
      * Get reels specific analytics
      */
-    public function getReelsAnalytics(int $accountId, string $datePreset = 'last_30d'): array
+    public function getReelsAnalytics(string $accountId, string $datePreset = 'last_30d'): array
     {
         // Use smart date range - falls back to all data if preset range is empty
         $dates = $this->getSmartDateRange($accountId, $datePreset);
 
-        $reels = InstagramMedia::where('instagram_account_id', $accountId)
+        $reels = InstagramMedia::where('account_id', $accountId)
             ->where('media_product_type', 'REELS')
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->orderByDesc('posted_at')
@@ -162,12 +163,12 @@ class InstagramDataService
     /**
      * Get engagement analytics
      */
-    public function getEngagementAnalytics(int $accountId, string $datePreset = 'last_30d'): array
+    public function getEngagementAnalytics(string $accountId, string $datePreset = 'last_30d'): array
     {
         // Use smart date range - falls back to all data if preset range is empty
         $dates = $this->getSmartDateRange($accountId, $datePreset);
 
-        $media = InstagramMedia::where('instagram_account_id', $accountId)
+        $media = InstagramMedia::where('account_id', $accountId)
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->get();
 
@@ -212,9 +213,9 @@ class InstagramDataService
     /**
      * Get audience demographics
      */
-    public function getAudienceDemographics(int $accountId): array
+    public function getAudienceDemographics(string $accountId): array
     {
-        $audience = InstagramAudience::where('instagram_account_id', $accountId)->first();
+        $audience = InstagramAudience::where('account_id', $accountId)->first();
 
         if (!$audience) {
             return [
@@ -351,9 +352,9 @@ class InstagramDataService
     /**
      * Get hashtag performance
      */
-    public function getHashtagPerformance(int $accountId, int $limit = 20): array
+    public function getHashtagPerformance(string $accountId, int $limit = 20): array
     {
-        $hashtags = InstagramHashtagStat::where('instagram_account_id', $accountId)
+        $hashtags = InstagramHashtagStat::where('account_id', $accountId)
             ->orderByDesc('avg_engagement_rate')
             ->limit($limit)
             ->get();
@@ -386,15 +387,15 @@ class InstagramDataService
     /**
      * Get growth trend
      */
-    public function getGrowthTrend(int $accountId, int $days = 30): array
+    public function getGrowthTrend(string $accountId, int $days = 30): array
     {
-        $insights = InstagramDailyInsight::where('instagram_account_id', $accountId)
-            ->where('date', '>=', now()->subDays($days))
-            ->orderBy('date')
+        $insights = InstagramDailyInsight::where('account_id', $accountId)
+            ->where('insight_date', '>=', now()->subDays($days))
+            ->orderBy('insight_date')
             ->get();
 
         return $insights->map(fn($i) => [
-            'date' => $i->date->format('Y-m-d'),
+            'date' => $i->insight_date->format('Y-m-d'),
             'followers' => $i->follower_count,
             'impressions' => $i->impressions,
             'reach' => $i->reach,
@@ -406,7 +407,7 @@ class InstagramDataService
     /**
      * Get AI-ready summary for analytics
      */
-    public function getAISummary(int $accountId, string $datePreset = 'last_30d'): array
+    public function getAISummary(string $accountId, string $datePreset = 'last_30d'): array
     {
         $overview = $this->getOverview($accountId, $datePreset);
         $mediaPerf = $this->getMediaPerformance($accountId, $datePreset);
@@ -440,7 +441,7 @@ class InstagramDataService
     /**
      * Get content performance comparison
      */
-    public function getContentComparison(int $accountId, string $datePreset = 'last_30d'): array
+    public function getContentComparison(string $accountId, string $datePreset = 'last_30d'): array
     {
         // Use smart date range - falls back to all data if preset range is empty
         $dates = $this->getSmartDateRange($accountId, $datePreset);
@@ -455,7 +456,7 @@ class InstagramDataService
         $comparison = [];
 
         foreach ($typeMapping as $dbType => $displayName) {
-            $query = InstagramMedia::where('instagram_account_id', $accountId)
+            $query = InstagramMedia::where('account_id', $accountId)
                 ->whereBetween('posted_at', [$dates['start'], $dates['end']]);
 
             // FEED includes single images
@@ -474,8 +475,8 @@ class InstagramDataService
                 'avg_engagement_rate' => round($media->avg('engagement_rate') ?? 0, 2),
                 'total_likes' => $media->sum('like_count'),
                 'total_comments' => $media->sum('comments_count'),
-                'total_saves' => $media->sum('saves_count'),
-                'total_shares' => $media->sum('shares_count'),
+                'total_saves' => $media->sum('saved'),
+                'total_shares' => $media->sum('shares'),
             ];
         }
 
@@ -484,10 +485,10 @@ class InstagramDataService
 
     // ==================== HELPER METHODS ====================
 
-    private function getAggregatedInsights(int $accountId, Carbon $start, Carbon $end): array
+    private function getAggregatedInsights(string $accountId, Carbon $start, Carbon $end): array
     {
-        $insights = InstagramDailyInsight::where('instagram_account_id', $accountId)
-            ->whereBetween('date', [$start, $end])
+        $insights = InstagramDailyInsight::where('account_id', $accountId)
+            ->whereBetween('insight_date', [$start, $end])
             ->select(
                 DB::raw('SUM(impressions) as impressions'),
                 DB::raw('SUM(reach) as reach'),
@@ -497,14 +498,14 @@ class InstagramDataService
             )
             ->first();
 
-        $media = InstagramMedia::where('instagram_account_id', $accountId)
+        $media = InstagramMedia::where('account_id', $accountId)
             ->whereBetween('posted_at', [$start, $end])
             ->select(
                 DB::raw('COUNT(*) as posts_count'),
                 DB::raw('SUM(like_count) as total_likes'),
                 DB::raw('SUM(comments_count) as total_comments'),
-                DB::raw('SUM(saves_count) as total_saves'),
-                DB::raw('SUM(shares_count) as total_shares'),
+                DB::raw('SUM(saved) as total_saves'),
+                DB::raw('SUM(shares) as total_shares'),
                 DB::raw('AVG(engagement_rate) as avg_engagement')
             )
             ->first();
@@ -547,13 +548,13 @@ class InstagramDataService
         return [
             'id' => $media->media_id,
             'type' => $media->media_product_type,
-            'caption' => \Str::limit($media->caption, 100),
+            'caption' => Str::limit($media->caption, 100),
             'permalink' => $media->permalink,
             'thumbnail_url' => $media->thumbnail_url,
             'like_count' => $media->like_count,
             'comments_count' => $media->comments_count,
-            'saves_count' => $media->saves_count,
-            'shares_count' => $media->shares_count,
+            'saves_count' => $media->saved,
+            'shares_count' => $media->shares,
             'reach' => $media->reach,
             'impressions' => $media->impressions,
             'plays' => $media->plays,
@@ -582,8 +583,8 @@ class InstagramDataService
             'thumbnail_url' => $media->thumbnail_url,
             'like_count' => $media->like_count ?? 0,
             'comments_count' => $media->comments_count ?? 0,
-            'saves_count' => $media->saves_count ?? 0,
-            'shares_count' => $media->shares_count ?? 0,
+            'saves_count' => $media->saved ?? 0,
+            'shares_count' => $media->shares ?? 0,
             'reach' => $media->reach ?? 0,
             'impressions' => $media->impressions ?? 0,
             'plays' => $media->plays ?? 0,
@@ -689,13 +690,13 @@ class InstagramDataService
      * Get actual date range from media data for an account
      * Returns the range of dates where media actually exists
      */
-    private function getActualMediaDateRange(int $accountId): array
+    private function getActualMediaDateRange(string $accountId): array
     {
-        $oldest = InstagramMedia::where('instagram_account_id', $accountId)
+        $oldest = InstagramMedia::where('account_id', $accountId)
             ->orderBy('posted_at', 'asc')
             ->first();
 
-        $newest = InstagramMedia::where('instagram_account_id', $accountId)
+        $newest = InstagramMedia::where('account_id', $accountId)
             ->orderBy('posted_at', 'desc')
             ->first();
 
@@ -715,12 +716,12 @@ class InstagramDataService
     /**
      * Get smart date range - uses actual data range if preset range is empty
      */
-    private function getSmartDateRange(int $accountId, string $preset): array
+    private function getSmartDateRange(string $accountId, string $preset): array
     {
         $dates = $this->getDateRange($preset);
 
         // Check if there's any media in the preset range
-        $hasMedia = InstagramMedia::where('instagram_account_id', $accountId)
+        $hasMedia = InstagramMedia::where('account_id', $accountId)
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->exists();
 

@@ -10,7 +10,7 @@ class InstagramBroadcast extends Model
 {
     use HasUuid;
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
         'name',
         'message',
         'media',
@@ -44,7 +44,7 @@ class InstagramBroadcast extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function scopeDraft($query)

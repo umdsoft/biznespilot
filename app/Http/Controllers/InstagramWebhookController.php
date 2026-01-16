@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Models\ChatbotConfig;
+use App\Models\InstagramAccount;
+use App\Services\InstagramChatbotService;
 use App\Services\InstagramDMService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -11,12 +13,15 @@ use Illuminate\Support\Facades\Log;
 class InstagramWebhookController extends Controller
 {
     protected InstagramDMService $instagramService;
+    protected InstagramChatbotService $chatbotService;
     protected ?object $aiChatService = null;
 
     public function __construct(
-        InstagramDMService $instagramService
+        InstagramDMService $instagramService,
+        InstagramChatbotService $chatbotService
     ) {
         $this->instagramService = $instagramService;
+        $this->chatbotService = $chatbotService;
 
         // InstagramAIChatService optional - if it exists, load it
         if (class_exists(\App\Services\InstagramAIChatService::class)) {
@@ -47,41 +52,47 @@ class InstagramWebhookController extends Controller
             // Validate business
             $business = Business::findOrFail($businessId);
 
-            // Validate config
-            $config = ChatbotConfig::where('business_id', $business->id)->first();
-
-            if (!$config || !$config->instagram_enabled || !$config->instagram_access_token) {
-                Log::warning('Instagram webhook received but bot not configured', [
-                    'business_id' => $businessId,
-                ]);
-
-                return response()->json(['error' => 'Bot not configured'], 400);
-            }
-
             // Get webhook data
             $data = $request->all();
 
             Log::info('Instagram webhook received', [
                 'business_id' => $businessId,
                 'object' => $data['object'] ?? null,
+                'data' => $data,
             ]);
 
             // Instagram webhooks come in this format
             if (isset($data['entry'])) {
                 foreach ($data['entry'] as $entry) {
+                    // Get Instagram account by instagram_id from webhook entry
+                    $instagramId = $entry['id'] ?? null;
+                    $instagramAccount = $instagramId
+                        ? InstagramAccount::where('instagram_id', $instagramId)->first()
+                        : InstagramAccount::where('business_id', $business->id)->first();
+
+                    // Process flow-based automations via InstagramChatbotService
+                    if ($instagramAccount) {
+                        $this->processFlowAutomations($entry, $instagramAccount);
+                    }
+
+                    // Also check for AI chatbot config
+                    $config = ChatbotConfig::where('business_id', $business->id)->first();
+
                     // Process with AI if enabled
-                    if ($config->ai_enabled ?? false) {
+                    if ($config && ($config->ai_enabled ?? false)) {
                         $this->processWithAI($entry, $business);
                     }
 
-                    // Also process with standard service
-                    $result = $this->instagramService->handleWebhook($entry, $business);
+                    // Also process with standard service (if config exists)
+                    if ($config && $config->instagram_enabled && $config->instagram_access_token) {
+                        $result = $this->instagramService->handleWebhook($entry, $business);
 
-                    if (!$result['success']) {
-                        Log::warning('Instagram webhook processing failed', [
-                            'business_id' => $businessId,
-                            'error' => $result['error'] ?? 'Unknown error',
-                        ]);
+                        if (!$result['success']) {
+                            Log::warning('Instagram webhook processing failed', [
+                                'business_id' => $businessId,
+                                'error' => $result['error'] ?? 'Unknown error',
+                            ]);
+                        }
                     }
                 }
             }
@@ -100,6 +111,98 @@ class InstagramWebhookController extends Controller
     }
 
     /**
+     * Process flow-based automations
+     */
+    private function processFlowAutomations(array $entry, InstagramAccount $account): void
+    {
+        try {
+            $messaging = $entry['messaging'] ?? [];
+            $instagramId = $entry['id'] ?? null;
+
+            foreach ($messaging as $event) {
+                $senderId = $event['sender']['id'] ?? null;
+                $recipientId = $event['recipient']['id'] ?? null;
+
+                // Skip if this is our own message or echo
+                if ($senderId === $account->instagram_id) {
+                    continue;
+                }
+
+                // Skip echo messages (our own outgoing messages)
+                if (isset($event['message']['is_echo']) && $event['message']['is_echo']) {
+                    Log::debug('Skipping echo message', ['sender_id' => $senderId]);
+                    continue;
+                }
+
+                // Handle text messages (DM)
+                if (isset($event['message']['text']) && $senderId) {
+                    $messageText = $event['message']['text'];
+
+                    Log::info('Processing DM for flow automations', [
+                        'account_id' => $account->id,
+                        'sender_id' => $senderId,
+                        'message' => $messageText,
+                    ]);
+
+                    $this->chatbotService->processWebhook([
+                        'type' => 'message',
+                        'recipient_id' => $recipientId ?? $account->instagram_id,
+                        'sender_id' => $senderId,
+                        'message' => $messageText,
+                        'message_id' => $event['message']['mid'] ?? null,
+                        'sender_username' => null,
+                        'sender_name' => null,
+                        'sender_profile_picture' => null,
+                    ]);
+                }
+
+                // Handle story mentions
+                elseif (isset($event['story_mention']) && $senderId) {
+                    $this->chatbotService->processWebhook([
+                        'type' => 'story_mention',
+                        'mentioned_user_id' => $recipientId ?? $account->instagram_id,
+                        'mentioner_id' => $senderId,
+                        'story_id' => $event['story_mention']['id'] ?? null,
+                    ]);
+                }
+
+                // Handle story replies
+                elseif (isset($event['message']['reply_to']['story']) && $senderId) {
+                    $this->chatbotService->processWebhook([
+                        'type' => 'story_reply',
+                        'story_owner_id' => $recipientId ?? $account->instagram_id,
+                        'replier_id' => $senderId,
+                        'reply_text' => $event['message']['text'] ?? '',
+                        'story_id' => $event['message']['reply_to']['story']['id'] ?? null,
+                    ]);
+                }
+            }
+
+            // Handle comments (different structure)
+            $changes = $entry['changes'] ?? [];
+            foreach ($changes as $change) {
+                if (($change['field'] ?? '') === 'comments') {
+                    $value = $change['value'] ?? [];
+                    $this->chatbotService->processWebhook([
+                        'type' => 'comment',
+                        'media_owner_id' => $account->instagram_id,
+                        'media_id' => $value['media']['id'] ?? null,
+                        'commenter_id' => $value['from']['id'] ?? null,
+                        'commenter_username' => $value['from']['username'] ?? null,
+                        'text' => $value['text'] ?? '',
+                        'comment_id' => $value['id'] ?? null,
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Flow automation processing error', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Verify webhook signature (HMAC-SHA256)
      * Meta/Facebook webhooks include X-Hub-Signature-256 header
      */
@@ -107,6 +210,12 @@ class InstagramWebhookController extends Controller
     {
         $signature = $request->header('X-Hub-Signature-256');
         $appSecret = config('services.instagram.app_secret', config('services.facebook.app_secret'));
+
+        // Development/local muhitda signature verification'ni o'chirish
+        if (app()->environment('local', 'development')) {
+            Log::info('Instagram webhook signature verification skipped (development mode)');
+            return true;
+        }
 
         // Agar app_secret sozlanmagan bo'lsa, log qilib true qaytaramiz (development uchun)
         if (empty($appSecret)) {

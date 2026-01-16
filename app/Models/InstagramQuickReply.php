@@ -10,7 +10,7 @@ class InstagramQuickReply extends Model
 {
     use HasUuid;
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
         'title',
         'content',
         'shortcut',
@@ -19,7 +19,7 @@ class InstagramQuickReply extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function incrementUsage(): void

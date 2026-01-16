@@ -12,11 +12,14 @@ use App\Services\InstagramChatbotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class InstagramChatbotController extends Controller
 {
+    use Traits\HasCurrentBusiness;
+
     public function __construct(
         protected InstagramChatbotService $chatbotService
     ) {}
@@ -112,7 +115,7 @@ class InstagramChatbotController extends Controller
     /**
      * Update automation
      */
-    public function updateAutomation(Request $request, int $id): JsonResponse
+    public function updateAutomation(Request $request, string $id): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
         if (!$account) {
@@ -147,7 +150,7 @@ class InstagramChatbotController extends Controller
     /**
      * Delete automation
      */
-    public function deleteAutomation(Request $request, int $id): JsonResponse
+    public function deleteAutomation(Request $request, string $id): JsonResponse
     {
         try {
             $this->chatbotService->deleteAutomation($id);
@@ -160,7 +163,7 @@ class InstagramChatbotController extends Controller
     /**
      * Toggle automation status
      */
-    public function toggleAutomation(Request $request, int $id): JsonResponse
+    public function toggleAutomation(Request $request, string $id): JsonResponse
     {
         try {
             $automation = $this->chatbotService->toggleAutomation($id);
@@ -202,7 +205,7 @@ class InstagramChatbotController extends Controller
     /**
      * Get conversation detail
      */
-    public function getConversation(Request $request, int $id): JsonResponse
+    public function getConversation(Request $request, string $id): JsonResponse
     {
         try {
             $conversation = $this->chatbotService->getConversation($id);
@@ -215,7 +218,7 @@ class InstagramChatbotController extends Controller
     /**
      * Send message
      */
-    public function sendMessage(Request $request, int $conversationId): JsonResponse
+    public function sendMessage(Request $request, string $conversationId): JsonResponse
     {
         $validated = $request->validate([
             'message' => 'required|string|max:1000',
@@ -337,7 +340,7 @@ class InstagramChatbotController extends Controller
     {
         $account = $this->getSelectedAccount($request);
         if (!$account) {
-            return response()->json(['error' => 'Account not found'], 404);
+            return response()->json(['error' => 'Instagram akkount topilmadi. Iltimos, avval Instagram akkountingizni ulang.'], 404);
         }
 
         $validated = $request->validate([
@@ -375,7 +378,7 @@ class InstagramChatbotController extends Controller
 
             // Create automation
             $automation = InstagramAutomation::create([
-                'instagram_account_id' => $account->id,
+                'account_id' => $account->id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'status' => $validated['status'] ?? 'draft',
@@ -415,15 +418,19 @@ class InstagramChatbotController extends Controller
                 'success' => true,
                 'automation' => $automation->load(['flowNodes', 'flowEdges']),
             ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Flow automation DB error: ' . $e->getMessage());
+            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Flow automation error: ' . $e->getMessage());
+            return response()->json(['error' => 'Xatolik: ' . $e->getMessage()], 500);
         }
     }
 
     /**
      * Update flow-based automation
      */
-    public function updateFlowAutomation(Request $request, int $id): JsonResponse
+    public function updateFlowAutomation(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'string|max:255',
@@ -505,15 +512,19 @@ class InstagramChatbotController extends Controller
                 'success' => true,
                 'automation' => $automation->fresh(['flowNodes', 'flowEdges']),
             ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Flow automation update DB error: ' . $e->getMessage());
+            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Flow automation update error: ' . $e->getMessage());
+            return response()->json(['error' => 'Xatolik: ' . $e->getMessage()], 500);
         }
     }
 
     /**
      * Get flow automation detail
      */
-    public function getFlowAutomation(Request $request, int $id): JsonResponse
+    public function getFlowAutomation(Request $request, string $id): JsonResponse
     {
         try {
             $automation = InstagramAutomation::with(['flowNodes', 'flowEdges'])->findOrFail($id);
@@ -544,14 +555,6 @@ class InstagramChatbotController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
-    }
-
-    /**
-     * Get current business
-     */
-    protected function getCurrentBusiness(Request $request): ?Business
-    {
-        return Business::find(session('current_business_id'));
     }
 
     /**

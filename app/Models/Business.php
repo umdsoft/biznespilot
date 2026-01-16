@@ -21,6 +21,7 @@ class Business extends Model
      */
     protected $fillable = [
         'user_id',
+        'instagram_account_id',
         'name',
         'slug',
         'category',
@@ -514,6 +515,14 @@ class Business extends Model
     public function instagramAccounts(): HasMany
     {
         return $this->hasMany(\App\Models\InstagramAccount::class);
+    }
+
+    /**
+     * Get the selected Instagram account for the business.
+     */
+    public function instagramAccount(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\InstagramAccount::class, 'instagram_account_id');
     }
 
     /**

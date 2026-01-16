@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstagramDailyInsight extends Model
 {
-    use BelongsToBusiness, HasUuid;
+    use HasUuid;
 
     protected $fillable = [
         'account_id',

@@ -112,6 +112,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   panelType: {
@@ -139,17 +140,11 @@ const verifyAndCreate = async () => {
   botInfo.value = null
 
   try {
-    const response = await fetch(getRoute('telegram-funnels.store'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ bot_token: botToken.value })
+    const response = await axios.post(getRoute('telegram-funnels.store'), {
+      bot_token: botToken.value
     })
 
-    const data = await response.json()
+    const data = response.data
 
     if (data.success) {
       botInfo.value = data.bot
@@ -161,7 +156,13 @@ const verifyAndCreate = async () => {
       error.value = data.message || 'Bot tokenini tekshirishda xatolik'
     }
   } catch (err) {
-    error.value = 'Server bilan bog\'lanishda xatolik'
+    if (err.response?.data?.message) {
+      error.value = err.response.data.message
+    } else if (err.response?.status === 419) {
+      error.value = 'Sessiya tugagan. Sahifani yangilang.'
+    } else {
+      error.value = 'Server bilan bog\'lanishda xatolik'
+    }
   } finally {
     isLoading.value = false
   }

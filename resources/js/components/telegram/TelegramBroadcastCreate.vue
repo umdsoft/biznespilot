@@ -215,6 +215,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
   bot: Object,
@@ -283,32 +284,19 @@ const createBroadcast = async (startImmediately = false) => {
   isSaving.value = true
 
   try {
-    const response = await fetch(getRoute('telegram-funnels.broadcasts.store', props.bot.id), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        name: form.name,
-        content: form.content,
-        target_filter: selectedTags.value.length > 0 ? { tags: selectedTags.value } : null,
-        scheduled_at: isScheduled.value ? form.scheduled_at : null,
-      })
+    const response = await axios.post(getRoute('telegram-funnels.broadcasts.store', props.bot.id), {
+      name: form.name,
+      content: form.content,
+      target_filter: selectedTags.value.length > 0 ? { tags: selectedTags.value } : null,
+      scheduled_at: isScheduled.value ? form.scheduled_at : null,
     })
 
-    const data = await response.json()
+    const data = response.data
 
     if (data.success) {
       if (startImmediately && !isScheduled.value) {
         // Start the broadcast immediately
-        await fetch(getRoute('telegram-funnels.broadcasts.start', [props.bot.id, data.broadcast.id]), {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-          }
-        })
+        await axios.post(getRoute('telegram-funnels.broadcasts.start', [props.bot.id, data.broadcast.id]))
       }
       router.visit(getRoute('telegram-funnels.broadcasts.index', props.bot.id))
     } else {

@@ -12,7 +12,7 @@ class InstagramDmStat extends Model
     use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
-        'instagram_account_id',
+        'account_id',
         'business_id',
         'date',
         'total_conversations',
@@ -34,7 +34,7 @@ class InstagramDmStat extends Model
 
     public function instagramAccount(): BelongsTo
     {
-        return $this->belongsTo(InstagramAccount::class);
+        return $this->belongsTo(InstagramAccount::class, 'account_id');
     }
 
     public function getTotalDmFromContentAttribute(): int
