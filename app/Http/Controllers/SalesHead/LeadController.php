@@ -633,4 +633,364 @@ class LeadController extends Controller
             'message' => 'Izoh qo\'shildi',
         ]);
     }
+
+    /**
+     * Get lead phone calls history
+     */
+    public function getCalls($leadId)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $lead = Lead::where('business_id', $business->id)->findOrFail($leadId);
+
+        $calls = $lead->calls()
+            ->with('user:id,name')
+            ->get()
+            ->map(fn($call) => [
+                'id' => $call->id,
+                'direction' => $call->direction,
+                'direction_label' => $call->direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi',
+                'from_number' => $call->from_number,
+                'to_number' => $call->to_number,
+                'status' => $call->status,
+                'status_label' => $this->getCallStatusLabel($call->status),
+                'duration' => $call->duration,
+                'duration_formatted' => $this->formatDuration($call->duration),
+                'wait_time' => $call->wait_time,
+                'recording_url' => $call->recording_url,
+                'notes' => $call->notes,
+                'user' => $call->user ? [
+                    'id' => $call->user->id,
+                    'name' => $call->user->name,
+                ] : null,
+                'started_at' => $call->started_at?->format('d.m.Y H:i:s'),
+                'answered_at' => $call->answered_at?->format('d.m.Y H:i:s'),
+                'ended_at' => $call->ended_at?->format('d.m.Y H:i:s'),
+                'created_at' => $call->created_at->format('d.m.Y H:i'),
+                'created_at_human' => $call->created_at->diffForHumans(),
+            ]);
+
+        // Get call statistics
+        $stats = $lead->getCallStats();
+
+        return response()->json([
+            'calls' => $calls,
+            'stats' => $stats,
+            'total_duration_formatted' => $lead->getFormattedCallDuration(),
+        ]);
+    }
+
+    /**
+     * Sync calls for a specific lead from PBX
+     */
+    public function syncLeadCalls($leadId)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $lead = Lead::where('business_id', $business->id)->findOrFail($leadId);
+
+        try {
+            // Get PBX account for business
+            $pbxAccount = \App\Models\PbxAccount::where('business_id', $business->id)
+                ->where('is_active', true)
+                ->first();
+
+            $syncedFromApi = 0;
+            $apiSyncMessage = null;
+
+            // Try to sync from PBX API if account exists
+            if ($pbxAccount) {
+                $pbxService = app(\App\Services\OnlinePbxService::class);
+                $pbxService->setAccount($pbxAccount);
+
+                // Try to sync call history from PBX API (last 7 days)
+                $syncResult = $pbxService->syncCallHistory(\Carbon\Carbon::now()->subDays(7));
+
+                if ($syncResult['success'] ?? false) {
+                    $syncedFromApi = $syncResult['synced'] ?? 0;
+                } else {
+                    // API sync failed - log but continue to link existing calls
+                    $apiSyncMessage = 'API sinxronlash ishlamadi. Mavjud qo\'ng\'iroqlar ko\'rsatildi.';
+                    \Log::warning('PBX API sync failed, continuing with local calls', [
+                        'lead_id' => $lead->id,
+                        'error' => $syncResult['error'] ?? 'Unknown',
+                    ]);
+                }
+            }
+
+            // Link any orphan calls to this lead by phone number (always do this)
+            $linkedCount = $this->linkCallsToLead($lead, $business->id);
+
+            // Get updated calls
+            $calls = $lead->fresh()->calls()
+                ->with('user:id,name')
+                ->get()
+                ->map(fn($call) => [
+                    'id' => $call->id,
+                    'direction' => $call->direction,
+                    'direction_label' => $call->direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi',
+                    'from_number' => $call->from_number,
+                    'to_number' => $call->to_number,
+                    'status' => $call->status,
+                    'status_label' => $this->getCallStatusLabel($call->status),
+                    'duration' => $call->duration,
+                    'duration_formatted' => $this->formatDuration($call->duration),
+                    'wait_time' => $call->wait_time,
+                    'recording_url' => $call->recording_url,
+                    'notes' => $call->notes,
+                    'user' => $call->user ? ['id' => $call->user->id, 'name' => $call->user->name] : null,
+                    'started_at' => $call->started_at?->format('d.m.Y H:i:s'),
+                    'created_at' => $call->created_at->format('d.m.Y H:i'),
+                ]);
+
+            $stats = $lead->fresh()->getCallStats();
+
+            // Build response message
+            $message = $apiSyncMessage ?? "Qo'ng'iroqlar sinxronlandi";
+            if ($linkedCount > 0) {
+                $message .= " ($linkedCount ta ulandi)";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'synced' => $syncedFromApi,
+                'linked' => $linkedCount,
+                'calls' => $calls,
+                'stats' => $stats,
+                'warning' => $apiSyncMessage,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Lead calls sync error', [
+                'lead_id' => $lead->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Sinxronlash xatosi: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Link orphan call logs to a specific lead by phone number
+     */
+    protected function linkCallsToLead(Lead $lead, string $businessId): int
+    {
+        $linked = 0;
+        $phone = $lead->phone;
+
+        if (empty($phone)) {
+            return 0;
+        }
+
+        $last9 = substr(preg_replace('/[^0-9]/', '', $phone), -9);
+
+        $orphanCalls = \App\Models\CallLog::where('business_id', $businessId)
+            ->whereNull('lead_id')
+            ->where(function ($query) use ($phone, $last9) {
+                $query->where('from_number', 'like', '%' . $last9)
+                    ->orWhere('to_number', 'like', '%' . $last9)
+                    ->orWhere('from_number', $phone)
+                    ->orWhere('to_number', $phone);
+            })
+            ->get();
+
+        foreach ($orphanCalls as $call) {
+            $call->update(['lead_id' => $lead->id]);
+            $linked++;
+        }
+
+        return $linked;
+    }
+
+    /**
+     * Get call status label in Uzbek
+     */
+    protected function getCallStatusLabel(string $status): string
+    {
+        return match($status) {
+            'initiated' => 'Boshlandi',
+            'ringing' => 'Jiringlayapti',
+            'answered' => 'Javob berildi',
+            'completed' => 'Yakunlandi',
+            'failed' => 'Muvaffaqiyatsiz',
+            'missed' => 'O\'tkazib yuborildi',
+            'busy' => 'Band',
+            'no_answer' => 'Javob yo\'q',
+            'cancelled' => 'Bekor qilindi',
+            default => $status,
+        };
+    }
+
+    /**
+     * Format duration in seconds to human readable
+     */
+    protected function formatDuration(?int $seconds): string
+    {
+        if (!$seconds || $seconds <= 0) {
+            return '0 sek';
+        }
+
+        if ($seconds < 60) {
+            return $seconds . ' sek';
+        }
+
+        $minutes = floor($seconds / 60);
+        $secs = $seconds % 60;
+
+        if ($minutes < 60) {
+            return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+        }
+
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+
+        return $hours . ':' . str_pad($mins, 2, '0', STR_PAD_LEFT) . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Update call status manually
+     */
+    public function updateCallStatus(Request $request, string $callId)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $call = \App\Models\CallLog::where('business_id', $business->id)
+            ->where('id', $callId)
+            ->first();
+
+        if (!$call) {
+            return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:completed,answered,missed,no_answer,busy,failed',
+            'duration' => 'nullable|integer|min:0',
+        ]);
+
+        $updates = ['status' => $validated['status']];
+
+        if (isset($validated['duration'])) {
+            $updates['duration'] = $validated['duration'];
+        }
+
+        if (in_array($validated['status'], ['completed', 'answered']) && !$call->answered_at) {
+            $updates['answered_at'] = $call->started_at ?? now();
+        }
+
+        if (in_array($validated['status'], ['completed', 'answered', 'missed', 'no_answer', 'busy', 'failed']) && !$call->ended_at) {
+            $updates['ended_at'] = now();
+        }
+
+        $call->update($updates);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Qo\'ng\'iroq statusi yangilandi',
+            'call' => [
+                'id' => $call->id,
+                'status' => $call->status,
+                'full_label' => $call->full_label,
+                'duration' => $call->duration,
+                'duration_formatted' => $this->formatDuration($call->duration),
+            ],
+        ]);
+    }
+
+    /**
+     * Get recording URL for a call
+     */
+    public function getCallRecording(string $callId)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $call = \App\Models\CallLog::where('business_id', $business->id)
+            ->where('id', $callId)
+            ->first();
+
+        if (!$call) {
+            return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
+        }
+
+        // If we already have recording URL, return it
+        if ($call->recording_url) {
+            return response()->json([
+                'success' => true,
+                'recording_url' => $call->recording_url,
+            ]);
+        }
+
+        // Try to fetch from PBX API
+        $pbxAccount = \App\Models\PbxAccount::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$pbxAccount) {
+            return response()->json([
+                'success' => false,
+                'error' => 'PBX hisobi topilmadi',
+            ], 404);
+        }
+
+        try {
+            $pbxService = app(\App\Services\OnlinePbxService::class);
+            $pbxService->setAccount($pbxAccount);
+
+            // Try to get recording URL using provider_call_id
+            $providerCallId = $call->provider_call_id;
+            if (!$providerCallId) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Yozuv topilmadi',
+                ]);
+            }
+
+            $recordingUrl = $pbxService->getRecordingUrl($providerCallId);
+
+            if ($recordingUrl) {
+                // Save for future use
+                $call->update(['recording_url' => $recordingUrl]);
+
+                return response()->json([
+                    'success' => true,
+                    'recording_url' => $recordingUrl,
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Yozuv topilmadi',
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Get recording error', [
+                'call_id' => $callId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Yozuvni olishda xatolik',
+            ], 500);
+        }
+    }
 }

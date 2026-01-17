@@ -7,24 +7,16 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PbxAccount extends Model
+class MoiZvonkiAccount extends Model
 {
     use BelongsToBusiness, HasUuid;
 
-    /**
-     * Provider constants
-     */
-    public const PROVIDER_ONLINEPBX = 'onlinepbx';
-
     protected $fillable = [
         'business_id',
-        'provider',
         'name',
+        'email',
         'api_url',
         'api_key',
-        'api_secret',
-        'caller_id',
-        'extension',
         'is_active',
         'balance',
         'settings',
@@ -39,7 +31,6 @@ class PbxAccount extends Model
 
     protected $hidden = [
         'api_key',
-        'api_secret',
     ];
 
     /**
@@ -59,19 +50,26 @@ class PbxAccount extends Model
     }
 
     /**
-     * Get API URL with trailing slash
-     */
-    public function getApiUrlAttribute($value): string
-    {
-        return rtrim($value, '/') . '/';
-    }
-
-    /**
      * Check if account is properly configured
      */
     public function isConfigured(): bool
     {
         return !empty($this->api_url) && !empty($this->api_key);
+    }
+
+    /**
+     * Get the full API base URL
+     */
+    public function getApiBaseUrl(): string
+    {
+        $url = $this->api_url;
+
+        // Ensure proper URL format
+        if (!str_starts_with($url, 'http')) {
+            $url = 'https://' . $url;
+        }
+
+        return rtrim($url, '/');
     }
 
     /**
@@ -91,40 +89,5 @@ class PbxAccount extends Model
         $settings[$key] = $value;
         $this->settings = $settings;
         $this->save();
-    }
-
-    /**
-     * Check if this is OnlinePBX account
-     */
-    public function isOnlinePbx(): bool
-    {
-        return $this->provider === self::PROVIDER_ONLINEPBX;
-    }
-
-    /**
-     * Scope: Filter by provider
-     */
-    public function scopeProvider($query, string $provider)
-    {
-        return $query->where('provider', $provider);
-    }
-
-    /**
-     * Scope: OnlinePBX accounts
-     */
-    public function scopeOnlinePbx($query)
-    {
-        return $query->where('provider', self::PROVIDER_ONLINEPBX);
-    }
-
-    /**
-     * Get provider label in Uzbek
-     */
-    public function getProviderLabelAttribute(): string
-    {
-        return match ($this->provider) {
-            self::PROVIDER_ONLINEPBX => 'OnlinePBX',
-            default => $this->provider,
-        };
     }
 }

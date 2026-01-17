@@ -30,6 +30,13 @@
           >
             {{ inboxUnreadCount > 99 ? '99+' : inboxUnreadCount }}
           </span>
+          <!-- New Leads Badge -->
+          <span
+            v-if="item.href === '/business/sales' && newLeadsCount > 0"
+            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+          >
+            {{ newLeadsCount > 99 ? '99+' : newLeadsCount }}
+          </span>
           <!-- Tasks Badge -->
           <span
             v-if="item.href === '/business/tasks' && taskStats.overdue > 0"
@@ -72,11 +79,13 @@ const layoutConfig = businessLayoutConfig;
 
 // Stats
 const inboxUnreadCount = ref(0);
+const newLeadsCount = ref(0);
 const taskStats = ref({ total: 0, overdue: 0 });
 const todoStats = ref({ total: 0, overdue: 0 });
 
 // Polling intervals
 let inboxPollingInterval = null;
+let leadsPollingInterval = null;
 let taskPollingInterval = null;
 let todoPollingInterval = null;
 
@@ -93,6 +102,20 @@ const fetchInboxUnreadCount = async () => {
     // Silently fail - stats are optional UI enhancement
     if (error.response?.status !== 404) {
       console.error('Failed to fetch inbox stats:', error);
+    }
+  }
+};
+
+const fetchNewLeadsCount = async () => {
+  try {
+    const response = await axios.get('/business/api/sales/stats');
+    if (response.data?.new_leads !== undefined) {
+      newLeadsCount.value = response.data.new_leads;
+    }
+  } catch (error) {
+    // Silently fail - stats are optional UI enhancement
+    if (error.response?.status !== 404) {
+      console.error('Failed to fetch leads stats:', error);
     }
   }
 };
@@ -134,10 +157,12 @@ const fetchTodoStats = async () => {
 // Start polling
 const startPolling = () => {
   fetchInboxUnreadCount();
+  fetchNewLeadsCount();
   fetchTaskStats();
   fetchTodoStats();
 
   inboxPollingInterval = setInterval(fetchInboxUnreadCount, 10000);
+  leadsPollingInterval = setInterval(fetchNewLeadsCount, 15000);
   taskPollingInterval = setInterval(fetchTaskStats, 10000);
   todoPollingInterval = setInterval(fetchTodoStats, 30000);
 };
@@ -145,6 +170,7 @@ const startPolling = () => {
 // Stop polling
 const stopPolling = () => {
   if (inboxPollingInterval) clearInterval(inboxPollingInterval);
+  if (leadsPollingInterval) clearInterval(leadsPollingInterval);
   if (taskPollingInterval) clearInterval(taskPollingInterval);
   if (todoPollingInterval) clearInterval(todoPollingInterval);
 };

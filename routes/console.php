@@ -201,6 +201,26 @@ Schedule::job(new \App\Jobs\ScrapeCompetitorData())
     ->onOneServer();
 
 // ==========================================
+// PBX/VoIP CALL SYNC SCHEDULED JOBS
+// ==========================================
+
+// PBX Calls Sync - Har 15 daqiqada barcha ulangan PBX/VoIP xizmatlaridan qo'ng'iroqlarni sinxronlaydi
+// OnlinePBX, SipUni va boshqa VoIP xizmatlari uchun ishlaydi
+Schedule::command('pbx:sync-calls --days=1 --link-orphans')
+    ->everyFifteenMinutes()
+    ->timezone('Asia/Tashkent')
+    ->name('sync-pbx-calls')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// Full PBX Sync - Har kuni tunda 3:00 da to'liq sinxronlash (7 kunlik tarix)
+Schedule::command('pbx:sync-calls --days=7 --link-orphans')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Tashkent')
+    ->name('sync-pbx-calls-full')
+    ->onOneServer();
+
+// ==========================================
 // TODO RECURRING TASKS
 // ==========================================
 

@@ -12,6 +12,7 @@ use App\Models\TelegramConversation;
 use App\Models\TelegramMessage;
 use App\Models\TelegramDailyStat;
 use App\Models\Lead;
+use App\Models\LeadSource;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -1223,9 +1224,16 @@ class FunnelEngineService
         $config = $step->action_config ?? [];
         $collectedData = $this->state->collected_data ?? [];
 
+        // Get source_id from config or create default Telegram source
+        $sourceId = $config['source_id'] ?? null;
+        if (!$sourceId) {
+            $source = $this->getOrCreateTelegramSource();
+            $sourceId = $source?->id;
+        }
+
         $leadData = [
             'business_id' => $this->bot->business_id,
-            'source_id' => $config['source_id'] ?? null,
+            'source_id' => $sourceId,
             'name' => $collectedData[$config['name_field'] ?? 'name'] ?? $this->user->getFullName(),
             'phone' => $collectedData[$config['phone_field'] ?? 'phone'] ?? $this->user->phone,
             'email' => $collectedData[$config['email_field'] ?? 'email'] ?? null,
@@ -1235,6 +1243,12 @@ class FunnelEngineService
                 'funnel' => $this->state->currentFunnel?->name,
                 'collected_data' => $collectedData,
             ]),
+            'data' => [
+                'source' => 'telegram_funnel',
+                'bot_id' => $this->bot->id,
+                'funnel_id' => $this->state->current_funnel_id,
+                'telegram_user_id' => $this->user->telegram_id,
+            ],
         ];
 
         $lead = Lead::create($leadData);
@@ -1248,6 +1262,73 @@ class FunnelEngineService
         // Increment stat
         $this->incrementDailyStat('leads_captured');
         $this->incrementFunnelStat($this->state->current_funnel_id, 'leads');
+    }
+
+    /**
+     * Get or create Telegram lead source
+     */
+    protected function getOrCreateTelegramSource(): ?LeadSource
+    {
+        $businessId = $this->bot->business_id;
+
+        // First try to find by code
+        $source = LeadSource::where('business_id', $businessId)
+            ->where('code', 'telegram_bot')
+            ->first();
+
+        if ($source) {
+            return $source;
+        }
+
+        // Fallback: search by name
+        $source = LeadSource::where('business_id', $businessId)
+            ->where(function ($query) {
+                $query->where('name', 'like', '%telegram%')
+                    ->orWhere('name', 'like', '%Telegram%');
+            })
+            ->first();
+
+        if ($source) {
+            return $source;
+        }
+
+        // Create new source
+        try {
+            $source = LeadSource::create([
+                'business_id' => $businessId,
+                'code' => 'telegram_bot_' . substr($businessId, 0, 8),
+                'name' => 'Telegram Bot',
+                'category' => 'digital',
+                'icon' => 'telegram',
+                'color' => '#0088cc',
+                'is_paid' => false,
+                'is_trackable' => true,
+                'is_active' => true,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('LeadSource creation failed for Telegram', [
+                'error' => $e->getMessage(),
+            ]);
+
+            try {
+                $source = LeadSource::create([
+                    'business_id' => $businessId,
+                    'code' => 'telegram_bot_' . time(),
+                    'name' => 'Telegram Bot',
+                    'category' => 'digital',
+                    'icon' => 'telegram',
+                    'color' => '#0088cc',
+                    'is_paid' => false,
+                    'is_trackable' => true,
+                    'is_active' => true,
+                ]);
+            } catch (\Exception $e2) {
+                Log::error('LeadSource creation failed completely', ['error' => $e2->getMessage()]);
+                return null;
+            }
+        }
+
+        return $source;
     }
 
     /**

@@ -285,6 +285,17 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
         Route::post('/onlinepbx/connect', [TelephonyController::class, 'connectOnlinePbx'])->name('onlinepbx.connect');
         Route::post('/onlinepbx/sync', [TelephonyController::class, 'syncOnlinePbxHistory'])->name('onlinepbx.sync');
 
+        // MoiZvonki
+        Route::post('/moizvonki/connect', [TelephonyController::class, 'connectMoiZvonki'])->name('moizvonki.connect');
+        Route::post('/moizvonki/disconnect', [TelephonyController::class, 'disconnectMoiZvonki'])->name('moizvonki.disconnect');
+        Route::post('/moizvonki/sync', [TelephonyController::class, 'syncMoiZvonki'])->name('moizvonki.sync');
+
+        // UTEL (O'zbekiston)
+        Route::post('/utel/connect', [TelephonyController::class, 'connectUtel'])->name('utel.connect');
+        Route::post('/utel/disconnect', [TelephonyController::class, 'disconnectUtel'])->name('utel.disconnect');
+        Route::post('/utel/sync', [TelephonyController::class, 'syncUtel'])->name('utel.sync');
+        Route::post('/utel/refresh-balance', [TelephonyController::class, 'refreshUtelBalance'])->name('utel.refresh-balance');
+
         // Status & Data
         Route::get('/status', [TelephonyController::class, 'status'])->name('status');
         Route::get('/history', [TelephonyController::class, 'history'])->name('history');
@@ -481,6 +492,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/leads/{lead}/activities', [SalesController::class, 'getActivities'])->name('activities');
         Route::post('/leads/{lead}/notes', [SalesController::class, 'addNote'])->name('notes');
         Route::post('/leads/{lead}/status', [SalesController::class, 'updateStatus'])->name('status');
+        Route::get('/leads/{lead}/calls', [SalesController::class, 'getCalls'])->name('lead-calls');
+        Route::post('/leads/{lead}/sync-calls', [SalesController::class, 'syncLeadCalls'])->name('sync-lead-calls');
+        Route::patch('/calls/{call}/status', [SalesController::class, 'updateCallStatus'])->name('update-call-status');
+        Route::get('/calls/{call}/recording', [SalesController::class, 'getCallRecording'])->name('call-recording');
     });
 
     // Tasks routes (Vazifalar)
@@ -1287,6 +1302,14 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/{lead}/tasks', [App\Http\Controllers\SalesHead\TaskController::class, 'leadTasks'])->name('tasks');
         Route::get('/{lead}/activities', [App\Http\Controllers\SalesHead\LeadController::class, 'getActivities'])->name('activities');
         Route::post('/{lead}/notes', [App\Http\Controllers\SalesHead\LeadController::class, 'addNote'])->name('notes');
+        Route::get('/{lead}/calls', [App\Http\Controllers\SalesHead\LeadController::class, 'getCalls'])->name('calls');
+        Route::post('/{lead}/sync-calls', [App\Http\Controllers\SalesHead\LeadController::class, 'syncLeadCalls'])->name('sync-calls');
+    });
+
+    // Calls routes for SalesHead
+    Route::prefix('calls')->name('calls.')->group(function () {
+        Route::patch('/{call}/status', [App\Http\Controllers\SalesHead\LeadController::class, 'updateCallStatus'])->name('update-status');
+        Route::get('/{call}/recording', [App\Http\Controllers\SalesHead\LeadController::class, 'getCallRecording'])->name('recording');
     });
 
     // Deals

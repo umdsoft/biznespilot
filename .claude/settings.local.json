@@ -71,7 +71,8 @@
       "Bash(composer audit:*)",
       "Bash(powershell -Command:*)",
       "Bash(more:*)",
-      "Bash(del \"d:\\\\marketing startap\\\\biznespilot\\\\resources\\\\js\\\\Pages\\\\Business\\\\AI\\\\Instagram.vue\")"
+      "Bash(del \"d:\\\\marketing startap\\\\biznespilot\\\\resources\\\\js\\\\Pages\\\\Business\\\\AI\\\\Instagram.vue\")",
+      "Bash(del:*)"
     ]
   }
 }

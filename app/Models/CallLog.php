@@ -191,6 +191,27 @@ class CallLog extends Model
     }
 
     /**
+     * Get full descriptive label combining direction and status in Uzbek
+     * Example: "Kiruvchi - Javob berildi", "Chiquvchi - Javob berilmadi"
+     */
+    public function getFullLabelAttribute(): string
+    {
+        $direction = $this->direction === self::DIRECTION_INBOUND ? 'Kiruvchi' : 'Chiquvchi';
+
+        // Determine status description
+        $statusDesc = match ($this->status) {
+            self::STATUS_COMPLETED, self::STATUS_ANSWERED => 'Javob berildi',
+            self::STATUS_MISSED, self::STATUS_NO_ANSWER, self::STATUS_FAILED, self::STATUS_CANCELLED => 'Javob berilmadi',
+            self::STATUS_BUSY => 'Band',
+            self::STATUS_RINGING => 'Jiringlamoqda',
+            self::STATUS_INITIATED => 'Boshlanmoqda',
+            default => $this->status,
+        };
+
+        return "{$direction} - {$statusDesc}";
+    }
+
+    /**
      * Mark call as answered
      */
     public function markAsAnswered(): void

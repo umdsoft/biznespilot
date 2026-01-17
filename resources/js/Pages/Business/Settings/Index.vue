@@ -711,8 +711,8 @@
           <div v-show="activeTab === 'integrations'" class="space-y-5">
 
             <!-- Messaging Platformalar -->
-            <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-              <div class="px-5 py-4 border-b border-slate-700/50 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10">
+            <div class="bg-white dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+              <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-cyan-50 via-blue-50 to-purple-50 dark:from-cyan-500/10 dark:via-blue-500/10 dark:to-purple-500/10">
                 <div class="flex items-center">
                   <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -720,18 +720,18 @@
                     </svg>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-white">Messaging</h2>
-                    <p class="text-xs text-slate-400">Ijtimoiy tarmoqlar va SMS xizmatlari</p>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Messaging</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Ijtimoiy tarmoqlar va SMS xizmatlari</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-4">
+              <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <!-- Instagram AI -->
                   <a
                     :href="route('business.settings.instagram-ai')"
-                    class="group relative overflow-hidden bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/30 rounded-xl p-3 hover:border-pink-400 hover:bg-pink-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-pink-200 dark:border-pink-500/30 rounded-xl p-3 hover:border-pink-400 hover:bg-pink-50 dark:hover:bg-pink-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
@@ -739,46 +739,46 @@
                           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-pink-400 transition-colors">Instagram AI</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">DM & Story</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">Instagram AI</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">DM & Story</p>
                     </div>
                   </a>
 
                   <!-- Eskiz SMS -->
                   <a
                     :href="route('business.settings.sms') + '?provider=eskiz'"
-                    class="group relative overflow-hidden bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/30 rounded-xl p-3 hover:border-teal-400 hover:bg-teal-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-teal-200 dark:border-teal-500/30 rounded-xl p-3 hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                         <span class="text-white font-black text-xl">E</span>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-teal-400 transition-colors">Eskiz</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">SMS gateway</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Eskiz</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">SMS gateway</p>
                     </div>
                   </a>
 
                   <!-- PlayMobile SMS -->
                   <a
                     :href="route('business.settings.sms') + '?provider=playmobile'"
-                    class="group relative overflow-hidden bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30 rounded-xl p-3 hover:border-orange-400 hover:bg-orange-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-orange-200 dark:border-orange-500/30 rounded-xl p-3 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                         <span class="text-white font-black text-sm">PM</span>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-orange-400 transition-colors">PlayMobile</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">SMS gateway</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">PlayMobile</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">SMS gateway</p>
                     </div>
                   </a>
 
                   <!-- Telegram Bot -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-sky-500/10 border border-blue-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-sky-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -786,18 +786,18 @@
                           <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Telegram</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Bot & Kanal</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Telegram</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Bot & Kanal</p>
                     </div>
                   </a>
 
                   <!-- Facebook -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-600/10 to-blue-500/10 border border-blue-600/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-[#1877F2] rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -805,18 +805,18 @@
                           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Facebook</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Messenger</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Facebook</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Messenger</p>
                     </div>
                   </a>
 
                   <!-- WhatsApp -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-green-500/10 to-green-400/10 border border-green-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-[#25D366] rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -824,8 +824,8 @@
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">WhatsApp</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Business API</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">WhatsApp</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Business API</p>
                     </div>
                   </a>
                 </div>
@@ -833,8 +833,8 @@
             </div>
 
             <!-- Reklama Platformalar -->
-            <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-              <div class="px-5 py-4 border-b border-slate-700/50 bg-gradient-to-r from-blue-500/10 via-green-500/10 to-yellow-500/10">
+            <div class="bg-white dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+              <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 via-green-50 to-yellow-50 dark:from-blue-500/10 dark:via-green-500/10 dark:to-yellow-500/10">
                 <div class="flex items-center">
                   <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -843,21 +843,21 @@
                     </svg>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-white">Reklama</h2>
-                    <p class="text-xs text-slate-400">Reklama kampaniyalari va analytics</p>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Reklama</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Reklama kampaniyalari va analytics</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-4">
+              <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <!-- Google Ads -->
                   <a
                     :href="route('business.settings.google-ads')"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-yellow-500/10 border border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-blue-200 dark:border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                      <div class="w-12 h-12 bg-white dark:bg-white rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                         <svg class="w-7 h-7" viewBox="0 0 48 48">
                           <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
                           <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
@@ -865,15 +865,15 @@
                           <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">Google Ads</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Kampaniyalar</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Google Ads</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Kampaniyalar</p>
                     </div>
                   </a>
 
                   <!-- Yandex Direct -->
                   <a
                     :href="route('business.settings.yandex-direct')"
-                    class="group relative overflow-hidden bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-red-200 dark:border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-[#FC3F1D] rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
@@ -881,18 +881,18 @@
                           <path d="M14.5 5H12.2C9.6 5 8 6.8 8 9.1C8 10.9 8.9 12.2 10.5 13L8 19H10.5L12.8 13.4V19H15V5H14.5ZM12.8 11.5L11.5 10.8C10.6 10.4 10.2 9.8 10.2 9C10.2 7.9 10.9 7.2 12.1 7.2H12.8V11.5Z" fill="white"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-red-400 transition-colors">Yandex Direct</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Reklama</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Yandex Direct</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Reklama</p>
                     </div>
                   </a>
 
                   <!-- Facebook Ads -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-600/10 to-blue-500/10 border border-blue-600/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-[#1877F2] rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -900,18 +900,18 @@
                           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Facebook Ads</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Meta Ads</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Facebook Ads</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Meta Ads</p>
                     </div>
                   </a>
 
                   <!-- TikTok Ads -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-pink-500/10 border border-gray-600/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -920,8 +920,8 @@
                           <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" fill="#00f2ea" style="mix-blend-mode:multiply"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">TikTok Ads</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Video reklama</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">TikTok Ads</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Video reklama</p>
                     </div>
                   </a>
                 </div>
@@ -929,8 +929,8 @@
             </div>
 
             <!-- Analytics & Media -->
-            <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-              <div class="px-5 py-4 border-b border-slate-700/50 bg-gradient-to-r from-red-500/10 via-purple-500/10 to-blue-500/10">
+            <div class="bg-white dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+              <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-red-50 via-purple-50 to-blue-50 dark:from-red-500/10 dark:via-purple-500/10 dark:to-blue-500/10">
                 <div class="flex items-center">
                   <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -938,18 +938,18 @@
                     </svg>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-white">Analytics & Media</h2>
-                    <p class="text-xs text-slate-400">Statistika va kontent platformalari</p>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Analytics & Media</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Statistika va kontent platformalari</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-4">
+              <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <!-- YouTube Analytics -->
                   <a
                     :href="route('business.settings.youtube')"
-                    class="group relative overflow-hidden bg-gradient-to-br from-red-600/10 to-red-500/10 border border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-red-200 dark:border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
@@ -957,18 +957,18 @@
                           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-red-400 transition-colors">YouTube</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Kanal statistika</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">YouTube</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Kanal statistika</p>
                     </div>
                   </a>
 
                   <!-- Google Analytics -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border border-orange-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -976,18 +976,18 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">GA4</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Sayt analytics</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">GA4</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Sayt analytics</p>
                     </div>
                   </a>
 
                   <!-- Yandex Metrika -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-[#FC3F1D] rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -995,8 +995,8 @@
                           <path d="M14.5 5H12.2C9.6 5 8 6.8 8 9.1C8 10.9 8.9 12.2 10.5 13L8 19H10.5L12.8 13.4V19H15V5H14.5ZM12.8 11.5L11.5 10.8C10.6 10.4 10.2 9.8 10.2 9C10.2 7.9 10.9 7.2 12.1 7.2H12.8V11.5Z" fill="white"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Metrika</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Yandex</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Metrika</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Yandex</p>
                     </div>
                   </a>
                 </div>
@@ -1004,8 +1004,8 @@
             </div>
 
             <!-- Telefon & CRM -->
-            <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-              <div class="px-5 py-4 border-b border-slate-700/50 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-purple-500/10">
+            <div class="bg-white dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+              <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-500/10 dark:via-violet-500/10 dark:to-purple-500/10">
                 <div class="flex items-center">
                   <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1013,18 +1013,18 @@
                     </svg>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-white">Telefon & CRM</h2>
-                    <p class="text-xs text-slate-400">VoIP telefoniya va CRM integratsiyalar</p>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Telefon & CRM</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">VoIP telefoniya va CRM integratsiyalar</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-4">
+              <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <!-- SipUNI -->
                   <a
                     :href="route('integrations.telephony.settings') + '?provider=sipuni'"
-                    class="group relative overflow-hidden bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/30 rounded-xl p-3 hover:border-purple-400 hover:bg-purple-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-purple-200 dark:border-purple-500/30 rounded-xl p-3 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
@@ -1032,15 +1032,15 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-purple-400 transition-colors">SipUni</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">IP-telefoniya</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">SipUni</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">IP-telefoniya</p>
                     </div>
                   </a>
 
                   <!-- PBX -->
                   <a
                     :href="route('integrations.telephony.settings') + '?provider=pbx'"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-blue-200 dark:border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
@@ -1048,25 +1048,55 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">PBX</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Telefoniya</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">PBX</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Telefoniya</p>
+                    </div>
+                  </a>
+
+                  <!-- MoiZvonki -->
+                  <a
+                    :href="route('integrations.telephony.settings') + '?provider=moizvonki'"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-orange-200 dark:border-orange-500/30 rounded-xl p-3 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10"
+                  >
+                    <div class="flex flex-col items-center text-center">
+                      <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">MoiZvonki</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Android qo'ng'iroq</p>
+                    </div>
+                  </a>
+
+                  <!-- UTEL -->
+                  <a
+                    :href="route('integrations.telephony.settings') + '?provider=utel'"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-green-200 dark:border-green-500/30 rounded-xl p-3 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/10"
+                  >
+                    <div class="flex flex-col items-center text-center">
+                      <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                        <span class="text-white font-bold text-sm">UZ</span>
+                      </div>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">UTEL</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">O'zbekiston VoIP</p>
                     </div>
                   </a>
 
                   <!-- Bitrix24 -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <span class="text-white font-bold text-sm">B24</span>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Bitrix24</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">CRM sync</p>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Bitrix24</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">CRM sync</p>
                     </div>
                   </a>
                 </div>
@@ -1074,8 +1104,8 @@
             </div>
 
             <!-- Hisobot & Buxgalteriya -->
-            <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden">
-              <div class="px-5 py-4 border-b border-slate-700/50 bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-orange-500/10">
+            <div class="bg-white dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
+              <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-500/10 dark:via-amber-500/10 dark:to-orange-500/10">
                 <div class="flex items-center">
                   <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1083,38 +1113,38 @@
                     </svg>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-white">Hisobot & Buxgalteriya</h2>
-                    <p class="text-xs text-slate-400">Hisob-kitob va moliyaviy integratsiyalar</p>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Hisobot & Buxgalteriya</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Hisob-kitob va moliyaviy integratsiyalar</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-4">
+              <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <!-- 1C -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-yellow-200 dark:border-yellow-500/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <span class="text-white font-bold text-base">1C</span>
                       </div>
-                      <h3 class="text-xs font-bold text-white">1C</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Buxgalteriya</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white">1C</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Buxgalteriya</p>
                     </div>
                   </a>
 
                   <!-- MySoliq -->
                   <a
                     href="#"
-                    class="group relative overflow-hidden bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-3 opacity-60"
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-green-200 dark:border-green-500/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
                     <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-slate-600 text-slate-300">Tez kunda</span>
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
                     </div>
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
@@ -1122,15 +1152,15 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">MySoliq</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">Soliq hisoboti</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white">MySoliq</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Soliq hisoboti</p>
                     </div>
                   </a>
 
                   <!-- Click -->
                   <a
                     :href="route('business.settings.payments') + '?tab=click'"
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-blue-200 dark:border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:scale-105 transition-transform">
@@ -1138,15 +1168,15 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Click</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">To'lov</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white">Click</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">To'lov</p>
                     </div>
                   </a>
 
                   <!-- Payme -->
                   <a
                     :href="route('business.settings.payments') + '?tab=payme'"
-                    class="group relative overflow-hidden bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/30 rounded-xl p-3 hover:border-cyan-400 hover:bg-cyan-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-cyan-200 dark:border-cyan-500/30 rounded-xl p-3 hover:border-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
                   >
                     <div class="flex flex-col items-center text-center">
                       <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center mb-2 shadow-lg group-hover:scale-105 transition-transform">
@@ -1154,8 +1184,8 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-white">Payme</h3>
-                      <p class="text-[10px] text-slate-400 mt-0.5">To'lov</p>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white">Payme</h3>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">To'lov</p>
                     </div>
                   </a>
                 </div>

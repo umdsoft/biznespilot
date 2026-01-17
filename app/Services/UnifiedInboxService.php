@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\Business;
+use App\Models\CallLog;
 use App\Models\ChatbotConversation;
 use App\Models\ChatbotMessage;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\TelegramConversation;
 use App\Models\TelegramMessage;
 use App\Services\Telegram\TelegramApiService;
@@ -68,6 +70,12 @@ class UnifiedInboxService
             $conversations = $conversations->merge($chatbotConversations);
         }
 
+        // Get phone calls if not filtering by other channels
+        if (empty($filters['channel']) || $filters['channel'] === 'phone') {
+            $phoneConversations = $this->getPhoneConversations($business, $filters);
+            $conversations = $conversations->merge($phoneConversations);
+        }
+
         // Sort by last message time
         return $conversations->sortByDesc('last_message_at_raw')
             ->values()
@@ -112,6 +120,141 @@ class UnifiedInboxService
             ->limit($filters['limit'] ?? 50)
             ->get()
             ->map(fn($conv) => $this->formatTelegramConversation($conv));
+    }
+
+    /**
+     * Get phone call conversations (grouped by lead/phone number)
+     */
+    protected function getPhoneConversations(Business $business, array $filters = []): Collection
+    {
+        // Get recent calls grouped by lead or phone number
+        $query = CallLog::where('business_id', $business->id)
+            ->with(['lead', 'user'])
+            ->orderBy('created_at', 'desc');
+
+        // Search
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('from_number', 'like', "%{$search}%")
+                    ->orWhere('to_number', 'like', "%{$search}%")
+                    ->orWhereHas('lead', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Get unique conversations by lead_id or phone number
+        $calls = $query->limit(100)->get();
+
+        // Group calls by lead_id or phone number to create "conversations"
+        $grouped = $calls->groupBy(function ($call) {
+            if ($call->lead_id) {
+                return 'lead_' . $call->lead_id;
+            }
+            // Group by phone number for calls without lead
+            $phone = $call->direction === 'inbound' ? $call->from_number : $call->to_number;
+            return 'phone_' . preg_replace('/[^0-9]/', '', $phone);
+        });
+
+        return $grouped->map(function ($leadCalls, $key) {
+            $lastCall = $leadCalls->first();
+            $lead = $lastCall->lead;
+
+            $phoneNumber = $lastCall->direction === 'inbound'
+                ? $lastCall->from_number
+                : $lastCall->to_number;
+
+            $name = $lead?->name ?? $this->formatPhoneNumber($phoneNumber);
+
+            // Calculate stats
+            $totalCalls = $leadCalls->count();
+            $answeredCalls = $leadCalls->where('status', 'completed')->count();
+            $totalDuration = $leadCalls->sum('duration');
+
+            // Determine status based on last call
+            $status = match ($lastCall->status) {
+                'completed' => 'closed',
+                'missed', 'no_answer' => 'pending',
+                'initiated', 'ringing' => 'open',
+                default => 'closed',
+            };
+
+            return [
+                'id' => 'call_' . $key,
+                'original_id' => $lead?->id ?? $key,
+                'lead_id' => $lead?->id,
+                'channel' => 'phone',
+                'customer_name' => $name,
+                'customer_phone' => $phoneNumber,
+                'customer_avatar' => '📞',
+                'last_message' => $this->formatCallSummary($lastCall),
+                'last_message_time' => $lastCall->created_at->diffForHumans(),
+                'last_message_at_raw' => $lastCall->created_at,
+                'status' => $status,
+                'is_unread' => $lastCall->status === 'missed' || $lastCall->status === 'no_answer',
+                'unread_count' => $leadCalls->whereIn('status', ['missed', 'no_answer'])->count(),
+                'message_count' => $totalCalls,
+                'call_stats' => [
+                    'total_calls' => $totalCalls,
+                    'answered_calls' => $answeredCalls,
+                    'total_duration' => $totalDuration,
+                    'answer_rate' => $totalCalls > 0 ? round(($answeredCalls / $totalCalls) * 100) : 0,
+                ],
+            ];
+        })->values()->take($filters['limit'] ?? 50);
+    }
+
+    /**
+     * Format call summary for display
+     */
+    protected function formatCallSummary(CallLog $call): string
+    {
+        $direction = $call->direction === 'inbound' ? '📥' : '📤';
+        $status = match ($call->status) {
+            'completed' => '✅',
+            'missed' => '❌ O\'tkazildi',
+            'no_answer' => '❌ Javob yo\'q',
+            'busy' => '🔴 Band',
+            'failed' => '⚠️ Xato',
+            default => '',
+        };
+
+        if ($call->status === 'completed' && $call->duration > 0) {
+            $duration = $this->formatCallDuration($call->duration);
+            return "{$direction} {$status} {$duration}";
+        }
+
+        return "{$direction} {$status}";
+    }
+
+    /**
+     * Format call duration
+     */
+    protected function formatCallDuration(int $seconds): string
+    {
+        if ($seconds < 60) {
+            return $seconds . ' sek';
+        }
+        $minutes = floor($seconds / 60);
+        $secs = $seconds % 60;
+        return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Format phone number for display
+     */
+    protected function formatPhoneNumber(string $phone): string
+    {
+        $digits = preg_replace('/[^0-9]/', '', $phone);
+
+        // Uzbekistan format
+        if (strlen($digits) === 12 && str_starts_with($digits, '998')) {
+            return '+998 (' . substr($digits, 3, 2) . ') ' . substr($digits, 5, 3) . '-' . substr($digits, 8, 2) . '-' . substr($digits, 10, 2);
+        }
+
+        return $phone;
     }
 
     /**
@@ -172,6 +315,11 @@ class UnifiedInboxService
         // Check if it's a Telegram conversation
         if (str_starts_with($conversationId, 'tg_')) {
             return $this->getTelegramConversationDetails(substr($conversationId, 3));
+        }
+
+        // Check if it's a phone call conversation
+        if (str_starts_with($conversationId, 'call_')) {
+            return $this->getPhoneConversationDetails(substr($conversationId, 5));
         }
 
         $conversation = ChatbotConversation::with(['customer', 'messages'])->findOrFail($conversationId);
@@ -242,6 +390,131 @@ class UnifiedInboxService
             'created_at' => $conversation->created_at->format('Y-m-d H:i:s'),
             'last_message_at' => $conversation->last_message_at?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    /**
+     * Get phone call conversation details (all calls for a lead/phone number)
+     */
+    protected function getPhoneConversationDetails(string $conversationKey): array
+    {
+        // Parse the conversation key (lead_123 or phone_998901234567)
+        $isLead = str_starts_with($conversationKey, 'lead_');
+        $identifier = $isLead ? substr($conversationKey, 5) : substr($conversationKey, 6);
+
+        if ($isLead) {
+            $lead = Lead::with(['calls' => function ($q) {
+                $q->with('user')->orderBy('created_at', 'desc');
+            }])->findOrFail($identifier);
+
+            $calls = $lead->calls;
+            $phoneNumber = $lead->phone;
+            $name = $lead->name;
+        } else {
+            // Find calls by phone number
+            $phoneNumber = $identifier;
+            $calls = CallLog::where(function ($q) use ($phoneNumber) {
+                $q->where('from_number', 'like', "%{$phoneNumber}%")
+                    ->orWhere('to_number', 'like', "%{$phoneNumber}%");
+            })
+                ->with(['lead', 'user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $name = $this->formatPhoneNumber($phoneNumber);
+            $lead = $calls->first()?->lead;
+        }
+
+        // Calculate call statistics
+        $totalCalls = $calls->count();
+        $inboundCalls = $calls->where('direction', 'inbound')->count();
+        $outboundCalls = $calls->where('direction', 'outbound')->count();
+        $answeredCalls = $calls->where('status', 'completed')->count();
+        $missedCalls = $calls->whereIn('status', ['missed', 'no_answer'])->count();
+        $totalDuration = $calls->sum('duration');
+
+        return [
+            'id' => 'call_' . $conversationKey,
+            'original_id' => $lead?->id ?? $conversationKey,
+            'lead_id' => $lead?->id,
+            'channel' => 'phone',
+            'customer' => [
+                'id' => $lead?->id,
+                'name' => $name,
+                'phone' => $phoneNumber,
+                'email' => $lead?->email,
+                'source' => $lead?->source,
+                'status' => $lead?->status,
+                'tags' => $lead?->tags ?? [],
+            ],
+            'status' => $missedCalls > 0 && $calls->first()?->status !== 'completed' ? 'pending' : 'closed',
+            'call_stats' => [
+                'total_calls' => $totalCalls,
+                'inbound_calls' => $inboundCalls,
+                'outbound_calls' => $outboundCalls,
+                'answered_calls' => $answeredCalls,
+                'missed_calls' => $missedCalls,
+                'total_duration' => $totalDuration,
+                'total_duration_formatted' => $this->formatCallDuration($totalDuration),
+                'answer_rate' => $totalCalls > 0 ? round(($answeredCalls / $totalCalls) * 100) : 0,
+            ],
+            'messages' => $calls->map(fn($call) => [
+                'id' => $call->id,
+                'direction' => $call->direction,
+                'content' => $this->formatCallDetails($call),
+                'content_type' => 'call',
+                'status' => $call->status,
+                'status_label' => $this->getCallStatusLabel($call->status),
+                'duration' => $call->duration,
+                'duration_formatted' => $call->duration ? $this->formatCallDuration($call->duration) : null,
+                'from_number' => $call->from_number,
+                'to_number' => $call->to_number,
+                'recording_url' => $call->recording_url,
+                'operator' => $call->user?->name,
+                'timestamp' => $call->created_at->format('Y-m-d H:i:s'),
+                'human_time' => $call->created_at->diffForHumans(),
+            ])->values(),
+            'created_at' => $calls->last()?->created_at?->format('Y-m-d H:i:s'),
+            'last_message_at' => $calls->first()?->created_at?->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * Format call details for display in conversation
+     */
+    protected function formatCallDetails(CallLog $call): string
+    {
+        $direction = $call->direction === 'inbound' ? 'Kiruvchi qo\'ng\'iroq' : 'Chiquvchi qo\'ng\'iroq';
+        $status = $this->getCallStatusLabel($call->status);
+
+        $text = "{$direction} - {$status}";
+
+        if ($call->status === 'completed' && $call->duration > 0) {
+            $duration = $this->formatCallDuration($call->duration);
+            $text .= " ({$duration})";
+        }
+
+        if ($call->user) {
+            $text .= " - {$call->user->name}";
+        }
+
+        return $text;
+    }
+
+    /**
+     * Get readable call status label
+     */
+    protected function getCallStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'completed' => 'Tugallangan',
+            'missed' => 'O\'tkazildi',
+            'no_answer' => 'Javob yo\'q',
+            'busy' => 'Band',
+            'failed' => 'Xato',
+            'initiated' => 'Boshlangan',
+            'ringing' => 'Jiringlayapti',
+            default => ucfirst($status),
+        };
     }
 
     /**
@@ -366,6 +639,7 @@ class UnifiedInboxService
     {
         $chatbotQuery = fn() => ChatbotConversation::where('business_id', $business->id);
         $telegramQuery = fn() => TelegramConversation::where('business_id', $business->id);
+        $callQuery = fn() => CallLog::where('business_id', $business->id);
 
         // Telegram stats
         $telegramTotal = $telegramQuery()->count();
@@ -393,21 +667,40 @@ class UnifiedInboxService
             ->whereNull('read_at')
             ->count();
 
+        // Phone call stats
+        $phoneTotal = $callQuery()->distinct('lead_id')->count('lead_id');
+        $phoneMissed = $callQuery()->whereIn('status', ['missed', 'no_answer'])->count();
+        $phoneCompleted = $callQuery()->where('status', 'completed')->count();
+
+        // Count unique phone "conversations" (leads with calls)
+        $leadsWithCalls = $callQuery()->whereNotNull('lead_id')->distinct('lead_id')->count('lead_id');
+        $callsWithoutLead = $callQuery()->whereNull('lead_id')->distinct('from_number')->count('from_number');
+        $phoneConversations = $leadsWithCalls + $callsWithoutLead;
+
         return [
-            'total' => $chatbotTotal + $telegramTotal,
+            'total' => $chatbotTotal + $telegramTotal + $phoneConversations,
             'open' => $chatbotOpen + $telegramOpen,
-            'pending' => $chatbotPending + $telegramPending,
-            'closed' => $chatbotClosed + $telegramClosed,
+            'pending' => $chatbotPending + $telegramPending + $phoneMissed,
+            'closed' => $chatbotClosed + $telegramClosed + $phoneCompleted,
             'by_channel' => [
                 'instagram' => $chatbotQuery()->where('platform', 'instagram')->count(),
                 'telegram' => $telegramTotal,
                 'facebook' => $chatbotQuery()->where('platform', 'facebook')->count(),
+                'phone' => $phoneConversations,
             ],
             'unread' => [
-                'total' => $telegramUnread + $instagramUnread,
+                'total' => $telegramUnread + $instagramUnread + $phoneMissed,
                 'instagram' => $instagramUnread,
                 'telegram' => $telegramUnread,
                 'facebook' => 0,
+                'phone' => $phoneMissed,
+            ],
+            'phone_stats' => [
+                'total_calls' => $callQuery()->count(),
+                'completed' => $phoneCompleted,
+                'missed' => $phoneMissed,
+                'inbound' => $callQuery()->where('direction', 'inbound')->count(),
+                'outbound' => $callQuery()->where('direction', 'outbound')->count(),
             ],
             'response_rate' => $this->calculateResponseRate($business),
         ];

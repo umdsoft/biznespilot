@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\KpiDashboardController;
 use App\Http\Controllers\Api\IntegrationsController;
 use App\Http\Controllers\Api\KpiEntryController;
 use App\Http\Controllers\Api\TranslationController;
+use App\Http\Controllers\PbxWebhookController;
+use App\Http\Controllers\MoiZvonkiWebhookController;
+use App\Http\Controllers\UtelWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +43,52 @@ Route::prefix('v1')->group(function () {
 Route::get('translations/{locale}', [TranslationController::class, 'index'])
     ->middleware('throttle:60,1')
     ->name('api.translations');
+
+// ========== WEBHOOK ROUTES (No auth required) ==========
+// PBX Webhooks - OnlinePBX
+Route::prefix('webhooks/pbx')->group(function () {
+    // Generic OnlinePBX webhook
+    Route::post('onlinepbx', [PbxWebhookController::class, 'handleOnlinePbx'])
+        ->name('webhooks.pbx.onlinepbx');
+
+    // Business-specific OnlinePBX webhook
+    Route::post('onlinepbx/{businessId}', [PbxWebhookController::class, 'handleOnlinePbxWithBusiness'])
+        ->name('webhooks.pbx.onlinepbx.business');
+
+    // Test endpoint
+    Route::get('test', [PbxWebhookController::class, 'test'])
+        ->name('webhooks.pbx.test');
+});
+
+// MoiZvonki Webhooks
+Route::prefix('webhooks/moizvonki')->group(function () {
+    // Generic MoiZvonki webhook
+    Route::post('/', [MoiZvonkiWebhookController::class, 'handle'])
+        ->name('webhooks.moizvonki');
+
+    // Business-specific MoiZvonki webhook
+    Route::post('{businessId}', [MoiZvonkiWebhookController::class, 'handleWithBusiness'])
+        ->name('webhooks.moizvonki.business');
+
+    // Test endpoint
+    Route::get('test', [MoiZvonkiWebhookController::class, 'test'])
+        ->name('webhooks.moizvonki.test');
+});
+
+// UTEL Webhooks (O'zbekiston)
+Route::prefix('webhooks/utel')->group(function () {
+    // Generic UTEL webhook
+    Route::post('/', [UtelWebhookController::class, 'handle'])
+        ->name('webhooks.utel');
+
+    // Business-specific UTEL webhook
+    Route::post('{businessId}', [UtelWebhookController::class, 'handleWithBusiness'])
+        ->name('webhooks.utel.business');
+
+    // Test endpoint
+    Route::get('test', [UtelWebhookController::class, 'test'])
+        ->name('webhooks.utel.test');
+});
 
 // Protected routes - API v1 (Rate limited - 120 requests per minute for authenticated users)
 Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(function () {
@@ -113,6 +162,14 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
         Route::get('/status', [IntegrationsController::class, 'getStatus']);
         Route::post('/{integrationId}/disconnect', [IntegrationsController::class, 'disconnect']);
         Route::post('/{integrationId}/sync', [IntegrationsController::class, 'sync']);
+    });
+
+    // PBX Sync Routes (Authenticated)
+    Route::prefix('pbx')->group(function () {
+        Route::post('/sync-calls', [PbxWebhookController::class, 'syncCallHistory'])
+            ->name('api.pbx.sync-calls');
+        Route::post('/link-orphan-calls', [PbxWebhookController::class, 'linkOrphanCalls'])
+            ->name('api.pbx.link-orphan-calls');
     });
 
     // KPI System Routes - Protected with business access validation

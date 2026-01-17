@@ -33,6 +33,7 @@ import {
     PhoneArrowUpRightIcon,
     ArrowUpRightIcon,
     PaperAirplaneIcon,
+    ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline';
 import { ChatBubbleBottomCenterTextIcon, ChatBubbleOvalLeftIcon } from '@heroicons/vue/24/solid';
 
@@ -178,6 +179,131 @@ const tasks = ref({
 });
 const tasksLoading = ref(false);
 
+// Calls state
+const calls = ref([]);
+const callStats = ref({
+    total_calls: 0,
+    outbound_calls: 0,
+    inbound_calls: 0,
+    answered_calls: 0,
+    missed_calls: 0,
+    total_duration: 0,
+    avg_duration: 0,
+    answer_rate: 0,
+    total_duration_formatted: '0:00',
+});
+const callsLoading = ref(false);
+
+// Audio player state
+const playingCallId = ref(null);
+const loadingRecordingId = ref(null);
+const audioPlayer = ref(null);
+
+// Play audio from URL
+const playAudio = (call, url) => {
+    // Stop any currently playing audio
+    if (audioPlayer.value) {
+        audioPlayer.value.pause();
+    }
+
+    audioPlayer.value = new Audio(url);
+    audioPlayer.value.play().catch(err => {
+        console.error('Audio playback error:', err);
+        showNotification('error', 'Audio ijro etishda xatolik');
+        playingCallId.value = null;
+    });
+
+    audioPlayer.value.onended = () => {
+        playingCallId.value = null;
+        audioPlayer.value = null;
+    };
+
+    audioPlayer.value.onerror = () => {
+        showNotification('error', 'Audio faylni yuklab bo\'lmadi');
+        playingCallId.value = null;
+        audioPlayer.value = null;
+    };
+
+    playingCallId.value = call.id;
+};
+
+// Toggle audio playback
+const toggleAudio = async (call) => {
+    if (playingCallId.value === call.id) {
+        // Stop playing
+        if (audioPlayer.value) {
+            audioPlayer.value.pause();
+            audioPlayer.value = null;
+        }
+        playingCallId.value = null;
+        return;
+    }
+
+    // If we already have the recording URL, play directly
+    if (call.recording_url) {
+        playAudio(call, call.recording_url);
+        return;
+    }
+
+    // Fetch recording URL from API
+    loadingRecordingId.value = call.id;
+    try {
+        const baseUrl = props.panelType === 'saleshead' ? '/sales-head' : '/business/api/sales';
+        const response = await axios.get(`${baseUrl}/calls/${call.id}/recording`);
+
+        if (response.data.success && response.data.recording_url) {
+            // Update call in local state
+            const index = calls.value.findIndex(c => c.id === call.id);
+            if (index !== -1) {
+                calls.value[index].recording_url = response.data.recording_url;
+            }
+            playAudio(call, response.data.recording_url);
+        } else {
+            showNotification('error', response.data.error || 'Yozuv topilmadi');
+        }
+    } catch (error) {
+        console.error('Failed to fetch recording:', error);
+        showNotification('error', 'Yozuvni yuklashda xatolik');
+    } finally {
+        loadingRecordingId.value = null;
+    }
+};
+
+// Update call status
+const updatingCallId = ref(null);
+const updateCallStatus = async (call, newStatus) => {
+    if (updatingCallId.value === call.id) return;
+
+    updatingCallId.value = call.id;
+    try {
+        const response = await axios.patch(`/business/api/sales/calls/${call.id}/status`, {
+            status: newStatus,
+        });
+
+        if (response.data.success) {
+            // Update the call in the local list
+            const index = calls.value.findIndex(c => c.id === call.id);
+            if (index !== -1) {
+                calls.value[index] = {
+                    ...calls.value[index],
+                    status: response.data.call.status,
+                    full_label: response.data.call.full_label,
+                    duration: response.data.call.duration,
+                    duration_formatted: response.data.call.duration_formatted,
+                };
+            }
+            showNotification('success', response.data.message);
+            // Reload stats
+            loadCalls();
+        }
+    } catch (error) {
+        console.error('Failed to update call status:', error);
+        showNotification('error', error.response?.data?.error || 'Statusni yangilashda xatolik');
+    } finally {
+        updatingCallId.value = null;
+    }
+};
+
 // Activity state
 const newNote = ref('');
 const isAddingNote = ref(false);
@@ -205,6 +331,7 @@ const getApiEndpoint = (action) => {
         assign: `${baseUrl}/${props.lead.id}/assign`,
         update: `${baseUrl}/${props.lead.id}`,
         delete: `${baseUrl}/${props.lead.id}`,
+        calls: `${baseUrl}/${props.lead.id}/calls`,
         tasks: props.panelType === 'saleshead'
             ? `/sales-head/leads/${props.lead.id}/tasks`
             : route('business.tasks.lead', props.lead.id),
@@ -370,6 +497,71 @@ const addNote = async () => {
     }
 };
 
+// Load calls history
+const loadCalls = async () => {
+    callsLoading.value = true;
+    try {
+        const response = await axios.get(getApiEndpoint('calls'));
+        calls.value = response.data.calls || [];
+        callStats.value = response.data.stats || {
+            total_calls: 0,
+            outbound_calls: 0,
+            inbound_calls: 0,
+            answered_calls: 0,
+            missed_calls: 0,
+            total_duration: 0,
+            avg_duration: 0,
+            answer_rate: 0,
+            total_duration_formatted: '0:00',
+        };
+    } catch (error) {
+        console.error('Failed to load calls:', error);
+    } finally {
+        callsLoading.value = false;
+    }
+};
+
+// Sync calls from PBX
+const syncingCalls = ref(false);
+const syncCalls = async () => {
+    syncingCalls.value = true;
+    try {
+        const baseUrl = props.panelType === 'saleshead' ? '/sales-head/leads' : '/business/api/sales/leads';
+        const response = await axios.post(`${baseUrl}/${props.lead.id}/sync-calls`);
+
+        if (response.data.success) {
+            calls.value = response.data.calls || [];
+            callStats.value = response.data.stats || callStats.value;
+
+            // Show appropriate notification based on warning/success
+            if (response.data.warning) {
+                showNotification('warning', response.data.message);
+            } else {
+                const synced = response.data.synced || 0;
+                const linked = response.data.linked || 0;
+                let msg = `Sinxronlandi: ${synced} ta yangi`;
+                if (linked > 0) msg += `, ${linked} ta ulandi`;
+                showNotification('success', msg);
+            }
+        } else {
+            showNotification('error', response.data.error || 'Sinxronlash xatosi');
+        }
+    } catch (error) {
+        console.error('Failed to sync calls:', error);
+        // Check for specific error types and show helpful messages
+        const errorMsg = error.response?.data?.error;
+        if (errorMsg && (errorMsg.includes('autentifikatsiya') || errorMsg.includes('key_id'))) {
+            showNotification('error', 'PBX sozlamalari xato. Telefoniya sozlamalarini tekshiring.');
+        } else if (error.response?.status === 404) {
+            showNotification('error', 'PBX ulangan emas');
+        } else {
+            showNotification('error', errorMsg || 'Sinxronlash xatosi');
+        }
+    } finally {
+        syncingCalls.value = false;
+    }
+};
+
 // Load tasks
 const loadTasks = async () => {
     tasksLoading.value = true;
@@ -516,6 +708,7 @@ const tabs = computed(() => {
     const baseTabs = [
         { id: 'activity', label: 'Amaliyotlar', icon: ClockIcon },
         { id: 'info', label: 'Ma\'lumotlar', icon: UserIcon },
+        { id: 'calls', label: 'Qo\'ng\'iroqlar', icon: PhoneIcon },
         { id: 'tasks', label: 'Vazifalar', icon: CheckCircleIcon },
     ];
     return baseTabs;
@@ -532,6 +725,7 @@ onMounted(() => {
     document.addEventListener('click', closeDropdowns);
     loadTasks();
     loadActivities();
+    loadCalls();
     checkSmsStatus();
 });
 
@@ -557,9 +751,14 @@ onUnmounted(() => {
                 <div
                     v-if="notification.show"
                     class="fixed top-4 right-4 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg"
-                    :class="notification.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'"
+                    :class="{
+                        'bg-emerald-500 text-white': notification.type === 'success',
+                        'bg-amber-500 text-white': notification.type === 'warning',
+                        'bg-red-500 text-white': notification.type === 'error'
+                    }"
                 >
                     <CheckCircleIcon v-if="notification.type === 'success'" class="w-5 h-5" />
+                    <ExclamationTriangleIcon v-else-if="notification.type === 'warning'" class="w-5 h-5" />
                     <XCircleIcon v-else class="w-5 h-5" />
                     <span class="font-medium">{{ notification.message }}</span>
                     <button @click="notification.show = false" class="ml-2 p-1 hover:bg-white/20 rounded-lg transition-colors">
@@ -1225,6 +1424,301 @@ onUnmounted(() => {
                                             <span v-if="isSaving" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                             <CheckCircleIcon v-else class="w-5 h-5" />
                                             {{ isSaving ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Calls Tab - Call History -->
+                            <div v-if="activeTab === 'calls'" class="space-y-4">
+                                <!-- Stats Bar - Compact -->
+                                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                    <div class="flex items-center justify-between flex-wrap gap-4">
+                                        <!-- Stats Grid - Compact -->
+                                        <div class="flex items-center gap-6 flex-wrap">
+                                            <!-- Total Calls -->
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/25">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ callStats.total_calls }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
+
+                                            <!-- Answer Rate -->
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/25">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ callStats.answer_rate }}<span class="text-sm text-gray-400">%</span></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">Javob</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
+
+                                            <!-- Duration -->
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shadow-violet-500/25">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ callStats.total_duration_formatted || '0:00' }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">Davomiylik</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
+
+                                            <!-- Inbound/Outbound Pills - Compact -->
+                                            <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                                    </svg>
+                                                    <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ callStats.inbound_calls || 0 }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                                    <svg class="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                                    </svg>
+                                                    <span class="text-sm font-bold text-orange-700 dark:text-orange-400">{{ callStats.outbound_calls || 0 }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sync Button - Compact -->
+                                        <button
+                                            @click="syncCalls"
+                                            :disabled="syncingCalls"
+                                            class="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg transition-all disabled:opacity-50"
+                                        >
+                                            <svg v-if="syncingCalls" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            {{ syncingCalls ? 'Sinxronlanmoqda...' : 'Sinxronlash' }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Loading -->
+                                <div v-if="callsLoading" class="text-center py-12">
+                                    <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                    <p class="text-gray-500 dark:text-gray-400 mt-4 text-sm">Qo'ng'iroqlar yuklanmoqda...</p>
+                                </div>
+
+                                <!-- Calls List -->
+                                <div v-else-if="calls.length > 0" class="space-y-2">
+                                    <div
+                                        v-for="call in calls"
+                                        :key="call.id"
+                                        class="group"
+                                    >
+                                        <!-- Call Card - Compact Design -->
+                                        <div class="relative flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md shadow-sm transition-all duration-200">
+                                            <!-- Direction Icon - Smaller -->
+                                            <div class="relative flex-shrink-0">
+                                                <div :class="[
+                                                    'w-10 h-10 rounded-xl flex items-center justify-center shadow-md',
+                                                    call.direction === 'inbound'
+                                                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20'
+                                                        : 'bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/20'
+                                                ]">
+                                                    <!-- Inbound Icon -->
+                                                    <svg v-if="call.direction === 'inbound'" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                    </svg>
+                                                    <!-- Outbound Icon -->
+                                                    <svg v-else class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                    </svg>
+                                                </div>
+                                                <!-- Status Indicator - Smaller -->
+                                                <div :class="[
+                                                    'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center',
+                                                    call.status === 'completed' || call.status === 'answered' ? 'bg-emerald-500' :
+                                                    call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled' ? 'bg-red-500' :
+                                                    call.status === 'busy' ? 'bg-amber-500' :
+                                                    call.status === 'ringing' || call.status === 'initiated' ? 'bg-blue-500' : 'bg-gray-400'
+                                                ]">
+                                                    <svg v-if="call.status === 'completed' || call.status === 'answered'" class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <svg v-else-if="call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled'" class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            <!-- Call Info - More Compact -->
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <!-- Direction Badge -->
+                                                    <span :class="[
+                                                        'inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded',
+                                                        call.direction === 'inbound'
+                                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                                                            : 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
+                                                    ]">
+                                                        {{ call.direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi' }}
+                                                    </span>
+
+                                                    <!-- Status Badge -->
+                                                    <span :class="[
+                                                        'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded',
+                                                        call.status === 'completed' || call.status === 'answered'
+                                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                                            : call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled'
+                                                                ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                                                                : call.status === 'busy'
+                                                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                                                                    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                                                    ]">
+                                                        <svg v-if="call.status === 'completed' || call.status === 'answered'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        <svg v-else-if="call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        {{ call.status === 'completed' || call.status === 'answered' ? 'Javob berildi' :
+                                                           call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled' ? 'Javob berilmadi' :
+                                                           call.status === 'busy' ? 'Band' :
+                                                           call.status === 'ringing' ? 'Jiringlamoqda' : call.status }}
+                                                    </span>
+
+                                                    <!-- Quick Status Toggle (icon only) -->
+                                                    <button
+                                                        @click="updateCallStatus(call, call.status === 'completed' || call.status === 'answered' ? 'missed' : 'completed')"
+                                                        :disabled="updatingCallId === call.id"
+                                                        :class="[
+                                                            'p-1 rounded transition-all',
+                                                            call.status === 'completed' || call.status === 'answered'
+                                                                ? 'text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                                                : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                                                        ]"
+                                                        :title="call.status === 'completed' || call.status === 'answered' ? 'Javob berilmadi deb belgilash' : 'Javob berildi deb belgilash'"
+                                                    >
+                                                        <svg v-if="updatingCallId === call.id" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                        </svg>
+                                                        <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <!-- Separator -->
+                                                    <span class="text-gray-300 dark:text-gray-600">•</span>
+
+                                                    <!-- Date -->
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ call.created_at }}
+                                                    </span>
+                                                    <span v-if="call.operator_name" class="text-xs text-gray-500 dark:text-gray-400">
+                                                        • {{ call.operator_name }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Right Side: Duration & Actions - Compact -->
+                                            <div class="flex items-center gap-2">
+                                                <!-- Duration - Smaller -->
+                                                <div v-if="call.duration > 0" class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ call.duration_formatted }}</span>
+                                                </div>
+
+                                                <!-- Recording Button - Show for answered calls -->
+                                                <button
+                                                    v-if="call.status === 'completed' || call.status === 'answered' || call.recording_url"
+                                                    @click="toggleAudio(call)"
+                                                    :disabled="loadingRecordingId === call.id"
+                                                    :class="[
+                                                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+                                                        playingCallId === call.id
+                                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/25'
+                                                            : loadingRecordingId === call.id
+                                                                ? 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-wait'
+                                                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50'
+                                                    ]"
+                                                >
+                                                    <svg v-if="loadingRecordingId === call.id" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                    </svg>
+                                                    <svg v-else-if="playingCallId === call.id" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    {{ loadingRecordingId === call.id ? 'Yuklanmoqda...' : playingCallId === call.id ? 'Stop' : 'Yozuv' }}
+                                                </button>
+
+                                                <!-- Call Back Button - Smaller -->
+                                                <button
+                                                    @click="showCallWidget = true"
+                                                    class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                    title="Qayta qo'ng'iroq"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Empty State - Compact -->
+                                <div v-else class="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                                    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Qo'ng'iroqlar yo'q</h3>
+                                    <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto text-sm">Bu mijoz bilan hali qo'ng'iroq amalga oshirilmagan</p>
+                                    <div class="flex items-center justify-center gap-3">
+                                        <button
+                                            @click="syncCalls"
+                                            :disabled="syncingCalls"
+                                            class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg transition-all disabled:opacity-50"
+                                        >
+                                            <svg v-if="syncingCalls" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Sinxronlash
+                                        </button>
+                                        <button
+                                            @click="showCallWidget = true"
+                                            :class="['flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-all shadow-md', themeColors.bg]"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            </svg>
+                                            Qo'ng'iroq qilish
                                         </button>
                                     </div>
                                 </div>

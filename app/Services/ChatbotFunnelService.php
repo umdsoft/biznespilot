@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\ChatbotConversation;
 use App\Models\Business;
 use App\Models\Lead;
+use App\Models\LeadSource;
+use Illuminate\Support\Facades\Log;
 
 class ChatbotFunnelService
 {
@@ -201,14 +203,22 @@ class ChatbotFunnelService
         }
 
         if ($conversation->customer_email || $conversation->customer_phone) {
+            // Get or create appropriate source for the channel
+            $source = $this->getOrCreateChatbotSource($conversation->business_id, $conversation->channel);
+
             $lead = Lead::create([
                 'business_id' => $conversation->business_id,
+                'source_id' => $source?->id,
                 'name' => $conversation->customer_name ?? 'Chatbot Lead',
                 'email' => $conversation->customer_email,
                 'phone' => $conversation->customer_phone,
-                'source' => 'chatbot_' . $conversation->channel,
                 'status' => 'new',
                 'notes' => "Auto-created from chatbot conversation #{$conversation->id}",
+                'data' => [
+                    'source' => 'chatbot_' . $conversation->channel,
+                    'conversation_id' => $conversation->id,
+                    'platform' => $conversation->channel,
+                ],
             ]);
 
             $conversation->update(['lead_id' => $lead->id]);
@@ -217,6 +227,104 @@ class ChatbotFunnelService
         }
 
         return null;
+    }
+
+    /**
+     * Get or create lead source for chatbot channel
+     */
+    protected function getOrCreateChatbotSource(string $businessId, string $channel): ?LeadSource
+    {
+        $channelConfig = [
+            'instagram' => [
+                'code' => 'instagram_chatbot',
+                'name' => 'Instagram Chatbot',
+                'icon' => 'instagram',
+                'color' => '#E1306C',
+            ],
+            'telegram' => [
+                'code' => 'telegram_bot',
+                'name' => 'Telegram Bot',
+                'icon' => 'telegram',
+                'color' => '#0088cc',
+            ],
+            'facebook' => [
+                'code' => 'facebook_chatbot',
+                'name' => 'Facebook Chatbot',
+                'icon' => 'facebook',
+                'color' => '#1877F2',
+            ],
+            'whatsapp' => [
+                'code' => 'whatsapp_chatbot',
+                'name' => 'WhatsApp Chatbot',
+                'icon' => 'whatsapp',
+                'color' => '#25D366',
+            ],
+        ];
+
+        $config = $channelConfig[$channel] ?? [
+            'code' => 'chatbot_' . $channel,
+            'name' => ucfirst($channel) . ' Chatbot',
+            'icon' => 'chat',
+            'color' => '#6366F1',
+        ];
+
+        // First try to find by code
+        $source = LeadSource::where('business_id', $businessId)
+            ->where('code', $config['code'])
+            ->first();
+
+        if ($source) {
+            return $source;
+        }
+
+        // Fallback: search by name
+        $source = LeadSource::where('business_id', $businessId)
+            ->where('name', 'like', '%' . ucfirst($channel) . '%')
+            ->first();
+
+        if ($source) {
+            return $source;
+        }
+
+        // Create new source
+        try {
+            $source = LeadSource::create([
+                'business_id' => $businessId,
+                'code' => $config['code'] . '_' . substr($businessId, 0, 8),
+                'name' => $config['name'],
+                'category' => 'digital',
+                'icon' => $config['icon'],
+                'color' => $config['color'],
+                'is_paid' => false,
+                'is_trackable' => true,
+                'is_active' => true,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('LeadSource creation failed for chatbot', [
+                'channel' => $channel,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Try with timestamp
+            try {
+                $source = LeadSource::create([
+                    'business_id' => $businessId,
+                    'code' => $config['code'] . '_' . time(),
+                    'name' => $config['name'],
+                    'category' => 'digital',
+                    'icon' => $config['icon'],
+                    'color' => $config['color'],
+                    'is_paid' => false,
+                    'is_trackable' => true,
+                    'is_active' => true,
+                ]);
+            } catch (\Exception $e2) {
+                Log::error('LeadSource creation failed completely', ['error' => $e2->getMessage()]);
+                return null;
+            }
+        }
+
+        return $source;
     }
 
     /**

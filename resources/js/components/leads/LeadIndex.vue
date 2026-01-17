@@ -494,6 +494,64 @@ const getAvatarColor = (name) => {
     return colors[index];
 };
 
+// Check if lead came from phone call
+const isPhoneCallLead = (lead) => {
+    // Check source name
+    if (lead.source?.name?.toLowerCase().includes('telefon') ||
+        lead.source?.name?.toLowerCase().includes('phone') ||
+        lead.source?.name?.toLowerCase().includes('qo\'ng\'iroq')) {
+        return true;
+    }
+    // Check source code
+    if (lead.source?.code?.includes('phone_call')) {
+        return true;
+    }
+    // Check lead data
+    if (lead.data?.source?.includes('phone_call')) {
+        return true;
+    }
+    return false;
+};
+
+// Get call status color based on last call status
+const getCallStatusColor = (status) => {
+    switch (status) {
+        case 'completed':
+        case 'answered':
+            return 'text-green-500';
+        case 'missed':
+        case 'no_answer':
+            return 'text-red-500';
+        case 'busy':
+            return 'text-yellow-500';
+        case 'failed':
+            return 'text-gray-500';
+        default:
+            return 'text-blue-500';
+    }
+};
+
+// Get call status label in Uzbek
+const getCallStatusLabel = (status) => {
+    switch (status) {
+        case 'completed':
+        case 'answered':
+            return 'Javob berildi';
+        case 'missed':
+            return 'O\'tkazib yuborildi';
+        case 'no_answer':
+            return 'Javob yo\'q';
+        case 'busy':
+            return 'Band';
+        case 'failed':
+            return 'Muvaffaqiyatsiz';
+        case 'initiated':
+            return 'Boshlandi';
+        default:
+            return 'Noma\'lum';
+    }
+};
+
 const getScoreStars = (score) => {
     if (score >= 80) return 5;
     if (score >= 60) return 4;
@@ -1019,12 +1077,25 @@ onUnmounted(() => {
                                 <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
                                     <div
                                         :class="[
-                                            'px-2 py-1 rounded text-xs text-center',
+                                            'px-2 py-1 rounded text-xs text-center flex items-center justify-center gap-1.5',
                                             lead.source
                                                 ? `${themeColors.sourceBg} ${themeColors.sourceText}`
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                                         ]"
                                     >
+                                        <!-- Phone call indicator with status -->
+                                        <template v-if="isPhoneCallLead(lead)">
+                                            <span
+                                                :class="getCallStatusColor(lead.data?.last_call_status)"
+                                                :title="getCallStatusLabel(lead.data?.last_call_status)"
+                                                class="inline-flex items-center"
+                                            >
+                                                <PhoneIcon class="w-3.5 h-3.5" />
+                                                <span v-if="lead.data?.missed_calls > 0" class="ml-0.5 text-red-500 font-semibold">
+                                                    {{ lead.data.missed_calls }}
+                                                </span>
+                                            </span>
+                                        </template>
                                         {{ lead.source?.name || 'Manba ko\'rsatilmagan' }}
                                     </div>
                                 </div>

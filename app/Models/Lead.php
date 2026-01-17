@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Lead extends Model
 {
@@ -367,6 +368,105 @@ class Lead extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(LeadActivity::class)->latest();
+    }
+
+    /**
+     * Get all phone calls for this lead.
+     */
+    public function calls(): HasMany
+    {
+        return $this->hasMany(CallLog::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get call statistics for this lead.
+     */
+    public function getCallStats(): array
+    {
+        // Use direct query to avoid relationship ordering issues with aggregates
+        $stats = \App\Models\CallLog::query()
+            ->where('lead_id', $this->id)
+            ->where('business_id', $this->business_id)
+            ->selectRaw('
+                COUNT(*) as total_calls,
+                SUM(CASE WHEN direction = "outbound" THEN 1 ELSE 0 END) as outbound_calls,
+                SUM(CASE WHEN direction = "inbound" THEN 1 ELSE 0 END) as inbound_calls,
+                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as answered_calls,
+                SUM(CASE WHEN status IN ("missed", "no_answer") THEN 1 ELSE 0 END) as missed_calls,
+                SUM(COALESCE(duration, 0)) as total_duration,
+                AVG(CASE WHEN duration > 0 THEN duration ELSE NULL END) as avg_duration
+            ')
+            ->first();
+
+        $totalCalls = (int) ($stats->total_calls ?? 0);
+        $answeredCalls = (int) ($stats->answered_calls ?? 0);
+        $totalDuration = (int) ($stats->total_duration ?? 0);
+
+        return [
+            'total_calls' => $totalCalls,
+            'outbound_calls' => (int) ($stats->outbound_calls ?? 0),
+            'inbound_calls' => (int) ($stats->inbound_calls ?? 0),
+            'answered_calls' => $answeredCalls,
+            'missed_calls' => (int) ($stats->missed_calls ?? 0),
+            'total_duration' => $totalDuration,
+            'total_duration_formatted' => $this->formatDuration($totalDuration),
+            'avg_duration' => round($stats->avg_duration ?? 0),
+            'answer_rate' => $totalCalls > 0 ? round(($answeredCalls / $totalCalls) * 100, 1) : 0,
+        ];
+    }
+
+    /**
+     * Format duration in seconds to human readable format.
+     */
+    protected function formatDuration(int $seconds): string
+    {
+        if ($seconds < 60) {
+            return '0:' . str_pad($seconds, 2, '0', STR_PAD_LEFT);
+        }
+
+        $minutes = floor($seconds / 60);
+        $secs = $seconds % 60;
+
+        if ($minutes < 60) {
+            return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+        }
+
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+
+        return $hours . ':' . str_pad($mins, 2, '0', STR_PAD_LEFT) . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get last call for this lead.
+     */
+    public function getLastCall(): ?CallLog
+    {
+        return $this->calls()->first();
+    }
+
+    /**
+     * Get formatted total call duration.
+     */
+    public function getFormattedCallDuration(): string
+    {
+        $totalSeconds = $this->calls()->sum('duration') ?? 0;
+
+        if ($totalSeconds < 60) {
+            return $totalSeconds . ' sek';
+        }
+
+        $minutes = floor($totalSeconds / 60);
+        $seconds = $totalSeconds % 60;
+
+        if ($minutes < 60) {
+            return $minutes . ' min ' . $seconds . ' sek';
+        }
+
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+
+        return $hours . ' soat ' . $mins . ' min';
     }
 
     /**
