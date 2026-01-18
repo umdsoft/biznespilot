@@ -94,8 +94,9 @@ return new class extends Migration
                 if (!$this->indexExists('campaigns', 'campaigns_business_status_index') && Schema::hasColumn('campaigns', 'business_id') && Schema::hasColumn('campaigns', 'status')) {
                     $table->index(['business_id', 'status'], 'campaigns_business_status_index');
                 }
-                if (!$this->indexExists('campaigns', 'campaigns_date_range_index') && Schema::hasColumn('campaigns', 'start_date') && Schema::hasColumn('campaigns', 'end_date')) {
-                    $table->index(['start_date', 'end_date'], 'campaigns_date_range_index');
+                // Note: campaigns table uses starts_at/ends_at (not start_date/end_date)
+                if (!$this->indexExists('campaigns', 'campaigns_date_range_index') && Schema::hasColumn('campaigns', 'starts_at') && Schema::hasColumn('campaigns', 'ends_at')) {
+                    $table->index(['starts_at', 'ends_at'], 'campaigns_date_range_index');
                 }
             });
         }
@@ -133,38 +134,82 @@ return new class extends Migration
         }
 
         Schema::table('leads', function (Blueprint $table) {
-            $table->dropIndex('leads_assigned_to_index');
-            $table->dropIndex('leads_business_status_index');
-            $table->dropIndex('leads_business_created_index');
-            $table->dropIndex('leads_business_updated_index');
-            $table->dropIndex('leads_source_id_index');
-            $table->dropIndex('leads_estimated_value_index');
+            if ($this->indexExists('leads', 'leads_assigned_to_index')) {
+                $table->dropIndex('leads_assigned_to_index');
+            }
+            if ($this->indexExists('leads', 'leads_business_status_index')) {
+                $table->dropIndex('leads_business_status_index');
+            }
+            if ($this->indexExists('leads', 'leads_business_created_index')) {
+                $table->dropIndex('leads_business_created_index');
+            }
+            if ($this->indexExists('leads', 'leads_business_updated_index')) {
+                $table->dropIndex('leads_business_updated_index');
+            }
+            if ($this->indexExists('leads', 'leads_source_id_index')) {
+                $table->dropIndex('leads_source_id_index');
+            }
+            if ($this->indexExists('leads', 'leads_estimated_value_index')) {
+                $table->dropIndex('leads_estimated_value_index');
+            }
         });
 
-        Schema::table('customers', function (Blueprint $table) {
-            $table->dropIndex('customers_dream_buyer_id_index');
-            $table->dropIndex('customers_last_purchase_index');
-            $table->dropIndex('customers_business_dream_buyer_index');
-        });
+        if (Schema::hasTable('customers')) {
+            Schema::table('customers', function (Blueprint $table) {
+                if ($this->indexExists('customers', 'customers_dream_buyer_id_index')) {
+                    $table->dropIndex('customers_dream_buyer_id_index');
+                }
+                if ($this->indexExists('customers', 'customers_last_purchase_index')) {
+                    $table->dropIndex('customers_last_purchase_index');
+                }
+                if ($this->indexExists('customers', 'customers_business_dream_buyer_index')) {
+                    $table->dropIndex('customers_business_dream_buyer_index');
+                }
+            });
+        }
 
-        Schema::table('sales', function (Blueprint $table) {
-            $table->dropIndex('sales_marketing_channel_index');
-            $table->dropIndex('sales_business_customer_index');
-            $table->dropIndex('sales_business_created_index');
-        });
+        if (Schema::hasTable('sales')) {
+            Schema::table('sales', function (Blueprint $table) {
+                if ($this->indexExists('sales', 'sales_marketing_channel_index')) {
+                    $table->dropIndex('sales_marketing_channel_index');
+                }
+                if ($this->indexExists('sales', 'sales_business_customer_index')) {
+                    $table->dropIndex('sales_business_customer_index');
+                }
+                if ($this->indexExists('sales', 'sales_business_created_index')) {
+                    $table->dropIndex('sales_business_created_index');
+                }
+            });
+        }
 
-        Schema::table('campaigns', function (Blueprint $table) {
-            $table->dropIndex('campaigns_business_status_index');
-            $table->dropIndex('campaigns_date_range_index');
-        });
+        if (Schema::hasTable('campaigns')) {
+            Schema::table('campaigns', function (Blueprint $table) {
+                if ($this->indexExists('campaigns', 'campaigns_business_status_index')) {
+                    $table->dropIndex('campaigns_business_status_index');
+                }
+                if ($this->indexExists('campaigns', 'campaigns_date_range_index')) {
+                    $table->dropIndex('campaigns_date_range_index');
+                }
+            });
+        }
 
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->dropIndex('tasks_business_assigned_status_index');
-            $table->dropIndex('tasks_due_date_index');
-        });
+        if (Schema::hasTable('tasks')) {
+            Schema::table('tasks', function (Blueprint $table) {
+                if ($this->indexExists('tasks', 'tasks_business_assigned_status_index')) {
+                    $table->dropIndex('tasks_business_assigned_status_index');
+                }
+                if ($this->indexExists('tasks', 'tasks_due_date_index')) {
+                    $table->dropIndex('tasks_due_date_index');
+                }
+            });
+        }
 
-        Schema::table('business_users', function (Blueprint $table) {
-            $table->dropIndex('business_users_business_dept_index');
-        });
+        if (Schema::hasTable('business_users')) {
+            Schema::table('business_users', function (Blueprint $table) {
+                if ($this->indexExists('business_users', 'business_users_business_dept_index')) {
+                    $table->dropIndex('business_users_business_dept_index');
+                }
+            });
+        }
     }
 };

@@ -78,7 +78,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function getCampaignStats($businessId): array
+    private function getCampaignStats(string $businessId): array
     {
         $total = Campaign::where('business_id', $businessId)->count();
         $active = Campaign::where('business_id', $businessId)->where('status', 'active')->count();
