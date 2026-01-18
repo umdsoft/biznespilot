@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-3">
-        <div v-for="(stage, index) in stages" :key="stage.id || index" class="relative">
+        <div v-for="(stage, index) in safeStages" :key="stage.id || index" class="relative">
             <div class="flex items-center justify-between mb-1">
                 <span class="text-sm font-medium text-gray-700">{{ stage.label }}</span>
                 <span class="text-sm text-gray-500">{{ stage.count }} ta</span>
@@ -17,7 +17,7 @@
                 </div>
             </div>
         </div>
-        <div v-if="stages.length === 0" class="text-center py-8 text-gray-500">
+        <div v-if="safeStages.length === 0" class="text-center py-8 text-gray-500">
             Ma'lumot yo'q
         </div>
     </div>
@@ -33,8 +33,13 @@ const props = defineProps({
     },
 });
 
+// Ensure stages is always an array
+const safeStages = computed(() => {
+    return Array.isArray(props.stages) ? props.stages : [];
+});
+
 const totalCount = computed(() => {
-    return props.stages.reduce((sum, stage) => sum + (stage.count || 0), 0);
+    return safeStages.value.reduce((sum, stage) => sum + (stage.count || 0), 0);
 });
 
 const getPercentage = (count) => {
