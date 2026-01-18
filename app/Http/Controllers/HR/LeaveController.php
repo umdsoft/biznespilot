@@ -23,7 +23,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -44,7 +44,7 @@ class LeaveController extends Controller
 
         $requests = $query->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($request) => [
+            ->map(fn ($request) => [
                 'id' => $request->id,
                 'leave_type' => [
                     'id' => $request->leaveType->id,
@@ -74,7 +74,7 @@ class LeaveController extends Controller
             ->where('year', $year)
             ->with('leaveType')
             ->get()
-            ->map(fn($balance) => [
+            ->map(fn ($balance) => [
                 'id' => $balance->id,
                 'leave_type' => [
                     'id' => $balance->leaveType->id,
@@ -92,7 +92,7 @@ class LeaveController extends Controller
         $leaveTypes = LeaveType::where('business_id', $business->id)
             ->active()
             ->get()
-            ->map(fn($type) => [
+            ->map(fn ($type) => [
                 'id' => $type->id,
                 'name' => $type->name,
                 'code' => $type->code,
@@ -118,7 +118,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -128,7 +128,7 @@ class LeaveController extends Controller
             ->with(['user', 'leaveType'])
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(fn($request) => [
+            ->map(fn ($request) => [
                 'id' => $request->id,
                 'user' => [
                     'id' => $request->user->id,
@@ -163,7 +163,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -228,7 +228,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $leaveRequest->business_id !== $business->id) {
+        if (! $business || $leaveRequest->business_id !== $business->id) {
             return back()->with('error', 'Ruxsat yo\'q');
         }
 
@@ -250,7 +250,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $leaveRequest->business_id !== $business->id) {
+        if (! $business || $leaveRequest->business_id !== $business->id) {
             return back()->with('error', 'Ruxsat yo\'q');
         }
 
@@ -273,7 +273,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $leaveRequest->business_id !== $business->id) {
+        if (! $business || $leaveRequest->business_id !== $business->id) {
             return back()->with('error', 'Ruxsat yo\'q');
         }
 
@@ -296,7 +296,7 @@ class LeaveController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -312,7 +312,7 @@ class LeaveController extends Controller
             ->dateRange($startDate, $endDate)
             ->with(['user', 'leaveType'])
             ->get()
-            ->map(fn($request) => [
+            ->map(fn ($request) => [
                 'id' => $request->id,
                 'user_name' => $request->user->name,
                 'user_id' => $request->user_id,

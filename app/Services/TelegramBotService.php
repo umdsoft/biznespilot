@@ -25,7 +25,7 @@ class TelegramBotService
             // Extract message data
             $message = $update['message'] ?? null;
 
-            if (!$message) {
+            if (! $message) {
                 return ['success' => false, 'message' => 'No message in update'];
             }
 
@@ -89,7 +89,7 @@ class TelegramBotService
     ): bool {
         $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-        if (!$config || !$config->telegram_enabled || !$config->telegram_bot_token) {
+        if (! $config || ! $config->telegram_enabled || ! $config->telegram_bot_token) {
             return false;
         }
 
@@ -102,7 +102,7 @@ class TelegramBotService
         ];
 
         // Add inline keyboard if attachments (buttons) present
-        if (!empty($attachments)) {
+        if (! empty($attachments)) {
             $payload['reply_markup'] = $this->buildInlineKeyboard($attachments);
         }
 

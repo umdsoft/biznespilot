@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\Lead;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Centralized Lead Statistics Service
@@ -20,7 +20,7 @@ class LeadStatisticsService
      */
     public function getLeadStats(string $businessId, ?string $userId = null): array
     {
-        $cacheKey = "lead_stats_{$businessId}" . ($userId ? "_{$userId}" : '');
+        $cacheKey = "lead_stats_{$businessId}".($userId ? "_{$userId}" : '');
 
         return Cache::remember($cacheKey, $this->cacheTTL, function () use ($businessId, $userId) {
             $query = Lead::where('business_id', $businessId);
@@ -32,7 +32,7 @@ class LeadStatisticsService
             // Single query with aggregation
             $stats = DB::table('leads')
                 ->where('business_id', $businessId)
-                ->when($userId, fn($q) => $q->where('assigned_to', $userId))
+                ->when($userId, fn ($q) => $q->where('assigned_to', $userId))
                 ->selectRaw('
                     COUNT(*) as total,
                     SUM(CASE WHEN status = "new" THEN 1 ELSE 0 END) as new_count,

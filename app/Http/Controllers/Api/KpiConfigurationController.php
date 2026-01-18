@@ -7,8 +7,8 @@ use App\Models\Business;
 use App\Models\BusinessKpiConfiguration;
 use App\Models\KpiTemplate;
 use App\Services\KpiMatcherService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class KpiConfigurationController extends Controller
@@ -26,7 +26,7 @@ class KpiConfigurationController extends Controller
     public function show(int $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -34,7 +34,7 @@ class KpiConfigurationController extends Controller
         }
 
         $configuration = $business->kpiConfiguration;
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -79,7 +79,7 @@ class KpiConfigurationController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -124,7 +124,7 @@ class KpiConfigurationController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -132,7 +132,7 @@ class KpiConfigurationController extends Controller
         }
 
         // Auto-generate if requested or no KPIs selected
-        if ($request->input('auto_generate', false) || !$request->has('selected_kpis')) {
+        if ($request->input('auto_generate', false) || ! $request->has('selected_kpis')) {
             $configuration = $this->kpiMatcher->createConfiguration(
                 $business,
                 $request->input('primary_goal'),
@@ -197,7 +197,7 @@ class KpiConfigurationController extends Controller
         }
 
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -248,7 +248,7 @@ class KpiConfigurationController extends Controller
         }
 
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -277,7 +277,7 @@ class KpiConfigurationController extends Controller
     public function removeKpi(Request $request, int $businessId, string $kpiCode): JsonResponse
     {
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -314,7 +314,7 @@ class KpiConfigurationController extends Controller
         }
 
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -351,7 +351,7 @@ class KpiConfigurationController extends Controller
         }
 
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -376,7 +376,7 @@ class KpiConfigurationController extends Controller
     public function activate(int $businessId): JsonResponse
     {
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -400,7 +400,7 @@ class KpiConfigurationController extends Controller
     public function pause(int $businessId): JsonResponse
     {
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -424,7 +424,7 @@ class KpiConfigurationController extends Controller
     public function getAvailableKpis(int $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -473,7 +473,7 @@ class KpiConfigurationController extends Controller
     public function suggestAdditionalKpis(int $businessId): JsonResponse
     {
         $configuration = BusinessKpiConfiguration::where('business_id', $businessId)->first();
-        if (!$configuration) {
+        if (! $configuration) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI configuration not found',
@@ -510,7 +510,7 @@ class KpiConfigurationController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',

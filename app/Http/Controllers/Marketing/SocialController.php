@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -61,7 +60,7 @@ class SocialController extends Controller
         // OAuth connection logic here
 
         return redirect()->route('marketing.social.index')
-            ->with('success', ucfirst($platform) . ' muvaffaqiyatli ulandi');
+            ->with('success', ucfirst($platform).' muvaffaqiyatli ulandi');
     }
 
     public function disconnect($id)

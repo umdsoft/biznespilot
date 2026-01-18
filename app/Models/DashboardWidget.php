@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DashboardWidget extends Model
 {
-    use HasUuids, BelongsToBusiness;
+    use BelongsToBusiness, HasUuids;
 
     protected $fillable = [
         'business_id',

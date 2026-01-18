@@ -14,6 +14,7 @@ class PaymentAccount extends Model
 
     // Providers
     public const PROVIDER_PAYME = 'payme';
+
     public const PROVIDER_CLICK = 'click';
 
     public const PROVIDERS = [
@@ -23,10 +24,12 @@ class PaymentAccount extends Model
 
     // Payme URLs
     public const PAYME_CHECKOUT_URL = 'https://checkout.paycom.uz';
+
     public const PAYME_TEST_CHECKOUT_URL = 'https://test.paycom.uz';
 
     // Click URLs
     public const CLICK_API_URL = 'https://api.click.uz/v2/merchant';
+
     public const CLICK_CHECKOUT_URL = 'https://my.click.uz/services/pay';
 
     protected $fillable = [
@@ -111,10 +114,10 @@ class PaymentAccount extends Model
     public function isConfigured(): bool
     {
         if ($this->provider === self::PROVIDER_PAYME) {
-            return !empty($this->merchant_id) && !empty($this->merchant_key);
+            return ! empty($this->merchant_id) && ! empty($this->merchant_key);
         }
 
-        return !empty($this->service_id) && !empty($this->secret_key);
+        return ! empty($this->service_id) && ! empty($this->secret_key);
     }
 
     /**

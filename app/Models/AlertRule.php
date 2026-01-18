@@ -60,7 +60,7 @@ class AlertRule extends Model
     {
         return $query->where(function ($q) use ($businessId) {
             $q->whereNull('business_id')
-              ->orWhere('business_id', $businessId);
+                ->orWhere('business_id', $businessId);
         });
     }
 
@@ -102,17 +102,19 @@ class AlertRule extends Model
                 return $currentValue == ($this->threshold_value ?? 0);
 
             case 'change_up':
-                if (!$previousValue || $previousValue == 0) {
+                if (! $previousValue || $previousValue == 0) {
                     return false;
                 }
                 $change = (($currentValue - $previousValue) / $previousValue) * 100;
+
                 return $change >= ($this->threshold_percent ?? 0);
 
             case 'change_down':
-                if (!$previousValue || $previousValue == 0) {
+                if (! $previousValue || $previousValue == 0) {
                     return false;
                 }
                 $change = (($previousValue - $currentValue) / $previousValue) * 100;
+
                 return $change >= ($this->threshold_percent ?? 0);
 
             default:

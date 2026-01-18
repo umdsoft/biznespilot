@@ -95,6 +95,7 @@ class OrgPosition extends Model
             3 => 'Mutaxassis',
             4 => 'Junior',
         ];
+
         return $labels[$this->level] ?? 'N/A';
     }
 
@@ -105,8 +106,8 @@ class OrgPosition extends Model
 
     public function getFillRateAttribute(): float
     {
-        return $this->required_count > 0 
-            ? ($this->current_count / $this->required_count) * 100 
+        return $this->required_count > 0
+            ? ($this->current_count / $this->required_count) * 100
             : 0;
     }
 

@@ -54,9 +54,10 @@ class GoogleAdsAnalyticsController extends Controller
     protected function getCurrentBusiness()
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return null;
         }
+
         return session('current_business_id')
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
@@ -70,13 +71,13 @@ class GoogleAdsAnalyticsController extends Controller
         try {
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json(['error' => 'Foydalanuvchi topilmadi'], 401);
             }
 
             $business = $this->getCurrentBusiness();
 
-            if (!$business) {
+            if (! $business) {
                 return response()->json(['error' => 'Biznes topilmadi'], 404);
             }
 
@@ -101,9 +102,10 @@ class GoogleAdsAnalyticsController extends Controller
             // Detailed validation
             if (empty($clientId) || empty($clientSecret)) {
                 \Log::warning('Google Ads OAuth not configured', [
-                    'has_client_id' => !empty($clientId),
-                    'has_client_secret' => !empty($clientSecret),
+                    'has_client_id' => ! empty($clientId),
+                    'has_client_secret' => ! empty($clientSecret),
                 ]);
+
                 return response()->json([
                     'error' => 'Google OAuth sozlanmagan. .env faylida GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET qo\'shing.',
                     'setup_required' => true,
@@ -112,7 +114,7 @@ class GoogleAdsAnalyticsController extends Controller
 
             $redirectUri = route('integrations.google-ads.callback');
 
-            $url = "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
+            $url = 'https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query([
                 'client_id' => $clientId,
                 'redirect_uri' => $redirectUri,
                 'response_type' => 'code',
@@ -126,7 +128,8 @@ class GoogleAdsAnalyticsController extends Controller
             return response()->json(['url' => $url]);
         } catch (\Exception $e) {
             \Log::error('Google Ads getAuthUrl error', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Xatolik yuz berdi: ' . $e->getMessage()], 500);
+
+            return response()->json(['error' => 'Xatolik yuz berdi: '.$e->getMessage()], 500);
         }
     }
 
@@ -144,13 +147,13 @@ class GoogleAdsAnalyticsController extends Controller
             return redirect()->route('integrations.google-ads.index');
         };
 
-        if ($error || !$code) {
-            return $getRedirectRoute()->with('error', 'Google Ads bilan ulanish bekor qilindi: ' . ($error ?? 'kod topilmadi'));
+        if ($error || ! $code) {
+            return $getRedirectRoute()->with('error', 'Google Ads bilan ulanish bekor qilindi: '.($error ?? 'kod topilmadi'));
         }
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return $getRedirectRoute()->with('error', 'Biznes topilmadi.');
         }
 
@@ -164,9 +167,10 @@ class GoogleAdsAnalyticsController extends Controller
                 'grant_type' => 'authorization_code',
             ]);
 
-            if (!$tokenResponse->successful()) {
+            if (! $tokenResponse->successful()) {
                 \Log::error('Google Ads token exchange failed', ['response' => $tokenResponse->body()]);
-                return $getRedirectRoute()->with('error', 'Token olishda xatolik: ' . $tokenResponse->body());
+
+                return $getRedirectRoute()->with('error', 'Token olishda xatolik: '.$tokenResponse->body());
             }
 
             $tokens = $tokenResponse->json();
@@ -174,7 +178,7 @@ class GoogleAdsAnalyticsController extends Controller
             $refreshToken = $tokens['refresh_token'] ?? null;
             $expiresIn = $tokens['expires_in'] ?? 3600;
 
-            if (!$accessToken) {
+            if (! $accessToken) {
                 return $getRedirectRoute()->with('error', 'Access token olinmadi.');
             }
 
@@ -206,11 +210,12 @@ class GoogleAdsAnalyticsController extends Controller
                 ]
             );
 
-            return $getRedirectRoute()->with('success', 'Google Ads muvaffaqiyatli ulandi!' . ($accountName ? " Hisob: {$accountName}" : ''));
+            return $getRedirectRoute()->with('success', 'Google Ads muvaffaqiyatli ulandi!'.($accountName ? " Hisob: {$accountName}" : ''));
 
         } catch (\Exception $e) {
             \Log::error('Google Ads callback error', ['error' => $e->getMessage()]);
-            return $getRedirectRoute()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+
+            return $getRedirectRoute()->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -237,7 +242,7 @@ class GoogleAdsAnalyticsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.create');
         }
 
@@ -259,7 +264,7 @@ class GoogleAdsAnalyticsController extends Controller
             if ($integration->isTokenExpired()) {
                 if ($integration->refresh_token) {
                     $refreshResult = $this->refreshToken($integration);
-                    if (!$refreshResult) {
+                    if (! $refreshResult) {
                         $apiErrors[] = 'Token yangilanmadi. Iltimos, qaytadan ulaning.';
                     } else {
                         $integration->refresh();
@@ -282,7 +287,7 @@ class GoogleAdsAnalyticsController extends Controller
             $recommendations = $this->generateRecommendations($analyticsData, $previousPeriodData, $campaignsData);
 
             // Add notice about API setup
-            if (!config('services.google_ads.developer_token')) {
+            if (! config('services.google_ads.developer_token')) {
                 $apiErrors[] = 'Google Ads Developer Token sozlanmagan. To\'liq ma\'lumotlar uchun developer token kerak.';
             }
         }
@@ -329,12 +334,14 @@ class GoogleAdsAnalyticsController extends Controller
                     'access_token' => $data['access_token'],
                     'token_expires_at' => now()->addSeconds($data['expires_in'] ?? 3600),
                 ]);
+
                 return true;
             }
 
             return false;
         } catch (\Exception $e) {
-            \Log::error('Google Ads token refresh failed: ' . $e->getMessage());
+            \Log::error('Google Ads token refresh failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -396,7 +403,7 @@ class GoogleAdsAnalyticsController extends Controller
     {
         $insights = [];
 
-        if (!$current || !isset($current['totals'])) {
+        if (! $current || ! isset($current['totals'])) {
             return $insights;
         }
 
@@ -485,7 +492,7 @@ class GoogleAdsAnalyticsController extends Controller
         $recommendations = [];
 
         // No data recommendation
-        if (!$current || ($current['totals']['impressions'] ?? 0) == 0) {
+        if (! $current || ($current['totals']['impressions'] ?? 0) == 0) {
             $recommendations[] = [
                 'priority' => 'high',
                 'icon' => 'alert',
@@ -498,6 +505,7 @@ class GoogleAdsAnalyticsController extends Controller
                     'Developer token sozlang',
                 ],
             ];
+
             return $recommendations;
         }
 
@@ -511,7 +519,7 @@ class GoogleAdsAnalyticsController extends Controller
                 'priority' => 'high',
                 'icon' => 'trending-down',
                 'color' => 'red',
-                'title' => "CTR past",
+                'title' => 'CTR past',
                 'description' => "Click-through rate {$ctr}% - bu juda past. Reklama matnlari va targetingni yaxshilash kerak.",
                 'actions' => [
                     'Reklama sarlavhalarini yangilang',
@@ -525,7 +533,7 @@ class GoogleAdsAnalyticsController extends Controller
                 'priority' => 'info',
                 'icon' => 'trending-up',
                 'color' => 'green',
-                'title' => "Ajoyib CTR!",
+                'title' => 'Ajoyib CTR!',
                 'description' => "CTR {$ctr}% - bu juda yaxshi natija. Bu strategiyani davom ettiring!",
                 'actions' => [
                     'Muvaffaqiyatli reklamalarni ko\'paytiring',
@@ -541,8 +549,8 @@ class GoogleAdsAnalyticsController extends Controller
                 'priority' => 'medium',
                 'icon' => 'currency',
                 'color' => 'yellow',
-                'title' => "Konversiya narxini optimallashtiring",
-                'description' => "Har bir konversiya uchun " . number_format($costPerConversion) . " so'm sarflanyapti.",
+                'title' => 'Konversiya narxini optimallashtiring',
+                'description' => 'Har bir konversiya uchun '.number_format($costPerConversion)." so'm sarflanyapti.",
                 'actions' => [
                     'Past samarali kalit so\'zlarni o\'chiring',
                     'Bid strategiyani optimallashtiring',
@@ -576,8 +584,8 @@ class GoogleAdsAnalyticsController extends Controller
                 'priority' => 'medium',
                 'icon' => 'plus',
                 'color' => 'blue',
-                'title' => "Kampaniyalar yarating",
-                'description' => "Faol kampaniyalar topilmadi. Yangi kampaniya yaratib, reklamani boshlang.",
+                'title' => 'Kampaniyalar yarating',
+                'description' => 'Faol kampaniyalar topilmadi. Yangi kampaniya yaratib, reklamani boshlang.',
                 'actions' => [
                     'Search kampaniya yarating',
                     'Display kampaniya sinab ko\'ring',
@@ -603,6 +611,7 @@ class GoogleAdsAnalyticsController extends Controller
         if ($previous == 0) {
             return $current > 0 ? 100 : 0;
         }
+
         return round((($current - $previous) / $previous) * 100, 1);
     }
 
@@ -616,26 +625,50 @@ class GoogleAdsAnalyticsController extends Controller
 
         switch ($type) {
             case 'impressions':
-                if ($change > 20) return "Ajoyib! Ko'rishlar {$absChange}% ga oshdi";
-                if ($change > 0) return "Yaxshi! Ko'rishlar {$absChange}% ga oshdi";
-                if ($change < -20) return "Diqqat! Ko'rishlar {$absChange}% ga kamaydi";
-                if ($change < 0) return "Ko'rishlar {$absChange}% ga kamaydi";
+                if ($change > 20) {
+                    return "Ajoyib! Ko'rishlar {$absChange}% ga oshdi";
+                }
+                if ($change > 0) {
+                    return "Yaxshi! Ko'rishlar {$absChange}% ga oshdi";
+                }
+                if ($change < -20) {
+                    return "Diqqat! Ko'rishlar {$absChange}% ga kamaydi";
+                }
+                if ($change < 0) {
+                    return "Ko'rishlar {$absChange}% ga kamaydi";
+                }
+
                 return "Ko'rishlar barqaror";
 
             case 'clicks':
-                if ($change > 0) return "Kliklar {$absChange}% ga oshdi";
-                if ($change < 0) return "Kliklar {$absChange}% ga kamaydi";
-                return "Kliklar barqaror";
+                if ($change > 0) {
+                    return "Kliklar {$absChange}% ga oshdi";
+                }
+                if ($change < 0) {
+                    return "Kliklar {$absChange}% ga kamaydi";
+                }
+
+                return 'Kliklar barqaror';
 
             case 'cost':
-                if ($change > 0) return "Xarajat {$absChange}% ga oshdi";
-                if ($change < 0) return "Xarajat {$absChange}% ga kamaydi - yaxshi!";
-                return "Xarajat barqaror";
+                if ($change > 0) {
+                    return "Xarajat {$absChange}% ga oshdi";
+                }
+                if ($change < 0) {
+                    return "Xarajat {$absChange}% ga kamaydi - yaxshi!";
+                }
+
+                return 'Xarajat barqaror';
 
             case 'conversions':
-                if ($change > 0) return "Konversiyalar {$absChange}% ga oshdi";
-                if ($change < 0) return "Konversiyalar {$absChange}% ga kamaydi";
-                return "Konversiyalar barqaror";
+                if ($change > 0) {
+                    return "Konversiyalar {$absChange}% ga oshdi";
+                }
+                if ($change < 0) {
+                    return "Konversiyalar {$absChange}% ga kamaydi";
+                }
+
+                return 'Konversiyalar barqaror';
 
             default:
                 return "O'tgan davrga nisbatan {$absChange}% {$direction}";
@@ -647,10 +680,19 @@ class GoogleAdsAnalyticsController extends Controller
      */
     private function getCTRDescription(float $ctr): string
     {
-        if ($ctr >= 5) return "Ajoyib CTR! Reklamalar juda samarali";
-        if ($ctr >= 3) return "Yaxshi CTR darajasi";
-        if ($ctr >= 2) return "O'rtacha CTR. Yaxshilash mumkin";
-        if ($ctr >= 1) return "CTR pastroq. Optimizatsiya kerak";
+        if ($ctr >= 5) {
+            return 'Ajoyib CTR! Reklamalar juda samarali';
+        }
+        if ($ctr >= 3) {
+            return 'Yaxshi CTR darajasi';
+        }
+        if ($ctr >= 2) {
+            return "O'rtacha CTR. Yaxshilash mumkin";
+        }
+        if ($ctr >= 1) {
+            return 'CTR pastroq. Optimizatsiya kerak';
+        }
+
         return "CTR juda past. Reklamalarni qayta ko'rib chiqing";
     }
 }

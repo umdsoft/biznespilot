@@ -7,8 +7,8 @@ use App\Services\Integration\FacebookKpiSyncService;
 use App\Services\Integration\InstagramKpiSyncService;
 use App\Services\Integration\PosKpiSyncService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -20,17 +20,22 @@ use Illuminate\Support\Facades\Log;
  * This job is spawned by the main sync job to distribute load across multiple workers
  * Designed for high scalability (1000+ businesses)
  */
-class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
+class ProcessSingleBatchJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $batchNumber;
+
     public $date;
+
     public $batchSize;
+
     public $totalBusinesses;
 
     public $tries = 3;
+
     public $timeout = 600; // 10 minutes per batch
+
     public $maxExceptions = 2;
 
     /**
@@ -167,7 +172,7 @@ class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
         if ($instagramAvailable || $facebookAvailable || $posAvailable) {
             // Instagram
             if ($instagramAvailable) {
-                $promises['instagram'] = function() use ($instagramSync, $businessId) {
+                $promises['instagram'] = function () use ($instagramSync, $businessId) {
                     try {
                         return $instagramSync->syncDailyKpis($businessId, $this->date);
                     } catch (\Exception $e) {
@@ -178,7 +183,7 @@ class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
 
             // Facebook
             if ($facebookAvailable) {
-                $promises['facebook'] = function() use ($facebookSync, $businessId) {
+                $promises['facebook'] = function () use ($facebookSync, $businessId) {
                     try {
                         return $facebookSync->syncDailyKpis($businessId, $this->date);
                     } catch (\Exception $e) {
@@ -189,7 +194,7 @@ class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
 
             // POS
             if ($posAvailable) {
-                $promises['pos'] = function() use ($posSync, $businessId) {
+                $promises['pos'] = function () use ($posSync, $businessId) {
                     try {
                         return $posSync->syncDailyKpis($businessId, $this->date);
                     } catch (\Exception $e) {
@@ -220,11 +225,11 @@ class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
         $progressKey = "kpi_sync_progress:{$this->date}";
 
         // Atomic increment of completed batches
-        $completedBatches = cache()->increment($progressKey . ':completed_batches', 1);
+        $completedBatches = cache()->increment($progressKey.':completed_batches', 1);
 
         // Atomic add of success/error counts
-        cache()->increment($progressKey . ':total_success', $batchStats['success_count']);
-        cache()->increment($progressKey . ':total_failed', $batchStats['error_count']);
+        cache()->increment($progressKey.':total_success', $batchStats['success_count']);
+        cache()->increment($progressKey.':total_failed', $batchStats['error_count']);
 
         // Check if all batches completed
         $totalBatches = (int) ceil($this->totalBusinesses / $this->batchSize);
@@ -245,8 +250,8 @@ class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
         $finalStats = [
             'total_businesses' => $this->totalBusinesses,
             'total_batches' => $totalBatches,
-            'total_success' => cache()->get($progressKey . ':total_success', 0),
-            'total_failed' => cache()->get($progressKey . ':total_failed', 0),
+            'total_success' => cache()->get($progressKey.':total_success', 0),
+            'total_failed' => cache()->get($progressKey.':total_failed', 0),
             'completed_at' => now(),
         ];
 
@@ -258,9 +263,9 @@ class ProcessSingleBatchJob implements ShouldQueue, ShouldBeUnique
         );
 
         // Clean up progress tracking
-        cache()->forget($progressKey . ':completed_batches');
-        cache()->forget($progressKey . ':total_success');
-        cache()->forget($progressKey . ':total_failed');
+        cache()->forget($progressKey.':completed_batches');
+        cache()->forget($progressKey.':total_success');
+        cache()->forget($progressKey.':total_failed');
 
         Log::info('All batches completed - final stats compiled', $finalStats);
     }

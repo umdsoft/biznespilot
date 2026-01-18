@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
+use App\Models\Alert;
 use App\Models\Business;
 use App\Models\GeneratedReport;
-use App\Models\ScheduledReport;
 use App\Models\KpiDailySnapshot;
-use App\Models\Alert;
+use App\Models\ScheduledReport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class ReportingService
 {
@@ -48,6 +48,7 @@ class ReportingService
                 'scheduled_report_id' => $scheduledReport->id,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -72,7 +73,7 @@ class ReportingService
         return GeneratedReport::create([
             'business_id' => $business->id,
             'report_type' => 'daily_brief',
-            'title' => 'Kunlik Xulosa - ' . $date->format('d.m.Y'),
+            'title' => 'Kunlik Xulosa - '.$date->format('d.m.Y'),
             'period_start' => $date,
             'period_end' => $date,
             'content' => $content,
@@ -113,7 +114,7 @@ class ReportingService
         return GeneratedReport::create([
             'business_id' => $business->id,
             'report_type' => 'weekly_summary',
-            'title' => 'Haftalik Hisobot - ' . $startDate->format('d.m') . ' - ' . $endDate->format('d.m.Y'),
+            'title' => 'Haftalik Hisobot - '.$startDate->format('d.m').' - '.$endDate->format('d.m.Y'),
             'period_start' => $startDate,
             'period_end' => $endDate,
             'content' => $content,
@@ -160,7 +161,7 @@ class ReportingService
         return GeneratedReport::create([
             'business_id' => $business->id,
             'report_type' => 'monthly_report',
-            'title' => 'Oylik Hisobot - ' . $month->format('F Y'),
+            'title' => 'Oylik Hisobot - '.$month->format('F Y'),
             'period_start' => $startDate,
             'period_end' => $endDate,
             'content' => $content,
@@ -266,7 +267,7 @@ class ReportingService
 
     protected function buildKpiSection(?KpiDailySnapshot $today, ?KpiDailySnapshot $yesterday): array
     {
-        if (!$today) {
+        if (! $today) {
             return [];
         }
 
@@ -306,7 +307,7 @@ class ReportingService
 
     protected function buildFunnelSection(?KpiDailySnapshot $snapshot): array
     {
-        if (!$snapshot) {
+        if (! $snapshot) {
             return [];
         }
 
@@ -340,7 +341,7 @@ class ReportingService
 
     protected function buildDailyBreakdown(Collection $snapshots): array
     {
-        return $snapshots->map(fn($s) => [
+        return $snapshots->map(fn ($s) => [
             'date' => $s->snapshot_date->format('Y-m-d'),
             'revenue' => $s->revenue_total,
             'leads' => $s->leads_total,
@@ -362,7 +363,7 @@ class ReportingService
             ->whereBetween('triggered_at', [$start, $end])
             ->orderBy('triggered_at', 'desc')
             ->get()
-            ->map(fn($a) => [
+            ->map(fn ($a) => [
                 'title' => $a->title,
                 'severity' => $a->severity,
                 'status' => $a->status,
@@ -381,7 +382,7 @@ class ReportingService
     {
         $best = $snapshots->sortByDesc('health_score')->first();
 
-        if (!$best) {
+        if (! $best) {
             return [];
         }
 
@@ -401,7 +402,7 @@ class ReportingService
         if ($avgConversion < 3) {
             $areas[] = [
                 'area' => 'Konversiya',
-                'current' => round($avgConversion, 2) . '%',
+                'current' => round($avgConversion, 2).'%',
                 'target' => '3%+',
             ];
         }
@@ -409,7 +410,7 @@ class ReportingService
         if ($avgRoas < 3) {
             $areas[] = [
                 'area' => 'ROAS',
-                'current' => round($avgRoas, 2) . 'x',
+                'current' => round($avgRoas, 2).'x',
                 'target' => '3x+',
             ];
         }
@@ -450,8 +451,8 @@ class ReportingService
 
     protected function buildWeeklyComparison(Collection $snapshots): array
     {
-        return $snapshots->groupBy(fn($s) => $s->snapshot_date->weekOfMonth)
-            ->map(fn($week) => [
+        return $snapshots->groupBy(fn ($s) => $s->snapshot_date->weekOfMonth)
+            ->map(fn ($week) => [
                 'revenue' => $week->sum('revenue_total'),
                 'leads' => $week->sum('leads_total'),
             ])
@@ -461,7 +462,7 @@ class ReportingService
     protected function buildChannelPerformance(Collection $snapshots): array
     {
         $last = $snapshots->last();
-        if (!$last) {
+        if (! $last) {
             return [];
         }
 
@@ -523,8 +524,8 @@ class ReportingService
 
     protected function buildMonthlyBreakdown(Collection $snapshots): array
     {
-        return $snapshots->groupBy(fn($s) => $s->snapshot_date->format('Y-m'))
-            ->map(fn($month) => [
+        return $snapshots->groupBy(fn ($s) => $s->snapshot_date->format('Y-m'))
+            ->map(fn ($month) => [
                 'revenue' => $month->sum('revenue_total'),
                 'leads' => $month->sum('leads_total'),
                 'avg_health' => round($month->avg('health_score'), 1),
@@ -565,9 +566,10 @@ class ReportingService
 
     protected function calculateGrowth($current, $previous): ?float
     {
-        if (!$previous || $previous == 0) {
+        if (! $previous || $previous == 0) {
             return null;
         }
+
         return round((($current - $previous) / $previous) * 100, 2);
     }
 
@@ -579,11 +581,12 @@ class ReportingService
         }
 
         $mean = $revenues->avg();
-        $variance = $revenues->map(fn($v) => pow($v - $mean, 2))->avg();
+        $variance = $revenues->map(fn ($v) => pow($v - $mean, 2))->avg();
         $stdDev = sqrt($variance);
 
         // Lower coefficient of variation = higher consistency
         $cv = $mean > 0 ? ($stdDev / $mean) : 0;
+
         return max(0, min(100, 100 - ($cv * 100)));
     }
 

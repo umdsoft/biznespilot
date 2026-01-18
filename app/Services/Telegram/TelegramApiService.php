@@ -3,14 +3,16 @@
 namespace App\Services\Telegram;
 
 use App\Models\TelegramBot;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Client\Response;
 
 class TelegramApiService
 {
     protected string $baseUrl = 'https://api.telegram.org/bot';
+
     protected TelegramBot $bot;
+
     protected string $token;
 
     public function __construct(TelegramBot $bot)
@@ -31,7 +33,7 @@ class TelegramApiService
 
             $result = $response->json();
 
-            if (!$response->successful() || !($result['ok'] ?? false)) {
+            if (! $response->successful() || ! ($result['ok'] ?? false)) {
                 Log::error('Telegram API error', [
                     'method' => $method,
                     'error_code' => $result['error_code'] ?? null,
@@ -77,7 +79,7 @@ class TelegramApiService
     /**
      * Set webhook
      */
-    public function setWebhook(string $url, string $secretToken = null): array
+    public function setWebhook(string $url, ?string $secretToken = null): array
     {
         $data = [
             'url' => $url,
@@ -116,10 +118,10 @@ class TelegramApiService
     public function sendMessage(
         int|string $chatId,
         string $text,
-        array $keyboard = null,
+        ?array $keyboard = null,
         string $parseMode = 'HTML',
         bool $disableWebPagePreview = false,
-        int $replyToMessageId = null
+        ?int $replyToMessageId = null
     ): array {
         $data = [
             'chat_id' => $chatId,
@@ -145,8 +147,8 @@ class TelegramApiService
     public function sendPhoto(
         int|string $chatId,
         string $photo,
-        string $caption = null,
-        array $keyboard = null,
+        ?string $caption = null,
+        ?array $keyboard = null,
         string $parseMode = 'HTML'
     ): array {
         $data = [
@@ -172,8 +174,8 @@ class TelegramApiService
     public function sendVideo(
         int|string $chatId,
         string $video,
-        string $caption = null,
-        array $keyboard = null,
+        ?string $caption = null,
+        ?array $keyboard = null,
         string $parseMode = 'HTML'
     ): array {
         $data = [
@@ -199,8 +201,8 @@ class TelegramApiService
     public function sendDocument(
         int|string $chatId,
         string $document,
-        string $caption = null,
-        array $keyboard = null,
+        ?string $caption = null,
+        ?array $keyboard = null,
         string $parseMode = 'HTML'
     ): array {
         $data = [
@@ -226,8 +228,8 @@ class TelegramApiService
     public function sendVoice(
         int|string $chatId,
         string $voice,
-        string $caption = null,
-        array $keyboard = null,
+        ?string $caption = null,
+        ?array $keyboard = null,
         string $parseMode = 'HTML'
     ): array {
         $data = [
@@ -253,8 +255,8 @@ class TelegramApiService
     public function sendVideoNote(
         int|string $chatId,
         string $videoNote,
-        int $duration = null,
-        array $keyboard = null
+        ?int $duration = null,
+        ?array $keyboard = null
     ): array {
         $data = [
             'chat_id' => $chatId,
@@ -279,7 +281,7 @@ class TelegramApiService
         int|string $chatId,
         float $latitude,
         float $longitude,
-        array $keyboard = null
+        ?array $keyboard = null
     ): array {
         $data = [
             'chat_id' => $chatId,
@@ -301,8 +303,8 @@ class TelegramApiService
         int|string $chatId,
         string $phoneNumber,
         string $firstName,
-        string $lastName = null,
-        array $keyboard = null
+        ?string $lastName = null,
+        ?array $keyboard = null
     ): array {
         $data = [
             'chat_id' => $chatId,
@@ -328,7 +330,7 @@ class TelegramApiService
         int|string $chatId,
         int $messageId,
         string $text,
-        array $keyboard = null,
+        ?array $keyboard = null,
         string $parseMode = 'HTML'
     ): array {
         $data = [
@@ -351,7 +353,7 @@ class TelegramApiService
     public function editMessageReplyMarkup(
         int|string $chatId,
         int $messageId,
-        array $keyboard = null
+        ?array $keyboard = null
     ): array {
         $data = [
             'chat_id' => $chatId,
@@ -381,7 +383,7 @@ class TelegramApiService
      */
     public function answerCallbackQuery(
         string $callbackQueryId,
-        string $text = null,
+        ?string $text = null,
         bool $showAlert = false
     ): array {
         $data = [
@@ -451,7 +453,7 @@ class TelegramApiService
         array $buttons,
         bool $resizeKeyboard = true,
         bool $oneTimeKeyboard = false,
-        string $inputFieldPlaceholder = null
+        ?string $inputFieldPlaceholder = null
     ): array {
         $keyboard = [];
 
@@ -541,6 +543,7 @@ class TelegramApiService
         if (preg_match('/retry after (\d+)/', $response['description'] ?? '', $matches)) {
             return (int) $matches[1];
         }
+
         return 5;
     }
 }

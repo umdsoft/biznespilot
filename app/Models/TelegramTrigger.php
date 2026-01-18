@@ -113,13 +113,14 @@ class TelegramTrigger extends Model
 
     protected function matchRegex(string $input): bool
     {
-        return (bool) preg_match('/' . $this->value . '/i', $input);
+        return (bool) preg_match('/'.$this->value.'/i', $input);
     }
 
     protected function matchWildcard(string $input): bool
     {
         $pattern = str_replace('*', '.*', preg_quote($this->value, '/'));
-        return (bool) preg_match('/^' . $pattern . '$/i', $input);
+
+        return (bool) preg_match('/^'.$pattern.'$/i', $input);
     }
 
     // Conditions
@@ -135,13 +136,13 @@ class TelegramTrigger extends Model
         }
 
         // Only existing leads
-        if (data_get($this->conditions, 'only_existing_leads') && !$user->lead_id) {
+        if (data_get($this->conditions, 'only_existing_leads') && ! $user->lead_id) {
             return false;
         }
 
         // Required tags
         $requiredTags = data_get($this->conditions, 'required_tags', []);
-        if (!empty($requiredTags)) {
+        if (! empty($requiredTags)) {
             $userTags = $user->tags ?? [];
             if (count(array_intersect($requiredTags, $userTags)) !== count($requiredTags)) {
                 return false;
@@ -150,7 +151,7 @@ class TelegramTrigger extends Model
 
         // Excluded tags
         $excludedTags = data_get($this->conditions, 'excluded_tags', []);
-        if (!empty($excludedTags)) {
+        if (! empty($excludedTags)) {
             $userTags = $user->tags ?? [];
             if (count(array_intersect($excludedTags, $userTags)) > 0) {
                 return false;

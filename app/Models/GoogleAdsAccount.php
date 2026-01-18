@@ -80,7 +80,7 @@ class GoogleAdsAccount extends Model
      */
     public function needsTokenRefresh(): bool
     {
-        if (!$this->token_expires_at) {
+        if (! $this->token_expires_at) {
             return true;
         }
 

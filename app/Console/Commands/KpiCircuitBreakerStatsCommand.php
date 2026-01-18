@@ -34,7 +34,7 @@ class KpiCircuitBreakerStatsCommand extends Command
             if ($businessId) {
                 $this->line("<fg=cyan>Business ID:</> {$businessId}");
             } else {
-                $this->line("<fg=cyan>Scope:</> Global");
+                $this->line('<fg=cyan>Scope:</> Global');
             }
 
             // State with color
@@ -58,11 +58,11 @@ class KpiCircuitBreakerStatsCommand extends Command
 
             // Health indicator
             if ($stats['state'] === 'closed') {
-                $this->line("<fg=green>✓ Service is healthy</>");
+                $this->line('<fg=green>✓ Service is healthy</>');
             } elseif ($stats['state'] === 'half_open') {
-                $this->line("<fg=yellow>⚠ Service is recovering</>");
+                $this->line('<fg=yellow>⚠ Service is recovering</>');
             } else {
-                $this->line("<fg=red>✗ Service is unavailable</>");
+                $this->line('<fg=red>✗ Service is unavailable</>');
             }
 
             $this->line('─────────────────────────────────────────');

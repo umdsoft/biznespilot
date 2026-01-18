@@ -227,7 +227,7 @@ class ContentCalendar extends Model
 
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'idea' => 'gray',
             'draft' => 'yellow',
             'pending_review' => 'orange',
@@ -242,7 +242,7 @@ class ContentCalendar extends Model
 
     public function getChannelColor(): string
     {
-        return match($this->channel) {
+        return match ($this->channel) {
             'instagram' => 'pink',
             'telegram' => 'sky',
             'facebook' => 'blue',
@@ -267,7 +267,7 @@ class ContentCalendar extends Model
     {
         if ($this->scheduled_date && $this->scheduled_time) {
             $scheduledAt = \Carbon\Carbon::parse(
-                $this->scheduled_date->format('Y-m-d') . ' ' . $this->scheduled_time,
+                $this->scheduled_date->format('Y-m-d').' '.$this->scheduled_time,
                 $this->timezone
             );
             $this->update([
@@ -313,6 +313,7 @@ class ContentCalendar extends Model
         $reach = $this->reach ?: $this->impressions;
         if ($reach === 0) {
             $this->update(['engagement_rate' => 0]);
+
             return;
         }
 

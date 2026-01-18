@@ -144,8 +144,8 @@ class PlanSeeder extends Seeder
         foreach ($plans as $planData) {
             $plan = Plan::where('slug', $planData['slug'])->first();
 
-            if (!$plan) {
-                $plan = new Plan();
+            if (! $plan) {
+                $plan = new Plan;
                 $plan->id = Str::uuid()->toString();
             }
 

@@ -9,7 +9,6 @@ use App\Models\CompetitorAlert;
 use App\Models\GlobalCompetitor;
 use App\Services\CompetitorAnalysisService;
 use App\Services\CompetitorMonitoringService;
-use App\Jobs\ScrapeCompetitorData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -19,7 +18,9 @@ class CompetitorsController extends Controller
     use HasCurrentBusiness;
 
     protected CompetitorMonitoringService $monitoringService;
+
     protected CompetitorAnalysisService $analysisService;
+
     protected int $cacheTTL = 600; // 10 minutes
 
     public function __construct(
@@ -37,10 +38,18 @@ class CompetitorsController extends Controller
     {
         $prefix = $request->route()->getPrefix();
 
-        if (str_contains($prefix, 'marketing')) return 'marketing';
-        if (str_contains($prefix, 'finance')) return 'finance';
-        if (str_contains($prefix, 'operator')) return 'operator';
-        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
 
         return 'business';
     }
@@ -52,7 +61,7 @@ class CompetitorsController extends Controller
     {
         $panel = $this->getPanelType($request);
 
-        return match($panel) {
+        return match ($panel) {
             'marketing' => 'marketing.competitors',
             'finance' => 'finance.competitors',
             'operator' => 'operator.competitors',
@@ -67,7 +76,7 @@ class CompetitorsController extends Controller
     protected function authorizeCompetitor(Request $request, Competitor $competitor): void
     {
         $business = $request->user()->currentBusiness;
-        if (!$business || $competitor->business_id !== $business->id) {
+        if (! $business || $competitor->business_id !== $business->id) {
             abort(403, 'Bu raqobatchiga kirish huquqi yo\'q');
         }
     }
@@ -79,7 +88,7 @@ class CompetitorsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -87,7 +96,7 @@ class CompetitorsController extends Controller
         $business->load('industryRelation');
 
         $query = Competitor::where('business_id', $business->id)
-            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(1)])
             ->withCount('metrics');
 
         // Filters
@@ -131,7 +140,7 @@ class CompetitorsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -150,7 +159,7 @@ class CompetitorsController extends Controller
         // Load competitors
         $competitors = Competitor::where('business_id', $business->id)
             ->where('status', 'active')
-            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(1)])
             ->orderBy('threat_level', 'desc')
             ->limit(10)
             ->get();
@@ -186,8 +195,8 @@ class CompetitorsController extends Controller
         $panelType = $this->getPanelType($request);
 
         $competitor->load([
-            'metrics' => fn($q) => $q->latest('recorded_date')->limit(90),
-            'activities' => fn($q) => $q->latest('activity_date')->limit(20),
+            'metrics' => fn ($q) => $q->latest('recorded_date')->limit(90),
+            'activities' => fn ($q) => $q->latest('activity_date')->limit(20),
         ]);
 
         // Get latest metric
@@ -258,7 +267,7 @@ class CompetitorsController extends Controller
         // Auto-update SWOT analysis
         $this->analysisService->updateBusinessSwotFromCompetitor($business);
 
-        return redirect()->route($routePrefix . '.show', $competitor)
+        return redirect()->route($routePrefix.'.show', $competitor)
             ->with('success', 'Raqib qo\'shildi va SWOT tahlil yangilandi');
     }
 
@@ -311,7 +320,7 @@ class CompetitorsController extends Controller
         // Auto-update SWOT analysis
         $this->analysisService->updateBusinessSwotFromCompetitor($business);
 
-        return redirect()->route($routePrefix . '.index')
+        return redirect()->route($routePrefix.'.index')
             ->with('success', 'Raqib o\'chirildi va SWOT tahlil yangilandi');
     }
 
@@ -322,7 +331,7 @@ class CompetitorsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -347,6 +356,7 @@ class CompetitorsController extends Controller
                 $competitor->effective_swot_data = $competitor->effective_swot_data;
                 $competitor->global_swot_count = $competitor->globalCompetitor?->swot_count ?? 0;
                 $competitor->global_contributors = $competitor->globalCompetitor?->swot_contributors_count ?? 0;
+
                 return $competitor;
             });
 
@@ -372,7 +382,7 @@ class CompetitorsController extends Controller
 
         $swot = [
             'strengths' => [
-                $competitor->name . ' kuchli brend nomiga ega',
+                $competitor->name.' kuchli brend nomiga ega',
                 'Keng mijozlar bazasi mavjud',
                 'Doimiy marketing faoliyati olib borilmoqda',
             ],
@@ -441,7 +451,7 @@ class CompetitorsController extends Controller
             $results = GlobalCompetitor::query()
                 ->where(function ($query) use ($search) {
                     $query->where('name', 'like', "{$search}%")
-                          ->orWhere('name', 'like', "%{$search}%");
+                        ->orWhere('name', 'like', "%{$search}%");
                 })
                 ->select(['id', 'name', 'industry', 'region', 'district', 'instagram_handle', 'telegram_handle', 'swot_contributors_count'])
                 ->limit(8)
@@ -466,7 +476,8 @@ class CompetitorsController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            \Log::error('searchGlobal error: ' . $e->getMessage());
+            \Log::error('searchGlobal error: '.$e->getMessage());
+
             return response()->json([]);
         }
     }

@@ -31,7 +31,7 @@ return new class extends Migration
                 'customer_retention',
                 'brand_awareness',
                 'operational_efficiency',
-                'market_expansion'
+                'market_expansion',
             ])->default('customer_acquisition');
 
             $table->json('secondary_goals')->nullable()

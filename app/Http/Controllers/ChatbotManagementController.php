@@ -11,12 +11,12 @@ use App\Models\ChatbotTemplate;
 use App\Services\TelegramBotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ChatbotManagementController extends Controller
 {
     protected TelegramBotService $telegramService;
+
     protected int $cacheTTL = 300; // 5 minutes
 
     public function __construct(TelegramBotService $telegramService)
@@ -31,15 +31,15 @@ class ChatbotManagementController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
         $config = ChatbotConfig::firstOrCreate(
             ['business_id' => $business->id],
             [
-                'bot_name' => $business->name . ' Bot',
-                'welcome_message' => "Assalomu alaykum! {business_name}ga xush kelibsiz. Sizga qanday yordam bera olaman?",
+                'bot_name' => $business->name.' Bot',
+                'welcome_message' => 'Assalomu alaykum! {business_name}ga xush kelibsiz. Sizga qanday yordam bera olaman?',
                 'default_response' => "Kechirasiz, sizning savolingizni tushunmadim. Iltimos, boshqacha so'rab ko'ring.",
                 'business_hours_start' => '09:00',
                 'business_hours_end' => '18:00',
@@ -69,7 +69,7 @@ class ChatbotManagementController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -144,7 +144,7 @@ class ChatbotManagementController extends Controller
         $intentBreakdown = $this->aggregateIntentBreakdown($dailyStats);
 
         return [
-            'daily_chart' => $dailyStats->map(fn($stat) => [
+            'daily_chart' => $dailyStats->map(fn ($stat) => [
                 'date' => $stat->date->format('Y-m-d'),
                 'conversations' => $stat->total_conversations,
                 'messages' => $stat->total_messages,
@@ -197,7 +197,7 @@ class ChatbotManagementController extends Controller
         $business = $request->user()->currentBusiness;
 
         $query = ChatbotConversation::where('business_id', $business->id)
-            ->with(['lead', 'messages' => fn($q) => $q->latest()->limit(1)])
+            ->with(['lead', 'messages' => fn ($q) => $q->latest()->limit(1)])
             ->withCount('messages');
 
         // Filter by status
@@ -241,7 +241,7 @@ class ChatbotManagementController extends Controller
         $this->authorize('view', $conversation);
 
         $conversation->load([
-            'messages' => fn($q) => $q->orderBy('created_at', 'asc'),
+            'messages' => fn ($q) => $q->orderBy('created_at', 'asc'),
             'lead',
         ]);
 
@@ -305,9 +305,9 @@ class ChatbotManagementController extends Controller
         $config = ChatbotConfig::firstOrCreate(
             ['business_id' => $business->id],
             [
-                'bot_name' => $business->name . ' Bot',
-                'welcome_message' => "Assalomu alaykum! {business_name}ga xush kelibsiz.",
-                'default_response' => "Kechirasiz, tushunmadim.",
+                'bot_name' => $business->name.' Bot',
+                'welcome_message' => 'Assalomu alaykum! {business_name}ga xush kelibsiz.',
+                'default_response' => 'Kechirasiz, tushunmadim.',
             ]
         );
 
@@ -361,7 +361,7 @@ class ChatbotManagementController extends Controller
         $business = $request->user()->currentBusiness;
         $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-        if (!$config || !$config->telegram_bot_token) {
+        if (! $config || ! $config->telegram_bot_token) {
             return back()->withErrors(['telegram' => 'Telegram bot token kiritilmagan']);
         }
 
@@ -384,7 +384,7 @@ class ChatbotManagementController extends Controller
         $business = $request->user()->currentBusiness;
         $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-        if (!$config || !$config->telegram_bot_token) {
+        if (! $config || ! $config->telegram_bot_token) {
             return response()->json(['error' => 'Token not configured'], 400);
         }
 

@@ -5,16 +5,17 @@ namespace App\Models;
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class LeadForm extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -155,10 +156,10 @@ class LeadForm extends Model
      */
     public static function generateUniqueSlug(string $base): string
     {
-        $slug = Str::slug($base) . '-' . Str::random(6);
+        $slug = Str::slug($base).'-'.Str::random(6);
 
         while (static::where('slug', $slug)->exists()) {
-            $slug = Str::slug($base) . '-' . Str::random(6);
+            $slug = Str::slug($base).'-'.Str::random(6);
         }
 
         return $slug;
@@ -177,7 +178,10 @@ class LeadForm extends Model
      */
     public function getConversionRateAttribute(): float
     {
-        if ($this->views_count === 0) return 0;
+        if ($this->views_count === 0) {
+            return 0;
+        }
+
         return round(($this->submissions_count / $this->views_count) * 100, 1);
     }
 

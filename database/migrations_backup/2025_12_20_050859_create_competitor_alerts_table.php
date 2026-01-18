@@ -24,7 +24,7 @@ return new class extends Migration
                 'price_change',        // Price change detected
                 'viral_content',       // Viral post detected
                 'product_launch',      // New product/service
-                'other'
+                'other',
             ]);
             $table->enum('severity', ['low', 'medium', 'high', 'critical'])->default('medium');
             $table->string('title');

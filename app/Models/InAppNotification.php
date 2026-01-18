@@ -71,7 +71,7 @@ class InAppNotification extends Model
 
     public function markAsRead()
     {
-        if (!$this->read_at) {
+        if (! $this->read_at) {
             $this->update(['read_at' => now()]);
         }
     }

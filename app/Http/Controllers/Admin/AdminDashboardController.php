@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
-use App\Models\User;
 use App\Models\Campaign;
 use App\Models\ChatbotConversation;
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
 {
@@ -41,7 +39,7 @@ class AdminDashboardController extends Controller
                 ->latest()
                 ->limit(5)
                 ->get()
-                ->map(fn($business) => [
+                ->map(fn ($business) => [
                     'id' => $business->id,
                     'name' => $business->name,
                     'owner' => $business->owner->name ?? 'N/A',
@@ -54,7 +52,7 @@ class AdminDashboardController extends Controller
             return User::latest()
                 ->limit(5)
                 ->get()
-                ->map(fn($user) => [
+                ->map(fn ($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
@@ -77,7 +75,7 @@ class AdminDashboardController extends Controller
                 ->orderBy('chatbot_conversations_count', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(fn($business) => [
+                ->map(fn ($business) => [
                     'id' => $business->id,
                     'name' => $business->name,
                     'conversations_count' => $business->chatbot_conversations_count,
@@ -151,6 +149,7 @@ class AdminDashboardController extends Controller
     {
         try {
             \DB::connection()->getPdo();
+
             return ['status' => 'healthy', 'message' => 'Database connection OK'];
         } catch (\Exception $e) {
             return ['status' => 'unhealthy', 'message' => $e->getMessage()];
@@ -165,7 +164,7 @@ class AdminDashboardController extends Controller
 
         return [
             'status' => $usedPercentage < 90 ? 'healthy' : 'warning',
-            'message' => "Storage: " . round($usedPercentage, 2) . "% used",
+            'message' => 'Storage: '.round($usedPercentage, 2).'% used',
             'used' => round($usedPercentage, 2),
         ];
     }
@@ -175,6 +174,7 @@ class AdminDashboardController extends Controller
         try {
             cache()->put('health_check', true, 10);
             $result = cache()->get('health_check');
+
             return ['status' => $result ? 'healthy' : 'warning', 'message' => 'Cache working'];
         } catch (\Exception $e) {
             return ['status' => 'unhealthy', 'message' => $e->getMessage()];

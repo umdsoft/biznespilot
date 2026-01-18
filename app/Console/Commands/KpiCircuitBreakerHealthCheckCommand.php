@@ -65,7 +65,7 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
 
             // If circuit is OPEN, try a health check
             if ($stats['state'] === 'OPEN') {
-                $this->warn("Circuit is OPEN. Performing health check...");
+                $this->warn('Circuit is OPEN. Performing health check...');
 
                 $healthCheckResult = $this->performHealthCheck($service);
 
@@ -74,14 +74,14 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
 
                     if ($resetOnSuccess) {
                         $this->circuitBreaker->reset($service);
-                        $this->info("✓ Circuit RESET to CLOSED state");
+                        $this->info('✓ Circuit RESET to CLOSED state');
 
-                        Log::info("Circuit breaker reset via health check", [
+                        Log::info('Circuit breaker reset via health check', [
                             'service' => $service,
                             'command' => 'kpi:circuit-breaker-health-check',
                         ]);
                     } else {
-                        $this->comment("Use --reset-on-success to automatically reset the circuit");
+                        $this->comment('Use --reset-on-success to automatically reset the circuit');
                     }
                 } else {
                     $this->error("✗ Health check FAILED for {$service}");
@@ -100,7 +100,7 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
         $this->info('Summary:');
         $this->table(
             ['Service', 'Status'],
-            collect($results)->map(fn($status, $service) => [$service, $status])->toArray()
+            collect($results)->map(fn ($status, $service) => [$service, $status])->toArray()
         );
 
         return Command::SUCCESS;
@@ -131,6 +131,7 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
             Log::error("Health check failed for {$service}", [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -147,6 +148,7 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
 
         try {
             $response = @file_get_contents($url);
+
             return $response !== false;
         } catch (\Exception $e) {
             return false;
@@ -163,6 +165,7 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
 
         try {
             $response = @file_get_contents($url);
+
             return $response !== false;
         } catch (\Exception $e) {
             return false;
@@ -179,6 +182,7 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
 
         try {
             \DB::connection()->getPdo();
+
             return true;
         } catch (\Exception $e) {
             return false;

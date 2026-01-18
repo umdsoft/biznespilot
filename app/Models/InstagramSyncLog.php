@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramSyncLog extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'account_id',
         'sync_type',
@@ -31,7 +32,7 @@ class InstagramSyncLog extends Model
 
     public function getDurationAttribute(): ?int
     {
-        if (!$this->started_at || !$this->completed_at) {
+        if (! $this->started_at || ! $this->completed_at) {
             return null;
         }
 

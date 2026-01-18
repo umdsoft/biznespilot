@@ -20,8 +20,9 @@ class KpiCircuitBreakerResetCommand extends Command
         $businessId = $this->option('business-id');
         $all = $this->option('all');
 
-        if (!$service && !$all) {
+        if (! $service && ! $all) {
             $this->error('Please specify --service or --all');
+
             return Command::FAILURE;
         }
 
@@ -34,7 +35,7 @@ class KpiCircuitBreakerResetCommand extends Command
         foreach ($services as $svc) {
             $circuitBreaker->reset($svc, $businessId);
 
-            $scope = $businessId ? "business {$businessId}" : "global";
+            $scope = $businessId ? "business {$businessId}" : 'global';
             $this->line("<fg=green>✓</> Reset {$svc} ({$scope})");
         }
 

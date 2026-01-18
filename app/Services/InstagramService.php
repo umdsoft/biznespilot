@@ -17,20 +17,18 @@ class InstagramService
 
     /**
      * Fetch and store Instagram metrics for a channel
-     *
-     * @param MarketingChannel $channel
-     * @param Carbon|null $date
-     * @return InstagramMetric|null
      */
     public function syncMetrics(MarketingChannel $channel, ?Carbon $date = null): ?InstagramMetric
     {
         if ($channel->type !== 'instagram') {
             Log::error('Channel is not Instagram type', ['channel_id' => $channel->id]);
+
             return null;
         }
 
-        if (!$channel->access_token) {
+        if (! $channel->access_token) {
             Log::error('Instagram channel missing access token', ['channel_id' => $channel->id]);
+
             return null;
         }
 
@@ -93,38 +91,36 @@ class InstagramService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Fetch account-level insights from Instagram Graph API
-     *
-     * @param string $accessToken
-     * @param string $accountId
-     * @return array
      */
     private function fetchAccountInsights(string $accessToken, string $accountId): array
     {
         try {
             // Get basic account info
-            $accountResponse = Http::get(self::API_BASE_URL . "/{$accountId}", [
+            $accountResponse = Http::get(self::API_BASE_URL."/{$accountId}", [
                 'fields' => 'followers_count,follows_count,media_count',
                 'access_token' => $accessToken,
             ]);
 
-            if (!$accountResponse->successful()) {
+            if (! $accountResponse->successful()) {
                 Log::error('Instagram account info request failed', [
                     'status' => $accountResponse->status(),
                     'body' => $accountResponse->body(),
                 ]);
+
                 return [];
             }
 
             $accountData = $accountResponse->json();
 
             // Get account insights (profile views, reach, etc.)
-            $insightsResponse = Http::get(self::API_BASE_URL . "/{$accountId}/insights", [
+            $insightsResponse = Http::get(self::API_BASE_URL."/{$accountId}/insights", [
                 'metric' => 'profile_views,reach,impressions,website_clicks,email_contacts,phone_call_clicks',
                 'period' => 'day',
                 'access_token' => $accessToken,
@@ -156,17 +152,13 @@ class InstagramService
             Log::error('Failed to fetch Instagram account insights', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
 
     /**
      * Fetch media-level insights (posts, stories, reels)
-     *
-     * @param string $accessToken
-     * @param string $accountId
-     * @param Carbon $date
-     * @return array
      */
     private function fetchMediaInsights(string $accessToken, string $accountId, Carbon $date): array
     {
@@ -191,15 +183,16 @@ class InstagramService
             ];
 
             // Get media published on the specified date
-            $mediaResponse = Http::get(self::API_BASE_URL . "/{$accountId}/media", [
+            $mediaResponse = Http::get(self::API_BASE_URL."/{$accountId}/media", [
                 'fields' => 'id,media_type,timestamp,like_count,comments_count',
                 'access_token' => $accessToken,
             ]);
 
-            if (!$mediaResponse->successful()) {
+            if (! $mediaResponse->successful()) {
                 Log::error('Instagram media request failed', [
                     'status' => $mediaResponse->status(),
                 ]);
+
                 return $insights;
             }
 
@@ -217,7 +210,7 @@ class InstagramService
                 $mediaId = $media['id'];
 
                 // Get detailed insights for this media
-                $mediaInsightsResponse = Http::get(self::API_BASE_URL . "/{$mediaId}/insights", [
+                $mediaInsightsResponse = Http::get(self::API_BASE_URL."/{$mediaId}/insights", [
                     'metric' => $this->getMetricsForMediaType($mediaType),
                     'access_token' => $accessToken,
                 ]);
@@ -289,6 +282,7 @@ class InstagramService
             Log::error('Failed to fetch Instagram media insights', [
                 'error' => $e->getMessage(),
             ]);
+
             return [
                 'likes' => 0,
                 'comments' => 0,
@@ -312,13 +306,10 @@ class InstagramService
 
     /**
      * Get metrics string based on media type
-     *
-     * @param string $mediaType
-     * @return string
      */
     private function getMetricsForMediaType(string $mediaType): string
     {
-        return match($mediaType) {
+        return match ($mediaType) {
             'IMAGE', 'CAROUSEL_ALBUM' => 'engagement,impressions,reach,saved',
             'VIDEO' => 'engagement,impressions,reach,plays,shares',
             'STORY' => 'impressions,reach,replies',
@@ -328,21 +319,19 @@ class InstagramService
 
     /**
      * Validate and refresh access token if needed
-     *
-     * @param string $accessToken
-     * @return string|null
      */
     public function refreshAccessToken(string $accessToken): ?string
     {
         try {
             // Check token validity
-            $response = Http::get(self::API_BASE_URL . '/debug_token', [
+            $response = Http::get(self::API_BASE_URL.'/debug_token', [
                 'input_token' => $accessToken,
                 'access_token' => $accessToken,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Failed to validate Instagram access token');
+
                 return null;
             }
 
@@ -360,27 +349,25 @@ class InstagramService
             Log::error('Failed to refresh Instagram access token', [
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Exchange short-lived token for long-lived token
-     *
-     * @param string $shortLivedToken
-     * @return string|null
      */
     private function exchangeForLongLivedToken(string $shortLivedToken): ?string
     {
         try {
-            $response = Http::get(self::API_BASE_URL . '/oauth/access_token', [
+            $response = Http::get(self::API_BASE_URL.'/oauth/access_token', [
                 'grant_type' => 'fb_exchange_token',
                 'client_id' => config('services.facebook.client_id'),
                 'client_secret' => config('services.facebook.client_secret'),
                 'fb_exchange_token' => $shortLivedToken,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -390,6 +377,7 @@ class InstagramService
             Log::error('Failed to exchange Instagram token', [
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -397,9 +385,6 @@ class InstagramService
     /**
      * Sync metrics for date range
      *
-     * @param MarketingChannel $channel
-     * @param Carbon $startDate
-     * @param Carbon $endDate
      * @return int Number of days synced
      */
     public function syncMetricsRange(MarketingChannel $channel, Carbon $startDate, Carbon $endDate): int

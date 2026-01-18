@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\KpiDailyActual;
-use App\Services\KPI\IndustryKpiConfiguration;
 use App\Services\KPI\BusinessCategoryMapper;
+use App\Services\KPI\IndustryKpiConfiguration;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 /**
  * KPI Business Dashboard Controller
@@ -67,7 +66,7 @@ class KpiBusinessDashboardController extends Controller
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'days' => Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1,
-                    'period_type' => $period
+                    'period_type' => $period,
                 ],
 
                 // Summary cards - Yuqori qismda ko'rsatiladigan asosiy metrikalar
@@ -88,9 +87,9 @@ class KpiBusinessDashboardController extends Controller
                 '_meta' => [
                     'total_kpis' => count($industryKpis),
                     'data_completeness' => $this->calculateDataCompleteness($kpiData, $industryKpis),
-                    'last_updated' => Carbon::now()->toIso8601String()
-                ]
-            ]
+                    'last_updated' => Carbon::now()->toIso8601String(),
+                ],
+            ],
         ]);
     }
 
@@ -103,20 +102,23 @@ class KpiBusinessDashboardController extends Controller
         $topKpis = array_slice($industryKpis, 0, 4); // Eng muhim 4 ta KPI
 
         foreach ($topKpis as $kpi) {
-            if (!$kpi) continue;
+            if (! $kpi) {
+                continue;
+            }
 
             $code = $kpi['code'];
             $data = $kpiData[$code] ?? null;
 
-            if (!$data) {
+            if (! $data) {
                 $cards[] = [
                     'kpi_code' => $code,
                     'name' => $kpi['name'],
                     'icon' => $kpi['icon'],
                     'value' => null,
                     'status' => 'no_data',
-                    'message' => 'Ma\'lumot yo\'q'
+                    'message' => 'Ma\'lumot yo\'q',
                 ];
+
                 continue;
             }
 
@@ -161,7 +163,7 @@ class KpiBusinessDashboardController extends Controller
                 // Display metadata
                 'unit' => $kpi['unit'],
                 'format' => $kpi['format'],
-                'description' => $kpi['description']
+                'description' => $kpi['description'],
             ];
         }
 
@@ -174,7 +176,7 @@ class KpiBusinessDashboardController extends Controller
     protected function buildKpiTable(array $kpiData, array $industryKpis, array $sections): array
     {
         $table = [
-            'sections' => []
+            'sections' => [],
         ];
 
         foreach ($sections as $sectionName => $kpiCodes) {
@@ -182,11 +184,13 @@ class KpiBusinessDashboardController extends Controller
 
             foreach ($kpiCodes as $code) {
                 $kpi = $this->findKpiByCode($industryKpis, $code);
-                if (!$kpi) continue;
+                if (! $kpi) {
+                    continue;
+                }
 
                 $data = $kpiData[$code] ?? null;
 
-                if (!$data) {
+                if (! $data) {
                     $sectionRows[] = [
                         'kpi_code' => $code,
                         'name' => $kpi['name'],
@@ -195,8 +199,9 @@ class KpiBusinessDashboardController extends Controller
                         'target' => '-',
                         'status' => 'no_data',
                         'trend' => [],
-                        'action' => 'Ma\'lumot kiritish'
+                        'action' => 'Ma\'lumot kiritish',
                     ];
+
                     continue;
                 }
 
@@ -213,17 +218,17 @@ class KpiBusinessDashboardController extends Controller
                     // Values
                     'current' => [
                         'value' => $this->formatValue($actual, $kpi['format']),
-                        'raw' => $actual
+                        'raw' => $actual,
                     ],
 
                     'target' => [
                         'value' => $this->formatValue($target, $kpi['format']),
-                        'raw' => $target
+                        'raw' => $target,
                     ],
 
                     'previous' => [
                         'value' => $this->formatValue($data['previous_value'], $kpi['format']),
-                        'raw' => $data['previous_value']
+                        'raw' => $data['previous_value'],
                     ],
 
                     // Performance
@@ -231,7 +236,7 @@ class KpiBusinessDashboardController extends Controller
                         'percent' => $target > 0 ? round(($actual / $target) * 100, 1) : 100,
                         'status' => IndustryKpiConfiguration::getPerformanceStatus($actual, $target, $kpi['good_direction']),
                         'color' => IndustryKpiConfiguration::getPerformanceColor($actual, $target, $kpi['good_direction']),
-                        'label' => $this->getPerformanceLabel($actual, $target, $kpi['good_direction'])
+                        'label' => $this->getPerformanceLabel($actual, $target, $kpi['good_direction']),
                     ],
 
                     // Trend (last 7 days sparkline data)
@@ -242,14 +247,14 @@ class KpiBusinessDashboardController extends Controller
                     'unit' => $kpi['unit'],
                     'format' => $kpi['format'],
                     'description' => $kpi['description'],
-                    'good_direction' => $kpi['good_direction']
+                    'good_direction' => $kpi['good_direction'],
                 ];
             }
 
             $table['sections'][] = [
                 'name' => $sectionName,
                 'rows' => $sectionRows,
-                'row_count' => count($sectionRows)
+                'row_count' => count($sectionRows),
             ];
         }
 
@@ -264,7 +269,9 @@ class KpiBusinessDashboardController extends Controller
         $trends = [];
 
         foreach ($industryKpis as $kpi) {
-            if (!$kpi) continue;
+            if (! $kpi) {
+                continue;
+            }
 
             $code = $kpi['code'];
 
@@ -274,13 +281,13 @@ class KpiBusinessDashboardController extends Controller
                 ->whereBetween('date', [$startDate, $endDate])
                 ->orderBy('date')
                 ->get(['date', 'actual_value', 'target_value'])
-                ->map(function($item) use ($kpi) {
+                ->map(function ($item) use ($kpi) {
                     return [
                         'date' => $item->date,
                         'actual' => $item->actual_value,
                         'target' => $item->target_value,
                         'formatted_actual' => $this->formatValue($item->actual_value, $kpi['format']),
-                        'formatted_target' => $this->formatValue($item->target_value, $kpi['format'])
+                        'formatted_target' => $this->formatValue($item->target_value, $kpi['format']),
                     ];
                 });
 
@@ -289,7 +296,7 @@ class KpiBusinessDashboardController extends Controller
                 'icon' => $kpi['icon'],
                 'color' => $kpi['color'],
                 'data' => $dailyData,
-                'data_points' => $dailyData->count()
+                'data_points' => $dailyData->count(),
             ];
         }
 
@@ -308,13 +315,16 @@ class KpiBusinessDashboardController extends Controller
         $noData = 0;
 
         foreach ($industryKpis as $kpi) {
-            if (!$kpi) continue;
+            if (! $kpi) {
+                continue;
+            }
 
             $code = $kpi['code'];
             $data = $kpiData[$code] ?? null;
 
-            if (!$data) {
+            if (! $data) {
                 $noData++;
+
                 continue;
             }
 
@@ -323,19 +333,28 @@ class KpiBusinessDashboardController extends Controller
 
             if ($target == 0) {
                 $onTrack++;
+
                 continue;
             }
 
             $performance = ($actual / $target) * 100;
 
             if ($kpi['good_direction'] === 'up') {
-                if ($performance >= 100) $achieved++;
-                elseif ($performance >= 80) $onTrack++;
-                else $needsAttention++;
+                if ($performance >= 100) {
+                    $achieved++;
+                } elseif ($performance >= 80) {
+                    $onTrack++;
+                } else {
+                    $needsAttention++;
+                }
             } else {
-                if ($performance <= 100) $achieved++;
-                elseif ($performance <= 120) $onTrack++;
-                else $needsAttention++;
+                if ($performance <= 100) {
+                    $achieved++;
+                } elseif ($performance <= 120) {
+                    $onTrack++;
+                } else {
+                    $needsAttention++;
+                }
             }
         }
 
@@ -346,7 +365,7 @@ class KpiBusinessDashboardController extends Controller
             'needs_attention' => $needsAttention,
             'no_data' => $noData,
             'achievement_rate' => $totalKpis > 0 ? round(($achieved / $totalKpis) * 100, 1) : 0,
-            'health_score' => $this->calculateHealthScore($achieved, $onTrack, $needsAttention, $totalKpis)
+            'health_score' => $this->calculateHealthScore($achieved, $onTrack, $needsAttention, $totalKpis),
         ];
     }
 
@@ -358,17 +377,23 @@ class KpiBusinessDashboardController extends Controller
         $recommendations = [];
 
         foreach ($industryKpis as $kpi) {
-            if (!$kpi) continue;
+            if (! $kpi) {
+                continue;
+            }
 
             $code = $kpi['code'];
             $data = $kpiData[$code] ?? null;
 
-            if (!$data) continue;
+            if (! $data) {
+                continue;
+            }
 
             $actual = $data['current_value'];
             $target = $data['target_value'];
 
-            if ($target == 0) continue;
+            if ($target == 0) {
+                continue;
+            }
 
             $performance = ($actual / $target) * 100;
 
@@ -384,14 +409,15 @@ class KpiBusinessDashboardController extends Controller
                     'type' => 'improvement',
                     'title' => $this->getRecommendationTitle($kpi, $performance),
                     'message' => $this->getRecommendationMessage($kpi, $actual, $target, $performance),
-                    'actions' => $this->getRecommendationActions($kpi, $performance)
+                    'actions' => $this->getRecommendationActions($kpi, $performance),
                 ];
             }
         }
 
         // Sort by priority
-        usort($recommendations, function($a, $b) {
+        usort($recommendations, function ($a, $b) {
             $priorityOrder = ['high' => 0, 'medium' => 1, 'low' => 2];
+
             return $priorityOrder[$a['priority']] - $priorityOrder[$b['priority']];
         });
 
@@ -407,7 +433,9 @@ class KpiBusinessDashboardController extends Controller
         $startDateCarbon = Carbon::parse($startDate);
 
         foreach ($industryKpis as $kpi) {
-            if (!$kpi) continue;
+            if (! $kpi) {
+                continue;
+            }
 
             $code = $kpi['code'];
 
@@ -445,7 +473,7 @@ class KpiBusinessDashboardController extends Controller
                 'current_value' => round($current, 2),
                 'target_value' => round($target, 2),
                 'previous_value' => round($previous, 2),
-                'trend' => $trendData
+                'trend' => $trendData,
             ];
         }
 
@@ -454,14 +482,16 @@ class KpiBusinessDashboardController extends Controller
 
     protected function formatValue($value, string $format): string
     {
-        if ($value === null) return '-';
+        if ($value === null) {
+            return '-';
+        }
 
         switch ($format) {
             case 'money':
-                return number_format($value, 0, '.', ' ') . ' so\'m';
+                return number_format($value, 0, '.', ' ').' so\'m';
 
             case 'percent':
-                return round($value, 1) . '%';
+                return round($value, 1).'%';
 
             case 'number':
                 return number_format($value, 0, '.', ' ');
@@ -476,7 +506,9 @@ class KpiBusinessDashboardController extends Controller
 
     protected function isChangeGood(float $change, string $goodDirection): bool
     {
-        if ($change == 0) return true;
+        if ($change == 0) {
+            return true;
+        }
 
         return ($goodDirection === 'up' && $change > 0) ||
                ($goodDirection === 'down' && $change < 0);
@@ -484,7 +516,9 @@ class KpiBusinessDashboardController extends Controller
 
     protected function getTrendDirection(array $trend): string
     {
-        if (count($trend) < 2) return 'stable';
+        if (count($trend) < 2) {
+            return 'stable';
+        }
 
         $first = array_slice($trend, 0, ceil(count($trend) / 2));
         $second = array_slice($trend, ceil(count($trend) / 2));
@@ -492,8 +526,13 @@ class KpiBusinessDashboardController extends Controller
         $firstAvg = count($first) > 0 ? array_sum($first) / count($first) : 0;
         $secondAvg = count($second) > 0 ? array_sum($second) / count($second) : 0;
 
-        if ($secondAvg > $firstAvg * 1.05) return 'up';
-        if ($secondAvg < $firstAvg * 0.95) return 'down';
+        if ($secondAvg > $firstAvg * 1.05) {
+            return 'up';
+        }
+        if ($secondAvg < $firstAvg * 0.95) {
+            return 'down';
+        }
+
         return 'stable';
     }
 
@@ -504,6 +543,7 @@ class KpiBusinessDashboardController extends Controller
                 return $kpi;
             }
         }
+
         return null;
     }
 
@@ -513,7 +553,9 @@ class KpiBusinessDashboardController extends Controller
         $filled = 0;
 
         foreach ($industryKpis as $kpi) {
-            if (!$kpi) continue;
+            if (! $kpi) {
+                continue;
+            }
             $code = $kpi['code'];
             if (isset($kpiData[$code]) && $kpiData[$code]['current_value'] > 0) {
                 $filled++;
@@ -525,27 +567,46 @@ class KpiBusinessDashboardController extends Controller
 
     protected function calculateHealthScore(int $achieved, int $onTrack, int $needsAttention, int $total): int
     {
-        if ($total == 0) return 0;
+        if ($total == 0) {
+            return 0;
+        }
 
         $score = (($achieved * 100) + ($onTrack * 70) + ($needsAttention * 30)) / $total;
+
         return round($score);
     }
 
     protected function getPerformanceLabel(float $actual, float $target, string $direction): string
     {
-        if ($target == 0) return 'N/A';
+        if ($target == 0) {
+            return 'N/A';
+        }
 
         $performance = ($actual / $target) * 100;
 
         if ($direction === 'up') {
-            if ($performance >= 100) return 'Ajoyib! 🎉';
-            if ($performance >= 80) return 'Yaxshi';
-            if ($performance >= 50) return 'O\'rtacha';
+            if ($performance >= 100) {
+                return 'Ajoyib! 🎉';
+            }
+            if ($performance >= 80) {
+                return 'Yaxshi';
+            }
+            if ($performance >= 50) {
+                return 'O\'rtacha';
+            }
+
             return 'Diqqat talab!';
         } else {
-            if ($performance <= 100) return 'Ajoyib! 🎉';
-            if ($performance <= 120) return 'Yaxshi';
-            if ($performance <= 150) return 'O\'rtacha';
+            if ($performance <= 100) {
+                return 'Ajoyib! 🎉';
+            }
+            if ($performance <= 120) {
+                return 'Yaxshi';
+            }
+            if ($performance <= 150) {
+                return 'O\'rtacha';
+            }
+
             return 'Diqqat talab!';
         }
     }
@@ -569,8 +630,8 @@ class KpiBusinessDashboardController extends Controller
         $actualFormatted = $this->formatValue($actual, $kpi['format']);
         $targetFormatted = $this->formatValue($target, $kpi['format']);
 
-        return "Hozirgi natija: {$actualFormatted}. Maqsad: {$targetFormatted}. " .
-               "Maqsadga erishish uchun yana " . $this->formatValue($gap, $kpi['format']) . " kerak.";
+        return "Hozirgi natija: {$actualFormatted}. Maqsad: {$targetFormatted}. ".
+               'Maqsadga erishish uchun yana '.$this->formatValue($gap, $kpi['format']).' kerak.';
     }
 
     protected function getRecommendationActions(array $kpi, float $performance): array
@@ -583,7 +644,7 @@ class KpiBusinessDashboardController extends Controller
                 $actions = [
                     'Xarajatlarni tahlil qiling',
                     'Narxlarni qayta ko\'rib chiqing',
-                    'Yangi daromad manbalari toping'
+                    'Yangi daromad manbalari toping',
                 ];
                 break;
 
@@ -591,7 +652,7 @@ class KpiBusinessDashboardController extends Controller
                 $actions = [
                     'Mijozlar bilan bog\'laning',
                     'Feedback yig\'ing',
-                    'Loyalty dasturini ishga tushiring'
+                    'Loyalty dasturini ishga tushiring',
                 ];
                 break;
 
@@ -599,7 +660,7 @@ class KpiBusinessDashboardController extends Controller
                 $actions = [
                     'Kontent strategiyasini qayta ko\'ring',
                     'Reklama kampaniyasi boshlang',
-                    'Ijtimoiy tarmoqlarda faollashtirilsin'
+                    'Ijtimoiy tarmoqlarda faollashtirilsin',
                 ];
                 break;
 
@@ -607,7 +668,7 @@ class KpiBusinessDashboardController extends Controller
                 $actions = [
                     'Jarayonlarni tahlil qiling',
                     'Maqsadlarni qayta belgilang',
-                    'Muntazam monitoring qiling'
+                    'Muntazam monitoring qiling',
                 ];
         }
 

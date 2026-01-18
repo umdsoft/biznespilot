@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 abstract class AlgorithmEngine
 {
     protected string $cachePrefix = 'algo_';
+
     protected int $cacheTTL = 3600; // 1 hour default
 
     /**
@@ -21,7 +22,7 @@ abstract class AlgorithmEngine
      */
     protected function cached(string $key, callable $callback, ?int $ttl = null): mixed
     {
-        $cacheKey = $this->cachePrefix . $key;
+        $cacheKey = $this->cachePrefix.$key;
         $ttl = $ttl ?? $this->cacheTTL;
 
         return Cache::remember($cacheKey, $ttl, $callback);
@@ -32,7 +33,7 @@ abstract class AlgorithmEngine
      */
     protected function invalidateCache(string $key): bool
     {
-        return Cache::forget($this->cachePrefix . $key);
+        return Cache::forget($this->cachePrefix.$key);
     }
 
     /**
@@ -55,7 +56,7 @@ abstract class AlgorithmEngine
         }
 
         $mean = array_sum($values) / count($values);
-        $squaredDiffs = array_map(fn($v) => pow($v - $mean, 2), $values);
+        $squaredDiffs = array_map(fn ($v) => pow($v - $mean, 2), $values);
         $variance = array_sum($squaredDiffs) / (count($values) - 1);
 
         return sqrt($variance);
@@ -76,10 +77,10 @@ abstract class AlgorithmEngine
         $upper = ceil($index);
 
         if ($lower === $upper) {
-            return $values[(int)$lower];
+            return $values[(int) $lower];
         }
 
-        return $values[(int)$lower] + ($values[(int)$upper] - $values[(int)$lower]) * ($index - $lower);
+        return $values[(int) $lower] + ($values[(int) $upper] - $values[(int) $lower]) * ($index - $lower);
     }
 
     /**
@@ -162,6 +163,7 @@ abstract class AlgorithmEngine
         if ($stdDev === 0.0) {
             return 0.0;
         }
+
         return ($value - $mean) / $stdDev;
     }
 
@@ -225,6 +227,7 @@ abstract class AlgorithmEngine
         $n = count($values);
         if ($n < 2) {
             $mean = $values[0] ?? 0;
+
             return ['mean' => $mean, 'lower' => $mean, 'upper' => $mean, 'margin' => 0];
         }
 
@@ -253,7 +256,7 @@ abstract class AlgorithmEngine
     /**
      * Normalize values to 0-100 scale
      */
-    protected function normalize(array $values, float $min = null, float $max = null): array
+    protected function normalize(array $values, ?float $min = null, ?float $max = null): array
     {
         if (empty($values)) {
             return [];
@@ -312,6 +315,7 @@ abstract class AlgorithmEngine
         if ($previous === 0.0) {
             return $current > 0 ? 100.0 : 0.0;
         }
+
         return round((($current - $previous) / abs($previous)) * 100, 2);
     }
 
@@ -323,6 +327,7 @@ abstract class AlgorithmEngine
         if ($startValue <= 0 || $periods <= 0) {
             return 0.0;
         }
+
         return round((pow($endValue / $startValue, 1 / $periods) - 1) * 100, 2);
     }
 }

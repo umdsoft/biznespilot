@@ -14,7 +14,7 @@ class MaturityCalculatorService
     {
         $assessment = $business->maturityAssessment;
 
-        if (!$assessment) {
+        if (! $assessment) {
             return [
                 'score' => 0,
                 'level' => 'beginner',
@@ -277,14 +277,14 @@ class MaturityCalculatorService
     {
         $assessment = $business->maturityAssessment;
 
-        if (!$assessment) {
+        if (! $assessment) {
             return [];
         }
 
         $recommendations = [];
 
         // Infrastructure recommendations
-        if (!$assessment->has_website) {
+        if (! $assessment->has_website) {
             $recommendations[] = [
                 'category' => 'infrastructure',
                 'priority' => 'high',
@@ -293,7 +293,7 @@ class MaturityCalculatorService
             ];
         }
 
-        if (!$assessment->has_crm) {
+        if (! $assessment->has_crm) {
             $recommendations[] = [
                 'category' => 'infrastructure',
                 'priority' => 'high',
@@ -302,7 +302,7 @@ class MaturityCalculatorService
             ];
         }
 
-        if (!$assessment->uses_analytics) {
+        if (! $assessment->uses_analytics) {
             $recommendations[] = [
                 'category' => 'infrastructure',
                 'priority' => 'medium',
@@ -312,7 +312,7 @@ class MaturityCalculatorService
         }
 
         // Process recommendations
-        if (!$assessment->has_documented_processes) {
+        if (! $assessment->has_documented_processes) {
             $recommendations[] = [
                 'category' => 'process',
                 'priority' => 'medium',
@@ -321,7 +321,7 @@ class MaturityCalculatorService
             ];
         }
 
-        if (!$assessment->has_sales_process) {
+        if (! $assessment->has_sales_process) {
             $recommendations[] = [
                 'category' => 'process',
                 'priority' => 'high',
@@ -331,7 +331,7 @@ class MaturityCalculatorService
         }
 
         // Marketing recommendations
-        if (!$assessment->has_marketing_budget) {
+        if (! $assessment->has_marketing_budget) {
             $recommendations[] = [
                 'category' => 'marketing',
                 'priority' => 'medium',
@@ -353,6 +353,7 @@ class MaturityCalculatorService
         // Sort by priority
         usort($recommendations, function ($a, $b) {
             $priorityOrder = ['high' => 0, 'medium' => 1, 'low' => 2];
+
             return ($priorityOrder[$a['priority']] ?? 2) <=> ($priorityOrder[$b['priority']] ?? 2);
         });
 
@@ -404,12 +405,25 @@ class MaturityCalculatorService
         // Assumes normal distribution around the average
         $diff = $score - $average;
 
-        if ($diff >= 30) return 95;
-        if ($diff >= 20) return 85;
-        if ($diff >= 10) return 70;
-        if ($diff >= 0) return 55;
-        if ($diff >= -10) return 40;
-        if ($diff >= -20) return 25;
+        if ($diff >= 30) {
+            return 95;
+        }
+        if ($diff >= 20) {
+            return 85;
+        }
+        if ($diff >= 10) {
+            return 70;
+        }
+        if ($diff >= 0) {
+            return 55;
+        }
+        if ($diff >= -10) {
+            return 40;
+        }
+        if ($diff >= -20) {
+            return 25;
+        }
+
         return 10;
     }
 

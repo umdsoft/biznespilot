@@ -47,6 +47,7 @@ class InstagramAudience extends Model
         }
 
         arsort($hours);
+
         return array_slice($hours, 0, 3, true);
     }
 
@@ -59,6 +60,7 @@ class InstagramAudience extends Model
         }
 
         arsort($days);
+
         return array_slice($days, 0, 3, true);
     }
 
@@ -91,7 +93,7 @@ class InstagramAudience extends Model
                 $parts = explode('.', $key);
                 $ageRange = $parts[1] ?? $key;
 
-                if (!isset($ageGroups[$ageRange])) {
+                if (! isset($ageGroups[$ageRange])) {
                     $ageGroups[$ageRange] = 0;
                 }
                 $ageGroups[$ageRange] += $value;
@@ -103,6 +105,7 @@ class InstagramAudience extends Model
         }
 
         arsort($ageGroups);
+
         return array_key_first($ageGroups);
     }
 

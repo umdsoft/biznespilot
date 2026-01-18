@@ -17,8 +17,11 @@ class AggregateWeeklyKpisJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $businessId;
+
     public $weekStartDate;
+
     public $tries = 3;
+
     public $timeout = 300; // 5 minutes
 
     /**
@@ -43,6 +46,7 @@ class AggregateWeeklyKpisJob implements ShouldQueue
         // If specific business ID provided, aggregate only that business
         if ($this->businessId) {
             $this->aggregateBusiness($this->businessId, $aggregationService);
+
             return;
         }
 

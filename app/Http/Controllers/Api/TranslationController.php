@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 
 class TranslationController extends Controller
 {
@@ -16,7 +15,7 @@ class TranslationController extends Controller
     {
         // Validate locale
         $allowedLocales = ['uz-latn', 'uz-cyrl', 'ru'];
-        if (!in_array($locale, $allowedLocales)) {
+        if (! in_array($locale, $allowedLocales)) {
             $locale = 'uz-latn'; // Default fallback
         }
 

@@ -9,8 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Anomaly Detection Job
@@ -25,7 +25,9 @@ class AnomalyDetectionJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public Business $business;
+
     public int $tries = 2;
+
     public int $timeout = 120;
 
     public function __construct(Business $business)
@@ -41,7 +43,7 @@ class AnomalyDetectionJob implements ShouldQueue
         try {
             $result = $anomalyDetector->analyze($this->business);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return;
             }
 
@@ -65,7 +67,7 @@ class AnomalyDetectionJob implements ShouldQueue
             }
 
             // Send alerts for critical/warning status
-            if (in_array($status, ['critical', 'warning']) && !empty($alerts)) {
+            if (in_array($status, ['critical', 'warning']) && ! empty($alerts)) {
                 $this->handleAnomalyAlerts($alerts, $result);
             }
 

@@ -4,9 +4,8 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Task;
 use App\Models\Lead;
-use App\Models\Business;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -23,7 +22,7 @@ class TaskController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -75,7 +74,7 @@ class TaskController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -97,15 +96,15 @@ class TaskController extends Controller
                 ->where('assigned_to', $userId)
                 ->first();
 
-            if (!$lead) {
+            if (! $lead) {
                 return response()->json(['error' => 'Lead topilmadi yoki ruxsat yo\'q'], 403);
             }
         }
 
         // Combine date and time
         $dueDate = $validated['due_date'];
-        if (!empty($validated['due_time'])) {
-            $dueDate .= ' ' . $validated['due_time'];
+        if (! empty($validated['due_time'])) {
+            $dueDate .= ' '.$validated['due_time'];
         }
 
         // Convert priority if needed
@@ -146,7 +145,7 @@ class TaskController extends Controller
         $userId = Auth::id();
 
         // Verify task belongs to this operator
-        if (!$business || $task->business_id !== $business->id || $task->assigned_to !== $userId) {
+        if (! $business || $task->business_id !== $business->id || $task->assigned_to !== $userId) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -169,14 +168,14 @@ class TaskController extends Controller
                 ->where('assigned_to', $userId)
                 ->first();
 
-            if (!$lead) {
+            if (! $lead) {
                 return response()->json(['error' => 'Lead topilmadi yoki ruxsat yo\'q'], 403);
             }
         }
 
         // Combine date and time
-        if (isset($validated['due_date']) && !empty($validated['due_time'])) {
-            $validated['due_date'] .= ' ' . $validated['due_time'];
+        if (isset($validated['due_date']) && ! empty($validated['due_time'])) {
+            $validated['due_date'] .= ' '.$validated['due_time'];
         }
         unset($validated['due_time']);
 
@@ -209,7 +208,7 @@ class TaskController extends Controller
         $userId = Auth::id();
 
         // Verify task belongs to this operator
-        if (!$business || $task->business_id !== $business->id || $task->assigned_to !== $userId) {
+        if (! $business || $task->business_id !== $business->id || $task->assigned_to !== $userId) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -232,7 +231,7 @@ class TaskController extends Controller
         $userId = Auth::id();
 
         // Verify task belongs to this operator
-        if (!$business || $task->business_id !== $business->id || $task->assigned_to !== $userId) {
+        if (! $business || $task->business_id !== $business->id || $task->assigned_to !== $userId) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 

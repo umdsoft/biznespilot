@@ -2,7 +2,6 @@
 
 namespace App\Contracts;
 
-use App\Models\CallLog;
 use App\Models\Lead;
 use App\Models\PbxAccount;
 use Carbon\Carbon;

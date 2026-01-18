@@ -42,8 +42,8 @@ class SettingsController extends Controller
                 'ai_creativity_level' => $settings->ai_creativity_level,
                 'theme' => $settings->theme,
                 'language' => $settings->language,
-                'has_openai_key' => !empty($settings->openai_api_key),
-                'has_claude_key' => !empty($settings->claude_api_key),
+                'has_openai_key' => ! empty($settings->openai_api_key),
+                'has_claude_key' => ! empty($settings->claude_api_key),
             ],
         ]);
     }
@@ -54,7 +54,7 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
@@ -72,7 +72,7 @@ class SettingsController extends Controller
 
         $user = Auth::user();
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return redirect()->back()->withErrors(['current_password' => 'Joriy parol noto\'g\'ri.']);
         }
 
@@ -155,7 +155,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes tanlanmagan. Iltimos, biznесni tanlang yoki yarating.');
         }
@@ -181,7 +181,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes tanlanmagan. Iltimos, biznесni tanlang yoki yarating.');
         }
@@ -207,7 +207,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes tanlanmagan. Iltimos, biznесni tanlang yoki yarating.');
         }
@@ -231,7 +231,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes tanlanmagan. Iltimos, biznesni tanlang yoki yarating.');
         }
@@ -286,9 +286,9 @@ class SettingsController extends Controller
         $code = $request->get('code');
         $error = $request->get('error');
 
-        if ($error || !$code) {
+        if ($error || ! $code) {
             return redirect()->route('business.settings.google-ads')
-                ->with('error', 'Google Ads bilan ulanish bekor qilindi: ' . ($error ?? 'kod topilmadi'));
+                ->with('error', 'Google Ads bilan ulanish bekor qilindi: '.($error ?? 'kod topilmadi'));
         }
 
         $user = Auth::user();
@@ -296,7 +296,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.settings.google-ads')
                 ->with('error', 'Biznes topilmadi.');
         }
@@ -311,9 +311,9 @@ class SettingsController extends Controller
                 'grant_type' => 'authorization_code',
             ]);
 
-            if (!$tokenResponse->successful()) {
+            if (! $tokenResponse->successful()) {
                 return redirect()->route('business.settings.google-ads')
-                    ->with('error', 'Token olishda xatolik: ' . $tokenResponse->body());
+                    ->with('error', 'Token olishda xatolik: '.$tokenResponse->body());
             }
 
             $tokens = $tokenResponse->json();
@@ -321,7 +321,7 @@ class SettingsController extends Controller
             $refreshToken = $tokens['refresh_token'] ?? null;
             $expiresIn = $tokens['expires_in'] ?? 3600;
 
-            if (!$accessToken) {
+            if (! $accessToken) {
                 return redirect()->route('business.settings.google-ads')
                     ->with('error', 'Access token olinmadi.');
             }
@@ -355,11 +355,11 @@ class SettingsController extends Controller
             );
 
             return redirect()->route('business.settings.google-ads')
-                ->with('success', 'Google Ads muvaffaqiyatli ulandi!' . ($accountName ? " Hisob: {$accountName}" : ''));
+                ->with('success', 'Google Ads muvaffaqiyatli ulandi!'.($accountName ? " Hisob: {$accountName}" : ''));
 
         } catch (\Exception $e) {
             return redirect()->route('business.settings.google-ads')
-                ->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+                ->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -369,7 +369,7 @@ class SettingsController extends Controller
         $redirectUri = route('business.settings.google-ads.callback');
         $scope = urlencode('https://www.googleapis.com/auth/adwords');
 
-        return "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
+        return 'https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
@@ -389,7 +389,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes tanlanmagan. Iltimos, biznesni tanlang yoki yarating.');
         }
@@ -442,9 +442,9 @@ class SettingsController extends Controller
         $code = $request->get('code');
         $error = $request->get('error');
 
-        if ($error || !$code) {
+        if ($error || ! $code) {
             return redirect()->route('business.settings.yandex-direct')
-                ->with('error', 'Yandex Direct bilan ulanish bekor qilindi: ' . ($error ?? 'kod topilmadi'));
+                ->with('error', 'Yandex Direct bilan ulanish bekor qilindi: '.($error ?? 'kod topilmadi'));
         }
 
         $user = Auth::user();
@@ -452,7 +452,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.settings.yandex-direct')
                 ->with('error', 'Biznes topilmadi.');
         }
@@ -466,9 +466,9 @@ class SettingsController extends Controller
                 'grant_type' => 'authorization_code',
             ]);
 
-            if (!$tokenResponse->successful()) {
+            if (! $tokenResponse->successful()) {
                 return redirect()->route('business.settings.yandex-direct')
-                    ->with('error', 'Token olishda xatolik: ' . $tokenResponse->body());
+                    ->with('error', 'Token olishda xatolik: '.$tokenResponse->body());
             }
 
             $tokens = $tokenResponse->json();
@@ -476,14 +476,14 @@ class SettingsController extends Controller
             $refreshToken = $tokens['refresh_token'] ?? null;
             $expiresIn = $tokens['expires_in'] ?? 31536000; // Yandex tokens last ~1 year
 
-            if (!$accessToken) {
+            if (! $accessToken) {
                 return redirect()->route('business.settings.yandex-direct')
                     ->with('error', 'Access token olinmadi.');
             }
 
             // Get Yandex user info
             $userInfoResponse = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => 'OAuth ' . $accessToken,
+                'Authorization' => 'OAuth '.$accessToken,
             ])->get('https://login.yandex.ru/info');
 
             $accountName = null;
@@ -511,11 +511,11 @@ class SettingsController extends Controller
             );
 
             return redirect()->route('business.settings.yandex-direct')
-                ->with('success', 'Yandex Direct muvaffaqiyatli ulandi!' . ($accountName ? " Hisob: {$accountName}" : ''));
+                ->with('success', 'Yandex Direct muvaffaqiyatli ulandi!'.($accountName ? " Hisob: {$accountName}" : ''));
 
         } catch (\Exception $e) {
             return redirect()->route('business.settings.yandex-direct')
-                ->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+                ->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -524,7 +524,7 @@ class SettingsController extends Controller
         $clientId = config('services.yandex.client_id');
         $redirectUri = route('business.settings.yandex-direct.callback');
 
-        return "https://oauth.yandex.ru/authorize?" . http_build_query([
+        return 'https://oauth.yandex.ru/authorize?'.http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
@@ -541,7 +541,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes tanlanmagan. Iltimos, biznesni tanlang yoki yarating.');
         }
@@ -594,9 +594,9 @@ class SettingsController extends Controller
         $code = $request->get('code');
         $error = $request->get('error');
 
-        if ($error || !$code) {
+        if ($error || ! $code) {
             return redirect()->route('business.settings.youtube')
-                ->with('error', 'YouTube bilan ulanish bekor qilindi: ' . ($error ?? 'kod topilmadi'));
+                ->with('error', 'YouTube bilan ulanish bekor qilindi: '.($error ?? 'kod topilmadi'));
         }
 
         $user = Auth::user();
@@ -604,7 +604,7 @@ class SettingsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.settings.youtube')
                 ->with('error', 'Biznes topilmadi.');
         }
@@ -619,9 +619,9 @@ class SettingsController extends Controller
                 'grant_type' => 'authorization_code',
             ]);
 
-            if (!$tokenResponse->successful()) {
+            if (! $tokenResponse->successful()) {
                 return redirect()->route('business.settings.youtube')
-                    ->with('error', 'Token olishda xatolik: ' . $tokenResponse->body());
+                    ->with('error', 'Token olishda xatolik: '.$tokenResponse->body());
             }
 
             $tokens = $tokenResponse->json();
@@ -629,7 +629,7 @@ class SettingsController extends Controller
             $refreshToken = $tokens['refresh_token'] ?? null;
             $expiresIn = $tokens['expires_in'] ?? 3600;
 
-            if (!$accessToken) {
+            if (! $accessToken) {
                 return redirect()->route('business.settings.youtube')
                     ->with('error', 'Access token olinmadi.');
             }
@@ -646,7 +646,7 @@ class SettingsController extends Controller
 
             if ($channelResponse->successful()) {
                 $channelData = $channelResponse->json();
-                if (!empty($channelData['items'][0])) {
+                if (! empty($channelData['items'][0])) {
                     $channel = $channelData['items'][0];
                     $channelId = $channel['id'] ?? null;
                     $channelName = $channel['snippet']['title'] ?? null;
@@ -669,11 +669,11 @@ class SettingsController extends Controller
             );
 
             return redirect()->route('business.settings.youtube')
-                ->with('success', 'YouTube muvaffaqiyatli ulandi!' . ($channelName ? " Kanal: {$channelName}" : ''));
+                ->with('success', 'YouTube muvaffaqiyatli ulandi!'.($channelName ? " Kanal: {$channelName}" : ''));
 
         } catch (\Exception $e) {
             return redirect()->route('business.settings.youtube')
-                ->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+                ->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -682,7 +682,7 @@ class SettingsController extends Controller
         $clientId = config('services.google.client_id');
         $redirectUri = route('business.settings.youtube.callback');
 
-        return "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
+        return 'https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',

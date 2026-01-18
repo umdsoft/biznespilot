@@ -72,9 +72,12 @@ class CompetitorContent extends Model
      */
     public function checkIfViral(int $followerCount): bool
     {
-        if ($followerCount <= 0) return false;
+        if ($followerCount <= 0) {
+            return false;
+        }
 
         $engagementRate = ($this->total_engagement / $followerCount) * 100;
+
         return $engagementRate > 10; // 10% engagement = viral
     }
 

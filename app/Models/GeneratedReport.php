@@ -11,26 +11,37 @@ use Illuminate\Support\Facades\Storage;
 
 class GeneratedReport extends Model
 {
-    use HasUuids, BelongsToBusiness, SoftDeletes;
+    use BelongsToBusiness, HasUuids, SoftDeletes;
 
     // Type constants
     public const TYPE_SCHEDULED = 'scheduled';
+
     public const TYPE_MANUAL = 'manual';
+
     public const TYPE_REALTIME = 'realtime';
 
     // Status constants
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_GENERATING = 'generating';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_DELIVERED = 'delivered';
 
     // Period type constants
     public const PERIOD_DAILY = 'daily';
+
     public const PERIOD_WEEKLY = 'weekly';
+
     public const PERIOD_MONTHLY = 'monthly';
+
     public const PERIOD_QUARTERLY = 'quarterly';
+
     public const PERIOD_YEARLY = 'yearly';
+
     public const PERIOD_CUSTOM = 'custom';
 
     protected $fillable = [
@@ -117,7 +128,7 @@ class GeneratedReport extends Model
     public function scopeForPeriod($query, $start, $end)
     {
         return $query->where('period_start', '>=', $start)
-                     ->where('period_end', '<=', $end);
+            ->where('period_end', '<=', $end);
     }
 
     public function getReportTypeName()
@@ -139,12 +150,12 @@ class GeneratedReport extends Model
             return $this->period_start->format('d.m.Y');
         }
 
-        return $this->period_start->format('d.m.Y') . ' - ' . $this->period_end->format('d.m.Y');
+        return $this->period_start->format('d.m.Y').' - '.$this->period_end->format('d.m.Y');
     }
 
     public function getHtmlUrl()
     {
-        if (!$this->html_path) {
+        if (! $this->html_path) {
             return null;
         }
 
@@ -153,7 +164,7 @@ class GeneratedReport extends Model
 
     public function getPdfUrl()
     {
-        if (!$this->pdf_path) {
+        if (! $this->pdf_path) {
             return null;
         }
 
@@ -179,12 +190,12 @@ class GeneratedReport extends Model
 
     public function hasPdf()
     {
-        return !empty($this->pdf_path) && Storage::exists($this->pdf_path);
+        return ! empty($this->pdf_path) && Storage::exists($this->pdf_path);
     }
 
     public function hasHtml()
     {
-        return !empty($this->html_path) && Storage::exists($this->html_path);
+        return ! empty($this->html_path) && Storage::exists($this->html_path);
     }
 
     // New relationships for algorithmic reports
@@ -251,7 +262,9 @@ class GeneratedReport extends Model
 
     public function getHealthScoreColorAttribute(): string
     {
-        if (!$this->health_score) return 'gray';
+        if (! $this->health_score) {
+            return 'gray';
+        }
 
         return match (true) {
             $this->health_score >= 80 => 'green',
@@ -263,7 +276,9 @@ class GeneratedReport extends Model
 
     public function getHealthScoreLabelAttribute(): string
     {
-        if (!$this->health_score) return 'Noma\'lum';
+        if (! $this->health_score) {
+            return 'Noma\'lum';
+        }
 
         return match (true) {
             $this->health_score >= 80 => 'Ajoyib',
@@ -280,7 +295,7 @@ class GeneratedReport extends Model
         $this->save();
     }
 
-    public function markAsCompleted(int $generationTimeMs = null): void
+    public function markAsCompleted(?int $generationTimeMs = null): void
     {
         $this->status = self::STATUS_COMPLETED;
         if ($generationTimeMs) {
@@ -313,7 +328,7 @@ class GeneratedReport extends Model
 
     public function getExcelUrl()
     {
-        if (!$this->excel_path) {
+        if (! $this->excel_path) {
             return null;
         }
 

@@ -63,7 +63,7 @@ class PbxAccount extends Model
      */
     public function getApiUrlAttribute($value): string
     {
-        return rtrim($value, '/') . '/';
+        return rtrim($value, '/').'/';
     }
 
     /**
@@ -71,7 +71,7 @@ class PbxAccount extends Model
      */
     public function isConfigured(): bool
     {
-        return !empty($this->api_url) && !empty($this->api_key);
+        return ! empty($this->api_url) && ! empty($this->api_key);
     }
 
     /**

@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -25,6 +24,7 @@ use Illuminate\Support\Facades\Cache;
 class HealthScoreAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'health_score_';
+
     protected int $cacheTTL = 900; // 15 minutes for faster updates
 
     /**
@@ -168,6 +168,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
      * Current industry for calculations
      */
     protected string $currentIndustry = 'default';
+
     protected array $activeBenchmarks = [];
 
     /**
@@ -285,7 +286,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
         }
 
         // Apply custom benchmarks if provided
-        if (!empty($customBenchmarks)) {
+        if (! empty($customBenchmarks)) {
             foreach ($customBenchmarks as $metric => $thresholds) {
                 if (is_array($thresholds) && count($thresholds) >= 4) {
                     $this->activeBenchmarks[$metric] = $thresholds;
@@ -304,11 +305,11 @@ class HealthScoreAlgorithm extends AlgorithmEngine
         return Cache::remember($cacheKey, 300, function () use ($business) {
             // Eager load all needed relationships in one go
             $business->load([
-                'integrations' => fn($q) => $q->where('status', 'connected'),
+                'integrations' => fn ($q) => $q->where('status', 'connected'),
                 'instagramAccounts',
-                'chatbotConfigs' => fn($q) => $q->where('is_active', true),
-                'kpiSnapshots' => fn($q) => $q->where('created_at', '>=', now()->subMonth()),
-                'leads' => fn($q) => $q->where('created_at', '>=', now()->subDays(30)),
+                'chatbotConfigs' => fn ($q) => $q->where('is_active', true),
+                'kpiSnapshots' => fn ($q) => $q->where('created_at', '>=', now()->subMonth()),
+                'leads' => fn ($q) => $q->where('created_at', '>=', now()->subDays(30)),
             ]);
 
             return [
@@ -426,6 +427,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
 
         // Convert z-score to percentile (simplified)
         $percentile = 50 + ($zScore * 34); // Each std dev ≈ 34%
+
         return max(1, min(99, (int) round($percentile)));
     }
 
@@ -636,7 +638,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
         $stages = $funnelMetrics['stages'] ?? $businessData['leads_by_stage'] ?? [];
         $scores = [];
 
-        if (!empty($stages)) {
+        if (! empty($stages)) {
             // Calculate stage-to-stage conversion rates
             $stageNames = ['awareness', 'interest', 'consideration', 'intent', 'purchase'];
             $stageValues = [];
@@ -720,16 +722,19 @@ class HealthScoreAlgorithm extends AlgorithmEngine
 
         if ($value <= $average) {
             $range = $average - $poor;
+
             return $range > 0 ? (int) round(25 + (($value - $poor) / $range) * 25) : 25;
         }
 
         if ($value <= $good) {
             $range = $good - $average;
+
             return $range > 0 ? (int) round(50 + (($value - $average) / $range) * 25) : 50;
         }
 
         if ($value <= $excellent) {
             $range = $excellent - $good;
+
             return $range > 0 ? (int) round(75 + (($value - $good) / $range) * 25) : 75;
         }
 
@@ -750,16 +755,19 @@ class HealthScoreAlgorithm extends AlgorithmEngine
 
         if ($value >= $average) {
             $range = $poor - $average;
+
             return $range > 0 ? (int) round(25 + (($poor - $value) / $range) * 25) : 25;
         }
 
         if ($value >= $good) {
             $range = $average - $good;
+
             return $range > 0 ? (int) round(50 + (($average - $value) / $range) * 25) : 50;
         }
 
         if ($value >= $excellent) {
             $range = $good - $excellent;
+
             return $range > 0 ? (int) round(75 + (($good - $value) / $range) * 25) : 75;
         }
 
@@ -870,7 +878,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
         }
 
         // Sort by weighted impact
-        uasort($potentials, fn($a, $b) => $b['weighted_impact'] <=> $a['weighted_impact']);
+        uasort($potentials, fn ($a, $b) => $b['weighted_impact'] <=> $a['weighted_impact']);
 
         return [
             'total_potential' => (int) round(100 - $this->calculateWeightedScore($categoryScores)),
@@ -937,9 +945,16 @@ class HealthScoreAlgorithm extends AlgorithmEngine
      */
     protected function getPriority(int $potential): string
     {
-        if ($potential >= 60) return 'critical';
-        if ($potential >= 40) return 'high';
-        if ($potential >= 20) return 'medium';
+        if ($potential >= 60) {
+            return 'critical';
+        }
+        if ($potential >= 40) {
+            return 'high';
+        }
+        if ($potential >= 20) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -1064,10 +1079,13 @@ class HealthScoreAlgorithm extends AlgorithmEngine
         }
 
         // Sort by priority and impact
-        usort($recommendations, function($a, $b) {
+        usort($recommendations, function ($a, $b) {
             $priorityOrder = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];
             $priorityDiff = $priorityOrder[$a['priority']] <=> $priorityOrder[$b['priority']];
-            if ($priorityDiff !== 0) return $priorityDiff;
+            if ($priorityDiff !== 0) {
+                return $priorityDiff;
+            }
+
             return ($b['estimated_impact']['revenue_increase'] ?? 0) <=> ($a['estimated_impact']['revenue_increase'] ?? 0);
         });
 
@@ -1089,7 +1107,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
                         'action' => 'Engagement rate ni oshiring',
                         'target' => 'Haftada 3-5 carousel yoki reels post qo\'shing',
                         'metric' => 'engagement_rate',
-                        'current' => round($er, 2) . '%',
+                        'current' => round($er, 2).'%',
                         'goal' => '3%+',
                     ];
                 }
@@ -1112,7 +1130,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
                         'action' => 'Konversiyani yaxshilang',
                         'target' => 'Landing page ni A/B test qiling, CTA tugmalarini optimallang',
                         'metric' => 'conversion_rate',
-                        'current' => round($convRate, 2) . '%',
+                        'current' => round($convRate, 2).'%',
                         'goal' => '3%+',
                     ];
                 }
@@ -1122,7 +1140,7 @@ class HealthScoreAlgorithm extends AlgorithmEngine
                         'action' => 'Takroriy xaridlarni oshiring',
                         'target' => 'Loyalty dasturi va email nurturing o\'rnating',
                         'metric' => 'repeat_purchase_rate',
-                        'current' => round($repeatRate, 1) . '%',
+                        'current' => round($repeatRate, 1).'%',
                         'goal' => '25%+',
                     ];
                 }
@@ -1188,9 +1206,9 @@ class HealthScoreAlgorithm extends AlgorithmEngine
         $revenueIncrease = (int) round($monthlyRevenue * ($potential / 100) * $roiMultiplier);
 
         return [
-            'score_increase' => '+' . min(20, $potential) . ' ball',
+            'score_increase' => '+'.min(20, $potential).' ball',
             'revenue_increase' => $revenueIncrease,
-            'revenue_increase_formatted' => number_format($revenueIncrease, 0, '.', ' ') . ' UZS/oy',
+            'revenue_increase_formatted' => number_format($revenueIncrease, 0, '.', ' ').' UZS/oy',
             'confidence' => $score < 40 ? 'high' : ($score < 60 ? 'medium' : 'low'),
         ];
     }

@@ -61,7 +61,7 @@ class SalaryStructure extends Model
 
     public function getTotalAllowancesAttribute(): float
     {
-        if (!$this->allowances) {
+        if (! $this->allowances) {
             return 0;
         }
 
@@ -70,7 +70,7 @@ class SalaryStructure extends Model
 
     public function getTotalDeductionsAttribute(): float
     {
-        if (!$this->deductions) {
+        if (! $this->deductions) {
             return 0;
         }
 

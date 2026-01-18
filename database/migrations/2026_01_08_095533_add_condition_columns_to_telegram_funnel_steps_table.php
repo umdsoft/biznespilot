@@ -37,7 +37,7 @@ return new class extends Migration
             $table->dropColumn([
                 'condition',
                 'condition_true_step_id',
-                'condition_false_step_id'
+                'condition_false_step_id',
             ]);
         });
     }

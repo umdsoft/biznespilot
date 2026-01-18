@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramMessage extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'conversation_id',
         'automation_id',
@@ -32,15 +33,22 @@ class InstagramMessage extends Model
 
     // Direction constants
     const DIRECTION_INCOMING = 'incoming';
+
     const DIRECTION_OUTGOING = 'outgoing';
 
     // Message type constants
     const TYPE_TEXT = 'text';
+
     const TYPE_MEDIA = 'media';
+
     const TYPE_VOICE = 'voice';
+
     const TYPE_STORY_MENTION = 'story_mention';
+
     const TYPE_STORY_REPLY = 'story_reply';
+
     const TYPE_REACTION = 'reaction';
+
     const TYPE_UNSUPPORTED = 'unsupported';
 
     public function conversation(): BelongsTo
@@ -80,7 +88,7 @@ class InstagramMessage extends Model
 
     public function markAsRead(): void
     {
-        if (!$this->is_read) {
+        if (! $this->is_read) {
             $this->update(['is_read' => true]);
         }
     }
@@ -88,7 +96,7 @@ class InstagramMessage extends Model
     public function getPreviewAttribute(): string
     {
         return match ($this->message_type) {
-            self::TYPE_TEXT => mb_substr($this->content ?? '', 0, 50) . (mb_strlen($this->content ?? '') > 50 ? '...' : ''),
+            self::TYPE_TEXT => mb_substr($this->content ?? '', 0, 50).(mb_strlen($this->content ?? '') > 50 ? '...' : ''),
             self::TYPE_MEDIA => 'Media yuborildi',
             self::TYPE_VOICE => 'Ovozli xabar',
             self::TYPE_STORY_MENTION => 'Story\'da mention',
@@ -100,18 +108,18 @@ class InstagramMessage extends Model
 
     public function getTimeAgoAttribute(): string
     {
-        if (!$this->sent_at) {
+        if (! $this->sent_at) {
             return '';
         }
 
         $diff = now()->diff($this->sent_at);
 
         if ($diff->d > 0) {
-            return $diff->d . ' kun oldin';
+            return $diff->d.' kun oldin';
         } elseif ($diff->h > 0) {
-            return $diff->h . ' soat oldin';
+            return $diff->h.' soat oldin';
         } elseif ($diff->i > 0) {
-            return $diff->i . ' daqiqa oldin';
+            return $diff->i.' daqiqa oldin';
         } else {
             return 'Hozirgina';
         }

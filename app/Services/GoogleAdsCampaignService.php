@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\AdIntegration;
-use App\Models\GoogleAdsCampaign;
 use App\Models\GoogleAdsAdGroup;
+use App\Models\GoogleAdsCampaign;
 use App\Models\GoogleAdsKeyword;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -12,12 +12,14 @@ use Illuminate\Support\Str;
 class GoogleAdsCampaignService
 {
     private AdIntegration $integration;
+
     private bool $useMockMode = true;
 
     public function initialize(AdIntegration $integration): self
     {
         $this->integration = $integration;
         $this->useMockMode = empty($integration->developer_token);
+
         return $this;
     }
 
@@ -29,7 +31,7 @@ class GoogleAdsCampaignService
         $campaign = GoogleAdsCampaign::create([
             'ad_integration_id' => $this->integration->id,
             'business_id' => $this->integration->business_id,
-            'google_campaign_id' => $this->useMockMode ? 'local_' . Str::uuid() : null,
+            'google_campaign_id' => $this->useMockMode ? 'local_'.Str::uuid() : null,
             'name' => $data['name'],
             'advertising_channel_type' => $data['channel_type'] ?? 'SEARCH',
             'status' => 'PAUSED', // Always start paused
@@ -43,7 +45,7 @@ class GoogleAdsCampaignService
         ]);
 
         // If not mock mode, sync to Google Ads API
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->createCampaignViaApi($campaign);
         }
 
@@ -67,7 +69,7 @@ class GoogleAdsCampaignService
         ]);
 
         // If not mock mode, sync to Google Ads API
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->updateCampaignViaApi($campaign);
         }
 
@@ -80,14 +82,14 @@ class GoogleAdsCampaignService
     public function updateCampaignStatus(GoogleAdsCampaign $campaign, string $status): bool
     {
         $validStatuses = ['ENABLED', 'PAUSED'];
-        if (!in_array($status, $validStatuses)) {
+        if (! in_array($status, $validStatuses)) {
             return false;
         }
 
         $campaign->update(['status' => $status]);
 
         // If not mock mode, sync to Google Ads API
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->updateCampaignStatusViaApi($campaign, $status);
         }
 
@@ -102,7 +104,7 @@ class GoogleAdsCampaignService
         $campaign->update(['status' => 'REMOVED']);
 
         // If not mock mode, sync to Google Ads API
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->deleteCampaignViaApi($campaign);
         }
 
@@ -116,7 +118,7 @@ class GoogleAdsCampaignService
     {
         $campaign->update(['daily_budget' => $dailyBudget]);
 
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->updateBudgetViaApi($campaign, $dailyBudget);
         }
 
@@ -131,7 +133,7 @@ class GoogleAdsCampaignService
         $adGroup = GoogleAdsAdGroup::create([
             'campaign_id' => $campaign->id,
             'business_id' => $campaign->business_id,
-            'google_ad_group_id' => $this->useMockMode ? 'local_' . Str::uuid() : null,
+            'google_ad_group_id' => $this->useMockMode ? 'local_'.Str::uuid() : null,
             'name' => $data['name'],
             'status' => 'PAUSED',
             'cpc_bid' => $data['cpc_bid'] ?? null,
@@ -152,7 +154,7 @@ class GoogleAdsCampaignService
             $keyword = GoogleAdsKeyword::create([
                 'ad_group_id' => $adGroup->id,
                 'business_id' => $adGroup->business_id,
-                'google_criterion_id' => $this->useMockMode ? 'local_' . Str::uuid() : null,
+                'google_criterion_id' => $this->useMockMode ? 'local_'.Str::uuid() : null,
                 'keyword_text' => $keywordData['text'],
                 'match_type' => $keywordData['match_type'] ?? 'BROAD',
                 'status' => 'ENABLED',
@@ -162,7 +164,7 @@ class GoogleAdsCampaignService
         }
 
         // If not mock mode, sync to Google Ads API
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->addKeywordsViaApi($adGroup, $createdKeywords);
         }
 
@@ -176,7 +178,7 @@ class GoogleAdsCampaignService
     {
         $keyword->update(['status' => 'REMOVED']);
 
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->removeKeywordViaApi($keyword);
         }
 
@@ -190,7 +192,7 @@ class GoogleAdsCampaignService
     {
         $keyword->update(['status' => $status]);
 
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->updateKeywordStatusViaApi($keyword, $status);
         }
 
@@ -204,7 +206,7 @@ class GoogleAdsCampaignService
     {
         $keyword->update(['cpc_bid' => $bid]);
 
-        if (!$this->useMockMode) {
+        if (! $this->useMockMode) {
             $this->updateKeywordBidViaApi($keyword, $bid);
         }
 
@@ -230,7 +232,7 @@ class GoogleAdsCampaignService
         // TODO: Implement Google Ads API call
         Log::info('Google Ads API: Update campaign status', [
             'campaign_id' => $campaign->id,
-            'status' => $status
+            'status' => $status,
         ]);
     }
 
@@ -245,7 +247,7 @@ class GoogleAdsCampaignService
         // TODO: Implement Google Ads API call
         Log::info('Google Ads API: Update budget', [
             'campaign_id' => $campaign->id,
-            'budget' => $budget
+            'budget' => $budget,
         ]);
     }
 
@@ -254,7 +256,7 @@ class GoogleAdsCampaignService
         // TODO: Implement Google Ads API call
         Log::info('Google Ads API: Add keywords', [
             'ad_group_id' => $adGroup->id,
-            'count' => count($keywords)
+            'count' => count($keywords),
         ]);
     }
 
@@ -269,7 +271,7 @@ class GoogleAdsCampaignService
         // TODO: Implement Google Ads API call
         Log::info('Google Ads API: Update keyword status', [
             'keyword_id' => $keyword->id,
-            'status' => $status
+            'status' => $status,
         ]);
     }
 
@@ -278,7 +280,7 @@ class GoogleAdsCampaignService
         // TODO: Implement Google Ads API call
         Log::info('Google Ads API: Update keyword bid', [
             'keyword_id' => $keyword->id,
-            'bid' => $bid
+            'bid' => $bid,
         ]);
     }
 }

@@ -83,7 +83,7 @@ class SyncPbxCalls extends Command
         }
 
         $this->newLine();
-        $this->info("Sync completed!");
+        $this->info('Sync completed!');
         $this->table(
             ['Metric', 'Value'],
             [
@@ -106,7 +106,7 @@ class SyncPbxCalls extends Command
             ->where('is_active', true)
             ->first();
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             return ['synced' => 0, 'error' => null];
         }
 
@@ -125,12 +125,14 @@ class SyncPbxCalls extends Command
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
             ]);
+
             return ['synced' => 0, 'error' => $e->getMessage()];
         }
     }
 
     /**
      * Sync calls from SipUni for a business (placeholder for future implementation)
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function syncSipuni(Business $business, Carbon $dateFrom): array
@@ -139,7 +141,7 @@ class SyncPbxCalls extends Command
             ->where('is_active', true)
             ->first();
 
-        if (!$sipuniAccount) {
+        if (! $sipuniAccount) {
             return ['synced' => 0, 'error' => null];
         }
 
@@ -187,10 +189,10 @@ class SyncPbxCalls extends Command
                 // Find lead by phone number
                 $lead = Lead::where('business_id', $businessId)
                     ->where(function ($query) use ($last9, $phoneNumber, $cleanPhone) {
-                        $query->where('phone', 'like', '%' . $last9)
+                        $query->where('phone', 'like', '%'.$last9)
                             ->orWhere('phone', $phoneNumber)
                             ->orWhere('phone', $cleanPhone)
-                            ->orWhere('phone', '998' . $last9);
+                            ->orWhere('phone', '998'.$last9);
                     })
                     ->first();
 

@@ -22,6 +22,7 @@ class MoiZvonkiService
     public function setAccount(MoiZvonkiAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -30,7 +31,7 @@ class MoiZvonkiService
      */
     protected function getBaseUrl(): string
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return '';
         }
 
@@ -44,8 +45,8 @@ class MoiZvonkiService
     {
         try {
             // Normalize URL
-            if (!str_starts_with($apiUrl, 'http')) {
-                $apiUrl = 'https://' . $apiUrl;
+            if (! str_starts_with($apiUrl, 'http')) {
+                $apiUrl = 'https://'.$apiUrl;
             }
             $apiUrl = rtrim($apiUrl, '/');
 
@@ -54,7 +55,7 @@ class MoiZvonkiService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
-                ->post($apiUrl . '/api/v1/crm/events', [
+                ->post($apiUrl.'/api/v1/crm/events', [
                     'email' => $email,
                     'api_key' => $apiKey,
                     'date_from' => Carbon::now()->subDay()->timestamp,
@@ -80,7 +81,7 @@ class MoiZvonkiService
 
             // Try alternative endpoint format
             $response = Http::timeout(15)
-                ->get($apiUrl . '/api/v1/account/info', [
+                ->get($apiUrl.'/api/v1/account/info', [
                     'email' => $email,
                     'api_key' => $apiKey,
                 ]);
@@ -94,13 +95,14 @@ class MoiZvonkiService
 
             return [
                 'success' => false,
-                'error' => 'Ulanib bo\'lmadi: ' . $response->status(),
+                'error' => 'Ulanib bo\'lmadi: '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('MoiZvonki connection test failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -130,16 +132,18 @@ class MoiZvonkiService
             $eventType = $data['type'] ?? $data['event'] ?? $data['event_type'] ?? null;
             $callId = $data['call_id'] ?? $data['id'] ?? $data['uuid'] ?? null;
 
-            if (!$callId) {
+            if (! $callId) {
                 Log::warning('MoiZvonki webhook: No call ID', $data);
+
                 return;
             }
 
             // Try to find business from account or data
             $businessId = $data['business_id'] ?? $this->account?->business_id ?? null;
 
-            if (!$businessId) {
+            if (! $businessId) {
                 Log::warning('MoiZvonki webhook: No business ID', $data);
+
                 return;
             }
 
@@ -159,7 +163,7 @@ class MoiZvonkiService
                 ->where('provider', 'moizvonki')
                 ->first();
 
-            if (!$callLog) {
+            if (! $callLog) {
                 // Create new call log
                 $callLog = CallLog::create([
                     'id' => Str::uuid(),
@@ -212,7 +216,7 @@ class MoiZvonkiService
                     ]);
 
                     // Update recording URL if available
-                    if (!empty($data['record_url']) || !empty($data['recording_url'])) {
+                    if (! empty($data['record_url']) || ! empty($data['recording_url'])) {
                         $callLog->update([
                             'recording_url' => $data['record_url'] ?? $data['recording_url'],
                         ]);
@@ -256,7 +260,7 @@ class MoiZvonkiService
                             'ended_at' => now(),
                         ]);
 
-                        if (!empty($data['record_url']) || !empty($data['recording_url'])) {
+                        if (! empty($data['record_url']) || ! empty($data['recording_url'])) {
                             $callLog->update([
                                 'recording_url' => $data['record_url'] ?? $data['recording_url'],
                             ]);
@@ -280,7 +284,7 @@ class MoiZvonkiService
      */
     public function syncCallHistory(?Carbon $fromDate = null, ?Carbon $toDate = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'MoiZvonki account not configured'];
         }
 
@@ -289,17 +293,17 @@ class MoiZvonkiService
             $toDate = $toDate ?? Carbon::now();
 
             $response = Http::timeout(60)
-                ->post($this->getBaseUrl() . '/api/v1/crm/events', [
+                ->post($this->getBaseUrl().'/api/v1/crm/events', [
                     'email' => $this->account->email,
                     'api_key' => $this->account->api_key,
                     'date_from' => $fromDate->timestamp,
                     'date_to' => $toDate->timestamp,
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [
                     'success' => false,
-                    'error' => 'API xatosi: ' . $response->status(),
+                    'error' => 'API xatosi: '.$response->status(),
                 ];
             }
 
@@ -319,7 +323,7 @@ class MoiZvonkiService
             foreach ($events as $event) {
                 $callId = $event['call_id'] ?? $event['id'] ?? null;
 
-                if (!$callId) {
+                if (! $callId) {
                     continue;
                 }
 
@@ -328,7 +332,7 @@ class MoiZvonkiService
                     ->where('provider', 'moizvonki')
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     // Process as webhook event
                     $event['business_id'] = $this->account->business_id;
                     $this->handleWebhook($event);
@@ -353,7 +357,7 @@ class MoiZvonkiService
 
             return [
                 'success' => false,
-                'error' => 'Sinxronizatsiya xatosi: ' . $e->getMessage(),
+                'error' => 'Sinxronizatsiya xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -450,12 +454,12 @@ class MoiZvonkiService
 
         // Handle Uzbekistan numbers
         if (strlen($phone) === 9 && preg_match('/^[0-9]/', $phone)) {
-            $phone = '998' . $phone;
+            $phone = '998'.$phone;
         }
 
         // Remove leading 8 for Russian/CIS numbers
         if (strlen($phone) === 11 && str_starts_with($phone, '8')) {
-            $phone = '7' . substr($phone, 1);
+            $phone = '7'.substr($phone, 1);
         }
 
         return $phone;
@@ -469,9 +473,9 @@ class MoiZvonkiService
         // Try to find existing lead by phone number
         $lead = Lead::where('business_id', $businessId)
             ->where(function ($query) use ($phoneNumber) {
-                $query->where('phone', 'LIKE', '%' . substr($phoneNumber, -9))
+                $query->where('phone', 'LIKE', '%'.substr($phoneNumber, -9))
                     ->orWhere('phone', $phoneNumber)
-                    ->orWhere('phone', '+' . $phoneNumber);
+                    ->orWhere('phone', '+'.$phoneNumber);
             })
             ->first();
 
@@ -485,7 +489,7 @@ class MoiZvonkiService
                 ->where('slug', 'phone')
                 ->first();
 
-            if (!$leadSource) {
+            if (! $leadSource) {
                 $leadSource = LeadSource::where('business_id', $businessId)
                     ->where('type', 'offline')
                     ->first();
@@ -496,7 +500,7 @@ class MoiZvonkiService
                 'business_id' => $businessId,
                 'lead_source_id' => $leadSource?->id,
                 'name' => 'Kiruvchi qo\'ng\'iroq',
-                'phone' => '+' . $phoneNumber,
+                'phone' => '+'.$phoneNumber,
                 'status' => 'new',
                 'last_contacted_at' => now(),
                 'metadata' => [

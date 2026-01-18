@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 class ChurnRiskAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'churn_risk_';
+
     protected int $cacheTTL = 3600; // 1 hour
 
     /**
@@ -122,7 +123,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
                         if ($riskScore['total'] > 30) { // Only include those with some risk
                             $customersAtRisk[] = [
                                 'id' => $customer->id,
-                                'name' => $customer->name ?? 'Mijoz #' . $customer->id,
+                                'name' => $customer->name ?? 'Mijoz #'.$customer->id,
                                 'email' => $customer->email ?? null,
                                 'phone' => $customer->phone ?? null,
                                 'risk_score' => $riskScore['total'],
@@ -137,18 +138,19 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
 
                     // Limit to top 1000 at-risk customers to prevent memory overflow
                     if (count($customersAtRisk) > 1000) {
-                        usort($customersAtRisk, fn($a, $b) => $b['risk_score'] <=> $a['risk_score']);
+                        usort($customersAtRisk, fn ($a, $b) => $b['risk_score'] <=> $a['risk_score']);
                         $customersAtRisk = array_slice($customersAtRisk, 0, 1000);
                     }
                 });
 
             // Final sort by risk score descending
-            usort($customersAtRisk, fn($a, $b) => $b['risk_score'] <=> $a['risk_score']);
+            usort($customersAtRisk, fn ($a, $b) => $b['risk_score'] <=> $a['risk_score']);
 
             return $customersAtRisk;
 
         } catch (\Exception $e) {
             Log::warning('Could not analyze customers', ['error' => $e->getMessage()]);
+
             return $this->getEstimatedCustomersAtRisk($business);
         }
     }
@@ -178,7 +180,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             $factors['last_purchase'] = [
                 'score' => $purchaseRisk,
                 'days' => $lastPurchase,
-                'message' => $lastPurchase . ' kun oldin xarid qilgan',
+                'message' => $lastPurchase.' kun oldin xarid qilgan',
             ];
         }
 
@@ -195,7 +197,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             $factors['frequency_decline'] = [
                 'score' => $frequencyRisk,
                 'decline_percent' => $frequencyDecline,
-                'message' => 'Xarid chastotasi ' . $frequencyDecline . '% kamaygan',
+                'message' => 'Xarid chastotasi '.$frequencyDecline.'% kamaygan',
             ];
         }
 
@@ -212,7 +214,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             $factors['engagement_drop'] = [
                 'score' => $engagementRisk,
                 'drop_percent' => $engagementDrop,
-                'message' => 'Engagement ' . $engagementDrop . '% pasaygan',
+                'message' => 'Engagement '.$engagementDrop.'% pasaygan',
             ];
         }
 
@@ -228,7 +230,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             $factors['support_issues'] = [
                 'score' => $supportRisk,
                 'tickets' => $supportTickets,
-                'message' => $supportTickets . ' ta muammo bildirgan',
+                'message' => $supportTickets.' ta muammo bildirgan',
             ];
         }
 
@@ -246,7 +248,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
                 $factors['feedback_score'] = [
                     'score' => $npsRisk,
                     'nps' => $npsScore,
-                    'message' => 'NPS ball: ' . $npsScore . '/10',
+                    'message' => 'NPS ball: '.$npsScore.'/10',
                 ];
             }
         }
@@ -267,9 +269,12 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
         $recentOrders = $customer->recent_orders_count ?? 0;
         $previousOrders = $customer->previous_orders_count ?? $recentOrders;
 
-        if ($previousOrders === 0) return 0;
+        if ($previousOrders === 0) {
+            return 0;
+        }
 
         $decline = (($previousOrders - $recentOrders) / $previousOrders) * 100;
+
         return max(0, (int) round($decline));
     }
 
@@ -281,13 +286,21 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
         // Estimate based on available data
         $lastActivity = $customer->last_activity_at ?? null;
 
-        if (!$lastActivity) return 50;
+        if (! $lastActivity) {
+            return 50;
+        }
 
         $daysSinceActivity = now()->diffInDays($lastActivity);
 
-        if ($daysSinceActivity > 60) return 75;
-        if ($daysSinceActivity > 30) return 50;
-        if ($daysSinceActivity > 14) return 25;
+        if ($daysSinceActivity > 60) {
+            return 75;
+        }
+        if ($daysSinceActivity > 30) {
+            return 50;
+        }
+        if ($daysSinceActivity > 14) {
+            return 25;
+        }
 
         return 0;
     }
@@ -392,7 +405,9 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
         );
 
         $total = $distribution['total_at_risk'];
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
 
         return (int) round(($weightedRisk / $total) * 100);
     }
@@ -402,9 +417,16 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
      */
     protected function getRiskLevel(int $score): string
     {
-        if ($score >= 70) return 'critical';
-        if ($score >= 50) return 'high';
-        if ($score >= 30) return 'medium';
+        if ($score >= 70) {
+            return 'critical';
+        }
+        if ($score >= 50) {
+            return 'high';
+        }
+        if ($score >= 30) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -488,7 +510,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             'low_satisfaction' => 'Past mamnuniyat',
         ];
 
-        return array_map(fn($key, $count) => [
+        return array_map(fn ($key, $count) => [
             'cause' => $key,
             'label' => $labels[$key],
             'affected_customers' => $count,
@@ -534,7 +556,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             if ($cause['affected_customers'] > 0) {
                 $strategies[] = [
                     'priority' => $cause['affected_customers'] > 10 ? 'high' : 'medium',
-                    'title' => $cause['label'] . ' ni hal qilish',
+                    'title' => $cause['label'].' ni hal qilish',
                     'description' => $cause['solution'],
                     'affected' => $cause['affected_customers'],
                     'action' => 'Bu hafta boshlang',
@@ -561,8 +583,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
     {
         $avgLTV = $metrics['avg_lifetime_value'];
 
-        $projectedChurn = count(array_filter($customersAtRisk, fn($c) =>
-            in_array($c['risk_level'], ['critical', 'high'])
+        $projectedChurn = count(array_filter($customersAtRisk, fn ($c) => in_array($c['risk_level'], ['critical', 'high'])
         ));
 
         $projectedLoss = $projectedChurn * $avgLTV;
@@ -589,23 +610,22 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
     {
         $warnings = [];
 
-        $criticalCount = count(array_filter($customersAtRisk, fn($c) => $c['risk_level'] === 'critical'));
+        $criticalCount = count(array_filter($customersAtRisk, fn ($c) => $c['risk_level'] === 'critical'));
         if ($criticalCount > 0) {
             $warnings[] = [
                 'type' => 'critical',
-                'title' => $criticalCount . ' ta mijoz kritik holatda',
+                'title' => $criticalCount.' ta mijoz kritik holatda',
                 'description' => 'Bu mijozlar tez orada ketishi mumkin',
                 'action' => 'Zudlik bilan murojaat qiling',
             ];
         }
 
-        $inactiveCount = count(array_filter($customersAtRisk, fn($c) =>
-            isset($c['risk_factors']['last_purchase']) && $c['risk_factors']['last_purchase']['days'] > 60
+        $inactiveCount = count(array_filter($customersAtRisk, fn ($c) => isset($c['risk_factors']['last_purchase']) && $c['risk_factors']['last_purchase']['days'] > 60
         ));
         if ($inactiveCount > 5) {
             $warnings[] = [
                 'type' => 'warning',
-                'title' => $inactiveCount . ' ta mijoz 60+ kun faolsiz',
+                'title' => $inactiveCount.' ta mijoz 60+ kun faolsiz',
                 'description' => 'Re-engagement kampaniyasi kerak',
                 'action' => 'Email kampaniyasi boshlang',
             ];
@@ -656,7 +676,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             $grouped[$level][] = $customer;
         }
 
-        return array_map(fn($group) => [
+        return array_map(fn ($group) => [
             'count' => count($group),
             'customers' => array_slice($group, 0, 5),
         ], $grouped);
@@ -674,8 +694,8 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             $riskScore = rand(35, 85);
             $estimated[] = [
                 'id' => $i,
-                'name' => 'Mijoz #' . $i,
-                'email' => 'mijoz' . $i . '@example.com',
+                'name' => 'Mijoz #'.$i,
+                'email' => 'mijoz'.$i.'@example.com',
                 'phone' => null,
                 'risk_score' => $riskScore,
                 'risk_level' => $this->getRiskLevel($riskScore),
@@ -683,7 +703,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
                     'last_purchase' => [
                         'score' => rand(5, 25),
                         'days' => rand(30, 120),
-                        'message' => rand(30, 120) . ' kun oldin xarid qilgan',
+                        'message' => rand(30, 120).' kun oldin xarid qilgan',
                     ],
                 ],
                 'last_purchase' => now()->subDays(rand(30, 120))->toDateString(),
@@ -692,7 +712,7 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
             ];
         }
 
-        usort($estimated, fn($a, $b) => $b['risk_score'] <=> $a['risk_score']);
+        usort($estimated, fn ($a, $b) => $b['risk_score'] <=> $a['risk_score']);
 
         return $estimated;
     }
@@ -703,11 +723,12 @@ class ChurnRiskAlgorithm extends AlgorithmEngine
     protected function formatMoney(int $amount): string
     {
         if ($amount >= 1000000) {
-            return round($amount / 1000000, 1) . ' mln';
+            return round($amount / 1000000, 1).' mln';
         }
         if ($amount >= 1000) {
-            return round($amount / 1000) . ' ming';
+            return round($amount / 1000).' ming';
         }
-        return $amount . ' so\'m';
+
+        return $amount.' so\'m';
     }
 }

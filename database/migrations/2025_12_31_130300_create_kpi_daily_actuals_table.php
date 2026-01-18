@@ -53,7 +53,7 @@ return new class extends Migration
                 'crm',
                 'pos_system',
                 'automated_calculation',
-                'imported'
+                'imported',
             ])->default('manual')->index();
 
             $table->boolean('is_verified')->default(false)->index()

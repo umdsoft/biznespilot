@@ -13,8 +13,9 @@ class AlertRuleSeeder extends Seeder
         // Get first business for seeding (or null for global rules)
         $businessId = DB::table('businesses')->value('id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             $this->command->warn('No business found. Please run BusinessSeeder first.');
+
             return;
         }
 

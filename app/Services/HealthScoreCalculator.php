@@ -285,9 +285,16 @@ class HealthScoreCalculator
      */
     protected function getCategoryStatus(int $score): string
     {
-        if ($score >= 80) return 'excellent';
-        if ($score >= 60) return 'good';
-        if ($score >= 40) return 'average';
+        if ($score >= 80) {
+            return 'excellent';
+        }
+        if ($score >= 60) {
+            return 'good';
+        }
+        if ($score >= 40) {
+            return 'average';
+        }
+
         return 'poor';
     }
 
@@ -377,7 +384,7 @@ class HealthScoreCalculator
                 'category' => $category,
                 'label' => $this->getCategoryLabel($category),
                 'score' => $data['score'],
-                'weight' => round($data['weight'] * 100) . '%',
+                'weight' => round($data['weight'] * 100).'%',
                 'weighted_score' => round($data['weighted_score'], 1),
                 'status' => $data['status'],
                 'status_label' => $this->getHealthStatus($data['score'])['label'],
@@ -387,7 +394,7 @@ class HealthScoreCalculator
         }
 
         // Sort by score ascending (worst first)
-        usort($breakdown, fn($a, $b) => $a['score'] <=> $b['score']);
+        usort($breakdown, fn ($a, $b) => $a['score'] <=> $b['score']);
 
         return $breakdown;
     }
@@ -425,7 +432,7 @@ class HealthScoreCalculator
                 'trend' => 'down',
                 'change' => $change,
                 'change_percent' => $changePercent,
-                'label' => abs($change) . " ball pasayish",
+                'label' => abs($change).' ball pasayish',
                 'icon' => 'arrow-down',
             ];
         }

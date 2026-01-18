@@ -29,7 +29,7 @@ return new class extends Migration
                 'number',
                 'photo',
                 'location',
-                'any'
+                'any',
             ])->default('none');
 
             // Last bot message

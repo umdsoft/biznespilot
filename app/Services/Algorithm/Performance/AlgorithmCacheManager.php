@@ -2,11 +2,11 @@
 
 namespace App\Services\Algorithm\Performance;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Log;
 use App\Models\Business;
 use Closure;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * Algorithm Cache Manager
@@ -32,23 +32,31 @@ class AlgorithmCacheManager
      * Cache key prefixes
      */
     protected const PREFIX_DIAGNOSTIC = 'diag:';
+
     protected const PREFIX_ALGORITHM = 'algo:';
+
     protected const PREFIX_METRICS = 'metrics:';
+
     protected const PREFIX_BENCHMARK = 'bench:';
 
     /**
      * TTL configurations (in seconds)
      */
     protected const TTL_SHORT = 300;      // 5 minutes - volatile data
+
     protected const TTL_MEDIUM = 1800;    // 30 minutes - diagnostic results
+
     protected const TTL_LONG = 3600;      // 1 hour - metrics
+
     protected const TTL_BENCHMARK = 86400; // 24 hours - benchmarks
 
     /**
      * Cache tags for invalidation
      */
     protected const TAG_BUSINESS = 'business';
+
     protected const TAG_DIAGNOSTIC = 'diagnostic';
+
     protected const TAG_ALGORITHM = 'algorithm';
 
     /**
@@ -61,7 +69,7 @@ class AlgorithmCacheManager
 
         return $this->remember($key, $callback, $ttl, [
             self::TAG_DIAGNOSTIC,
-            self::TAG_BUSINESS . ':' . $business->id,
+            self::TAG_BUSINESS.':'.$business->id,
         ]);
     }
 
@@ -75,7 +83,7 @@ class AlgorithmCacheManager
 
         return $this->remember($key, $callback, $ttl, [
             self::TAG_ALGORITHM,
-            self::TAG_BUSINESS . ':' . $business->id,
+            self::TAG_BUSINESS.':'.$business->id,
         ]);
     }
 
@@ -88,7 +96,7 @@ class AlgorithmCacheManager
         $ttl = $ttl ?? self::TTL_LONG;
 
         return $this->remember($key, $callback, $ttl, [
-            self::TAG_BUSINESS . ':' . $business->id,
+            self::TAG_BUSINESS.':'.$business->id,
         ]);
     }
 
@@ -97,7 +105,8 @@ class AlgorithmCacheManager
      */
     public function benchmark(string $industry, Closure $callback): array
     {
-        $key = self::PREFIX_BENCHMARK . $industry;
+        $key = self::PREFIX_BENCHMARK.$industry;
+
         return $this->remember($key, $callback, self::TTL_BENCHMARK);
     }
 
@@ -115,6 +124,7 @@ class AlgorithmCacheManager
         $value = $this->getFromCache($key, $tags);
         if ($value !== null) {
             self::$requestCache[$key] = $value;
+
             return $value;
         }
 
@@ -129,7 +139,7 @@ class AlgorithmCacheManager
 
         // Log slow computations
         if ($computeTime > 500) {
-            Log::warning("Slow algorithm computation", [
+            Log::warning('Slow algorithm computation', [
                 'key' => $key,
                 'time_ms' => $computeTime,
             ]);
@@ -144,12 +154,14 @@ class AlgorithmCacheManager
     protected function getFromCache(string $key, array $tags = []): mixed
     {
         try {
-            if (!empty($tags) && $this->supportsTagging()) {
+            if (! empty($tags) && $this->supportsTagging()) {
                 return Cache::tags($tags)->get($key);
             }
+
             return Cache::get($key);
         } catch (\Exception $e) {
-            Log::warning("Cache get failed", ['key' => $key, 'error' => $e->getMessage()]);
+            Log::warning('Cache get failed', ['key' => $key, 'error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -160,13 +172,13 @@ class AlgorithmCacheManager
     protected function putToCache(string $key, mixed $value, int $ttl, array $tags = []): void
     {
         try {
-            if (!empty($tags) && $this->supportsTagging()) {
+            if (! empty($tags) && $this->supportsTagging()) {
                 Cache::tags($tags)->put($key, $value, $ttl);
             } else {
                 Cache::put($key, $value, $ttl);
             }
         } catch (\Exception $e) {
-            Log::warning("Cache put failed", ['key' => $key, 'error' => $e->getMessage()]);
+            Log::warning('Cache put failed', ['key' => $key, 'error' => $e->getMessage()]);
         }
     }
 
@@ -176,6 +188,7 @@ class AlgorithmCacheManager
     protected function supportsTagging(): bool
     {
         $driver = config('cache.default');
+
         return in_array($driver, ['redis', 'memcached', 'array']);
     }
 
@@ -196,16 +209,16 @@ class AlgorithmCacheManager
         // Clear application cache
         if ($this->supportsTagging()) {
             try {
-                Cache::tags([self::TAG_BUSINESS . ':' . $businessId])->flush();
+                Cache::tags([self::TAG_BUSINESS.':'.$businessId])->flush();
             } catch (\Exception $e) {
-                Log::warning("Tagged cache flush failed", ['business_id' => $businessId]);
+                Log::warning('Tagged cache flush failed', ['business_id' => $businessId]);
             }
         } else {
             // Manual key invalidation for non-tagging drivers
             $this->invalidateBusinessKeys($businessId);
         }
 
-        Log::info("Business cache invalidated", ['business_id' => $businessId]);
+        Log::info('Business cache invalidated', ['business_id' => $businessId]);
     }
 
     /**
@@ -214,9 +227,9 @@ class AlgorithmCacheManager
     protected function invalidateBusinessKeys(int $businessId): void
     {
         $patterns = [
-            self::PREFIX_DIAGNOSTIC . $businessId,
-            self::PREFIX_ALGORITHM . '*:' . $businessId,
-            self::PREFIX_METRICS . $businessId . ':*',
+            self::PREFIX_DIAGNOSTIC.$businessId,
+            self::PREFIX_ALGORITHM.'*:'.$businessId,
+            self::PREFIX_METRICS.$businessId.':*',
         ];
 
         foreach ($patterns as $pattern) {
@@ -235,11 +248,11 @@ class AlgorithmCacheManager
             try {
                 Cache::tags([self::TAG_DIAGNOSTIC])->flush();
             } catch (\Exception $e) {
-                Log::warning("Diagnostic cache flush failed");
+                Log::warning('Diagnostic cache flush failed');
             }
         }
 
-        Log::info("All diagnostic caches invalidated");
+        Log::info('All diagnostic caches invalidated');
     }
 
     /**
@@ -253,7 +266,7 @@ class AlgorithmCacheManager
             }
         }
 
-        Log::info("Benchmark caches invalidated");
+        Log::info('Benchmark caches invalidated');
     }
 
     /**
@@ -273,13 +286,13 @@ class AlgorithmCacheManager
             $result = $diagnosticCallback();
             $this->putToCache($key, $result, self::TTL_MEDIUM, [
                 self::TAG_DIAGNOSTIC,
-                self::TAG_BUSINESS . ':' . $business->id,
+                self::TAG_BUSINESS.':'.$business->id,
             ]);
             self::$requestCache[$key] = $result;
 
-            Log::info("Cache warmed for business", ['business_id' => $business->id]);
+            Log::info('Cache warmed for business', ['business_id' => $business->id]);
         } catch (\Exception $e) {
-            Log::warning("Cache warming failed", [
+            Log::warning('Cache warming failed', [
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
             ]);
@@ -312,7 +325,7 @@ class AlgorithmCacheManager
      */
     protected function diagnosticKey(Business $business): string
     {
-        return self::PREFIX_DIAGNOSTIC . $business->id . ':' . $this->getBusinessHash($business);
+        return self::PREFIX_DIAGNOSTIC.$business->id.':'.$this->getBusinessHash($business);
     }
 
     /**
@@ -320,7 +333,7 @@ class AlgorithmCacheManager
      */
     protected function algorithmKey(string $name, Business $business): string
     {
-        return self::PREFIX_ALGORITHM . $name . ':' . $business->id . ':' . $this->getBusinessHash($business);
+        return self::PREFIX_ALGORITHM.$name.':'.$business->id.':'.$this->getBusinessHash($business);
     }
 
     /**
@@ -328,7 +341,7 @@ class AlgorithmCacheManager
      */
     protected function metricsKey(Business $business, string $type): string
     {
-        return self::PREFIX_METRICS . $business->id . ':' . $type;
+        return self::PREFIX_METRICS.$business->id.':'.$type;
     }
 
     /**
@@ -353,7 +366,7 @@ class AlgorithmCacheManager
      */
     public function getLockKey(string $key): string
     {
-        return 'lock:' . $key;
+        return 'lock:'.$key;
     }
 
     /**

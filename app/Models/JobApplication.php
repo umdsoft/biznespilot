@@ -6,7 +6,6 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobApplication extends Model
 {
@@ -14,10 +13,15 @@ class JobApplication extends Model
 
     // Status constants
     public const STATUS_NEW = 'new';
+
     public const STATUS_SCREENING = 'screening';
+
     public const STATUS_INTERVIEWING = 'interviewing';
+
     public const STATUS_OFFER = 'offer';
+
     public const STATUS_HIRED = 'hired';
+
     public const STATUS_REJECTED = 'rejected';
 
     public const STATUSES = [

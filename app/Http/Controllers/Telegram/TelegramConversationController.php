@@ -7,8 +7,8 @@ use App\Models\TelegramBot;
 use App\Models\TelegramConversation;
 use App\Models\TelegramMessage;
 use App\Services\Telegram\TelegramApiService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -44,7 +44,7 @@ class TelegramConversationController extends Controller
 
         $conversations = $query->orderBy('last_message_at', 'desc')
             ->paginate(50)
-            ->through(fn($conv) => [
+            ->through(fn ($conv) => [
                 'id' => $conv->id,
                 'user' => $conv->user ? [
                     'id' => $conv->user->id,
@@ -104,7 +104,7 @@ class TelegramConversationController extends Controller
         $messages = TelegramMessage::where('conversation_id', $conversation->id)
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(fn($msg) => [
+            ->map(fn ($msg) => [
                 'id' => $msg->id,
                 'direction' => $msg->direction,
                 'sender_type' => $msg->sender_type,
@@ -175,7 +175,7 @@ class TelegramConversationController extends Controller
         $api = new TelegramApiService($bot);
 
         $keyboard = null;
-        if ($request->has('keyboard') && !empty($request->keyboard)) {
+        if ($request->has('keyboard') && ! empty($request->keyboard)) {
             $keyboard = TelegramApiService::buildInlineKeyboard($request->keyboard);
         }
 
@@ -185,7 +185,7 @@ class TelegramConversationController extends Controller
             $keyboard
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'success' => false,
                 'message' => $result['description'] ?? 'Xabar yuborishda xatolik',
@@ -367,7 +367,7 @@ class TelegramConversationController extends Controller
             ->where('created_at', '>', $request->after)
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(fn($msg) => [
+            ->map(fn ($msg) => [
                 'id' => $msg->id,
                 'direction' => $msg->direction,
                 'sender_type' => $msg->sender_type,

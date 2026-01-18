@@ -3,17 +3,17 @@
 namespace App\Services\Algorithm\Performance;
 
 use App\Models\Business;
+use App\Services\Algorithm\ChurnRiskAlgorithm;
+use App\Services\Algorithm\CompetitorBenchmarkAlgorithm;
+use App\Services\Algorithm\ContentOptimizationAlgorithm;
 use App\Services\Algorithm\DiagnosticAlgorithmService;
+use App\Services\Algorithm\DreamBuyerScoringAlgorithm;
+use App\Services\Algorithm\EngagementAlgorithm;
+use App\Services\Algorithm\FunnelAnalysisAlgorithm;
 use App\Services\Algorithm\HealthScoreAlgorithm;
 use App\Services\Algorithm\MoneyLossAlgorithm;
-use App\Services\Algorithm\FunnelAnalysisAlgorithm;
-use App\Services\Algorithm\EngagementAlgorithm;
-use App\Services\Algorithm\ValueEquationAlgorithm;
-use App\Services\Algorithm\ChurnRiskAlgorithm;
 use App\Services\Algorithm\RevenueForecaster;
-use App\Services\Algorithm\ContentOptimizationAlgorithm;
-use App\Services\Algorithm\DreamBuyerScoringAlgorithm;
-use App\Services\Algorithm\CompetitorBenchmarkAlgorithm;
+use App\Services\Algorithm\ValueEquationAlgorithm;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -34,23 +34,36 @@ use Illuminate\Support\Facades\Log;
 class OptimizedDiagnosticService
 {
     protected DiagnosticAlgorithmService $baseService;
+
     protected AlgorithmCacheManager $cache;
+
     protected AsyncAlgorithmRunner $runner;
+
     protected RateLimiter $rateLimiter;
+
     protected AlgorithmQueueManager $queue;
 
     /**
      * Sub-calculators (lazy loaded)
      */
     protected ?HealthScoreAlgorithm $healthScoreAlgorithm = null;
+
     protected ?MoneyLossAlgorithm $moneyLossAlgorithm = null;
+
     protected ?FunnelAnalysisAlgorithm $funnelAnalysisAlgorithm = null;
+
     protected ?EngagementAlgorithm $engagementAlgorithm = null;
+
     protected ?ValueEquationAlgorithm $valueEquationAlgorithm = null;
+
     protected ?ChurnRiskAlgorithm $churnRiskAlgorithm = null;
+
     protected ?RevenueForecaster $revenueForecaster = null;
+
     protected ?ContentOptimizationAlgorithm $contentOptimizationAlgorithm = null;
+
     protected ?DreamBuyerScoringAlgorithm $dreamBuyerScoringAlgorithm = null;
+
     protected ?CompetitorBenchmarkAlgorithm $competitorBenchmarkAlgorithm = null;
 
     public function __construct(
@@ -70,10 +83,7 @@ class OptimizedDiagnosticService
     /**
      * Run full diagnostic with caching and optimization
      *
-     * @param Business $business
-     * @param array $benchmarks
-     * @param array $options [use_cache, async, force_refresh]
-     * @return array
+     * @param  array  $options  [use_cache, async, force_refresh]
      */
     public function runDiagnostic(Business $business, array $benchmarks = [], array $options = []): array
     {
@@ -82,20 +92,21 @@ class OptimizedDiagnosticService
         $forceRefresh = $options['force_refresh'] ?? false;
 
         // Rate limit check
-        if (!$this->rateLimiter->attempt("business:{$business->id}", 'diagnostic')) {
+        if (! $this->rateLimiter->attempt("business:{$business->id}", 'diagnostic')) {
             return $this->getRateLimitedResponse($business);
         }
 
         try {
             // Try cache first (unless force refresh)
-            if ($useCache && !$forceRefresh) {
-                $cached = $this->cache->diagnostic($business, function() use ($business, $benchmarks) {
+            if ($useCache && ! $forceRefresh) {
+                $cached = $this->cache->diagnostic($business, function () use ($business, $benchmarks) {
                     return $this->computeDiagnostic($business, $benchmarks);
                 });
 
                 if ($cached) {
                     $cached['_meta']['from_cache'] = true;
                     $cached['_meta']['response_time_ms'] = round((microtime(true) - $startTime) * 1000, 2);
+
                     return $cached;
                 }
             }
@@ -108,7 +119,7 @@ class OptimizedDiagnosticService
             return $result;
 
         } catch (\Exception $e) {
-            Log::error("Diagnostic error", [
+            Log::error('Diagnostic error', [
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
             ]);
@@ -166,16 +177,16 @@ class OptimizedDiagnosticService
     protected function prepareAlgorithms(Business $business, array $metrics, array $benchmarks): array
     {
         return [
-            'health_score' => fn() => $this->getHealthScoreAlgorithm()->calculate($business, $metrics, $benchmarks),
-            'dream_buyer_analysis' => fn() => $this->getDreamBuyerScoringAlgorithm()->calculate($business),
-            'offer_strength' => fn() => $this->getValueEquationAlgorithm()->calculate($business),
-            'money_loss' => fn() => $this->getMoneyLossAlgorithm()->calculate($business, $metrics, $benchmarks),
-            'funnel_analysis' => fn() => $this->getFunnelAnalysisAlgorithm()->calculate($business, $metrics),
-            'engagement_metrics' => fn() => $this->getEngagementAlgorithm()->calculate($business),
-            'content_optimization' => fn() => $this->getContentOptimizationAlgorithm()->calculate($business),
-            'churn_risk' => fn() => $this->getChurnRiskAlgorithm()->calculate($business),
-            'revenue_forecast' => fn() => $this->getRevenueForecaster()->calculate($business),
-            'competitor_benchmark' => fn() => $this->getCompetitorBenchmarkAlgorithm()->calculate($business, $benchmarks),
+            'health_score' => fn () => $this->getHealthScoreAlgorithm()->calculate($business, $metrics, $benchmarks),
+            'dream_buyer_analysis' => fn () => $this->getDreamBuyerScoringAlgorithm()->calculate($business),
+            'offer_strength' => fn () => $this->getValueEquationAlgorithm()->calculate($business),
+            'money_loss' => fn () => $this->getMoneyLossAlgorithm()->calculate($business, $metrics, $benchmarks),
+            'funnel_analysis' => fn () => $this->getFunnelAnalysisAlgorithm()->calculate($business, $metrics),
+            'engagement_metrics' => fn () => $this->getEngagementAlgorithm()->calculate($business),
+            'content_optimization' => fn () => $this->getContentOptimizationAlgorithm()->calculate($business),
+            'churn_risk' => fn () => $this->getChurnRiskAlgorithm()->calculate($business),
+            'revenue_forecast' => fn () => $this->getRevenueForecaster()->calculate($business),
+            'competitor_benchmark' => fn () => $this->getCompetitorBenchmarkAlgorithm()->calculate($business, $benchmarks),
         ];
     }
 
@@ -216,7 +227,7 @@ class OptimizedDiagnosticService
      */
     public function runSingleAlgorithm(string $name, Business $business, array $options = []): array
     {
-        return $this->cache->algorithm($name, $business, function() use ($name, $business, $options) {
+        return $this->cache->algorithm($name, $business, function () use ($name, $business, $options) {
             return match ($name) {
                 'health_score' => $this->getHealthScoreAlgorithm()->calculate($business, $options['metrics'] ?? [], $options['benchmarks'] ?? []),
                 'dream_buyer' => $this->getDreamBuyerScoringAlgorithm()->calculate($business),
@@ -240,7 +251,7 @@ class OptimizedDiagnosticService
     {
         return $this->runner->batchProcess(
             $businesses,
-            fn($business) => $this->runDiagnostic($business, $benchmarks, ['use_cache' => true]),
+            fn ($business) => $this->runDiagnostic($business, $benchmarks, ['use_cache' => true]),
             10 // Batch size
         );
     }
@@ -258,7 +269,7 @@ class OptimizedDiagnosticService
      */
     public function warmCache(Business $business, array $benchmarks = []): void
     {
-        $this->cache->warmCache($business, fn() => $this->computeDiagnostic($business, $benchmarks));
+        $this->cache->warmCache($business, fn () => $this->computeDiagnostic($business, $benchmarks));
     }
 
     /**
@@ -332,6 +343,7 @@ class OptimizedDiagnosticService
     protected function collectSalesMetrics(Business $business): array
     {
         $metrics = $business->salesMetrics;
+
         return [
             'monthly_revenue' => $metrics?->monthly_revenue ?? 0,
             'monthly_leads' => $metrics?->monthly_leads ?? 0,
@@ -350,6 +362,7 @@ class OptimizedDiagnosticService
     protected function collectMarketingMetrics(Business $business): array
     {
         $metrics = $business->marketingMetrics;
+
         return [
             'monthly_budget' => $metrics?->monthly_budget ?? 0,
             'ad_spend' => $metrics?->ad_spend ?? 0,
@@ -457,6 +470,7 @@ class OptimizedDiagnosticService
         if ($score >= 40) {
             return ['level' => 'average', 'label' => 'O\'rtacha', 'color' => 'yellow', 'emoji' => '⚠️'];
         }
+
         return ['level' => 'weak', 'label' => 'Zaif', 'color' => 'red', 'emoji' => '🔴'];
     }
 
@@ -490,14 +504,14 @@ class OptimizedDiagnosticService
     protected function calculateDataCompleteness(array $businessData): array
     {
         $checks = [
-            'basic' => !empty($businessData['name']) && !empty($businessData['industry']),
+            'basic' => ! empty($businessData['name']) && ! empty($businessData['industry']),
             'dream_buyer' => $businessData['has_dream_buyer'],
             'offers' => $businessData['has_offers'],
-            'channels' => !empty($businessData['connected_channels']),
-            'maturity' => !empty($businessData['maturity_assessment']),
+            'channels' => ! empty($businessData['connected_channels']),
+            'maturity' => ! empty($businessData['maturity_assessment']),
         ];
 
-        $score = array_sum(array_map(fn($v) => $v ? 100 : 0, $checks)) / count($checks);
+        $score = array_sum(array_map(fn ($v) => $v ? 100 : 0, $checks)) / count($checks);
 
         return [
             'checks' => $checks,
@@ -555,51 +569,51 @@ class OptimizedDiagnosticService
     // Lazy-loaded algorithm getters
     protected function getHealthScoreAlgorithm(): HealthScoreAlgorithm
     {
-        return $this->healthScoreAlgorithm ??= new HealthScoreAlgorithm();
+        return $this->healthScoreAlgorithm ??= new HealthScoreAlgorithm;
     }
 
     protected function getMoneyLossAlgorithm(): MoneyLossAlgorithm
     {
-        return $this->moneyLossAlgorithm ??= new MoneyLossAlgorithm();
+        return $this->moneyLossAlgorithm ??= new MoneyLossAlgorithm;
     }
 
     protected function getFunnelAnalysisAlgorithm(): FunnelAnalysisAlgorithm
     {
-        return $this->funnelAnalysisAlgorithm ??= new FunnelAnalysisAlgorithm();
+        return $this->funnelAnalysisAlgorithm ??= new FunnelAnalysisAlgorithm;
     }
 
     protected function getEngagementAlgorithm(): EngagementAlgorithm
     {
-        return $this->engagementAlgorithm ??= new EngagementAlgorithm();
+        return $this->engagementAlgorithm ??= new EngagementAlgorithm;
     }
 
     protected function getValueEquationAlgorithm(): ValueEquationAlgorithm
     {
-        return $this->valueEquationAlgorithm ??= new ValueEquationAlgorithm();
+        return $this->valueEquationAlgorithm ??= new ValueEquationAlgorithm;
     }
 
     protected function getChurnRiskAlgorithm(): ChurnRiskAlgorithm
     {
-        return $this->churnRiskAlgorithm ??= new ChurnRiskAlgorithm();
+        return $this->churnRiskAlgorithm ??= new ChurnRiskAlgorithm;
     }
 
     protected function getRevenueForecaster(): RevenueForecaster
     {
-        return $this->revenueForecaster ??= new RevenueForecaster();
+        return $this->revenueForecaster ??= new RevenueForecaster;
     }
 
     protected function getContentOptimizationAlgorithm(): ContentOptimizationAlgorithm
     {
-        return $this->contentOptimizationAlgorithm ??= new ContentOptimizationAlgorithm();
+        return $this->contentOptimizationAlgorithm ??= new ContentOptimizationAlgorithm;
     }
 
     protected function getDreamBuyerScoringAlgorithm(): DreamBuyerScoringAlgorithm
     {
-        return $this->dreamBuyerScoringAlgorithm ??= new DreamBuyerScoringAlgorithm();
+        return $this->dreamBuyerScoringAlgorithm ??= new DreamBuyerScoringAlgorithm;
     }
 
     protected function getCompetitorBenchmarkAlgorithm(): CompetitorBenchmarkAlgorithm
     {
-        return $this->competitorBenchmarkAlgorithm ??= new CompetitorBenchmarkAlgorithm();
+        return $this->competitorBenchmarkAlgorithm ??= new CompetitorBenchmarkAlgorithm;
     }
 }

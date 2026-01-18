@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 class RevenueForecaster extends AlgorithmEngine
 {
     protected string $cachePrefix = 'revenue_forecast_';
+
     protected int $cacheTTL = 900; // 15 minutes for real-time updates
 
     /**
@@ -325,8 +325,8 @@ class RevenueForecaster extends AlgorithmEngine
                 ->get()
                 ->toArray();
 
-            if (!empty($data)) {
-                return array_map(fn($row) => (array) $row, $data);
+            if (! empty($data)) {
+                return array_map(fn ($row) => (array) $row, $data);
             }
 
             // Try orders if KPI snapshots don't exist
@@ -340,8 +340,8 @@ class RevenueForecaster extends AlgorithmEngine
                 ->get()
                 ->toArray();
 
-            if (!empty($orderData)) {
-                return array_map(fn($row) => (array) $row, $orderData);
+            if (! empty($orderData)) {
+                return array_map(fn ($row) => (array) $row, $orderData);
             }
 
             // Return sample data for demonstration
@@ -349,6 +349,7 @@ class RevenueForecaster extends AlgorithmEngine
 
         } catch (\Exception $e) {
             Log::warning('Could not get historical data', ['error' => $e->getMessage()]);
+
             return $this->generateSampleData($business);
         }
     }
@@ -593,14 +594,14 @@ class RevenueForecaster extends AlgorithmEngine
                 'type' => 'positive',
                 'title' => 'O\'sish trendi',
                 'description' => 'Daromad o\'sish trendida. Davom eting!',
-                'metric' => '+' . round($trend['slope'] * 30) . ' so\'m/oy',
+                'metric' => '+'.round($trend['slope'] * 30).' so\'m/oy',
             ];
         } elseif ($trend['trend'] === 'down') {
             $insights[] = [
                 'type' => 'warning',
                 'title' => 'Pasayish trendi',
                 'description' => 'Daromad pasaymoqda. Sabab aniqlang.',
-                'metric' => round($trend['slope'] * 30) . ' so\'m/oy',
+                'metric' => round($trend['slope'] * 30).' so\'m/oy',
             ];
         }
 
@@ -609,13 +610,13 @@ class RevenueForecaster extends AlgorithmEngine
             $insights[] = [
                 'type' => 'positive',
                 'title' => 'Kuchli o\'sish',
-                'description' => 'Oylik o\'sish ' . round($growthRate['monthly']) . '% - ajoyib!',
+                'description' => 'Oylik o\'sish '.round($growthRate['monthly']).'% - ajoyib!',
             ];
         } elseif ($growthRate['monthly'] < -10) {
             $insights[] = [
                 'type' => 'negative',
                 'title' => 'Sezilarli pasayish',
-                'description' => 'Oylik pasayish ' . abs(round($growthRate['monthly'])) . '% - diqqat!',
+                'description' => 'Oylik pasayish '.abs(round($growthRate['monthly'])).'% - diqqat!',
             ];
         }
 
@@ -624,7 +625,7 @@ class RevenueForecaster extends AlgorithmEngine
             $insights[] = [
                 'type' => 'info',
                 'title' => 'Haftalik pattern',
-                'description' => $seasonality['best_day'] . ' - eng yaxshi kun, ' . $seasonality['worst_day'] . ' - eng zaif kun',
+                'description' => $seasonality['best_day'].' - eng yaxshi kun, '.$seasonality['worst_day'].' - eng zaif kun',
             ];
         }
 
@@ -639,16 +640,28 @@ class RevenueForecaster extends AlgorithmEngine
         $riskScore = 0;
 
         // Trend risk
-        if ($trend['trend'] === 'down') $riskScore += 30;
-        if ($trend['r_squared'] < 0.3) $riskScore += 20; // Unpredictable
+        if ($trend['trend'] === 'down') {
+            $riskScore += 30;
+        }
+        if ($trend['r_squared'] < 0.3) {
+            $riskScore += 20;
+        } // Unpredictable
 
         // Growth risk
-        if ($growthRate['monthly'] < -10) $riskScore += 25;
-        if ($growthRate['monthly'] < 0) $riskScore += 10;
+        if ($growthRate['monthly'] < -10) {
+            $riskScore += 25;
+        }
+        if ($growthRate['monthly'] < 0) {
+            $riskScore += 10;
+        }
 
         // Confidence risk
-        if ($confidence['level'] === 'low') $riskScore += 15;
-        if ($confidence['level'] === 'medium') $riskScore += 5;
+        if ($confidence['level'] === 'low') {
+            $riskScore += 15;
+        }
+        if ($confidence['level'] === 'medium') {
+            $riskScore += 5;
+        }
 
         $riskLevel = match (true) {
             $riskScore >= 50 => 'high',
@@ -702,8 +715,11 @@ class RevenueForecaster extends AlgorithmEngine
         $score = 50; // Base score
 
         // Trend contribution
-        if ($trend['trend'] === 'up') $score += 20;
-        elseif ($trend['trend'] === 'down') $score -= 20;
+        if ($trend['trend'] === 'up') {
+            $score += 20;
+        } elseif ($trend['trend'] === 'down') {
+            $score -= 20;
+        }
 
         // R-squared contribution (predictability)
         $score += $trend['r_squared'] * 15;
@@ -719,8 +735,13 @@ class RevenueForecaster extends AlgorithmEngine
      */
     protected function getTrendStrength(float $rSquared): string
     {
-        if ($rSquared >= 0.7) return 'strong';
-        if ($rSquared >= 0.4) return 'moderate';
+        if ($rSquared >= 0.7) {
+            return 'strong';
+        }
+        if ($rSquared >= 0.4) {
+            return 'moderate';
+        }
+
         return 'weak';
     }
 

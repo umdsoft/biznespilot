@@ -22,7 +22,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Schedule marketing metrics sync daily at 2:00 AM
-Schedule::job(new SyncAllChannelsMetrics())
+Schedule::job(new SyncAllChannelsMetrics)
     ->dailyAt('02:00')
     ->timezone('Asia/Tashkent')
     ->name('sync-marketing-metrics')
@@ -194,7 +194,7 @@ Schedule::call(function () {
 
 // Competitor Monitoring - Har soatda auto_monitor yoqilgan raqobatchilarni kuzatish
 // check_frequency_hours sozlamasiga qarab ishga tushadi
-Schedule::job(new \App\Jobs\ScrapeCompetitorData())
+Schedule::job(new \App\Jobs\ScrapeCompetitorData)
     ->hourly()
     ->timezone('Asia/Tashkent')
     ->name('competitor-monitoring')

@@ -3,23 +3,25 @@
 namespace App\Jobs;
 
 use App\Models\Business;
-use App\Models\Integration;
 use App\Models\ChannelMetric;
+use App\Models\Integration;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class SyncIntegrationsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 120;
+
     public int $timeout = 600;
 
     public function __construct(
@@ -125,7 +127,7 @@ class SyncIntegrationsJob implements ShouldQueue
         $token = $integration->access_token;
         $accountId = $integration->external_id;
 
-        if (!$token || !$accountId) {
+        if (! $token || ! $accountId) {
             return null;
         }
 
@@ -137,8 +139,8 @@ class SyncIntegrationsJob implements ShouldQueue
                 'access_token' => $token,
             ]);
 
-            if (!$response->successful()) {
-                throw new \Exception('Instagram API error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Instagram API error: '.$response->body());
             }
 
             $data = $response->json();
@@ -154,6 +156,7 @@ class SyncIntegrationsJob implements ShouldQueue
                 'integration_id' => $integration->id,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -163,7 +166,7 @@ class SyncIntegrationsJob implements ShouldQueue
         $token = $integration->access_token;
         $pageId = $integration->external_id;
 
-        if (!$token || !$pageId) {
+        if (! $token || ! $pageId) {
             return null;
         }
 
@@ -174,8 +177,8 @@ class SyncIntegrationsJob implements ShouldQueue
                 'access_token' => $token,
             ]);
 
-            if (!$response->successful()) {
-                throw new \Exception('Facebook API error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Facebook API error: '.$response->body());
             }
 
             $data = $response->json();
@@ -190,6 +193,7 @@ class SyncIntegrationsJob implements ShouldQueue
                 'integration_id' => $integration->id,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -200,7 +204,7 @@ class SyncIntegrationsJob implements ShouldQueue
         $token = $integration->access_token;
         $channelId = $integration->external_id;
 
-        if (!$token || !$channelId) {
+        if (! $token || ! $channelId) {
             return null;
         }
 
@@ -209,8 +213,8 @@ class SyncIntegrationsJob implements ShouldQueue
                 'chat_id' => $channelId,
             ]);
 
-            if (!$response->successful()) {
-                throw new \Exception('Telegram API error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Telegram API error: '.$response->body());
             }
 
             $data = $response->json();
@@ -223,6 +227,7 @@ class SyncIntegrationsJob implements ShouldQueue
                 'integration_id' => $integration->id,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -232,6 +237,7 @@ class SyncIntegrationsJob implements ShouldQueue
         // Google Ads API sync
         // This would require proper OAuth2 flow and Google Ads API client
         Log::info('Google Ads sync placeholder', ['integration_id' => $integration->id]);
+
         return null;
     }
 
@@ -240,13 +246,13 @@ class SyncIntegrationsJob implements ShouldQueue
         // Yandex Direct API sync
         $token = $integration->access_token;
 
-        if (!$token) {
+        if (! $token) {
             return null;
         }
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $token,
+                'Authorization' => 'Bearer '.$token,
             ])->post('https://api.direct.yandex.com/json/v5/reports', [
                 'params' => [
                     'SelectionCriteria' => [
@@ -261,14 +267,15 @@ class SyncIntegrationsJob implements ShouldQueue
                 ],
             ]);
 
-            if (!$response->successful()) {
-                throw new \Exception('Yandex Direct API error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Yandex Direct API error: '.$response->body());
             }
 
             // Parse TSV response
             $lines = explode("\n", $response->body());
             if (count($lines) >= 2) {
                 $values = str_getcsv($lines[1], "\t");
+
                 return [
                     'impressions' => (int) ($values[0] ?? 0),
                     'clicks' => (int) ($values[1] ?? 0),
@@ -283,6 +290,7 @@ class SyncIntegrationsJob implements ShouldQueue
                 'integration_id' => $integration->id,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -312,7 +320,7 @@ class SyncIntegrationsJob implements ShouldQueue
 
     protected function extractInsightValue(array $data, string $metric): int
     {
-        if (!isset($data['data'])) {
+        if (! isset($data['data'])) {
             return 0;
         }
 

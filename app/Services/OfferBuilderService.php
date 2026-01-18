@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\DreamBuyer;
 use App\Models\Offer;
-use App\Services\ClaudeAIService;
 
 class OfferBuilderService
 {
@@ -146,7 +145,7 @@ PROMPT;
      */
     protected function extractPurchaseTriggers(?DreamBuyer $dreamBuyer): string
     {
-        if (!$dreamBuyer || !$dreamBuyer->data) {
+        if (! $dreamBuyer || ! $dreamBuyer->data) {
             return 'Aniqlanmagan';
         }
 

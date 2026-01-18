@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\EskizAccount;
 use App\Models\Lead;
-use App\Models\SmsMessage;
 use App\Models\SmsDailyStat;
+use App\Models\SmsMessage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +27,7 @@ class EskizSmsService
     public function setAccount(EskizAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -36,13 +37,13 @@ class EskizSmsService
     public function authenticate(string $email, string $password): array
     {
         try {
-            Log::info('Eskiz auth attempt', ['email' => $email, 'url' => self::API_BASE_URL . '/auth/login']);
+            Log::info('Eskiz auth attempt', ['email' => $email, 'url' => self::API_BASE_URL.'/auth/login']);
 
             // Try with URL-encoded form data first (most common)
             $response = Http::timeout(30)
                 ->withoutVerifying()
                 ->asForm()
-                ->post(self::API_BASE_URL . '/auth/login', [
+                ->post(self::API_BASE_URL.'/auth/login', [
                     'email' => $email,
                     'password' => $password,
                 ]);
@@ -55,13 +56,13 @@ class EskizSmsService
             $data = $response->json();
 
             // If asForm fails, try with multipart form-data
-            if (!$response->successful() || (isset($data['status']) && $data['status'] === 'error')) {
+            if (! $response->successful() || (isset($data['status']) && $data['status'] === 'error')) {
                 Log::info('Eskiz: asForm failed, trying multipart');
 
                 $response = Http::timeout(30)
                     ->withoutVerifying()
                     ->asMultipart()
-                    ->post(self::API_BASE_URL . '/auth/login', [
+                    ->post(self::API_BASE_URL.'/auth/login', [
                         [
                             'name' => 'email',
                             'contents' => $email,
@@ -88,18 +89,19 @@ class EskizSmsService
                 ];
             }
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [
                     'success' => false,
-                    'error' => 'Autentifikatsiya xatosi: ' . ($data['message'] ?? 'Noto\'g\'ri email yoki parol'),
+                    'error' => 'Autentifikatsiya xatosi: '.($data['message'] ?? 'Noto\'g\'ri email yoki parol'),
                 ];
             }
 
             // Token can be in different locations
             $token = $data['data']['token'] ?? $data['token'] ?? null;
 
-            if (!$token) {
+            if (! $token) {
                 Log::warning('Eskiz: Token not found in response', ['data' => $data]);
+
                 return [
                     'success' => false,
                     'error' => 'Token javobda topilmadi',
@@ -115,9 +117,10 @@ class EskizSmsService
             ];
         } catch (\Exception $e) {
             Log::error('Eskiz auth exception', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -127,7 +130,7 @@ class EskizSmsService
      */
     public function refreshTokenIfNeeded(): bool
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return false;
         }
 
@@ -141,10 +144,11 @@ class EskizSmsService
             $this->account->getDecryptedPassword()
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $this->account->update([
                 'last_error' => $result['error'],
             ]);
+
             return false;
         }
 
@@ -166,11 +170,11 @@ class EskizSmsService
         ?Lead $lead = null,
         ?string $templateId = null
     ): array {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'Eskiz hisobi sozlanmagan'];
         }
 
-        if (!$this->refreshTokenIfNeeded()) {
+        if (! $this->refreshTokenIfNeeded()) {
             return ['success' => false, 'error' => 'Token yangilab bo\'lmadi'];
         }
 
@@ -178,7 +182,7 @@ class EskizSmsService
             // Normalize phone number
             $normalizedPhone = $this->normalizePhone($phone);
 
-            if (!$normalizedPhone) {
+            if (! $normalizedPhone) {
                 return ['success' => false, 'error' => 'Noto\'g\'ri telefon raqami formati'];
             }
 
@@ -188,7 +192,7 @@ class EskizSmsService
             $response = Http::timeout(30)
                 ->withToken($this->account->access_token)
                 ->asForm()
-                ->post(self::API_BASE_URL . '/message/sms/send', [
+                ->post(self::API_BASE_URL.'/message/sms/send', [
                     'mobile_phone' => $normalizedPhone,
                     'message' => $message,
                     'from' => $this->account->sender_name,
@@ -208,18 +212,19 @@ class EskizSmsService
                 'eskiz_message_id' => $data['id'] ?? null,
                 'status' => $response->successful() ? SmsMessage::STATUS_SENT : SmsMessage::STATUS_FAILED,
                 'parts_count' => $partsCount,
-                'error_message' => !$response->successful() ? ($data['message'] ?? 'Noma\'lum xato') : null,
+                'error_message' => ! $response->successful() ? ($data['message'] ?? 'Noma\'lum xato') : null,
                 'sent_at' => $response->successful() ? now() : null,
             ]);
 
             // Update daily stats
             $this->updateDailyStats($response->successful(), $partsCount);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Eskiz SMS send failed', [
                     'phone' => $normalizedPhone,
                     'response' => $data,
                 ]);
+
                 return [
                     'success' => false,
                     'error' => $data['message'] ?? 'SMS yuborib bo\'lmadi',
@@ -241,6 +246,7 @@ class EskizSmsService
 
         } catch (\Exception $e) {
             Log::error('Eskiz SMS exception', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -259,7 +265,7 @@ class EskizSmsService
         // Handle different formats
         if (strlen($normalized) === 9 && str_starts_with($normalized, '9')) {
             // Format: 9XXXXXXXX
-            return '998' . $normalized;
+            return '998'.$normalized;
         }
 
         if (strlen($normalized) === 12 && str_starts_with($normalized, '998')) {
@@ -281,14 +287,14 @@ class EskizSmsService
      */
     public function getBalance(): ?int
     {
-        if (!$this->account || !$this->refreshTokenIfNeeded()) {
+        if (! $this->account || ! $this->refreshTokenIfNeeded()) {
             return null;
         }
 
         try {
             $response = Http::timeout(30)
                 ->withToken($this->account->access_token)
-                ->get(self::API_BASE_URL . '/auth/user');
+                ->get(self::API_BASE_URL.'/auth/user');
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -314,14 +320,14 @@ class EskizSmsService
      */
     public function getMessageStatus(string $eskizMessageId): ?string
     {
-        if (!$this->account || !$this->refreshTokenIfNeeded()) {
+        if (! $this->account || ! $this->refreshTokenIfNeeded()) {
             return null;
         }
 
         try {
             $response = Http::timeout(30)
                 ->withToken($this->account->access_token)
-                ->get(self::API_BASE_URL . '/message/sms/status/' . $eskizMessageId);
+                ->get(self::API_BASE_URL.'/message/sms/status/'.$eskizMessageId);
 
             if ($response->successful()) {
                 return $response->json()['status'] ?? null;
@@ -345,11 +351,17 @@ class EskizSmsService
 
         if ($isUnicode) {
             // Unicode: 70 chars per part, 67 for multipart
-            if ($length <= 70) return 1;
+            if ($length <= 70) {
+                return 1;
+            }
+
             return (int) ceil($length / 67);
         } else {
             // GSM-7: 160 chars per part, 153 for multipart
-            if ($length <= 160) return 1;
+            if ($length <= 160) {
+                return 1;
+            }
+
             return (int) ceil($length / 153);
         }
     }

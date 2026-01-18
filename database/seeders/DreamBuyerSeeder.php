@@ -18,6 +18,7 @@ class DreamBuyerSeeder extends Seeder
 
         if ($businesses->isEmpty()) {
             $this->command->warn('No businesses found. Please run BusinessSeeder first.');
+
             return;
         }
 

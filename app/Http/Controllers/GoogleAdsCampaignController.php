@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AdIntegration;
 use App\Models\Business;
-use App\Models\GoogleAdsCampaign;
 use App\Models\GoogleAdsAdGroup;
+use App\Models\GoogleAdsCampaign;
 use App\Models\GoogleAdsKeyword;
-use App\Services\GoogleAdsSyncService;
 use App\Services\GoogleAdsCampaignService;
+use App\Services\GoogleAdsSyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +29,7 @@ class GoogleAdsCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $integration = $this->getGoogleAdsIntegration($business->id);
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'campaigns' => [],
                 'summary' => $this->getEmptySummary(),
@@ -51,7 +51,7 @@ class GoogleAdsCampaignController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Apply sorting
@@ -119,7 +119,7 @@ class GoogleAdsCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $integration = $this->getGoogleAdsIntegration($business->id);
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'statuses' => [],
                 'channel_types' => [],
@@ -129,12 +129,12 @@ class GoogleAdsCampaignController extends Controller
         $statuses = GoogleAdsCampaign::where('ad_integration_id', $integration->id)
             ->distinct()
             ->pluck('status')
-            ->map(fn($s) => ['value' => $s, 'label' => $this->formatStatus($s)]);
+            ->map(fn ($s) => ['value' => $s, 'label' => $this->formatStatus($s)]);
 
         $channelTypes = GoogleAdsCampaign::where('ad_integration_id', $integration->id)
             ->distinct()
             ->pluck('advertising_channel_type')
-            ->map(fn($t) => ['value' => $t, 'label' => $this->formatChannelType($t)]);
+            ->map(fn ($t) => ['value' => $t, 'label' => $this->formatChannelType($t)]);
 
         return response()->json([
             'statuses' => $statuses,
@@ -159,7 +159,7 @@ class GoogleAdsCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $integration = $this->getGoogleAdsIntegration($business->id);
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'success' => false,
                 'error' => 'Google Ads integratsiyasi topilmadi',
@@ -200,7 +200,7 @@ class GoogleAdsCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $integration = $this->getGoogleAdsIntegration($business->id);
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'success' => false,
                 'error' => 'Google Ads integratsiyasi topilmadi',
@@ -376,7 +376,7 @@ class GoogleAdsCampaignController extends Controller
             return response()->json([
                 'success' => true,
                 'keywords' => $keywords,
-                'message' => count($keywords) . ' ta kalit so\'z qo\'shildi',
+                'message' => count($keywords).' ta kalit so\'z qo\'shildi',
             ]);
         } catch (\Exception $e) {
             return response()->json([

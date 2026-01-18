@@ -17,7 +17,9 @@ class SyncInstagramDataJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 120;
+
     public int $timeout = 1800; // 30 minutes for full sync
 
     public function __construct(
@@ -28,8 +30,9 @@ class SyncInstagramDataJob implements ShouldQueue
     public function handle(InstagramSyncService $syncService): void
     {
         $business = Business::find($this->businessId);
-        if (!$business) {
+        if (! $business) {
             Log::warning('SyncInstagramDataJob: Business not found', ['business_id' => $this->businessId]);
+
             return;
         }
 
@@ -38,8 +41,9 @@ class SyncInstagramDataJob implements ShouldQueue
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             Log::warning('SyncInstagramDataJob: No connected Meta integration', ['business_id' => $this->businessId]);
+
             return;
         }
 
@@ -63,7 +67,7 @@ class SyncInstagramDataJob implements ShouldQueue
                 'results' => $results,
             ]);
 
-            if (!empty($results['errors'])) {
+            if (! empty($results['errors'])) {
                 Log::warning('SyncInstagramDataJob: Completed with errors', [
                     'business_id' => $this->businessId,
                     'errors' => $results['errors'],
@@ -79,7 +83,7 @@ class SyncInstagramDataJob implements ShouldQueue
 
             $integration->update([
                 'last_error_at' => now(),
-                'last_error_message' => 'Instagram sync: ' . $e->getMessage(),
+                'last_error_message' => 'Instagram sync: '.$e->getMessage(),
             ]);
 
             throw $e;

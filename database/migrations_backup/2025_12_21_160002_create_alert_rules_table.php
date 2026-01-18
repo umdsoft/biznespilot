@@ -21,11 +21,11 @@ return new class extends Migration
 
             // Trigger
             $table->enum('alert_type', [
-                'threshold', 'metric_change', 'trend', 'goal', 'competitor'
+                'threshold', 'metric_change', 'trend', 'goal', 'competitor',
             ]);
             $table->string('metric_code', 50);
             $table->enum('condition', [
-                'greater_than', 'less_than', 'equals', 'change_up', 'change_down'
+                'greater_than', 'less_than', 'equals', 'change_up', 'change_down',
             ]);
             $table->decimal('threshold_value', 15, 2)->nullable();
             $table->decimal('threshold_percent', 5, 2)->nullable();

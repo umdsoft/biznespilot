@@ -73,6 +73,7 @@ trait HasDateScopes
     public function scopeLastMonth(Builder $query): Builder
     {
         $lastMonth = Carbon::now()->subMonth();
+
         return $query->whereMonth($this->getDateColumn(), $lastMonth->month)
             ->whereYear($this->getDateColumn(), $lastMonth->year);
     }
@@ -113,6 +114,7 @@ trait HasDateScopes
     public function scopeOnDate(Builder $query, $date): Builder
     {
         $date = $date instanceof Carbon ? $date : Carbon::parse($date);
+
         return $query->whereDate($this->getDateColumn(), $date);
     }
 
@@ -138,6 +140,7 @@ trait HasDateScopes
     public function scopeForMonth(Builder $query, int $month, ?int $year = null): Builder
     {
         $year = $year ?? Carbon::now()->year;
+
         return $query->whereMonth($this->getDateColumn(), $month)
             ->whereYear($this->getDateColumn(), $year);
     }

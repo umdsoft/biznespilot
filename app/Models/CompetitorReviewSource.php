@@ -77,7 +77,9 @@ class CompetitorReviewSource extends Model
         $totalRatings = $this->five_star_count + $this->four_star_count +
             $this->three_star_count + $this->two_star_count + $this->one_star_count;
 
-        if ($totalRatings === 0) return null;
+        if ($totalRatings === 0) {
+            return null;
+        }
 
         $weightedSum = (5 * $this->five_star_count) + (4 * $this->four_star_count) +
             (3 * $this->three_star_count) + (2 * $this->two_star_count) + (1 * $this->one_star_count);

@@ -3,8 +3,8 @@
 namespace App\Services\Algorithm\Performance;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * Algorithm Rate Limiter
@@ -54,16 +54,18 @@ class RateLimiter
         $current = $this->getCurrentCount($cacheKey, $config['window']);
 
         if ($current >= $config['requests']) {
-            Log::warning("Rate limit exceeded", [
+            Log::warning('Rate limit exceeded', [
                 'key' => $key,
                 'type' => $type,
                 'current' => $current,
                 'limit' => $config['requests'],
             ]);
+
             return false;
         }
 
         $this->incrementCounter($cacheKey, $config['window']);
+
         return true;
     }
 
@@ -76,6 +78,7 @@ class RateLimiter
         $cacheKey = $this->getCacheKey($key, $type);
 
         $current = $this->getCurrentCount($cacheKey, $config['window']);
+
         return $current < $config['requests'];
     }
 
@@ -88,6 +91,7 @@ class RateLimiter
         $cacheKey = $this->getCacheKey($key, $type);
 
         $current = $this->getCurrentCount($cacheKey, $config['window']);
+
         return max(0, $config['requests'] - $current);
     }
 
@@ -100,7 +104,7 @@ class RateLimiter
         $cacheKey = $this->getCacheKey($key, $type);
 
         // Get oldest request timestamp
-        $timestamps = Cache::get($cacheKey . ':timestamps', []);
+        $timestamps = Cache::get($cacheKey.':timestamps', []);
 
         if (empty($timestamps)) {
             return 0;
@@ -124,7 +128,7 @@ class RateLimiter
      */
     public function throttle(string $key, callable $callback, string $type = 'diagnostic'): mixed
     {
-        if (!$this->attempt($key, $type)) {
+        if (! $this->attempt($key, $type)) {
             $availableIn = $this->availableIn($key, $type);
             throw new \RuntimeException(
                 "Rate limit exceeded. Try again in {$availableIn} seconds.",
@@ -151,7 +155,7 @@ class RateLimiter
             $waitTime = $this->availableIn($key, $type) + 1;
 
             if ($retries < $maxRetries) {
-                Log::info("Rate limited, waiting to retry", [
+                Log::info('Rate limited, waiting to retry', [
                     'key' => $key,
                     'retry' => $retries,
                     'wait_seconds' => $waitTime,
@@ -168,7 +172,7 @@ class RateLimiter
      */
     protected function getCurrentCount(string $key, int $window): int
     {
-        $timestamps = Cache::get($key . ':timestamps', []);
+        $timestamps = Cache::get($key.':timestamps', []);
         $now = time();
         $windowStart = $now - $window;
 
@@ -188,18 +192,18 @@ class RateLimiter
      */
     protected function incrementCounter(string $key, int $window): void
     {
-        $timestamps = Cache::get($key . ':timestamps', []);
+        $timestamps = Cache::get($key.':timestamps', []);
         $now = time();
         $windowStart = $now - $window;
 
         // Remove old timestamps
-        $timestamps = array_filter($timestamps, fn($ts) => $ts > $windowStart);
+        $timestamps = array_filter($timestamps, fn ($ts) => $ts > $windowStart);
 
         // Add new timestamp
         $timestamps[] = $now;
 
         // Store with TTL
-        Cache::put($key . ':timestamps', $timestamps, $window * 2);
+        Cache::put($key.':timestamps', $timestamps, $window * 2);
     }
 
     /**
@@ -208,7 +212,7 @@ class RateLimiter
     public function reset(string $key, string $type = 'diagnostic'): void
     {
         $cacheKey = $this->getCacheKey($key, $type);
-        Cache::forget($cacheKey . ':timestamps');
+        Cache::forget($cacheKey.':timestamps');
     }
 
     /**
@@ -217,7 +221,7 @@ class RateLimiter
     public function resetAll(string $type = 'diagnostic'): void
     {
         // Note: This requires Redis SCAN or similar for pattern-based deletion
-        Log::info("Rate limiter reset requested", ['type' => $type]);
+        Log::info('Rate limiter reset requested', ['type' => $type]);
     }
 
     /**
@@ -229,6 +233,7 @@ class RateLimiter
             $this->limits[$type] ?? $this->limits['diagnostic'],
             $config
         );
+
         return $this;
     }
 

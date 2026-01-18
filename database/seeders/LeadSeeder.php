@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
-use App\Models\Lead;
 use App\Models\DreamBuyer;
+use App\Models\Lead;
 use App\Models\Offer;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class LeadSeeder extends Seeder
 {
@@ -21,6 +21,7 @@ class LeadSeeder extends Seeder
 
         if ($businesses->isEmpty()) {
             $this->command->warn('No businesses found. Please run BusinessSeeder first.');
+
             return;
         }
 
@@ -70,7 +71,7 @@ class LeadSeeder extends Seeder
 
         $phones = [];
         for ($i = 0; $i < 50; $i++) {
-            $phones[] = '+99890' . rand(1000000, 9999999);
+            $phones[] = '+99890'.rand(1000000, 9999999);
         }
 
         $emailDomains = ['gmail.com', 'mail.ru', 'inbox.uz', 'yandex.ru'];
@@ -85,7 +86,7 @@ class LeadSeeder extends Seeder
 
                 $name = $leadNames[$leadIndex];
                 $phone = $phones[$leadIndex];
-                $email = strtolower(str_replace(' ', '.', $name)) . '@' . $emailDomains[array_rand($emailDomains)];
+                $email = strtolower(str_replace(' ', '.', $name)).'@'.$emailDomains[array_rand($emailDomains)];
 
                 // Generate dates based on status (newer leads are "new", older ones are "converted" or "lost")
                 $createdDaysAgo = $this->getDaysAgoByStatus($status);
@@ -116,7 +117,7 @@ class LeadSeeder extends Seeder
                 if ($status === 'converted') {
                     $leadData['converted_at'] = Carbon::now()->subDays(rand(1, 5));
                 } elseif ($status === 'lost') {
-                    $leadData['notes'] .= "\n\nLost reason: " . $this->getLostReason();
+                    $leadData['notes'] .= "\n\nLost reason: ".$this->getLostReason();
                 }
 
                 Lead::firstOrCreate(
@@ -198,7 +199,7 @@ class LeadSeeder extends Seeder
         $notesMap = [
             'new' => "{$name} veb-sayt orqali murojaat qildi. Xizmatlar haqida ko'proq ma'lumot so'radi.",
             'contacted' => "Birinchi qo'ng'iroq qilindi. {$name} qiziqdi, batafsil taqdimot so'radi.",
-            'qualified' => "Budget tasdiqlandi. Decision maker bilan uchrashish rejalashtirildi.",
+            'qualified' => 'Budget tasdiqlandi. Decision maker bilan uchrashish rejalashtirildi.',
             'proposal' => "Taklif yuborildi. {$name} ko'rib chiqmoqda, 1 hafta ichida javob beradi.",
             'negotiation' => "Narx bo'yicha muzokara. {$name} 10-15% chegirma so'rayapti.",
             'converted' => "Shartnoma imzolandi! {$name} mijoz bo'ldi. To'lov qabul qilindi.",

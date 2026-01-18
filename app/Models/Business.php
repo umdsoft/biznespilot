@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
 {
-    use SoftDeletes, HasUuid;
+    use HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -85,6 +85,7 @@ class Business extends Model
     public function getOnboardingPercentAttribute(): int
     {
         $progress = $this->onboardingProgress()->first();
+
         return $progress ? (int) $progress->phase_1_completion_percent : 0;
     }
 
@@ -104,14 +105,14 @@ class Business extends Model
             ]);
 
             // BusinessMaturityAssessment yaratish
-            if (!$business->maturityAssessment) {
+            if (! $business->maturityAssessment) {
                 $business->maturityAssessment()->create([
                     'business_id' => $business->id,
                 ]);
             }
 
             // Auto-detect industry_code from category/industry
-            if (!$business->industry_code) {
+            if (! $business->industry_code) {
                 $business->industry_code = \App\Services\KPI\BusinessCategoryMapper::detectFromBusiness($business);
                 $business->industry_detected_at = now();
                 $business->saveQuietly(); // Save without triggering events again
@@ -120,7 +121,7 @@ class Business extends Model
 
         static::updating(function ($business) {
             // Re-detect industry_code if category or industry changes
-            if ($business->isDirty(['category', 'industry', 'business_type']) && !$business->isDirty('industry_code')) {
+            if ($business->isDirty(['category', 'industry', 'business_type']) && ! $business->isDirty('industry_code')) {
                 $business->industry_code = \App\Services\KPI\BusinessCategoryMapper::detectFromBusiness($business);
                 $business->industry_detected_at = now();
             }
@@ -391,6 +392,7 @@ class Business extends Model
     public function currentPlan()
     {
         $subscription = $this->activeSubscription();
+
         return $subscription ? $subscription->plan : null;
     }
 
@@ -401,7 +403,7 @@ class Business extends Model
     {
         $plan = $this->currentPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return false;
         }
 
@@ -421,7 +423,7 @@ class Business extends Model
     {
         $plan = $this->currentPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return true; // No plan = reached all limits
         }
 
@@ -429,20 +431,24 @@ class Business extends Model
             case 'leads':
                 $limit = $plan->lead_limit;
                 $current = $this->leads()->count();
+
                 return $limit && $current >= $limit;
 
             case 'team_members':
                 $limit = $plan->team_member_limit;
                 $current = $this->teamMembers()->count();
+
                 return $limit && $current >= $limit;
 
             case 'chatbot_channels':
                 $limit = $plan->chatbot_channel_limit;
                 $current = $this->chatbotConfigs()->count();
+
                 return $limit && $current >= $limit;
 
             case 'businesses':
                 $limit = $plan->business_limit;
+
                 // This would be checked at user level, not business level
                 return false;
 
@@ -458,7 +464,7 @@ class Business extends Model
     {
         $plan = $this->currentPlan();
 
-        if (!$plan) {
+        if (! $plan) {
             return [];
         }
 
@@ -488,7 +494,7 @@ class Business extends Model
     {
         $subscription = $this->activeSubscription();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return null;
         }
 
@@ -607,16 +613,15 @@ class Business extends Model
      * Check if a user has access to this business
      * User has access if they are: owner, team member, or admin
      *
-     * @param \App\Models\User|null $user
-     * @return bool
+     * @param  \App\Models\User|null  $user
      */
     public function userHasAccess($user = null): bool
     {
-        if (!$user) {
+        if (! $user) {
             $user = auth()->user();
         }
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 

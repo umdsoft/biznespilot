@@ -2,11 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Business;
+use App\Models\BusinessUser;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\Business;
-use App\Models\BusinessUser;
 
 class DepartmentMiddleware
 {
@@ -18,7 +18,7 @@ class DepartmentMiddleware
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -42,7 +42,7 @@ class DepartmentMiddleware
         // For team members, check business context
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             $departmentNames = [
                 'marketing' => 'Marketing bo\'limi',
                 'finance' => 'Moliya bo\'limi',
@@ -52,6 +52,7 @@ class DepartmentMiddleware
             ];
 
             $deptName = $departmentNames[$department] ?? $department;
+
             return redirect()->route('business.dashboard')->with('error', "Biznes tanlanmagan. {$deptName} panelidan foydalanish uchun biznesni tanlang.");
         }
 
@@ -64,7 +65,7 @@ class DepartmentMiddleware
         // Check if user is member of the specified department
         $membership = BusinessUser::where('business_id', $businessId)
             ->where('user_id', $user->id)
-            ->where(function($query) use ($department) {
+            ->where(function ($query) use ($department) {
                 $query->where('department', $department);
                 // Allow 'sales_operator' department to access 'operator' routes
                 if ($department === 'operator') {
@@ -73,7 +74,7 @@ class DepartmentMiddleware
             })
             ->first();
 
-        if (!$membership) {
+        if (! $membership) {
             $departmentNames = [
                 'marketing' => 'Marketing bo\'limi',
                 'finance' => 'Moliya bo\'limi',
@@ -83,6 +84,7 @@ class DepartmentMiddleware
             ];
 
             $deptName = $departmentNames[$department] ?? $department;
+
             return redirect()->route('business.dashboard')->with('error', "Sizda {$deptName} huquqlari yo'q");
         }
 

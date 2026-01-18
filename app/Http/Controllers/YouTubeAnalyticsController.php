@@ -54,9 +54,10 @@ class YouTubeAnalyticsController extends Controller
     protected function getCurrentBusiness()
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return null;
         }
+
         return session('current_business_id')
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
@@ -70,13 +71,13 @@ class YouTubeAnalyticsController extends Controller
         try {
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json(['error' => 'Foydalanuvchi topilmadi'], 401);
             }
 
             $business = $this->getCurrentBusiness();
 
-            if (!$business) {
+            if (! $business) {
                 return response()->json(['error' => 'Biznes topilmadi'], 404);
             }
 
@@ -101,9 +102,10 @@ class YouTubeAnalyticsController extends Controller
             // Detailed validation
             if (empty($clientId) || empty($clientSecret)) {
                 \Log::warning('YouTube OAuth not configured', [
-                    'has_client_id' => !empty($clientId),
-                    'has_client_secret' => !empty($clientSecret),
+                    'has_client_id' => ! empty($clientId),
+                    'has_client_secret' => ! empty($clientSecret),
                 ]);
+
                 return response()->json([
                     'error' => 'Google OAuth sozlanmagan. .env faylida GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET qo\'shing.',
                     'setup_required' => true,
@@ -112,7 +114,7 @@ class YouTubeAnalyticsController extends Controller
 
             $redirectUri = route('integrations.youtube.callback');
 
-            $url = "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query([
+            $url = 'https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query([
                 'client_id' => $clientId,
                 'redirect_uri' => $redirectUri,
                 'response_type' => 'code',
@@ -126,7 +128,8 @@ class YouTubeAnalyticsController extends Controller
             return response()->json(['url' => $url]);
         } catch (\Exception $e) {
             \Log::error('YouTube getAuthUrl error', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Xatolik yuz berdi: ' . $e->getMessage()], 500);
+
+            return response()->json(['error' => 'Xatolik yuz berdi: '.$e->getMessage()], 500);
         }
     }
 
@@ -140,17 +143,17 @@ class YouTubeAnalyticsController extends Controller
         $panelType = session('youtube_oauth_panel_type', 'business');
 
         // Determine redirect route based on panel type
-        $getRedirectRoute = function ($suffix = '', $params = []) use ($panelType) {
+        $getRedirectRoute = function ($suffix = '', $params = []) {
             return redirect()->route('integrations.youtube.index', $params);
         };
 
-        if ($error || !$code) {
-            return $getRedirectRoute()->with('error', 'YouTube bilan ulanish bekor qilindi: ' . ($error ?? 'kod topilmadi'));
+        if ($error || ! $code) {
+            return $getRedirectRoute()->with('error', 'YouTube bilan ulanish bekor qilindi: '.($error ?? 'kod topilmadi'));
         }
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return $getRedirectRoute()->with('error', 'Biznes topilmadi.');
         }
 
@@ -164,9 +167,10 @@ class YouTubeAnalyticsController extends Controller
                 'grant_type' => 'authorization_code',
             ]);
 
-            if (!$tokenResponse->successful()) {
+            if (! $tokenResponse->successful()) {
                 \Log::error('YouTube token exchange failed', ['response' => $tokenResponse->body()]);
-                return $getRedirectRoute()->with('error', 'Token olishda xatolik: ' . $tokenResponse->body());
+
+                return $getRedirectRoute()->with('error', 'Token olishda xatolik: '.$tokenResponse->body());
             }
 
             $tokens = $tokenResponse->json();
@@ -174,7 +178,7 @@ class YouTubeAnalyticsController extends Controller
             $refreshToken = $tokens['refresh_token'] ?? null;
             $expiresIn = $tokens['expires_in'] ?? 3600;
 
-            if (!$accessToken) {
+            if (! $accessToken) {
                 return $getRedirectRoute()->with('error', 'Access token olinmadi.');
             }
 
@@ -190,7 +194,7 @@ class YouTubeAnalyticsController extends Controller
 
             if ($channelResponse->successful()) {
                 $channelData = $channelResponse->json();
-                if (!empty($channelData['items'][0])) {
+                if (! empty($channelData['items'][0])) {
                     $channel = $channelData['items'][0];
                     $channelId = $channel['id'] ?? null;
                     $channelName = $channel['snippet']['title'] ?? null;
@@ -212,11 +216,12 @@ class YouTubeAnalyticsController extends Controller
                 ]
             );
 
-            return $getRedirectRoute()->with('success', 'YouTube muvaffaqiyatli ulandi!' . ($channelName ? " Kanal: {$channelName}" : ''));
+            return $getRedirectRoute()->with('success', 'YouTube muvaffaqiyatli ulandi!'.($channelName ? " Kanal: {$channelName}" : ''));
 
         } catch (\Exception $e) {
             \Log::error('YouTube callback error', ['error' => $e->getMessage()]);
-            return $getRedirectRoute()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+
+            return $getRedirectRoute()->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -246,7 +251,7 @@ class YouTubeAnalyticsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes topilmadi.');
         }
@@ -272,7 +277,7 @@ class YouTubeAnalyticsController extends Controller
             if ($integration->isTokenExpired()) {
                 if ($integration->refresh_token) {
                     $refreshResult = $this->refreshToken($integration);
-                    if (!$refreshResult) {
+                    if (! $refreshResult) {
                         $apiErrors[] = 'Token yangilanmadi. Iltimos, qaytadan ulaning.';
                     } else {
                         $integration->refresh();
@@ -285,7 +290,7 @@ class YouTubeAnalyticsController extends Controller
             // Fetch channel data
             $channelResult = $this->fetchChannelData($integration);
             if (is_array($channelResult) && isset($channelResult['error'])) {
-                $apiErrors[] = 'Kanal ma\'lumotlari: ' . $channelResult['error'];
+                $apiErrors[] = 'Kanal ma\'lumotlari: '.$channelResult['error'];
             } else {
                 $channelData = $channelResult;
             }
@@ -293,40 +298,40 @@ class YouTubeAnalyticsController extends Controller
             // Fetch current period analytics (28 days)
             $analyticsResult = $this->fetchAnalyticsData($integration);
             if (is_array($analyticsResult) && isset($analyticsResult['error'])) {
-                $apiErrors[] = 'Analitika: ' . $analyticsResult['error'];
+                $apiErrors[] = 'Analitika: '.$analyticsResult['error'];
             } else {
                 $analyticsData = $analyticsResult;
             }
 
             // Fetch previous period analytics (28 days before) for comparison
             $previousResult = $this->fetchAnalyticsData($integration, 56, 29);
-            if (!is_array($previousResult) || !isset($previousResult['error'])) {
+            if (! is_array($previousResult) || ! isset($previousResult['error'])) {
                 $previousPeriodData = $previousResult;
             }
 
             // Fetch recent videos with more details
             $videosResult = $this->fetchRecentVideos($integration, 20);
             if (is_array($videosResult) && isset($videosResult['error'])) {
-                $apiErrors[] = 'Videolar: ' . $videosResult['error'];
+                $apiErrors[] = 'Videolar: '.$videosResult['error'];
             } else {
                 $recentVideos = $videosResult;
             }
 
             // Fetch channel-level traffic sources
             $trafficResult = $this->fetchChannelTrafficSources($integration);
-            if (!is_array($trafficResult) || !isset($trafficResult['error'])) {
+            if (! is_array($trafficResult) || ! isset($trafficResult['error'])) {
                 $trafficSources = $trafficResult;
             }
 
             // Fetch channel-level demographics
             $demographicsResult = $this->fetchChannelDemographics($integration);
-            if (!is_array($demographicsResult) || !isset($demographicsResult['error'])) {
+            if (! is_array($demographicsResult) || ! isset($demographicsResult['error'])) {
                 $demographics = $demographicsResult;
             }
 
             // Fetch channel-level countries
             $countriesResult = $this->fetchChannelCountries($integration);
-            if (!is_array($countriesResult) || !isset($countriesResult['error'])) {
+            if (! is_array($countriesResult) || ! isset($countriesResult['error'])) {
                 $countries = $countriesResult;
             }
 
@@ -382,13 +387,16 @@ class YouTubeAnalyticsController extends Controller
                     'access_token' => $tokens['access_token'],
                     'token_expires_at' => now()->addSeconds($tokens['expires_in'] ?? 3600),
                 ]);
+
                 return true;
             }
 
-            \Log::error('YouTube token refresh failed: ' . $response->body());
+            \Log::error('YouTube token refresh failed: '.$response->body());
+
             return false;
         } catch (\Exception $e) {
-            \Log::error('YouTube token refresh failed: ' . $e->getMessage());
+            \Log::error('YouTube token refresh failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -407,8 +415,9 @@ class YouTubeAnalyticsController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
-                if (!empty($data['items'][0])) {
+                if (! empty($data['items'][0])) {
                     $channel = $data['items'][0];
+
                     return [
                         'id' => $channel['id'],
                         'title' => $channel['snippet']['title'] ?? null,
@@ -422,15 +431,18 @@ class YouTubeAnalyticsController extends Controller
                         'created_at' => $channel['snippet']['publishedAt'] ?? null,
                     ];
                 }
+
                 return ['error' => 'Kanal topilmadi'];
             }
 
             $errorData = $response->json();
             $errorMessage = $errorData['error']['message'] ?? $response->body();
-            \Log::error('YouTube channel data fetch failed: ' . $errorMessage);
+            \Log::error('YouTube channel data fetch failed: '.$errorMessage);
+
             return ['error' => $errorMessage];
         } catch (\Exception $e) {
-            \Log::error('YouTube channel data fetch failed: ' . $e->getMessage());
+            \Log::error('YouTube channel data fetch failed: '.$e->getMessage());
+
             return ['error' => $e->getMessage()];
         }
     }
@@ -512,10 +524,12 @@ class YouTubeAnalyticsController extends Controller
 
             $errorData = $response->json();
             $errorMessage = $errorData['error']['message'] ?? $response->body();
-            \Log::error('YouTube analytics fetch failed: ' . $errorMessage);
+            \Log::error('YouTube analytics fetch failed: '.$errorMessage);
+
             return ['error' => $errorMessage];
         } catch (\Exception $e) {
-            \Log::error('YouTube analytics fetch failed: ' . $e->getMessage());
+            \Log::error('YouTube analytics fetch failed: '.$e->getMessage());
+
             return ['error' => $e->getMessage()];
         }
     }
@@ -533,16 +547,17 @@ class YouTubeAnalyticsController extends Controller
                     'mine' => 'true',
                 ]);
 
-            if (!$channelResponse->successful()) {
+            if (! $channelResponse->successful()) {
                 $errorData = $channelResponse->json();
                 $errorMessage = $errorData['error']['message'] ?? $channelResponse->body();
+
                 return ['error' => $errorMessage];
             }
 
             $channelData = $channelResponse->json();
             $uploadsPlaylistId = $channelData['items'][0]['contentDetails']['relatedPlaylists']['uploads'] ?? null;
 
-            if (!$uploadsPlaylistId) {
+            if (! $uploadsPlaylistId) {
                 return []; // No videos yet
             }
 
@@ -554,9 +569,10 @@ class YouTubeAnalyticsController extends Controller
                     'maxResults' => min($maxResults, 50),
                 ]);
 
-            if (!$videosResponse->successful()) {
+            if (! $videosResponse->successful()) {
                 $errorData = $videosResponse->json();
                 $errorMessage = $errorData['error']['message'] ?? $videosResponse->body();
+
                 return ['error' => $errorMessage];
             }
 
@@ -578,9 +594,10 @@ class YouTubeAnalyticsController extends Controller
                     'id' => implode(',', $videoIds),
                 ]);
 
-            if (!$statsResponse->successful()) {
+            if (! $statsResponse->successful()) {
                 $errorData = $statsResponse->json();
                 $errorMessage = $errorData['error']['message'] ?? $statsResponse->body();
+
                 return ['error' => $errorMessage];
             }
 
@@ -614,7 +631,8 @@ class YouTubeAnalyticsController extends Controller
 
             return $videos;
         } catch (\Exception $e) {
-            \Log::error('YouTube videos fetch failed: ' . $e->getMessage());
+            \Log::error('YouTube videos fetch failed: '.$e->getMessage());
+
             return ['error' => $e->getMessage()];
         }
     }
@@ -629,7 +647,7 @@ class YouTubeAnalyticsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->back()->with('error', 'Biznes topilmadi.');
         }
 
@@ -637,7 +655,7 @@ class YouTubeAnalyticsController extends Controller
             ->where('platform', 'youtube')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return redirect()->back()->with('error', 'YouTube integratsiyasi topilmadi.');
         }
 
@@ -657,7 +675,7 @@ class YouTubeAnalyticsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Biznes topilmadi.');
         }
@@ -666,7 +684,7 @@ class YouTubeAnalyticsController extends Controller
             ->where('platform', 'youtube')
             ->first();
 
-        if (!$integration || !$integration->is_active) {
+        if (! $integration || ! $integration->is_active) {
             return redirect()->route('business.youtube-analytics.index')
                 ->with('error', 'YouTube integratsiyasi topilmadi.');
         }
@@ -684,7 +702,7 @@ class YouTubeAnalyticsController extends Controller
         // Fetch video details
         $videoResult = $this->fetchVideoDetails($integration, $videoId);
         if (is_array($videoResult) && isset($videoResult['error'])) {
-            $apiErrors[] = 'Video ma\'lumotlari: ' . $videoResult['error'];
+            $apiErrors[] = 'Video ma\'lumotlari: '.$videoResult['error'];
         } else {
             $videoData = $videoResult;
         }
@@ -692,7 +710,7 @@ class YouTubeAnalyticsController extends Controller
         // Fetch video analytics
         $analyticsResult = $this->fetchVideoAnalytics($integration, $videoId);
         if (is_array($analyticsResult) && isset($analyticsResult['error'])) {
-            $apiErrors[] = 'Video analitikasi: ' . $analyticsResult['error'];
+            $apiErrors[] = 'Video analitikasi: '.$analyticsResult['error'];
         } else {
             $videoAnalytics = $analyticsResult;
         }
@@ -723,7 +741,7 @@ class YouTubeAnalyticsController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
-                if (!empty($data['items'][0])) {
+                if (! empty($data['items'][0])) {
                     $video = $data['items'][0];
 
                     // Parse duration
@@ -750,14 +768,17 @@ class YouTubeAnalyticsController extends Controller
                         'favorites' => (int) ($video['statistics']['favoriteCount'] ?? 0),
                     ];
                 }
+
                 return ['error' => 'Video topilmadi'];
             }
 
             $errorData = $response->json();
             $errorMessage = $errorData['error']['message'] ?? $response->body();
+
             return ['error' => $errorMessage];
         } catch (\Exception $e) {
-            \Log::error('YouTube video details fetch failed: ' . $e->getMessage());
+            \Log::error('YouTube video details fetch failed: '.$e->getMessage());
+
             return ['error' => $e->getMessage()];
         }
     }
@@ -778,7 +799,7 @@ class YouTubeAnalyticsController extends Controller
                     'endDate' => $endDate,
                     'metrics' => 'views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,likes,dislikes,comments,shares',
                     'dimensions' => 'day',
-                    'filters' => 'video==' . $videoId,
+                    'filters' => 'video=='.$videoId,
                     'sort' => 'day',
                 ]);
 
@@ -834,7 +855,7 @@ class YouTubeAnalyticsController extends Controller
                         'endDate' => $endDate,
                         'metrics' => 'views',
                         'dimensions' => 'insightTrafficSourceType',
-                        'filters' => 'video==' . $videoId,
+                        'filters' => 'video=='.$videoId,
                         'sort' => '-views',
                     ]);
 
@@ -857,7 +878,7 @@ class YouTubeAnalyticsController extends Controller
                         'endDate' => $endDate,
                         'metrics' => 'viewerPercentage',
                         'dimensions' => 'ageGroup,gender',
-                        'filters' => 'video==' . $videoId,
+                        'filters' => 'video=='.$videoId,
                         'sort' => '-viewerPercentage',
                     ]);
 
@@ -881,7 +902,7 @@ class YouTubeAnalyticsController extends Controller
                         'endDate' => $endDate,
                         'metrics' => 'views',
                         'dimensions' => 'country',
-                        'filters' => 'video==' . $videoId,
+                        'filters' => 'video=='.$videoId,
                         'sort' => '-views',
                         'maxResults' => 10,
                     ]);
@@ -913,9 +934,11 @@ class YouTubeAnalyticsController extends Controller
 
             $errorData = $response->json();
             $errorMessage = $errorData['error']['message'] ?? $response->body();
+
             return ['error' => $errorMessage];
         } catch (\Exception $e) {
-            \Log::error('YouTube video analytics fetch failed: ' . $e->getMessage());
+            \Log::error('YouTube video analytics fetch failed: '.$e->getMessage());
+
             return ['error' => $e->getMessage()];
         }
     }
@@ -932,6 +955,7 @@ class YouTubeAnalyticsController extends Controller
         if ($hours > 0) {
             return sprintf('%d:%02d:%02d', $hours, $minutes, $secs);
         }
+
         return sprintf('%d:%02d', $minutes, $secs);
     }
 
@@ -1074,7 +1098,7 @@ class YouTubeAnalyticsController extends Controller
                     ];
 
                     // Aggregate by age
-                    if (!isset($byAge[$ageGroup])) {
+                    if (! isset($byAge[$ageGroup])) {
                         $byAge[$ageGroup] = 0;
                     }
                     $byAge[$ageGroup] += $percentage;
@@ -1090,7 +1114,7 @@ class YouTubeAnalyticsController extends Controller
                         'male' => round($byGender['male'], 1),
                         'female' => round($byGender['female'], 1),
                     ],
-                    'primaryAge' => !empty($byAge) ? array_keys($byAge, max($byAge))[0] : null,
+                    'primaryAge' => ! empty($byAge) ? array_keys($byAge, max($byAge))[0] : null,
                     'primaryGender' => $byGender['male'] > $byGender['female'] ? 'male' : 'female',
                 ];
             }
@@ -1157,7 +1181,7 @@ class YouTubeAnalyticsController extends Controller
     {
         $insights = [];
 
-        if (!$current || !isset($current['totals'])) {
+        if (! $current || ! isset($current['totals'])) {
             return $insights;
         }
 
@@ -1250,7 +1274,7 @@ class YouTubeAnalyticsController extends Controller
         ];
 
         // Top performing video
-        if (!empty($videos)) {
+        if (! empty($videos)) {
             $topVideo = collect($videos)->sortByDesc('views')->first();
             if ($topVideo) {
                 $insights[] = [
@@ -1274,7 +1298,7 @@ class YouTubeAnalyticsController extends Controller
     {
         $recommendations = [];
 
-        if (!$current || !isset($current['totals'])) {
+        if (! $current || ! isset($current['totals'])) {
             return $recommendations;
         }
 
@@ -1295,7 +1319,7 @@ class YouTubeAnalyticsController extends Controller
                 'icon' => 'trending-down',
                 'color' => 'red',
                 'title' => "Ko'rishlar kamaymoqda",
-                'description' => "Oxirgi 28 kunda ko'rishlar " . abs(round($viewsGrowth)) . "% ga kamaydi. Ko'proq video joylash va SEO optimizatsiya qilish tavsiya etiladi.",
+                'description' => "Oxirgi 28 kunda ko'rishlar ".abs(round($viewsGrowth))."% ga kamaydi. Ko'proq video joylash va SEO optimizatsiya qilish tavsiya etiladi.",
                 'actions' => [
                     'Haftalik kontent rejasini tuzing',
                     'Video sarlavha va tavsiflarni optimizatsiya qiling',
@@ -1308,7 +1332,7 @@ class YouTubeAnalyticsController extends Controller
                 'icon' => 'trending-up',
                 'color' => 'green',
                 'title' => "Ajoyib o'sish!",
-                'description' => "Ko'rishlar " . round($viewsGrowth) . "% ga o'sdi. Bu momentumni davom ettiring!",
+                'description' => "Ko'rishlar ".round($viewsGrowth)."% ga o'sdi. Bu momentumni davom ettiring!",
                 'actions' => [
                     'Muvaffaqiyatli videolar formatini takrorlang',
                     'Auditoriya bilan faol muloqot qiling',
@@ -1323,8 +1347,8 @@ class YouTubeAnalyticsController extends Controller
                 'priority' => 'high',
                 'icon' => 'clock',
                 'color' => 'orange',
-                'title' => "Tomosha vaqti past",
-                'description' => "O'rtacha tomosha vaqti " . round($avgDuration) . " soniya. Bu YouTube algoritmi uchun yaxshi emas.",
+                'title' => 'Tomosha vaqti past',
+                'description' => "O'rtacha tomosha vaqti ".round($avgDuration).' soniya. Bu YouTube algoritmi uchun yaxshi emas.',
                 'actions' => [
                     'Video boshlanishini qiziqarli qiling (hook)',
                     'Keraksiz qismlarni olib tashlang',
@@ -1337,7 +1361,7 @@ class YouTubeAnalyticsController extends Controller
                 'priority' => 'info',
                 'icon' => 'clock',
                 'color' => 'green',
-                'title' => "Yaxshi tomosha vaqti!",
+                'title' => 'Yaxshi tomosha vaqti!',
                 'description' => "Auditoriyangiz videolaringizni 2 daqiqadan ko'proq tomosha qilmoqda. Bu YouTube algoritmi uchun juda yaxshi.",
                 'actions' => [
                     'Bu formatni davom ettiring',
@@ -1352,10 +1376,10 @@ class YouTubeAnalyticsController extends Controller
                 'priority' => 'medium',
                 'icon' => 'message-circle',
                 'color' => 'yellow',
-                'title' => "Engagement pastroq",
-                'description' => "Layk va izohlar " . round($engagementRate, 2) . "% ni tashkil qiladi. Bu ko'rsatkichni oshirish kerak.",
+                'title' => 'Engagement pastroq',
+                'description' => 'Layk va izohlar '.round($engagementRate, 2)."% ni tashkil qiladi. Bu ko'rsatkichni oshirish kerak.",
                 'actions' => [
-                    "Videolarda savol bering va izoh yozishga chaqiring",
+                    'Videolarda savol bering va izoh yozishga chaqiring',
                     "Layk bosishni so'rang",
                     'Izohlarga javob bering',
                     'Konkurslar o\'tkazing',
@@ -1364,7 +1388,7 @@ class YouTubeAnalyticsController extends Controller
         }
 
         // Recommendation 4: Based on traffic sources
-        if (!empty($trafficSources) && is_array($trafficSources)) {
+        if (! empty($trafficSources) && is_array($trafficSources)) {
             $searchTraffic = collect($trafficSources)->firstWhere('sourceKey', 'YT_SEARCH');
             $suggestedTraffic = collect($trafficSources)->firstWhere('sourceKey', 'RELATED_VIDEO');
 
@@ -1373,8 +1397,8 @@ class YouTubeAnalyticsController extends Controller
                     'priority' => 'medium',
                     'icon' => 'search',
                     'color' => 'blue',
-                    'title' => "SEO optimizatsiya qiling",
-                    'description' => "YouTube qidiruvidan kelayotgan trafik atigi " . ($searchTraffic['percentage'] ?? 0) . "%. SEO orqali yangi auditoriya toping.",
+                    'title' => 'SEO optimizatsiya qiling',
+                    'description' => 'YouTube qidiruvidan kelayotgan trafik atigi '.($searchTraffic['percentage'] ?? 0).'%. SEO orqali yangi auditoriya toping.',
                     'actions' => [
                         "Kalit so'zlarni sarlavhada ishlating",
                         'Tavsif va teglarni optimizatsiya qiling',
@@ -1389,11 +1413,11 @@ class YouTubeAnalyticsController extends Controller
                     'priority' => 'info',
                     'icon' => 'zap',
                     'color' => 'purple',
-                    'title' => "Tavsiyalar yaxshi ishlayapti!",
-                    'description' => "Videolaringiz YouTube tavsiyalarida " . ($suggestedTraffic['percentage'] ?? 0) . "% ko'rinmoqda. Bu ajoyib!",
+                    'title' => 'Tavsiyalar yaxshi ishlayapti!',
+                    'description' => 'Videolaringiz YouTube tavsiyalarida '.($suggestedTraffic['percentage'] ?? 0)."% ko'rinmoqda. Bu ajoyib!",
                     'actions' => [
-                        "Pleylistlar yarating",
-                        "End screen va kartalardan foydalaning",
+                        'Pleylistlar yarating',
+                        'End screen va kartalardan foydalaning',
                         "O'xshash mavzularda video qiling",
                     ],
                 ];
@@ -1401,7 +1425,7 @@ class YouTubeAnalyticsController extends Controller
         }
 
         // Recommendation 5: Based on demographics
-        if (!empty($demographics) && is_array($demographics) && isset($demographics['primaryAge'])) {
+        if (! empty($demographics) && is_array($demographics) && isset($demographics['primaryAge'])) {
             $primaryAge = $demographics['primaryAge'];
             $primaryGender = $demographics['primaryGender'] ?? 'male';
             $genderText = $primaryGender === 'male' ? 'erkaklar' : 'ayollar';
@@ -1410,21 +1434,24 @@ class YouTubeAnalyticsController extends Controller
                 'priority' => 'info',
                 'icon' => 'users',
                 'color' => 'indigo',
-                'title' => "Auditoriyangizni tushunin",
+                'title' => 'Auditoriyangizni tushunin',
                 'description' => "Asosiy auditoriyangiz: {$primaryAge} yoshdagi {$genderText}. Kontentingizni ular uchun optimizatsiya qiling.",
                 'actions' => [
-                    "Bu auditoriya qiziqadigan mavzularni tanlang",
-                    "Ular ishlatadiganda tilni ishlating",
-                    "Ularning faol vaqtida video joylang",
+                    'Bu auditoriya qiziqadigan mavzularni tanlang',
+                    'Ular ishlatadiganda tilni ishlating',
+                    'Ularning faol vaqtida video joylang',
                 ],
             ];
         }
 
         // Recommendation 6: Video frequency
-        if (!empty($videos)) {
+        if (! empty($videos)) {
             $videosLast28Days = collect($videos)->filter(function ($video) {
                 $publishedAt = $video['published_at'] ?? null;
-                if (!$publishedAt) return false;
+                if (! $publishedAt) {
+                    return false;
+                }
+
                 return now()->diffInDays(new \DateTime($publishedAt)) <= 28;
             })->count();
 
@@ -1438,7 +1465,7 @@ class YouTubeAnalyticsController extends Controller
                     'actions' => [
                         'Haftalik kontent rejasi tuzing',
                         "Oldindan video tayyorlab qo'ying",
-                        "Shorts videolar ham joylang",
+                        'Shorts videolar ham joylang',
                     ],
                 ];
             } elseif ($videosLast28Days >= 8) {
@@ -1446,11 +1473,11 @@ class YouTubeAnalyticsController extends Controller
                     'priority' => 'info',
                     'icon' => 'check-circle',
                     'color' => 'green',
-                    'title' => "Faol kontent yaratuvchi!",
+                    'title' => 'Faol kontent yaratuvchi!',
                     'description' => "Siz oyiga {$videosLast28Days} ta video joylayapsiz. Bu juda yaxshi davomiylik!",
                     'actions' => [
-                        "Sifatni saqlab qoling",
-                        "Eng yaxshi ishlagan formatlarni aniqlang",
+                        'Sifatni saqlab qoling',
+                        'Eng yaxshi ishlagan formatlarni aniqlang',
                     ],
                 ];
             }
@@ -1473,6 +1500,7 @@ class YouTubeAnalyticsController extends Controller
         if ($previous == 0) {
             return $current > 0 ? 100 : 0;
         }
+
         return round((($current - $previous) / $previous) * 100, 1);
     }
 
@@ -1486,22 +1514,38 @@ class YouTubeAnalyticsController extends Controller
 
         switch ($type) {
             case 'views':
-                if ($change > 20) return "Ajoyib! Ko'rishlar {$absChange}% ga oshdi";
-                if ($change > 0) return "Yaxshi! Ko'rishlar {$absChange}% ga oshdi";
-                if ($change < -20) return "Diqqat! Ko'rishlar {$absChange}% ga kamaydi";
-                if ($change < 0) return "Ko'rishlar {$absChange}% ga kamaydi";
+                if ($change > 20) {
+                    return "Ajoyib! Ko'rishlar {$absChange}% ga oshdi";
+                }
+                if ($change > 0) {
+                    return "Yaxshi! Ko'rishlar {$absChange}% ga oshdi";
+                }
+                if ($change < -20) {
+                    return "Diqqat! Ko'rishlar {$absChange}% ga kamaydi";
+                }
+                if ($change < 0) {
+                    return "Ko'rishlar {$absChange}% ga kamaydi";
+                }
+
                 return "Ko'rishlar barqaror";
 
             case 'watchTime':
-                if ($change > 0) return "Tomosha vaqti {$absChange}% ga oshdi";
-                if ($change < 0) return "Tomosha vaqti {$absChange}% ga kamaydi";
-                return "Tomosha vaqti barqaror";
+                if ($change > 0) {
+                    return "Tomosha vaqti {$absChange}% ga oshdi";
+                }
+                if ($change < 0) {
+                    return "Tomosha vaqti {$absChange}% ga kamaydi";
+                }
+
+                return 'Tomosha vaqti barqaror';
 
             case 'subscribers':
                 if ($extra !== null) {
-                    $netText = $extra >= 0 ? "+{$extra}" : (string)$extra;
+                    $netText = $extra >= 0 ? "+{$extra}" : (string) $extra;
+
                     return "Sof o'sish: {$netText} obunachi";
                 }
+
                 return "Obunachi soni {$direction}";
 
             default:
@@ -1514,9 +1558,16 @@ class YouTubeAnalyticsController extends Controller
      */
     private function getEngagementDescription(float $rate): string
     {
-        if ($rate >= 5) return "Ajoyib engagement! Auditoriya juda faol";
-        if ($rate >= 3) return "Yaxshi engagement darajasi";
-        if ($rate >= 1) return "O'rtacha engagement. Yaxshilash mumkin";
+        if ($rate >= 5) {
+            return 'Ajoyib engagement! Auditoriya juda faol';
+        }
+        if ($rate >= 3) {
+            return 'Yaxshi engagement darajasi';
+        }
+        if ($rate >= 1) {
+            return "O'rtacha engagement. Yaxshilash mumkin";
+        }
+
         return "Engagement past. Auditoriya bilan ko'proq muloqot qiling";
     }
 
@@ -1525,9 +1576,16 @@ class YouTubeAnalyticsController extends Controller
      */
     private function getDurationDescription(float $seconds): string
     {
-        if ($seconds >= 180) return "Ajoyib! Tomoshachilar uzoq tomosha qilmoqda";
-        if ($seconds >= 60) return "Yaxshi tomosha vaqti";
-        if ($seconds >= 30) return "O'rtacha. Video boshlanishini yaxshilang";
+        if ($seconds >= 180) {
+            return 'Ajoyib! Tomoshachilar uzoq tomosha qilmoqda';
+        }
+        if ($seconds >= 60) {
+            return 'Yaxshi tomosha vaqti';
+        }
+        if ($seconds >= 30) {
+            return "O'rtacha. Video boshlanishini yaxshilang";
+        }
+
         return "Juda past. Videolar boshlanishiga e'tibor bering";
     }
 }

@@ -24,7 +24,9 @@ class CustomerSegmentationJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public Business $business;
+
     public int $tries = 2;
+
     public int $timeout = 180;
 
     public function __construct(Business $business)
@@ -40,7 +42,7 @@ class CustomerSegmentationJob implements ShouldQueue
         try {
             $result = $segmentationAlgorithm->analyze($this->business);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new \Exception('Segmentation failed');
             }
 

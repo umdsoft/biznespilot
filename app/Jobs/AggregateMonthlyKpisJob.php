@@ -17,9 +17,13 @@ class AggregateMonthlyKpisJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $businessId;
+
     public $year;
+
     public $month;
+
     public $tries = 3;
+
     public $timeout = 600; // 10 minutes
 
     /**
@@ -46,6 +50,7 @@ class AggregateMonthlyKpisJob implements ShouldQueue
         // If specific business ID provided, aggregate only that business
         if ($this->businessId) {
             $this->aggregateBusiness($this->businessId, $aggregationService);
+
             return;
         }
 

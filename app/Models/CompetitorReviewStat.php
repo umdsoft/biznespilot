@@ -65,7 +65,10 @@ class CompetitorReviewStat extends Model
      */
     public function getPositivePercentageAttribute(): ?float
     {
-        if ($this->total_reviews === 0) return null;
+        if ($this->total_reviews === 0) {
+            return null;
+        }
+
         return round(($this->positive_reviews / $this->total_reviews) * 100, 1);
     }
 }

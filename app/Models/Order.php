@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

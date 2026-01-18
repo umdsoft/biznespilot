@@ -87,7 +87,7 @@ class ChatbotDailyStats extends Model
     {
         return $query->whereBetween('date', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -98,7 +98,7 @@ class ChatbotDailyStats extends Model
     {
         return $query->whereBetween('date', [
             now()->startOfMonth(),
-            now()->endOfMonth()
+            now()->endOfMonth(),
         ]);
     }
 }

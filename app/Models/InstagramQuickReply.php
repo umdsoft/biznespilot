@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramQuickReply extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'account_id',
         'title',

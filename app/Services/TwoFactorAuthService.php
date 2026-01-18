@@ -13,7 +13,7 @@ class TwoFactorAuthService
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     /**
@@ -67,7 +67,7 @@ class TwoFactorAuthService
     public function generateRecoveryCodes(int $count = 8): Collection
     {
         return collect(range(1, $count))->map(function () {
-            return bin2hex(random_bytes(4)) . '-' . bin2hex(random_bytes(4));
+            return bin2hex(random_bytes(4)).'-'.bin2hex(random_bytes(4));
         });
     }
 
@@ -77,7 +77,7 @@ class TwoFactorAuthService
     public function enable(User $user, string $secret, string $code): bool
     {
         // Verify the code first
-        if (!$this->verifyCode($secret, $code)) {
+        if (! $this->verifyCode($secret, $code)) {
             return false;
         }
 
@@ -113,11 +113,12 @@ class TwoFactorAuthService
      */
     public function verifyUserCode(User $user, string $code): bool
     {
-        if (!$user->two_factor_enabled || !$user->two_factor_secret) {
+        if (! $user->two_factor_enabled || ! $user->two_factor_secret) {
             return false;
         }
 
         $secret = Crypt::decryptString($user->two_factor_secret);
+
         return $this->verifyCode($secret, $code);
     }
 
@@ -126,7 +127,7 @@ class TwoFactorAuthService
      */
     public function verifyRecoveryCode(User $user, string $code): bool
     {
-        if (!$user->two_factor_enabled || !$user->two_factor_recovery_codes) {
+        if (! $user->two_factor_enabled || ! $user->two_factor_recovery_codes) {
             return false;
         }
 
@@ -136,7 +137,7 @@ class TwoFactorAuthService
         );
 
         // Check if code exists
-        if (!in_array($code, $recoveryCodes)) {
+        if (! in_array($code, $recoveryCodes)) {
             return false;
         }
 
@@ -156,7 +157,7 @@ class TwoFactorAuthService
      */
     public function getRecoveryCodes(User $user): ?Collection
     {
-        if (!$user->two_factor_recovery_codes) {
+        if (! $user->two_factor_recovery_codes) {
             return null;
         }
 

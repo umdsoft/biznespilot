@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\Notification;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -27,7 +26,7 @@ class NotificationController extends Controller
         $query = Notification::where('business_id', $business->id)
             ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             })
             ->orderBy('created_at', 'desc');
 

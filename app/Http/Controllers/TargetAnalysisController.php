@@ -3,20 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
+use App\Jobs\SyncMetaInsightsJob;
 use App\Models\Business;
 use App\Models\Integration;
 use App\Models\MetaAdAccount;
 use App\Models\MetaCampaign;
-use App\Models\MetaInsight;
-use App\Services\TargetAnalysisService;
+use App\Services\InstagramSyncService;
 use App\Services\Integration\MetaAdsService;
 use App\Services\Integration\MetaOAuthService;
 use App\Services\MetaDataService;
 use App\Services\MetaSyncService;
-use App\Services\InstagramSyncService;
-use App\Jobs\SyncMetaInsightsJob;
-use Illuminate\Http\Request;
+use App\Services\TargetAnalysisService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,6 +23,7 @@ use Inertia\Response;
 class TargetAnalysisController extends Controller
 {
     use HasCurrentBusiness;
+
     public function __construct(
         protected TargetAnalysisService $analysisService,
         protected MetaAdsService $metaService,
@@ -40,10 +40,18 @@ class TargetAnalysisController extends Controller
     {
         $prefix = $request->route()->getPrefix();
 
-        if (str_contains($prefix, 'marketing')) return 'marketing';
-        if (str_contains($prefix, 'finance')) return 'finance';
-        if (str_contains($prefix, 'operator')) return 'operator';
-        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
 
         return 'business';
     }
@@ -58,7 +66,7 @@ class TargetAnalysisController extends Controller
         $panelType = $this->getPanelType($request);
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return Inertia::render('Shared/TargetAnalysis/Index', [
                 'error' => 'Biznes tanlanmagan',
                 'analysis' => null,
@@ -125,7 +133,7 @@ class TargetAnalysisController extends Controller
                     ? max(0, now()->diffInDays($metaIntegration->expires_at, false))
                     : null,
             ] : null,
-            'metaAdAccounts' => $metaAdAccounts->map(fn($acc) => [
+            'metaAdAccounts' => $metaAdAccounts->map(fn ($acc) => [
                 'id' => $acc->id,
                 'meta_account_id' => $acc->meta_account_id,
                 'name' => $acc->name,
@@ -150,7 +158,7 @@ class TargetAnalysisController extends Controller
     public function getAnalysisData(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -169,7 +177,7 @@ class TargetAnalysisController extends Controller
     public function getDreamBuyerMatch(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -187,7 +195,7 @@ class TargetAnalysisController extends Controller
     public function getSegments(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -205,7 +213,7 @@ class TargetAnalysisController extends Controller
     public function getGrowthTrends(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -224,7 +232,7 @@ class TargetAnalysisController extends Controller
     public function regenerateInsights(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -243,7 +251,7 @@ class TargetAnalysisController extends Controller
     public function getChurnRisk(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -261,13 +269,13 @@ class TargetAnalysisController extends Controller
     public function export(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
         $analysis = $this->analysisService->exportAnalysis($business);
 
-        $filename = "target-analysis-{$business->slug}-" . now()->format('Y-m-d') . ".json";
+        $filename = "target-analysis-{$business->slug}-".now()->format('Y-m-d').'.json';
 
         return response()->json($analysis)
             ->header('Content-Type', 'application/json')
@@ -280,7 +288,7 @@ class TargetAnalysisController extends Controller
     public function getTopPerformers(Request $request)
     {
         $business = $this->getCurrentBusiness();
-        if (!$business) {
+        if (! $business) {
             return response()->json(['success' => false, 'message' => 'Biznes tanlanmagan'], 400);
         }
 
@@ -356,18 +364,20 @@ class TargetAnalysisController extends Controller
         \Log::info('Meta OAuth: Business ID resolved', ['business_id' => $businessId]);
 
         // Helper function to get redirect route based on panel
-        $getRedirectRoute = function($route, $params = []) use ($panelType, $businessId) {
+        $getRedirectRoute = function ($route, $params = []) use ($panelType, $businessId) {
             // For marketing panel, redirect to facebook-analysis page
             if ($panelType === 'marketing') {
                 return redirect()->route('marketing.facebook-analysis')
                     ->with($params);
             }
+
             return redirect()->route('business.target-analysis.index', ['business_id' => $businessId])
                 ->with($params);
         };
 
-        if (!$businessId) {
+        if (! $businessId) {
             \Log::error('Meta OAuth: No business found');
+
             return $getRedirectRoute('index', ['error' => 'Biznes topilmadi. Iltimos, qayta urinib ko\'ring.']);
         }
 
@@ -377,12 +387,14 @@ class TargetAnalysisController extends Controller
                 'error' => $request->error,
                 'description' => $request->error_description,
             ]);
+
             return $getRedirectRoute('index', ['error' => $request->error_description ?? 'OAuth xatolik']);
         }
 
         // Ensure we have code
-        if (!$request->has('code')) {
+        if (! $request->has('code')) {
             \Log::error('Meta OAuth: No code received');
+
             return $getRedirectRoute('index', ['error' => 'Authorization code olinmadi']);
         }
 
@@ -394,7 +406,7 @@ class TargetAnalysisController extends Controller
             $tokenData = $this->oauthService->exchangeCodeForToken($request->code, $redirectUri);
             \Log::info('Meta OAuth: Token received successfully', [
                 'expires_in' => $tokenData['expires_in'] ?? 'unknown',
-                'has_access_token' => !empty($tokenData['access_token']),
+                'has_access_token' => ! empty($tokenData['access_token']),
             ]);
 
             // Create/Update integration - ONLY save to DB, no sync yet
@@ -445,7 +457,8 @@ class TargetAnalysisController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            return $getRedirectRoute('index', ['error' => 'Ulanishda xatolik: ' . $e->getMessage()]);
+
+            return $getRedirectRoute('index', ['error' => 'Ulanishda xatolik: '.$e->getMessage()]);
         }
     }
 
@@ -475,18 +488,17 @@ class TargetAnalysisController extends Controller
      * Validate Meta token and refresh if needed
      * Returns token status information
      *
-     * @param Integration $integration
-     * @param bool $lightValidation If true, only check stored expires_at without calling Meta API
-     * @return array
+     * @param  bool  $lightValidation  If true, only check stored expires_at without calling Meta API
      */
     protected function validateAndRefreshMetaToken(Integration $integration, bool $lightValidation = false): array
     {
         $accessToken = $integration->getAccessToken();
 
-        if (!$accessToken) {
+        if (! $accessToken) {
             \Log::warning('Meta token validation: No access token found', [
                 'integration_id' => $integration->id,
             ]);
+
             return [
                 'valid' => false,
                 'message' => 'Access token topilmadi',
@@ -507,6 +519,7 @@ class TargetAnalysisController extends Controller
                         'integration_id' => $integration->id,
                         'expired_at' => $expiresAt->toDateTimeString(),
                     ]);
+
                     return [
                         'valid' => false,
                         'message' => 'Token muddati tugagan. Qayta ulaning.',
@@ -564,10 +577,11 @@ class TargetAnalysisController extends Controller
             // Full validation - validate with Meta API
             $isValid = $this->oauthService->isTokenValid($accessToken);
 
-            if (!$isValid) {
+            if (! $isValid) {
                 \Log::warning('Meta token validation: Token invalid per Meta API', [
                     'integration_id' => $integration->id,
                 ]);
+
                 return [
                     'valid' => false,
                     'message' => 'Token yaroqsiz. Qayta ulaning.',
@@ -577,7 +591,7 @@ class TargetAnalysisController extends Controller
 
             // Token is valid, get debug info to store expiry
             $debugInfo = $this->oauthService->debugToken($accessToken);
-            if (!empty($debugInfo['expires_at'])) {
+            if (! empty($debugInfo['expires_at'])) {
                 $integration->update([
                     'expires_at' => \Carbon\Carbon::createFromTimestamp($debugInfo['expires_at']),
                 ]);
@@ -613,7 +627,7 @@ class TargetAnalysisController extends Controller
             // Exchange current token for a new long-lived token
             $newTokenData = $this->oauthService->exchangeForLongLivedToken($currentToken);
 
-            if (!empty($newTokenData['access_token'])) {
+            if (! empty($newTokenData['access_token'])) {
                 // Update integration with new token
                 $credentials = json_decode($integration->credentials, true) ?? [];
                 $credentials['access_token'] = $newTokenData['access_token'];
@@ -643,6 +657,7 @@ class TargetAnalysisController extends Controller
                 'integration_id' => $integration->id,
                 'error' => $e->getMessage(),
             ]);
+
             return ['refreshed' => false, 'error' => $e->getMessage()];
         }
     }
@@ -659,10 +674,10 @@ class TargetAnalysisController extends Controller
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'success' => false,
-                'error' => 'Meta Ads ulanmagan'
+                'error' => 'Meta Ads ulanmagan',
             ], 400);
         }
 
@@ -677,8 +692,8 @@ class TargetAnalysisController extends Controller
             // Build success message
             $message = "{$results['accounts']} ta hisob, {$results['campaigns']} ta kampaniya, {$results['insights']} ta insight sinxronlandi.";
 
-            if (!empty($results['errors'])) {
-                $message .= " Ba'zi xatoliklar: " . implode('; ', array_slice($results['errors'], 0, 2));
+            if (! empty($results['errors'])) {
+                $message .= " Ba'zi xatoliklar: ".implode('; ', array_slice($results['errors'], 0, 2));
             }
 
             return response()->json([
@@ -695,7 +710,7 @@ class TargetAnalysisController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Yuklashda xatolik: ' . $e->getMessage(),
+                'error' => 'Yuklashda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -712,10 +727,10 @@ class TargetAnalysisController extends Controller
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'success' => false,
-                'error' => 'Meta Ads ulanmagan'
+                'error' => 'Meta Ads ulanmagan',
             ], 400);
         }
 
@@ -730,8 +745,8 @@ class TargetAnalysisController extends Controller
             // Build success message
             $message = "To'liq sinxronlash tugadi: {$results['accounts']} ta hisob, {$results['campaigns']} ta kampaniya, {$results['insights']} ta insight.";
 
-            if (!empty($results['errors'])) {
-                $message .= " Xatoliklar: " . implode('; ', array_slice($results['errors'], 0, 2));
+            if (! empty($results['errors'])) {
+                $message .= ' Xatoliklar: '.implode('; ', array_slice($results['errors'], 0, 2));
             }
 
             return response()->json([
@@ -748,7 +763,7 @@ class TargetAnalysisController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'To\'liq sinxronlashda xatolik: ' . $e->getMessage(),
+                'error' => 'To\'liq sinxronlashda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -767,7 +782,7 @@ class TargetAnalysisController extends Controller
             ->where('type', 'meta_ads')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json(['error' => 'Not connected'], 400);
         }
 
@@ -776,7 +791,7 @@ class TargetAnalysisController extends Controller
             ->where('meta_account_id', $request->account_id)
             ->first();
 
-        if (!$selectedAccount) {
+        if (! $selectedAccount) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -793,7 +808,7 @@ class TargetAnalysisController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Hisob tanlandi. Ma\'lumotlar orqada sinxronlanmoqda...'
+            'message' => 'Hisob tanlandi. Ma\'lumotlar orqada sinxronlanmoqda...',
         ]);
     }
 
@@ -807,7 +822,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->period ?? 'last_30d';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'current' => [],
@@ -817,7 +832,7 @@ class TargetAnalysisController extends Controller
             }
 
             // Check if we have any data
-            if (!$this->metaDataService->hasData($adAccount->id)) {
+            if (! $this->metaDataService->hasData($adAccount->id)) {
                 return response()->json([
                     'success' => false,
                     'current' => [],
@@ -827,6 +842,7 @@ class TargetAnalysisController extends Controller
             }
 
             $data = $this->metaDataService->getOverview($adAccount->id, $datePreset);
+
             return response()->json(array_merge(['success' => true], $data));
         } catch (\Exception $e) {
             \Log::error('Meta Overview Error', [
@@ -834,6 +850,7 @@ class TargetAnalysisController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -853,7 +870,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->period ?? 'last_30d';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'campaigns' => [],
@@ -862,12 +879,14 @@ class TargetAnalysisController extends Controller
             }
 
             $campaigns = $this->metaDataService->getCampaigns($adAccount->id, $datePreset);
+
             return response()->json([
                 'success' => true,
                 'campaigns' => $campaigns,
             ]);
         } catch (\Exception $e) {
             \Log::error('Meta Campaigns Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -886,7 +905,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->period ?? 'last_30d';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'age' => [],
@@ -896,9 +915,11 @@ class TargetAnalysisController extends Controller
             }
 
             $data = $this->metaDataService->getDemographics($adAccount->id, $datePreset);
+
             return response()->json(['success' => true, ...$data]);
         } catch (\Exception $e) {
             \Log::error('Meta Demographics Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -918,7 +939,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->period ?? 'last_30d';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'platforms' => [],
@@ -928,9 +949,11 @@ class TargetAnalysisController extends Controller
             }
 
             $data = $this->metaDataService->getPlacements($adAccount->id, $datePreset);
+
             return response()->json(['success' => true, ...$data]);
         } catch (\Exception $e) {
             \Log::error('Meta Placements Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -950,7 +973,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->date_preset ?? 'maximum';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'objectives' => [],
@@ -959,12 +982,14 @@ class TargetAnalysisController extends Controller
             }
 
             $objectives = $this->metaDataService->getObjectivesAnalytics($adAccount->id, $datePreset);
+
             return response()->json([
                 'success' => true,
                 'objectives' => $objectives,
             ]);
         } catch (\Exception $e) {
             \Log::error('Meta Objectives Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -983,7 +1008,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->date_preset ?? 'maximum';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'audience' => [],
@@ -992,12 +1017,14 @@ class TargetAnalysisController extends Controller
             }
 
             $audience = $this->metaDataService->getAudienceAnalytics($adAccount->id, $datePreset);
+
             return response()->json([
                 'success' => true,
                 'audience' => $audience,
             ]);
         } catch (\Exception $e) {
             \Log::error('Meta Audience Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -1016,7 +1043,7 @@ class TargetAnalysisController extends Controller
             $days = (int) ($request->days ?? 30);
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'trend' => [],
@@ -1025,12 +1052,14 @@ class TargetAnalysisController extends Controller
             }
 
             $trend = $this->metaDataService->getTrend($adAccount->id, $days);
+
             return response()->json([
                 'success' => true,
                 'trend' => $trend,
             ]);
         } catch (\Exception $e) {
             \Log::error('Meta Trend Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -1049,7 +1078,7 @@ class TargetAnalysisController extends Controller
             $datePreset = $request->period ?? 'last_30d';
 
             $adAccount = $this->getSelectedMetaAccount($business->id);
-            if (!$adAccount) {
+            if (! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Meta Ad hesob tanlanmagan.',
@@ -1070,6 +1099,7 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Meta AI Insights Error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -1093,6 +1123,7 @@ class TargetAnalysisController extends Controller
     protected function getSelectedMetaAccountId(string $businessId): ?string
     {
         $account = $this->getSelectedMetaAccount($businessId);
+
         return $account ? str_replace('act_', '', $account->meta_account_id) : null;
     }
 
@@ -1102,7 +1133,7 @@ class TargetAnalysisController extends Controller
             ->where('type', 'meta_ads')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return null;
         }
 
@@ -1110,7 +1141,7 @@ class TargetAnalysisController extends Controller
             ->where('is_primary', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             $account = MetaAdAccount::where('integration_id', $integration->id)->first();
         }
 
@@ -1120,7 +1151,7 @@ class TargetAnalysisController extends Controller
     protected function setupMetaService(Integration $integration): void
     {
         $token = $integration->getAccessToken();
-        if (!$token) {
+        if (! $token) {
             throw new \Exception('Access token not found');
         }
         $this->metaService->setAccessToken($token);
@@ -1155,10 +1186,10 @@ class TargetAnalysisController extends Controller
 
             // Determine primary: keep existing, or set highest spend, or first active
             $isPrimary = false;
-            if (!$hasPrimary) {
+            if (! $hasPrimary) {
                 if ($maxSpendAccountId && $account['id'] === $maxSpendAccountId) {
                     $isPrimary = true;
-                } elseif (!$maxSpendAccountId && $isActive && $index === 0) {
+                } elseif (! $maxSpendAccountId && $isActive && $index === 0) {
                     $isPrimary = true;
                 }
             }
@@ -1225,9 +1256,9 @@ class TargetAnalysisController extends Controller
         $reach = (int) ($overview['reach'] ?? 0);
 
         // Performance summary
-        $summary = "Tanlangan davrda " . number_format($spend, 2) . " USD sarflandi. ";
-        $summary .= number_format($impressions) . " ko'rish va " . number_format($clicks) . " klik olindi. ";
-        $summary .= "CTR " . number_format($ctr, 2) . "%, CPC " . number_format($cpc, 2) . " USD.";
+        $summary = 'Tanlangan davrda '.number_format($spend, 2).' USD sarflandi. ';
+        $summary .= number_format($impressions)." ko'rish va ".number_format($clicks).' klik olindi. ';
+        $summary .= 'CTR '.number_format($ctr, 2).'%, CPC '.number_format($cpc, 2).' USD.';
 
         // Recommendations
         $recommendations = [];
@@ -1248,15 +1279,15 @@ class TargetAnalysisController extends Controller
 
         // Demographics insights
         $topAgeGroups = collect($demographics)
-            ->sortByDesc(fn($d) => (float) ($d['spend'] ?? 0))
+            ->sortByDesc(fn ($d) => (float) ($d['spend'] ?? 0))
             ->take(2)
             ->pluck('age')
             ->filter()
             ->implode(', ');
 
-        $audience = "Eng faol auditoriya: ";
+        $audience = 'Eng faol auditoriya: ';
         if ($topAgeGroups) {
-            $audience .= $topAgeGroups . " yosh guruhi. ";
+            $audience .= $topAgeGroups.' yosh guruhi. ';
         }
         $audience .= "Bu segmentga ko'proq e'tibor qarating.";
 
@@ -1287,12 +1318,12 @@ class TargetAnalysisController extends Controller
         $roas = (float) ($overview['roas'] ?? 0);
 
         // Performance summary
-        $summary = "Tanlangan davrda " . number_format($spend, 2) . " USD sarflandi. ";
-        $summary .= number_format($impressions) . " ko'rish va " . number_format($clicks) . " klik olindi. ";
-        $summary .= "CTR " . number_format($ctr, 2) . "%, CPC " . number_format($cpc, 2) . " USD.";
+        $summary = 'Tanlangan davrda '.number_format($spend, 2).' USD sarflandi. ';
+        $summary .= number_format($impressions)." ko'rish va ".number_format($clicks).' klik olindi. ';
+        $summary .= 'CTR '.number_format($ctr, 2).'%, CPC '.number_format($cpc, 2).' USD.';
 
         if ($conversions > 0) {
-            $summary .= " " . number_format($conversions) . " ta konversiya, ROAS: " . number_format($roas, 2) . "x.";
+            $summary .= ' '.number_format($conversions).' ta konversiya, ROAS: '.number_format($roas, 2).'x.';
         }
 
         // Recommendations
@@ -1309,12 +1340,12 @@ class TargetAnalysisController extends Controller
         }
 
         if ($reach > 0 && $impressions / $reach > 3) {
-            $recommendations[] = "Frequency yuqori (" . number_format($impressions / $reach, 1) . "). Yangi auditoriya segmentlarini sinab ko'ring.";
+            $recommendations[] = 'Frequency yuqori ('.number_format($impressions / $reach, 1)."). Yangi auditoriya segmentlarini sinab ko'ring.";
         }
 
         // Check worst campaigns
         $worstCampaigns = $data['worst_campaigns'] ?? [];
-        if (!empty($worstCampaigns)) {
+        if (! empty($worstCampaigns)) {
             $campaignNames = collect($worstCampaigns)->pluck('name')->take(2)->implode(', ');
             $recommendations[] = "Past samaradorlikdagi kampaniyalar: {$campaignNames}. Ularni optimallashtiring yoki to'xtating.";
         }
@@ -1336,9 +1367,9 @@ class TargetAnalysisController extends Controller
             ->filter()
             ->implode(', ');
 
-        $audience = "Eng faol auditoriya: ";
+        $audience = 'Eng faol auditoriya: ';
         if ($topAgeGroups) {
-            $audience .= $topAgeGroups . " yosh guruhi. ";
+            $audience .= $topAgeGroups.' yosh guruhi. ';
         }
 
         // Platform insights
@@ -1347,7 +1378,7 @@ class TargetAnalysisController extends Controller
         $topPlatform = collect($platforms)->sortByDesc('percentage')->first();
 
         if ($topPlatform) {
-            $audience .= $topPlatform['label'] . " platformasi eng samarali (" . $topPlatform['percentage'] . "%). ";
+            $audience .= $topPlatform['label'].' platformasi eng samarali ('.$topPlatform['percentage'].'%). ';
         }
 
         $audience .= "Bu segmentga ko'proq e'tibor qarating.";
@@ -1379,7 +1410,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1393,7 +1424,7 @@ class TargetAnalysisController extends Controller
                 ->where('meta_campaign_id', $request->campaign_id)
                 ->first();
 
-            if (!$campaign) {
+            if (! $campaign) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Kampaniya topilmadi.',
@@ -1427,9 +1458,10 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Campaign status update error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1449,7 +1481,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1462,7 +1494,7 @@ class TargetAnalysisController extends Controller
                 ->where('meta_campaign_id', $request->campaign_id)
                 ->first();
 
-            if (!$campaign) {
+            if (! $campaign) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Kampaniya topilmadi.',
@@ -1497,9 +1529,10 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Campaign budget update error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1519,7 +1552,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1536,7 +1569,7 @@ class TargetAnalysisController extends Controller
             // Update local DB
             $successCount = 0;
             foreach ($request->campaign_ids as $campaignId) {
-                if (!isset($results[$campaignId]['error'])) {
+                if (! isset($results[$campaignId]['error'])) {
                     MetaCampaign::withoutGlobalScope('business')
                         ->where('meta_campaign_id', $campaignId)
                         ->update([
@@ -1554,9 +1587,10 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Batch campaign update error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1576,15 +1610,17 @@ class TargetAnalysisController extends Controller
                 'limitations' => [],
             ];
 
-            if (!$integration) {
+            if (! $integration) {
                 $capabilities['limitations'][] = 'Meta integratsiyasi topilmadi';
+
                 return response()->json(['success' => true, 'capabilities' => $capabilities]);
             }
 
             // Check token validity
             $isValid = $this->oauthService->isTokenValid($integration->getAccessToken());
-            if (!$isValid) {
+            if (! $isValid) {
                 $capabilities['limitations'][] = 'Access token muddati tugagan. Qayta ulaning.';
+
                 return response()->json(['success' => true, 'capabilities' => $capabilities]);
             }
 
@@ -1599,7 +1635,7 @@ class TargetAnalysisController extends Controller
                 'business_management' => in_array('business_management', $scopes),
             ];
 
-            if (!$capabilities['can_manage']) {
+            if (! $capabilities['can_manage']) {
                 $capabilities['limitations'][] = 'ads_management ruxsati yo\'q. Qayta ulaning.';
             }
 
@@ -1633,7 +1669,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1675,9 +1711,10 @@ class TargetAnalysisController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Ma\'lumotlarni yuklashda xatolik: ' . $e->getMessage(),
+                'message' => 'Ma\'lumotlarni yuklashda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1689,7 +1726,7 @@ class TargetAnalysisController extends Controller
     {
         try {
             $objective = $request->objective;
-            if (!$objective) {
+            if (! $objective) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Objective parametri kerak.',
@@ -1717,7 +1754,7 @@ class TargetAnalysisController extends Controller
     {
         try {
             $query = $request->q;
-            if (!$query || strlen($query) < 2) {
+            if (! $query || strlen($query) < 2) {
                 return response()->json([
                     'success' => true,
                     'interests' => [],
@@ -1727,7 +1764,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1766,7 +1803,7 @@ class TargetAnalysisController extends Controller
     {
         try {
             $query = $request->q;
-            if (!$query || strlen($query) < 2) {
+            if (! $query || strlen($query) < 2) {
                 return response()->json([
                     'success' => true,
                     'locations' => [],
@@ -1776,7 +1813,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1820,7 +1857,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1858,7 +1895,7 @@ class TargetAnalysisController extends Controller
     {
         try {
             $query = $request->q;
-            if (!$query || strlen($query) < 2) {
+            if (! $query || strlen($query) < 2) {
                 return response()->json([
                     'success' => true,
                     'data' => [],
@@ -1868,7 +1905,7 @@ class TargetAnalysisController extends Controller
             $business = $this->getCurrentBusiness($request);
             $integration = $this->getMetaIntegration($business->id);
 
-            if (!$integration) {
+            if (! $integration) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1914,7 +1951,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1968,7 +2005,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -1989,8 +2026,9 @@ class TargetAnalysisController extends Controller
 
             $metaCampaignId = $result['id'] ?? null;
 
-            if (!$metaCampaignId) {
+            if (! $metaCampaignId) {
                 \Log::error('Campaign creation failed - no ID returned', ['result' => $result]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Kampaniya yaratishda xatolik: Meta javob bermadi',
@@ -2035,9 +2073,10 @@ class TargetAnalysisController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -2061,7 +2100,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -2090,9 +2129,10 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Create AdSet error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -2107,7 +2147,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -2118,7 +2158,7 @@ class TargetAnalysisController extends Controller
 
             // Get pages
             $pagesResponse = $this->metaService->getPages();
-            $pages = collect($pagesResponse['data'] ?? [])->map(fn($page) => [
+            $pages = collect($pagesResponse['data'] ?? [])->map(fn ($page) => [
                 'id' => $page['id'],
                 'name' => $page['name'],
                 'picture' => $page['picture']['data']['url'] ?? null,
@@ -2138,6 +2178,7 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Get wizard options error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -2159,7 +2200,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -2185,9 +2226,10 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Upload ad image error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Rasm yuklashda xatolik: ' . $e->getMessage(),
+                'message' => 'Rasm yuklashda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -2202,7 +2244,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -2224,7 +2266,7 @@ class TargetAnalysisController extends Controller
                     $pageId = $page['id'];
                     $pageAccessToken = $page['access_token'] ?? null;
 
-                    if (!$pageAccessToken) {
+                    if (! $pageAccessToken) {
                         continue;
                     }
 
@@ -2256,6 +2298,7 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Get lead forms error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -2285,7 +2328,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -2317,9 +2360,10 @@ class TargetAnalysisController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Create ad error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -2351,7 +2395,7 @@ class TargetAnalysisController extends Controller
             $integration = $this->getMetaIntegration($business->id);
             $adAccount = $this->getSelectedMetaAccount($business->id);
 
-            if (!$integration || !$adAccount) {
+            if (! $integration || ! $adAccount) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Meta integratsiyasi topilmadi.',
@@ -2370,7 +2414,7 @@ class TargetAnalysisController extends Controller
             ]);
 
             $campaignId = $campaignResult['id'] ?? null;
-            if (!$campaignId) {
+            if (! $campaignId) {
                 throw new \Exception('Kampaniya yaratishda xatolik');
             }
 
@@ -2398,7 +2442,7 @@ class TargetAnalysisController extends Controller
             ]);
 
             $adSetId = $adSetResult['id'] ?? null;
-            if (!$adSetId) {
+            if (! $adSetId) {
                 throw new \Exception('AdSet yaratishda xatolik');
             }
 
@@ -2469,9 +2513,10 @@ class TargetAnalysisController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }

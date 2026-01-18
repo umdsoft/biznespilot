@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\Log;
 class MetaAdsService
 {
     protected string $baseUrl = 'https://graph.facebook.com/v18.0';
+
     protected ?string $accessToken = null;
 
     public function setAccessToken(string $token): self
     {
         $this->accessToken = $token;
+
         return $this;
     }
 
@@ -33,6 +35,7 @@ class MetaAdsService
     public function getCampaigns(string $adAccountId): array
     {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->get("/{$accountId}/campaigns", [
             'fields' => 'id,name,objective,status,effective_status,daily_budget,lifetime_budget,budget_remaining,start_time,stop_time,created_time,updated_time',
             'limit' => 500,
@@ -80,6 +83,7 @@ class MetaAdsService
         ?array $timeRange = null
     ): array {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights($accountId, 'account', $datePreset, $timeRange);
     }
 
@@ -92,6 +96,7 @@ class MetaAdsService
         ?array $timeRange = null
     ): array {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights($accountId, 'campaign', $datePreset, $timeRange);
     }
 
@@ -128,7 +133,7 @@ class MetaAdsService
             $params['date_preset'] = $datePreset;
         }
 
-        if (!empty($breakdowns)) {
+        if (! empty($breakdowns)) {
             $params['breakdowns'] = implode(',', $breakdowns);
         }
 
@@ -145,6 +150,7 @@ class MetaAdsService
     public function getDemographicsInsights(string $adAccountId, string $datePreset = 'last_30d'): array
     {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights(
             $accountId,
             'account',
@@ -160,6 +166,7 @@ class MetaAdsService
     public function getPlacementInsights(string $adAccountId, string $datePreset = 'last_30d'): array
     {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights(
             $accountId,
             'account',
@@ -175,6 +182,7 @@ class MetaAdsService
     public function getLocationInsights(string $adAccountId, string $datePreset = 'last_30d'): array
     {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights(
             $accountId,
             'account',
@@ -190,6 +198,7 @@ class MetaAdsService
     public function getDeviceInsights(string $adAccountId, string $datePreset = 'last_30d'): array
     {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights(
             $accountId,
             'account',
@@ -209,6 +218,7 @@ class MetaAdsService
         string $level = 'account'
     ): array {
         $accountId = $this->formatAccountId($adAccountId);
+
         return $this->getInsights(
             $accountId,
             $level,
@@ -227,6 +237,7 @@ class MetaAdsService
         if (str_starts_with($accountId, 'act_')) {
             return $accountId;
         }
+
         return "act_{$accountId}";
     }
 
@@ -304,8 +315,8 @@ class MetaAdsService
     public function updateCampaignStatus(string $campaignId, string $status): array
     {
         $validStatuses = ['ACTIVE', 'PAUSED', 'DELETED'];
-        if (!in_array($status, $validStatuses)) {
-            throw new \Exception("Invalid status: {$status}. Valid statuses: " . implode(', ', $validStatuses));
+        if (! in_array($status, $validStatuses)) {
+            throw new \Exception("Invalid status: {$status}. Valid statuses: ".implode(', ', $validStatuses));
         }
 
         return $this->post("/{$campaignId}", [
@@ -315,9 +326,9 @@ class MetaAdsService
 
     /**
      * Update campaign budget
-     * @param string $campaignId
-     * @param float $budget Amount in currency units (not cents)
-     * @param string $budgetType 'daily' or 'lifetime'
+     *
+     * @param  float  $budget  Amount in currency units (not cents)
+     * @param  string  $budgetType  'daily' or 'lifetime'
      */
     public function updateCampaignBudget(string $campaignId, float $budget, string $budgetType = 'daily'): array
     {
@@ -347,7 +358,7 @@ class MetaAdsService
     public function updateAdSetStatus(string $adSetId, string $status): array
     {
         $validStatuses = ['ACTIVE', 'PAUSED', 'DELETED'];
-        if (!in_array($status, $validStatuses)) {
+        if (! in_array($status, $validStatuses)) {
             throw new \Exception("Invalid status: {$status}");
         }
 
@@ -376,7 +387,7 @@ class MetaAdsService
     public function updateAdStatus(string $adId, string $status): array
     {
         $validStatuses = ['ACTIVE', 'PAUSED', 'DELETED'];
-        if (!in_array($status, $validStatuses)) {
+        if (! in_array($status, $validStatuses)) {
             throw new \Exception("Invalid status: {$status}");
         }
 
@@ -428,6 +439,7 @@ class MetaAdsService
                 $results[$campaignId] = ['error' => $e->getMessage()];
             }
         }
+
         return $results;
     }
 
@@ -496,14 +508,14 @@ class MetaAdsService
         ];
 
         // Budget at campaign level (CBO - Campaign Budget Optimization)
-        if (!empty($data['daily_budget'])) {
+        if (! empty($data['daily_budget'])) {
             $params['daily_budget'] = (int) ($data['daily_budget'] * 100);
-        } elseif (!empty($data['lifetime_budget'])) {
+        } elseif (! empty($data['lifetime_budget'])) {
             $params['lifetime_budget'] = (int) ($data['lifetime_budget'] * 100);
         }
 
         // Bid strategy
-        if (!empty($data['bid_strategy'])) {
+        if (! empty($data['bid_strategy'])) {
             $params['bid_strategy'] = $data['bid_strategy'];
         }
 
@@ -526,27 +538,27 @@ class MetaAdsService
         ];
 
         // Budget (if not using CBO)
-        if (!empty($data['daily_budget'])) {
+        if (! empty($data['daily_budget'])) {
             $params['daily_budget'] = (int) ($data['daily_budget'] * 100);
-        } elseif (!empty($data['lifetime_budget'])) {
+        } elseif (! empty($data['lifetime_budget'])) {
             $params['lifetime_budget'] = (int) ($data['lifetime_budget'] * 100);
         }
 
         // Bid amount
-        if (!empty($data['bid_amount'])) {
+        if (! empty($data['bid_amount'])) {
             $params['bid_amount'] = (int) ($data['bid_amount'] * 100);
         }
 
         // Schedule
-        if (!empty($data['start_time'])) {
+        if (! empty($data['start_time'])) {
             $params['start_time'] = $data['start_time'];
         }
-        if (!empty($data['end_time'])) {
+        if (! empty($data['end_time'])) {
             $params['end_time'] = $data['end_time'];
         }
 
         // Targeting - Meta API requires JSON encoded targeting spec
-        if (!empty($data['targeting'])) {
+        if (! empty($data['targeting'])) {
             $params['targeting'] = is_string($data['targeting'])
                 ? $data['targeting']
                 : json_encode($data['targeting']);
@@ -587,11 +599,11 @@ class MetaAdsService
         $accountId = $this->formatAccountId($adAccountId);
 
         $params = [
-            'name' => $data['name'] ?? 'Creative ' . time(),
+            'name' => $data['name'] ?? 'Creative '.time(),
         ];
 
         // Link ad creative
-        if (!empty($data['link_data'])) {
+        if (! empty($data['link_data'])) {
             $params['object_story_spec'] = [
                 'page_id' => $data['page_id'],
                 'link_data' => $data['link_data'],
@@ -599,7 +611,7 @@ class MetaAdsService
         }
 
         // Image ad creative
-        if (!empty($data['image_hash'])) {
+        if (! empty($data['image_hash'])) {
             $params['object_story_spec'] = [
                 'page_id' => $data['page_id'],
                 'link_data' => [
@@ -671,9 +683,11 @@ class MetaAdsService
                 "/{$pageId}/leadgen_forms",
                 ['access_token' => $pageAccessToken, 'fields' => 'id,name,status,leads_count']
             );
+
             return $response->getDecodedBody()['data'] ?? [];
         } catch (\Exception $e) {
             \Log::warning('Error fetching lead forms', ['page_id' => $pageId, 'error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -867,27 +881,27 @@ class MetaAdsService
         ];
 
         // Add image if provided
-        if (!empty($data['image_hash'])) {
+        if (! empty($data['image_hash'])) {
             $linkData['image_hash'] = $data['image_hash'];
         }
 
         // Add headline if provided
-        if (!empty($data['headline'])) {
+        if (! empty($data['headline'])) {
             $linkData['name'] = $data['headline'];
         }
 
         // Add description if provided
-        if (!empty($data['description'])) {
+        if (! empty($data['description'])) {
             $linkData['description'] = $data['description'];
         }
 
         // Add CTA
-        if (!empty($data['call_to_action'])) {
+        if (! empty($data['call_to_action'])) {
             $linkData['call_to_action'] = [
                 'type' => $data['call_to_action'],
             ];
             // Add CTA link if different from main link
-            if (!empty($data['cta_link'])) {
+            if (! empty($data['cta_link'])) {
                 $linkData['call_to_action']['value'] = [
                     'link' => $data['cta_link'],
                 ];
@@ -897,7 +911,7 @@ class MetaAdsService
         $objectStorySpec['link_data'] = $linkData;
 
         $params = [
-            'name' => $data['name'] ?? 'Creative_' . time(),
+            'name' => $data['name'] ?? 'Creative_'.time(),
             'object_story_spec' => json_encode($objectStorySpec),
         ];
 
@@ -922,13 +936,13 @@ class MetaAdsService
         ]));
 
         $creativeId = $creative['id'] ?? null;
-        if (!$creativeId) {
+        if (! $creativeId) {
             throw new \Exception('Creative yaratishda xatolik');
         }
 
         // Then create the ad
         return $this->post("/{$accountId}/ads", [
-            'name' => $creativeData['ad_name'] ?? $creativeData['name'] ?? 'Ad_' . time(),
+            'name' => $creativeData['ad_name'] ?? $creativeData['name'] ?? 'Ad_'.time(),
             'adset_id' => $adSetId,
             'status' => $status,
             'creative' => json_encode(['creative_id' => $creativeId]),
@@ -952,6 +966,7 @@ class MetaAdsService
     {
         try {
             $this->getReachEstimate($adAccountId, $targeting);
+
             return true;
         } catch (\Exception $e) {
             return false;

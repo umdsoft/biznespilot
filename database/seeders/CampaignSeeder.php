@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CampaignSeeder extends Seeder
@@ -16,6 +15,7 @@ class CampaignSeeder extends Seeder
 
         if ($businesses->isEmpty()) {
             $this->command->warn('No businesses found. Please run BusinessSeeder first.');
+
             return;
         }
 
@@ -44,7 +44,7 @@ class CampaignSeeder extends Seeder
                 'name' => 'Flash Sale - 24 Soatlik Chegirma',
                 'type' => 'broadcast',
                 'channel' => 'all',
-                'message_template' => "⚡ FLASH SALE! ⚡\n\nFaqat 24 soat davomida - {offer_name} uchun 40% CHEGIRMA!\n\nOdatdagi narx: {offer_price}\nBugun: " . number_format(1000 * 0.6, 0) . " so'm\n\nShoshiling! Taklif cheklangan! 🔥",
+                'message_template' => "⚡ FLASH SALE! ⚡\n\nFaqat 24 soat davomida - {offer_name} uchun 40% CHEGIRMA!\n\nOdatdagi narx: {offer_price}\nBugun: ".number_format(1000 * 0.6, 0)." so'm\n\nShoshiling! Taklif cheklangan! 🔥",
                 'target_audience' => json_encode(['type' => 'active', 'days' => 30]),
                 'schedule_type' => 'scheduled',
                 'scheduled_at' => now()->addDays(2),

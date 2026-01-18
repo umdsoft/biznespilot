@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Campaign;
 use App\Models\ContentCalendar;
-use App\Models\ContentPost;
 use App\Models\Lead;
-use App\Services\SalesAnalyticsService;
 use App\Services\ExportService;
+use App\Services\SalesAnalyticsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AnalyticsController extends Controller
@@ -20,7 +19,9 @@ class AnalyticsController extends Controller
     use HasCurrentBusiness;
 
     protected SalesAnalyticsService $analyticsService;
+
     protected ExportService $exportService;
+
     protected int $cacheTTL = 300;
 
     public function __construct(
@@ -38,10 +39,18 @@ class AnalyticsController extends Controller
     {
         $prefix = $request->route()->getPrefix();
 
-        if (str_contains($prefix, 'marketing')) return 'marketing';
-        if (str_contains($prefix, 'finance')) return 'finance';
-        if (str_contains($prefix, 'operator')) return 'operator';
-        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
 
         return 'business';
     }
@@ -51,7 +60,7 @@ class AnalyticsController extends Controller
      */
     protected function getRoutePrefix(string $panelType): string
     {
-        return match($panelType) {
+        return match ($panelType) {
             'marketing' => 'marketing',
             'finance' => 'finance',
             'operator' => 'operator',
@@ -65,7 +74,7 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -104,7 +113,7 @@ class AnalyticsController extends Controller
 
     private function getOverviewStats($businessId, $period): array
     {
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         // Content metrics
         $totalReach = ContentCalendar::where('business_id', $businessId)
@@ -153,8 +162,8 @@ class AnalyticsController extends Controller
             ->count();
 
         // Previous period comparison
-        $prevStartDate = now()->subDays((int)$period * 2);
-        $prevEndDate = now()->subDays((int)$period);
+        $prevStartDate = now()->subDays((int) $period * 2);
+        $prevEndDate = now()->subDays((int) $period);
 
         $prevReach = ContentCalendar::where('business_id', $businessId)
             ->where('status', 'published')
@@ -185,7 +194,7 @@ class AnalyticsController extends Controller
 
     private function getChannelStats($businessId, $period): array
     {
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         $channels = ContentCalendar::where('business_id', $businessId)
             ->where('status', 'published')
@@ -237,7 +246,7 @@ class AnalyticsController extends Controller
 
     private function getTopContent($businessId, $period): array
     {
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         return ContentCalendar::where('business_id', $businessId)
             ->where('status', 'published')
@@ -247,6 +256,7 @@ class AnalyticsController extends Controller
             ->get()
             ->map(function ($content) {
                 $engagement = ($content->likes ?? 0) + ($content->comments ?? 0) + ($content->shares ?? 0);
+
                 return [
                     'id' => $content->id,
                     'title' => $content->title,
@@ -267,7 +277,7 @@ class AnalyticsController extends Controller
 
     private function getCampaignPerformance($businessId, $period): array
     {
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         $campaigns = Campaign::where('business_id', $businessId)
             ->where('created_at', '>=', $startDate)
@@ -331,7 +341,7 @@ class AnalyticsController extends Controller
 
     private function getTrends($businessId, $period): array
     {
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         // Daily content metrics (using created_at as date reference)
         $dailyMetrics = ContentCalendar::where('business_id', $businessId)
@@ -373,7 +383,7 @@ class AnalyticsController extends Controller
 
     private function getLeadSources($businessId, $period): array
     {
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         // Try to get lead sources from campaigns
         $sources = Campaign::where('business_id', $businessId)
@@ -414,12 +424,12 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
         $period = $request->get('period', '30');
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         // Get social media stats grouped by platform
         $platforms = ['instagram', 'facebook', 'telegram', 'youtube', 'twitter', 'linkedin'];
@@ -467,7 +477,7 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -489,7 +499,7 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -506,7 +516,7 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -522,16 +532,16 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         $filters = $request->only(['date_from', 'date_to', 'dream_buyer_id', 'source_id']);
         $period = $request->get('period', '30');
-        $filterKey = md5(json_encode($filters) . $period);
+        $filterKey = md5(json_encode($filters).$period);
         $cacheKey = "analytics_initial_{$business->id}_{$filterKey}";
 
-        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $filters, $period) {
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $period) {
             return [
                 'overview' => $this->getOverviewStats($business->id, $period),
                 'channels' => $this->getChannelStats($business->id, $period),
@@ -551,7 +561,7 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -571,12 +581,12 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         $filters = $request->only(['date_from', 'date_to']);
-        $cacheKey = "funnel_{$business->id}_" . md5(json_encode($filters));
+        $cacheKey = "funnel_{$business->id}_".md5(json_encode($filters));
 
         $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $filters) {
             return $this->analyticsService->getFunnelData($business->id, $filters);
@@ -592,12 +602,12 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         $filters = $request->only(['date_from', 'date_to']);
-        $cacheKey = "dream_buyer_{$business->id}_" . md5(json_encode($filters));
+        $cacheKey = "dream_buyer_{$business->id}_".md5(json_encode($filters));
 
         $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $filters) {
             return $this->analyticsService->getDreamBuyerPerformance($business->id, $filters);
@@ -613,12 +623,12 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         $filters = $request->only(['date_from', 'date_to']);
-        $cacheKey = "offer_{$business->id}_" . md5(json_encode($filters));
+        $cacheKey = "offer_{$business->id}_".md5(json_encode($filters));
 
         $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $filters) {
             return $this->analyticsService->getOfferPerformance($business->id, $filters);
@@ -634,12 +644,12 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         $filters = $request->only(['date_from', 'date_to']);
-        $cacheKey = "lead_source_{$business->id}_" . md5(json_encode($filters));
+        $cacheKey = "lead_source_{$business->id}_".md5(json_encode($filters));
 
         $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($business, $filters) {
             return $this->analyticsService->getLeadSourceAnalysis($business->id, $filters);
@@ -655,7 +665,7 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -678,12 +688,12 @@ class AnalyticsController extends Controller
         $business = $this->getCurrentBusiness();
         $panelType = $this->getPanelType($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
         $period = $request->get('period', '30');
-        $startDate = now()->subDays((int)$period);
+        $startDate = now()->subDays((int) $period);
 
         $cacheKey = "content_performance_{$business->id}_{$period}";
 
@@ -717,7 +727,7 @@ class AnalyticsController extends Controller
                 ->where('created_at', '>=', $startDate)
                 ->whereNotNull('hashtags')
                 ->get()
-                ->flatMap(fn($c) => $c->hashtags ?? [])
+                ->flatMap(fn ($c) => $c->hashtags ?? [])
                 ->countBy()
                 ->sortDesc()
                 ->take(10);
@@ -743,7 +753,7 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -766,7 +776,7 @@ class AnalyticsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 

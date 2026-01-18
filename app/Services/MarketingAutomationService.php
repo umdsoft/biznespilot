@@ -8,7 +8,6 @@ use App\Models\Customer;
 use App\Models\DreamBuyer;
 use App\Models\Offer;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Marketing Automation Service
@@ -18,7 +17,9 @@ use Carbon\Carbon;
 class MarketingAutomationService
 {
     protected WhatsAppService $whatsappService;
+
     protected InstagramDMService $instagramService;
+
     protected ClaudeAIService $claudeAI;
 
     public function __construct(
@@ -251,7 +252,7 @@ class MarketingAutomationService
 
         // Add context data
         foreach ($context as $key => $value) {
-            $replacements['{' . $key . '}'] = $value;
+            $replacements['{'.$key.'}'] = $value;
         }
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);
@@ -314,7 +315,7 @@ class MarketingAutomationService
      */
     public function generateAICampaignMessage(Business $business, string $campaignGoal, array $context = []): string
     {
-        $systemPrompt = "Siz marketing campaign xabarlari yaratuvchi AI assistantsiz.";
+        $systemPrompt = 'Siz marketing campaign xabarlari yaratuvchi AI assistantsiz.';
         $systemPrompt .= "\nBiznes: {$business->name}";
         $systemPrompt .= "\nMaqsad: {$campaignGoal}";
 
@@ -331,9 +332,9 @@ class MarketingAutomationService
                 512
             );
 
-            return $response['content'] ?? "Salom {customer_name}! {business_name}dan maxsus taklif!";
+            return $response['content'] ?? 'Salom {customer_name}! {business_name}dan maxsus taklif!';
         } catch (\Exception $e) {
-            return "Salom {customer_name}! {business_name}dan yangi taklif bor!";
+            return 'Salom {customer_name}! {business_name}dan yangi taklif bor!';
         }
     }
 }

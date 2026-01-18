@@ -73,7 +73,7 @@ class EmployeeGoal extends Model
 
     public function getProgressPercentageAttribute(): string
     {
-        return $this->progress . '%';
+        return $this->progress.'%';
     }
 
     public function getIsOverdueAttribute(): bool
@@ -88,9 +88,16 @@ class EmployeeGoal extends Model
 
     public function getProgressColorAttribute(): string
     {
-        if ($this->progress >= 80) return 'green';
-        if ($this->progress >= 50) return 'blue';
-        if ($this->progress >= 25) return 'yellow';
+        if ($this->progress >= 80) {
+            return 'green';
+        }
+        if ($this->progress >= 50) {
+            return 'blue';
+        }
+        if ($this->progress >= 25) {
+            return 'yellow';
+        }
+
         return 'red';
     }
 

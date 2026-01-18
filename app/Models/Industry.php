@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Industry extends Model
 {
     use HasUuid;
+
     public $timestamps = false;
 
     protected $fillable = [

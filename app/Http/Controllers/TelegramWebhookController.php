@@ -24,11 +24,12 @@ class TelegramWebhookController extends Controller
     {
         try {
             // SECURITY: Verify Telegram webhook secret token
-            if (!$this->verifySecretToken($request, $businessId)) {
+            if (! $this->verifySecretToken($request, $businessId)) {
                 Log::warning('Telegram webhook secret token verification failed', [
                     'business_id' => $businessId,
                     'ip' => $request->ip(),
                 ]);
+
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
@@ -38,7 +39,7 @@ class TelegramWebhookController extends Controller
             // Validate config
             $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-            if (!$config || !$config->telegram_enabled || !$config->telegram_bot_token) {
+            if (! $config || ! $config->telegram_enabled || ! $config->telegram_bot_token) {
                 Log::warning('Telegram webhook received but bot not configured', [
                     'business_id' => $businessId,
                 ]);
@@ -97,22 +98,24 @@ class TelegramWebhookController extends Controller
     {
         $secretToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
 
-        if (!$secretToken) {
+        if (! $secretToken) {
             // Allow if no secret token header (for backwards compatibility)
             // In production, you should return false here after setting secret_token
             Log::warning('Telegram webhook received without secret token header');
+
             return true; // Change to false in production after setup
         }
 
         // Get the expected secret token for this business
         $config = ChatbotConfig::where('business_id', $businessId)->first();
 
-        if (!$config || !$config->telegram_webhook_secret) {
+        if (! $config || ! $config->telegram_webhook_secret) {
             // If business doesn't have a secret configured, use global secret
             $expectedSecret = config('services.telegram.webhook_secret');
 
-            if (!$expectedSecret) {
+            if (! $expectedSecret) {
                 Log::warning('Telegram webhook secret not configured');
+
                 return false;
             }
         } else {

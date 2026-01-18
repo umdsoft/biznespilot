@@ -15,7 +15,7 @@ return new class extends Migration
                 'input',
                 'condition',
                 'action',
-                'delay'
+                'delay',
             ])->default('message')->after('order');
 
             // Next step reference for visual builder connections
@@ -28,7 +28,7 @@ return new class extends Migration
                 'update_user',
                 'handoff',
                 'send_notification',
-                'webhook'
+                'webhook',
             ])->default('none')->after('actions');
 
             $table->json('action_config')->nullable()->after('action_type');
@@ -59,7 +59,7 @@ return new class extends Migration
                 'action_config',
                 'input_field',
                 'position_x',
-                'position_y'
+                'position_y',
             ]);
         });
     }

@@ -3,22 +3,24 @@
 namespace App\Services;
 
 use App\Models\AdIntegration;
-use App\Models\GoogleAdsCampaign;
 use App\Models\GoogleAdsAdGroup;
-use App\Models\GoogleAdsKeyword;
+use App\Models\GoogleAdsCampaign;
 use App\Models\GoogleAdsCampaignInsight;
+use App\Models\GoogleAdsKeyword;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class GoogleAdsSyncService
 {
     private const API_VERSION = 'v15';
+
     private const API_BASE_URL = 'https://googleads.googleapis.com/v15';
 
     private AdIntegration $integration;
+
     private string $businessId;
+
     private bool $useMockData = true; // Toggle for mock data until developer token is available
 
     public function initialize(AdIntegration $integration): self
@@ -285,14 +287,14 @@ class GoogleAdsSyncService
     {
         return [
             [
-                'google_ad_group_id' => 'mock_adgroup_' . Str::random(6),
+                'google_ad_group_id' => 'mock_adgroup_'.Str::random(6),
                 'name' => 'Asosiy kalit so\'zlar',
                 'status' => 'ENABLED',
                 'type' => 'SEARCH_STANDARD',
                 'cpc_bid' => 1500,
             ],
             [
-                'google_ad_group_id' => 'mock_adgroup_' . Str::random(6),
+                'google_ad_group_id' => 'mock_adgroup_'.Str::random(6),
                 'name' => 'Qo\'shimcha kalit so\'zlar',
                 'status' => 'ENABLED',
                 'type' => 'SEARCH_STANDARD',
@@ -318,7 +320,7 @@ class GoogleAdsSyncService
         foreach ($keywords as $index => $keyword) {
             $matchTypes = ['EXACT', 'PHRASE', 'BROAD'];
             $result[] = [
-                'google_criterion_id' => 'mock_keyword_' . ($index + 1),
+                'google_criterion_id' => 'mock_keyword_'.($index + 1),
                 'keyword_text' => $keyword,
                 'match_type' => $matchTypes[array_rand($matchTypes)],
                 'status' => 'ENABLED',
@@ -336,9 +338,9 @@ class GoogleAdsSyncService
     private function getMockInsightData(Carbon $date): array
     {
         $impressions = rand(500, 5000);
-        $clicks = rand(20, (int)($impressions * 0.1));
+        $clicks = rand(20, (int) ($impressions * 0.1));
         $cost = $clicks * rand(800, 2000);
-        $conversions = rand(0, (int)($clicks * 0.15));
+        $conversions = rand(0, (int) ($clicks * 0.15));
         $conversionValue = $conversions * rand(50000, 200000);
 
         return [

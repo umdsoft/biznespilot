@@ -21,11 +21,9 @@ trait FullTextSearchable
     /**
      * Scope for full-text search
      *
-     * @param Builder $query
-     * @param string $term Search term
-     * @param array|null $columns Columns to search (defaults to $searchableColumns)
-     * @param string $mode Search mode: 'natural', 'boolean', 'expansion'
-     * @return Builder
+     * @param  string  $term  Search term
+     * @param  array|null  $columns  Columns to search (defaults to $searchableColumns)
+     * @param  string  $mode  Search mode: 'natural', 'boolean', 'expansion'
      */
     public function scopeSearch(Builder $query, string $term, ?array $columns = null, string $mode = 'natural'): Builder
     {
@@ -61,11 +59,6 @@ trait FullTextSearchable
 
     /**
      * Scope for searching with LIKE fallback when fulltext is not available
-     *
-     * @param Builder $query
-     * @param string $term
-     * @param array|null $columns
-     * @return Builder
      */
     public function scopeSearchLike(Builder $query, string $term, ?array $columns = null): Builder
     {
@@ -79,7 +72,7 @@ trait FullTextSearchable
             return $query;
         }
 
-        $term = '%' . $this->sanitizeSearchTerm($term) . '%';
+        $term = '%'.$this->sanitizeSearchTerm($term).'%';
 
         return $query->where(function ($q) use ($columns, $term) {
             foreach ($columns as $column) {
@@ -90,11 +83,6 @@ trait FullTextSearchable
 
     /**
      * Scope for combined fulltext + LIKE search (fallback)
-     *
-     * @param Builder $query
-     * @param string $term
-     * @param array|null $columns
-     * @return Builder
      */
     public function scopeSmartSearch(Builder $query, string $term, ?array $columns = null): Builder
     {
@@ -123,8 +111,6 @@ trait FullTextSearchable
 
     /**
      * Get searchable columns from model property
-     *
-     * @return array
      */
     protected function getSearchableColumns(): array
     {
@@ -133,22 +119,17 @@ trait FullTextSearchable
 
     /**
      * Sanitize search term to prevent SQL injection
-     *
-     * @param string $term
-     * @return string
      */
     protected function sanitizeSearchTerm(string $term): string
     {
         // Remove special characters that could break the query
         $term = preg_replace('/[^\p{L}\p{N}\s\-]/u', '', $term);
+
         return trim($term);
     }
 
     /**
      * Prepare term for boolean mode search
-     *
-     * @param string $term
-     * @return string
      */
     protected function prepareBooleanTerm(string $term): string
     {
@@ -158,7 +139,7 @@ trait FullTextSearchable
         foreach ($words as $word) {
             if (strlen($word) >= 2) {
                 // Add + to require the word, * for wildcard
-                $prepared[] = '+' . $word . '*';
+                $prepared[] = '+'.$word.'*';
             }
         }
 

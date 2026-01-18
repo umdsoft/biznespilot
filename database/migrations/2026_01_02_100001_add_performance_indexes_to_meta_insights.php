@@ -27,48 +27,48 @@ return new class extends Migration
         }
 
         // Skip if table doesn't exist
-        if (!Schema::hasTable('meta_insights')) {
+        if (! Schema::hasTable('meta_insights')) {
             return;
         }
 
         Schema::table('meta_insights', function (Blueprint $table) {
             // Campaign aggregation queries
-            if (!$this->indexExists('meta_insights', 'meta_insights_campaign_id_index')) {
+            if (! $this->indexExists('meta_insights', 'meta_insights_campaign_id_index')) {
                 $table->index('campaign_id', 'meta_insights_campaign_id_index');
             }
         });
 
         Schema::table('meta_insights', function (Blueprint $table) {
             // Demographics queries - age_range
-            if (!$this->indexExists('meta_insights', 'meta_insights_age_range_index')) {
+            if (! $this->indexExists('meta_insights', 'meta_insights_age_range_index')) {
                 $table->index('age_range', 'meta_insights_age_range_index');
             }
         });
 
         Schema::table('meta_insights', function (Blueprint $table) {
             // Demographics queries - gender
-            if (!$this->indexExists('meta_insights', 'meta_insights_gender_index')) {
+            if (! $this->indexExists('meta_insights', 'meta_insights_gender_index')) {
                 $table->index('gender', 'meta_insights_gender_index');
             }
         });
 
         Schema::table('meta_insights', function (Blueprint $table) {
             // Placement queries - publisher_platform
-            if (!$this->indexExists('meta_insights', 'meta_insights_publisher_platform_index')) {
+            if (! $this->indexExists('meta_insights', 'meta_insights_publisher_platform_index')) {
                 $table->index('publisher_platform', 'meta_insights_publisher_platform_index');
             }
         });
 
         Schema::table('meta_insights', function (Blueprint $table) {
             // Placement queries - platform_position
-            if (!$this->indexExists('meta_insights', 'meta_insights_platform_position_index')) {
+            if (! $this->indexExists('meta_insights', 'meta_insights_platform_position_index')) {
                 $table->index('platform_position', 'meta_insights_platform_position_index');
             }
         });
 
         Schema::table('meta_insights', function (Blueprint $table) {
             // Composite index for common query pattern
-            if (!$this->indexExists('meta_insights', 'meta_insights_account_campaign_date_index')) {
+            if (! $this->indexExists('meta_insights', 'meta_insights_account_campaign_date_index')) {
                 $table->index(['ad_account_id', 'campaign_id', 'date_start'], 'meta_insights_account_campaign_date_index');
             }
         });
@@ -81,13 +81,13 @@ return new class extends Migration
     {
         $dbName = config('database.connections.mysql.database');
 
-        $result = DB::select("
+        $result = DB::select('
             SELECT COUNT(*) as cnt
             FROM information_schema.statistics
             WHERE table_schema = ?
             AND table_name = ?
             AND index_name = ?
-        ", [$dbName, $table, $indexName]);
+        ', [$dbName, $table, $indexName]);
 
         return ($result[0]->cnt ?? 0) > 0;
     }
@@ -102,17 +102,35 @@ return new class extends Migration
             return;
         }
 
-        if (!Schema::hasTable('meta_insights')) {
+        if (! Schema::hasTable('meta_insights')) {
             return;
         }
 
         Schema::table('meta_insights', function (Blueprint $table) {
-            try { $table->dropIndex('meta_insights_campaign_id_index'); } catch (\Exception $e) {}
-            try { $table->dropIndex('meta_insights_age_range_index'); } catch (\Exception $e) {}
-            try { $table->dropIndex('meta_insights_gender_index'); } catch (\Exception $e) {}
-            try { $table->dropIndex('meta_insights_publisher_platform_index'); } catch (\Exception $e) {}
-            try { $table->dropIndex('meta_insights_platform_position_index'); } catch (\Exception $e) {}
-            try { $table->dropIndex('meta_insights_account_campaign_date_index'); } catch (\Exception $e) {}
+            try {
+                $table->dropIndex('meta_insights_campaign_id_index');
+            } catch (\Exception $e) {
+            }
+            try {
+                $table->dropIndex('meta_insights_age_range_index');
+            } catch (\Exception $e) {
+            }
+            try {
+                $table->dropIndex('meta_insights_gender_index');
+            } catch (\Exception $e) {
+            }
+            try {
+                $table->dropIndex('meta_insights_publisher_platform_index');
+            } catch (\Exception $e) {
+            }
+            try {
+                $table->dropIndex('meta_insights_platform_position_index');
+            } catch (\Exception $e) {
+            }
+            try {
+                $table->dropIndex('meta_insights_account_campaign_date_index');
+            } catch (\Exception $e) {
+            }
         });
     }
 };

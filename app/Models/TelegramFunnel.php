@@ -80,8 +80,11 @@ class TelegramFunnel extends Model
         // Check if first_step_id is set
         if ($this->first_step_id) {
             $step = $this->steps()->where('id', $this->first_step_id)->first();
-            if ($step) return $step;
+            if ($step) {
+                return $step;
+            }
         }
+
         // Fallback to first step by order
         return $this->getFirstStep();
     }
@@ -92,6 +95,7 @@ class TelegramFunnel extends Model
         if ($startStepId) {
             return $this->steps()->where('id', $startStepId)->first();
         }
+
         return $this->getFirstStep();
     }
 

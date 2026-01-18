@@ -76,7 +76,7 @@ class WelcomeController extends Controller
         $business = $user->businesses()->latest()->first();
 
         // If no business exists, redirect to create business
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('welcome.create-business');
         }
 
@@ -112,7 +112,7 @@ class WelcomeController extends Controller
         $originalSlug = $slug;
         $counter = 1;
         while (Business::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $originalSlug.'-'.$counter;
             $counter++;
         }
 
@@ -142,7 +142,7 @@ class WelcomeController extends Controller
         ]);
 
         // Assign owner role using Spatie Permission (if not already)
-        if (!Auth::user()->hasRole('owner')) {
+        if (! Auth::user()->hasRole('owner')) {
             Auth::user()->assignRole('owner');
         }
 
@@ -171,7 +171,7 @@ class WelcomeController extends Controller
         $user = Auth::user();
 
         // Check if user has access to this business
-        if (!$user->businesses()->where('businesses.id', $business->id)->exists()) {
+        if (! $user->businesses()->where('businesses.id', $business->id)->exists()) {
             abort(403, 'Bu biznesga kirish huquqingiz yo\'q');
         }
 

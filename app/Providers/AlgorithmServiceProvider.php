@@ -29,30 +29,31 @@ class AlgorithmServiceProvider extends ServiceProvider
     {
         // Register base algorithm service
         $this->app->singleton(DiagnosticAlgorithmService::class, function ($app) {
-            return new DiagnosticAlgorithmService();
+            return new DiagnosticAlgorithmService;
         });
 
         // Register cache manager
         $this->app->singleton(AlgorithmCacheManager::class, function ($app) {
-            return new AlgorithmCacheManager();
+            return new AlgorithmCacheManager;
         });
 
         // Register async runner
         $this->app->singleton(AsyncAlgorithmRunner::class, function ($app) {
-            $runner = new AsyncAlgorithmRunner();
+            $runner = new AsyncAlgorithmRunner;
             $runner->setMaxParallel(config('algorithm.max_parallel', 10));
             $runner->setTimeout(config('algorithm.timeout', 30));
+
             return $runner;
         });
 
         // Register rate limiter
         $this->app->singleton(RateLimiter::class, function ($app) {
-            return new RateLimiter();
+            return new RateLimiter;
         });
 
         // Register queue manager
         $this->app->singleton(AlgorithmQueueManager::class, function ($app) {
-            return new AlgorithmQueueManager();
+            return new AlgorithmQueueManager;
         });
 
         // Register optimized service with all dependencies
@@ -80,7 +81,7 @@ class AlgorithmServiceProvider extends ServiceProvider
 
         // Publish configuration
         $this->publishes([
-            __DIR__ . '/../../config/algorithm.php' => config_path('algorithm.php'),
+            __DIR__.'/../../config/algorithm.php' => config_path('algorithm.php'),
         ], 'algorithm-config');
 
         // Register terminating callback to clear request cache

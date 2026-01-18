@@ -21,7 +21,7 @@ return new class extends Migration
                 'advertising',
                 'operational',
                 'retention',
-                'financial'
+                'financial',
             ])->index();
 
             // KPI Identification

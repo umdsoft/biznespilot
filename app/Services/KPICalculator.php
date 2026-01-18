@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\KpiDailyEntry;
 use App\Models\MarketingChannel;
 use App\Models\Sale;
-use Illuminate\Support\Facades\DB;
 
 class KPICalculator
 {
@@ -276,14 +275,19 @@ class KPICalculator
      */
     public function getROASBenchmark($roas)
     {
-        if ($roas >= 5)
+        if ($roas >= 5) {
             return ['color' => 'blue', 'label' => 'Ajoyib'];
-        if ($roas >= 3)
+        }
+        if ($roas >= 3) {
             return ['color' => 'green', 'label' => 'Yaxshi'];
-        if ($roas >= 2)
+        }
+        if ($roas >= 2) {
             return ['color' => 'yellow', 'label' => 'Foydali'];
-        if ($roas >= 1)
+        }
+        if ($roas >= 1) {
             return ['color' => 'orange', 'label' => 'Break-even'];
+        }
+
         return ['color' => 'red', 'label' => 'Zarar'];
     }
 
@@ -292,12 +296,16 @@ class KPICalculator
      */
     public function getLTVCACBenchmark($ratio)
     {
-        if ($ratio >= 5)
+        if ($ratio >= 5) {
             return ['color' => 'blue', 'label' => 'Ajoyib'];
-        if ($ratio >= 3)
+        }
+        if ($ratio >= 3) {
             return ['color' => 'green', 'label' => 'Yaxshi'];
-        if ($ratio >= 1)
+        }
+        if ($ratio >= 1) {
             return ['color' => 'yellow', 'label' => 'O\'rta'];
+        }
+
         return ['color' => 'red', 'label' => 'Xavfli'];
     }
 }

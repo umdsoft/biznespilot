@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Business;
 use App\Models\ContentCalendar;
 use App\Models\MonthlyPlan;
 use App\Models\WeeklyPlan;
-use App\Models\Business;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class ContentStrategyService
 {
@@ -86,7 +86,7 @@ class ContentStrategyService
             $dayPlan = $weeklyPlan->getDayPlan($day);
             $date = $weeklyPlan->start_date->copy()->addDays($dayIndex);
 
-            if (!$dayPlan || empty($dayPlan['content'])) {
+            if (! $dayPlan || empty($dayPlan['content'])) {
                 continue;
             }
 
@@ -131,7 +131,7 @@ class ContentStrategyService
             'type' => $item->content_type,
         ], 1);
 
-        if (!empty($suggestions)) {
+        if (! empty($suggestions)) {
             $suggestion = $suggestions[0];
 
             $item->update([
@@ -267,6 +267,7 @@ class ContentStrategyService
         ];
 
         $index = $themeMap[$dayOfWeek] % count($themes);
+
         return $themes[$index];
     }
 
@@ -294,6 +295,7 @@ class ContentStrategyService
         ];
 
         $typeName = $typeLabels[$type] ?? $type;
+
         return "{$typeName} - {$theme} ({$date->format('d.m')})";
     }
 
@@ -342,6 +344,7 @@ class ContentStrategyService
         if (in_array($dayOfWeek, [1, 2, 3, 4, 5])) {
             return 1;
         }
+
         return 0;
     }
 }

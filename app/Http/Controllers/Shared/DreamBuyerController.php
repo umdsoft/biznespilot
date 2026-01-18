@@ -31,10 +31,18 @@ class DreamBuyerController extends Controller
     {
         $prefix = $request->route()->getPrefix();
 
-        if (str_contains($prefix, 'marketing')) return 'marketing';
-        if (str_contains($prefix, 'finance')) return 'finance';
-        if (str_contains($prefix, 'operator')) return 'operator';
-        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
 
         return 'business';
     }
@@ -45,7 +53,8 @@ class DreamBuyerController extends Controller
     protected function getRoutePrefix(Request $request): string
     {
         $panel = $this->getPanelType($request);
-        return match($panel) {
+
+        return match ($panel) {
             'marketing' => 'marketing.dream-buyer',
             'finance' => 'finance.dream-buyer',
             'operator' => 'operator.dream-buyer',
@@ -61,12 +70,12 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
         $dreamBuyers = DreamBuyer::where('business_id', $business->id)
-            ->with(['survey' => function($query) {
+            ->with(['survey' => function ($query) {
                 $query->withCount(['responses', 'completedResponses']);
             }])
             ->latest()
@@ -87,7 +96,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -105,7 +114,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -140,7 +149,7 @@ class DreamBuyerController extends Controller
 
         $routePrefix = $this->getRoutePrefix($request);
 
-        return redirect()->route($routePrefix . '.show', $dreamBuyer)
+        return redirect()->route($routePrefix.'.show', $dreamBuyer)
             ->with('success', 'Ideal Mijoz muvaffaqiyatli yaratildi!');
     }
 
@@ -151,7 +160,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -175,7 +184,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -199,7 +208,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -236,7 +245,7 @@ class DreamBuyerController extends Controller
 
         $routePrefix = $this->getRoutePrefix($request);
 
-        return redirect()->route($routePrefix . '.show', $dreamBuyer)
+        return redirect()->route($routePrefix.'.show', $dreamBuyer)
             ->with('success', 'Ideal Mijoz yangilandi!');
     }
 
@@ -247,7 +256,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -259,7 +268,7 @@ class DreamBuyerController extends Controller
 
         $routePrefix = $this->getRoutePrefix($request);
 
-        return redirect()->route($routePrefix . '.index')
+        return redirect()->route($routePrefix.'.index')
             ->with('success', 'Ideal Mijoz o\'chirildi!');
     }
 
@@ -295,7 +304,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -318,7 +327,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -345,7 +354,7 @@ class DreamBuyerController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 

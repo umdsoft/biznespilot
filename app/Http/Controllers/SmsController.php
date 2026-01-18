@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\EskizAccount;
-use App\Models\PlayMobileAccount;
 use App\Models\Lead;
+use App\Models\PlayMobileAccount;
 use App\Models\SmsMessage;
 use App\Models\SmsTemplate;
 use App\Services\EskizSmsService;
 use App\Services\PlayMobileSmsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
@@ -20,6 +19,7 @@ class SmsController extends Controller
     use HasCurrentBusiness;
 
     protected EskizSmsService $eskizService;
+
     protected PlayMobileSmsService $playmobileService;
 
     public function __construct(EskizSmsService $eskizService, PlayMobileSmsService $playmobileService)
@@ -71,7 +71,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -139,14 +139,14 @@ class SmsController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
         // Test connection first
         $result = $this->eskizService->testConnection($validated['email'], $validated['password']);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $errorMsg = $result['error'] ?? 'Noma\'lum xato';
 
             // Provide helpful guidance based on error
@@ -154,7 +154,7 @@ class SmsController extends Controller
                 $errorMsg .= '. Eslatma: Eskiz.uz API uchun alohida parol kerak bo\'lishi mumkin. Eskiz kabinetingizdan API parolini tekshiring.';
             }
 
-            return back()->with('error', 'Eskiz bilan bog\'lanishda xatolik: ' . $errorMsg);
+            return back()->with('error', 'Eskiz bilan bog\'lanishda xatolik: '.$errorMsg);
         }
 
         // Disable PlayMobile if active (only one provider at a time)
@@ -188,7 +188,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -215,15 +215,15 @@ class SmsController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
         // Test connection first
         $result = $this->playmobileService->testConnection($validated['login'], $validated['password']);
 
-        if (!$result['success']) {
-            return back()->with('error', 'PlayMobile bilan bog\'lanishda xatolik: ' . ($result['error'] ?? 'Noma\'lum xato'));
+        if (! $result['success']) {
+            return back()->with('error', 'PlayMobile bilan bog\'lanishda xatolik: '.($result['error'] ?? 'Noma\'lum xato'));
         }
 
         // Disable Eskiz if active (only one provider at a time)
@@ -258,7 +258,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -278,13 +278,13 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
         $account = EskizAccount::where('business_id', $business->id)->active()->first();
 
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Eskiz hisobi topilmadi'], 404);
         }
 
@@ -304,13 +304,13 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['connected' => false]);
         }
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['account']) {
+        if (! $provider['account']) {
             return response()->json(['connected' => false]);
         }
 
@@ -338,7 +338,7 @@ class SmsController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -347,13 +347,13 @@ class SmsController extends Controller
             return response()->json(['error' => 'Ruxsat berilmagan'], 403);
         }
 
-        if (!$lead->phone) {
+        if (! $lead->phone) {
             return response()->json(['error' => 'Lead telefon raqami yo\'q'], 400);
         }
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['service']) {
+        if (! $provider['service']) {
             return response()->json([
                 'error' => 'SMS provayder sozlanmagan. Avval Sozlamalar > SMS bo\'limidan ulang.',
             ], 400);
@@ -374,7 +374,7 @@ class SmsController extends Controller
             $validated['template_id'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json(['error' => $result['error']], 500);
         }
 
@@ -403,13 +403,13 @@ class SmsController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['service']) {
+        if (! $provider['service']) {
             return response()->json([
                 'error' => 'SMS provayder sozlanmagan. Avval Sozlamalar > SMS bo\'limidan ulang.',
             ], 400);
@@ -472,7 +472,7 @@ class SmsController extends Controller
             'failed' => $failed,
             'total' => $leads->count(),
             'errors' => $errors,
-            'message' => "{$sent} ta SMS yuborildi" . ($failed > 0 ? ", {$failed} ta xatolik" : ''),
+            'message' => "{$sent} ta SMS yuborildi".($failed > 0 ? ", {$failed} ta xatolik" : ''),
         ]);
     }
 
@@ -483,7 +483,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -520,7 +520,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -583,7 +583,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -612,7 +612,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -646,7 +646,7 @@ class SmsController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -671,7 +671,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || (string) $template->business_id !== (string) $business->id) {
+        if (! $business || (string) $template->business_id !== (string) $business->id) {
             return response()->json(['error' => 'Ruxsat berilmagan'], 403);
         }
 
@@ -701,7 +701,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || (string) $template->business_id !== (string) $business->id) {
+        if (! $business || (string) $template->business_id !== (string) $business->id) {
             return response()->json(['error' => 'Ruxsat berilmagan'], 403);
         }
 
@@ -717,7 +717,7 @@ class SmsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || (string) $template->business_id !== (string) $business->id) {
+        if (! $business || (string) $template->business_id !== (string) $business->id) {
             return response()->json(['error' => 'Ruxsat berilmagan'], 403);
         }
 

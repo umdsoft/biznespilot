@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class InstagramConversation extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'account_id',
         'conversation_id', // Instagram API conversation ID
@@ -37,8 +38,11 @@ class InstagramConversation extends Model
 
     // Status constants
     const STATUS_ACTIVE = 'active';
+
     const STATUS_WAITING = 'waiting';
+
     const STATUS_RESOLVED = 'resolved';
+
     const STATUS_BLOCKED = 'blocked';
 
     public function instagramAccount(): BelongsTo
@@ -84,7 +88,7 @@ class InstagramConversation extends Model
     public function addTag(string $tag): void
     {
         $tags = $this->tags ?? [];
-        if (!in_array($tag, $tags)) {
+        if (! in_array($tag, $tags)) {
             $tags[] = $tag;
             $this->update(['tags' => $tags]);
         }
@@ -93,7 +97,7 @@ class InstagramConversation extends Model
     public function removeTag(string $tag): void
     {
         $tags = $this->tags ?? [];
-        $tags = array_values(array_filter($tags, fn($t) => $t !== $tag));
+        $tags = array_values(array_filter($tags, fn ($t) => $t !== $tag));
         $this->update(['tags' => $tags]);
     }
 

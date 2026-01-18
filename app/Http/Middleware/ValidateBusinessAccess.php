@@ -26,19 +26,19 @@ class ValidateBusinessAccess
         $businessId = $request->route('businessId');
 
         // Skip validation if no businessId in route
-        if (!$businessId) {
+        if (! $businessId) {
             return $next($request);
         }
 
         $user = $request->user();
 
         // Ensure user is authenticated
-        if (!$user) {
+        if (! $user) {
             abort(401, 'Unauthenticated');
         }
 
         // Check if user has access to this business
-        if (!$this->userHasAccessToBusiness($user, $businessId)) {
+        if (! $this->userHasAccessToBusiness($user, $businessId)) {
             abort(403, 'You do not have permission to access this business');
         }
 
@@ -48,9 +48,7 @@ class ValidateBusinessAccess
     /**
      * Check if user has access to business
      *
-     * @param \App\Models\User $user
-     * @param int $businessId
-     * @return bool
+     * @param  \App\Models\User  $user
      */
     protected function userHasAccessToBusiness($user, int $businessId): bool
     {
@@ -76,6 +74,7 @@ class ValidateBusinessAccess
                 'business_id' => $businessId,
                 'ip' => request()->ip(),
             ]);
+
             return true;
         }
 

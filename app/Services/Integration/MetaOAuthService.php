@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Log;
 class MetaOAuthService
 {
     protected string $baseUrl = 'https://graph.facebook.com/v18.0';
+
     protected string $appId;
+
     protected string $appSecret;
 
     public function __construct()
@@ -56,8 +58,8 @@ class MetaOAuthService
     public function exchangeCodeForToken(string $code, string $redirectUri): array
     {
         Log::info('Meta OAuth: Starting code exchange', [
-            'has_app_id' => !empty($this->appId),
-            'has_app_secret' => !empty($this->appSecret),
+            'has_app_id' => ! empty($this->appId),
+            'has_app_secret' => ! empty($this->appSecret),
             'redirect_uri' => $redirectUri,
         ]);
 
@@ -75,12 +77,12 @@ class MetaOAuthService
                 'response_status' => $response->status(),
                 'response_body' => $response->body(),
             ]);
-            throw new \Exception('Token exchange failed: ' . $error);
+            throw new \Exception('Token exchange failed: '.$error);
         }
 
         $data = $response->json();
         Log::info('Meta OAuth: Short-lived token received', [
-            'has_token' => !empty($data['access_token']),
+            'has_token' => ! empty($data['access_token']),
             'expires_in' => $data['expires_in'] ?? 'not specified',
             'token_type' => $data['token_type'] ?? 'not specified',
         ]);
@@ -118,7 +120,7 @@ class MetaOAuthService
         $expiryDays = $expiresIn ? round($expiresIn / 86400, 1) : 'unknown';
 
         Log::info('Meta OAuth: Long-lived token received', [
-            'has_token' => !empty($data['access_token']),
+            'has_token' => ! empty($data['access_token']),
             'expires_in_seconds' => $expiresIn,
             'expires_in_days' => $expiryDays,
             'token_type' => $data['token_type'] ?? 'not specified',
@@ -175,7 +177,8 @@ class MetaOAuthService
     {
         try {
             $debug = $this->debugToken($accessToken);
-            return !empty($debug['is_valid']) && $debug['is_valid'] === true;
+
+            return ! empty($debug['is_valid']) && $debug['is_valid'] === true;
         } catch (\Exception $e) {
             return false;
         }

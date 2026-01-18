@@ -12,6 +12,7 @@ class LeadFormSubmission extends Model
     use BelongsToBusiness, HasUuid;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -65,9 +66,9 @@ class LeadFormSubmission extends Model
      */
     public function hasUtmTracking(): bool
     {
-        return !empty($this->utm_source) ||
-               !empty($this->utm_medium) ||
-               !empty($this->utm_campaign);
+        return ! empty($this->utm_source) ||
+               ! empty($this->utm_medium) ||
+               ! empty($this->utm_campaign);
     }
 
     /**

@@ -8,10 +8,10 @@ use App\Models\AttendanceRecord;
 use App\Models\AttendanceSetting;
 use App\Models\AttendanceSummary;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
@@ -24,7 +24,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -36,7 +36,7 @@ class AttendanceController extends Controller
         $teamMembers = $business->teamMembers()
             ->select('users.id', 'users.name', 'business_user.department')
             ->get()
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'department' => $user->pivot->department ?? null,
@@ -98,7 +98,7 @@ class AttendanceController extends Controller
 
         return $query->orderBy('date', 'desc')
             ->get()
-            ->map(fn($record) => [
+            ->map(fn ($record) => [
                 'id' => $record->id,
                 'date' => $record->date->format('Y-m-d'),
                 'date_formatted' => $record->date->format('d.m.Y'),
@@ -122,7 +122,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -161,7 +161,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -172,7 +172,7 @@ class AttendanceController extends Controller
         // Get today's attendance
         $attendance = AttendanceRecord::getTodayAttendance($business->id, Auth::id());
 
-        if (!$attendance) {
+        if (! $attendance) {
             return back()->with('error', 'Bugun check-in qilmagansiz');
         }
 
@@ -205,7 +205,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -233,8 +233,8 @@ class AttendanceController extends Controller
             'business_id' => $business->id,
             'user_id' => $validated['user_id'],
             'date' => $validated['date'],
-            'check_in' => $validated['check_in'] ? Carbon::parse($validated['date'] . ' ' . $validated['check_in']) : null,
-            'check_out' => $validated['check_out'] ? Carbon::parse($validated['date'] . ' ' . $validated['check_out']) : null,
+            'check_in' => $validated['check_in'] ? Carbon::parse($validated['date'].' '.$validated['check_in']) : null,
+            'check_out' => $validated['check_out'] ? Carbon::parse($validated['date'].' '.$validated['check_out']) : null,
             'status' => $validated['status'],
             'notes' => $validated['notes'] ?? null,
         ]);
@@ -242,7 +242,7 @@ class AttendanceController extends Controller
         // Calculate work hours if both times provided
         if ($attendance->check_in && $attendance->check_out) {
             $attendance->update([
-                'work_hours' => $attendance->calculateWorkHours()
+                'work_hours' => $attendance->calculateWorkHours(),
             ]);
         }
 
@@ -265,7 +265,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $attendance->business_id !== $business->id) {
+        if (! $business || $attendance->business_id !== $business->id) {
             return back()->with('error', 'Ruxsat yo\'q');
         }
 
@@ -279,21 +279,21 @@ class AttendanceController extends Controller
         // Update check-in time
         if (isset($validated['check_in'])) {
             $attendance->update([
-                'check_in' => Carbon::parse($attendance->date->format('Y-m-d') . ' ' . $validated['check_in'])
+                'check_in' => Carbon::parse($attendance->date->format('Y-m-d').' '.$validated['check_in']),
             ]);
         }
 
         // Update check-out time
         if (isset($validated['check_out'])) {
             $attendance->update([
-                'check_out' => Carbon::parse($attendance->date->format('Y-m-d') . ' ' . $validated['check_out'])
+                'check_out' => Carbon::parse($attendance->date->format('Y-m-d').' '.$validated['check_out']),
             ]);
         }
 
         // Recalculate work hours if both times exist
         if ($attendance->check_in && $attendance->check_out) {
             $attendance->update([
-                'work_hours' => $attendance->calculateWorkHours()
+                'work_hours' => $attendance->calculateWorkHours(),
             ]);
         }
 
@@ -324,7 +324,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $attendance->business_id !== $business->id) {
+        if (! $business || $attendance->business_id !== $business->id) {
             return back()->with('error', 'Ruxsat yo\'q');
         }
 
@@ -347,7 +347,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -379,7 +379,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -397,7 +397,7 @@ class AttendanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 

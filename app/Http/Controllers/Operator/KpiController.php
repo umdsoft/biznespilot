@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\Lead;
 use App\Models\Task;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -20,7 +18,7 @@ class KpiController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return Inertia::render('Operator/KPI/Index', [
                 'kpi' => null,
                 'targets' => null,

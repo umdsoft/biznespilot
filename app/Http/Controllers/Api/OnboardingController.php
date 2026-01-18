@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Onboarding\UpdateBusinessBasicRequest;
-use App\Http\Requests\Onboarding\UpdateBusinessDetailsRequest;
-use App\Http\Requests\Onboarding\UpdateMaturityAssessmentRequest;
-use App\Http\Requests\Onboarding\UpdateDreamBuyerRequest;
-use App\Http\Requests\Onboarding\StoreProblemRequest;
 use App\Http\Requests\Onboarding\StoreCompetitorRequest;
 use App\Http\Requests\Onboarding\StoreHypothesisRequest;
-use App\Http\Resources\OnboardingProgressResource;
-use App\Http\Resources\StepResource;
+use App\Http\Requests\Onboarding\StoreProblemRequest;
+use App\Http\Requests\Onboarding\UpdateBusinessBasicRequest;
+use App\Http\Requests\Onboarding\UpdateBusinessDetailsRequest;
+use App\Http\Requests\Onboarding\UpdateDreamBuyerRequest;
+use App\Http\Requests\Onboarding\UpdateMaturityAssessmentRequest;
 use App\Http\Resources\IndustryResource;
+use App\Http\Resources\StepResource;
 use App\Models\Business;
 use App\Models\BusinessMaturityAssessment;
 use App\Models\BusinessProblem;
@@ -42,7 +41,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -64,7 +63,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -100,7 +99,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -109,7 +108,7 @@ class OnboardingController extends Controller
 
         $stepDef = StepDefinition::where('code', $stepCode)->first();
 
-        if (!$stepDef) {
+        if (! $stepDef) {
             return response()->json([
                 'success' => false,
                 'message' => 'Step topilmadi',
@@ -197,7 +196,7 @@ class OnboardingController extends Controller
 
         $assessment = $business->maturityAssessment;
 
-        if (!$assessment) {
+        if (! $assessment) {
             $assessment = BusinessMaturityAssessment::create([
                 'business_id' => $business->id,
                 ...$request->validated(),
@@ -575,7 +574,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$this->onboardingService->canStartPhase2($business)) {
+        if (! $this->onboardingService->canStartPhase2($business)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Faza 1 to\'liq yakunlanmagan',
@@ -600,7 +599,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -622,7 +621,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -642,9 +641,9 @@ class OnboardingController extends Controller
         ]);
 
         $metrics = $business->salesMetrics;
-        $isNew = !$metrics;
+        $isNew = ! $metrics;
 
-        if (!$metrics) {
+        if (! $metrics) {
             $metrics = SalesMetrics::create([
                 'business_id' => $business->id,
                 ...$validated,
@@ -679,7 +678,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -706,7 +705,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -728,7 +727,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',
@@ -754,9 +753,9 @@ class OnboardingController extends Controller
         ]);
 
         $metrics = $business->marketingMetrics;
-        $isNew = !$metrics;
+        $isNew = ! $metrics;
 
-        if (!$metrics) {
+        if (! $metrics) {
             $metrics = MarketingMetrics::create([
                 'business_id' => $business->id,
                 ...$validated,
@@ -791,7 +790,7 @@ class OnboardingController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes tanlanmagan',

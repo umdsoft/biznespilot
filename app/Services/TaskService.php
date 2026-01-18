@@ -71,7 +71,7 @@ class TaskService
         foreach ($allTasks as $task) {
             $taskData = $this->formatTask($task);
 
-            if (!$task->due_date) {
+            if (! $task->due_date) {
                 $grouped['later'][] = $taskData;
             } elseif ($task->due_date->lt($today)) {
                 $grouped['overdue'][] = $taskData;
@@ -111,10 +111,10 @@ class TaskService
             ->where('completed_at', '>=', now()->subDays(7))
             ->count();
 
-        $overdue = $allTasks->filter(fn($t) => $t->due_date && $t->due_date->lt($today))->count();
-        $todayCount = $allTasks->filter(fn($t) => $t->due_date && $t->due_date->isSameDay($today))->count();
-        $tomorrowCount = $allTasks->filter(fn($t) => $t->due_date && $t->due_date->isSameDay($tomorrow))->count();
-        $thisWeekCount = $allTasks->filter(fn($t) => $t->due_date && $t->due_date->gt($tomorrow) && $t->due_date->lte($weekEnd))->count();
+        $overdue = $allTasks->filter(fn ($t) => $t->due_date && $t->due_date->lt($today))->count();
+        $todayCount = $allTasks->filter(fn ($t) => $t->due_date && $t->due_date->isSameDay($today))->count();
+        $tomorrowCount = $allTasks->filter(fn ($t) => $t->due_date && $t->due_date->isSameDay($tomorrow))->count();
+        $thisWeekCount = $allTasks->filter(fn ($t) => $t->due_date && $t->due_date->gt($tomorrow) && $t->due_date->lte($weekEnd))->count();
 
         return [
             'total' => $allTasks->count(),
@@ -174,7 +174,7 @@ class TaskService
             ->whereNotIn('status', ['won', 'lost'])
             ->orderBy('name')
             ->get()
-            ->map(fn($lead) => [
+            ->map(fn ($lead) => [
                 'id' => $lead->id,
                 'name' => $lead->name,
                 'phone' => $lead->phone,
@@ -206,6 +206,7 @@ class TaskService
     public function update(Task $task, array $data): Task
     {
         $task->update($data);
+
         return $task->fresh();
     }
 

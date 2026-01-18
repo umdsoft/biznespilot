@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Alert;
 use App\Models\Business;
-use App\Models\User;
 use App\Models\DashboardWidget;
 use App\Models\KpiDailySnapshot;
-use App\Models\Alert;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -95,7 +95,7 @@ class DashboardService
             'roas' => [
                 'label' => 'ROAS',
                 'value' => $today?->ad_roas ?? 0,
-                'formatted' => ($today?->ad_roas ?? 0) . 'x',
+                'formatted' => ($today?->ad_roas ?? 0).'x',
                 'change_day' => $this->calculateChange($today?->ad_roas, $yesterday?->ad_roas),
                 'change_week' => $this->calculateChange($today?->ad_roas, $weekAgo?->ad_roas),
                 'icon' => 'chart-bar',
@@ -104,7 +104,7 @@ class DashboardService
             'engagement' => [
                 'label' => 'Engagement',
                 'value' => $today?->engagement_rate ?? 0,
-                'formatted' => ($today?->engagement_rate ?? 0) . '%',
+                'formatted' => ($today?->engagement_rate ?? 0).'%',
                 'change_day' => $this->calculateChange($today?->engagement_rate, $yesterday?->engagement_rate),
                 'change_week' => $this->calculateChange($today?->engagement_rate, $weekAgo?->engagement_rate),
                 'icon' => 'heart',
@@ -113,7 +113,7 @@ class DashboardService
             'conversion' => [
                 'label' => 'Konversiya',
                 'value' => $today?->conversion_rate ?? 0,
-                'formatted' => ($today?->conversion_rate ?? 0) . '%',
+                'formatted' => ($today?->conversion_rate ?? 0).'%',
                 'change_day' => $this->calculateChange($today?->conversion_rate, $yesterday?->conversion_rate),
                 'change_week' => $this->calculateChange($today?->conversion_rate, $weekAgo?->conversion_rate),
                 'icon' => 'arrow-trending-up',
@@ -144,7 +144,7 @@ class DashboardService
 
     public function getFunnelData(Business $business, ?KpiDailySnapshot $snapshot = null): array
     {
-        if (!$snapshot) {
+        if (! $snapshot) {
             $snapshot = $this->getTodaySnapshot($business);
         }
 
@@ -209,7 +209,7 @@ class DashboardService
 
     protected function calculateChange($current, $previous, bool $inverse = false): ?array
     {
-        if (!$previous || $previous == 0) {
+        if (! $previous || $previous == 0) {
             return null;
         }
 
@@ -226,14 +226,15 @@ class DashboardService
     protected function formatMoney($value): string
     {
         if ($value >= 1000000000) {
-            return round($value / 1000000000, 1) . 'B';
+            return round($value / 1000000000, 1).'B';
         }
         if ($value >= 1000000) {
-            return round($value / 1000000, 1) . 'M';
+            return round($value / 1000000, 1).'M';
         }
         if ($value >= 1000) {
-            return round($value / 1000, 1) . 'K';
+            return round($value / 1000, 1).'K';
         }
+
         return number_format($value);
     }
 

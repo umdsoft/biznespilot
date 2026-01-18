@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('kpi_name');
             $table->string('kpi_key'); // Unique identifier like revenue, leads, ctr
             $table->enum('category', [
-                'revenue', 'marketing', 'sales', 'content', 'customer', 'operational'
+                'revenue', 'marketing', 'sales', 'content', 'customer', 'operational',
             ]);
 
             // Target values
@@ -47,7 +47,7 @@ return new class extends Migration
             // Progress tracking
             $table->decimal('progress_percent', 5, 2)->default(0);
             $table->enum('status', [
-                'not_started', 'on_track', 'at_risk', 'behind', 'achieved', 'exceeded'
+                'not_started', 'on_track', 'at_risk', 'behind', 'achieved', 'exceeded',
             ])->default('not_started');
 
             // Trend

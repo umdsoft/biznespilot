@@ -97,16 +97,16 @@ class AttendanceRecord extends Model
 
     public function getIsLateAttribute(): bool
     {
-        if (!$this->check_in) {
+        if (! $this->check_in) {
             return false;
         }
 
         $settings = AttendanceSetting::where('business_id', $this->business_id)->first();
-        if (!$settings) {
+        if (! $settings) {
             return false;
         }
 
-        $workStartTime = Carbon::parse($this->check_in->format('Y-m-d') . ' ' . $settings->work_start_time);
+        $workStartTime = Carbon::parse($this->check_in->format('Y-m-d').' '.$settings->work_start_time);
         $checkInTime = $this->check_in;
         $lateThreshold = $settings->late_threshold_minutes;
 
@@ -156,7 +156,7 @@ class AttendanceRecord extends Model
     /**
      * Check in the user
      */
-    public function checkIn(string $location = null, string $ipAddress = null): void
+    public function checkIn(?string $location = null, ?string $ipAddress = null): void
     {
         $this->update([
             'check_in' => now(),
@@ -171,7 +171,7 @@ class AttendanceRecord extends Model
      */
     public function checkOut(): void
     {
-        if (!$this->check_in) {
+        if (! $this->check_in) {
             throw new \Exception('Cannot check out without checking in first');
         }
 
@@ -195,11 +195,11 @@ class AttendanceRecord extends Model
     protected function determineStatus(Carbon $checkInTime): string
     {
         $settings = AttendanceSetting::where('business_id', $this->business_id)->first();
-        if (!$settings) {
+        if (! $settings) {
             return 'present';
         }
 
-        $workStartTime = Carbon::parse($checkInTime->format('Y-m-d') . ' ' . $settings->work_start_time);
+        $workStartTime = Carbon::parse($checkInTime->format('Y-m-d').' '.$settings->work_start_time);
         $lateThreshold = $settings->late_threshold_minutes;
 
         $minutesLate = $checkInTime->diffInMinutes($workStartTime, false);
@@ -216,7 +216,7 @@ class AttendanceRecord extends Model
      */
     public function calculateWorkHours(): float
     {
-        if (!$this->check_in || !$this->check_out) {
+        if (! $this->check_in || ! $this->check_out) {
             return 0;
         }
 
@@ -226,7 +226,7 @@ class AttendanceRecord extends Model
     /**
      * Mark as absent
      */
-    public function markAsAbsent(string $reason = null): void
+    public function markAsAbsent(?string $reason = null): void
     {
         $this->update([
             'status' => 'absent',
@@ -237,7 +237,7 @@ class AttendanceRecord extends Model
     /**
      * Mark as work from home
      */
-    public function markAsWFH(string $notes = null): void
+    public function markAsWFH(?string $notes = null): void
     {
         $this->update([
             'status' => 'wfh',

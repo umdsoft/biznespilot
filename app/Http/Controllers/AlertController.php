@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Alert;
 use App\Models\AlertRule;
-use App\Models\Business;
 use App\Services\AlertService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -15,24 +15,35 @@ class InsightEngineService
 {
     // Insight types
     public const TYPE_POSITIVE = 'positive';
+
     public const TYPE_NEGATIVE = 'negative';
+
     public const TYPE_NEUTRAL = 'neutral';
+
     public const TYPE_WARNING = 'warning';
 
     // Insight priorities
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_LOW = 'low';
 
     // Insight categories
     public const CATEGORY_SALES = 'sales';
+
     public const CATEGORY_MARKETING = 'marketing';
+
     public const CATEGORY_FINANCIAL = 'financial';
+
     public const CATEGORY_CUSTOMER = 'customer';
+
     public const CATEGORY_EFFICIENCY = 'efficiency';
 
     protected array $insights = [];
+
     protected array $recommendations = [];
+
     protected array $benchmarks = [];
 
     /**
@@ -77,7 +88,7 @@ class InsightEngineService
                 return $benchmark->toAlgorithmArray();
             }
         } catch (\Exception $e) {
-            \Log::warning('Failed to load benchmarks: ' . $e->getMessage());
+            \Log::warning('Failed to load benchmarks: '.$e->getMessage());
         }
 
         return [
@@ -101,14 +112,14 @@ class InsightEngineService
 
             if ($dailyAvg >= 5) {
                 $this->addInsight(
-                    'Kunlik o\'rtacha ' . round($dailyAvg, 1) . ' ta sotuv amalga oshirilmoqda',
+                    'Kunlik o\'rtacha '.round($dailyAvg, 1).' ta sotuv amalga oshirilmoqda',
                     self::TYPE_POSITIVE,
                     self::PRIORITY_MEDIUM,
                     self::CATEGORY_SALES
                 );
             } elseif ($dailyAvg > 0 && $dailyAvg < 2) {
                 $this->addInsight(
-                    'Sotuvlar kam - kunlik o\'rtacha ' . round($dailyAvg, 1) . ' ta',
+                    'Sotuvlar kam - kunlik o\'rtacha '.round($dailyAvg, 1).' ta',
                     self::TYPE_WARNING,
                     self::PRIORITY_HIGH,
                     self::CATEGORY_SALES
@@ -223,7 +234,7 @@ class InsightEngineService
         }
 
         // Channel performance
-        if (!empty($marketing['channel_breakdown'])) {
+        if (! empty($marketing['channel_breakdown'])) {
             $bestChannel = null;
             $bestConversion = 0;
 
@@ -449,7 +460,9 @@ class InsightEngineService
      */
     protected function generateTrendInsights(array $trends): void
     {
-        if (!($trends['has_data'] ?? false)) return;
+        if (! ($trends['has_data'] ?? false)) {
+            return;
+        }
 
         // Sales trend
         if (isset($trends['sales_trend'])) {
@@ -542,7 +555,9 @@ class InsightEngineService
     {
         $kpiProgress = $metrics['kpi_progress'] ?? [];
 
-        if (!($kpiProgress['has_plan'] ?? false)) return;
+        if (! ($kpiProgress['has_plan'] ?? false)) {
+            return;
+        }
 
         // Sales progress
         if (isset($kpiProgress['sales'])) {
@@ -638,9 +653,9 @@ class InsightEngineService
      */
     protected function generateSummary(): array
     {
-        $positive = count(array_filter($this->insights, fn($i) => $i['type'] === self::TYPE_POSITIVE));
-        $negative = count(array_filter($this->insights, fn($i) => $i['type'] === self::TYPE_NEGATIVE));
-        $warnings = count(array_filter($this->insights, fn($i) => $i['type'] === self::TYPE_WARNING));
+        $positive = count(array_filter($this->insights, fn ($i) => $i['type'] === self::TYPE_POSITIVE));
+        $negative = count(array_filter($this->insights, fn ($i) => $i['type'] === self::TYPE_NEGATIVE));
+        $warnings = count(array_filter($this->insights, fn ($i) => $i['type'] === self::TYPE_WARNING));
 
         $sentiment = match (true) {
             $positive > $negative + $warnings => 'positive',

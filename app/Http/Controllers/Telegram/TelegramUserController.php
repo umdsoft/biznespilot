@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Telegram;
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
 use App\Models\TelegramUser;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -52,7 +52,7 @@ class TelegramUserController extends Controller
 
         $users = $query->orderBy('last_interaction_at', 'desc')
             ->paginate(50)
-            ->through(fn($user) => [
+            ->through(fn ($user) => [
                 'id' => $user->id,
                 'telegram_id' => $user->telegram_id,
                 'username' => $user->username,
@@ -118,7 +118,7 @@ class TelegramUserController extends Controller
             }])
             ->first()
             ?->messages
-            ->map(fn($msg) => [
+            ->map(fn ($msg) => [
                 'id' => $msg->id,
                 'direction' => $msg->direction,
                 'sender_type' => $msg->sender_type,
@@ -274,7 +274,7 @@ class TelegramUserController extends Controller
         return response()->json([
             'success' => true,
             'count' => $users->count(),
-            'message' => $users->count() . ' ta foydalanuvchiga teg qo\'shildi',
+            'message' => $users->count().' ta foydalanuvchiga teg qo\'shildi',
         ]);
     }
 
@@ -329,7 +329,7 @@ class TelegramUserController extends Controller
             $query->whereJsonContains('tags', $request->tag);
         }
 
-        $users = $query->get()->map(fn($user) => [
+        $users = $query->get()->map(fn ($user) => [
             'telegram_id' => $user->telegram_id,
             'username' => $user->username,
             'first_name' => $user->first_name,

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Services\UnifiedInboxService;
 use App\Models\Business;
+use App\Services\UnifiedInboxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -28,7 +28,7 @@ class InboxController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             // If no business in session, show empty inbox
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -55,7 +55,7 @@ class InboxController extends Controller
             $conversations = $this->inboxService->getAllConversations($currentBusiness, $filters);
             $stats = $this->inboxService->getInboxStats($currentBusiness);
         } catch (\Exception $e) {
-            \Log::error('Inbox error: ' . $e->getMessage());
+            \Log::error('Inbox error: '.$e->getMessage());
             $conversations = collect([]);
             $stats = ['total' => 0, 'unread' => ['total' => 0]];
         }

@@ -18,8 +18,11 @@ use Illuminate\Support\Facades\Log;
 class ReportGeneratorService
 {
     protected MetricsCalculatorService $metricsCalculator;
+
     protected TrendAnalyzerService $trendAnalyzer;
+
     protected InsightEngineService $insightEngine;
+
     protected HealthScoreService $healthScoreService;
 
     public function __construct(
@@ -109,14 +112,14 @@ class ReportGeneratorService
                 $template->incrementUsage();
             }
 
-            Log::info("Report generated successfully", [
+            Log::info('Report generated successfully', [
                 'report_id' => $report->id,
                 'business_id' => $business->id,
                 'generation_time_ms' => $generationTimeMs,
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Report generation failed", [
+            Log::error('Report generation failed', [
                 'report_id' => $report->id,
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
@@ -192,11 +195,11 @@ class ReportGeneratorService
         $periodType = $this->determinePeriodType($startDate, $endDate);
 
         $periodLabel = match ($periodType) {
-            'daily' => $startDate->format('d.m.Y') . ' kunlik',
-            'weekly' => $startDate->format('d.m') . ' - ' . $endDate->format('d.m.Y') . ' haftalik',
-            'monthly' => $startDate->format('F Y') . ' oylik',
-            'quarterly' => 'Q' . ceil($startDate->month / 3) . ' ' . $startDate->year . ' choraklik',
-            default => $startDate->format('d.m') . ' - ' . $endDate->format('d.m.Y'),
+            'daily' => $startDate->format('d.m.Y').' kunlik',
+            'weekly' => $startDate->format('d.m').' - '.$endDate->format('d.m.Y').' haftalik',
+            'monthly' => $startDate->format('F Y').' oylik',
+            'quarterly' => 'Q'.ceil($startDate->month / 3).' '.$startDate->year.' choraklik',
+            default => $startDate->format('d.m').' - '.$endDate->format('d.m.Y'),
         };
 
         return sprintf('%s - %s hisobot', $business->name, $periodLabel);
@@ -297,7 +300,7 @@ class ReportGeneratorService
 
         foreach ($keys as $key) {
             $value = $value[$key] ?? 0;
-            if (!is_array($value) && !is_numeric($value)) {
+            if (! is_array($value) && ! is_numeric($value)) {
                 return 0;
             }
         }
@@ -315,7 +318,7 @@ class ReportGeneratorService
         // Header
         $lines[] = "📊 *{$business->name}* - Hisobot";
         $lines[] = "📅 Davr: {$metrics['period']['start']} - {$metrics['period']['end']}";
-        $lines[] = "";
+        $lines[] = '';
 
         // Health Score
         $healthEmoji = match (true) {
@@ -325,7 +328,7 @@ class ReportGeneratorService
             default => '🔴',
         };
         $lines[] = "{$healthEmoji} *Salomatlik balli: {$healthScore['score']}/100* ({$healthScore['label']})";
-        $lines[] = "";
+        $lines[] = '';
 
         // Key Metrics
         $lines[] = "📈 *Asosiy ko'rsatkichlar:*";
@@ -350,33 +353,33 @@ class ReportGeneratorService
         if (isset($financial['roi'])) {
             $lines[] = "• ROI: {$financial['roi']}%";
         }
-        $lines[] = "";
+        $lines[] = '';
 
         // Top Insights
         $insights = array_slice($insightsData['insights'] ?? [], 0, 5);
-        if (!empty($insights)) {
-            $lines[] = "💡 *Asosiy tushunchalar:*";
+        if (! empty($insights)) {
+            $lines[] = '💡 *Asosiy tushunchalar:*';
             foreach ($insights as $insight) {
                 $lines[] = "{$insight['icon']} {$insight['message']}";
             }
-            $lines[] = "";
+            $lines[] = '';
         }
 
         // Top Recommendations
         $recommendations = array_slice($insightsData['recommendations'] ?? [], 0, 3);
-        if (!empty($recommendations)) {
-            $lines[] = "✅ *Tavsiyalar:*";
+        if (! empty($recommendations)) {
+            $lines[] = '✅ *Tavsiyalar:*';
             foreach ($recommendations as $rec) {
                 $lines[] = "{$rec['icon']} *{$rec['title']}*";
                 $lines[] = "   {$rec['description']}";
             }
-            $lines[] = "";
+            $lines[] = '';
         }
 
         // KPI Progress
         $kpiProgress = $metrics['kpi_progress'] ?? [];
         if ($kpiProgress['has_plan'] ?? false) {
-            $lines[] = "🎯 *KPI bajarilishi:*";
+            $lines[] = '🎯 *KPI bajarilishi:*';
             if (isset($kpiProgress['sales'])) {
                 $s = $kpiProgress['sales'];
                 $lines[] = "• Sotuvlar: {$s['actual']}/{$s['planned']} ({$s['progress']}%)";
@@ -387,12 +390,12 @@ class ReportGeneratorService
                 $planned = number_format($r['planned'], 0, '.', ' ');
                 $lines[] = "• Daromad: {$actual}/{$planned} ({$r['progress']}%)";
             }
-            $lines[] = "";
+            $lines[] = '';
         }
 
         // Footer
-        $lines[] = "---";
-        $lines[] = "🤖 BiznesPilot AI tomonidan yaratildi";
+        $lines[] = '---';
+        $lines[] = '🤖 BiznesPilot AI tomonidan yaratildi';
 
         return implode("\n", $lines);
     }
@@ -476,12 +479,12 @@ HTML;
 HTML;
         }
 
-        $html .= "</div>";
+        $html .= '</div>';
 
         // Add insights
         $insights = array_slice($insightsData['insights'] ?? [], 0, 5);
-        if (!empty($insights)) {
-            $html .= "<h2>💡 Tushunchalar</h2>";
+        if (! empty($insights)) {
+            $html .= '<h2>💡 Tushunchalar</h2>';
             foreach ($insights as $insight) {
                 $html .= "<div class=\"insight {$insight['type']}\">{$insight['icon']} {$insight['message']}</div>";
             }
@@ -489,8 +492,8 @@ HTML;
 
         // Add recommendations
         $recommendations = array_slice($insightsData['recommendations'] ?? [], 0, 3);
-        if (!empty($recommendations)) {
-            $html .= "<h2>✅ Tavsiyalar</h2>";
+        if (! empty($recommendations)) {
+            $html .= '<h2>✅ Tavsiyalar</h2>';
             foreach ($recommendations as $rec) {
                 $html .= <<<HTML
             <div class="recommendation">
@@ -501,7 +504,7 @@ HTML;
             }
         }
 
-        $html .= <<<HTML
+        $html .= <<<'HTML'
         <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e5e5;">
         <p style="text-align: center; color: #999; font-size: 12px;">🤖 BiznesPilot AI tomonidan yaratildi</p>
     </div>

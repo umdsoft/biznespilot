@@ -3,38 +3,35 @@
 namespace App\Services;
 
 use App\Models\Lead;
-use App\Models\DreamBuyer;
-use App\Models\Offer;
 use App\Models\MarketingChannel;
-use Illuminate\Support\Facades\DB;
+use App\Models\Offer;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SalesAnalyticsService
 {
     /**
      * Get conversion funnel data with stage-by-stage metrics
      *
-     * @param string $businessId
-     * @param array $filters ['date_from', 'date_to', 'dream_buyer_id', 'offer_id', 'source_id']
-     * @return array
+     * @param  array  $filters  ['date_from', 'date_to', 'dream_buyer_id', 'offer_id', 'source_id']
      */
     public function getFunnelData(string $businessId, array $filters = []): array
     {
         $query = Lead::where('business_id', $businessId);
 
         // Apply filters
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', Carbon::parse($filters['date_to']));
         }
-        if (!empty($filters['dream_buyer_id'])) {
+        if (! empty($filters['dream_buyer_id'])) {
             $query->whereHas('customer', function ($q) use ($filters) {
                 $q->where('dream_buyer_id', $filters['dream_buyer_id']);
             });
         }
-        if (!empty($filters['source_id'])) {
+        if (! empty($filters['source_id'])) {
             $query->where('source_id', $filters['source_id']);
         }
 
@@ -72,7 +69,7 @@ class SalesAnalyticsService
             ];
 
             // For active stages, don't drop off to won/lost
-            if (!in_array($status, ['won', 'lost'])) {
+            if (! in_array($status, ['won', 'lost'])) {
                 $previousStageCount = $count;
             }
         }
@@ -102,10 +99,6 @@ class SalesAnalyticsService
     /**
      * Get Dream Buyer performance analysis
      * Optimized: Single query with aggregation instead of N+1
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     public function getDreamBuyerPerformance(string $businessId, array $filters = []): array
     {
@@ -127,13 +120,13 @@ class SalesAnalyticsService
             ->groupBy('dream_buyers.id', 'dream_buyers.name');
 
         // Apply date filters
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereNull('leads.created_at')
                     ->orWhere('leads.created_at', '>=', Carbon::parse($filters['date_from']));
             });
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereNull('leads.created_at')
                     ->orWhere('leads.created_at', '<=', Carbon::parse($filters['date_to']));
@@ -173,10 +166,6 @@ class SalesAnalyticsService
     /**
      * Get Offer performance metrics
      * Optimized: Reduced queries using eager loading and collection processing
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     public function getOfferPerformance(string $businessId, array $filters = []): array
     {
@@ -194,10 +183,10 @@ class SalesAnalyticsService
         $leadsQuery = Lead::where('business_id', $businessId)
             ->whereNotNull('data');
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $leadsQuery->where('created_at', '>=', Carbon::parse($filters['date_from']));
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $leadsQuery->where('created_at', '<=', Carbon::parse($filters['date_to']));
         }
 
@@ -211,7 +200,9 @@ class SalesAnalyticsService
             // Filter leads that belong to this offer using collection methods
             $offerLeads = $allLeads->filter(function ($lead) use ($offer) {
                 $data = is_array($lead->data) ? $lead->data : json_decode($lead->data, true);
-                if (!$data) return false;
+                if (! $data) {
+                    return false;
+                }
 
                 $offerId = $data['offer_id'] ?? null;
                 $selectedOffer = $data['selected_offer'] ?? null;
@@ -253,10 +244,6 @@ class SalesAnalyticsService
     /**
      * Get lead source performance analysis
      * Optimized: Single query with aggregation instead of N+1
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     public function getLeadSourceAnalysis(string $businessId, array $filters = []): array
     {
@@ -284,13 +271,13 @@ class SalesAnalyticsService
             );
 
         // Apply date filters
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereNull('leads.created_at')
                     ->orWhere('leads.created_at', '>=', Carbon::parse($filters['date_from']));
             });
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereNull('leads.created_at')
                     ->orWhere('leads.created_at', '<=', Carbon::parse($filters['date_to']));
@@ -342,10 +329,8 @@ class SalesAnalyticsService
     /**
      * Get revenue trends over time
      *
-     * @param string $businessId
-     * @param string $period 'daily', 'weekly', 'monthly'
-     * @param int $points Number of data points to return
-     * @return array
+     * @param  string  $period  'daily', 'weekly', 'monthly'
+     * @param  int  $points  Number of data points to return
      */
     public function getRevenueTrends(string $businessId, string $period = 'daily', int $points = 30): array
     {
@@ -438,10 +423,6 @@ class SalesAnalyticsService
 
     /**
      * Forecast future revenue based on historical trends
-     *
-     * @param string $businessId
-     * @param int $forecastDays
-     * @return array
      */
     public function forecastRevenue(string $businessId, int $forecastDays = 30): array
     {
@@ -508,15 +489,13 @@ class SalesAnalyticsService
 
     /**
      * Calculate standard deviation
-     *
-     * @param array $values
-     * @return float
      */
     protected function calculateStdDev(array $values): float
     {
         $n = count($values);
-        if ($n === 0)
+        if ($n === 0) {
             return 0;
+        }
 
         $mean = array_sum($values) / $n;
         $variance = array_sum(array_map(function ($x) use ($mean) {
@@ -528,20 +507,16 @@ class SalesAnalyticsService
 
     /**
      * Get conversion rates by various dimensions
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     public function getConversionRates(string $businessId, array $filters = []): array
     {
         $query = Lead::where('business_id', $businessId);
 
         // Apply date filters
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', Carbon::parse($filters['date_to']));
         }
 
@@ -566,8 +541,7 @@ class SalesAnalyticsService
     /**
      * Get conversion rates by stage
      *
-     * @param \Illuminate\Support\Collection $leads
-     * @return array
+     * @param  \Illuminate\Support\Collection  $leads
      */
     protected function getStageConversionRates($leads): array
     {
@@ -597,10 +571,6 @@ class SalesAnalyticsService
 
     /**
      * Get conversion rates by source
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     protected function getSourceConversionRates(string $businessId, array $filters): array
     {
@@ -611,10 +581,10 @@ class SalesAnalyticsService
             $leadsQuery = Lead::where('business_id', $businessId)
                 ->where('source_id', $source->id);
 
-            if (!empty($filters['date_from'])) {
+            if (! empty($filters['date_from'])) {
                 $leadsQuery->where('created_at', '>=', Carbon::parse($filters['date_from']));
             }
-            if (!empty($filters['date_to'])) {
+            if (! empty($filters['date_to'])) {
                 $leadsQuery->where('created_at', '<=', Carbon::parse($filters['date_to']));
             }
 
@@ -638,8 +608,7 @@ class SalesAnalyticsService
     /**
      * Get average time to close deals
      *
-     * @param \Illuminate\Support\Collection $leads
-     * @return array
+     * @param  \Illuminate\Support\Collection  $leads
      */
     protected function getAvgTimeToClose($leads): array
     {
@@ -661,17 +630,13 @@ class SalesAnalyticsService
         return [
             'avg_days' => $avgDays,
             'total_won_leads' => $count,
-            'fastest_close' => $wonLeads->min(fn($lead) => $lead->created_at->diffInDays($lead->converted_at)) ?? 0,
-            'slowest_close' => $wonLeads->max(fn($lead) => $lead->created_at->diffInDays($lead->converted_at)) ?? 0,
+            'fastest_close' => $wonLeads->min(fn ($lead) => $lead->created_at->diffInDays($lead->converted_at)) ?? 0,
+            'slowest_close' => $wonLeads->max(fn ($lead) => $lead->created_at->diffInDays($lead->converted_at)) ?? 0,
         ];
     }
 
     /**
      * Get top performers summary
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     public function getTopPerformers(string $businessId, array $filters = []): array
     {
@@ -688,20 +653,16 @@ class SalesAnalyticsService
 
     /**
      * Get comprehensive dashboard metrics
-     *
-     * @param string $businessId
-     * @param array $filters
-     * @return array
      */
     public function getDashboardMetrics(string $businessId, array $filters = []): array
     {
         $leads = Lead::where('business_id', $businessId);
 
         // Apply date filters
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $leads->where('created_at', '>=', Carbon::parse($filters['date_from']));
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $leads->where('created_at', '<=', Carbon::parse($filters['date_to']));
         }
 
@@ -713,10 +674,10 @@ class SalesAnalyticsService
         $pipelineValue = $activeLeads->sum('estimated_value');
 
         // Calculate previous period for comparison
-        $dateFrom = !empty($filters['date_from'])
+        $dateFrom = ! empty($filters['date_from'])
             ? Carbon::parse($filters['date_from'])
             : Carbon::now()->subDays(30);
-        $dateTo = !empty($filters['date_to'])
+        $dateTo = ! empty($filters['date_to'])
             ? Carbon::parse($filters['date_to'])
             : Carbon::now();
 

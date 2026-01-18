@@ -22,7 +22,7 @@ class PerformanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -34,7 +34,7 @@ class PerformanceController extends Controller
             ->with(['kpiTemplate', 'creator'])
             ->orderBy('due_date', 'asc')
             ->get()
-            ->map(fn($goal) => [
+            ->map(fn ($goal) => [
                 'id' => $goal->id,
                 'title' => $goal->title,
                 'description' => $goal->description,
@@ -56,7 +56,7 @@ class PerformanceController extends Controller
             ->with(['reviewer'])
             ->orderBy('review_date', 'desc')
             ->get()
-            ->map(fn($review) => [
+            ->map(fn ($review) => [
                 'id' => $review->id,
                 'review_period' => $review->review_period,
                 'review_date' => $review->review_date->format('d.m.Y'),
@@ -70,7 +70,7 @@ class PerformanceController extends Controller
         $employees = $business->users()
             ->select('users.id', 'users.name')
             ->get()
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
             ]);
@@ -111,7 +111,7 @@ class PerformanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -151,7 +151,7 @@ class PerformanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $goal->business_id !== $business->id) {
+        if (! $business || $goal->business_id !== $business->id) {
             return back()->with('error', 'Ruxsat yo\'q');
         }
 
@@ -185,14 +185,14 @@ class PerformanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
         $templates = KpiTemplate::where('business_id', $business->id)
             ->orderBy('category')
             ->get()
-            ->map(fn($template) => [
+            ->map(fn ($template) => [
                 'id' => $template->id,
                 'name' => $template->name,
                 'description' => $template->description,
@@ -217,7 +217,7 @@ class PerformanceController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 

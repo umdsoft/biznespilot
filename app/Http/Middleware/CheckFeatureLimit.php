@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Business;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\Business;
 
 class CheckFeatureLimit
 {
@@ -15,12 +15,12 @@ class CheckFeatureLimit
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      * @param  string  $feature  The feature to check (e.g., 'leads', 'team_members', 'chatbot_channels')
      */
-    public function handle(Request $request, Closure $next, string $feature = null): Response
+    public function handle(Request $request, Closure $next, ?string $feature = null): Response
     {
         // Get current business ID from session
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business context is required',
@@ -30,7 +30,7 @@ class CheckFeatureLimit
         // Get the business with subscription and plan
         $business = Business::with(['subscriptions.plan'])->find($businessId);
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -50,7 +50,7 @@ class CheckFeatureLimit
             })
             ->first();
 
-        if (!$subscription || !$subscription->plan) {
+        if (! $subscription || ! $subscription->plan) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active subscription plan found',

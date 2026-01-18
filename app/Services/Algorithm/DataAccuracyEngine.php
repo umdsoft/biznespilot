@@ -3,12 +3,11 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use App\Models\Sale;
-use App\Models\MarketingChannel;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\MarketingChannel;
+use App\Models\Sale;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Data Accuracy Engine
@@ -19,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 class DataAccuracyEngine extends AlgorithmEngine
 {
     protected string $cachePrefix = 'data_accuracy_';
+
     protected int $cacheTTL = 3600; // 1 hour
 
     /**
@@ -127,7 +127,7 @@ class DataAccuracyEngine extends AlgorithmEngine
         }
 
         // Check for future dates
-        $futureDates = $sales->filter(fn($s) => Carbon::parse($s->created_at)->isFuture())->count();
+        $futureDates = $sales->filter(fn ($s) => Carbon::parse($s->created_at)->isFuture())->count();
         if ($futureDates > 0) {
             $issues[] = [
                 'type' => 'invalid',
@@ -219,13 +219,13 @@ class DataAccuracyEngine extends AlgorithmEngine
 
         // Budget distribution analysis
         $budgets = $channels->where('monthly_budget', '>', 0)->pluck('monthly_budget')->toArray();
-        if (!empty($budgets)) {
+        if (! empty($budgets)) {
             $outlierAnalysis = $this->detectOutliers($budgets);
             if (count($outlierAnalysis['outliers']) > 0) {
                 $issues[] = [
                     'type' => 'outliers',
                     'severity' => 'info',
-                    'message' => "Byudjet taqsimotida notekis qiymatlar bor",
+                    'message' => 'Byudjet taqsimotida notekis qiymatlar bor',
                 ];
             }
         }
@@ -284,7 +284,7 @@ class DataAccuracyEngine extends AlgorithmEngine
             $issues[] = [
                 'type' => 'outliers',
                 'severity' => 'info',
-                'message' => count($outlierAnalysis['outliers']) . " ta mijozda g'ayrioddiy xarid soni bor",
+                'message' => count($outlierAnalysis['outliers'])." ta mijozda g'ayrioddiy xarid soni bor",
             ];
         }
 
@@ -365,7 +365,7 @@ class DataAccuracyEngine extends AlgorithmEngine
         // Check for stale leads
         $staleLeads = $leads
             ->where('status', 'new')
-            ->filter(fn($l) => Carbon::parse($l->created_at)->diffInDays(now()) > 30)
+            ->filter(fn ($l) => Carbon::parse($l->created_at)->diffInDays(now()) > 30)
             ->count();
 
         if ($staleLeads > 0) {
@@ -398,10 +398,10 @@ class DataAccuracyEngine extends AlgorithmEngine
     protected function findSalesDuplicates($sales): int
     {
         $grouped = $sales->groupBy(function ($sale) {
-            return $sale->customer_id . '_' . Carbon::parse($sale->created_at)->format('Y-m-d') . '_' . $sale->amount;
+            return $sale->customer_id.'_'.Carbon::parse($sale->created_at)->format('Y-m-d').'_'.$sale->amount;
         });
 
-        return $grouped->filter(fn($group) => $group->count() > 1)->count();
+        return $grouped->filter(fn ($group) => $group->count() > 1)->count();
     }
 
     /**
@@ -562,10 +562,19 @@ class DataAccuracyEngine extends AlgorithmEngine
      */
     protected function getQualityGrade(float $score): string
     {
-        if ($score >= 90) return 'A';
-        if ($score >= 80) return 'B';
-        if ($score >= 70) return 'C';
-        if ($score >= 60) return 'D';
+        if ($score >= 90) {
+            return 'A';
+        }
+        if ($score >= 80) {
+            return 'B';
+        }
+        if ($score >= 70) {
+            return 'C';
+        }
+        if ($score >= 60) {
+            return 'D';
+        }
+
         return 'F';
     }
 
@@ -581,9 +590,10 @@ class DataAccuracyEngine extends AlgorithmEngine
                 $recommendations[] = [
                     'priority' => 'high',
                     'module' => $key,
-                    'recommendation' => $this->getModuleLabel($key) . " ma'lumotlarini kiritish tavsiya etiladi",
+                    'recommendation' => $this->getModuleLabel($key)." ma'lumotlarini kiritish tavsiya etiladi",
                     'impact' => 'Tahlil aniqligini 25%+ ga oshiradi',
                 ];
+
                 continue;
             }
 
@@ -593,14 +603,14 @@ class DataAccuracyEngine extends AlgorithmEngine
                         $recommendations[] = [
                             'priority' => 'high',
                             'module' => $key,
-                            'recommendation' => $issue['message'] . " - tuzatish kerak",
+                            'recommendation' => $issue['message'].' - tuzatish kerak',
                             'impact' => 'Ma\'lumotlar ishonchliligini oshiradi',
                         ];
                     } elseif ($issue['severity'] === 'warning' && count($recommendations) < 5) {
                         $recommendations[] = [
                             'priority' => 'medium',
                             'module' => $key,
-                            'recommendation' => $issue['message'] . " - ko'rib chiqish tavsiya etiladi",
+                            'recommendation' => $issue['message']." - ko'rib chiqish tavsiya etiladi",
                             'impact' => 'Tahlil sifatini yaxshilaydi',
                         ];
                     }
@@ -611,6 +621,7 @@ class DataAccuracyEngine extends AlgorithmEngine
         // Sort by priority
         usort($recommendations, function ($a, $b) {
             $priorityOrder = ['high' => 0, 'medium' => 1, 'low' => 2];
+
             return $priorityOrder[$a['priority']] <=> $priorityOrder[$b['priority']];
         });
 
@@ -639,12 +650,12 @@ class DataAccuracyEngine extends AlgorithmEngine
     {
         $rules = $this->validationRules[$type][$field] ?? null;
 
-        if (!$rules) {
+        if (! $rules) {
             return ['valid' => true, 'message' => null];
         }
 
         // Type validation
-        if ($rules['type'] === 'numeric' && !is_numeric($value)) {
+        if ($rules['type'] === 'numeric' && ! is_numeric($value)) {
             return ['valid' => false, 'message' => 'Qiymat raqam bo\'lishi kerak'];
         }
 
@@ -663,7 +674,7 @@ class DataAccuracyEngine extends AlgorithmEngine
         }
 
         if ($rules['type'] === 'enum' && isset($rules['values'])) {
-            if (!in_array($value, $rules['values'])) {
+            if (! in_array($value, $rules['values'])) {
                 return ['valid' => false, 'message' => 'Noto\'g\'ri qiymat'];
             }
         }

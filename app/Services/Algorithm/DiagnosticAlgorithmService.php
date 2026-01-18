@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use App\Models\DreamBuyer;
 use App\Models\Offer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,37 +14,48 @@ use Illuminate\Support\Facades\Log;
  * AI faqat tavsiya va matn generatsiya uchun ishlatiladi.
  *
  * @version 2.0.0
+ *
  * @author BiznesPilot Team
  */
 class DiagnosticAlgorithmService extends AlgorithmEngine
 {
     protected string $cachePrefix = 'diagnostic_algo_';
+
     protected int $cacheTTL = 1800; // 30 minutes
 
     // Sub-calculators
     protected HealthScoreAlgorithm $healthScoreAlgorithm;
+
     protected MoneyLossAlgorithm $moneyLossAlgorithm;
+
     protected FunnelAnalysisAlgorithm $funnelAnalysisAlgorithm;
+
     protected EngagementAlgorithm $engagementAlgorithm;
+
     protected ValueEquationAlgorithm $valueEquationAlgorithm;
+
     protected ChurnRiskAlgorithm $churnRiskAlgorithm;
+
     protected RevenueForecaster $revenueForecaster;
+
     protected ContentOptimizationAlgorithm $contentOptimizationAlgorithm;
+
     protected DreamBuyerScoringAlgorithm $dreamBuyerScoringAlgorithm;
+
     protected CompetitorBenchmarkAlgorithm $competitorBenchmarkAlgorithm;
 
     public function __construct()
     {
-        $this->healthScoreAlgorithm = new HealthScoreAlgorithm();
-        $this->moneyLossAlgorithm = new MoneyLossAlgorithm();
-        $this->funnelAnalysisAlgorithm = new FunnelAnalysisAlgorithm();
-        $this->engagementAlgorithm = new EngagementAlgorithm();
-        $this->valueEquationAlgorithm = new ValueEquationAlgorithm();
-        $this->churnRiskAlgorithm = new ChurnRiskAlgorithm();
-        $this->revenueForecaster = new RevenueForecaster();
-        $this->contentOptimizationAlgorithm = new ContentOptimizationAlgorithm();
-        $this->dreamBuyerScoringAlgorithm = new DreamBuyerScoringAlgorithm();
-        $this->competitorBenchmarkAlgorithm = new CompetitorBenchmarkAlgorithm();
+        $this->healthScoreAlgorithm = new HealthScoreAlgorithm;
+        $this->moneyLossAlgorithm = new MoneyLossAlgorithm;
+        $this->funnelAnalysisAlgorithm = new FunnelAnalysisAlgorithm;
+        $this->engagementAlgorithm = new EngagementAlgorithm;
+        $this->valueEquationAlgorithm = new ValueEquationAlgorithm;
+        $this->churnRiskAlgorithm = new ChurnRiskAlgorithm;
+        $this->revenueForecaster = new RevenueForecaster;
+        $this->contentOptimizationAlgorithm = new ContentOptimizationAlgorithm;
+        $this->dreamBuyerScoringAlgorithm = new DreamBuyerScoringAlgorithm;
+        $this->competitorBenchmarkAlgorithm = new CompetitorBenchmarkAlgorithm;
     }
 
     /**
@@ -59,7 +69,7 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
         $startTime = microtime(true);
 
         // CRITICAL FIX: Wrap in database transaction to prevent partial data saves
-        return DB::transaction(function() use ($business, $benchmarks, $startTime) {
+        return DB::transaction(function () use ($business, $benchmarks, $startTime) {
             try {
                 // 1. Ma'lumotlarni yig'ish
                 $businessData = $this->collectBusinessData($business);
@@ -67,57 +77,57 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
 
                 // 2. Barcha algoritmlarni ishga tushirish
                 $results = [
-                // Asosiy ballar
-                'health_score' => $this->healthScoreAlgorithm->calculate($business, $metrics, $benchmarks),
+                    // Asosiy ballar
+                    'health_score' => $this->healthScoreAlgorithm->calculate($business, $metrics, $benchmarks),
 
-                // Dream Buyer tahlili
-                'dream_buyer_analysis' => $this->dreamBuyerScoringAlgorithm->calculate($business),
+                    // Dream Buyer tahlili
+                    'dream_buyer_analysis' => $this->dreamBuyerScoringAlgorithm->calculate($business),
 
-                // Taklif kuchi (Value Equation)
-                'offer_strength' => $this->valueEquationAlgorithm->calculate($business),
+                    // Taklif kuchi (Value Equation)
+                    'offer_strength' => $this->valueEquationAlgorithm->calculate($business),
 
-                // Pul yo'qotish tahlili
-                'money_loss' => $this->moneyLossAlgorithm->calculate($business, $metrics, $benchmarks),
+                    // Pul yo'qotish tahlili
+                    'money_loss' => $this->moneyLossAlgorithm->calculate($business, $metrics, $benchmarks),
 
-                // Funnel tahlili
-                'funnel_analysis' => $this->funnelAnalysisAlgorithm->calculate($business, $metrics),
+                    // Funnel tahlili
+                    'funnel_analysis' => $this->funnelAnalysisAlgorithm->calculate($business, $metrics),
 
-                // Ijtimoiy tarmoq metrikalari
-                'engagement_metrics' => $this->engagementAlgorithm->calculate($business),
+                    // Ijtimoiy tarmoq metrikalari
+                    'engagement_metrics' => $this->engagementAlgorithm->calculate($business),
 
-                // Kontent optimallashtirish
-                'content_optimization' => $this->contentOptimizationAlgorithm->calculate($business),
+                    // Kontent optimallashtirish
+                    'content_optimization' => $this->contentOptimizationAlgorithm->calculate($business),
 
-                // Churn risk
-                'churn_risk' => $this->churnRiskAlgorithm->calculate($business),
+                    // Churn risk
+                    'churn_risk' => $this->churnRiskAlgorithm->calculate($business),
 
-                // Daromad bashorati
-                'revenue_forecast' => $this->revenueForecaster->calculate($business),
+                    // Daromad bashorati
+                    'revenue_forecast' => $this->revenueForecaster->calculate($business),
 
-                // Raqobatchi benchmarking
-                'competitor_benchmark' => $this->competitorBenchmarkAlgorithm->calculate($business, $benchmarks),
-            ];
+                    // Raqobatchi benchmarking
+                    'competitor_benchmark' => $this->competitorBenchmarkAlgorithm->calculate($business, $benchmarks),
+                ];
 
-            // 3. Umumiy ball hisoblash
-            $results['overall_score'] = $this->calculateOverallScore($results);
-            $results['status'] = $this->getStatusFromScore($results['overall_score']);
+                // 3. Umumiy ball hisoblash
+                $results['overall_score'] = $this->calculateOverallScore($results);
+                $results['status'] = $this->getStatusFromScore($results['overall_score']);
 
-            // 4. ROI hisoblash
-            $results['roi_calculations'] = $this->calculateROI($results);
+                // 4. ROI hisoblash
+                $results['roi_calculations'] = $this->calculateROI($results);
 
-            // 5. Action plan prioritetlash
-            $results['action_priorities'] = $this->prioritizeActions($results);
+                // 5. Action plan prioritetlash
+                $results['action_priorities'] = $this->prioritizeActions($results);
 
-            // 6. Expected results
-            $results['expected_results'] = $this->calculateExpectedResults($results);
+                // 6. Expected results
+                $results['expected_results'] = $this->calculateExpectedResults($results);
 
-            // Meta ma'lumotlar
-            $results['_meta'] = [
-                'calculated_at' => now()->toIso8601String(),
-                'calculation_time_ms' => round((microtime(true) - $startTime) * 1000),
-                'algorithm_version' => '2.0.0',
-                'data_completeness' => $this->calculateDataCompleteness($businessData),
-            ];
+                // Meta ma'lumotlar
+                $results['_meta'] = [
+                    'calculated_at' => now()->toIso8601String(),
+                    'calculation_time_ms' => round((microtime(true) - $startTime) * 1000),
+                    'algorithm_version' => '2.0.0',
+                    'data_completeness' => $this->calculateDataCompleteness($businessData),
+                ];
 
                 Log::info('Diagnostic algorithm completed', [
                     'business_id' => $business->id,
@@ -270,7 +280,7 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
         // Ensure all stages exist with 0 default
         $stages = ['awareness', 'interest', 'consideration', 'intent', 'purchase'];
         foreach ($stages as $stage) {
-            if (!isset($leadCounts[$stage])) {
+            if (! isset($leadCounts[$stage])) {
                 $leadCounts[$stage] = 0;
             }
         }
@@ -485,7 +495,7 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
                 'money_investment' => 0,
                 'monthly_return' => $monthlyLoss * 0.7, // 70% recovery
                 'metric' => 'Konversiya',
-                'improvement' => '+' . round((70 - $dreamBuyerScore) * 0.5) . '%',
+                'improvement' => '+'.round((70 - $dreamBuyerScore) * 0.5).'%',
                 'description' => 'Aniq auditoriyaga moslashtirilgan marketing',
                 'module_route' => '/onboarding/dream-buyer',
                 'difficulty' => 'oson',
@@ -504,7 +514,7 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
                 'money_investment' => 0,
                 'monthly_return' => $monthlyLoss * 0.6,
                 'metric' => 'Sotuvlar',
-                'improvement' => '+' . round((70 - $offerScore) * 0.8) . '%',
+                'improvement' => '+'.round((70 - $offerScore) * 0.8).'%',
                 'description' => 'Raqobatchilardan farqlanadigan kuchli taklif',
                 'module_route' => '/onboarding/offer',
                 'difficulty' => 'o\'rta',
@@ -517,15 +527,15 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
             if (($data['score'] ?? 0) < 50) {
                 $actions[] = [
                     'id' => $priority,
-                    'title' => ucfirst($channel) . ' ni yaxshilang',
+                    'title' => ucfirst($channel).' ni yaxshilang',
                     'priority' => $priority++,
                     'time_minutes' => 20,
                     'money_investment' => 0,
                     'monthly_return' => 3000000,
                     'metric' => 'Engagement',
                     'improvement' => '+50%',
-                    'description' => $channel . ' orqali ko\'proq mijozlarga yetish',
-                    'module_route' => '/business/' . $channel,
+                    'description' => $channel.' orqali ko\'proq mijozlarga yetish',
+                    'module_route' => '/business/'.$channel,
                     'difficulty' => 'oson',
                 ];
             }
@@ -543,7 +553,7 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
                 'money_investment' => 0,
                 'monthly_return' => $biggestLeak['estimated_loss'] ?? 4000000,
                 'metric' => 'Konversiya',
-                'improvement' => '+' . round((60 - $funnelScore) * 0.5) . '%',
+                'improvement' => '+'.round((60 - $funnelScore) * 0.5).'%',
                 'description' => 'Eng katta yo\'qotish joyini tuzatish',
                 'module_route' => '/business/funnel',
                 'difficulty' => 'o\'rta',
@@ -558,10 +568,19 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
      */
     protected function getROIVerdict(int $roiPercent): string
     {
-        if ($roiPercent >= 1000) return 'JUDA SAMARALI ✅';
-        if ($roiPercent >= 500) return 'SAMARALI ✅';
-        if ($roiPercent >= 200) return 'YAXSHI 👍';
-        if ($roiPercent >= 100) return 'QABUL QILINADIGAN ⚖️';
+        if ($roiPercent >= 1000) {
+            return 'JUDA SAMARALI ✅';
+        }
+        if ($roiPercent >= 500) {
+            return 'SAMARALI ✅';
+        }
+        if ($roiPercent >= 200) {
+            return 'YAXSHI 👍';
+        }
+        if ($roiPercent >= 100) {
+            return 'QABUL QILINADIGAN ⚖️';
+        }
+
         return 'TAHLIL QILISH KERAK ⚠️';
     }
 
@@ -643,9 +662,10 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
         }
 
         // Sort by impact and gap
-        usort($actions, function($a, $b) {
+        usort($actions, function ($a, $b) {
             $scoreA = $a['impact_stars'] * 10 + $a['gap'];
             $scoreB = $b['impact_stars'] * 10 + $b['gap'];
+
             return $scoreB <=> $scoreA;
         });
 
@@ -762,7 +782,7 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
         foreach ($requiredFields as $category => $fields) {
             $filled = 0;
             foreach ($fields as $field) {
-                if (!empty($businessData[$field])) {
+                if (! empty($businessData[$field])) {
                     $filled++;
                 }
             }
@@ -780,16 +800,16 @@ class DiagnosticAlgorithmService extends AlgorithmEngine
     protected function formatTime(int $minutes): string
     {
         if ($minutes < 60) {
-            return $minutes . ' daqiqa';
+            return $minutes.' daqiqa';
         }
 
         $hours = floor($minutes / 60);
         $remainingMinutes = $minutes % 60;
 
         if ($remainingMinutes === 0) {
-            return $hours . ' soat';
+            return $hours.' soat';
         }
 
-        return $hours . ' soat ' . $remainingMinutes . ' daqiqa';
+        return $hours.' soat '.$remainingMinutes.' daqiqa';
     }
 }

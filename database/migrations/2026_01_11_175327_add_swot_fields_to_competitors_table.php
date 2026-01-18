@@ -13,20 +13,20 @@ return new class extends Migration
     {
         Schema::table('competitors', function (Blueprint $table) {
             // Full SWOT data for each competitor
-            if (!Schema::hasColumn('competitors', 'swot_data')) {
+            if (! Schema::hasColumn('competitors', 'swot_data')) {
                 $table->json('swot_data')->nullable()->after('weaknesses');
             }
-            if (!Schema::hasColumn('competitors', 'swot_analyzed_at')) {
+            if (! Schema::hasColumn('competitors', 'swot_analyzed_at')) {
                 $table->timestamp('swot_analyzed_at')->nullable();
             }
         });
 
         // Add business SWOT fields if not exists
         Schema::table('businesses', function (Blueprint $table) {
-            if (!Schema::hasColumn('businesses', 'swot_data')) {
+            if (! Schema::hasColumn('businesses', 'swot_data')) {
                 $table->json('swot_data')->nullable();
             }
-            if (!Schema::hasColumn('businesses', 'swot_updated_at')) {
+            if (! Schema::hasColumn('businesses', 'swot_updated_at')) {
                 $table->timestamp('swot_updated_at')->nullable();
             }
         });

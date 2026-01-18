@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Redis;
 
 class HealthCheckController extends Controller
 {
@@ -36,7 +36,7 @@ class HealthCheckController extends Controller
             'storage' => $this->checkStorage(),
         ];
 
-        $healthy = collect($checks)->every(fn($check) => $check['status'] === 'ok');
+        $healthy = collect($checks)->every(fn ($check) => $check['status'] === 'ok');
 
         return response()->json([
             'status' => $healthy ? 'healthy' : 'unhealthy',
@@ -112,7 +112,7 @@ class HealthCheckController extends Controller
     private function checkCache(): array
     {
         try {
-            $key = 'health_check_' . uniqid();
+            $key = 'health_check_'.uniqid();
             $start = microtime(true);
 
             Cache::put($key, 'test', 10);

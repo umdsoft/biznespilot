@@ -13,8 +13,11 @@ class FeedbackReport extends Model
 
     // Types
     public const TYPE_BUG = 'bug';
+
     public const TYPE_SUGGESTION = 'suggestion';
+
     public const TYPE_QUESTION = 'question';
+
     public const TYPE_OTHER = 'other';
 
     public const TYPES = [
@@ -40,8 +43,11 @@ class FeedbackReport extends Model
 
     // Statuses
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_RESOLVED = 'resolved';
+
     public const STATUS_CLOSED = 'closed';
 
     public const STATUSES = [
@@ -60,8 +66,11 @@ class FeedbackReport extends Model
 
     // Priorities
     public const PRIORITY_LOW = 'low';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_URGENT = 'urgent';
 
     public const PRIORITIES = [
@@ -167,33 +176,37 @@ class FeedbackReport extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        if (!$this->status) {
+        if (! $this->status) {
             return self::STATUSES[self::STATUS_PENDING];
         }
+
         return self::STATUSES[$this->status] ?? $this->status;
     }
 
     public function getStatusColorAttribute(): string
     {
-        if (!$this->status) {
+        if (! $this->status) {
             return self::STATUS_COLORS[self::STATUS_PENDING];
         }
+
         return self::STATUS_COLORS[$this->status] ?? 'gray';
     }
 
     public function getPriorityLabelAttribute(): string
     {
-        if (!$this->priority) {
+        if (! $this->priority) {
             return self::PRIORITIES[self::PRIORITY_MEDIUM];
         }
+
         return self::PRIORITIES[$this->priority] ?? $this->priority;
     }
 
     public function getPriorityColorAttribute(): string
     {
-        if (!$this->priority) {
+        if (! $this->priority) {
             return self::PRIORITY_COLORS[self::PRIORITY_MEDIUM];
         }
+
         return self::PRIORITY_COLORS[$this->priority] ?? 'gray';
     }
 

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use Illuminate\Http\Request;
@@ -19,7 +18,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login')->with('error', 'Biznes topilmadi');
         }
 
@@ -40,7 +39,7 @@ class LeadController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -67,7 +66,7 @@ class LeadController extends Controller
 
         $query->orderBy('created_at', 'desc');
 
-        $leads = $query->paginate($perPage)->through(fn($lead) => [
+        $leads = $query->paginate($perPage)->through(fn ($lead) => [
             'id' => $lead->id,
             'name' => $lead->name,
             'phone' => $lead->phone,
@@ -93,7 +92,7 @@ class LeadController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -114,7 +113,7 @@ class LeadController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -240,7 +239,7 @@ class LeadController extends Controller
             'lead_id' => $lead->id,
             'user_id' => $userId,
             'type' => 'call',
-            'description' => "Qo'ng'iroq: {$validated['outcome']}" . ($validated['notes'] ? " - {$validated['notes']}" : ''),
+            'description' => "Qo'ng'iroq: {$validated['outcome']}".($validated['notes'] ? " - {$validated['notes']}" : ''),
             'metadata' => [
                 'outcome' => $validated['outcome'],
                 'duration' => $validated['duration'] ?? null,

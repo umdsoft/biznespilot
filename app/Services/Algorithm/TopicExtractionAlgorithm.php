@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 class TopicExtractionAlgorithm extends AlgorithmEngine
 {
     protected string $version = '1.0.0';
+
     protected int $cacheTTL = 1800;
 
     /**
@@ -39,8 +40,8 @@ class TopicExtractionAlgorithm extends AlgorithmEngine
     /**
      * Extract topics from documents
      *
-     * @param array $documents Array of text documents
-     * @param array $options Options (top_n, min_df, etc.)
+     * @param  array  $documents  Array of text documents
+     * @param  array  $options  Options (top_n, min_df, etc.)
      * @return array Topics and keywords
      */
     public function analyze(array $documents, array $options = []): array
@@ -85,6 +86,7 @@ class TopicExtractionAlgorithm extends AlgorithmEngine
 
         } catch (\Exception $e) {
             Log::error('TopicExtractionAlgorithm failed', ['error' => $e->getMessage()]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -94,8 +96,9 @@ class TopicExtractionAlgorithm extends AlgorithmEngine
         $text = mb_strtolower($text);
         $text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $text);
         $words = preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
-        return array_filter($words, function($word) {
-            return mb_strlen($word) > 2 && !in_array($word, $this->stopWords);
+
+        return array_filter($words, function ($word) {
+            return mb_strlen($word) > 2 && ! in_array($word, $this->stopWords);
         });
     }
 
@@ -134,10 +137,11 @@ class TopicExtractionAlgorithm extends AlgorithmEngine
         foreach ($tfidfScores as $docIdx => $scores) {
             arsort($scores);
             $topKeywords = array_slice($scores, 0, $topN, true);
-            $result[$docIdx] = array_map(function($word, $score) {
+            $result[$docIdx] = array_map(function ($word, $score) {
                 return ['keyword' => $word, 'score' => round($score, 4)];
             }, array_keys($topKeywords), $topKeywords);
         }
+
         return $result;
     }
 
@@ -151,7 +155,8 @@ class TopicExtractionAlgorithm extends AlgorithmEngine
         }
         arsort($globalScores);
         $top = array_slice($globalScores, 0, $topN, true);
-        return array_map(function($term, $score) {
+
+        return array_map(function ($term, $score) {
             return ['topic' => $term, 'score' => round($score, 4)];
         }, array_keys($top), $top);
     }

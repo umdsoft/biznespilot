@@ -48,6 +48,7 @@ class MonitorCompetitorsCommand extends Command
 
         // Show help if no option provided
         $this->showOptions();
+
         return Command::SUCCESS;
     }
 
@@ -58,8 +59,9 @@ class MonitorCompetitorsCommand extends Command
     {
         $competitor = Competitor::find($competitorId);
 
-        if (!$competitor) {
+        if (! $competitor) {
             $this->error("Raqobatchi topilmadi: {$competitorId}");
+
             return Command::FAILURE;
         }
 
@@ -68,6 +70,7 @@ class MonitorCompetitorsCommand extends Command
         ScrapeCompetitorData::dispatch($competitor->id);
 
         $this->info("Job ishga tushirildi. Queue worker'ni tekshiring.");
+
         return Command::SUCCESS;
     }
 
@@ -78,8 +81,9 @@ class MonitorCompetitorsCommand extends Command
     {
         $business = Business::find($businessId);
 
-        if (!$business) {
+        if (! $business) {
             $this->error("Biznes topilmadi: {$businessId}");
+
             return Command::FAILURE;
         }
 
@@ -91,13 +95,15 @@ class MonitorCompetitorsCommand extends Command
         $this->info("Raqobatchilar soni: {$competitors->count()}");
 
         if ($competitors->isEmpty()) {
-            $this->warn("Faol raqobatchilar topilmadi.");
+            $this->warn('Faol raqobatchilar topilmadi.');
+
             return Command::SUCCESS;
         }
 
         ScrapeCompetitorData::dispatch(null, $businessId);
 
         $this->info("Job ishga tushirildi. Queue worker'ni tekshiring.");
+
         return Command::SUCCESS;
     }
 
@@ -109,7 +115,7 @@ class MonitorCompetitorsCommand extends Command
         $query = Competitor::where('status', 'active')
             ->where('auto_monitor', true);
 
-        if (!$this->option('force')) {
+        if (! $this->option('force')) {
             // Only monitor if it's time based on check_frequency_hours
             $query->where(function ($q) {
                 $q->whereNull('last_checked_at')
@@ -122,7 +128,8 @@ class MonitorCompetitorsCommand extends Command
         $this->info("Kuzatilishi kerak bo'lgan raqobatchilar: {$competitors->count()}");
 
         if ($competitors->isEmpty()) {
-            $this->info("Hozircha kuzatish kerak emas.");
+            $this->info('Hozircha kuzatish kerak emas.');
+
             return Command::SUCCESS;
         }
 

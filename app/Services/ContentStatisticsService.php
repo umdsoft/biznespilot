@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\ContentCalendar;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Centralized Content Statistics Service
@@ -23,7 +23,7 @@ class ContentStatisticsService
         $startDate = $startDate ?? Carbon::now()->subDays(30);
         $cacheKey = "content_stats_{$businessId}_{$startDate->format('Y-m-d')}";
 
-        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($businessId, $startDate) {
+        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($businessId) {
             $stats = DB::table('content_calendars')
                 ->where('business_id', $businessId)
                 ->selectRaw('

@@ -7,9 +7,8 @@ use App\Jobs\ProcessTelegramBroadcast;
 use App\Models\TelegramBot;
 use App\Models\TelegramBroadcast;
 use App\Models\TelegramUser;
-use App\Services\Telegram\TelegramApiService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -30,7 +29,7 @@ class TelegramBroadcastController extends Controller
             ->with('creator:id,name')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($broadcast) => [
+            ->map(fn ($broadcast) => [
                 'id' => $broadcast->id,
                 'name' => $broadcast->name,
                 'status' => $broadcast->status,
@@ -125,7 +124,7 @@ class TelegramBroadcastController extends Controller
 
         $filter = $request->target_filter ?? [];
 
-        if (!empty($filter['tags'])) {
+        if (! empty($filter['tags'])) {
             $recipientsQuery->where(function ($q) use ($filter) {
                 foreach ($filter['tags'] as $tag) {
                     $q->orWhereJsonContains('tags', $tag);
@@ -133,7 +132,7 @@ class TelegramBroadcastController extends Controller
             });
         }
 
-        if (!empty($filter['active_after'])) {
+        if (! empty($filter['active_after'])) {
             $recipientsQuery->where('last_active_at', '>=', $filter['active_after']);
         }
 
@@ -221,7 +220,7 @@ class TelegramBroadcastController extends Controller
             ->where('id', $broadcastId)
             ->firstOrFail();
 
-        if (!in_array($broadcast->status, ['draft', 'scheduled'])) {
+        if (! in_array($broadcast->status, ['draft', 'scheduled'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Faqat draft yoki scheduled broadcastni o\'zgartirish mumkin',
@@ -243,7 +242,7 @@ class TelegramBroadcastController extends Controller
 
             $filter = $request->target_filter ?? [];
 
-            if (!empty($filter['tags'])) {
+            if (! empty($filter['tags'])) {
                 $recipientsQuery->where(function ($q) use ($filter) {
                     foreach ($filter['tags'] as $tag) {
                         $q->orWhereJsonContains('tags', $tag);
@@ -251,7 +250,7 @@ class TelegramBroadcastController extends Controller
                 });
             }
 
-            if (!empty($filter['active_after'])) {
+            if (! empty($filter['active_after'])) {
                 $recipientsQuery->where('last_active_at', '>=', $filter['active_after']);
             }
 
@@ -288,7 +287,7 @@ class TelegramBroadcastController extends Controller
             ->where('id', $broadcastId)
             ->firstOrFail();
 
-        if (!$broadcast->canStart()) {
+        if (! $broadcast->canStart()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu broadcastni boshlash mumkin emas',
@@ -326,7 +325,7 @@ class TelegramBroadcastController extends Controller
             ->where('id', $broadcastId)
             ->firstOrFail();
 
-        if (!$broadcast->canPause()) {
+        if (! $broadcast->canPause()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu broadcastni to\'xtatib bo\'lmaydi',
@@ -395,7 +394,7 @@ class TelegramBroadcastController extends Controller
             ->where('id', $broadcastId)
             ->firstOrFail();
 
-        if (!$broadcast->canCancel()) {
+        if (! $broadcast->canCancel()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu broadcastni bekor qilib bo\'lmaydi',
@@ -460,7 +459,7 @@ class TelegramBroadcastController extends Controller
 
         $filter = $request->target_filter ?? [];
 
-        if (!empty($filter['tags'])) {
+        if (! empty($filter['tags'])) {
             $recipientsQuery->where(function ($q) use ($filter) {
                 foreach ($filter['tags'] as $tag) {
                     $q->orWhereJsonContains('tags', $tag);
@@ -468,7 +467,7 @@ class TelegramBroadcastController extends Controller
             });
         }
 
-        if (!empty($filter['active_after'])) {
+        if (! empty($filter['active_after'])) {
             $recipientsQuery->where('last_active_at', '>=', $filter['active_after']);
         }
 

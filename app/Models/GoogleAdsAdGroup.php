@@ -105,11 +105,11 @@ class GoogleAdsAdGroup extends Model
         $parts = [];
 
         if ($this->targeting) {
-            if (!empty($this->targeting['age_ranges'])) {
-                $parts[] = 'Yosh: ' . implode(', ', $this->targeting['age_ranges']);
+            if (! empty($this->targeting['age_ranges'])) {
+                $parts[] = 'Yosh: '.implode(', ', $this->targeting['age_ranges']);
             }
-            if (!empty($this->targeting['genders'])) {
-                $parts[] = 'Jins: ' . implode(', ', $this->targeting['genders']);
+            if (! empty($this->targeting['genders'])) {
+                $parts[] = 'Jins: '.implode(', ', $this->targeting['genders']);
             }
         }
 

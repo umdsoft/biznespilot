@@ -3,12 +3,11 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use App\Models\Sale;
-use App\Models\MarketingChannel;
+use App\Models\ContentSchedule;
 use App\Models\Customer;
 use App\Models\Lead;
-use App\Models\ContentSchedule;
-use Illuminate\Support\Facades\DB;
+use App\Models\MarketingChannel;
+use App\Models\Sale;
 use Carbon\Carbon;
 
 /**
@@ -20,6 +19,7 @@ use Carbon\Carbon;
 class ModuleAnalyzer extends AlgorithmEngine
 {
     protected string $cachePrefix = 'module_analyzer_';
+
     protected int $cacheTTL = 1800; // 30 minutes
 
     protected array $moduleWeights = [
@@ -279,12 +279,12 @@ class ModuleAnalyzer extends AlgorithmEngine
 
         // Content type distribution
         $contentTypes = $scheduledContent->groupBy('content_type')
-            ->map(fn($items) => $items->count())
+            ->map(fn ($items) => $items->count())
             ->toArray();
 
         // Publishing consistency
         $publishDates = $scheduledContent->pluck('scheduled_at')
-            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->map(fn ($date) => Carbon::parse($date)->format('Y-m-d'))
             ->unique()
             ->count();
 
@@ -326,7 +326,7 @@ class ModuleAnalyzer extends AlgorithmEngine
 
         // Funnel stages
         $funnelStages = $leads->groupBy('status')
-            ->map(fn($items) => $items->count())
+            ->map(fn ($items) => $items->count())
             ->toArray();
 
         // Calculate funnel efficiency
@@ -394,7 +394,7 @@ class ModuleAnalyzer extends AlgorithmEngine
 
         return [
             'overall' => round($avgCompleteness, 2),
-            'by_module' => array_map(fn($m) => [
+            'by_module' => array_map(fn ($m) => [
                 'module' => $m['module'],
                 'completeness' => $m['data_completeness'],
             ], $modules),
@@ -481,20 +481,33 @@ class ModuleAnalyzer extends AlgorithmEngine
         $score = 50; // Base score
 
         // Revenue growth contribution (max 30 points)
-        if ($revenueGrowth > 20) $score += 30;
-        elseif ($revenueGrowth > 10) $score += 25;
-        elseif ($revenueGrowth > 0) $score += 15;
-        elseif ($revenueGrowth > -10) $score += 5;
+        if ($revenueGrowth > 20) {
+            $score += 30;
+        } elseif ($revenueGrowth > 10) {
+            $score += 25;
+        } elseif ($revenueGrowth > 0) {
+            $score += 15;
+        } elseif ($revenueGrowth > -10) {
+            $score += 5;
+        }
 
         // Sales count growth (max 20 points)
-        if ($salesGrowth > 20) $score += 20;
-        elseif ($salesGrowth > 10) $score += 15;
-        elseif ($salesGrowth > 0) $score += 10;
-        elseif ($salesGrowth > -10) $score += 5;
+        if ($salesGrowth > 20) {
+            $score += 20;
+        } elseif ($salesGrowth > 10) {
+            $score += 15;
+        } elseif ($salesGrowth > 0) {
+            $score += 10;
+        } elseif ($salesGrowth > -10) {
+            $score += 5;
+        }
 
         // Trend direction (max 10 points)
-        if ($trend['trend'] === 'up') $score += 10;
-        elseif ($trend['trend'] === 'stable') $score += 5;
+        if ($trend['trend'] === 'up') {
+            $score += 10;
+        } elseif ($trend['trend'] === 'stable') {
+            $score += 5;
+        }
 
         return min(100, max(0, $score));
     }
@@ -504,12 +517,18 @@ class ModuleAnalyzer extends AlgorithmEngine
         $score = 30; // Base score
 
         // Active channels (max 30 points)
-        if ($activeChannels >= 4) $score += 30;
-        elseif ($activeChannels >= 2) $score += 20;
-        elseif ($activeChannels >= 1) $score += 10;
+        if ($activeChannels >= 4) {
+            $score += 30;
+        } elseif ($activeChannels >= 2) {
+            $score += 20;
+        } elseif ($activeChannels >= 1) {
+            $score += 10;
+        }
 
         // Budget allocation (max 20 points)
-        if ($totalBudget > 0) $score += 20;
+        if ($totalBudget > 0) {
+            $score += 20;
+        }
 
         // Diversity (max 20 points)
         $score += min(20, $diversityScore / 5);
@@ -522,15 +541,24 @@ class ModuleAnalyzer extends AlgorithmEngine
         $score = 40; // Base score
 
         // Customer growth (max 30 points)
-        if ($customerGrowth > 20) $score += 30;
-        elseif ($customerGrowth > 10) $score += 25;
-        elseif ($customerGrowth > 0) $score += 15;
-        elseif ($customerGrowth > -10) $score += 5;
+        if ($customerGrowth > 20) {
+            $score += 30;
+        } elseif ($customerGrowth > 10) {
+            $score += 25;
+        } elseif ($customerGrowth > 0) {
+            $score += 15;
+        } elseif ($customerGrowth > -10) {
+            $score += 5;
+        }
 
         // Purchase frequency (max 20 points)
-        if ($avgFrequency > 3) $score += 20;
-        elseif ($avgFrequency > 2) $score += 15;
-        elseif ($avgFrequency > 1) $score += 10;
+        if ($avgFrequency > 3) {
+            $score += 20;
+        } elseif ($avgFrequency > 2) {
+            $score += 15;
+        } elseif ($avgFrequency > 1) {
+            $score += 10;
+        }
 
         // Loyal customers (max 10 points)
         $loyalPercent = $segments['loyal'] ?? 0;
@@ -544,18 +572,25 @@ class ModuleAnalyzer extends AlgorithmEngine
         $score = 30; // Base score
 
         // Frequency (max 30 points)
-        if ($frequency >= 1) $score += 30;
-        elseif ($frequency >= 0.5) $score += 20;
-        elseif ($frequency >= 0.2) $score += 10;
+        if ($frequency >= 1) {
+            $score += 30;
+        } elseif ($frequency >= 0.5) {
+            $score += 20;
+        } elseif ($frequency >= 0.2) {
+            $score += 10;
+        }
 
         // Consistency (max 30 points)
         $score += min(30, $consistency / 3.33);
 
         // Total content (max 10 points)
-        if ($total >= 30) $score += 10;
-        elseif ($total >= 15) $score += 5;
+        if ($total >= 30) {
+            $score += 10;
+        } elseif ($total >= 15) {
+            $score += 5;
+        }
 
-        return min(100, max(0, (int)$score));
+        return min(100, max(0, (int) $score));
     }
 
     protected function calculateFunnelHealthScore(float $conversionRate, float $efficiency, int $totalLeads): int
@@ -563,26 +598,37 @@ class ModuleAnalyzer extends AlgorithmEngine
         $score = 30; // Base score
 
         // Conversion rate (max 40 points)
-        if ($conversionRate >= 20) $score += 40;
-        elseif ($conversionRate >= 10) $score += 30;
-        elseif ($conversionRate >= 5) $score += 20;
-        elseif ($conversionRate >= 2) $score += 10;
+        if ($conversionRate >= 20) {
+            $score += 40;
+        } elseif ($conversionRate >= 10) {
+            $score += 30;
+        } elseif ($conversionRate >= 5) {
+            $score += 20;
+        } elseif ($conversionRate >= 2) {
+            $score += 10;
+        }
 
         // Efficiency (max 20 points)
         $score += min(20, $efficiency / 5);
 
         // Lead volume (max 10 points)
-        if ($totalLeads >= 100) $score += 10;
-        elseif ($totalLeads >= 50) $score += 7;
-        elseif ($totalLeads >= 20) $score += 4;
+        if ($totalLeads >= 100) {
+            $score += 10;
+        } elseif ($totalLeads >= 50) {
+            $score += 7;
+        } elseif ($totalLeads >= 20) {
+            $score += 4;
+        }
 
-        return min(100, max(0, (int)$score));
+        return min(100, max(0, (int) $score));
     }
 
     // Helper methods
     protected function calculateSalesDataCompleteness($sales): float
     {
-        if ($sales->isEmpty()) return 0;
+        if ($sales->isEmpty()) {
+            return 0;
+        }
 
         $requiredFields = ['amount', 'customer_id', 'created_at'];
         $completenessSum = 0;
@@ -590,7 +636,9 @@ class ModuleAnalyzer extends AlgorithmEngine
         foreach ($sales as $sale) {
             $complete = 0;
             foreach ($requiredFields as $field) {
-                if (!empty($sale->$field)) $complete++;
+                if (! empty($sale->$field)) {
+                    $complete++;
+                }
             }
             $completenessSum += ($complete / count($requiredFields)) * 100;
         }
@@ -601,7 +649,9 @@ class ModuleAnalyzer extends AlgorithmEngine
     protected function analyzeBudgetDistribution($channels): array
     {
         $totalBudget = $channels->sum('monthly_budget');
-        if ($totalBudget === 0) return [];
+        if ($totalBudget === 0) {
+            return [];
+        }
 
         return $channels->map(function ($channel) use ($totalBudget) {
             return [
@@ -615,6 +665,7 @@ class ModuleAnalyzer extends AlgorithmEngine
     protected function calculateChannelDiversity($channels): float
     {
         $types = $channels->pluck('channel_type')->unique()->count();
+
         return min(100, $types * 25); // Max 100 for 4+ different types
     }
 
@@ -631,7 +682,7 @@ class ModuleAnalyzer extends AlgorithmEngine
             return ['segments' => [], 'summary' => 'Ma\'lumot yetarli emas'];
         }
 
-        $avgRecency = $customers->avg(fn($c) => Carbon::parse($c->last_purchase)->diffInDays(now()));
+        $avgRecency = $customers->avg(fn ($c) => Carbon::parse($c->last_purchase)->diffInDays(now()));
         $avgFrequency = $customers->avg('frequency');
         $avgMonetary = $customers->avg('monetary');
 
@@ -671,23 +722,34 @@ class ModuleAnalyzer extends AlgorithmEngine
         }
 
         $total = array_sum($segments);
-        return array_map(fn($v) => round(($v / $total) * 100, 1), $segments);
+
+        return array_map(fn ($v) => round(($v / $total) * 100, 1), $segments);
     }
 
     protected function calculateFunnelEfficiency(array $stages): float
     {
         $totalLeads = array_sum($stages);
-        if ($totalLeads === 0) return 0;
+        if ($totalLeads === 0) {
+            return 0;
+        }
 
         $converted = $stages['converted'] ?? 0;
+
         return round(($converted / $totalLeads) * 100, 2);
     }
 
     protected function getScoreStatus(int $score): array
     {
-        if ($score >= 80) return ['level' => 'excellent', 'label' => 'Ajoyib', 'color' => 'emerald'];
-        if ($score >= 60) return ['level' => 'good', 'label' => 'Yaxshi', 'color' => 'green'];
-        if ($score >= 40) return ['level' => 'average', 'label' => 'O\'rtacha', 'color' => 'yellow'];
+        if ($score >= 80) {
+            return ['level' => 'excellent', 'label' => 'Ajoyib', 'color' => 'emerald'];
+        }
+        if ($score >= 60) {
+            return ['level' => 'good', 'label' => 'Yaxshi', 'color' => 'green'];
+        }
+        if ($score >= 40) {
+            return ['level' => 'average', 'label' => 'O\'rtacha', 'color' => 'yellow'];
+        }
+
         return ['level' => 'poor', 'label' => 'Zaif', 'color' => 'red'];
     }
 
@@ -726,7 +788,7 @@ class ModuleAnalyzer extends AlgorithmEngine
         }
 
         if ($totalBudget > 0) {
-            $insights[] = ['type' => 'info', 'message' => "Jami marketing byudjeti: " . number_format($totalBudget) . " so'm"];
+            $insights[] = ['type' => 'info', 'message' => 'Jami marketing byudjeti: '.number_format($totalBudget)." so'm"];
         }
 
         return $insights;

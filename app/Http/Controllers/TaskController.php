@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Task;
 use App\Models\Lead;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -20,7 +20,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -115,7 +115,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -132,14 +132,14 @@ class TaskController extends Controller
 
         // Determine assigned_to - auto-assign to lead's operator if not explicitly set
         $assignedTo = $validated['assigned_to'] ?? null;
-        if (!$assignedTo && isset($validated['lead_id'])) {
+        if (! $assignedTo && isset($validated['lead_id'])) {
             $lead = Lead::find($validated['lead_id']);
             if ($lead && $lead->assigned_to) {
                 $assignedTo = $lead->assigned_to;
             }
         }
         // Fallback to current user if still null
-        if (!$assignedTo) {
+        if (! $assignedTo) {
             $assignedTo = Auth::id();
         }
 
@@ -173,7 +173,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $task->business_id !== $business->id) {
+        if (! $business || $task->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -211,7 +211,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $task->business_id !== $business->id) {
+        if (! $business || $task->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -232,7 +232,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $task->business_id !== $business->id) {
+        if (! $business || $task->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -251,7 +251,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $lead->business_id !== $business->id) {
+        if (! $business || $lead->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -328,7 +328,7 @@ class TaskController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 

@@ -9,7 +9,6 @@ use App\Models\OrgAssignment;
 use App\Models\OrgDepartment;
 use App\Models\OrgPosition;
 use App\Models\OrgStructure;
-use App\Models\PositionTemplate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -21,14 +20,14 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
         $orgStructure = OrgStructure::with([
             'businessType',
             'departments.positions.assignments.user',
-            'departments.children.positions.assignments.user'
+            'departments.children.positions.assignments.user',
         ])
             ->where('business_id', $business->id)
             ->first();
@@ -43,7 +42,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -67,7 +66,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -145,7 +144,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $orgStructure->business_id !== $business->id) {
+        if (! $business || $orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -154,9 +153,9 @@ class OrgStructureController extends Controller
             'departments' => function ($query) {
                 $query->whereNull('parent_id')->with([
                     'positions.assignments.user',
-                    'children.positions.assignments.user'
+                    'children.positions.assignments.user',
                 ]);
-            }
+            },
         ]);
 
         return Inertia::render('HR/OrgStructure/Show', [
@@ -169,13 +168,13 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $orgStructure->business_id !== $business->id) {
+        if (! $business || $orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
         $orgStructure->load([
             'businessType',
-            'departments.positions'
+            'departments.positions',
         ]);
 
         $businessTypes = BusinessType::active()->get();
@@ -191,7 +190,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $orgStructure->business_id !== $business->id) {
+        if (! $business || $orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -211,7 +210,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $orgStructure->business_id !== $business->id) {
+        if (! $business || $orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -226,7 +225,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $orgStructure->business_id !== $business->id) {
+        if (! $business || $orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -252,7 +251,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $department->orgStructure->business_id !== $business->id) {
+        if (! $business || $department->orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -275,7 +274,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $department->orgStructure->business_id !== $business->id) {
+        if (! $business || $department->orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -289,7 +288,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $department->orgStructure->business_id !== $business->id) {
+        if (! $business || $department->orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -318,7 +317,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $position->orgDepartment->orgStructure->business_id !== $business->id) {
+        if (! $business || $position->orgDepartment->orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -343,7 +342,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $position->orgDepartment->orgStructure->business_id !== $business->id) {
+        if (! $business || $position->orgDepartment->orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -357,7 +356,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $position->orgDepartment->orgStructure->business_id !== $business->id) {
+        if (! $business || $position->orgDepartment->orgStructure->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -384,7 +383,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $assignment->business_id !== $business->id) {
+        if (! $business || $assignment->business_id !== $business->id) {
             return redirect()->route('login');
         }
 
@@ -399,9 +398,9 @@ class OrgStructureController extends Controller
         $assignment->update($validated);
 
         // Update position current_count if status changed
-        if ($wasActive && !$assignment->is_active) {
+        if ($wasActive && ! $assignment->is_active) {
             $assignment->orgPosition->decrement('current_count');
-        } elseif (!$wasActive && $assignment->is_active) {
+        } elseif (! $wasActive && $assignment->is_active) {
             $assignment->orgPosition->increment('current_count');
         }
 
@@ -412,7 +411,7 @@ class OrgStructureController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $assignment->business_id !== $business->id) {
+        if (! $business || $assignment->business_id !== $business->id) {
             return redirect()->route('login');
         }
 

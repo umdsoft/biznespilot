@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
 class Permission extends SpatiePermission
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected static function boot()

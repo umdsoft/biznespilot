@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\Campaign;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,7 +17,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -34,7 +33,7 @@ class CampaignController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         $campaigns = $query->orderBy('created_at', 'desc')
@@ -120,7 +119,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -162,7 +161,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -200,7 +199,7 @@ class CampaignController extends Controller
             ->orderBy('date', 'desc')
             ->limit(30)
             ->get()
-            ->map(fn($m) => [
+            ->map(fn ($m) => [
                 'date' => $m->date,
                 'sent' => $m->sent,
                 'delivered' => $m->delivered,
@@ -216,7 +215,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -263,7 +262,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -308,7 +307,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -329,7 +328,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -349,7 +348,7 @@ class CampaignController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 

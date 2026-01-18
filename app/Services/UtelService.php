@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 class UtelService
 {
     protected ?UtelAccount $account = null;
+
     protected string $baseUrl = 'https://api.utel.uz';
 
     /**
@@ -26,6 +27,7 @@ class UtelService
     {
         $this->account = $account;
         $this->baseUrl = $account->getApiBaseUrl();
+
         return $this;
     }
 
@@ -36,7 +38,7 @@ class UtelService
     {
         try {
             $response = Http::timeout(15)
-                ->post($this->baseUrl . '/v1/auth/login', [
+                ->post($this->baseUrl.'/v1/auth/login', [
                     'email' => $email,
                     'password' => $password,
                 ]);
@@ -68,13 +70,14 @@ class UtelService
 
             return [
                 'success' => false,
-                'error' => 'Ulanib bo\'lmadi: ' . $response->status(),
+                'error' => 'Ulanib bo\'lmadi: '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('UTEL connection test failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -84,7 +87,7 @@ class UtelService
      */
     public function authenticate(): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'UTEL account not configured'];
         }
 
@@ -97,7 +100,7 @@ class UtelService
             $password = Crypt::decryptString($this->account->password);
 
             $response = Http::timeout(15)
-                ->post($this->baseUrl . '/v1/auth/login', [
+                ->post($this->baseUrl.'/v1/auth/login', [
                     'email' => $this->account->email,
                     'password' => $password,
                 ]);
@@ -126,9 +129,10 @@ class UtelService
             ];
         } catch (\Exception $e) {
             Log::error('UTEL authentication failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Autentifikatsiya xatosi: ' . $e->getMessage(),
+                'error' => 'Autentifikatsiya xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -139,18 +143,18 @@ class UtelService
     protected function apiRequest(string $method, string $endpoint, array $data = []): array
     {
         $auth = $this->authenticate();
-        if (!$auth['success']) {
+        if (! $auth['success']) {
             return $auth;
         }
 
         try {
             $request = Http::timeout(30)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $auth['token'],
+                    'Authorization' => 'Bearer '.$auth['token'],
                     'Accept' => 'application/json',
                 ]);
 
-            $url = $this->baseUrl . $endpoint;
+            $url = $this->baseUrl.$endpoint;
 
             $response = match (strtoupper($method)) {
                 'GET' => $request->get($url, $data),
@@ -169,9 +173,10 @@ class UtelService
             }
 
             $errorData = $response->json();
+
             return [
                 'success' => false,
-                'error' => $errorData['message'] ?? 'API xatosi: ' . $response->status(),
+                'error' => $errorData['message'] ?? 'API xatosi: '.$response->status(),
                 'status' => $response->status(),
             ];
         } catch (\Exception $e) {
@@ -179,9 +184,10 @@ class UtelService
                 'endpoint' => $endpoint,
                 'error' => $e->getMessage(),
             ]);
+
             return [
                 'success' => false,
-                'error' => 'So\'rov xatosi: ' . $e->getMessage(),
+                'error' => 'So\'rov xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -191,7 +197,7 @@ class UtelService
      */
     public function makeCall(string $toNumber, ?Lead $lead = null, ?string $fromNumber = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'UTEL account not configured'];
         }
 
@@ -248,7 +254,7 @@ class UtelService
 
             return [
                 'success' => false,
-                'error' => 'UTEL xatosi: ' . ($result['error'] ?? 'Unknown error'),
+                'error' => 'UTEL xatosi: '.($result['error'] ?? 'Unknown error'),
             ];
         } catch (\Exception $e) {
             Log::error('UTEL make call failed', [
@@ -262,7 +268,7 @@ class UtelService
 
             return [
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ];
         }
     }
@@ -288,7 +294,7 @@ class UtelService
      */
     public function syncCallHistory(?Carbon $fromDate = null, ?Carbon $toDate = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'UTEL account not configured'];
         }
 
@@ -303,7 +309,7 @@ class UtelService
             do {
                 $result = $this->getCallHistory($fromDate, $toDate, $page);
 
-                if (!$result['success']) {
+                if (! $result['success']) {
                     break;
                 }
 
@@ -317,7 +323,7 @@ class UtelService
                 foreach ($calls as $call) {
                     $callId = $call['id'] ?? $call['call_id'] ?? null;
 
-                    if (!$callId) {
+                    if (! $callId) {
                         continue;
                     }
 
@@ -326,7 +332,7 @@ class UtelService
                         ->where('provider', 'utel')
                         ->exists();
 
-                    if (!$exists) {
+                    if (! $exists) {
                         $this->processCallRecord($call);
                         $created++;
                     }
@@ -349,9 +355,10 @@ class UtelService
             ];
         } catch (\Exception $e) {
             Log::error('UTEL sync call history failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Sinxronizatsiya xatosi: ' . $e->getMessage(),
+                'error' => 'Sinxronizatsiya xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -362,7 +369,7 @@ class UtelService
     protected function processCallRecord(array $call): void
     {
         $callId = $call['id'] ?? $call['call_id'] ?? null;
-        if (!$callId) {
+        if (! $callId) {
             return;
         }
 
@@ -414,15 +421,17 @@ class UtelService
             $eventType = $data['event'] ?? $data['type'] ?? $data['action'] ?? null;
             $callId = $data['call_id'] ?? $data['id'] ?? $data['uuid'] ?? null;
 
-            if (!$callId) {
+            if (! $callId) {
                 Log::warning('UTEL webhook: No call ID', $data);
+
                 return;
             }
 
             $businessId = $data['business_id'] ?? $this->account?->business_id ?? null;
 
-            if (!$businessId) {
+            if (! $businessId) {
                 Log::warning('UTEL webhook: No business ID', $data);
+
                 return;
             }
 
@@ -436,7 +445,7 @@ class UtelService
                 ->where('provider', 'utel')
                 ->first();
 
-            if (!$callLog) {
+            if (! $callLog) {
                 $callLog = CallLog::create([
                     'id' => Str::uuid(),
                     'business_id' => $businessId,
@@ -483,7 +492,7 @@ class UtelService
                         'ended_at' => now(),
                     ]);
 
-                    if (!empty($data['record_url']) || !empty($data['recording_url'])) {
+                    if (! empty($data['record_url']) || ! empty($data['recording_url'])) {
                         $callLog->update([
                             'recording_url' => $data['record_url'] ?? $data['recording_url'],
                         ]);
@@ -680,7 +689,7 @@ class UtelService
 
         // Handle Uzbekistan numbers
         if (strlen($phone) === 9 && preg_match('/^[0-9]/', $phone)) {
-            $phone = '998' . $phone;
+            $phone = '998'.$phone;
         }
 
         return $phone;
@@ -696,9 +705,9 @@ class UtelService
         // Try to find existing lead by phone number
         $lead = Lead::where('business_id', $businessId)
             ->where(function ($query) use ($phoneNumber) {
-                $query->where('phone', 'LIKE', '%' . substr($phoneNumber, -9))
+                $query->where('phone', 'LIKE', '%'.substr($phoneNumber, -9))
                     ->orWhere('phone', $phoneNumber)
-                    ->orWhere('phone', '+' . $phoneNumber);
+                    ->orWhere('phone', '+'.$phoneNumber);
             })
             ->first();
 
@@ -711,7 +720,7 @@ class UtelService
                 ->where('slug', 'phone')
                 ->first();
 
-            if (!$leadSource) {
+            if (! $leadSource) {
                 $leadSource = LeadSource::where('business_id', $businessId)
                     ->where('type', 'offline')
                     ->first();
@@ -722,7 +731,7 @@ class UtelService
                 'business_id' => $businessId,
                 'lead_source_id' => $leadSource?->id,
                 'name' => 'Kiruvchi qo\'ng\'iroq (UTEL)',
-                'phone' => '+' . $phoneNumber,
+                'phone' => '+'.$phoneNumber,
                 'status' => 'new',
                 'last_contacted_at' => now(),
                 'metadata' => [

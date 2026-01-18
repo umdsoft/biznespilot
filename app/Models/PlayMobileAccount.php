@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlayMobileAccount extends Model
 {
@@ -73,6 +73,6 @@ class PlayMobileAccount extends Model
      */
     public function getBasicAuthHeader(): string
     {
-        return 'Basic ' . base64_encode($this->login . ':' . $this->password);
+        return 'Basic '.base64_encode($this->login.':'.$this->password);
     }
 }

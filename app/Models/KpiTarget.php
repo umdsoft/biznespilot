@@ -179,7 +179,7 @@ class KpiTarget extends Model
 
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'not_started' => 'gray',
             'on_track' => 'blue',
             'at_risk' => 'yellow',
@@ -192,7 +192,7 @@ class KpiTarget extends Model
 
     public function getTrendIcon(): string
     {
-        return match($this->trend) {
+        return match ($this->trend) {
             'up' => 'arrow-up',
             'down' => 'arrow-down',
             'stable' => 'minus',
@@ -203,7 +203,7 @@ class KpiTarget extends Model
     public function getTrendColor(): string
     {
         // For most KPIs, up is good
-        return match($this->trend) {
+        return match ($this->trend) {
             'up' => 'green',
             'down' => 'red',
             'stable' => 'gray',
@@ -229,6 +229,7 @@ class KpiTarget extends Model
     {
         if ($this->target_value == 0) {
             $this->progress_percent = 0;
+
             return;
         }
 
@@ -243,12 +244,14 @@ class KpiTarget extends Model
         if ($this->previous_value === null) {
             $this->trend = 'unknown';
             $this->change_percent = null;
+
             return;
         }
 
         if ($this->previous_value == 0) {
             $this->trend = $this->current_value > 0 ? 'up' : 'stable';
             $this->change_percent = $this->current_value > 0 ? 100 : 0;
+
             return;
         }
 
@@ -285,7 +288,7 @@ class KpiTarget extends Model
 
     public function checkAlerts(): void
     {
-        if (!$this->enable_alerts) {
+        if (! $this->enable_alerts) {
             return;
         }
 
@@ -293,11 +296,11 @@ class KpiTarget extends Model
             && $this->current_value !== null
             && $this->status !== 'not_started';
 
-        if ($shouldAlert && !$this->alert_triggered) {
+        if ($shouldAlert && ! $this->alert_triggered) {
             $this->alert_triggered = true;
             $this->last_alert_at = now();
             // TODO: Send notification
-        } elseif (!$shouldAlert && $this->alert_triggered) {
+        } elseif (! $shouldAlert && $this->alert_triggered) {
             $this->alert_triggered = false;
         }
     }
@@ -305,23 +308,26 @@ class KpiTarget extends Model
     public function getFormattedValue(?float $value = null): string
     {
         $value = $value ?? $this->current_value;
-        if ($value === null) return '-';
+        if ($value === null) {
+            return '-';
+        }
 
         if ($this->unit === '%') {
-            return number_format($value, 1) . '%';
+            return number_format($value, 1).'%';
         }
 
         if ($this->unit === 'sum' || in_array($this->kpi_key, ['revenue', 'profit', 'budget', 'spend'])) {
             if ($value >= 1000000) {
-                return number_format($value / 1000000, 1) . 'M so\'m';
+                return number_format($value / 1000000, 1).'M so\'m';
             }
             if ($value >= 1000) {
-                return number_format($value / 1000, 1) . 'K so\'m';
+                return number_format($value / 1000, 1).'K so\'m';
             }
-            return number_format($value, 0) . ' so\'m';
+
+            return number_format($value, 0).' so\'m';
         }
 
-        return number_format($value, $value == floor($value) ? 0 : 1) . ($this->unit ? ' ' . $this->unit : '');
+        return number_format($value, $value == floor($value) ? 0 : 1).($this->unit ? ' '.$this->unit : '');
     }
 
     public function getRemainingToTarget(): float

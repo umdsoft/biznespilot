@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\AnnualStrategy;
-use App\Models\QuarterlyPlan;
-use App\Models\MonthlyPlan;
-use App\Models\WeeklyPlan;
-use App\Models\StrategyTemplate;
-use App\Models\Business;
 use App\Models\AIDiagnostic;
+use App\Models\AnnualStrategy;
+use App\Models\Business;
+use App\Models\MonthlyPlan;
+use App\Models\QuarterlyPlan;
+use App\Models\StrategyTemplate;
+use App\Models\WeeklyPlan;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
@@ -135,7 +135,7 @@ class StrategyBuilderService
             'quarterly_plan_id' => $quarterlyPlan->id,
             'year' => $quarterlyPlan->year,
             'month' => $month,
-            'title' => MonthlyPlan::MONTHS[$month] . ' ' . $quarterlyPlan->year,
+            'title' => MonthlyPlan::MONTHS[$month].' '.$quarterlyPlan->year,
             'status' => 'draft',
             'theme' => $aiData['theme'] ?? null,
             'executive_summary' => $aiData['summary'] ?? null,
@@ -201,7 +201,7 @@ class StrategyBuilderService
             'week_of_month' => $weekOfMonth,
             'start_date' => $weekStart,
             'end_date' => $weekEnd,
-            'title' => "Hafta {$weekOfMonth}, " . MonthlyPlan::MONTHS[$monthlyPlan->month],
+            'title' => "Hafta {$weekOfMonth}, ".MonthlyPlan::MONTHS[$monthlyPlan->month],
             'status' => 'draft',
             'weekly_focus' => $weekPlanData['focus'] ?? $aiData['focus'] ?? null,
             'priorities' => $aiData['priorities'] ?? [],
@@ -239,6 +239,7 @@ class StrategyBuilderService
         for ($q = 1; $q <= 4; $q++) {
             $plans[$q] = $this->createQuarterlyPlan($annualStrategy, $q);
         }
+
         return $plans;
     }
 
@@ -319,12 +320,13 @@ class StrategyBuilderService
     private function getQuarterMonths(int $quarter): array
     {
         $start = (($quarter - 1) * 3) + 1;
+
         return [$start, $start + 1, $start + 2];
     }
 
     private function getQuarterTheme(int $quarter): string
     {
-        return match($quarter) {
+        return match ($quarter) {
             1 => 'Yangi yil - Yangi imkoniyatlar',
             2 => 'Bahor - O\'sish fasli',
             3 => 'Yoz - Faollik davri',
@@ -355,7 +357,7 @@ class StrategyBuilderService
 
     private function calculateChannelBudget(float $totalBudget, ?array $allocation): array
     {
-        if (!$allocation) {
+        if (! $allocation) {
             // Default equal distribution
             return [
                 'instagram' => $totalBudget * 0.4,
@@ -369,6 +371,7 @@ class StrategyBuilderService
         foreach ($allocation as $channel => $percent) {
             $result[$channel] = $totalBudget * ($percent / 100);
         }
+
         return $result;
     }
 
@@ -376,6 +379,7 @@ class StrategyBuilderService
     {
         return collect($annualGoals)->map(function ($goal) use ($quarter) {
             $target = $goal['target'] ?? 0;
+
             return [
                 ...$goal,
                 'target' => is_numeric($target) ? ceil($target / 4) : $target,
@@ -388,6 +392,7 @@ class StrategyBuilderService
     {
         return collect($quarterlyGoals)->map(function ($goal) {
             $target = $goal['target'] ?? 0;
+
             return [
                 ...$goal,
                 'target' => is_numeric($target) ? ceil($target / 3) : $target,
@@ -399,6 +404,7 @@ class StrategyBuilderService
     {
         return collect($monthlyGoals)->map(function ($goal) {
             $target = $goal['target'] ?? 0;
+
             return [
                 ...$goal,
                 'target' => is_numeric($target) ? ceil($target / 4) : $target,

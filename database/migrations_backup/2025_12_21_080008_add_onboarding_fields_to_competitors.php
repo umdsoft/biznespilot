@@ -53,7 +53,7 @@ return new class extends Migration
                 'content_frequency', 'content_types', 'engagement_rate_estimated',
                 'followers_count', 'ad_activity', 'ad_channels',
                 'opportunities', 'threats', 'overall_threat_level',
-                'ai_monitored', 'last_ai_update_at'
+                'ai_monitored', 'last_ai_update_at',
             ]);
         });
     }

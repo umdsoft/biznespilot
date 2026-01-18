@@ -69,6 +69,7 @@ class OrgStructure extends Model
                 $total += $position->current_count;
             }
         }
+
         return $total;
     }
 

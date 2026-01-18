@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Cache;
 class MoneyLossAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'money_loss_';
+
     protected int $cacheTTL = 1800; // 30 minutes for faster updates
 
     /**
@@ -272,7 +273,7 @@ class MoneyLossAlgorithm extends AlgorithmEngine
             );
         }
 
-        if (!empty($customBenchmarks)) {
+        if (! empty($customBenchmarks)) {
             $this->benchmarks = array_merge($this->benchmarks, $customBenchmarks);
         }
     }
@@ -286,10 +287,10 @@ class MoneyLossAlgorithm extends AlgorithmEngine
 
         return Cache::remember($cacheKey, 300, function () use ($business) {
             $business->load([
-                'dreamBuyers' => fn($q) => $q->limit(1),
-                'offers' => fn($q) => $q->limit(1),
-                'chatbotConfigs' => fn($q) => $q->where('is_active', true),
-                'leads' => fn($q) => $q->where('created_at', '>=', now()->subDays(30)),
+                'dreamBuyers' => fn ($q) => $q->limit(1),
+                'offers' => fn ($q) => $q->limit(1),
+                'chatbotConfigs' => fn ($q) => $q->where('is_active', true),
+                'leads' => fn ($q) => $q->where('created_at', '>=', now()->subDays(30)),
             ]);
 
             return [
@@ -428,7 +429,7 @@ class MoneyLossAlgorithm extends AlgorithmEngine
         }
 
         // 5. No Automation Loss - McKinsey: 12% efficiency loss
-        if (!$businessData['has_chatbot']) {
+        if (! $businessData['has_chatbot']) {
             $breakdown['no_automation'] = [
                 'problem' => 'Avtomatlashtirish yo\'q',
                 'description' => 'Qo\'lda javob berish samarasiz - McKinsey automation study',
@@ -597,7 +598,9 @@ class MoneyLossAlgorithm extends AlgorithmEngine
      */
     protected function getDreamBuyerCompleteness($dreamBuyer): int
     {
-        if (!$dreamBuyer) return 0;
+        if (! $dreamBuyer) {
+            return 0;
+        }
 
         $requiredFields = [
             'where_spend_time',
@@ -613,7 +616,7 @@ class MoneyLossAlgorithm extends AlgorithmEngine
 
         $filled = 0;
         foreach ($requiredFields as $field) {
-            if (!empty($dreamBuyer->$field)) {
+            if (! empty($dreamBuyer->$field)) {
                 $filled++;
             }
         }
@@ -626,16 +629,28 @@ class MoneyLossAlgorithm extends AlgorithmEngine
      */
     protected function getOfferStrength($offer): int
     {
-        if (!$offer) return 0;
+        if (! $offer) {
+            return 0;
+        }
 
         $score = 50; // Base score
 
         // Check key components
-        if (!empty($offer->headline)) $score += 10;
-        if (!empty($offer->value_proposition)) $score += 15;
-        if (!empty($offer->guarantee_type) && $offer->guarantee_type !== 'none') $score += 15;
-        if (!empty($offer->bonuses) && \count($offer->bonuses ?? []) > 0) $score += 5;
-        if (!empty($offer->urgency)) $score += 5;
+        if (! empty($offer->headline)) {
+            $score += 10;
+        }
+        if (! empty($offer->value_proposition)) {
+            $score += 15;
+        }
+        if (! empty($offer->guarantee_type) && $offer->guarantee_type !== 'none') {
+            $score += 15;
+        }
+        if (! empty($offer->bonuses) && \count($offer->bonuses ?? []) > 0) {
+            $score += 5;
+        }
+        if (! empty($offer->urgency)) {
+            $score += 5;
+        }
 
         return min(100, $score);
     }
@@ -648,7 +663,9 @@ class MoneyLossAlgorithm extends AlgorithmEngine
         $total = $funnelMetrics['total_leads'] ?? 0;
         $converted = $funnelMetrics['converted_leads'] ?? 0;
 
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
 
         return round(($converted / $total) * 100, 2);
     }
@@ -695,7 +712,7 @@ class MoneyLossAlgorithm extends AlgorithmEngine
         }
 
         // Sort by amount descending
-        usort($formatted, fn($a, $b) => $b['amount'] <=> $a['amount']);
+        usort($formatted, fn ($a, $b) => $b['amount'] <=> $a['amount']);
 
         return $formatted;
     }
@@ -797,13 +814,15 @@ class MoneyLossAlgorithm extends AlgorithmEngine
     protected function getTopProblems(array $breakdown, int $limit = 3): array
     {
         // Sort by amount
-        uasort($breakdown, fn($a, $b) => $b['amount'] <=> $a['amount']);
+        uasort($breakdown, fn ($a, $b) => $b['amount'] <=> $a['amount']);
 
         $top = [];
         $i = 0;
 
         foreach ($breakdown as $key => $item) {
-            if ($i >= $limit) break;
+            if ($i >= $limit) {
+                break;
+            }
 
             $top[] = [
                 'rank' => $i + 1,
@@ -844,7 +863,7 @@ class MoneyLossAlgorithm extends AlgorithmEngine
         }
 
         // Sort by amount
-        usort($quickWins, fn($a, $b) => $b['amount'] <=> $a['amount']);
+        usort($quickWins, fn ($a, $b) => $b['amount'] <=> $a['amount']);
 
         return $quickWins;
     }
@@ -862,7 +881,7 @@ class MoneyLossAlgorithm extends AlgorithmEngine
         $expectedReturn = $item['amount'] * $item['recovery_rate'] / 100;
         $roi = $timeCost > 0 ? round(($expectedReturn / $timeCost) * 100) : 0;
 
-        return $roi . '%';
+        return $roi.'%';
     }
 
     /**
@@ -887,18 +906,18 @@ class MoneyLossAlgorithm extends AlgorithmEngine
     protected function formatMoney(int $amount): string
     {
         if ($amount >= 1000000000) {
-            return round($amount / 1000000000, 1) . ' mlrd';
+            return round($amount / 1000000000, 1).' mlrd';
         }
 
         if ($amount >= 1000000) {
-            return round($amount / 1000000, 1) . ' mln';
+            return round($amount / 1000000, 1).' mln';
         }
 
         if ($amount >= 1000) {
-            return round($amount / 1000) . ' ming';
+            return round($amount / 1000).' ming';
         }
 
-        return $amount . ' so\'m';
+        return $amount.' so\'m';
     }
 
     /**

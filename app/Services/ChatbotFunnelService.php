@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\ChatbotConversation;
-use App\Models\Business;
 use App\Models\Lead;
 use App\Models\LeadSource;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +18,7 @@ class ChatbotFunnelService
         'CONSIDERATION',
         'INTENT',
         'PURCHASE',
-        'POST_PURCHASE'
+        'POST_PURCHASE',
     ];
 
     /**
@@ -60,6 +59,7 @@ class ChatbotFunnelService
         if ($currentIndex < count(self::STAGES) - 1) {
             $nextStage = self::STAGES[$currentIndex + 1];
             $conversation->update(['current_stage' => $nextStage]);
+
             return true;
         }
 
@@ -215,7 +215,7 @@ class ChatbotFunnelService
                 'status' => 'new',
                 'notes' => "Auto-created from chatbot conversation #{$conversation->id}",
                 'data' => [
-                    'source' => 'chatbot_' . $conversation->channel,
+                    'source' => 'chatbot_'.$conversation->channel,
                     'conversation_id' => $conversation->id,
                     'platform' => $conversation->channel,
                 ],
@@ -262,8 +262,8 @@ class ChatbotFunnelService
         ];
 
         $config = $channelConfig[$channel] ?? [
-            'code' => 'chatbot_' . $channel,
-            'name' => ucfirst($channel) . ' Chatbot',
+            'code' => 'chatbot_'.$channel,
+            'name' => ucfirst($channel).' Chatbot',
             'icon' => 'chat',
             'color' => '#6366F1',
         ];
@@ -279,7 +279,7 @@ class ChatbotFunnelService
 
         // Fallback: search by name
         $source = LeadSource::where('business_id', $businessId)
-            ->where('name', 'like', '%' . ucfirst($channel) . '%')
+            ->where('name', 'like', '%'.ucfirst($channel).'%')
             ->first();
 
         if ($source) {
@@ -290,7 +290,7 @@ class ChatbotFunnelService
         try {
             $source = LeadSource::create([
                 'business_id' => $businessId,
-                'code' => $config['code'] . '_' . substr($businessId, 0, 8),
+                'code' => $config['code'].'_'.substr($businessId, 0, 8),
                 'name' => $config['name'],
                 'category' => 'digital',
                 'icon' => $config['icon'],
@@ -309,7 +309,7 @@ class ChatbotFunnelService
             try {
                 $source = LeadSource::create([
                     'business_id' => $businessId,
-                    'code' => $config['code'] . '_' . time(),
+                    'code' => $config['code'].'_'.time(),
                     'name' => $config['name'],
                     'category' => 'digital',
                     'icon' => $config['icon'],
@@ -320,6 +320,7 @@ class ChatbotFunnelService
                 ]);
             } catch (\Exception $e2) {
                 Log::error('LeadSource creation failed completely', ['error' => $e2->getMessage()]);
+
                 return null;
             }
         }
@@ -333,6 +334,7 @@ class ChatbotFunnelService
     private function getStageIndex(string $stage): int
     {
         $index = array_search($stage, self::STAGES);
+
         return $index !== false ? $index : 0;
     }
 

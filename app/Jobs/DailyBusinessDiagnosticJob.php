@@ -26,7 +26,9 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public Business $business;
+
     public int $tries = 3;
+
     public int $timeout = 300; // 5 minutes
 
     /**
@@ -52,8 +54,8 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
             // Run full diagnostic
             $result = $diagnosticService->runFullDiagnostic($this->business);
 
-            if (!$result['success']) {
-                throw new \Exception('Diagnostic failed: ' . ($result['error'] ?? 'Unknown error'));
+            if (! $result['success']) {
+                throw new \Exception('Diagnostic failed: '.($result['error'] ?? 'Unknown error'));
             }
 
             // Save report to database
@@ -74,7 +76,7 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
             // Check for critical issues
             $criticalIssues = $this->extractCriticalIssues($result);
 
-            if (!empty($criticalIssues)) {
+            if (! empty($criticalIssues)) {
                 $this->sendCriticalAlert($criticalIssues, $report);
             }
 
@@ -139,7 +141,7 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
             $issues[] = [
                 'type' => 'high_money_loss',
                 'severity' => 'critical',
-                'message' => "Oylik yo'qotish: " . number_format($moneyLoss['total_loss']) . " so'm",
+                'message' => "Oylik yo'qotish: ".number_format($moneyLoss['total_loss'])." so'm",
                 'amount' => $moneyLoss['total_loss'],
             ];
         }

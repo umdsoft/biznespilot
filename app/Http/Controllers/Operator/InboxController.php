@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Services\UnifiedInboxService;
-use App\Models\Business;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -25,7 +24,7 @@ class InboxController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return Inertia::render('Operator/Inbox/Index', [
                 'conversations' => [],
                 'stats' => ['total' => 0, 'unread' => ['total' => 0]],
@@ -44,7 +43,7 @@ class InboxController extends Controller
             $conversations = $this->inboxService->getAllConversations($currentBusiness, $filters);
             $stats = $this->inboxService->getInboxStats($currentBusiness);
         } catch (\Exception $e) {
-            \Log::error('Operator Inbox error: ' . $e->getMessage());
+            \Log::error('Operator Inbox error: '.$e->getMessage());
             $conversations = collect([]);
             $stats = ['total' => 0, 'unread' => ['total' => 0]];
         }

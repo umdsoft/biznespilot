@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Business;
 use App\Models\Plan;
 use App\Models\Subscription;
-use Carbon\Carbon;
 
 class SubscriptionService
 {
@@ -16,7 +15,7 @@ class SubscriptionService
     {
         $amount = $billingCycle === 'yearly' ? $plan->price_yearly : $plan->price_monthly;
 
-        $subscription = new Subscription();
+        $subscription = new Subscription;
         $subscription->business_id = $business->id;
         $subscription->plan_id = $plan->id;
         $subscription->status = $isTrial ? 'trial' : 'active';
@@ -145,7 +144,7 @@ class SubscriptionService
      */
     public function needsRenewal(Subscription $subscription): bool
     {
-        if ($subscription->status !== 'active' || !$subscription->auto_renew) {
+        if ($subscription->status !== 'active' || ! $subscription->auto_renew) {
             return false;
         }
 
@@ -205,7 +204,7 @@ class SubscriptionService
     {
         $subscription = $business->activeSubscription();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return [
                 'has_subscription' => false,
                 'plan' => null,

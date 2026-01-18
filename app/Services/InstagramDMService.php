@@ -24,14 +24,14 @@ class InstagramDMService
         try {
             $messaging = $entry['messaging'][0] ?? null;
 
-            if (!$messaging) {
+            if (! $messaging) {
                 return ['success' => false, 'message' => 'No messaging in entry'];
             }
 
             $senderId = $messaging['sender']['id'] ?? null;
             $message = $messaging['message'] ?? null;
 
-            if (!$message || !isset($message['text'])) {
+            if (! $message || ! isset($message['text'])) {
                 return ['success' => false, 'message' => 'No text message'];
             }
 
@@ -70,7 +70,7 @@ class InstagramDMService
     {
         $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-        if (!$config || !$config->instagram_enabled || !$config->instagram_access_token) {
+        if (! $config || ! $config->instagram_enabled || ! $config->instagram_access_token) {
             return false;
         }
 

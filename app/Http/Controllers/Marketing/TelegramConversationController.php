@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Telegram\TelegramConversationController as BaseTelegramConversationController;
-use Inertia\Inertia;
-use Inertia\Response as InertiaResponse;
-use Illuminate\Http\Request;
 use App\Models\TelegramBot;
 use App\Models\TelegramConversation;
 use App\Models\TelegramMessage;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class TelegramConversationController extends BaseTelegramConversationController
 {
@@ -42,7 +42,7 @@ class TelegramConversationController extends BaseTelegramConversationController
 
         $conversations = $query->orderBy('last_message_at', 'desc')
             ->paginate(50)
-            ->through(fn($conv) => [
+            ->through(fn ($conv) => [
                 'id' => $conv->id,
                 'user' => $conv->user ? [
                     'id' => $conv->user->id,
@@ -102,7 +102,7 @@ class TelegramConversationController extends BaseTelegramConversationController
         $messages = TelegramMessage::where('conversation_id', $conversation->id)
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(fn($msg) => [
+            ->map(fn ($msg) => [
                 'id' => $msg->id,
                 'direction' => $msg->direction,
                 'sender_type' => $msg->sender_type,

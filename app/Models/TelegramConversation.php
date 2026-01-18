@@ -120,7 +120,7 @@ class TelegramConversation extends Model
         return $this->assigned_operator_id !== null;
     }
 
-    public function requestHandoff(string $reason = null): void
+    public function requestHandoff(?string $reason = null): void
     {
         $this->update([
             'status' => 'handoff',
@@ -165,7 +165,7 @@ class TelegramConversation extends Model
 
     public function addTag(string $tag): void
     {
-        if (!$this->hasTag($tag)) {
+        if (! $this->hasTag($tag)) {
             $tags = $this->tags ?? [];
             $tags[] = $tag;
             $this->update(['tags' => $tags]);
@@ -174,7 +174,7 @@ class TelegramConversation extends Model
 
     public function removeTag(string $tag): void
     {
-        $tags = array_filter($this->tags ?? [], fn($t) => $t !== $tag);
+        $tags = array_filter($this->tags ?? [], fn ($t) => $t !== $tag);
         $this->update(['tags' => array_values($tags)]);
     }
 

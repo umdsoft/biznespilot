@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Business;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\Business;
 
 class CheckSubscription
 {
@@ -19,7 +19,7 @@ class CheckSubscription
         // Get current business ID from session
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business context is required',
@@ -29,7 +29,7 @@ class CheckSubscription
         // Get the business
         $business = Business::find($businessId);
 
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -48,7 +48,7 @@ class CheckSubscription
             ->whereDate('trial_ends_at', '>=', now())
             ->exists();
 
-        if (!$subscription && !$hasActiveTrial) {
+        if (! $subscription && ! $hasActiveTrial) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active subscription found. Please upgrade your plan.',

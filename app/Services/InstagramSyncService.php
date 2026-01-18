@@ -2,25 +2,27 @@
 
 namespace App\Services;
 
-use App\Models\Integration;
 use App\Models\InstagramAccount;
-use App\Models\InstagramMedia;
-use App\Models\InstagramDailyInsight;
 use App\Models\InstagramAudience;
+use App\Models\InstagramDailyInsight;
 use App\Models\InstagramHashtagStat;
+use App\Models\InstagramMedia;
 use App\Models\InstagramSyncLog;
+use App\Models\Integration;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class InstagramSyncService
 {
     private const API_VERSION = 'v18.0';
+
     private const BASE_URL = 'https://graph.facebook.com';
 
     private string $accessToken;
+
     private Integration $integration;
+
     private string $businessId;
 
     public function initialize(Integration $integration): self
@@ -77,8 +79,8 @@ class InstagramSyncService
                     $this->completeSyncLog($syncLog, $mediaCount + $insightCount);
 
                 } catch (\Exception $e) {
-                    Log::error("Error syncing Instagram account {$account->instagram_id}: " . $e->getMessage());
-                    $results['errors'][] = "Account {$account->username}: " . $e->getMessage();
+                    Log::error("Error syncing Instagram account {$account->instagram_id}: ".$e->getMessage());
+                    $results['errors'][] = "Account {$account->username}: ".$e->getMessage();
                     $this->failSyncLog($syncLog, $e->getMessage());
                 }
             }
@@ -89,7 +91,7 @@ class InstagramSyncService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("InstagramSyncService fullSync error: " . $e->getMessage());
+            Log::error('InstagramSyncService fullSync error: '.$e->getMessage());
             $results['success'] = false;
             $results['errors'][] = $e->getMessage();
         }
@@ -133,7 +135,7 @@ class InstagramSyncService
                     $this->completeSyncLog($syncLog, $mediaUpdated + $insightsUpdated);
 
                 } catch (\Exception $e) {
-                    Log::error("Incremental sync error for {$account->username}: " . $e->getMessage());
+                    Log::error("Incremental sync error for {$account->username}: ".$e->getMessage());
                     $results['errors'][] = $e->getMessage();
                     $this->failSyncLog($syncLog, $e->getMessage());
                 }
@@ -160,7 +162,7 @@ class InstagramSyncService
         ]);
 
         foreach ($pagesResponse['data'] ?? [] as $page) {
-            if (!isset($page['instagram_business_account'])) {
+            if (! isset($page['instagram_business_account'])) {
                 continue;
             }
 
@@ -296,7 +298,7 @@ class InstagramSyncService
 
                 $count++;
             } catch (\Exception $e) {
-                Log::warning("Failed to update metrics for media {$media->media_id}: " . $e->getMessage());
+                Log::warning("Failed to update metrics for media {$media->media_id}: ".$e->getMessage());
             }
         }
 
@@ -315,7 +317,7 @@ class InstagramSyncService
         try {
             $insights = $this->getMediaInsights($mediaData['id'], $mediaType);
         } catch (\Exception $e) {
-            Log::warning("Could not get insights for media {$mediaData['id']}: " . $e->getMessage());
+            Log::warning("Could not get insights for media {$mediaData['id']}: ".$e->getMessage());
         }
 
         $followersCount = $account->followers_count ?: 1;
@@ -364,7 +366,7 @@ class InstagramSyncService
                 $insights[$metric['name']] = $metric['values'][0]['value'] ?? 0;
             }
         } catch (\Exception $e) {
-            Log::debug("Media insights error for {$mediaId}: " . $e->getMessage());
+            Log::debug("Media insights error for {$mediaId}: ".$e->getMessage());
         }
 
         return $insights;
@@ -394,14 +396,14 @@ class InstagramSyncService
             foreach ($response['data'] ?? [] as $metric) {
                 foreach ($metric['values'] ?? [] as $value) {
                     $date = Carbon::parse($value['end_time'])->format('Y-m-d');
-                    if (!isset($dailyData[$date])) {
+                    if (! isset($dailyData[$date])) {
                         $dailyData[$date] = [];
                     }
                     $dailyData[$date][$metric['name']] = $value['value'] ?? 0;
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to fetch daily metrics: " . $e->getMessage());
+            Log::warning('Failed to fetch daily metrics: '.$e->getMessage());
         }
 
         // Meta API v18.0: Total value metrics (metric_type=total_value)
@@ -429,14 +431,14 @@ class InstagramSyncService
                     // Check for breakdown by day if available
                     foreach ($metricData['values'] ?? [] as $value) {
                         $date = Carbon::parse($value['end_time'])->format('Y-m-d');
-                        if (!isset($dailyData[$date])) {
+                        if (! isset($dailyData[$date])) {
                             $dailyData[$date] = [];
                         }
                         $dailyData[$date][$metricData['name']] = $value['value'] ?? 0;
                     }
                 }
             } catch (\Exception $e) {
-                Log::warning("Failed to fetch {$metric}: " . $e->getMessage());
+                Log::warning("Failed to fetch {$metric}: ".$e->getMessage());
             }
         }
 
@@ -484,7 +486,7 @@ class InstagramSyncService
                 $todayData[$metric['name']] = $latestValue['value'] ?? 0;
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to sync today's daily metrics: " . $e->getMessage());
+            Log::warning("Failed to sync today's daily metrics: ".$e->getMessage());
         }
 
         // Meta API v18.0: Total value metrics (profile_views)
@@ -503,10 +505,10 @@ class InstagramSyncService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to sync today's profile_views: " . $e->getMessage());
+            Log::warning("Failed to sync today's profile_views: ".$e->getMessage());
         }
 
-        if (!empty($todayData)) {
+        if (! empty($todayData)) {
             InstagramDailyInsight::updateOrCreate(
                 [
                     'account_id' => $account->id,
@@ -519,6 +521,7 @@ class InstagramSyncService
                     'follower_count' => $todayData['follower_count'] ?? 0,
                 ]
             );
+
             return 1;
         }
 
@@ -560,7 +563,7 @@ class InstagramSyncService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to fetch city demographics: " . $e->getMessage());
+            Log::warning('Failed to fetch city demographics: '.$e->getMessage());
         }
 
         // Meta API v18.0: Get demographics by country
@@ -585,7 +588,7 @@ class InstagramSyncService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to fetch country demographics: " . $e->getMessage());
+            Log::warning('Failed to fetch country demographics: '.$e->getMessage());
         }
 
         // Meta API v18.0: Get demographics by age
@@ -609,7 +612,7 @@ class InstagramSyncService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to fetch age demographics: " . $e->getMessage());
+            Log::warning('Failed to fetch age demographics: '.$e->getMessage());
         }
 
         // Meta API v18.0: Get demographics by gender (separate call)
@@ -641,7 +644,7 @@ class InstagramSyncService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to fetch gender demographics: " . $e->getMessage());
+            Log::warning('Failed to fetch gender demographics: '.$e->getMessage());
         }
 
         // Save to database
@@ -673,7 +676,7 @@ class InstagramSyncService
             foreach ($post->hashtags ?? [] as $hashtag) {
                 $tag = strtolower($hashtag);
 
-                if (!isset($hashtagStats[$tag])) {
+                if (! isset($hashtagStats[$tag])) {
                     $hashtagStats[$tag] = [
                         'usage_count' => 0,
                         'total_reach' => 0,
@@ -688,7 +691,7 @@ class InstagramSyncService
                 $hashtagStats[$tag]['total_impressions'] += $post->impressions;
                 $hashtagStats[$tag]['total_engagement'] += $post->total_engagement;
 
-                if (!$hashtagStats[$tag]['last_used_at'] || $post->posted_at > $hashtagStats[$tag]['last_used_at']) {
+                if (! $hashtagStats[$tag]['last_used_at'] || $post->posted_at > $hashtagStats[$tag]['last_used_at']) {
                     $hashtagStats[$tag]['last_used_at'] = $post->posted_at;
                 }
             }
@@ -735,7 +738,7 @@ class InstagramSyncService
                 'last_sync_at' => now(),
             ]);
         } catch (\Exception $e) {
-            Log::warning("Failed to update account stats: " . $e->getMessage());
+            Log::warning('Failed to update account stats: '.$e->getMessage());
         }
     }
 
@@ -764,6 +767,7 @@ class InstagramSyncService
     private function extractHashtags(string $caption): array
     {
         preg_match_all('/#(\w+)/u', $caption, $matches);
+
         return array_unique($matches[1] ?? []);
     }
 
@@ -773,6 +777,7 @@ class InstagramSyncService
     private function extractMentions(string $caption): array
     {
         preg_match_all('/@(\w+)/u', $caption, $matches);
+
         return array_unique($matches[1] ?? []);
     }
 
@@ -800,14 +805,14 @@ class InstagramSyncService
      */
     private function makeRequest(string $endpoint, array $params = []): array
     {
-        $url = self::BASE_URL . '/' . self::API_VERSION . $endpoint;
+        $url = self::BASE_URL.'/'.self::API_VERSION.$endpoint;
         $params['access_token'] = $this->accessToken;
 
         $response = Http::timeout(60)->get($url, $params);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             $error = $response->json('error') ?? ['message' => 'Unknown error'];
-            throw new \Exception("Instagram API Error: " . ($error['message'] ?? 'Request failed'));
+            throw new \Exception('Instagram API Error: '.($error['message'] ?? 'Request failed'));
         }
 
         return $response->json();

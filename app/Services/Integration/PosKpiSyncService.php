@@ -51,7 +51,7 @@ class PosKpiSyncService extends BaseKpiSyncService
     public function isAvailable(int $businessId): bool
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return false;
         }
 
@@ -71,7 +71,7 @@ class PosKpiSyncService extends BaseKpiSyncService
      */
     public function syncKpi(int $businessId, string $kpiCode, string $date): array
     {
-        if (!in_array($kpiCode, $this->supportedKpis)) {
+        if (! in_array($kpiCode, $this->supportedKpis)) {
             return [
                 'success' => false,
                 'kpi_code' => $kpiCode,
@@ -87,7 +87,7 @@ class PosKpiSyncService extends BaseKpiSyncService
             ->where('is_active', true)
             ->first();
 
-        if (!$posIntegration) {
+        if (! $posIntegration) {
             return [
                 'success' => false,
                 'kpi_code' => $kpiCode,
@@ -183,7 +183,7 @@ class PosKpiSyncService extends BaseKpiSyncService
             ->selectRaw('SUM(total_amount) as total_revenue, COUNT(*) as transaction_count')
             ->first();
 
-        if (!$data || $data->transaction_count === 0) {
+        if (! $data || $data->transaction_count === 0) {
             return null;
         }
 
@@ -318,7 +318,7 @@ class PosKpiSyncService extends BaseKpiSyncService
         $dailyRevenue = $this->calculateDailyRevenue($businessId, $date);
         $customerCount = $this->calculateCustomerCount($businessId, $date);
 
-        if (!$dailyRevenue || !$customerCount || $customerCount === 0) {
+        if (! $dailyRevenue || ! $customerCount || $customerCount === 0) {
             return null;
         }
 
@@ -402,7 +402,7 @@ class PosKpiSyncService extends BaseKpiSyncService
             ->whereDate('shift_date', $dateObj)
             ->sum('total_cost');
 
-        if (!$revenue || $revenue === 0 || !$laborCost) {
+        if (! $revenue || $revenue === 0 || ! $laborCost) {
             return null;
         }
 
@@ -425,11 +425,12 @@ class PosKpiSyncService extends BaseKpiSyncService
             ->where('pos_transactions.status', 'completed')
             ->sum('pos_transaction_items.cost');
 
-        if (!$revenue || $revenue === 0) {
+        if (! $revenue || $revenue === 0) {
             return null;
         }
 
         $grossProfit = $revenue - ($cogs ?? 0);
+
         return round(($grossProfit / $revenue) * 100, 2);
     }
 }

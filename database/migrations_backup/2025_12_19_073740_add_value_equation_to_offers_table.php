@@ -28,7 +28,7 @@ return new class extends Migration
                 'conditional',    // Shartli qaytarish
                 'performance',    // Natijaga bog\'liq
                 'anti-guarantee', // Teskari kafolat
-                'implied'         // Nazarda tutilgan
+                'implied',         // Nazarda tutilgan
             ])->nullable();
             $table->text('guarantee_terms')->nullable()->comment('Kafolat shartlari');
             $table->integer('guarantee_period_days')->nullable()->comment('Kafolat muddati (kunlar)');

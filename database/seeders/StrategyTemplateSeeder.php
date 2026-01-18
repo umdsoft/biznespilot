@@ -42,7 +42,7 @@ class StrategyTemplateSeeder extends Seeder
                         'instagram' => 35,
                         'telegram' => 30,
                         'facebook' => 20,
-                        'google' => 15
+                        'google' => 15,
                     ],
                 ]),
             ],
@@ -214,7 +214,7 @@ class StrategyTemplateSeeder extends Seeder
                     'channels_template' => [
                         'instagram' => 40,
                         'telegram' => 35,
-                        'facebook' => 25
+                        'facebook' => 25,
                     ],
                 ]),
             ],

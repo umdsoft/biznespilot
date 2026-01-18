@@ -6,9 +6,7 @@ use App\Models\Business;
 use App\Models\Customer;
 use App\Models\DreamBuyer;
 use App\Models\Lead;
-use App\Models\Campaign;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TargetAnalysisService
@@ -137,7 +135,7 @@ class TargetAnalysisService
                     ->sortByDesc('total_spent')
                     ->take(5)
                     ->values()
-                    ->map(fn($c) => [
+                    ->map(fn ($c) => [
                         'id' => $c->id,
                         'name' => $c->name,
                         'total_spent' => $c->total_spent ?? 0,
@@ -222,9 +220,9 @@ class TargetAnalysisService
 
         // Segment by LTV (Low, Medium, High value) - using total_spent
         $ltvSegments = [
-            'high_value' => $customers->filter(fn($c) => ($c->total_spent ?? 0) >= 5000000)->count(),
-            'medium_value' => $customers->filter(fn($c) => ($c->total_spent ?? 0) >= 1000000 && ($c->total_spent ?? 0) < 5000000)->count(),
-            'low_value' => $customers->filter(fn($c) => ($c->total_spent ?? 0) < 1000000)->count(),
+            'high_value' => $customers->filter(fn ($c) => ($c->total_spent ?? 0) >= 5000000)->count(),
+            'medium_value' => $customers->filter(fn ($c) => ($c->total_spent ?? 0) >= 1000000 && ($c->total_spent ?? 0) < 5000000)->count(),
+            'low_value' => $customers->filter(fn ($c) => ($c->total_spent ?? 0) < 1000000)->count(),
         ];
 
         // Segment by status
@@ -237,7 +235,7 @@ class TargetAnalysisService
         // Segment by acquisition source
         $sourceSegments = $customers
             ->groupBy('acquisition_source')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'avg_ltv' => $group->avg('total_spent'),
                 'total_revenue' => $group->sum('total_spent'),
@@ -246,9 +244,9 @@ class TargetAnalysisService
 
         // Segment by location
         $locationSegments = $customers
-            ->filter(fn($c) => $c->city)
+            ->filter(fn ($c) => $c->city)
             ->groupBy('city')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'avg_ltv' => $group->avg('total_spent'),
             ])
@@ -367,9 +365,9 @@ class TargetAnalysisService
 
         // City distribution
         $cityDistribution = $customers
-            ->filter(fn($c) => $c->city)
+            ->filter(fn ($c) => $c->city)
             ->groupBy('city')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'percentage' => round(($group->count() / $customers->count()) * 100, 2),
                 'avg_ltv' => round($group->avg('total_spent') ?? 0, 2),
@@ -379,9 +377,9 @@ class TargetAnalysisService
 
         // Country distribution
         $countryDistribution = $customers
-            ->filter(fn($c) => $c->region)
+            ->filter(fn ($c) => $c->region)
             ->groupBy('region')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'percentage' => round(($group->count() / $customers->count()) * 100, 2),
             ])
@@ -390,9 +388,9 @@ class TargetAnalysisService
 
         // Acquisition source performance
         $sourcePerformance = $customers
-            ->filter(fn($c) => $c->type)
+            ->filter(fn ($c) => $c->type)
             ->groupBy('type')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'avg_ltv' => round($group->avg('total_spent') ?? 0, 2),
                 'total_revenue' => round($group->sum('total_spent') ?? 0, 2),
@@ -425,7 +423,7 @@ class TargetAnalysisService
                 [
                     'role' => 'user',
                     'content' => $prompt,
-                ]
+                ],
             ], 'claude-sonnet-4-20250514', 2000);
 
             return [
@@ -458,16 +456,16 @@ class TargetAnalysisService
         $prompt .= "SOHA: {$business->industry}\n\n";
 
         $prompt .= "ASOSIY KO'RSATKICHLAR:\n";
-        $prompt .= "- Jami mijozlar: " . number_format($overview['total_customers']) . "\n";
-        $prompt .= "- Faol mijozlar: " . number_format($overview['active_customers']) . "\n";
+        $prompt .= '- Jami mijozlar: '.number_format($overview['total_customers'])."\n";
+        $prompt .= '- Faol mijozlar: '.number_format($overview['active_customers'])."\n";
         $prompt .= "- Konversiya darajasi: {$overview['conversion_rate']}%\n";
-        $prompt .= "- O'rtacha LTV: " . number_format($overview['avg_ltv']) . " so'm\n";
-        $prompt .= "- Umumiy daromad: " . number_format($overview['total_revenue']) . " so'm\n\n";
+        $prompt .= "- O'rtacha LTV: ".number_format($overview['avg_ltv'])." so'm\n";
+        $prompt .= '- Umumiy daromad: '.number_format($overview['total_revenue'])." so'm\n\n";
 
         $prompt .= "MIJOZLAR SEGMENTATSIYASI:\n";
-        $prompt .= "- Yuqori qiymatli: " . $segments['by_ltv']['high_value'] . "\n";
-        $prompt .= "- O'rta qiymatli: " . $segments['by_ltv']['medium_value'] . "\n";
-        $prompt .= "- Past qiymatli: " . $segments['by_ltv']['low_value'] . "\n\n";
+        $prompt .= '- Yuqori qiymatli: '.$segments['by_ltv']['high_value']."\n";
+        $prompt .= "- O'rta qiymatli: ".$segments['by_ltv']['medium_value']."\n";
+        $prompt .= '- Past qiymatli: '.$segments['by_ltv']['low_value']."\n\n";
 
         if ($dreamBuyerMatch['has_dream_buyers']) {
             $prompt .= "DREAM BUYER MOSLIK:\n";
@@ -502,7 +500,7 @@ class TargetAnalysisService
             ->orderByDesc('total_spent')
             ->limit($limit)
             ->get()
-            ->map(fn($customer) => [
+            ->map(fn ($customer) => [
                 'id' => $customer->id,
                 'name' => $customer->name,
                 'email' => $customer->email,

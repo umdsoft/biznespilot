@@ -24,7 +24,9 @@ class ChurnPreventionJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public Business $business;
+
     public int $tries = 2;
+
     public int $timeout = 180;
 
     public function __construct(Business $business)
@@ -40,7 +42,7 @@ class ChurnPreventionJob implements ShouldQueue
         try {
             $result = $churnPredictor->calculate($this->business);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new \Exception('Churn prediction failed');
             }
 
@@ -48,13 +50,13 @@ class ChurnPreventionJob implements ShouldQueue
 
             // Handle critical risk customers
             $criticalCustomers = $riskSegments['critical']['customers'] ?? [];
-            if (!empty($criticalCustomers)) {
+            if (! empty($criticalCustomers)) {
                 $this->handleCriticalChurnRisk($criticalCustomers);
             }
 
             // Handle high risk customers
             $highRiskCustomers = $riskSegments['high']['customers'] ?? [];
-            if (!empty($highRiskCustomers)) {
+            if (! empty($highRiskCustomers)) {
                 $this->handleHighChurnRisk($highRiskCustomers);
             }
 

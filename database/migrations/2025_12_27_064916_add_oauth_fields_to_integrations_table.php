@@ -13,25 +13,25 @@ return new class extends Migration
     {
         Schema::table('integrations', function (Blueprint $table) {
             // Add missing columns for Meta OAuth integration
-            if (!Schema::hasColumn('integrations', 'description')) {
+            if (! Schema::hasColumn('integrations', 'description')) {
                 $table->text('description')->nullable()->after('name');
             }
-            if (!Schema::hasColumn('integrations', 'config')) {
+            if (! Schema::hasColumn('integrations', 'config')) {
                 $table->json('config')->nullable()->after('credentials');
             }
-            if (!Schema::hasColumn('integrations', 'connected_at')) {
+            if (! Schema::hasColumn('integrations', 'connected_at')) {
                 $table->timestamp('connected_at')->nullable()->after('is_active');
             }
-            if (!Schema::hasColumn('integrations', 'expires_at')) {
+            if (! Schema::hasColumn('integrations', 'expires_at')) {
                 $table->timestamp('expires_at')->nullable()->after('connected_at');
             }
-            if (!Schema::hasColumn('integrations', 'last_error_at')) {
+            if (! Schema::hasColumn('integrations', 'last_error_at')) {
                 $table->timestamp('last_error_at')->nullable()->after('last_sync_at');
             }
-            if (!Schema::hasColumn('integrations', 'last_error_message')) {
+            if (! Schema::hasColumn('integrations', 'last_error_message')) {
                 $table->text('last_error_message')->nullable()->after('last_error_at');
             }
-            if (!Schema::hasColumn('integrations', 'sync_count')) {
+            if (! Schema::hasColumn('integrations', 'sync_count')) {
                 $table->integer('sync_count')->default(0)->after('last_error_message');
             }
         });

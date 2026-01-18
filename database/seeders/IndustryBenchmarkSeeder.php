@@ -155,7 +155,7 @@ class IndustryBenchmarkSeeder extends Seeder
                 'good_value' => 5,
                 'excellent_value' => 8,
             ],
-            // Sales metrics  
+            // Sales metrics
             [
                 'metric_name' => 'Sales Cycle Days',
                 'metric_type' => 'sales',
@@ -213,7 +213,7 @@ class IndustryBenchmarkSeeder extends Seeder
             );
         }
 
-        $this->command->info('Algorithm benchmarks seeded: ' . count($benchmarks) . ' industries');
+        $this->command->info('Algorithm benchmarks seeded: '.count($benchmarks).' industries');
     }
 
     /**

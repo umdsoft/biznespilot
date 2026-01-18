@@ -35,7 +35,7 @@ return new class extends Migration
                 'location',
                 'contact',
                 'callback_query',
-                'command'
+                'command',
             ]);
 
             // Content

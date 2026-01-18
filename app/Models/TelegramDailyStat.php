@@ -134,7 +134,7 @@ class TelegramDailyStat extends Model
     public function incrementFunnelStat(string $funnelId, string $key, int $count = 1): void
     {
         $stats = $this->funnel_stats ?? [];
-        if (!isset($stats[$funnelId])) {
+        if (! isset($stats[$funnelId])) {
             $stats[$funnelId] = [];
         }
         $stats[$funnelId][$key] = ($stats[$funnelId][$key] ?? 0) + $count;
@@ -202,7 +202,7 @@ class TelegramDailyStat extends Model
             ->forLastDays($days)
             ->orderBy('date')
             ->get()
-            ->map(fn($stat) => [
+            ->map(fn ($stat) => [
                 'date' => $stat->date->format('Y-m-d'),
                 'new_users' => $stat->new_users,
                 'active_users' => $stat->active_users,

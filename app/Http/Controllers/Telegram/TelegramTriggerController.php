@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
-use App\Models\TelegramTrigger;
 use App\Models\TelegramFunnel;
-use Illuminate\Http\Request;
+use App\Models\TelegramTrigger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +29,7 @@ class TelegramTriggerController extends Controller
             ->orderBy('priority', 'desc')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($trigger) => [
+            ->map(fn ($trigger) => [
                 'id' => $trigger->id,
                 'name' => $trigger->name,
                 'type' => $trigger->type,
@@ -99,7 +99,7 @@ class TelegramTriggerController extends Controller
         ]);
 
         // Validate command format
-        if ($request->type === 'command' && !str_starts_with($request->value, '/')) {
+        if ($request->type === 'command' && ! str_starts_with($request->value, '/')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Buyruq / bilan boshlanishi kerak',
@@ -158,7 +158,7 @@ class TelegramTriggerController extends Controller
         // Validate command format
         if ($request->has('type') && $request->type === 'command') {
             $value = $request->value ?? $trigger->value;
-            if (!str_starts_with($value, '/')) {
+            if (! str_starts_with($value, '/')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Buyruq / bilan boshlanishi kerak',
@@ -168,7 +168,7 @@ class TelegramTriggerController extends Controller
 
         $trigger->update($request->only([
             'name', 'type', 'value', 'match_type',
-            'funnel_id', 'step_id', 'priority', 'is_active'
+            'funnel_id', 'step_id', 'priority', 'is_active',
         ]));
 
         return response()->json([
@@ -192,7 +192,7 @@ class TelegramTriggerController extends Controller
             ->where('id', $triggerId)
             ->firstOrFail();
 
-        $trigger->update(['is_active' => !$trigger->is_active]);
+        $trigger->update(['is_active' => ! $trigger->is_active]);
 
         return response()->json([
             'success' => true,
@@ -266,7 +266,7 @@ class TelegramTriggerController extends Controller
             'success' => true,
             'text' => $text,
             'matches' => $matches,
-            'will_trigger' => !empty($matches) ? $matches[0] : null,
+            'will_trigger' => ! empty($matches) ? $matches[0] : null,
         ]);
     }
 }

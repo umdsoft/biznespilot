@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Telegram;
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
 use App\Services\Telegram\TelegramApiService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -24,7 +24,7 @@ class TelegramBotManagementController extends Controller
             ->withCount(['users', 'funnels', 'conversations'])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($bot) => [
+            ->map(fn ($bot) => [
                 'id' => $bot->id,
                 'username' => $bot->bot_username,
                 'first_name' => $bot->bot_first_name,
@@ -66,7 +66,7 @@ class TelegramBotManagementController extends Controller
         $api = new TelegramApiService($tempBot);
         $result = $api->getMe();
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bot tokeni noto\'g\'ri yoki bot topilmadi',
@@ -130,7 +130,7 @@ class TelegramBotManagementController extends Controller
             ->orderBy('date', 'desc')
             ->limit(7)
             ->get()
-            ->map(fn($stat) => [
+            ->map(fn ($stat) => [
                 'date' => $stat->date->format('d.m'),
                 'new_users' => $stat->new_users,
                 'messages_in' => $stat->messages_in,
@@ -142,7 +142,7 @@ class TelegramBotManagementController extends Controller
         $funnels = $bot->funnels()
             ->where('is_active', true)
             ->get()
-            ->map(fn($f) => [
+            ->map(fn ($f) => [
                 'id' => $f->id,
                 'name' => $f->name,
             ]);
@@ -227,7 +227,7 @@ class TelegramBotManagementController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        $bot->update(['is_active' => !$bot->is_active]);
+        $bot->update(['is_active' => ! $bot->is_active]);
 
         return response()->json([
             'success' => true,
@@ -331,7 +331,7 @@ class TelegramBotManagementController extends Controller
             'new_users_period' => $stats->sum('new_users'),
         ];
 
-        $daily = $stats->map(fn($stat) => [
+        $daily = $stats->map(fn ($stat) => [
             'date' => $stat->date->format('Y-m-d'),
             'new_users' => $stat->new_users,
             'active_users' => $stat->active_users,

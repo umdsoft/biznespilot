@@ -126,7 +126,7 @@ class TelegramFunnelStep extends Model
 
     public function hasMedia(): bool
     {
-        return !empty(data_get($this->content, 'media.type'));
+        return ! empty(data_get($this->content, 'media.type'));
     }
 
     public function getMediaType(): ?string
@@ -152,7 +152,7 @@ class TelegramFunnelStep extends Model
     // Keyboard helpers
     public function hasKeyboard(): bool
     {
-        return !empty($this->keyboard);
+        return ! empty($this->keyboard);
     }
 
     public function getKeyboardType(): ?string

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Business;
 use App\Models\Alert;
 use App\Models\AlertRule;
+use App\Models\Business;
 use App\Models\KpiDailySnapshot;
 use App\Models\Notification;
 use Carbon\Carbon;
@@ -21,7 +21,7 @@ class AlertService
         $todaySnapshot = $this->getTodaySnapshot($business);
         $yesterdaySnapshot = $this->getYesterdaySnapshot($business);
 
-        if (!$todaySnapshot) {
+        if (! $todaySnapshot) {
             return $triggeredAlerts;
         }
 
@@ -93,6 +93,7 @@ class AlertService
                 'rule_id' => $rule->id,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -183,7 +184,7 @@ class AlertService
 
     protected function calculateAvgResolutionTime(Collection $alerts): ?float
     {
-        $resolvedAlerts = $alerts->filter(fn($a) => $a->resolved_at !== null);
+        $resolvedAlerts = $alerts->filter(fn ($a) => $a->resolved_at !== null);
 
         if ($resolvedAlerts->isEmpty()) {
             return null;

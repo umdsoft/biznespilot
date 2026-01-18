@@ -25,12 +25,12 @@ class BusinessFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name) . '-' . fake()->unique()->randomNumber(5),
+            'slug' => Str::slug($name).'-'.fake()->unique()->randomNumber(5),
             'owner_id' => User::factory(),
             'category' => fake()->randomElement(['retail', 'services', 'manufacturing', 'technology', 'food']),
             'description' => fake()->paragraph(),
             'logo' => null,
-            'phone' => '+998' . fake()->numerify('#########'),
+            'phone' => '+998'.fake()->numerify('#########'),
             'email' => fake()->companyEmail(),
             'address' => fake()->address(),
             'website' => fake()->optional()->url(),

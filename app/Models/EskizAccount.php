@@ -5,13 +5,13 @@ namespace App\Models;
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EskizAccount extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'business_id',

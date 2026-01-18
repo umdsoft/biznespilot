@@ -17,8 +17,8 @@ class TestUserSeeder extends Seeder
         // Create super admin user
         $admin = User::where('login', 'admin')->first();
 
-        if (!$admin) {
-            $admin = new User();
+        if (! $admin) {
+            $admin = new User;
             $admin->id = Str::uuid()->toString();
             $admin->login = 'admin';
             $admin->name = 'Super Admin';
@@ -29,15 +29,15 @@ class TestUserSeeder extends Seeder
         }
 
         // Assign super_admin role for platform administration
-        if (!$admin->hasRole('super_admin')) {
+        if (! $admin->hasRole('super_admin')) {
             $admin->assignRole('super_admin');
         }
 
         // Create regular test user
         $user1 = User::where('login', 'user1')->first();
 
-        if (!$user1) {
-            $user1 = new User();
+        if (! $user1) {
+            $user1 = new User;
             $user1->id = Str::uuid()->toString();
             $user1->login = 'user1';
             $user1->name = 'Test User';
@@ -48,7 +48,7 @@ class TestUserSeeder extends Seeder
         }
 
         // Assign owner role
-        if (!$user1->hasRole('owner')) {
+        if (! $user1->hasRole('owner')) {
             $user1->assignRole('owner');
         }
 

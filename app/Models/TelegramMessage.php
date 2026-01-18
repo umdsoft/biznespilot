@@ -183,6 +183,7 @@ class TelegramMessage extends Model
         if ($this->content_type !== 'command') {
             return null;
         }
+
         return data_get($this->content, 'command');
     }
 
@@ -191,18 +192,19 @@ class TelegramMessage extends Model
         if ($this->content_type !== 'command') {
             return null;
         }
+
         return data_get($this->content, 'args');
     }
 
     public function markAsRead(): void
     {
-        if (!$this->is_read) {
+        if (! $this->is_read) {
             $this->update(['is_read' => true]);
         }
     }
 
     public function hasKeyboard(): bool
     {
-        return !empty($this->keyboard);
+        return ! empty($this->keyboard);
     }
 }

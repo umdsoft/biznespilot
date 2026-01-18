@@ -55,12 +55,14 @@ class BusinessType extends Model
     public function getNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $this->{"name_{$locale}"} ?? $this->name_uz;
     }
 
     public function getDescriptionAttribute(): ?string
     {
         $locale = app()->getLocale();
+
         return $this->{"description_{$locale}"} ?? $this->description_uz;
     }
 }

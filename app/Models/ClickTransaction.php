@@ -12,13 +12,21 @@ class ClickTransaction extends Model
 
     // Click Error Codes
     public const ERROR_SUCCESS = 0;
+
     public const ERROR_SIGN_CHECK_FAILED = -1;
+
     public const ERROR_INVALID_AMOUNT = -2;
+
     public const ERROR_ACTION_NOT_FOUND = -3;
+
     public const ERROR_ALREADY_DONE = -4;
+
     public const ERROR_USER_NOT_FOUND = -5;
+
     public const ERROR_TRANSACTION_NOT_FOUND = -6;
+
     public const ERROR_BAD_REQUEST = -8;
+
     public const ERROR_TRANSACTION_CANCELLED = -9;
 
     public const ERROR_MESSAGES = [

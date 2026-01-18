@@ -79,7 +79,7 @@ class SmsDailyStat extends Model
     public function scopeThisMonth($query)
     {
         return $query->whereMonth('stat_date', now()->month)
-                     ->whereYear('stat_date', now()->year);
+            ->whereYear('stat_date', now()->year);
     }
 
     /**

@@ -23,6 +23,7 @@ class KpiHealthCheckCommand extends Command
 
         if ($health['status'] === 'unknown') {
             $this->warn($health['message']);
+
             return Command::SUCCESS;
         }
 
@@ -42,32 +43,32 @@ class KpiHealthCheckCommand extends Command
         };
 
         $this->newLine();
-        $this->line("<fg={$statusColor}>{$statusIcon} Status: " . strtoupper($health['status']) . "</>");
+        $this->line("<fg={$statusColor}>{$statusIcon} Status: ".strtoupper($health['status']).'</>');
         $this->newLine();
 
         // Metrics
         $metrics = $health['metrics'];
-        $this->line("<fg=cyan>Businesses:</>");
+        $this->line('<fg=cyan>Businesses:</>');
         $this->line("  Total: {$metrics['total_businesses']}");
         $this->line("  Successful: <fg=green>{$metrics['successful']}</>");
         $this->line("  Failed: <fg=red>{$metrics['failed']}</>");
         $this->newLine();
 
-        $this->line("<fg=cyan>Performance:</>");
+        $this->line('<fg=cyan>Performance:</>');
         $successRateColor = $metrics['success_rate'] >= 95 ? 'green' : ($metrics['success_rate'] >= 80 ? 'yellow' : 'red');
         $this->line("  Success Rate: <fg={$successRateColor}>{$metrics['success_rate']}%</>");
         $this->line("  Total Duration: {$metrics['total_duration_seconds']}s");
         $this->line("  Avg per Business: {$metrics['average_duration_seconds']}s");
         $this->newLine();
 
-        $this->line("<fg=cyan>Batches:</>");
+        $this->line('<fg=cyan>Batches:</>');
         $this->line("  Total: {$metrics['total_batches']}");
         $this->line("  Processed: {$metrics['processed_batches']}");
         $this->newLine();
 
         // Thresholds
         $thresholds = $health['thresholds'];
-        $this->line("<fg=cyan>Thresholds:</>");
+        $this->line('<fg=cyan>Thresholds:</>');
         $this->line("  Success Rate Warning: {$thresholds['success_rate_warning']}%");
         $this->line("  Success Rate Critical: {$thresholds['success_rate_critical']}%");
         $this->line("  Avg Duration Warning: {$thresholds['avg_duration_warning']}s");
@@ -80,7 +81,7 @@ class KpiHealthCheckCommand extends Command
             $this->warn('Recommended actions:');
             $this->line('  1. Check logs: tail -f storage/logs/laravel.log');
             $this->line('  2. Check circuit breakers: php artisan kpi:circuit-breaker-stats --all');
-            $this->line('  3. Check failed businesses: php artisan kpi:failed-businesses --date=' . $date);
+            $this->line('  3. Check failed businesses: php artisan kpi:failed-businesses --date='.$date);
         } elseif ($health['status'] === 'warning') {
             $this->warn('WARNING: Monitor closely');
             $this->line('Consider investigating failed businesses');

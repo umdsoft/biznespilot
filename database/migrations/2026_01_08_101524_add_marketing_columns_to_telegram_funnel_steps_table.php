@@ -47,7 +47,7 @@ return new class extends Migration
                 'subscribe_false_step_id',
                 'quiz',
                 'ab_test',
-                'tag'
+                'tag',
             ]);
         });
     }

@@ -27,13 +27,14 @@ use Illuminate\Support\Facades\Log;
 class PriceOptimizationAlgorithm extends AlgorithmEngine
 {
     protected string $version = '1.0.0';
+
     protected int $cacheTTL = 1800;
 
     /**
      * Calculate optimal pricing
      *
-     * @param Business $business Business to analyze
-     * @param array $options Options (current_price, cost, etc.)
+     * @param  Business  $business  Business to analyze
+     * @param  array  $options  Options (current_price, cost, etc.)
      * @return array Pricing recommendations
      */
     public function analyze(Business $business, array $options = []): array
@@ -93,6 +94,7 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
             ]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -104,9 +106,9 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
      * Demand(p) = a - b×p (linear demand curve)
      * Optimal Price = a / (2b)
      *
-     * @param float $currentPrice Current price
-     * @param float $cost Product cost
-     * @param array $options Options
+     * @param  float  $currentPrice  Current price
+     * @param  float  $cost  Product cost
+     * @param  array  $options  Options
      * @return array Optimal price and revenue
      */
     protected function calculateRevenueOptimalPrice(float $currentPrice, float $cost, array $options): array
@@ -137,15 +139,15 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
             'price' => round($optimalPrice, 0),
             'estimated_demand' => round($optimalDemand, 0),
             'estimated_revenue' => round($optimalRevenue, 0),
-            'revenue_increase' => round((($optimalRevenue - $currentRevenue) / $currentRevenue) * 100, 1) . '%',
+            'revenue_increase' => round((($optimalRevenue - $currentRevenue) / $currentRevenue) * 100, 1).'%',
         ];
     }
 
     /**
      * Calculate competitive price
      *
-     * @param float $currentPrice Current price
-     * @param array $competitorPrices Competitor prices
+     * @param  float  $currentPrice  Current price
+     * @param  array  $competitorPrices  Competitor prices
      * @return array Competitive pricing recommendation
      */
     protected function calculateCompetitivePrice(float $currentPrice, array $competitorPrices): array
@@ -190,8 +192,8 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
     /**
      * Calculate value-based price
      *
-     * @param float $currentPrice Current price
-     * @param array $options Options (perceived_value, etc.)
+     * @param  float  $currentPrice  Current price
+     * @param  array  $options  Options (perceived_value, etc.)
      * @return array Value-based price
      */
     protected function calculateValueBasedPrice(float $currentPrice, array $options): array
@@ -207,7 +209,7 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
         return [
             'price' => round($valueBasedPrice, 0),
             'perceived_value' => round($perceivedValue, 0),
-            'value_capture_rate' => ($captureRate * 100) . '%',
+            'value_capture_rate' => ($captureRate * 100).'%',
             'customer_surplus' => round($perceivedValue - $valueBasedPrice, 0),
         ];
     }
@@ -215,8 +217,6 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
     /**
      * Calculate price elasticity
      *
-     * @param Business $business
-     * @param array $options
      * @return array Elasticity analysis
      */
     protected function calculatePriceElasticity(Business $business, array $options): array
@@ -258,12 +258,6 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
     /**
      * Generate pricing recommendation
      *
-     * @param float $currentPrice
-     * @param float $cost
-     * @param array $revenueOptimal
-     * @param array $competitivePrice
-     * @param array $valueBasedPrice
-     * @param array $elasticity
      * @return array Final recommendation
      */
     protected function generatePricingRecommendation(
@@ -296,7 +290,7 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
         return [
             'recommended_price' => $recommendedPrice,
             'current_price' => $currentPrice,
-            'price_change' => round($priceChange, 1) . '%',
+            'price_change' => round($priceChange, 1).'%',
             'action' => $action,
             'reasoning' => $this->getPricingReasoning($action, $elasticity, $competitivePrice),
             'implementation_steps' => $this->getImplementationSteps($action, $recommendedPrice, $currentPrice),
@@ -307,15 +301,15 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
     protected function getPricingReasoning(string $action, array $elasticity, array $competitivePrice): string
     {
         if ($action === 'increase') {
-            return "Price oshirish tavsiya etiladi. " .
+            return 'Price oshirish tavsiya etiladi. '.
                    ($elasticity['interpretation'] === 'inelastic'
                     ? "Demand price'ga kam sezgir, price oshirish revenue oshiradi."
                     : "Competitor price'lar yuqori, siz ham oshirishingiz mumkin.");
         } elseif ($action === 'decrease') {
-            return "Price kamaytirish tavsiya etiladi. " .
+            return 'Price kamaytirish tavsiya etiladi. '.
                    ($elasticity['interpretation'] === 'elastic'
                     ? "Demand price'ga juda sezgir, price kamaytirilsa demand ko'p oshadi."
-                    : "Competitive position yaxshilash uchun price kamaytiring.");
+                    : 'Competitive position yaxshilash uchun price kamaytiring.');
         } else {
             return "Hozirgi price optimal. Katta o'zgarish kerak emas.";
         }
@@ -325,23 +319,23 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
     {
         if ($action === 'increase') {
             return [
-                "Bosqichli oshiring: har hafta 5-10% ga",
+                'Bosqichli oshiring: har hafta 5-10% ga',
                 "Value proposition'ni kuchaytiring",
                 "Premium features qo'shing",
-                "Customer feedback monitoring qiling",
+                'Customer feedback monitoring qiling',
             ];
         } elseif ($action === 'decrease') {
             return [
                 "A/B test qiling: bir qism customer'ga yangi price",
                 "Bundle offers yarating - discount ko'rinmasin",
-                "Volume discount taklif qiling",
-                "Conversion rate monitoring qiling",
+                'Volume discount taklif qiling',
+                'Conversion rate monitoring qiling',
             ];
         } else {
             return [
                 "Hozirgi price'ni saqlab qoling",
                 "Value addition'ga focus qiling",
-                "Customer satisfaction oshiring",
+                'Customer satisfaction oshiring',
             ];
         }
     }
@@ -354,11 +348,11 @@ class PriceOptimizationAlgorithm extends AlgorithmEngine
         $demandChange = $elasticityCoef * $priceChange;
 
         // Revenue change = (1 + price_change%) × (1 + demand_change%) - 1
-        $revenueChange = ((1 + $priceChange/100) * (1 + $demandChange/100) - 1) * 100;
+        $revenueChange = ((1 + $priceChange / 100) * (1 + $demandChange / 100) - 1) * 100;
 
         return [
-            'expected_demand_change' => round($demandChange, 1) . '%',
-            'expected_revenue_change' => round($revenueChange, 1) . '%',
+            'expected_demand_change' => round($demandChange, 1).'%',
+            'expected_revenue_change' => round($revenueChange, 1).'%',
             'confidence' => 'medium',
         ];
     }

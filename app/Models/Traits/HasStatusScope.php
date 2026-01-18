@@ -41,6 +41,7 @@ trait HasStatusScope
     public function scopeWithoutStatus(Builder $query, string|array $statuses): Builder
     {
         $statuses = is_array($statuses) ? $statuses : [$statuses];
+
         return $query->whereNotIn($this->getStatusColumn(), $statuses);
     }
 

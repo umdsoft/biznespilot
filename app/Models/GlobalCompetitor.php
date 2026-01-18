@@ -59,15 +59,15 @@ class GlobalCompetitor extends Model
 
                 // Add region/district to make unique
                 if ($model->region) {
-                    $slug = $baseSlug . '-' . Str::slug($model->region);
+                    $slug = $baseSlug.'-'.Str::slug($model->region);
                 }
                 if ($model->district) {
-                    $slug = $slug . '-' . Str::slug($model->district);
+                    $slug = $slug.'-'.Str::slug($model->district);
                 }
 
                 // Check for uniqueness
                 while (static::where('slug', $slug)->exists()) {
-                    $slug = $baseSlug . '-' . $counter;
+                    $slug = $baseSlug.'-'.$counter;
                     $counter++;
                 }
 
@@ -90,10 +90,10 @@ class GlobalCompetitor extends Model
     public static function findOrCreateFromCompetitor(array $data): self
     {
         // Try to find by Instagram handle first (most unique)
-        if (!empty($data['instagram_handle'])) {
+        if (! empty($data['instagram_handle'])) {
             $handle = ltrim($data['instagram_handle'], '@');
             $existing = static::where('instagram_handle', $handle)
-                ->orWhere('instagram_handle', '@' . $handle)
+                ->orWhere('instagram_handle', '@'.$handle)
                 ->first();
             if ($existing) {
                 return $existing;
@@ -101,10 +101,10 @@ class GlobalCompetitor extends Model
         }
 
         // Try to find by Telegram handle
-        if (!empty($data['telegram_handle'])) {
+        if (! empty($data['telegram_handle'])) {
             $handle = ltrim($data['telegram_handle'], '@');
             $existing = static::where('telegram_handle', $handle)
-                ->orWhere('telegram_handle', '@' . $handle)
+                ->orWhere('telegram_handle', '@'.$handle)
                 ->first();
             if ($existing) {
                 return $existing;
@@ -112,13 +112,13 @@ class GlobalCompetitor extends Model
         }
 
         // Try to find by name + region + district
-        if (!empty($data['name']) && !empty($data['region'])) {
+        if (! empty($data['name']) && ! empty($data['region'])) {
             $query = static::where('name', 'LIKE', $data['name']);
 
-            if (!empty($data['region'])) {
+            if (! empty($data['region'])) {
                 $query->where('region', $data['region']);
             }
-            if (!empty($data['district'])) {
+            if (! empty($data['district'])) {
                 $query->where('district', $data['district']);
             }
 
@@ -186,7 +186,7 @@ class GlobalCompetitor extends Model
                     }
                 }
 
-                if (!$exists) {
+                if (! $exists) {
                     // Store in object format with business_id
                     $existing[] = [
                         'text' => trim($itemText),
@@ -209,7 +209,9 @@ class GlobalCompetitor extends Model
      */
     public function getSwotCountAttribute(): int
     {
-        if (!$this->swot_data) return 0;
+        if (! $this->swot_data) {
+            return 0;
+        }
 
         return count($this->swot_data['strengths'] ?? []) +
                count($this->swot_data['weaknesses'] ?? []) +

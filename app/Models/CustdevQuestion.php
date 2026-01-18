@@ -57,7 +57,7 @@ class CustdevQuestion extends Model
      */
     public function getTypeLabel(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             'text' => 'Qisqa matn',
             'textarea' => 'Uzun matn',
             'select' => 'Bitta tanlash',
@@ -73,7 +73,7 @@ class CustdevQuestion extends Model
      */
     public function getCategoryLabel(): string
     {
-        return match($this->category) {
+        return match ($this->category) {
             'where_spend_time' => 'Vaqt va Joy',
             'info_sources' => 'Ma\'lumot Manbalari',
             'frustrations' => 'Muammolar',

@@ -158,9 +158,9 @@ class MarketingMetrics extends Model
      */
     public function hasData(): bool
     {
-        return !empty($this->monthly_budget) ||
-               !empty($this->active_channels) ||
-               !empty($this->website_purpose);
+        return ! empty($this->monthly_budget) ||
+               ! empty($this->active_channels) ||
+               ! empty($this->website_purpose);
     }
 
     /**
@@ -189,7 +189,7 @@ class MarketingMetrics extends Model
         $filled = 0;
         foreach ($fields as $field) {
             $value = $this->$field;
-            if (!empty($value) && (!is_array($value) || count($value) > 0)) {
+            if (! empty($value) && (! is_array($value) || count($value) > 0)) {
                 $filled++;
             }
         }

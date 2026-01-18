@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Check if table and column exist before adding
-        if (Schema::hasTable('sipuni_accounts') && !Schema::hasColumn('sipuni_accounts', 'extension')) {
+        if (Schema::hasTable('sipuni_accounts') && ! Schema::hasColumn('sipuni_accounts', 'extension')) {
             Schema::table('sipuni_accounts', function (Blueprint $table) {
                 $table->string('extension')->nullable()->after('caller_id');
             });

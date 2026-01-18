@@ -54,7 +54,7 @@ class MoiZvonkiAccount extends Model
      */
     public function isConfigured(): bool
     {
-        return !empty($this->api_url) && !empty($this->api_key);
+        return ! empty($this->api_url) && ! empty($this->api_key);
     }
 
     /**
@@ -65,8 +65,8 @@ class MoiZvonkiAccount extends Model
         $url = $this->api_url;
 
         // Ensure proper URL format
-        if (!str_starts_with($url, 'http')) {
-            $url = 'https://' . $url;
+        if (! str_starts_with($url, 'http')) {
+            $url = 'https://'.$url;
         }
 
         return rtrim($url, '/');

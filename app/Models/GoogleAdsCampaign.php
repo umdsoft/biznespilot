@@ -111,6 +111,7 @@ class GoogleAdsCampaign extends Model
         if (is_array($status)) {
             return $query->whereIn('status', $status);
         }
+
         return $query->where('status', $status);
     }
 

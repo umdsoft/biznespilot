@@ -353,6 +353,7 @@ class SentimentLexicon
     public static function isPositive(string $word): bool
     {
         $word = mb_strtolower(trim($word));
+
         return isset(self::getPositiveWords()[$word]);
     }
 
@@ -362,6 +363,7 @@ class SentimentLexicon
     public static function isNegative(string $word): bool
     {
         $word = mb_strtolower(trim($word));
+
         return isset(self::getNegativeWords()[$word]);
     }
 
@@ -371,6 +373,7 @@ class SentimentLexicon
     public static function isNegation(string $word): bool
     {
         $word = mb_strtolower(trim($word));
+
         return in_array($word, self::getNegationWords());
     }
 }

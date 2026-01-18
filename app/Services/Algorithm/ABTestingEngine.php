@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Log;
  * - Kohavi et al. (2009) - Controlled experiments on the web
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class ABTestingEngine extends AlgorithmEngine
 {
@@ -58,9 +57,9 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Analyze A/B test results
      *
-     * @param array $variantA Data for variant A (control)
-     * @param array $variantB Data for variant B (treatment)
-     * @param array $options Test options
+     * @param  array  $variantA  Data for variant A (control)
+     * @param  array  $variantB  Data for variant B (treatment)
+     * @param  array  $options  Test options
      * @return array Test results and recommendations
      */
     public function analyze(
@@ -116,9 +115,9 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Analyze conversion rate test (Chi-Square Test)
      *
-     * @param array $variantA ['conversions' => int, 'visitors' => int]
-     * @param array $variantB ['conversions' => int, 'visitors' => int]
-     * @param float $alpha Significance level
+     * @param  array  $variantA  ['conversions' => int, 'visitors' => int]
+     * @param  array  $variantB  ['conversions' => int, 'visitors' => int]
+     * @param  float  $alpha  Significance level
      * @return array Test results
      */
     protected function analyzeConversionRate(
@@ -162,24 +161,24 @@ class ABTestingEngine extends AlgorithmEngine
             'variant_a' => [
                 'conversions' => $conversionsA,
                 'visitors' => $visitorsA,
-                'conversion_rate' => round($convRateA * 100, 2) . '%',
+                'conversion_rate' => round($convRateA * 100, 2).'%',
                 'confidence_interval' => [
-                    'lower' => round($ciA['lower'] * 100, 2) . '%',
-                    'upper' => round($ciA['upper'] * 100, 2) . '%',
+                    'lower' => round($ciA['lower'] * 100, 2).'%',
+                    'upper' => round($ciA['upper'] * 100, 2).'%',
                 ],
             ],
             'variant_b' => [
                 'conversions' => $conversionsB,
                 'visitors' => $visitorsB,
-                'conversion_rate' => round($convRateB * 100, 2) . '%',
+                'conversion_rate' => round($convRateB * 100, 2).'%',
                 'confidence_interval' => [
-                    'lower' => round($ciB['lower'] * 100, 2) . '%',
-                    'upper' => round($ciB['upper'] * 100, 2) . '%',
+                    'lower' => round($ciB['lower'] * 100, 2).'%',
+                    'upper' => round($ciB['upper'] * 100, 2).'%',
                 ],
             ],
             'comparison' => [
-                'absolute_difference' => round($absoluteDiff, 2) . '%',
-                'relative_lift' => round($lift, 2) . '%',
+                'absolute_difference' => round($absoluteDiff, 2).'%',
+                'relative_lift' => round($lift, 2).'%',
                 'winner' => $convRateB > $convRateA ? 'B' : ($convRateB < $convRateA ? 'A' : 'tie'),
             ],
             'statistical_significance' => [
@@ -187,10 +186,10 @@ class ABTestingEngine extends AlgorithmEngine
                 'p_value' => $chiSquareResult['p_value'] ?? 1,
                 'significant' => $chiSquareResult['significant'] ?? false,
                 'alpha' => $alpha,
-                'confidence_level' => ((1 - $alpha) * 100) . '%',
+                'confidence_level' => ((1 - $alpha) * 100).'%',
             ],
             'bayesian' => [
-                'prob_b_better_than_a' => round($probBBetterThanA * 100, 1) . '%',
+                'prob_b_better_than_a' => round($probBBetterThanA * 100, 1).'%',
             ],
         ];
     }
@@ -198,9 +197,9 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Analyze continuous metric test (T-Test)
      *
-     * @param array $variantA Array of values
-     * @param array $variantB Array of values
-     * @param float $alpha Significance level
+     * @param  array  $variantA  Array of values
+     * @param  array  $variantB  Array of values
+     * @param  float  $alpha  Significance level
      * @return array Test results
      */
     protected function analyzeContinuousMetric(
@@ -237,7 +236,7 @@ class ABTestingEngine extends AlgorithmEngine
             'variant_b' => array_merge(['sample_size' => count($valuesB)], $statsB),
             'comparison' => [
                 'mean_difference' => $tTestResult['mean_difference'] ?? 0,
-                'relative_lift' => round($lift, 2) . '%',
+                'relative_lift' => round($lift, 2).'%',
                 'winner' => $meanB > $meanA ? 'B' : ($meanB < $meanA ? 'A' : 'tie'),
             ],
             'statistical_significance' => [
@@ -245,7 +244,7 @@ class ABTestingEngine extends AlgorithmEngine
                 'p_value' => $tTestResult['p_value'] ?? 1,
                 'significant' => $tTestResult['significant'] ?? false,
                 'alpha' => $alpha,
-                'confidence_level' => ((1 - $alpha) * 100) . '%',
+                'confidence_level' => ((1 - $alpha) * 100).'%',
                 'degrees_of_freedom' => $tTestResult['degrees_of_freedom'] ?? 0,
             ],
             'effect_size' => [
@@ -258,7 +257,7 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Calculate descriptive statistics
      *
-     * @param array $values Array of numeric values
+     * @param  array  $values  Array of numeric values
      * @return array Statistics
      */
     protected function calculateDescriptiveStats(array $values): array
@@ -305,9 +304,9 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Analyze sample size adequacy
      *
-     * @param array $variantA Variant A data
-     * @param array $variantB Variant B data
-     * @param array $options Test options
+     * @param  array  $variantA  Variant A data
+     * @param  array  $variantB  Variant B data
+     * @param  array  $options  Test options
      * @return array Sample size analysis
      */
     protected function analyzeSampleSize(
@@ -342,16 +341,16 @@ class ABTestingEngine extends AlgorithmEngine
             'adequacy_details' => [
                 'variant_a' => [
                     'adequate' => $isAdequateA,
-                    'percentage' => round(($nA / $requiredN) * 100, 1) . '%',
+                    'percentage' => round(($nA / $requiredN) * 100, 1).'%',
                 ],
                 'variant_b' => [
                     'adequate' => $isAdequateB,
-                    'percentage' => round(($nB / $requiredN) * 100, 1) . '%',
+                    'percentage' => round(($nB / $requiredN) * 100, 1).'%',
                 ],
             ],
             'assumptions' => [
-                'expected_effect' => round($expectedEffect * 100, 1) . '%',
-                'power' => round($power * 100) . '%',
+                'expected_effect' => round($expectedEffect * 100, 1).'%',
+                'power' => round($power * 100).'%',
                 'alpha' => $alpha,
             ],
         ];
@@ -362,8 +361,8 @@ class ABTestingEngine extends AlgorithmEngine
      *
      * Simplified approximation using normal distribution.
      *
-     * @param float $rateB Conversion rate B
-     * @param float $rateA Conversion rate A
+     * @param  float  $rateB  Conversion rate B
+     * @param  float  $rateA  Conversion rate A
      * @return float Probability (0-1)
      */
     protected function calculateBayesianProbability(float $rateB, float $rateA): float
@@ -386,8 +385,8 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Generate recommendation based on test results
      *
-     * @param array $testResult Statistical test result
-     * @param array $sampleSizeAnalysis Sample size analysis
+     * @param  array  $testResult  Statistical test result
+     * @param  array  $sampleSizeAnalysis  Sample size analysis
      * @return array Recommendation
      */
     protected function generateRecommendation(
@@ -400,7 +399,7 @@ class ABTestingEngine extends AlgorithmEngine
         $winner = $testResult['comparison']['winner'] ?? 'tie';
 
         // Determine action
-        if (!$isAdequateSample) {
+        if (! $isAdequateSample) {
             $action = 'continue_testing';
             $decision = 'Testni davom ettiring - yetarli sample mavjud emas';
             $confidence = 'low';
@@ -435,8 +434,8 @@ class ABTestingEngine extends AlgorithmEngine
     /**
      * Estimate business impact
      *
-     * @param float $lift Relative lift (percentage)
-     * @param string $winner Winner variant
+     * @param  float  $lift  Relative lift (percentage)
+     * @param  string  $winner  Winner variant
      * @return array Impact estimate
      */
     protected function estimateBusinessImpact(float $lift, string $winner): array
@@ -467,15 +466,15 @@ class ABTestingEngine extends AlgorithmEngine
         return [
             'description' => $description,
             'category' => $category,
-            'lift_percentage' => round($lift, 1) . '%',
+            'lift_percentage' => round($lift, 1).'%',
         ];
     }
 
     /**
      * Get next steps based on recommendation
      *
-     * @param string $action Recommended action
-     * @param array $sampleSizeAnalysis Sample size analysis
+     * @param  string  $action  Recommended action
+     * @param  array  $sampleSizeAnalysis  Sample size analysis
      * @return array Next steps
      */
     protected function getNextSteps(string $action, array $sampleSizeAnalysis): array
@@ -483,6 +482,7 @@ class ABTestingEngine extends AlgorithmEngine
         switch ($action) {
             case 'continue_testing':
                 $requiredN = $sampleSizeAnalysis['required_sample_size_per_variant'];
+
                 return [
                     "Har bir variant uchun kamida {$requiredN} sample to'plang",
                     'Test davom etar ekan, boshqa variantlarni sinab ko\'ring',

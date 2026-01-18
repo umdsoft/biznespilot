@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Log;
  * - Bain & Company: Clear differentiation reduces price sensitivity by 40%
  *
  * @version 3.0.0
- * @package App\Services\Algorithm
  */
 class ValueEquationAlgorithm
 {
@@ -71,9 +70,6 @@ class ValueEquationAlgorithm
 
     /**
      * Calculate Value Equation score
-     *
-     * @param Business $business
-     * @return array
      */
     public function calculate(Business $business): array
     {
@@ -143,15 +139,12 @@ class ValueEquationAlgorithm
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return $this->getEmptyScoreResponse('Calculation error: ' . $e->getMessage());
+            return $this->getEmptyScoreResponse('Calculation error: '.$e->getMessage());
         }
     }
 
     /**
      * Preload offer data with caching
-     *
-     * @param Business $business
-     * @return array
      */
     protected function preloadOfferData(Business $business): array
     {
@@ -161,7 +154,7 @@ class ValueEquationAlgorithm
             function () use ($business) {
                 $offer = $business->offer;
 
-                if (!$offer) {
+                if (! $offer) {
                     return [];
                 }
 
@@ -201,9 +194,6 @@ class ValueEquationAlgorithm
 
     /**
      * Calculate scores for each component (1-10 scale)
-     *
-     * @param array $offerData
-     * @return array
      */
     protected function calculateComponentScores(array $offerData): array
     {
@@ -268,15 +258,22 @@ class ValueEquationAlgorithm
     /**
      * Check if field is filled
      *
-     * @param mixed $value
-     * @return bool
+     * @param  mixed  $value
      */
     protected function isFieldFilled($value): bool
     {
-        if (is_null($value)) return false;
-        if (is_string($value) && trim($value) === '') return false;
-        if (is_numeric($value) && $value <= 0) return false;
-        if (is_array($value) && empty($value)) return false;
+        if (is_null($value)) {
+            return false;
+        }
+        if (is_string($value) && trim($value) === '') {
+            return false;
+        }
+        if (is_numeric($value) && $value <= 0) {
+            return false;
+        }
+        if (is_array($value) && empty($value)) {
+            return false;
+        }
 
         return true;
     }
@@ -284,10 +281,7 @@ class ValueEquationAlgorithm
     /**
      * Assess field quality (0-1 scale)
      *
-     * @param string $field
-     * @param mixed $value
-     * @param string $component
-     * @return float
+     * @param  mixed  $value
      */
     protected function assessFieldQuality(string $field, $value, string $component): float
     {
@@ -296,7 +290,7 @@ class ValueEquationAlgorithm
             return min(1.0, $value / 10);
         }
 
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             return 0.5;
         }
 
@@ -306,35 +300,68 @@ class ValueEquationAlgorithm
         switch ($component) {
             case 'dream_outcome':
                 // Needs vivid, specific description
-                if ($length < 30) return 0.3;
-                if ($length < 80) return 0.6;
-                if ($length < 150) return 0.8;
+                if ($length < 30) {
+                    return 0.3;
+                }
+                if ($length < 80) {
+                    return 0.6;
+                }
+                if ($length < 150) {
+                    return 0.8;
+                }
+
                 return 1.0;
 
             case 'perceived_likelihood':
                 // Needs concrete proof
-                if ($length < 20) return 0.3;
-                if ($length < 60) return 0.6;
-                if ($length < 120) return 0.8;
+                if ($length < 20) {
+                    return 0.3;
+                }
+                if ($length < 60) {
+                    return 0.6;
+                }
+                if ($length < 120) {
+                    return 0.8;
+                }
+
                 return 1.0;
 
             case 'time_delay':
                 // Needs clear timeline
-                if ($length < 10) return 0.3;
-                if ($length < 30) return 0.6;
-                if ($length < 60) return 0.8;
+                if ($length < 10) {
+                    return 0.3;
+                }
+                if ($length < 30) {
+                    return 0.6;
+                }
+                if ($length < 60) {
+                    return 0.8;
+                }
+
                 return 1.0;
 
             case 'effort_sacrifice':
                 // Needs honest assessment
-                if ($length < 15) return 0.3;
-                if ($length < 40) return 0.6;
-                if ($length < 80) return 0.8;
+                if ($length < 15) {
+                    return 0.3;
+                }
+                if ($length < 40) {
+                    return 0.6;
+                }
+                if ($length < 80) {
+                    return 0.8;
+                }
+
                 return 1.0;
 
             default:
-                if ($length < 10) return 0.3;
-                if ($length < 30) return 0.6;
+                if ($length < 10) {
+                    return 0.3;
+                }
+                if ($length < 30) {
+                    return 0.6;
+                }
+
                 return 1.0;
         }
     }
@@ -342,9 +369,6 @@ class ValueEquationAlgorithm
     /**
      * Calculate Value Equation
      * Formula: (Dream Outcome × Perceived Likelihood) / (Time Delay × Effort & Sacrifice)
-     *
-     * @param array $componentScores
-     * @return float
      */
     protected function calculateValueEquation(array $componentScores): float
     {
@@ -369,25 +393,27 @@ class ValueEquationAlgorithm
 
     /**
      * Get quality level
-     *
-     * @param float $score
-     * @return string
      */
     protected function getQualityLevel(float $score): string
     {
-        if ($score >= 8.5) return 'excellent'; // Grand Slam Offer
-        if ($score >= 6.5) return 'good';      // Strong Offer
-        if ($score >= 4.5) return 'average';   // Standard Offer
-        if ($score >= 2.0) return 'weak';      // Needs Work
+        if ($score >= 8.5) {
+            return 'excellent';
+        } // Grand Slam Offer
+        if ($score >= 6.5) {
+            return 'good';
+        }      // Strong Offer
+        if ($score >= 4.5) {
+            return 'average';
+        }   // Standard Offer
+        if ($score >= 2.0) {
+            return 'weak';
+        }      // Needs Work
+
         return 'poor';                          // Critical
     }
 
     /**
      * Calculate pricing power
-     *
-     * @param float $valueScore
-     * @param array $componentScores
-     * @return array
      */
     protected function calculatePricingPower(float $valueScore, array $componentScores): array
     {
@@ -406,18 +432,15 @@ class ValueEquationAlgorithm
 
         return [
             'premium_pricing_multiplier' => round($premiumMultiplier, 2),
-            'recommended_price_increase' => round(($premiumMultiplier - 1) * 100, 1) . '%',
-            'conversion_improvement_potential' => round($conversionBoost, 1) . '%',
-            'price_sensitivity_reduction' => round($priceSensitivityReduction, 1) . '%',
+            'recommended_price_increase' => round(($premiumMultiplier - 1) * 100, 1).'%',
+            'conversion_improvement_potential' => round($conversionBoost, 1).'%',
+            'price_sensitivity_reduction' => round($priceSensitivityReduction, 1).'%',
             'pricing_strategy' => $this->getPricingStrategy($valueScore),
         ];
     }
 
     /**
      * Get pricing strategy recommendation
-     *
-     * @param float $valueScore
-     * @return string
      */
     protected function getPricingStrategy(float $valueScore): string
     {
@@ -434,9 +457,6 @@ class ValueEquationAlgorithm
 
     /**
      * Identify weak components
-     *
-     * @param array $componentScores
-     * @return array
      */
     protected function identifyWeakComponents(array $componentScores): array
     {
@@ -455,10 +475,11 @@ class ValueEquationAlgorithm
         }
 
         // Sort by severity and impact
-        usort($weak, function($a, $b) {
+        usort($weak, function ($a, $b) {
             if ($a['severity'] !== $b['severity']) {
                 return $a['severity'] === 'critical' ? -1 : 1;
             }
+
             return $a['score'] <=> $b['score'];
         });
 
@@ -467,10 +488,6 @@ class ValueEquationAlgorithm
 
     /**
      * Get component impact description
-     *
-     * @param string $component
-     * @param bool $isMultiplier
-     * @return string
      */
     protected function getComponentImpact(string $component, bool $isMultiplier): string
     {
@@ -494,10 +511,6 @@ class ValueEquationAlgorithm
 
     /**
      * Generate recommendations
-     *
-     * @param array $componentScores
-     * @param array $offerData
-     * @return array
      */
     protected function generateRecommendations(array $componentScores, array $offerData): array
     {
@@ -542,28 +555,20 @@ class ValueEquationAlgorithm
 
     /**
      * Get component title
-     *
-     * @param string $component
-     * @return string
      */
     protected function getComponentTitle(string $component): string
     {
-        return match($component) {
+        return match ($component) {
             'dream_outcome' => 'Strengthen Dream Outcome',
             'perceived_likelihood' => 'Build Credibility & Proof',
             'time_delay' => 'Accelerate Time to Results',
             'effort_sacrifice' => 'Reduce Friction & Effort',
-            default => 'Improve ' . str_replace('_', ' ', $component),
+            default => 'Improve '.str_replace('_', ' ', $component),
         };
     }
 
     /**
      * Get component action items
-     *
-     * @param string $component
-     * @param array $data
-     * @param array $offerData
-     * @return array
      */
     protected function getComponentActions(string $component, array $data, array $offerData): array
     {
@@ -612,11 +617,6 @@ class ValueEquationAlgorithm
 
     /**
      * Estimate impact of improvement
-     *
-     * @param string $component
-     * @param float $currentScore
-     * @param float $targetScore
-     * @return array
      */
     protected function estimateImpact(string $component, float $currentScore, float $targetScore): array
     {
@@ -634,18 +634,14 @@ class ValueEquationAlgorithm
         }
 
         return [
-            'value_increase' => '+' . round($valueIncrease, 1) . '%',
-            'conversion_boost' => '+' . round($conversionBoost, 1) . '%',
+            'value_increase' => '+'.round($valueIncrease, 1).'%',
+            'conversion_boost' => '+'.round($conversionBoost, 1).'%',
             'impact_type' => $isMultiplier ? 'Multiplier (Amplifies Value)' : 'Divider (Reduces Friction)',
         ];
     }
 
     /**
      * Calculate competitive advantage
-     *
-     * @param float $valueScore
-     * @param string $industry
-     * @return array
      */
     protected function calculateCompetitiveAdvantage(float $valueScore, string $industry): array
     {
@@ -667,56 +663,72 @@ class ValueEquationAlgorithm
 
     /**
      * Calculate percentile
-     *
-     * @param float $score
-     * @param array $benchmarks
-     * @return int
      */
     protected function calculatePercentile(float $score, array $benchmarks): int
     {
-        if ($score >= $benchmarks['excellent']) return 95;
-        if ($score >= $benchmarks['good']) return 75;
-        if ($score >= $benchmarks['average']) return 50;
-        if ($score >= $benchmarks['poor']) return 25;
+        if ($score >= $benchmarks['excellent']) {
+            return 95;
+        }
+        if ($score >= $benchmarks['good']) {
+            return 75;
+        }
+        if ($score >= $benchmarks['average']) {
+            return 50;
+        }
+        if ($score >= $benchmarks['poor']) {
+            return 25;
+        }
+
         return 10;
     }
 
     /**
      * Get competitive status
-     *
-     * @param float $gap
-     * @return string
      */
     protected function getCompetitiveStatus(float $gap): string
     {
-        if ($gap >= 3) return 'dominant';
-        if ($gap >= 1.5) return 'strong_advantage';
-        if ($gap >= 0.5) return 'slight_advantage';
-        if ($gap >= -0.5) return 'competitive';
-        if ($gap >= -1.5) return 'behind';
+        if ($gap >= 3) {
+            return 'dominant';
+        }
+        if ($gap >= 1.5) {
+            return 'strong_advantage';
+        }
+        if ($gap >= 0.5) {
+            return 'slight_advantage';
+        }
+        if ($gap >= -0.5) {
+            return 'competitive';
+        }
+        if ($gap >= -1.5) {
+            return 'behind';
+        }
+
         return 'far_behind';
     }
 
     /**
      * Get market position
-     *
-     * @param int $percentile
-     * @return string
      */
     protected function getMarketPosition(int $percentile): string
     {
-        if ($percentile >= 90) return 'market_leader';
-        if ($percentile >= 75) return 'top_tier';
-        if ($percentile >= 50) return 'competitive';
-        if ($percentile >= 25) return 'below_average';
+        if ($percentile >= 90) {
+            return 'market_leader';
+        }
+        if ($percentile >= 75) {
+            return 'top_tier';
+        }
+        if ($percentile >= 50) {
+            return 'competitive';
+        }
+        if ($percentile >= 25) {
+            return 'below_average';
+        }
+
         return 'struggling';
     }
 
     /**
      * Calculate improvement potential
-     *
-     * @param array $componentScores
-     * @return array
      */
     protected function calculateImprovementPotential(array $componentScores): array
     {
@@ -736,10 +748,11 @@ class ValueEquationAlgorithm
         }
 
         // Sort by potential gain (multipliers first)
-        usort($potentials, function($a, $b) {
+        usort($potentials, function ($a, $b) {
             if ($a['impact_type'] !== $b['impact_type']) {
                 return $a['impact_type'] === 'multiplier' ? -1 : 1;
             }
+
             return $b['potential_gain'] <=> $a['potential_gain'];
         });
 
@@ -748,9 +761,6 @@ class ValueEquationAlgorithm
 
     /**
      * Get empty score response
-     *
-     * @param string $reason
-     * @return array
      */
     protected function getEmptyScoreResponse(string $reason): array
     {

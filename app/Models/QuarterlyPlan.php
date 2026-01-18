@@ -148,18 +148,21 @@ class QuarterlyPlan extends Model
     public function getMonthsInQuarter(): array
     {
         $startMonth = (($this->quarter - 1) * 3) + 1;
+
         return [$startMonth, $startMonth + 1, $startMonth + 2];
     }
 
     public function getStartDate(): \Carbon\Carbon
     {
         $startMonth = (($this->quarter - 1) * 3) + 1;
+
         return \Carbon\Carbon::create($this->year, $startMonth, 1);
     }
 
     public function getEndDate(): \Carbon\Carbon
     {
         $endMonth = $this->quarter * 3;
+
         return \Carbon\Carbon::create($this->year, $endMonth, 1)->endOfMonth();
     }
 
@@ -188,6 +191,7 @@ class QuarterlyPlan extends Model
         $months = $this->monthlyPlans()->count();
         if ($months === 0) {
             $this->update(['completion_percent' => 0]);
+
             return;
         }
 

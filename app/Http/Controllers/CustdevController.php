@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Business;
-use App\Models\CustdevSurvey;
-use App\Models\CustdevQuestion;
-use App\Models\CustdevResponse;
 use App\Models\CustdevAnswer;
+use App\Models\CustdevQuestion;
+use App\Models\CustdevSurvey;
 use App\Models\DreamBuyer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +87,7 @@ class CustdevController extends Controller
             // Auto-create Dream Buyer for this survey
             $dreamBuyer = DreamBuyer::create([
                 'business_id' => $business->id,
-                'name' => $request->title . ' - Ideal Mijoz',
+                'name' => $request->title.' - Ideal Mijoz',
                 'description' => 'CustDev so\'rovnomasi asosida avtomatik yaratilgan profil',
                 'priority' => 'medium',
                 'is_primary' => false,
@@ -137,7 +135,8 @@ class CustdevController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+
+            return back()->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -257,13 +256,13 @@ class CustdevController extends Controller
 
             // Delete removed questions
             $toDelete = array_diff($existingIds, $submittedIds);
-            if (!empty($toDelete)) {
+            if (! empty($toDelete)) {
                 CustdevQuestion::whereIn('id', $toDelete)->delete();
             }
 
             // Update or create questions
             foreach ($request->questions as $index => $questionData) {
-                if (!empty($questionData['id'])) {
+                if (! empty($questionData['id'])) {
                     // Update existing
                     CustdevQuestion::where('id', $questionData['id'])->update([
                         'type' => $questionData['type'],
@@ -304,7 +303,8 @@ class CustdevController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+
+            return back()->with('error', 'Xatolik yuz berdi: '.$e->getMessage());
         }
     }
 
@@ -455,16 +455,16 @@ class CustdevController extends Controller
         }
 
         // Generate CSV content
-        $csv = implode(',', array_map(fn($h) => '"' . str_replace('"', '""', $h) . '"', $headers)) . "\n";
+        $csv = implode(',', array_map(fn ($h) => '"'.str_replace('"', '""', $h).'"', $headers))."\n";
         foreach ($rows as $row) {
-            $csv .= implode(',', array_map(fn($v) => '"' . str_replace('"', '""', $v) . '"', $row)) . "\n";
+            $csv .= implode(',', array_map(fn ($v) => '"'.str_replace('"', '""', $v).'"', $row))."\n";
         }
 
-        $filename = 'custdev_' . $custdev->slug . '_' . date('Y-m-d') . '.csv';
+        $filename = 'custdev_'.$custdev->slug.'_'.date('Y-m-d').'.csv';
 
         return response($csv)
             ->header('Content-Type', 'text/csv; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     /**
@@ -474,13 +474,13 @@ class CustdevController extends Controller
     {
         $this->authorize('update', $custdev);
 
-        if (!$custdev->dream_buyer_id) {
+        if (! $custdev->dream_buyer_id) {
             return back()->with('error', 'Bu so\'rovnoma Ideal Mijoz profiliga bog\'lanmagan!');
         }
 
         $dreamBuyer = DreamBuyer::find($custdev->dream_buyer_id);
 
-        if (!$dreamBuyer) {
+        if (! $dreamBuyer) {
             return back()->with('error', 'Ideal Mijoz profili topilmadi!');
         }
 
@@ -489,12 +489,12 @@ class CustdevController extends Controller
         $questions = $custdev->questions;
 
         foreach ($questions as $question) {
-            if (!$question->category || $question->category === 'custom') {
+            if (! $question->category || $question->category === 'custom') {
                 continue;
             }
 
             $answers = CustdevAnswer::where('question_id', $question->id)
-                ->whereHas('response', fn($q) => $q->where('status', 'completed'))
+                ->whereHas('response', fn ($q) => $q->where('status', 'completed'))
                 ->get();
 
             $values = [];
@@ -514,7 +514,7 @@ class CustdevController extends Controller
                 }
             }
 
-            if (!empty($values)) {
+            if (! empty($values)) {
                 $categoryData[$question->category] = array_merge(
                     $categoryData[$question->category] ?? [],
                     $values
@@ -525,37 +525,37 @@ class CustdevController extends Controller
         // Update Dream Buyer fields
         $updateData = [];
 
-        if (!empty($categoryData['where_spend_time'])) {
+        if (! empty($categoryData['where_spend_time'])) {
             $existing = $dreamBuyer->where_spend_time ? explode("\n", $dreamBuyer->where_spend_time) : [];
             $merged = array_unique(array_merge($existing, $categoryData['where_spend_time']));
             $updateData['where_spend_time'] = implode("\n", $merged);
         }
 
-        if (!empty($categoryData['info_sources'])) {
+        if (! empty($categoryData['info_sources'])) {
             $existing = $dreamBuyer->info_sources ? explode("\n", $dreamBuyer->info_sources) : [];
             $merged = array_unique(array_merge($existing, $categoryData['info_sources']));
             $updateData['info_sources'] = implode("\n", $merged);
         }
 
-        if (!empty($categoryData['frustrations'])) {
+        if (! empty($categoryData['frustrations'])) {
             $existing = $dreamBuyer->frustrations ? explode("\n", $dreamBuyer->frustrations) : [];
             $merged = array_unique(array_merge($existing, $categoryData['frustrations']));
             $updateData['frustrations'] = implode("\n", $merged);
         }
 
-        if (!empty($categoryData['dreams'])) {
+        if (! empty($categoryData['dreams'])) {
             $existing = $dreamBuyer->dreams ? explode("\n", $dreamBuyer->dreams) : [];
             $merged = array_unique(array_merge($existing, $categoryData['dreams']));
             $updateData['dreams'] = implode("\n", $merged);
         }
 
-        if (!empty($categoryData['fears'])) {
+        if (! empty($categoryData['fears'])) {
             $existing = $dreamBuyer->fears ? explode("\n", $dreamBuyer->fears) : [];
             $merged = array_unique(array_merge($existing, $categoryData['fears']));
             $updateData['fears'] = implode("\n", $merged);
         }
 
-        if (!empty($updateData)) {
+        if (! empty($updateData)) {
             $dreamBuyer->update($updateData);
         }
 

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class InsightController extends Controller
@@ -18,7 +17,7 @@ class InsightController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -35,7 +34,7 @@ class InsightController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['insights' => []]);
         }
 

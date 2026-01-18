@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Business;
-use App\Models\User;
-use App\Models\Notification;
 use App\Models\Alert;
+use App\Models\Business;
 use App\Models\GeneratedReport;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -96,7 +96,7 @@ class NotificationService
     {
         $business = $user->currentBusiness ?? $user->businesses()->first();
 
-        if (!$business) {
+        if (! $business) {
             throw new \Exception('User has no associated business');
         }
 
@@ -121,7 +121,7 @@ class NotificationService
         if ($user) {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             });
         }
 
@@ -141,7 +141,7 @@ class NotificationService
         if ($user) {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             });
         }
 
@@ -157,7 +157,7 @@ class NotificationService
         if ($user) {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             });
         }
 
@@ -172,7 +172,7 @@ class NotificationService
         if ($user) {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             });
         }
 
@@ -227,6 +227,7 @@ class NotificationService
             'business_id' => $business->id,
             'message' => $message,
         ]);
+
         return true;
     }
 
@@ -239,6 +240,7 @@ class NotificationService
             'user_id' => $user->id,
             'subject' => $subject,
         ]);
+
         return true;
     }
 
@@ -271,6 +273,7 @@ class NotificationService
     public function shouldSendNotification(User $user, string $type, string $channel): bool
     {
         $preferences = $this->getNotificationPreferences($user);
+
         return $preferences[$channel][$type] ?? true;
     }
 }

@@ -173,7 +173,7 @@ class MonthlyPlan extends Model
 
     public function getFullPeriodLabel(): string
     {
-        return $this->getMonthLabel() . ' ' . $this->year;
+        return $this->getMonthLabel().' '.$this->year;
     }
 
     public function getStatusLabel(): string
@@ -195,12 +195,14 @@ class MonthlyPlan extends Model
     {
         $start = $this->getStartDate();
         $end = $this->getEndDate();
+
         return $start->diffInWeeks($end) + 1;
     }
 
     public function getWeekPlan(int $week): ?array
     {
         $prop = "week_{$week}_plan";
+
         return $this->$prop;
     }
 
@@ -226,7 +228,7 @@ class MonthlyPlan extends Model
 
     public function calculateSuccessRate(): void
     {
-        if (!$this->actual_results || !$this->goals) {
+        if (! $this->actual_results || ! $this->goals) {
             return;
         }
 
@@ -241,7 +243,7 @@ class MonthlyPlan extends Model
             }
         }
 
-        if (!empty($achievements)) {
+        if (! empty($achievements)) {
             $this->update(['success_rate' => round(array_sum($achievements) / count($achievements), 2)]);
         }
     }
@@ -251,6 +253,7 @@ class MonthlyPlan extends Model
         $weeks = $this->weeklyPlans()->count();
         if ($weeks === 0) {
             $this->update(['completion_percent' => 0]);
+
             return;
         }
 

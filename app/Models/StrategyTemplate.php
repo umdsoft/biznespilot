@@ -113,6 +113,7 @@ class StrategyTemplate extends Model
         $totalUsage = $this->usage_count;
         if ($totalUsage === 0) {
             $this->update(['avg_success_rate' => $rate]);
+
             return;
         }
 
@@ -155,6 +156,7 @@ class StrategyTemplate extends Model
     public function getColorClass(): string
     {
         $color = $this->color ?? 'gray';
+
         return "bg-{$color}-100 text-{$color}-700";
     }
 

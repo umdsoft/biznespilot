@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class KpiMonthlySummary extends Model
 {
@@ -259,6 +258,7 @@ class KpiMonthlySummary extends Model
             $this->actual_value = 0;
             $this->achievement_percentage = 0;
             $this->status = 'grey';
+
             return;
         }
 
@@ -450,11 +450,11 @@ class KpiMonthlySummary extends Model
         $worstDay = null;
 
         foreach ($weeklyData as $weekly) {
-            if ($weekly->best_day_value && (!$bestDay || $weekly->best_day_value > $bestDay['value'])) {
+            if ($weekly->best_day_value && (! $bestDay || $weekly->best_day_value > $bestDay['value'])) {
                 $bestDay = ['date' => $weekly->best_day_date, 'value' => $weekly->best_day_value];
             }
 
-            if ($weekly->worst_day_value && (!$worstDay || $weekly->worst_day_value < $worstDay['value'])) {
+            if ($weekly->worst_day_value && (! $worstDay || $weekly->worst_day_value < $worstDay['value'])) {
                 $worstDay = ['date' => $weekly->worst_day_date, 'value' => $weekly->worst_day_value];
             }
         }
@@ -587,7 +587,7 @@ class KpiMonthlySummary extends Model
      */
     public function getStatusEmoji(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'green' => '🟢',
             'yellow' => '🟡',
             'red' => '🔴',
@@ -600,7 +600,7 @@ class KpiMonthlySummary extends Model
      */
     public function getTrendEmoji(): string
     {
-        return match($this->trend) {
+        return match ($this->trend) {
             'improving' => '📈',
             'declining' => '📉',
             'stable' => '➡️',

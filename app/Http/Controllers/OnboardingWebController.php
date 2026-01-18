@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\Industry;
 use App\Services\OnboardingService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -26,7 +25,7 @@ class OnboardingWebController extends Controller
         $user = Auth::user();
         $business = $user->businesses()->first();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.business.create');
         }
 
@@ -67,13 +66,13 @@ class OnboardingWebController extends Controller
         $user = Auth::user();
         $business = $user->businesses()->first();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.business.create');
         }
 
         $stepDetails = $this->onboardingService->getStepDetails($business, $stepCode);
 
-        if (!$stepDetails) {
+        if (! $stepDetails) {
             return redirect()->route('onboarding.index');
         }
 
@@ -92,7 +91,7 @@ class OnboardingWebController extends Controller
         $user = Auth::user();
         $business = $user->businesses()->first();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.business.create');
         }
 

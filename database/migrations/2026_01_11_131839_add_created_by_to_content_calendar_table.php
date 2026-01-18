@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('content_calendar', function (Blueprint $table) {
-            if (!Schema::hasColumn('content_calendar', 'created_by')) {
+            if (! Schema::hasColumn('content_calendar', 'created_by')) {
                 $table->unsignedBigInteger('created_by')->nullable();
             }
-            if (!Schema::hasColumn('content_calendar', 'approved_by')) {
+            if (! Schema::hasColumn('content_calendar', 'approved_by')) {
                 $table->unsignedBigInteger('approved_by')->nullable();
             }
-            if (!Schema::hasColumn('content_calendar', 'approved_at')) {
+            if (! Schema::hasColumn('content_calendar', 'approved_at')) {
                 $table->timestamp('approved_at')->nullable();
             }
         });

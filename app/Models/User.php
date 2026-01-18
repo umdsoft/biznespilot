@@ -11,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, HasRoles, HasUuid;
+    use HasApiTokens, HasFactory, HasRoles, HasUuid, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -103,6 +103,7 @@ class User extends Authenticatable
     public function getRoleInBusiness($businessId): ?string
     {
         $pivot = $this->teamBusinesses()->where('business_id', $businessId)->first();
+
         return $pivot ? $pivot->pivot->role : null;
     }
 
@@ -113,7 +114,7 @@ class User extends Authenticatable
     {
         $role = $this->getRoleInBusiness($businessId);
 
-        if (!$role) {
+        if (! $role) {
             return false;
         }
 
@@ -122,23 +123,23 @@ class User extends Authenticatable
             'owner' => [
                 'view:dashboard', 'view:analytics', 'manage:leads', 'manage:customers',
                 'manage:orders', 'manage:chatbot', 'view:reports', 'generate:reports',
-                'manage:integrations', 'manage:team', 'manage:billing', 'delete:business'
+                'manage:integrations', 'manage:team', 'manage:billing', 'delete:business',
             ],
             'admin' => [
                 'view:dashboard', 'view:analytics', 'manage:leads', 'manage:customers',
                 'manage:orders', 'manage:chatbot', 'view:reports', 'generate:reports',
-                'manage:integrations', 'manage:team'
+                'manage:integrations', 'manage:team',
             ],
             'manager' => [
                 'view:dashboard', 'view:analytics', 'manage:leads', 'manage:customers',
-                'view:reports', 'generate:reports', 'manage:chatbot'
+                'view:reports', 'generate:reports', 'manage:chatbot',
             ],
             'member' => [
                 'view:dashboard', 'view:analytics', 'manage:leads', 'manage:customers',
-                'view:reports'
+                'view:reports',
             ],
             'viewer' => [
-                'view:dashboard', 'view:analytics', 'view:reports'
+                'view:dashboard', 'view:analytics', 'view:reports',
             ],
         ];
 
@@ -159,6 +160,7 @@ class User extends Authenticatable
     public function isAdminOf($businessId): bool
     {
         $role = $this->getRoleInBusiness($businessId);
+
         return in_array($role, ['owner', 'admin']);
     }
 
@@ -195,6 +197,7 @@ class User extends Authenticatable
         $firstOwned = $this->businesses()->first();
         if ($firstOwned) {
             session(['current_business_id' => $firstOwned->id]);
+
             return $firstOwned;
         }
 
@@ -202,6 +205,7 @@ class User extends Authenticatable
         $firstTeam = $this->teamBusinesses()->first();
         if ($firstTeam) {
             session(['current_business_id' => $firstTeam->id]);
+
             return $firstTeam;
         }
 

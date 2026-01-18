@@ -93,7 +93,7 @@ class BusinessController extends Controller
     public function show(Business $business)
     {
         // Check if user has access to this business
-        if (!Auth::user()->businesses->contains($business)) {
+        if (! Auth::user()->businesses->contains($business)) {
             abort(403, 'Sizda ushbu biznesga kirish huquqi yo\'q.');
         }
 
@@ -134,13 +134,13 @@ class BusinessController extends Controller
     public function edit(Business $business)
     {
         // Check if user has access to this business
-        if (!Auth::user()->businesses->contains($business)) {
+        if (! Auth::user()->businesses->contains($business)) {
             abort(403, 'Sizda ushbu biznesga kirish huquqi yo\'q.');
         }
 
         // Check if user has permission to edit
         $userRole = $business->users()->where('user_id', Auth::id())->first()->pivot->role;
-        if (!in_array($userRole, ['owner', 'admin'])) {
+        if (! in_array($userRole, ['owner', 'admin'])) {
             abort(403, 'Sizda ushbu biznesni tahrirlash huquqi yo\'q.');
         }
 
@@ -166,13 +166,13 @@ class BusinessController extends Controller
     public function update(Request $request, Business $business)
     {
         // Check if user has access to this business
-        if (!Auth::user()->businesses->contains($business)) {
+        if (! Auth::user()->businesses->contains($business)) {
             abort(403, 'Sizda ushbu biznesga kirish huquqi yo\'q.');
         }
 
         // Check if user has permission to edit
         $userRole = $business->users()->where('user_id', Auth::id())->first()->pivot->role;
-        if (!in_array($userRole, ['owner', 'admin'])) {
+        if (! in_array($userRole, ['owner', 'admin'])) {
             abort(403, 'Sizda ushbu biznesni tahrirlash huquqi yo\'q.');
         }
 
@@ -200,7 +200,7 @@ class BusinessController extends Controller
     public function destroy(Business $business)
     {
         // Check if user has access to this business
-        if (!Auth::user()->businesses->contains($business)) {
+        if (! Auth::user()->businesses->contains($business)) {
             abort(403, 'Sizda ushbu biznesga kirish huquqi yo\'q.');
         }
 

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->enum('platform', [
                 'instagram', 'telegram_channel', 'telegram_bot',
                 'amocrm', 'google_ads', 'facebook_ads',
-                'google_analytics', 'click', 'payme', 'meta_ads'
+                'google_analytics', 'click', 'payme', 'meta_ads',
             ])->nullable()->after('type');
 
             // Account details
@@ -43,7 +43,7 @@ return new class extends Migration
             $table->dropColumn([
                 'platform', 'account_id', 'account_name', 'account_username',
                 'followers_count', 'posts_count', 'sync_frequency',
-                'data_from_date', 'is_required_for_onboarding', 'error_count'
+                'data_from_date', 'is_required_for_onboarding', 'error_count',
             ]);
         });
     }

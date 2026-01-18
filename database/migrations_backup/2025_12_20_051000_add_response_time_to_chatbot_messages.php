@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Add response_time_seconds to chatbot_messages table
-        if (Schema::hasTable('chatbot_messages') && !Schema::hasColumn('chatbot_messages', 'response_time_seconds')) {
+        if (Schema::hasTable('chatbot_messages') && ! Schema::hasColumn('chatbot_messages', 'response_time_seconds')) {
             Schema::table('chatbot_messages', function (Blueprint $table) {
                 $table->integer('response_time_seconds')->nullable()->after('content');
             });

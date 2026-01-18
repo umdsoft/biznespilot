@@ -13,8 +13,8 @@ use App\Services\Integration\PosKpiSyncService;
 use App\Services\Integration\SyncMonitor;
 use App\Services\KpiAggregationService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class KpiDailyDataController extends Controller
@@ -103,7 +103,7 @@ class KpiDailyDataController extends Controller
             ->with('kpiTemplate')
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
@@ -148,7 +148,7 @@ class KpiDailyDataController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -156,7 +156,7 @@ class KpiDailyDataController extends Controller
         }
 
         $template = KpiTemplate::where('kpi_code', $request->input('kpi_code'))->first();
-        if (!$template) {
+        if (! $template) {
             return response()->json([
                 'success' => false,
                 'message' => 'KPI template not found',
@@ -171,8 +171,8 @@ class KpiDailyDataController extends Controller
 
         $isUpdate = $dailyActual !== null;
 
-        if (!$dailyActual) {
-            $dailyActual = new KpiDailyActual();
+        if (! $dailyActual) {
+            $dailyActual = new KpiDailyActual;
             $dailyActual->business_id = $businessId;
             $dailyActual->kpi_code = $request->input('kpi_code');
             $dailyActual->date = $request->input('date');
@@ -238,7 +238,7 @@ class KpiDailyDataController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -252,7 +252,7 @@ class KpiDailyDataController extends Controller
         foreach ($request->input('actuals') as $actualData) {
             try {
                 $template = KpiTemplate::where('kpi_code', $actualData['kpi_code'])->first();
-                if (!$template) {
+                if (! $template) {
                     $results[] = [
                         'kpi_code' => $actualData['kpi_code'],
                         'date' => $actualData['date'],
@@ -260,6 +260,7 @@ class KpiDailyDataController extends Controller
                         'error' => 'KPI template not found',
                     ];
                     $errorCount++;
+
                     continue;
                 }
 
@@ -342,7 +343,7 @@ class KpiDailyDataController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
@@ -379,7 +380,7 @@ class KpiDailyDataController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
@@ -410,7 +411,7 @@ class KpiDailyDataController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
@@ -450,7 +451,7 @@ class KpiDailyDataController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
@@ -594,7 +595,7 @@ class KpiDailyDataController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -630,7 +631,7 @@ class KpiDailyDataController extends Controller
         PosKpiSyncService $posSync
     ): JsonResponse {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business not found',
@@ -700,7 +701,7 @@ class KpiDailyDataController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
@@ -708,7 +709,7 @@ class KpiDailyDataController extends Controller
         }
 
         // Check if override is allowed
-        if (!$dailyActual->can_override) {
+        if (! $dailyActual->can_override) {
             return response()->json([
                 'success' => false,
                 'message' => 'Manual override is not allowed for this KPI value',
@@ -716,7 +717,7 @@ class KpiDailyDataController extends Controller
         }
 
         // Store original synced value before override
-        if ($dailyActual->auto_calculated && !$dailyActual->overridden_at) {
+        if ($dailyActual->auto_calculated && ! $dailyActual->overridden_at) {
             $dailyActual->original_synced_value = $dailyActual->actual_value;
         }
 
@@ -726,7 +727,7 @@ class KpiDailyDataController extends Controller
         $dailyActual->sync_status = 'manual';
         $dailyActual->overridden_by = $request->user()?->id ?? 'system';
         $dailyActual->overridden_at = now();
-        $dailyActual->notes = ($dailyActual->notes ?? '') . "\n[Override] " . $request->input('override_reason');
+        $dailyActual->notes = ($dailyActual->notes ?? '')."\n[Override] ".$request->input('override_reason');
         $dailyActual->save();
 
         // Trigger re-aggregation
@@ -754,14 +755,14 @@ class KpiDailyDataController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$dailyActual) {
+        if (! $dailyActual) {
             return response()->json([
                 'success' => false,
                 'message' => 'Daily actual not found',
             ], 404);
         }
 
-        if (!$dailyActual->original_synced_value) {
+        if (! $dailyActual->original_synced_value) {
             return response()->json([
                 'success' => false,
                 'message' => 'No original synced value available to restore',
@@ -775,7 +776,7 @@ class KpiDailyDataController extends Controller
         $dailyActual->overridden_by = null;
         $dailyActual->overridden_at = null;
         $dailyActual->original_synced_value = null;
-        $dailyActual->notes = ($dailyActual->notes ?? '') . "\n[Restored] Auto-calculated value restored";
+        $dailyActual->notes = ($dailyActual->notes ?? '')."\n[Restored] Auto-calculated value restored";
         $dailyActual->save();
 
         // Trigger re-aggregation

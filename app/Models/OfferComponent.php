@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OfferComponent extends Model
 {
     use HasUuid;
+
     /**
      * The attributes that are mass assignable.
      *

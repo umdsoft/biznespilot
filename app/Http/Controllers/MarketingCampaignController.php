@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Business;
 use App\Models\Campaign;
 use App\Services\MarketingAutomationService;
 use Illuminate\Http\Request;
@@ -29,7 +28,7 @@ class MarketingCampaignController extends Controller
             ->with('messages')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($campaign) => [
+            ->map(fn ($campaign) => [
                 'id' => $campaign->id,
                 'name' => $campaign->name,
                 'type' => $campaign->type,

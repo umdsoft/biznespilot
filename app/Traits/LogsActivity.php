@@ -59,7 +59,7 @@ trait LogsActivity
 
         // Check if model has defined which events NOT to log
         if (property_exists($this, 'dontLogEvents')) {
-            return !in_array($event, $this->dontLogEvents);
+            return ! in_array($event, $this->dontLogEvents);
         }
 
         // By default, log all events

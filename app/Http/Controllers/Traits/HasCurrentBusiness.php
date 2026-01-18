@@ -18,13 +18,12 @@ trait HasCurrentBusiness
      * 2. User's owned business
      * 3. User's team membership
      *
-     * @param Request|null $request Optional request (business_id param validated for access)
-     * @return Business|null
+     * @param  Request|null  $request  Optional request (business_id param validated for access)
      */
     protected function getCurrentBusiness(?Request $request = null): ?Business
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -48,6 +47,7 @@ trait HasCurrentBusiness
         $ownedBusiness = Business::where('user_id', $user->id)->first();
         if ($ownedBusiness) {
             session(['current_business_id' => $ownedBusiness->id]);
+
             return $ownedBusiness;
         }
 
@@ -55,6 +55,7 @@ trait HasCurrentBusiness
         $business = Business::whereIn('id', $accessibleBusinessIds)->first();
         if ($business) {
             session(['current_business_id' => $business->id]);
+
             return $business;
         }
 

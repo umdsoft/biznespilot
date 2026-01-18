@@ -3,14 +3,14 @@
 namespace App\Services\Reports;
 
 use App\Models\Business;
-use App\Models\KpiDailyActual;
-use App\Models\KpiPlan;
-use App\Models\Sale;
-use App\Models\Lead;
 use App\Models\Customer;
 use App\Models\IndustryBenchmark;
-use Illuminate\Support\Facades\DB;
+use App\Models\KpiDailyActual;
+use App\Models\KpiPlan;
+use App\Models\Lead;
+use App\Models\Sale;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * MetricsCalculatorService
@@ -21,14 +21,20 @@ use Carbon\Carbon;
 class MetricsCalculatorService
 {
     protected Business $business;
+
     protected Carbon $startDate;
+
     protected Carbon $endDate;
 
     // Metric categories
     public const CATEGORY_SALES = 'sales';
+
     public const CATEGORY_MARKETING = 'marketing';
+
     public const CATEGORY_FINANCIAL = 'financial';
+
     public const CATEGORY_CUSTOMER = 'customer';
+
     public const CATEGORY_EFFICIENCY = 'efficiency';
 
     /**
@@ -281,7 +287,7 @@ class MetricsCalculatorService
             ->where('status', 'active')
             ->first();
 
-        if (!$plan) {
+        if (! $plan) {
             return [
                 'has_plan' => false,
                 'message' => 'Bu davr uchun KPI plan mavjud emas',
@@ -345,7 +351,9 @@ class MetricsCalculatorService
      */
     protected function getProgressStatus(float $actual, float $expected): string
     {
-        if ($expected <= 0) return 'neutral';
+        if ($expected <= 0) {
+            return 'neutral';
+        }
 
         $ratio = $actual / $expected;
 
@@ -401,7 +409,7 @@ class MetricsCalculatorService
         try {
             $benchmark = IndustryBenchmark::where('industry', 'LIKE', "%{$industry}%")->first();
 
-            if (!$benchmark) {
+            if (! $benchmark) {
                 $benchmark = IndustryBenchmark::where('industry', 'default')->first();
             }
 
@@ -418,7 +426,7 @@ class MetricsCalculatorService
                 }
             }
         } catch (\Exception $e) {
-            \Log::warning('IndustryBenchmark query failed: ' . $e->getMessage());
+            \Log::warning('IndustryBenchmark query failed: '.$e->getMessage());
         }
 
         return $default;

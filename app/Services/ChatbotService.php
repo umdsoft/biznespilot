@@ -5,15 +5,17 @@ namespace App\Services;
 use App\Models\Business;
 use App\Models\ChatbotConfig;
 use App\Models\ChatbotConversation;
+use App\Models\ChatbotKnowledge;
 use App\Models\ChatbotMessage;
 use App\Models\ChatbotTemplate;
-use App\Models\ChatbotKnowledge;
 use Illuminate\Support\Facades\Log;
 
 class ChatbotService
 {
     protected ChatbotIntentService $intentService;
+
     protected ChatbotFunnelService $funnelService;
+
     protected ClaudeAIService $claudeAI;
 
     public function __construct(
@@ -43,7 +45,7 @@ class ChatbotService
             // Get or create chatbot config
             $config = $this->getOrCreateConfig($business);
 
-            if (!$config->is_active) {
+            if (! $config->is_active) {
                 return [
                     'success' => false,
                     'message' => 'Chatbot is not active for this business',
@@ -51,7 +53,7 @@ class ChatbotService
             }
 
             // Check business hours
-            if (!$this->isWithinBusinessHours($config)) {
+            if (! $this->isWithinBusinessHours($config)) {
                 return [
                     'success' => true,
                     'response' => $config->outside_hours_message ?? 'We are currently closed. Please message us during business hours.',
@@ -240,7 +242,7 @@ class ChatbotService
             ->limit(10)
             ->get()
             ->reverse()
-            ->map(fn($msg) => [
+            ->map(fn ($msg) => [
                 'role' => $msg->role === 'bot' ? 'assistant' : 'user',
                 'content' => $msg->content,
             ])
@@ -327,6 +329,7 @@ PROMPT;
             if ($this->matchesKeywords($message, $item->keywords ?? [])) {
                 $item->increment('usage_count');
                 $item->update(['last_used_at' => now()]);
+
                 return $item->answer;
             }
         }
@@ -426,7 +429,7 @@ PROMPT;
             ->where('status', 'active')
             ->first();
 
-        if (!$conversation) {
+        if (! $conversation) {
             $conversation = ChatbotConversation::create([
                 'business_id' => $business->id,
                 'chatbot_config_id' => $config->id,
@@ -471,7 +474,7 @@ PROMPT;
      */
     private function isWithinBusinessHours(ChatbotConfig $config): bool
     {
-        if (!$config->business_hours) {
+        if (! $config->business_hours) {
             return true; // 24/7 if no hours set
         }
 
@@ -481,11 +484,12 @@ PROMPT;
 
         $hours = $config->business_hours;
 
-        if (!isset($hours[$dayOfWeek])) {
+        if (! isset($hours[$dayOfWeek])) {
             return false; // Closed this day
         }
 
         $dayHours = $hours[$dayOfWeek];
+
         return $currentTime >= $dayHours['start'] && $currentTime <= $dayHours['end'];
     }
 

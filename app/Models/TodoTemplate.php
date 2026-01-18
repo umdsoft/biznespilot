@@ -7,7 +7,6 @@ use App\Traits\HasUuid;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,9 +16,13 @@ class TodoTemplate extends Model
 
     // Categories
     public const CATEGORY_ONBOARDING = 'onboarding';
+
     public const CATEGORY_SALES = 'sales';
+
     public const CATEGORY_OPERATIONS = 'operations';
+
     public const CATEGORY_MARKETING = 'marketing';
+
     public const CATEGORY_CUSTOM = 'custom';
 
     public const CATEGORIES = [
@@ -143,7 +146,7 @@ class TodoTemplate extends Model
     ): Todo {
         // Determine assignee
         $finalAssigneeId = $assigneeId;
-        if (!$finalAssigneeId && $item->default_assignee_role) {
+        if (! $finalAssigneeId && $item->default_assignee_role) {
             $finalAssigneeId = $this->resolveAssigneeByRole($item->default_assignee_role);
         }
 
@@ -186,7 +189,7 @@ class TodoTemplate extends Model
         // Get business members by role
         $business = $this->business;
 
-        if (!$business) {
+        if (! $business) {
             return null;
         }
 
@@ -203,7 +206,7 @@ class TodoTemplate extends Model
     public function duplicate(?string $newName = null): self
     {
         $newTemplate = $this->replicate();
-        $newTemplate->name = $newName ?? $this->name . ' (nusxa)';
+        $newTemplate->name = $newName ?? $this->name.' (nusxa)';
         $newTemplate->usage_count = 0;
         $newTemplate->save();
 

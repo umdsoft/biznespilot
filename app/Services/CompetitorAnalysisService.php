@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\Competitor;
-use App\Models\CompetitorMetric;
 use App\Models\CompetitorActivity;
-use Carbon\Carbon;
+use App\Models\CompetitorMetric;
 
 class CompetitorAnalysisService
 {
@@ -54,14 +53,18 @@ class CompetitorAnalysisService
         ];
 
         // Social media presence
-        if ($competitor->instagram_handle)
+        if ($competitor->instagram_handle) {
             $data['social_presence']['instagram'] = $competitor->instagram_handle;
-        if ($competitor->telegram_handle)
+        }
+        if ($competitor->telegram_handle) {
             $data['social_presence']['telegram'] = $competitor->telegram_handle;
-        if ($competitor->facebook_page)
+        }
+        if ($competitor->facebook_page) {
             $data['social_presence']['facebook'] = $competitor->facebook_page;
-        if ($competitor->tiktok_handle)
+        }
+        if ($competitor->tiktok_handle) {
             $data['social_presence']['tiktok'] = $competitor->tiktok_handle;
+        }
 
         // Latest metrics
         $latestMetric = CompetitorMetric::where('competitor_id', $competitor->id)
@@ -141,24 +144,24 @@ class CompetitorAnalysisService
     protected function buildSWOTPrompt(Competitor $competitor, array $data): string
     {
         $metricsInfo = '';
-        if (!empty($data['metrics'])) {
+        if (! empty($data['metrics'])) {
             $metricsInfo = "\n**Current Metrics:**\n";
             foreach ($data['metrics'] as $key => $value) {
                 if ($value !== null) {
-                    $metricsInfo .= "- " . ucfirst(str_replace('_', ' ', $key)) . ": {$value}\n";
+                    $metricsInfo .= '- '.ucfirst(str_replace('_', ' ', $key)).": {$value}\n";
                 }
             }
         }
 
         $trendsInfo = '';
-        if (!empty($data['trends'])) {
+        if (! empty($data['trends'])) {
             $trendsInfo = "\n**Trends (Last 30 Days):**\n";
             $trendsInfo .= "- Follower Trend: {$data['trends']['follower_trend']}\n";
             $trendsInfo .= "- Engagement Trend: {$data['trends']['engagement_trend']}\n";
         }
 
         $activitiesInfo = '';
-        if (!empty($data['recent_activities'])) {
+        if (! empty($data['recent_activities'])) {
             $activitiesInfo = "\n**Recent Activities:**\n";
             foreach (array_slice($data['recent_activities'], 0, 5) as $activity) {
                 $activitiesInfo .= "- [{$activity['date']}] {$activity['type']} on {$activity['platform']}: {$activity['title']}\n";
@@ -311,7 +314,7 @@ PROMPT;
         // Get all active competitors with their metrics
         $competitors = Competitor::where('business_id', $business->id)
             ->where('status', 'active')
-            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(1)])
             ->get();
 
         if ($competitors->isEmpty()) {
@@ -363,7 +366,7 @@ PROMPT;
             $competitorsList .= "- Engagement rate: {$engagement}%\n";
             $competitorsList .= "- O'sish tezligi: {$growth}%\n";
 
-            if (!empty($data['social_presence'])) {
+            if (! empty($data['social_presence'])) {
                 $platforms = implode(', ', array_keys($data['social_presence']));
                 $competitorsList .= "- Platformalar: {$platforms}\n";
             }
@@ -437,7 +440,7 @@ PROMPT;
             // Clear cache
             \Illuminate\Support\Facades\Cache::forget("competitor_insights_{$business->id}");
         } catch (\Exception $e) {
-            \Log::error('Auto SWOT update failed: ' . $e->getMessage());
+            \Log::error('Auto SWOT update failed: '.$e->getMessage());
         }
     }
 
@@ -448,7 +451,7 @@ PROMPT;
     {
         $competitors = Competitor::where('business_id', $businessId)
             ->where('status', 'active')
-            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(1)])
             ->get();
 
         if ($competitors->isEmpty()) {

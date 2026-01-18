@@ -4,11 +4,10 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\KpiDailyActual;
-use App\Models\KpiWeeklySummary;
 use App\Models\KpiMonthlySummary;
 use App\Models\KpiTemplate;
+use App\Models\KpiWeeklySummary;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class KpiAggregationService
@@ -22,14 +21,16 @@ class KpiAggregationService
         string $weekStartDate
     ): ?KpiWeeklySummary {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             Log::error("Business not found: $businessId");
+
             return null;
         }
 
         $template = KpiTemplate::where('kpi_code', $kpiCode)->first();
-        if (!$template) {
+        if (! $template) {
             Log::error("KPI template not found: $kpiCode");
+
             return null;
         }
 
@@ -67,6 +68,7 @@ class KpiAggregationService
             $weeklySummary->completed_days = 0;
             $weeklySummary->is_week_complete = false;
             $weeklySummary->save();
+
             return $weeklySummary;
         }
 
@@ -99,14 +101,16 @@ class KpiAggregationService
         int $month
     ): ?KpiMonthlySummary {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             Log::error("Business not found: $businessId");
+
             return null;
         }
 
         $template = KpiTemplate::where('kpi_code', $kpiCode)->first();
-        if (!$template) {
+        if (! $template) {
             Log::error("KPI template not found: $kpiCode");
+
             return null;
         }
 
@@ -154,6 +158,7 @@ class KpiAggregationService
                 $monthlySummary->completed_days = 0;
                 $monthlySummary->is_month_complete = false;
                 $monthlySummary->save();
+
                 return $monthlySummary;
             }
 
@@ -203,7 +208,7 @@ class KpiAggregationService
     public function aggregateAllKpisWeekly(int $businessId, string $weekStartDate): array
     {
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return ['success' => false, 'message' => 'Business or KPI configuration not found'];
         }
 
@@ -231,7 +236,7 @@ class KpiAggregationService
                     $errorCount++;
                 }
             } catch (\Exception $e) {
-                Log::error("Error aggregating weekly KPI $kpiCode for business $businessId: " . $e->getMessage());
+                Log::error("Error aggregating weekly KPI $kpiCode for business $businessId: ".$e->getMessage());
                 $results[$kpiCode] = [
                     'success' => false,
                     'error' => $e->getMessage(),
@@ -255,7 +260,7 @@ class KpiAggregationService
     public function aggregateAllKpisMonthly(int $businessId, int $year, int $month): array
     {
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return ['success' => false, 'message' => 'Business or KPI configuration not found'];
         }
 
@@ -283,7 +288,7 @@ class KpiAggregationService
                     $errorCount++;
                 }
             } catch (\Exception $e) {
-                Log::error("Error aggregating monthly KPI $kpiCode for business $businessId: " . $e->getMessage());
+                Log::error("Error aggregating monthly KPI $kpiCode for business $businessId: ".$e->getMessage());
                 $results[$kpiCode] = [
                     'success' => false,
                     'error' => $e->getMessage(),
@@ -367,7 +372,7 @@ class KpiAggregationService
     public function getAggregationStatus(int $businessId, Carbon $date): array
     {
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return ['success' => false, 'message' => 'Business or KPI configuration not found'];
         }
 
@@ -413,8 +418,8 @@ class KpiAggregationService
                 'has_monthly_summary' => $monthlySummary !== null,
                 'monthly_complete' => $monthlySummary?->is_month_complete ?? false,
                 'monthly_calculated_at' => $monthlySummary?->calculated_at?->format('Y-m-d H:i:s'),
-                'needs_weekly_aggregation' => $dailyCount > 0 && !$weeklySummary,
-                'needs_monthly_aggregation' => $weeklySummary && !$monthlySummary,
+                'needs_weekly_aggregation' => $dailyCount > 0 && ! $weeklySummary,
+                'needs_monthly_aggregation' => $weeklySummary && ! $monthlySummary,
             ];
         }
 
@@ -432,7 +437,7 @@ class KpiAggregationService
         ];
 
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return [
                 'success' => false,
                 'message' => 'Business or KPI configuration not found',
@@ -444,7 +449,7 @@ class KpiAggregationService
             ->orderBy('date')
             ->first();
 
-        if (!$earliestDaily) {
+        if (! $earliestDaily) {
             return [
                 'success' => true,
                 'message' => 'No daily data found',
@@ -524,8 +529,8 @@ class KpiAggregationService
         })->toArray();
 
         // Calculate trend
-        $firstHalf = array_slice($values, 0, (int)ceil(count($values) / 2));
-        $secondHalf = array_slice($values, (int)floor(count($values) / 2));
+        $firstHalf = array_slice($values, 0, (int) ceil(count($values) / 2));
+        $secondHalf = array_slice($values, (int) floor(count($values) / 2));
 
         $firstAvg = array_sum($firstHalf) / count($firstHalf);
         $secondAvg = array_sum($secondHalf) / count($secondHalf);

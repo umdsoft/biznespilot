@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
-use App\Models\TelegramUser;
 use App\Models\TelegramDailyStat;
+use App\Models\TelegramUser;
 use App\Services\Telegram\FunnelEngineService;
 use App\Services\Telegram\TelegramApiService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class TelegramFunnelWebhookController extends Controller
@@ -35,19 +35,21 @@ class TelegramFunnelWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$bot) {
+            if (! $bot) {
                 Log::warning('Telegram funnel webhook: bot not found or inactive', [
                     'bot_id' => $botId,
                 ]);
+
                 return response()->json(['ok' => false, 'error' => 'Bot not found'], 404);
             }
 
             // Verify secret token
-            if (!$this->verifySecretToken($request, $bot)) {
+            if (! $this->verifySecretToken($request, $bot)) {
                 Log::warning('Telegram funnel webhook: secret token verification failed', [
                     'bot_id' => $botId,
                     'ip' => $request->ip(),
                 ]);
+
                 return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
             }
 
@@ -100,8 +102,9 @@ class TelegramFunnelWebhookController extends Controller
             'text' => $message['text'] ?? null,
         ]);
 
-        if (!$from || ($from['is_bot'] ?? false)) {
+        if (! $from || ($from['is_bot'] ?? false)) {
             Log::info('Webhook: Skipping - no from or is_bot');
+
             return;
         }
 
@@ -128,13 +131,13 @@ class TelegramFunnelWebhookController extends Controller
     {
         $from = $callbackQuery['from'] ?? null;
 
-        if (!$from || ($from['is_bot'] ?? false)) {
+        if (! $from || ($from['is_bot'] ?? false)) {
             return;
         }
 
         $chatId = $callbackQuery['message']['chat']['id'] ?? null;
 
-        if (!$chatId) {
+        if (! $chatId) {
             return;
         }
 
@@ -157,7 +160,7 @@ class TelegramFunnelWebhookController extends Controller
         $from = $update['from'] ?? null;
         $newStatus = $update['new_chat_member']['status'] ?? null;
 
-        if (!$from || !$newStatus) {
+        if (! $from || ! $newStatus) {
             return;
         }
 
@@ -165,7 +168,7 @@ class TelegramFunnelWebhookController extends Controller
             ->where('telegram_id', $from['id'])
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
@@ -223,7 +226,7 @@ class TelegramFunnelWebhookController extends Controller
                 $updateData['language_code'] = $from['language_code'] ?? null;
             }
 
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 $user->update($updateData);
             }
 
@@ -263,16 +266,17 @@ class TelegramFunnelWebhookController extends Controller
         $secretToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
 
         // If no secret token in request
-        if (!$secretToken) {
+        if (! $secretToken) {
             // Allow if bot doesn't have secret configured (backwards compatibility)
-            if (!$bot->webhook_secret) {
+            if (! $bot->webhook_secret) {
                 return true;
             }
+
             return false;
         }
 
         // Verify against bot's webhook secret
-        if (!$bot->webhook_secret) {
+        if (! $bot->webhook_secret) {
             return false;
         }
 
@@ -291,7 +295,7 @@ class TelegramFunnelWebhookController extends Controller
             $webhookUrl = route('telegram.funnel.webhook', ['botId' => $bot->id]);
 
             // Generate secret token if not exists
-            if (!$bot->webhook_secret) {
+            if (! $bot->webhook_secret) {
                 $bot->webhook_secret = bin2hex(random_bytes(32));
                 $bot->save();
             }

@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\PlayMobileAccount;
 use App\Models\Lead;
-use App\Models\SmsMessage;
+use App\Models\PlayMobileAccount;
 use App\Models\SmsDailyStat;
+use App\Models\SmsMessage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -26,13 +26,14 @@ class PlayMobileSmsService
     public function setAccount(PlayMobileAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
     /**
      * Test connection with credentials
      */
-    public function testConnection(string $login, string $password, string $apiUrl = null): array
+    public function testConnection(string $login, string $password, ?string $apiUrl = null): array
     {
         try {
             $apiUrl = $apiUrl ?: 'https://send.smsxabar.uz/broker-api/send';
@@ -44,7 +45,7 @@ class PlayMobileSmsService
                 ->withoutVerifying()
                 ->withHeaders([
                     'Content-Type' => 'application/json; charset=UTF-8',
-                    'Authorization' => 'Basic ' . base64_encode($login . ':' . $password),
+                    'Authorization' => 'Basic '.base64_encode($login.':'.$password),
                 ])
                 ->post($apiUrl, [
                     'messages' => [],
@@ -69,9 +70,10 @@ class PlayMobileSmsService
             ];
         } catch (\Exception $e) {
             Log::error('PlayMobile test connection error', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -85,7 +87,7 @@ class PlayMobileSmsService
         ?Lead $lead = null,
         ?string $templateId = null
     ): array {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'PlayMobile hisobi sozlanmagan'];
         }
 
@@ -93,7 +95,7 @@ class PlayMobileSmsService
             // Normalize phone number
             $normalizedPhone = $this->normalizePhone($phone);
 
-            if (!$normalizedPhone) {
+            if (! $normalizedPhone) {
                 return ['success' => false, 'error' => 'Noto\'g\'ri telefon raqami formati'];
             }
 
@@ -155,14 +157,14 @@ class PlayMobileSmsService
                 'eskiz_message_id' => $messageId, // Using same field for external ID
                 'status' => $isSuccess ? SmsMessage::STATUS_SENT : SmsMessage::STATUS_FAILED,
                 'parts_count' => $partsCount,
-                'error_message' => !$isSuccess ? $this->parseError($response) : null,
+                'error_message' => ! $isSuccess ? $this->parseError($response) : null,
                 'sent_at' => $isSuccess ? now() : null,
             ]);
 
             // Update daily stats
             $this->updateDailyStats($isSuccess, $partsCount);
 
-            if (!$isSuccess) {
+            if (! $isSuccess) {
                 return [
                     'success' => false,
                     'error' => $this->parseError($response),
@@ -179,6 +181,7 @@ class PlayMobileSmsService
 
         } catch (\Exception $e) {
             Log::error('PlayMobile SMS exception', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -207,7 +210,7 @@ class PlayMobileSmsService
             return 'Noto\'g\'ri so\'rov formati';
         }
 
-        return 'SMS yuborib bo\'lmadi: ' . $body;
+        return 'SMS yuborib bo\'lmadi: '.$body;
     }
 
     /**
@@ -221,7 +224,7 @@ class PlayMobileSmsService
         // Handle different formats
         if (strlen($normalized) === 9 && str_starts_with($normalized, '9')) {
             // Format: 9XXXXXXXX
-            return '998' . $normalized;
+            return '998'.$normalized;
         }
 
         if (strlen($normalized) === 12 && str_starts_with($normalized, '998')) {
@@ -245,11 +248,17 @@ class PlayMobileSmsService
 
         if ($isUnicode) {
             // Unicode: 70 chars per part, 67 for multipart
-            if ($length <= 70) return 1;
+            if ($length <= 70) {
+                return 1;
+            }
+
             return (int) ceil($length / 67);
         } else {
             // GSM-7: 160 chars per part, 153 for multipart
-            if ($length <= 160) return 1;
+            if ($length <= 160) {
+                return 1;
+            }
+
             return (int) ceil($length / 153);
         }
     }

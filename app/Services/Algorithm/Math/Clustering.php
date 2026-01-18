@@ -13,7 +13,6 @@ namespace App\Services\Algorithm\Math;
  * - Ester et al. (1996) - DBSCAN density-based clustering
  *
  * @version 1.0.0
- * @package App\Services\Algorithm\Math
  */
 class Clustering
 {
@@ -28,10 +27,10 @@ class Clustering
      * 3. Update centroids to mean of assigned points
      * 4. Repeat 2-3 until convergence
      *
-     * @param array $data Array of data points (each point is an array of features)
-     * @param int $k Number of clusters
-     * @param int $maxIterations Maximum iterations
-     * @param float $tolerance Convergence tolerance
+     * @param  array  $data  Array of data points (each point is an array of features)
+     * @param  int  $k  Number of clusters
+     * @param  int  $maxIterations  Maximum iterations
+     * @param  float  $tolerance  Convergence tolerance
      * @return array Cluster assignments and centroids
      */
     public static function kMeans(
@@ -106,8 +105,8 @@ class Clustering
      * K-Means++ chooses initial centers that are far apart,
      * leading to better convergence.
      *
-     * @param array $data Data points
-     * @param int $k Number of clusters
+     * @param  array  $data  Data points
+     * @param  int  $k  Number of clusters
      * @return array Initial centroids
      */
     protected static function initializeCentroids(array $data, int $k): array
@@ -141,7 +140,7 @@ class Clustering
                 // All points are at same location, pick random
                 $nextIndex = rand(0, $n - 1);
             } else {
-                $random = rand(0, (int)($sumDistances * 1000)) / 1000;
+                $random = rand(0, (int) ($sumDistances * 1000)) / 1000;
                 $cumulative = 0;
                 $nextIndex = 0;
 
@@ -163,9 +162,9 @@ class Clustering
     /**
      * Update centroids to mean of assigned points
      *
-     * @param array $data Data points
-     * @param array $assignments Cluster assignments
-     * @param int $k Number of clusters
+     * @param  array  $data  Data points
+     * @param  array  $assignments  Cluster assignments
+     * @param  int  $k  Number of clusters
      * @return array Updated centroids
      */
     protected static function updateCentroids(array $data, array $assignments, int $k): array
@@ -208,8 +207,8 @@ class Clustering
     /**
      * Calculate Euclidean distance between two points
      *
-     * @param array $point1 First point
-     * @param array $point2 Second point
+     * @param  array  $point1  First point
+     * @param  array  $point2  Second point
      * @return float Distance
      */
     public static function euclideanDistance(array $point1, array $point2): float
@@ -228,8 +227,8 @@ class Clustering
     /**
      * Calculate total centroid shift
      *
-     * @param array $oldCentroids Old centroids
-     * @param array $newCentroids New centroids
+     * @param  array  $oldCentroids  Old centroids
+     * @param  array  $newCentroids  New centroids
      * @return float Total shift
      */
     protected static function calculateCentroidShift(array $oldCentroids, array $newCentroids): float
@@ -248,9 +247,9 @@ class Clustering
     /**
      * Format clusters with assigned points
      *
-     * @param array $data Data points
-     * @param array $assignments Cluster assignments
-     * @param int $k Number of clusters
+     * @param  array  $data  Data points
+     * @param  array  $assignments  Cluster assignments
+     * @param  int  $k  Number of clusters
      * @return array Formatted clusters
      */
     protected static function formatClusters(array $data, array $assignments, int $k): array
@@ -279,8 +278,8 @@ class Clustering
      * Measures how similar a point is to its own cluster compared to other clusters.
      * Score ranges from -1 (wrong cluster) to +1 (perfect cluster).
      *
-     * @param array $data Data points
-     * @param array $assignments Cluster assignments
+     * @param  array  $data  Data points
+     * @param  array  $assignments  Cluster assignments
      * @return float Average silhouette score
      */
     public static function silhouetteScore(array $data, array $assignments): float
@@ -318,7 +317,7 @@ class Clustering
                         }
                     }
 
-                    if (!empty($otherClusterDistances)) {
+                    if (! empty($otherClusterDistances)) {
                         $avgDist = array_sum($otherClusterDistances) / count($otherClusterDistances);
                         $b = min($b, $avgDist);
                     }
@@ -339,7 +338,7 @@ class Clustering
     /**
      * Normalize features to 0-1 range
      *
-     * @param array $data Data points
+     * @param  array  $data  Data points
      * @return array Normalized data and scaling parameters
      */
     public static function normalize(array $data): array

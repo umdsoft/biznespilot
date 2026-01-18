@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Campaign extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'business_id',
         'name',

@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 class OnlinePbxService implements PbxServiceInterface
 {
     protected ?PbxAccount $account = null;
+
     protected ?string $authKey = null;
 
     /**
@@ -25,6 +26,7 @@ class OnlinePbxService implements PbxServiceInterface
     public function setAccount(PbxAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -34,7 +36,7 @@ class OnlinePbxService implements PbxServiceInterface
      */
     protected function getAuthHeader(): string
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return '';
         }
 
@@ -50,7 +52,7 @@ class OnlinePbxService implements PbxServiceInterface
      */
     protected function getBaseUrl(): string
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return '';
         }
 
@@ -71,14 +73,14 @@ class OnlinePbxService implements PbxServiceInterface
 
             Log::debug('OnlinePBX authenticate: Starting', [
                 'base_url' => $baseUrl,
-                'has_auth_header' => !empty($authHeader),
+                'has_auth_header' => ! empty($authHeader),
             ]);
 
             $response = Http::timeout(15)
                 ->withHeaders([
                     'x-pbx-authentication' => $authHeader,
                 ])
-                ->get($baseUrl . '/auth.json');
+                ->get($baseUrl.'/auth.json');
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -89,6 +91,7 @@ class OnlinePbxService implements PbxServiceInterface
                     Log::error('OnlinePBX authenticate: Received HTML instead of JSON', [
                         'base_url' => $baseUrl,
                     ]);
+
                     return [
                         'success' => false,
                         'error' => 'API URL noto\'g\'ri yoki API kaliti yaroqsiz',
@@ -100,7 +103,7 @@ class OnlinePbxService implements PbxServiceInterface
                     $this->authKey = $data['data']['key'] ?? null;
 
                     Log::debug('OnlinePBX authenticate: Success', [
-                        'has_key' => !empty($this->authKey),
+                        'has_key' => ! empty($this->authKey),
                     ]);
 
                     return [
@@ -127,10 +130,11 @@ class OnlinePbxService implements PbxServiceInterface
 
             return [
                 'success' => false,
-                'error' => 'Authentication failed: HTTP ' . $response->status(),
+                'error' => 'Authentication failed: HTTP '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('OnlinePBX authentication failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -145,7 +149,7 @@ class OnlinePbxService implements PbxServiceInterface
     {
         try {
             $authHeader = $keyId ? "{$keyId}:{$apiKey}" : $apiKey;
-            $url = rtrim($apiUrl, '/') . '/auth.json';
+            $url = rtrim($apiUrl, '/').'/auth.json';
 
             $response = Http::timeout(15)
                 ->withHeaders([
@@ -162,13 +166,14 @@ class OnlinePbxService implements PbxServiceInterface
 
             return [
                 'success' => false,
-                'error' => 'Ulanib bo\'lmadi: ' . $response->status(),
+                'error' => 'Ulanib bo\'lmadi: '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('OnlinePBX connection test failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -193,13 +198,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function getCallHistory(?Carbon $dateFrom = null, ?Carbon $dateTo = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'Account not configured'];
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -216,17 +221,18 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->get($this->getBaseUrl() . '/history.json', $params);
+                ->get($this->getBaseUrl().'/history.json', $params);
 
             // Check if response is actually JSON (not HTML login page)
             $contentType = $response->header('Content-Type') ?? '';
             $body = $response->body();
 
-            if ((!str_contains($contentType, 'application/json') && str_starts_with(trim($body), '<!DOCTYPE')) || str_starts_with(trim($body), '<html')) {
+            if ((! str_contains($contentType, 'application/json') && str_starts_with(trim($body), '<!DOCTYPE')) || str_starts_with(trim($body), '<html')) {
                 Log::error('OnlinePBX history returned HTML instead of JSON', [
                     'status' => $response->status(),
                     'content_type' => $contentType,
                 ]);
+
                 return [
                     'success' => false,
                     'error' => 'API sessiya muddati tugagan yoki autentifikatsiya xatosi',
@@ -252,10 +258,11 @@ class OnlinePbxService implements PbxServiceInterface
 
             return [
                 'success' => false,
-                'error' => 'Failed to get call history: HTTP ' . $response->status(),
+                'error' => 'Failed to get call history: HTTP '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('OnlinePBX get call history failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -281,7 +288,7 @@ class OnlinePbxService implements PbxServiceInterface
         $calledNumber = $data['called_id'] ?? $data['callee'] ?? $data['to'] ?? $data['dst'] ?? null;
 
         // Determine direction if not explicitly set
-        if (!$direction) {
+        if (! $direction) {
             $direction = $this->detectCallDirection($callerNumber, $calledNumber, $data);
         }
 
@@ -360,19 +367,21 @@ class OnlinePbxService implements PbxServiceInterface
             $isInbound = false;
         }
 
-        if (!$externalNumber) {
+        if (! $externalNumber) {
             Log::warning('OnlinePBX: Could not determine external number', $data);
+
             return;
         }
 
         // Find PBX account
         $pbxAccount = $this->findPbxAccountByDomain($data);
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             $pbxAccount = PbxAccount::where('is_active', true)->first();
         }
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             Log::warning('OnlinePBX: No active PBX account found');
+
             return;
         }
 
@@ -386,9 +395,10 @@ class OnlinePbxService implements PbxServiceInterface
         if ($callId) {
             $existingCall = CallLog::where('provider_call_id', $callId)->first();
             if ($existingCall) {
-                if (!$existingCall->lead_id && $lead) {
+                if (! $existingCall->lead_id && $lead) {
                     $existingCall->update(['lead_id' => $lead->id]);
                 }
+
                 return;
             }
         }
@@ -466,20 +476,23 @@ class OnlinePbxService implements PbxServiceInterface
 
         if (empty($phoneNumber)) {
             Log::warning('OnlinePBX outbound call: No phone number', $data);
+
             return;
         }
 
         // Skip internal calls (short numbers like 100, 101, etc.)
         if (strlen(preg_replace('/[^0-9]/', '', $phoneNumber)) < 7) {
             Log::info('OnlinePBX outbound call: Skipping internal call', ['callee' => $phoneNumber]);
+
             return;
         }
 
         // Find business from PBX account by domain
         $pbxAccount = $this->findPbxAccountByDomain($data);
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             Log::warning('OnlinePBX outbound call: No matching PBX account', $data);
+
             return;
         }
 
@@ -496,13 +509,14 @@ class OnlinePbxService implements PbxServiceInterface
             $existingCall = CallLog::where('provider_call_id', $callId)->first();
             if ($existingCall) {
                 // Just update the existing call log's lead_id if not set
-                if (!$existingCall->lead_id && $lead) {
+                if (! $existingCall->lead_id && $lead) {
                     $existingCall->update(['lead_id' => $lead->id]);
                 }
                 Log::info('OnlinePBX outbound call: Call log already exists', [
                     'call_id' => $callId,
                     'lead_id' => $lead->id,
                 ]);
+
                 return;
             }
         }
@@ -526,7 +540,7 @@ class OnlinePbxService implements PbxServiceInterface
 
         if ($domain) {
             $account = PbxAccount::where('is_active', true)
-                ->where('api_url', 'like', '%' . $domain . '%')
+                ->where('api_url', 'like', '%'.$domain.'%')
                 ->first();
 
             if ($account) {
@@ -547,7 +561,7 @@ class OnlinePbxService implements PbxServiceInterface
         $lead = Lead::where('business_id', $businessId)
             ->where(function ($query) use ($normalizedPhone, $originalPhone) {
                 $last9 = substr($normalizedPhone, -9);
-                $query->where('phone', 'like', '%' . $last9)
+                $query->where('phone', 'like', '%'.$last9)
                     ->orWhere('phone', $normalizedPhone)
                     ->orWhere('phone', $originalPhone);
             })
@@ -640,12 +654,14 @@ class OnlinePbxService implements PbxServiceInterface
     {
         if (empty($phoneNumber)) {
             Log::warning('OnlinePBX incoming call: No phone number', $data);
+
             return;
         }
 
         // Skip internal calls (short numbers like 100, 101, etc.)
         if (strlen(preg_replace('/[^0-9]/', '', $phoneNumber)) < 7) {
             Log::info('OnlinePBX incoming call: Skipping internal call', ['caller' => $phoneNumber]);
+
             return;
         }
 
@@ -653,10 +669,11 @@ class OnlinePbxService implements PbxServiceInterface
         $calledNumber = $data['called_id'] ?? $data['to'] ?? $data['dst'] ?? null;
         $pbxAccount = $this->findPbxAccount($calledNumber, $data);
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             Log::warning('OnlinePBX incoming call: No matching PBX account', [
                 'called_number' => $calledNumber,
             ]);
+
             return;
         }
 
@@ -673,13 +690,14 @@ class OnlinePbxService implements PbxServiceInterface
             $existingCall = CallLog::where('provider_call_id', $callId)->first();
             if ($existingCall) {
                 // Just update the existing call log's lead_id if not set
-                if (!$existingCall->lead_id && $lead) {
+                if (! $existingCall->lead_id && $lead) {
                     $existingCall->update(['lead_id' => $lead->id]);
                 }
                 Log::info('OnlinePBX incoming call: Call log already exists', [
                     'call_id' => $callId,
                     'lead_id' => $lead->id,
                 ]);
+
                 return;
             }
         }
@@ -705,8 +723,8 @@ class OnlinePbxService implements PbxServiceInterface
 
             $account = PbxAccount::where('is_active', true)
                 ->where(function ($q) use ($normalizedNumber, $calledNumber) {
-                    $q->where('caller_id', 'like', '%' . substr($normalizedNumber, -9) . '%')
-                        ->orWhere('caller_id', 'like', '%' . substr($calledNumber, -9) . '%');
+                    $q->where('caller_id', 'like', '%'.substr($normalizedNumber, -9).'%')
+                        ->orWhere('caller_id', 'like', '%'.substr($calledNumber, -9).'%');
                 })
                 ->first();
 
@@ -719,7 +737,7 @@ class OnlinePbxService implements PbxServiceInterface
         $domain = $data['domain'] ?? $data['pbx_domain'] ?? null;
         if ($domain) {
             $account = PbxAccount::where('is_active', true)
-                ->where('api_url', 'like', '%' . $domain . '%')
+                ->where('api_url', 'like', '%'.$domain.'%')
                 ->first();
 
             if ($account) {
@@ -745,12 +763,12 @@ class OnlinePbxService implements PbxServiceInterface
         // Handle Uzbekistan numbers
         if (strlen($phone) === 9) {
             // Short format: 90 123 45 67 -> 998901234567
-            $phone = '998' . $phone;
+            $phone = '998'.$phone;
         } elseif (strlen($phone) === 12 && str_starts_with($phone, '998')) {
             // Already full format
         } elseif (strlen($phone) === 11 && str_starts_with($phone, '8')) {
             // Russian format: 8 -> 7
-            $phone = '7' . substr($phone, 1);
+            $phone = '7'.substr($phone, 1);
         }
 
         return $phone;
@@ -766,7 +784,7 @@ class OnlinePbxService implements PbxServiceInterface
             ->where(function ($query) use ($normalizedPhone, $originalPhone) {
                 // Match by normalized phone (last 9 digits for flexibility)
                 $last9 = substr($normalizedPhone, -9);
-                $query->where('phone', 'like', '%' . $last9)
+                $query->where('phone', 'like', '%'.$last9)
                     ->orWhere('phone', $normalizedPhone)
                     ->orWhere('phone', $originalPhone);
             })
@@ -860,7 +878,7 @@ class OnlinePbxService implements PbxServiceInterface
         try {
             $source = LeadSource::create([
                 'business_id' => $businessId,
-                'code' => 'phone_call_' . substr($businessId, 0, 8),
+                'code' => 'phone_call_'.substr($businessId, 0, 8),
                 'name' => 'Telefon qo\'ng\'iroq',
                 'category' => 'offline',
                 'icon' => 'phone',
@@ -877,7 +895,7 @@ class OnlinePbxService implements PbxServiceInterface
 
             $source = LeadSource::create([
                 'business_id' => $businessId,
-                'code' => 'phone_call_' . time(),
+                'code' => 'phone_call_'.time(),
                 'name' => 'Telefon qo\'ng\'iroq',
                 'category' => 'offline',
                 'icon' => 'phone',
@@ -900,11 +918,11 @@ class OnlinePbxService implements PbxServiceInterface
 
         if (strlen($normalized) === 12 && str_starts_with($normalized, '998')) {
             // Format: +998 (90) 123-45-67
-            return '+' . substr($normalized, 0, 3) . ' (' . substr($normalized, 3, 2) . ') '
-                . substr($normalized, 5, 3) . '-' . substr($normalized, 8, 2) . '-' . substr($normalized, 10, 2);
+            return '+'.substr($normalized, 0, 3).' ('.substr($normalized, 3, 2).') '
+                .substr($normalized, 5, 3).'-'.substr($normalized, 8, 2).'-'.substr($normalized, 10, 2);
         }
 
-        return '+' . $normalized;
+        return '+'.$normalized;
     }
 
     /**
@@ -999,7 +1017,7 @@ class OnlinePbxService implements PbxServiceInterface
      */
     protected function handleCallStatus(array $data, ?string $event, ?string $callId): void
     {
-        if (!$callId) {
+        if (! $callId) {
             return;
         }
 
@@ -1007,7 +1025,7 @@ class OnlinePbxService implements PbxServiceInterface
             ->orWhere('id', $callId)
             ->first();
 
-        if (!$callLog) {
+        if (! $callLog) {
             return;
         }
 
@@ -1054,7 +1072,7 @@ class OnlinePbxService implements PbxServiceInterface
         }
 
         // Update recording URL if provided
-        if (!empty($data['recording_url']) || !empty($data['record'])) {
+        if (! empty($data['recording_url']) || ! empty($data['record'])) {
             $recordingUrl = $data['recording_url'] ?? $data['record'] ?? null;
             if ($recordingUrl) {
                 $callLog->update(['recording_url' => $recordingUrl]);
@@ -1068,14 +1086,14 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function syncCallHistory(?Carbon $dateFrom = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'Account not configured'];
         }
 
         $dateFrom = $dateFrom ?? Carbon::now()->subDays(1);
         $history = $this->getCallHistory($dateFrom);
 
-        if (!$history['success']) {
+        if (! $history['success']) {
             return $history;
         }
 
@@ -1092,14 +1110,14 @@ class OnlinePbxService implements PbxServiceInterface
         foreach ($history['data'] as $call) {
             $callId = $call['uuid'] ?? $call['id'] ?? null;
 
-            if (!$callId) {
+            if (! $callId) {
                 continue;
             }
 
             // Check if already exists
             $existingCall = CallLog::where('provider_call_id', $callId)->first();
 
-            if (!$existingCall) {
+            if (! $existingCall) {
                 // Process this call - add event type for proper handling
                 $call['event'] = 'call_start';
                 $this->processHistoryCall($call);
@@ -1255,13 +1273,13 @@ class OnlinePbxService implements PbxServiceInterface
 
         // Update recording URL if available
         $recordingUrl = $data['download_url'] ?? $data['record'] ?? $data['recording_url'] ?? null;
-        if ($recordingUrl && !$callLog->recording_url) {
+        if ($recordingUrl && ! $callLog->recording_url) {
             $updates['recording_url'] = $recordingUrl;
         }
 
         // Update status based on duration and history data
         // If call has duration > 0, it was definitely answered/completed
-        if ($duration > 0 && !in_array($callLog->status, [CallLog::STATUS_COMPLETED, CallLog::STATUS_ANSWERED])) {
+        if ($duration > 0 && ! in_array($callLog->status, [CallLog::STATUS_COMPLETED, CallLog::STATUS_ANSWERED])) {
             $updates['status'] = CallLog::STATUS_COMPLETED;
             $updates['ended_at'] = $this->parseHistoryEndDate($data) ?? now();
         }
@@ -1274,7 +1292,7 @@ class OnlinePbxService implements PbxServiceInterface
             }
         }
 
-        if (!empty($updates)) {
+        if (! empty($updates)) {
             $callLog->update($updates);
         }
     }
@@ -1308,7 +1326,7 @@ class OnlinePbxService implements PbxServiceInterface
     {
         $date = $data['date'] ?? $data['start_time'] ?? $data['created_at'] ?? null;
 
-        if (!$date) {
+        if (! $date) {
             return now();
         }
 
@@ -1345,14 +1363,14 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function makeCall(string $toNumber, ?Lead $lead = null, ?string $fromNumber = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'OnlinePBX account not configured'];
         }
 
         try {
             // Authenticate first
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -1381,7 +1399,7 @@ class OnlinePbxService implements PbxServiceInterface
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                     'Content-Type' => 'application/json',
                 ])
-                ->post($this->getBaseUrl() . '/call/start.json', [
+                ->post($this->getBaseUrl().'/call/start.json', [
                     'from' => $extension,
                     'to' => $normalizedTo,
                     'caller_id' => $fromNumber,
@@ -1419,15 +1437,15 @@ class OnlinePbxService implements PbxServiceInterface
 
                 return [
                     'success' => false,
-                    'error' => 'OnlinePBX xatosi: ' . $error,
+                    'error' => 'OnlinePBX xatosi: '.$error,
                 ];
             }
 
-            $callLog->markAsFailed('HTTP ' . $response->status());
+            $callLog->markAsFailed('HTTP '.$response->status());
 
             return [
                 'success' => false,
-                'error' => 'Qo\'ng\'iroq qilib bo\'lmadi: ' . $response->status(),
+                'error' => 'Qo\'ng\'iroq qilib bo\'lmadi: '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('OnlinePBX make call failed', [
@@ -1441,7 +1459,7 @@ class OnlinePbxService implements PbxServiceInterface
 
             return [
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ];
         }
     }
@@ -1451,13 +1469,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function hangupCall(string $callId): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'OnlinePBX account not configured'];
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -1468,7 +1486,7 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->post($this->getBaseUrl() . '/call/hangup.json', [
+                ->post($this->getBaseUrl().'/call/hangup.json', [
                     'call_id' => $providerCallId,
                 ]);
 
@@ -1501,6 +1519,7 @@ class OnlinePbxService implements PbxServiceInterface
             ];
         } catch (\Exception $e) {
             Log::error('OnlinePBX hangup call failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -1513,13 +1532,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function getBalance(): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'OnlinePBX account not configured'];
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -1528,7 +1547,7 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->get($this->getBaseUrl() . '/account/balance.json');
+                ->get($this->getBaseUrl().'/account/balance.json');
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -1564,6 +1583,7 @@ class OnlinePbxService implements PbxServiceInterface
             ];
         } catch (\Exception $e) {
             Log::error('OnlinePBX get balance failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -1576,13 +1596,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function getCallStatus(string $callId): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'OnlinePBX account not configured'];
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -1590,7 +1610,7 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->get($this->getBaseUrl() . '/call/status.json', [
+                ->get($this->getBaseUrl().'/call/status.json', [
                     'call_id' => $callId,
                 ]);
 
@@ -1627,13 +1647,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function getGateways(): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'OnlinePBX account not configured'];
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -1641,7 +1661,7 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->get($this->getBaseUrl() . '/gateway/get.json');
+                ->get($this->getBaseUrl().'/gateway/get.json');
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -1671,13 +1691,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function getUsers(): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'OnlinePBX account not configured'];
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return $auth;
             }
 
@@ -1685,7 +1705,7 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->get($this->getBaseUrl() . '/user/get.json');
+                ->get($this->getBaseUrl().'/user/get.json');
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -1715,13 +1735,13 @@ class OnlinePbxService implements PbxServiceInterface
      */
     public function getRecordingUrl(string $callId): ?string
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return null;
         }
 
         try {
             $auth = $this->authenticate();
-            if (!$auth['success']) {
+            if (! $auth['success']) {
                 return null;
             }
 
@@ -1729,7 +1749,7 @@ class OnlinePbxService implements PbxServiceInterface
                 ->withHeaders([
                     'x-pbx-authentication' => $this->getSessionAuthHeader(),
                 ])
-                ->get($this->getBaseUrl() . '/record/get.json', [
+                ->get($this->getBaseUrl().'/record/get.json', [
                     'call_id' => $callId,
                 ]);
 
@@ -1744,6 +1764,7 @@ class OnlinePbxService implements PbxServiceInterface
             return null;
         } catch (\Exception $e) {
             Log::error('OnlinePBX get recording failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -1776,6 +1797,7 @@ class OnlinePbxService implements PbxServiceInterface
 
                 if (empty($phoneNumber)) {
                     $failed++;
+
                     continue;
                 }
 
@@ -1785,7 +1807,7 @@ class OnlinePbxService implements PbxServiceInterface
                 $lead = Lead::where('business_id', $businessId)
                     ->where(function ($query) use ($normalizedPhone, $phoneNumber) {
                         $last9 = substr($normalizedPhone, -9);
-                        $query->where('phone', 'like', '%' . $last9)
+                        $query->where('phone', 'like', '%'.$last9)
                             ->orWhere('phone', $normalizedPhone)
                             ->orWhere('phone', $phoneNumber);
                     })

@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use App\Models\DreamBuyer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -20,7 +19,6 @@ use Illuminate\Support\Facades\Log;
  * - Gartner: Channel-specific targeting reduces CAC by 30%
  *
  * @version 3.0.0
- * @package App\Services\Algorithm
  */
 class DreamBuyerScoringAlgorithm
 {
@@ -88,9 +86,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Calculate Dream Buyer score
-     *
-     * @param Business $business
-     * @return array
      */
     public function calculate(Business $business): array
     {
@@ -164,15 +159,12 @@ class DreamBuyerScoringAlgorithm
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return $this->getEmptyScoreResponse('Calculation error: ' . $e->getMessage());
+            return $this->getEmptyScoreResponse('Calculation error: '.$e->getMessage());
         }
     }
 
     /**
      * Preload Dream Buyer data with caching
-     *
-     * @param Business $business
-     * @return array
      */
     protected function preloadDreamBuyerData(Business $business): array
     {
@@ -182,7 +174,7 @@ class DreamBuyerScoringAlgorithm
             function () use ($business) {
                 $dreamBuyer = $business->dreamBuyer;
 
-                if (!$dreamBuyer) {
+                if (! $dreamBuyer) {
                     return [];
                 }
 
@@ -236,9 +228,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Calculate scores for each category
-     *
-     * @param array $dreamBuyerData
-     * @return array
      */
     protected function calculateCategoryScores(array $dreamBuyerData): array
     {
@@ -306,8 +295,7 @@ class DreamBuyerScoringAlgorithm
     /**
      * Check if field is filled with meaningful data
      *
-     * @param mixed $value
-     * @return bool
+     * @param  mixed  $value
      */
     protected function isFieldFilled($value): bool
     {
@@ -317,11 +305,12 @@ class DreamBuyerScoringAlgorithm
 
         if (is_string($value)) {
             $trimmed = trim($value);
-            return !empty($trimmed) && $trimmed !== 'null' && $trimmed !== 'undefined';
+
+            return ! empty($trimmed) && $trimmed !== 'null' && $trimmed !== 'undefined';
         }
 
         if (is_array($value)) {
-            return !empty($value);
+            return ! empty($value);
         }
 
         return true;
@@ -330,14 +319,11 @@ class DreamBuyerScoringAlgorithm
     /**
      * Assess quality of field content
      *
-     * @param string $field
-     * @param mixed $value
-     * @param string $category
-     * @return float
+     * @param  mixed  $value
      */
     protected function assessFieldQuality(string $field, $value, string $category): float
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             return 0.5; // Basic data type
         }
 
@@ -345,40 +331,65 @@ class DreamBuyerScoringAlgorithm
 
         // Psychographic fields need more detail (McKinsey research)
         if ($category === 'psychographics') {
-            if ($length < 20) return 0.3;
-            if ($length < 50) return 0.6;
-            if ($length < 100) return 0.8;
+            if ($length < 20) {
+                return 0.3;
+            }
+            if ($length < 50) {
+                return 0.6;
+            }
+            if ($length < 100) {
+                return 0.8;
+            }
+
             return 1.0;
         }
 
         // Pain points need specificity
         if ($category === 'pain_points') {
-            if ($length < 15) return 0.3;
-            if ($length < 40) return 0.6;
-            if ($length < 80) return 0.8;
+            if ($length < 15) {
+                return 0.3;
+            }
+            if ($length < 40) {
+                return 0.6;
+            }
+            if ($length < 80) {
+                return 0.8;
+            }
+
             return 1.0;
         }
 
         // Buying behavior needs detail
         if ($category === 'buying_behavior') {
-            if ($length < 10) return 0.3;
-            if ($length < 30) return 0.6;
-            if ($length < 60) return 0.8;
+            if ($length < 10) {
+                return 0.3;
+            }
+            if ($length < 30) {
+                return 0.6;
+            }
+            if ($length < 60) {
+                return 0.8;
+            }
+
             return 1.0;
         }
 
         // Default quality assessment
-        if ($length < 5) return 0.3;
-        if ($length < 15) return 0.6;
-        if ($length < 30) return 0.8;
+        if ($length < 5) {
+            return 0.3;
+        }
+        if ($length < 15) {
+            return 0.6;
+        }
+        if ($length < 30) {
+            return 0.8;
+        }
+
         return 1.0;
     }
 
     /**
      * Calculate overall weighted score
-     *
-     * @param array $categoryScores
-     * @return float
      */
     protected function calculateOverallScore(array $categoryScores): float
     {
@@ -396,24 +407,24 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get quality level based on score
-     *
-     * @param float $score
-     * @return string
      */
     protected function getQualityLevel(float $score): string
     {
-        if ($score >= 85) return 'excellent';
-        if ($score >= 70) return 'high';
-        if ($score >= 50) return 'medium';
+        if ($score >= 85) {
+            return 'excellent';
+        }
+        if ($score >= 70) {
+            return 'high';
+        }
+        if ($score >= 50) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
     /**
      * Estimate targeting accuracy based on Forrester research
-     *
-     * @param float $score
-     * @param string $industry
-     * @return array
      */
     protected function estimateTargetingAccuracy(float $score, string $industry): array
     {
@@ -444,24 +455,24 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get confidence level for targeting
-     *
-     * @param float $score
-     * @return string
      */
     protected function getConfidenceLevel(float $score): string
     {
-        if ($score >= 85) return 'very_high';
-        if ($score >= 70) return 'high';
-        if ($score >= 50) return 'moderate';
+        if ($score >= 85) {
+            return 'very_high';
+        }
+        if ($score >= 70) {
+            return 'high';
+        }
+        if ($score >= 50) {
+            return 'moderate';
+        }
+
         return 'low';
     }
 
     /**
      * Calculate ROI impact based on HubSpot study
-     *
-     * @param string $qualityLevel
-     * @param array $categoryScores
-     * @return array
      */
     protected function calculateROIImpact(string $qualityLevel, array $categoryScores): array
     {
@@ -488,9 +499,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get revenue boost potential
-     *
-     * @param float $psychoScore
-     * @return array
      */
     protected function getRevenueBoostPotential(float $psychoScore): array
     {
@@ -507,9 +515,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get conversion improvement estimate
-     *
-     * @param string $qualityLevel
-     * @return array
      */
     protected function getConversionImprovement(string $qualityLevel): array
     {
@@ -526,9 +531,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Identify critical missing fields
-     *
-     * @param array $dreamBuyerData
-     * @return array
      */
     protected function identifyCriticalGaps(array $dreamBuyerData): array
     {
@@ -541,7 +543,7 @@ class DreamBuyerScoringAlgorithm
             foreach ($criticalFields as $field) {
                 $value = $categoryData[$field] ?? null;
 
-                if (!$this->isFieldFilled($value)) {
+                if (! $this->isFieldFilled($value)) {
                     $gaps[] = [
                         'category' => $category,
                         'field' => $field,
@@ -557,10 +559,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get impact description for missing field
-     *
-     * @param string $category
-     * @param string $field
-     * @return string
      */
     protected function getFieldImpact(string $category, string $field): string
     {
@@ -595,11 +593,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Generate actionable recommendations
-     *
-     * @param array $categoryScores
-     * @param array $criticalGaps
-     * @param array $dreamBuyerData
-     * @return array
      */
     protected function generateRecommendations(
         array $categoryScores,
@@ -609,17 +602,17 @@ class DreamBuyerScoringAlgorithm
         $recommendations = [];
 
         // Priority 1: Critical gaps
-        if (!empty($criticalGaps)) {
+        if (! empty($criticalGaps)) {
             $recommendations[] = [
                 'priority' => 'critical',
                 'category' => 'data_completion',
                 'title' => 'Complete Critical Dream Buyer Fields',
-                'description' => 'Fill in ' . count($criticalGaps) . ' critical missing fields to improve targeting accuracy',
+                'description' => 'Fill in '.count($criticalGaps).' critical missing fields to improve targeting accuracy',
                 'action_items' => $this->getCriticalGapActions($criticalGaps),
                 'estimated_impact' => [
-                    'targeting_accuracy' => '+' . (count($criticalGaps) * 8) . '%',
-                    'conversion_rate' => '+' . (count($criticalGaps) * 5) . '%',
-                    'roi' => '+' . (count($criticalGaps) * 12) . '%',
+                    'targeting_accuracy' => '+'.(count($criticalGaps) * 8).'%',
+                    'conversion_rate' => '+'.(count($criticalGaps) * 5).'%',
+                    'roi' => '+'.(count($criticalGaps) * 12).'%',
                 ],
                 'timeframe' => '1-2 weeks',
             ];
@@ -667,9 +660,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get actions for critical gaps
-     *
-     * @param array $criticalGaps
-     * @return array
      */
     protected function getCriticalGapActions(array $criticalGaps): array
     {
@@ -684,10 +674,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get recommendation title for category
-     *
-     * @param string $category
-     * @param float $score
-     * @return string
      */
     protected function getCategoryRecommendationTitle(string $category, float $score): string
     {
@@ -701,32 +687,24 @@ class DreamBuyerScoringAlgorithm
         ];
 
         $prefix = $score < 50 ? 'Critical: ' : '';
-        return $prefix . ($titles[$category] ?? 'Improve ' . ucfirst($category));
+
+        return $prefix.($titles[$category] ?? 'Improve '.ucfirst($category));
     }
 
     /**
      * Get recommendation description for category
-     *
-     * @param string $category
-     * @param array $data
-     * @return string
      */
     protected function getCategoryRecommendationDescription(string $category, array $data): string
     {
         $filledPercent = round(($data['filled_fields'] / $data['total_fields']) * 100);
         $missingFields = $data['total_fields'] - $data['filled_fields'];
 
-        return "Currently {$filledPercent}% complete with {$missingFields} missing fields. " .
-               "Improving this category will enhance targeting accuracy and ROI.";
+        return "Currently {$filledPercent}% complete with {$missingFields} missing fields. ".
+               'Improving this category will enhance targeting accuracy and ROI.';
     }
 
     /**
      * Get action items for category improvement
-     *
-     * @param string $category
-     * @param array $data
-     * @param array $dreamBuyerData
-     * @return array
      */
     protected function getCategoryActionItems(string $category, array $data, array $dreamBuyerData): array
     {
@@ -736,10 +714,10 @@ class DreamBuyerScoringAlgorithm
 
         foreach ($fields as $field) {
             $value = $categoryData[$field] ?? null;
-            if (!$this->isFieldFilled($value)) {
-                $actions[] = "Add detailed " . str_replace('_', ' ', $field) . " information";
+            if (! $this->isFieldFilled($value)) {
+                $actions[] = 'Add detailed '.str_replace('_', ' ', $field).' information';
             } elseif ($this->assessFieldQuality($field, $value, $category) < 0.6) {
-                $actions[] = "Enhance " . str_replace('_', ' ', $field) . " with more specific details";
+                $actions[] = 'Enhance '.str_replace('_', ' ', $field).' with more specific details';
             }
         }
 
@@ -748,10 +726,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Estimate impact of category improvement
-     *
-     * @param string $category
-     * @param float $currentScore
-     * @return array
      */
     protected function estimateCategoryImpact(string $category, float $currentScore): array
     {
@@ -785,18 +759,14 @@ class DreamBuyerScoringAlgorithm
             ],
         ];
 
-        $impact = $impacts[$category] ?? ['overall_improvement' => '+' . round($potentialGain) . '%'];
-        $impact['potential_score_gain'] = '+' . round($potentialGain) . ' points';
+        $impact = $impacts[$category] ?? ['overall_improvement' => '+'.round($potentialGain).'%'];
+        $impact['potential_score_gain'] = '+'.round($potentialGain).' points';
 
         return $impact;
     }
 
     /**
      * Get timeframe for recommendation
-     *
-     * @param string $category
-     * @param float $score
-     * @return string
      */
     protected function getRecommendationTimeframe(string $category, float $score): string
     {
@@ -811,10 +781,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Identify quick wins
-     *
-     * @param array $categoryScores
-     * @param array $dreamBuyerData
-     * @return array
      */
     protected function identifyQuickWins(array $categoryScores, array $dreamBuyerData): array
     {
@@ -835,8 +801,8 @@ class DreamBuyerScoringAlgorithm
                         $quickWins[] = [
                             'category' => $category,
                             'field' => $field,
-                            'current_quality' => round($quality * 100) . '%',
-                            'action' => "Add 2-3 more specific details to " . str_replace('_', ' ', $field),
+                            'current_quality' => round($quality * 100).'%',
+                            'action' => 'Add 2-3 more specific details to '.str_replace('_', ' ', $field),
                             'effort' => 'low',
                             'impact' => 'medium',
                             'estimated_time' => '10-15 minutes',
@@ -847,8 +813,9 @@ class DreamBuyerScoringAlgorithm
         }
 
         // Sort by impact and return top 5
-        usort($quickWins, function($a, $b) {
+        usort($quickWins, function ($a, $b) {
             $impactOrder = ['high' => 3, 'medium' => 2, 'low' => 1];
+
             return ($impactOrder[$b['impact']] ?? 0) - ($impactOrder[$a['impact']] ?? 0);
         });
 
@@ -857,9 +824,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Calculate overall completeness percentage
-     *
-     * @param array $dreamBuyerData
-     * @return array
      */
     protected function calculateCompleteness(array $dreamBuyerData): array
     {
@@ -889,9 +853,6 @@ class DreamBuyerScoringAlgorithm
 
     /**
      * Get empty score response
-     *
-     * @param string $reason
-     * @return array
      */
     protected function getEmptyScoreResponse(string $reason): array
     {

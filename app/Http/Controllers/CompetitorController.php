@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ScrapeCompetitorData;
 use App\Models\Competitor;
 use App\Models\CompetitorAlert;
-use App\Models\CompetitorMetric;
 use App\Models\GlobalCompetitor;
 use App\Services\CompetitorAnalysisService;
 use App\Services\CompetitorMonitoringService;
@@ -12,7 +12,6 @@ use App\Services\ContentAnalysisService;
 use App\Services\MetaAdLibraryService;
 use App\Services\PriceMonitoringService;
 use App\Services\ReviewsMonitoringService;
-use App\Jobs\ScrapeCompetitorData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -20,11 +19,17 @@ use Inertia\Inertia;
 class CompetitorController extends Controller
 {
     protected CompetitorMonitoringService $monitoringService;
+
     protected CompetitorAnalysisService $analysisService;
+
     protected ContentAnalysisService $contentService;
+
     protected MetaAdLibraryService $adService;
+
     protected PriceMonitoringService $priceService;
+
     protected ReviewsMonitoringService $reviewsService;
+
     protected int $cacheTTL = 600; // 10 minutes
 
     public function __construct(
@@ -49,7 +54,7 @@ class CompetitorController extends Controller
     protected function authorizeCompetitor(Request $request, Competitor $competitor): void
     {
         $business = $request->user()->currentBusiness;
-        if (!$business || $competitor->business_id !== $business->id) {
+        if (! $business || $competitor->business_id !== $business->id) {
             abort(403, 'Bu raqobatchiga kirish huquqi yo\'q');
         }
     }
@@ -60,7 +65,7 @@ class CompetitorController extends Controller
     protected function authorizeAlert(Request $request, CompetitorAlert $alert): void
     {
         $business = $request->user()->currentBusiness;
-        if (!$business || $alert->business_id !== $business->id) {
+        if (! $business || $alert->business_id !== $business->id) {
             abort(403, 'Bu alertga kirish huquqi yo\'q');
         }
     }
@@ -72,7 +77,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -80,7 +85,7 @@ class CompetitorController extends Controller
         $business->load('industryRelation');
 
         $query = Competitor::where('business_id', $business->id)
-            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(1)])
             ->withCount('metrics');
 
         // Filters
@@ -127,7 +132,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -147,7 +152,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -164,7 +169,7 @@ class CompetitorController extends Controller
         // Load competitors
         $competitors = Competitor::where('business_id', $business->id)
             ->where('status', 'active')
-            ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(1)])
+            ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(1)])
             ->orderBy('threat_level', 'desc')
             ->limit(10)
             ->get();
@@ -197,7 +202,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -207,7 +212,7 @@ class CompetitorController extends Controller
             // Get all active competitors
             $competitors = Competitor::where('business_id', $business->id)
                 ->where('status', 'active')
-                ->with(['metrics' => fn($q) => $q->latest('recorded_date')->limit(30)])
+                ->with(['metrics' => fn ($q) => $q->latest('recorded_date')->limit(30)])
                 ->get();
 
             // Get unread alerts
@@ -241,8 +246,8 @@ class CompetitorController extends Controller
         $this->authorizeCompetitor($request, $competitor);
 
         $competitor->load([
-            'metrics' => fn($q) => $q->latest('recorded_date')->limit(90),
-            'activities' => fn($q) => $q->latest('activity_date')->limit(20),
+            'metrics' => fn ($q) => $q->latest('recorded_date')->limit(90),
+            'activities' => fn ($q) => $q->latest('activity_date')->limit(20),
         ]);
 
         // Get latest metric
@@ -502,7 +507,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -526,6 +531,7 @@ class CompetitorController extends Controller
                 $competitor->effective_swot_data = $competitor->effective_swot_data;
                 $competitor->global_swot_count = $competitor->globalCompetitor?->swot_count ?? 0;
                 $competitor->global_contributors = $competitor->globalCompetitor?->swot_contributors_count ?? 0;
+
                 return $competitor;
             });
 
@@ -549,7 +555,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -582,7 +588,7 @@ class CompetitorController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -608,7 +614,7 @@ class CompetitorController extends Controller
         // Generate mock SWOT for now - in production this would use AI
         $swot = [
             'strengths' => [
-                $competitor->name . ' kuchli brend nomiga ega',
+                $competitor->name.' kuchli brend nomiga ega',
                 'Keng mijozlar bazasi mavjud',
                 'Doimiy marketing faoliyati olib borilmoqda',
             ],
@@ -848,7 +854,7 @@ class CompetitorController extends Controller
             $results = GlobalCompetitor::query()
                 ->where(function ($query) use ($search) {
                     $query->where('name', 'like', "{$search}%")
-                          ->orWhere('name', 'like', "%{$search}%");
+                        ->orWhere('name', 'like', "%{$search}%");
                 })
                 ->select(['id', 'name', 'industry', 'region', 'district', 'instagram_handle', 'telegram_handle', 'swot_contributors_count'])
                 ->limit(8)
@@ -874,7 +880,8 @@ class CompetitorController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            \Log::error('searchGlobal error: ' . $e->getMessage());
+            \Log::error('searchGlobal error: '.$e->getMessage());
+
             return response()->json([]);
         }
     }
@@ -886,7 +893,7 @@ class CompetitorController extends Controller
     {
         $globalCompetitor = GlobalCompetitor::find($id);
 
-        if (!$globalCompetitor) {
+        if (! $globalCompetitor) {
             return response()->json(['error' => 'Not found'], 404);
         }
 

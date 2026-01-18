@@ -13,9 +13,13 @@ class JobDescription extends Model
 
     // Employment Types
     public const EMPLOYMENT_TYPE_FULL_TIME = 'full_time';
+
     public const EMPLOYMENT_TYPE_PART_TIME = 'part_time';
+
     public const EMPLOYMENT_TYPE_CONTRACT = 'contract';
+
     public const EMPLOYMENT_TYPE_TEMPORARY = 'temporary';
+
     public const EMPLOYMENT_TYPE_INTERNSHIP = 'internship';
 
     public const EMPLOYMENT_TYPES = [
@@ -28,10 +32,15 @@ class JobDescription extends Model
 
     // Position Levels
     public const LEVEL_JUNIOR = 'junior';
+
     public const LEVEL_MID = 'mid';
+
     public const LEVEL_SENIOR = 'senior';
+
     public const LEVEL_LEAD = 'lead';
+
     public const LEVEL_MANAGER = 'manager';
+
     public const LEVEL_DIRECTOR = 'director';
 
     public const POSITION_LEVELS = [
@@ -112,23 +121,24 @@ class JobDescription extends Model
     public function getDepartmentLabelAttribute(): string
     {
         $departments = \App\Models\BusinessUser::DEPARTMENTS;
+
         return $departments[$this->department] ?? $this->department;
     }
 
     public function getSalaryRangeFormattedAttribute(): ?string
     {
-        if (!$this->salary_range_min && !$this->salary_range_max) {
+        if (! $this->salary_range_min && ! $this->salary_range_max) {
             return null;
         }
 
         if ($this->salary_range_min && $this->salary_range_max) {
-            return number_format($this->salary_range_min, 0, '.', ' ') . ' - ' . number_format($this->salary_range_max, 0, '.', ' ') . ' UZS';
+            return number_format($this->salary_range_min, 0, '.', ' ').' - '.number_format($this->salary_range_max, 0, '.', ' ').' UZS';
         }
 
         if ($this->salary_range_min) {
-            return 'dan ' . number_format($this->salary_range_min, 0, '.', ' ') . ' UZS';
+            return 'dan '.number_format($this->salary_range_min, 0, '.', ' ').' UZS';
         }
 
-        return 'gacha ' . number_format($this->salary_range_max, 0, '.', ' ') . ' UZS';
+        return 'gacha '.number_format($this->salary_range_max, 0, '.', ' ').' UZS';
     }
 }

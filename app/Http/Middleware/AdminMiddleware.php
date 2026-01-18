@@ -16,7 +16,7 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Check if user is authenticated
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login')->with('error', 'Iltimos, tizimga kiring');
         }
 
@@ -25,7 +25,7 @@ class AdminMiddleware
 
         // Assuming we have a 'role' field or relationship
         // Check if user is admin (you can adjust this based on your role system)
-        if (!$user->hasRole('admin') && !$user->hasRole('super_admin')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('super_admin')) {
             abort(403, 'Sizda admin paneliga kirish huquqi yo\'q');
         }
 

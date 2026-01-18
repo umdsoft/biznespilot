@@ -42,19 +42,19 @@ class UnifiedInboxService
                 }]);
 
             // Filter by channel (uses 'platform' column in database)
-            if (!empty($filters['channel']) && $filters['channel'] !== 'telegram') {
+            if (! empty($filters['channel']) && $filters['channel'] !== 'telegram') {
                 $query->where('platform', $filters['channel']);
             } elseif (empty($filters['channel'])) {
                 $query->whereIn('platform', ['instagram', 'facebook']);
             }
 
             // Filter by status
-            if (!empty($filters['status'])) {
+            if (! empty($filters['status'])) {
                 $query->where('status', $filters['status']);
             }
 
             // Search
-            if (!empty($filters['search'])) {
+            if (! empty($filters['search'])) {
                 $search = $filters['search'];
                 $query->whereHas('customer', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -65,7 +65,7 @@ class UnifiedInboxService
             $chatbotConversations = $query->orderBy('last_message_at', 'desc')
                 ->limit($filters['limit'] ?? 50)
                 ->get()
-                ->map(fn($conv) => $this->formatConversation($conv));
+                ->map(fn ($conv) => $this->formatConversation($conv));
 
             $conversations = $conversations->merge($chatbotConversations);
         }
@@ -96,17 +96,17 @@ class UnifiedInboxService
             }]);
 
         // Filter by status
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $statusMap = [
                 'open' => 'active',
                 'pending' => 'handoff',
-                'closed' => 'closed'
+                'closed' => 'closed',
             ];
             $query->where('status', $statusMap[$filters['status']] ?? $filters['status']);
         }
 
         // Search
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
@@ -119,7 +119,7 @@ class UnifiedInboxService
         return $query->orderBy('last_message_at', 'desc')
             ->limit($filters['limit'] ?? 50)
             ->get()
-            ->map(fn($conv) => $this->formatTelegramConversation($conv));
+            ->map(fn ($conv) => $this->formatTelegramConversation($conv));
     }
 
     /**
@@ -133,7 +133,7 @@ class UnifiedInboxService
             ->orderBy('created_at', 'desc');
 
         // Search
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('from_number', 'like', "%{$search}%")
@@ -151,11 +151,12 @@ class UnifiedInboxService
         // Group calls by lead_id or phone number to create "conversations"
         $grouped = $calls->groupBy(function ($call) {
             if ($call->lead_id) {
-                return 'lead_' . $call->lead_id;
+                return 'lead_'.$call->lead_id;
             }
             // Group by phone number for calls without lead
             $phone = $call->direction === 'inbound' ? $call->from_number : $call->to_number;
-            return 'phone_' . preg_replace('/[^0-9]/', '', $phone);
+
+            return 'phone_'.preg_replace('/[^0-9]/', '', $phone);
         });
 
         return $grouped->map(function ($leadCalls, $key) {
@@ -182,7 +183,7 @@ class UnifiedInboxService
             };
 
             return [
-                'id' => 'call_' . $key,
+                'id' => 'call_'.$key,
                 'original_id' => $lead?->id ?? $key,
                 'lead_id' => $lead?->id,
                 'channel' => 'phone',
@@ -223,6 +224,7 @@ class UnifiedInboxService
 
         if ($call->status === 'completed' && $call->duration > 0) {
             $duration = $this->formatCallDuration($call->duration);
+
             return "{$direction} {$status} {$duration}";
         }
 
@@ -235,11 +237,12 @@ class UnifiedInboxService
     protected function formatCallDuration(int $seconds): string
     {
         if ($seconds < 60) {
-            return $seconds . ' sek';
+            return $seconds.' sek';
         }
         $minutes = floor($seconds / 60);
         $secs = $seconds % 60;
-        return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+
+        return $minutes.':'.str_pad($secs, 2, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -251,7 +254,7 @@ class UnifiedInboxService
 
         // Uzbekistan format
         if (strlen($digits) === 12 && str_starts_with($digits, '998')) {
-            return '+998 (' . substr($digits, 3, 2) . ') ' . substr($digits, 5, 3) . '-' . substr($digits, 8, 2) . '-' . substr($digits, 10, 2);
+            return '+998 ('.substr($digits, 3, 2).') '.substr($digits, 5, 3).'-'.substr($digits, 8, 2).'-'.substr($digits, 10, 2);
         }
 
         return $phone;
@@ -276,10 +279,10 @@ class UnifiedInboxService
         }
 
         return [
-            'id' => 'tg_' . $conversation->id,
+            'id' => 'tg_'.$conversation->id,
             'original_id' => $conversation->id,
             'channel' => 'telegram',
-            'customer_name' => $user ? trim($user->first_name . ' ' . ($user->last_name ?? '')) : 'Noma\'lum',
+            'customer_name' => $user ? trim($user->first_name.' '.($user->last_name ?? '')) : 'Noma\'lum',
             'customer_username' => $user?->username,
             'customer_phone' => $user?->phone,
             'customer_avatar' => '✈️',
@@ -336,7 +339,7 @@ class UnifiedInboxService
             ],
             'status' => $conversation->status,
             'current_stage' => $conversation->current_stage,
-            'messages' => $conversation->messages->map(fn($msg) => [
+            'messages' => $conversation->messages->map(fn ($msg) => [
                 'id' => $msg->id,
                 'direction' => $msg->direction,
                 'content' => $msg->message_content,
@@ -362,12 +365,12 @@ class UnifiedInboxService
         $conversation->markAllAsRead();
 
         return [
-            'id' => 'tg_' . $conversation->id,
+            'id' => 'tg_'.$conversation->id,
             'original_id' => $conversation->id,
             'channel' => 'telegram',
             'customer' => [
                 'id' => $user?->id,
-                'name' => $user ? trim($user->first_name . ' ' . ($user->last_name ?? '')) : 'Noma\'lum',
+                'name' => $user ? trim($user->first_name.' '.($user->last_name ?? '')) : 'Noma\'lum',
                 'phone' => $user?->phone,
                 'username' => $user?->username,
                 'telegram_id' => $user?->telegram_id,
@@ -379,7 +382,7 @@ class UnifiedInboxService
                 'username' => $conversation->bot?->bot_username,
             ],
             'status' => $this->mapTelegramStatus($conversation->status),
-            'messages' => $conversation->messages->sortBy('created_at')->values()->map(fn($msg) => [
+            'messages' => $conversation->messages->sortBy('created_at')->values()->map(fn ($msg) => [
                 'id' => $msg->id,
                 'direction' => $msg->direction === 'incoming' ? 'inbound' : 'outbound',
                 'content' => $this->formatTelegramMessageContent($msg->content),
@@ -433,7 +436,7 @@ class UnifiedInboxService
         $totalDuration = $calls->sum('duration');
 
         return [
-            'id' => 'call_' . $conversationKey,
+            'id' => 'call_'.$conversationKey,
             'original_id' => $lead?->id ?? $conversationKey,
             'lead_id' => $lead?->id,
             'channel' => 'phone',
@@ -457,7 +460,7 @@ class UnifiedInboxService
                 'total_duration_formatted' => $this->formatCallDuration($totalDuration),
                 'answer_rate' => $totalCalls > 0 ? round(($answeredCalls / $totalCalls) * 100) : 0,
             ],
-            'messages' => $calls->map(fn($call) => [
+            'messages' => $calls->map(fn ($call) => [
                 'id' => $call->id,
                 'direction' => $call->direction,
                 'content' => $this->formatCallDetails($call),
@@ -534,10 +537,10 @@ class UnifiedInboxService
                 return $content['command'];
             }
             if (isset($content['phone_number'])) {
-                return "📱 Kontakt: " . $content['phone_number'];
+                return '📱 Kontakt: '.$content['phone_number'];
             }
             if (isset($content['latitude'])) {
-                return "📍 Lokatsiya yuborildi";
+                return '📍 Lokatsiya yuborildi';
             }
             if (isset($content['caption'])) {
                 return $content['caption'];
@@ -577,7 +580,7 @@ class UnifiedInboxService
         }
 
         return [
-            'success' => (bool)$result,
+            'success' => (bool) $result,
             'message' => $result ? 'Message sent' : 'Failed to send',
         ];
     }
@@ -589,7 +592,7 @@ class UnifiedInboxService
     {
         $conversation = TelegramConversation::with(['user', 'bot'])->findOrFail($conversationId);
 
-        if (!$conversation->bot || !$conversation->user) {
+        if (! $conversation->bot || ! $conversation->user) {
             return [
                 'success' => false,
                 'message' => 'Bot yoki foydalanuvchi topilmadi',
@@ -627,7 +630,7 @@ class UnifiedInboxService
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Xatolik: ' . $e->getMessage(),
+                'message' => 'Xatolik: '.$e->getMessage(),
             ];
         }
     }
@@ -637,9 +640,9 @@ class UnifiedInboxService
      */
     public function getInboxStats(Business $business): array
     {
-        $chatbotQuery = fn() => ChatbotConversation::where('business_id', $business->id);
-        $telegramQuery = fn() => TelegramConversation::where('business_id', $business->id);
-        $callQuery = fn() => CallLog::where('business_id', $business->id);
+        $chatbotQuery = fn () => ChatbotConversation::where('business_id', $business->id);
+        $telegramQuery = fn () => TelegramConversation::where('business_id', $business->id);
+        $callQuery = fn () => CallLog::where('business_id', $business->id);
 
         // Telegram stats
         $telegramTotal = $telegramQuery()->count();
@@ -721,7 +724,7 @@ class UnifiedInboxService
             'last_message' => $lastMessage?->content ?? $lastMessage?->message_content,
             'last_message_time' => $conversation->last_message_at?->diffForHumans(),
             'status' => $conversation->status,
-            'is_unread' => $lastMessage?->direction === 'inbound' && !$lastMessage?->read_at,
+            'is_unread' => $lastMessage?->direction === 'inbound' && ! $lastMessage?->read_at,
             'message_count' => $conversation->messages_count,
         ];
     }

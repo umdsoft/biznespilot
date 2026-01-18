@@ -16,13 +16,14 @@ class ScrapeCompetitorData implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected ?string $competitorId;
+
     protected ?string $businessId;
 
     /**
      * Create a new job instance.
      *
-     * @param string|null $competitorId Monitor specific competitor (UUID)
-     * @param string|null $businessId Monitor all competitors for business (UUID)
+     * @param  string|null  $competitorId  Monitor specific competitor (UUID)
+     * @param  string|null  $businessId  Monitor all competitors for business (UUID)
      */
     public function __construct(?string $competitorId = null, ?string $businessId = null)
     {

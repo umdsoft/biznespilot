@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Business;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\Business;
 
 class EnsureBusinessAccess
 {
@@ -21,7 +21,7 @@ class EnsureBusinessAccess
             ?? $request->header('X-Business-ID')
             ?? $request->input('business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business ID is required',
@@ -40,7 +40,7 @@ class EnsureBusinessAccess
             ->where('business_id', $businessId)
             ->exists();
 
-        if (!$isOwner && !$isTeamMember) {
+        if (! $isOwner && ! $isTeamMember) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have access to this business',

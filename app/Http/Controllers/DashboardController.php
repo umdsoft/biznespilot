@@ -3,20 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
-use App\Models\DreamBuyer;
-use App\Models\MarketingChannel;
-use App\Models\Offer;
-use App\Models\Sale;
-use App\Models\Lead;
 use App\Models\ActivityLog;
 use App\Models\Alert;
+use App\Models\Business;
 use App\Models\DashboardWidget;
+use App\Models\DreamBuyer;
+use App\Models\KpiPlan;
+use App\Models\Lead;
+use App\Models\MarketingChannel;
+use App\Models\Offer;
+use App\Services\DashboardService;
 use App\Services\KPICalculator;
 use App\Services\KPIPlanCalculator;
 use App\Services\SalesAnalyticsService;
-use App\Services\DashboardService;
-use App\Models\KpiPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -27,7 +26,9 @@ class DashboardController extends Controller
     use HasCurrentBusiness;
 
     protected $kpiCalculator;
+
     protected $analyticsService;
+
     protected $dashboardService;
 
     public function __construct(
@@ -51,7 +52,7 @@ class DashboardController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.business.create');
         }
 
@@ -62,7 +63,7 @@ class DashboardController extends Controller
         $moduleStats = Cache::remember(
             "dashboard_module_stats_{$currentBusiness->id}",
             300,
-            fn() => [
+            fn () => [
                 'dream_buyers' => DreamBuyer::where('business_id', $currentBusiness->id)->count(),
                 'marketing_channels' => MarketingChannel::where('business_id', $currentBusiness->id)
                     ->where('is_active', true)
@@ -77,7 +78,7 @@ class DashboardController extends Controller
         $activeAlertsCount = Cache::remember(
             "dashboard_alerts_count_{$currentBusiness->id}",
             60,
-            fn() => Alert::where('business_id', $currentBusiness->id)
+            fn () => Alert::where('business_id', $currentBusiness->id)
                 ->active()
                 ->unresolved()
                 ->notSnoozed()
@@ -119,7 +120,7 @@ class DashboardController extends Controller
 
         // Get KPIs with caching
         $cacheKey = "dashboard_kpis_{$business->id}";
-        $kpis = Cache::remember($cacheKey, 300, fn() => $this->kpiCalculator->getAllKPIs(
+        $kpis = Cache::remember($cacheKey, 300, fn () => $this->kpiCalculator->getAllKPIs(
             $business->id,
             $startDate,
             $endDate
@@ -127,7 +128,7 @@ class DashboardController extends Controller
 
         // Get basic stats with caching
         $statsCacheKey = "dashboard_stats_{$business->id}";
-        $stats = Cache::remember($statsCacheKey, 300, function() use ($business, $startDate, $endDate) {
+        $stats = Cache::remember($statsCacheKey, 300, function () use ($business, $startDate, $endDate) {
             $totalLeads = Lead::where('business_id', $business->id)->count();
             $wonLeads = Lead::where('business_id', $business->id)->where('status', 'won')->count();
             $totalRevenue = Lead::where('business_id', $business->id)
@@ -150,14 +151,14 @@ class DashboardController extends Controller
 
         // Sales trend (last 7 days) - cached - shows won leads
         $trendCacheKey = "dashboard_sales_trend_{$business->id}";
-        $salesTrend = Cache::remember($trendCacheKey, 300, fn() => Lead::where('business_id', $business->id)
+        $salesTrend = Cache::remember($trendCacheKey, 300, fn () => Lead::where('business_id', $business->id)
             ->where('status', 'won')
             ->where('converted_at', '>=', now()->subDays(7))
             ->selectRaw('DATE(converted_at) as date, COUNT(*) as count, SUM(estimated_value) as revenue')
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'date' => $item->date,
                 'count' => $item->count,
                 'revenue' => (float) $item->revenue,
@@ -166,8 +167,7 @@ class DashboardController extends Controller
 
         // Revenue Forecast - cached
         $forecastCacheKey = "dashboard_forecast_{$business->id}";
-        $revenueForecast = Cache::remember($forecastCacheKey, 600, fn() =>
-            $this->analyticsService->forecastRevenue($business->id, 7)
+        $revenueForecast = Cache::remember($forecastCacheKey, 600, fn () => $this->analyticsService->forecastRevenue($business->id, 7)
         );
 
         // AI Insights - disabled (AI feature removed)
@@ -175,19 +175,18 @@ class DashboardController extends Controller
 
         // Recent Activities - cached
         $activitiesCacheKey = "dashboard_activities_{$business->id}";
-        $recentActivities = Cache::remember($activitiesCacheKey, 300, fn() =>
-            ActivityLog::with('user:id,name')
-                ->where('business_id', $business->id)
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get()
-                ->map(fn($activity) => [
-                    'id' => $activity->id,
-                    'description' => $activity->description,
-                    'type' => $activity->type,
-                    'created_at' => $activity->created_at->diffForHumans(),
-                    'user_name' => $activity->user->name ?? 'System',
-                ])
+        $recentActivities = Cache::remember($activitiesCacheKey, 300, fn () => ActivityLog::with('user:id,name')
+            ->where('business_id', $business->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(fn ($activity) => [
+                'id' => $activity->id,
+                'description' => $activity->description,
+                'type' => $activity->type,
+                'created_at' => $activity->created_at->diffForHumans(),
+                'user_name' => $activity->user->name ?? 'System',
+            ])
         );
 
         return response()->json([
@@ -322,7 +321,7 @@ class DashboardController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.business.create');
         }
 
@@ -409,7 +408,7 @@ class DashboardController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.business.create');
         }
 
@@ -449,7 +448,7 @@ class DashboardController extends Controller
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Hisoblashda xatolik yuz berdi: ' . $e->getMessage(),
+                'error' => 'Hisoblashda xatolik yuz berdi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -549,5 +548,4 @@ class DashboardController extends Controller
 
         return redirect()->route('business.kpi')->with('success', 'KPI rejasi muvaffaqiyatli saqlandi!');
     }
-
 }

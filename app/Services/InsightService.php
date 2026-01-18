@@ -55,7 +55,7 @@ class InsightService
         $today = $snapshots->last();
         $weekAgo = $snapshots->firstWhere('snapshot_date', Carbon::today()->subWeek()->format('Y-m-d'));
 
-        if (!$today || !$weekAgo) {
+        if (! $today || ! $weekAgo) {
             return $insights;
         }
 
@@ -154,7 +154,7 @@ class InsightService
         $insights = collect();
         $today = $snapshots->last();
 
-        if (!$today) {
+        if (! $today) {
             return $insights;
         }
 
@@ -203,7 +203,7 @@ class InsightService
         $today = $snapshots->last();
         $yesterday = $snapshots->reverse()->skip(1)->first();
 
-        if (!$today || !$yesterday) {
+        if (! $today || ! $yesterday) {
             return $insights;
         }
 
@@ -267,7 +267,7 @@ class InsightService
         $first = $recent->first()->{$metric};
         $last = $recent->last()->{$metric};
 
-        if (!$first || $first == 0) {
+        if (! $first || $first == 0) {
             return null;
         }
 
@@ -277,7 +277,8 @@ class InsightService
     protected function calculateStdDev(Collection $values): float
     {
         $mean = $values->avg();
-        $squaredDiffs = $values->map(fn($v) => pow($v - $mean, 2));
+        $squaredDiffs = $values->map(fn ($v) => pow($v - $mean, 2));
+
         return sqrt($squaredDiffs->avg());
     }
 
@@ -286,7 +287,7 @@ class InsightService
         $negativeMetrics = ['cac', 'churn_rate'];
         $isHigher = $current > $mean;
 
-        return in_array($metric, $negativeMetrics) ? !$isHigher : $isHigher;
+        return in_array($metric, $negativeMetrics) ? ! $isHigher : $isHigher;
     }
 
     protected function getMetricCategory(string $metric): string

@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Business;
-use App\Models\InstagramAccount;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +22,9 @@ class SocialMediaSyncJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public Business $business;
+
     public int $tries = 2;
+
     public int $timeout = 300;
 
     public function __construct(Business $business)

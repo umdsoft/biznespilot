@@ -9,10 +9,9 @@ use App\Models\Campaign;
 use App\Models\ContentCalendar;
 use App\Models\Lead;
 use App\Models\Task;
-use App\Services\LeadStatisticsService;
 use App\Services\ContentStatisticsService;
+use App\Services\LeadStatisticsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -20,6 +19,7 @@ class DashboardController extends Controller
     use HasCurrentBusiness;
 
     protected LeadStatisticsService $leadStats;
+
     protected ContentStatisticsService $contentStats;
 
     public function __construct(LeadStatisticsService $leadStats, ContentStatisticsService $contentStats)
@@ -32,7 +32,7 @@ class DashboardController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -95,7 +95,6 @@ class DashboardController extends Controller
         ];
     }
 
-
     private function getBudgetStats($businessId): array
     {
         // Get budget data from campaigns
@@ -124,7 +123,6 @@ class DashboardController extends Controller
             'remaining' => $totalBudget - $spentBudget,
         ];
     }
-
 
     private function getRecentCampaigns($businessId): array
     {
@@ -173,7 +171,7 @@ class DashboardController extends Controller
                     'content_type' => $content->content_type,
                     'status' => $content->status,
                     'scheduled_at' => $content->scheduled_date
-                        ? $content->scheduled_date->format('Y-m-d') . ' ' . ($content->scheduled_time ?? '12:00')
+                        ? $content->scheduled_date->format('Y-m-d').' '.($content->scheduled_time ?? '12:00')
                         : null,
                 ];
             })
@@ -241,7 +239,7 @@ class DashboardController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -311,7 +309,7 @@ class DashboardController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 

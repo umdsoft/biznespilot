@@ -6,7 +6,6 @@ use App\Models\Business;
 use App\Models\ChatbotConversation;
 use App\Models\ChatbotMessage;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Channel Analytics Service
@@ -70,7 +69,7 @@ class ChannelAnalyticsService
             ->get();
 
         return [
-            'daily' => $daily->map(fn($d) => [
+            'daily' => $daily->map(fn ($d) => [
                 'date' => $d->date,
                 'total' => $d->count,
                 'incoming' => $d->incoming,
@@ -159,7 +158,7 @@ class ChannelAnalyticsService
             ->orderBy('hour')
             ->get();
 
-        return $hourly->map(fn($h) => [
+        return $hourly->map(fn ($h) => [
             'hour' => $h->hour,
             'count' => $h->count,
         ])->toArray();
@@ -218,14 +217,17 @@ class ChannelAnalyticsService
      */
     protected function calculateAvgDuration($conversations): float
     {
-        if ($conversations->isEmpty()) return 0;
+        if ($conversations->isEmpty()) {
+            return 0;
+        }
 
         $durations = $conversations->map(function ($conv) {
             if ($conv->last_message_at && $conv->created_at) {
                 return $conv->created_at->diffInMinutes($conv->last_message_at);
             }
+
             return 0;
-        })->filter(fn($d) => $d > 0);
+        })->filter(fn ($d) => $d > 0);
 
         return $durations->isNotEmpty() ? round($durations->avg(), 2) : 0;
     }
@@ -250,7 +252,7 @@ class ChannelAnalyticsService
     protected function getStagesDistribution($conversations): array
     {
         return $conversations->groupBy('current_stage')
-            ->map(fn($group) => $group->count())
+            ->map(fn ($group) => $group->count())
             ->toArray();
     }
 

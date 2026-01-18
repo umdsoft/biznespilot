@@ -29,8 +29,8 @@ class RateLimiter
     /**
      * Check if we can make a request to the given integration
      *
-     * @param string $integration Integration name (instagram_api, facebook_api, pos_system)
-     * @param int|string|null $businessId Optional business ID for per-business tracking
+     * @param  string  $integration  Integration name (instagram_api, facebook_api, pos_system)
+     * @param  int|string|null  $businessId  Optional business ID for per-business tracking
      * @return bool True if request is allowed, false if rate limited
      */
     public function allowRequest(string $integration, int|string|null $businessId = null): bool
@@ -48,6 +48,7 @@ class RateLimiter
                 'current_count' => $currentCount,
                 'limit' => $limit,
             ]);
+
             return false;
         }
 
@@ -57,9 +58,8 @@ class RateLimiter
     /**
      * Record a request to the given integration
      *
-     * @param string $integration Integration name
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $integration  Integration name
+     * @param  int|string|null  $businessId  Optional business ID
      */
     public function recordRequest(string $integration, int|string|null $businessId = null): void
     {
@@ -90,8 +90,8 @@ class RateLimiter
     /**
      * Wait if necessary to respect rate limits
      *
-     * @param string $integration Integration name
-     * @param string|null $businessId Optional business ID
+     * @param  string  $integration  Integration name
+     * @param  string|null  $businessId  Optional business ID
      * @return int Seconds waited (0 if no wait needed)
      */
     public function waitIfNeeded(string $integration, ?string $businessId = null): int
@@ -103,7 +103,7 @@ class RateLimiter
         // If we're at the limit, calculate wait time
         if ($currentCount >= $limit) {
             // Get TTL of the cache key to see when it expires
-            $ttl = Cache::get($key . ':ttl', self::WINDOW_SECONDS);
+            $ttl = Cache::get($key.':ttl', self::WINDOW_SECONDS);
             $waitSeconds = min($ttl, self::WINDOW_SECONDS);
 
             Log::info("Rate limit reached, waiting {$waitSeconds}s for {$integration}", [
@@ -113,6 +113,7 @@ class RateLimiter
             ]);
 
             sleep($waitSeconds);
+
             return $waitSeconds;
         }
 
@@ -122,8 +123,8 @@ class RateLimiter
     /**
      * Get remaining requests for an integration
      *
-     * @param string $integration Integration name
-     * @param string|null $businessId Optional business ID
+     * @param  string  $integration  Integration name
+     * @param  string|null  $businessId  Optional business ID
      * @return int Number of remaining requests
      */
     public function getRemainingRequests(string $integration, ?string $businessId = null): int
@@ -138,15 +139,14 @@ class RateLimiter
     /**
      * Reset rate limit counter for an integration
      *
-     * @param string $integration Integration name
-     * @param string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $integration  Integration name
+     * @param  string|null  $businessId  Optional business ID
      */
     public function reset(string $integration, ?string $businessId = null): void
     {
         $key = $this->getCacheKey($integration, $businessId);
         Cache::forget($key);
-        Cache::forget($key . ':ttl');
+        Cache::forget($key.':ttl');
 
         Log::info("Rate limit reset for {$integration}", [
             'business_id' => $businessId,
@@ -157,7 +157,7 @@ class RateLimiter
      * Sanitize cache key component to prevent cache poisoning attacks.
      * Removes colons and other special characters that could break cache key structure.
      *
-     * @param string $value Value to sanitize
+     * @param  string  $value  Value to sanitize
      * @return string Sanitized value
      */
     protected function sanitizeCacheKeyComponent(string $value): string
@@ -169,8 +169,8 @@ class RateLimiter
     /**
      * Get cache key for rate limiting
      *
-     * @param string $integration Integration name
-     * @param string|null $businessId Optional business ID
+     * @param  string  $integration  Integration name
+     * @param  string|null  $businessId  Optional business ID
      * @return string Cache key
      */
     protected function getCacheKey(string $integration, ?string $businessId = null): string
@@ -178,7 +178,8 @@ class RateLimiter
         $sanitizedIntegration = $this->sanitizeCacheKeyComponent($integration);
 
         if ($businessId) {
-            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string)$businessId);
+            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string) $businessId);
+
             return "rate_limit:{$sanitizedIntegration}:business_{$sanitizedBusinessId}";
         }
 
@@ -188,8 +189,8 @@ class RateLimiter
     /**
      * Get rate limit statistics for monitoring
      *
-     * @param string $integration Integration name
-     * @param string|null $businessId Optional business ID
+     * @param  string  $integration  Integration name
+     * @param  string|null  $businessId  Optional business ID
      * @return array Statistics
      */
     public function getStats(string $integration, ?string $businessId = null): array
@@ -213,10 +214,11 @@ class RateLimiter
     /**
      * Execute a callback with rate limiting
      *
-     * @param string $integration Integration name
-     * @param callable $callback Function to execute
-     * @param string|null $businessId Optional business ID
+     * @param  string  $integration  Integration name
+     * @param  callable  $callback  Function to execute
+     * @param  string|null  $businessId  Optional business ID
      * @return mixed Result of callback
+     *
      * @throws \Exception If rate limit exceeded and max retries reached
      */
     public function execute(string $integration, callable $callback, ?string $businessId = null)

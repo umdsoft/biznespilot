@@ -172,7 +172,7 @@ class StepDefinitionSeeder extends Seeder
                 'required_fields' => [
                     'dream_buyer_created', 'q1_answered', 'q2_answered', 'q3_answered',
                     'q4_answered', 'q5_answered', 'q6_answered', 'q7_answered',
-                    'q8_answered', 'q9_answered'
+                    'q8_answered', 'q9_answered',
                 ],
                 'icon' => 'user-circle',
                 'estimated_time_minutes' => 20,
@@ -206,7 +206,7 @@ class StepDefinitionSeeder extends Seeder
                 'required_fields' => ['min_2_competitors'],
                 'completion_rules' => [
                     'min_count' => 2,
-                    'model' => 'Competitor'
+                    'model' => 'Competitor',
                 ],
                 'icon' => 'user-group',
                 'estimated_time_minutes' => 15,
@@ -225,7 +225,7 @@ class StepDefinitionSeeder extends Seeder
                 'required_fields' => ['min_1_hypothesis'],
                 'completion_rules' => [
                     'min_count' => 1,
-                    'model' => 'MarketingHypothesis'
+                    'model' => 'MarketingHypothesis',
                 ],
                 'icon' => 'light-bulb',
                 'estimated_time_minutes' => 10,

@@ -6,10 +6,10 @@ use App\Models\ContentCalendar;
 use App\Models\MonthlyPlan;
 use App\Models\WeeklyPlan;
 use App\Services\ContentStrategyService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class ContentCalendarController extends Controller
 {
@@ -26,7 +26,7 @@ class ContentCalendarController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -37,7 +37,7 @@ class ContentCalendarController extends Controller
         $currentDate = Carbon::parse($date);
 
         // Calculate date range based on view
-        [$startDate, $endDate] = match($view) {
+        [$startDate, $endDate] = match ($view) {
             'month' => [$currentDate->copy()->startOfMonth(), $currentDate->copy()->endOfMonth()],
             'week' => [$currentDate->copy()->startOfWeek(), $currentDate->copy()->endOfWeek()],
             'day' => [$currentDate->copy()->startOfDay(), $currentDate->copy()->endOfDay()],
@@ -70,7 +70,7 @@ class ContentCalendarController extends Controller
     {
         $business = $request->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -80,7 +80,7 @@ class ContentCalendarController extends Controller
 
         $currentDate = Carbon::parse($date);
 
-        [$startDate, $endDate] = match($view) {
+        [$startDate, $endDate] = match ($view) {
             'month' => [$currentDate->copy()->startOfMonth(), $currentDate->copy()->endOfMonth()],
             'week' => [$currentDate->copy()->startOfWeek(), $currentDate->copy()->endOfWeek()],
             'day' => [$currentDate->copy()->startOfDay(), $currentDate->copy()->endOfDay()],
@@ -128,12 +128,12 @@ class ContentCalendarController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'content_text' => 'nullable|string',
-            'content_type' => 'required|string|in:' . implode(',', array_keys(ContentCalendar::CONTENT_TYPES)),
+            'content_type' => 'required|string|in:'.implode(',', array_keys(ContentCalendar::CONTENT_TYPES)),
             'channel' => 'required|string',
             'scheduled_date' => 'required|date',
             'scheduled_time' => 'nullable|date_format:H:i',
             'theme' => 'nullable|string|max:100',
-            'goal' => 'nullable|string|in:' . implode(',', array_keys(ContentCalendar::GOALS)),
+            'goal' => 'nullable|string|in:'.implode(',', array_keys(ContentCalendar::GOALS)),
             'hashtags' => 'nullable|array',
             'tags' => 'nullable|array',
             'weekly_plan_id' => 'nullable|exists:weekly_plans,id',
@@ -175,11 +175,11 @@ class ContentCalendarController extends Controller
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:1000',
             'content_text' => 'nullable|string',
-            'content_type' => 'sometimes|string|in:' . implode(',', array_keys(ContentCalendar::CONTENT_TYPES)),
+            'content_type' => 'sometimes|string|in:'.implode(',', array_keys(ContentCalendar::CONTENT_TYPES)),
             'channel' => 'sometimes|string',
             'scheduled_date' => 'sometimes|date',
             'scheduled_time' => 'nullable|date_format:H:i',
-            'status' => 'sometimes|string|in:' . implode(',', array_keys(ContentCalendar::STATUSES)),
+            'status' => 'sometimes|string|in:'.implode(',', array_keys(ContentCalendar::STATUSES)),
             'theme' => 'nullable|string|max:100',
             'goal' => 'nullable|string',
             'hashtags' => 'nullable|array',
@@ -322,7 +322,7 @@ class ContentCalendarController extends Controller
 
         $items = $this->contentService->generateMonthlyCalendar($monthly);
 
-        return back()->with('success', $items->count() . ' ta kontent yaratildi');
+        return back()->with('success', $items->count().' ta kontent yaratildi');
     }
 
     /**
@@ -334,7 +334,7 @@ class ContentCalendarController extends Controller
 
         $items = $this->contentService->generateWeeklyCalendar($weekly);
 
-        return back()->with('success', $items->count() . ' ta kontent yaratildi');
+        return back()->with('success', $items->count().' ta kontent yaratildi');
     }
 
     /**
@@ -345,7 +345,7 @@ class ContentCalendarController extends Controller
         $validated = $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:content_calendar,id',
-            'status' => 'required|string|in:' . implode(',', array_keys(ContentCalendar::STATUSES)),
+            'status' => 'required|string|in:'.implode(',', array_keys(ContentCalendar::STATUSES)),
         ]);
 
         $count = $this->contentService->bulkUpdateStatus($validated['ids'], $validated['status']);

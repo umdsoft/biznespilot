@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->enum('problem_category', [
-                'revenue', 'leads', 'conversion', 'retention', 'awareness', 'other'
+                'revenue', 'leads', 'conversion', 'retention', 'awareness', 'other',
             ]);
             $table->text('problem_description');
             $table->enum('impact_level', ['critical', 'high', 'medium', 'low'])->default('medium');

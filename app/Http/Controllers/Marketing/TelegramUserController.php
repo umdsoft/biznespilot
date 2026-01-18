@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Telegram\TelegramUserController as BaseTelegramUserController;
-use Inertia\Inertia;
-use Inertia\Response as InertiaResponse;
-use Illuminate\Http\Request;
 use App\Models\TelegramBot;
 use App\Models\TelegramUser;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class TelegramUserController extends BaseTelegramUserController
 {
@@ -51,7 +51,7 @@ class TelegramUserController extends BaseTelegramUserController
 
         $users = $query->orderBy('last_interaction_at', 'desc')
             ->paginate(50)
-            ->through(fn($user) => [
+            ->through(fn ($user) => [
                 'id' => $user->id,
                 'telegram_id' => $user->telegram_id,
                 'username' => $user->username,

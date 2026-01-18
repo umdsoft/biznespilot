@@ -13,14 +13,15 @@ trait PanelTaskController
     use HasCurrentBusiness;
 
     abstract protected function getViewPrefix(): string;
+
     abstract protected function getRoutePrefix(): string;
 
     public function index(Request $request)
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
-            return inertia($this->getViewPrefix() . '/Tasks/Index', [
+        if (! $business) {
+            return inertia($this->getViewPrefix().'/Tasks/Index', [
                 'tasks' => [
                     'overdue' => [],
                     'today' => [],
@@ -77,7 +78,7 @@ trait PanelTaskController
         foreach ($allTasks as $task) {
             $taskData = $this->formatTask($task);
 
-            if (!$task->due_date) {
+            if (! $task->due_date) {
                 $groupedTasks['later'][] = $taskData;
             } elseif ($task->due_date->lt($today)) {
                 $groupedTasks['overdue'][] = $taskData;
@@ -111,13 +112,13 @@ trait PanelTaskController
             ->whereNotIn('status', ['won', 'lost'])
             ->orderBy('name')
             ->get()
-            ->map(fn($lead) => [
+            ->map(fn ($lead) => [
                 'id' => $lead->id,
                 'name' => $lead->name,
                 'phone' => $lead->phone,
             ]);
 
-        return inertia($this->getViewPrefix() . '/Tasks/Index', [
+        return inertia($this->getViewPrefix().'/Tasks/Index', [
             'tasks' => $groupedTasks,
             'stats' => $stats,
             'leads' => $leads,
@@ -237,7 +238,7 @@ trait PanelTaskController
             'status' => 'pending',
         ]);
 
-        return redirect()->route($this->getRoutePrefix() . '.tasks.index')
+        return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa yaratildi');
     }
 
@@ -253,7 +254,7 @@ trait PanelTaskController
 
         $task->update($validated);
 
-        return redirect()->route($this->getRoutePrefix() . '.tasks.index')
+        return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa yangilandi');
     }
 
@@ -262,7 +263,7 @@ trait PanelTaskController
         $task = Task::findOrFail($id);
         $task->update(['status' => 'completed', 'completed_at' => now()]);
 
-        return redirect()->route($this->getRoutePrefix() . '.tasks.index')
+        return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa bajarildi');
     }
 
@@ -270,7 +271,7 @@ trait PanelTaskController
     {
         Task::findOrFail($id)->delete();
 
-        return redirect()->route($this->getRoutePrefix() . '.tasks.index')
+        return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa o\'chirildi');
     }
 }

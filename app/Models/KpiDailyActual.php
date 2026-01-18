@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class KpiDailyActual extends Model
 {
@@ -144,6 +144,7 @@ class KpiDailyActual extends Model
     public function scopeForWeek($query, string $weekStart)
     {
         $weekEnd = Carbon::parse($weekStart)->addDays(6)->toDateString();
+
         return $query->whereBetween('date', [$weekStart, $weekEnd]);
     }
 
@@ -258,7 +259,7 @@ class KpiDailyActual extends Model
     /**
      * Verify this record
      */
-    public function verify(int $userId = null): void
+    public function verify(?int $userId = null): void
     {
         $this->is_verified = true;
         $this->verified_by_user_id = $userId;
@@ -269,7 +270,7 @@ class KpiDailyActual extends Model
     /**
      * Mark as anomaly
      */
-    public function markAsAnomaly(string $type, string $reason = null): void
+    public function markAsAnomaly(string $type, ?string $reason = null): void
     {
         $this->is_anomaly = true;
         $this->anomaly_type = $type;
@@ -282,7 +283,7 @@ class KpiDailyActual extends Model
      */
     public function getStatusEmoji(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'green' => '🟢',
             'yellow' => '🟡',
             'red' => '🔴',
@@ -305,11 +306,11 @@ class KpiDailyActual extends Model
 
     protected function formatValue(float $value): string
     {
-        return match($this->unit) {
-            'UZS', 'mln UZS', 'ming UZS' => number_format($value, 0, '.', ' ') . ' ' . $this->unit,
-            '%' => number_format($value, 1) . '%',
-            'daqiqa', 'soat', 'kun' => number_format($value, 0) . ' ' . $this->unit,
-            'dona' => number_format($value, 0) . ' dona',
+        return match ($this->unit) {
+            'UZS', 'mln UZS', 'ming UZS' => number_format($value, 0, '.', ' ').' '.$this->unit,
+            '%' => number_format($value, 1).'%',
+            'daqiqa', 'soat', 'kun' => number_format($value, 0).' '.$this->unit,
+            'dona' => number_format($value, 0).' dona',
             default => number_format($value, 2),
         };
     }
@@ -320,10 +321,10 @@ class KpiDailyActual extends Model
     public function getPreviousDayActual()
     {
         return static::where('business_id', $this->business_id)
-                    ->where('kpi_code', $this->kpi_code)
-                    ->where('date', '<', $this->date)
-                    ->orderBy('date', 'desc')
-                    ->first();
+            ->where('kpi_code', $this->kpi_code)
+            ->where('date', '<', $this->date)
+            ->orderBy('date', 'desc')
+            ->first();
     }
 
     /**
@@ -333,7 +334,7 @@ class KpiDailyActual extends Model
     {
         $previous = $this->getPreviousDayActual();
 
-        if (!$previous) {
+        if (! $previous) {
             return null;
         }
 

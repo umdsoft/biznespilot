@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Business;
 use App\Models\InstagramAccount;
 use App\Models\InstagramAutomation;
-use App\Models\InstagramFlowNode;
-use App\Models\InstagramFlowEdge;
 use App\Models\InstagramAutomationTemplate;
+use App\Models\InstagramFlowEdge;
+use App\Models\InstagramFlowNode;
 use App\Services\InstagramChatbotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,12 +44,13 @@ class InstagramChatbotController extends Controller
     public function getDashboard(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $stats = $this->chatbotService->getDashboardStats($account->id);
+
             return response()->json($stats);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -63,12 +63,13 @@ class InstagramChatbotController extends Controller
     public function getAutomations(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $automations = $this->chatbotService->getAutomations($account->id);
+
             return response()->json(['automations' => $automations]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -81,7 +82,7 @@ class InstagramChatbotController extends Controller
     public function createAutomation(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -103,6 +104,7 @@ class InstagramChatbotController extends Controller
 
         try {
             $automation = $this->chatbotService->createAutomation($account->id, $validated);
+
             return response()->json([
                 'success' => true,
                 'automation' => $automation,
@@ -118,7 +120,7 @@ class InstagramChatbotController extends Controller
     public function updateAutomation(Request $request, string $id): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -138,6 +140,7 @@ class InstagramChatbotController extends Controller
 
         try {
             $automation = $this->chatbotService->updateAutomation($id, $validated);
+
             return response()->json([
                 'success' => true,
                 'automation' => $automation,
@@ -154,6 +157,7 @@ class InstagramChatbotController extends Controller
     {
         try {
             $this->chatbotService->deleteAutomation($id);
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -167,6 +171,7 @@ class InstagramChatbotController extends Controller
     {
         try {
             $automation = $this->chatbotService->toggleAutomation($id);
+
             return response()->json([
                 'success' => true,
                 'status' => $automation->status,
@@ -182,7 +187,7 @@ class InstagramChatbotController extends Controller
     public function getConversations(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -196,6 +201,7 @@ class InstagramChatbotController extends Controller
 
         try {
             $conversations = $this->chatbotService->getConversations($account->id, $filters);
+
             return response()->json($conversations);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -209,6 +215,7 @@ class InstagramChatbotController extends Controller
     {
         try {
             $conversation = $this->chatbotService->getConversation($id);
+
             return response()->json($conversation);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -226,6 +233,7 @@ class InstagramChatbotController extends Controller
 
         try {
             $message = $this->chatbotService->sendMessage($conversationId, $validated['message']);
+
             return response()->json([
                 'success' => true,
                 'message' => $message,
@@ -261,12 +269,13 @@ class InstagramChatbotController extends Controller
     public function getQuickReplies(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $quickReplies = $this->chatbotService->getQuickReplies($account->id);
+
             return response()->json(['quick_replies' => $quickReplies]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -279,7 +288,7 @@ class InstagramChatbotController extends Controller
     public function createQuickReply(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -291,6 +300,7 @@ class InstagramChatbotController extends Controller
 
         try {
             $quickReply = $this->chatbotService->createQuickReply($account->id, $validated);
+
             return response()->json([
                 'success' => true,
                 'quick_reply' => $quickReply,
@@ -339,7 +349,7 @@ class InstagramChatbotController extends Controller
     public function createFlowAutomation(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Instagram akkount topilmadi. Iltimos, avval Instagram akkountingizni ulang.'], 404);
         }
 
@@ -402,7 +412,7 @@ class InstagramChatbotController extends Controller
             }
 
             // Create flow edges
-            if (!empty($validated['edges'])) {
+            if (! empty($validated['edges'])) {
                 foreach ($validated['edges'] as $edge) {
                     InstagramFlowEdge::create([
                         'automation_id' => $automation->id,
@@ -419,11 +429,13 @@ class InstagramChatbotController extends Controller
                 'automation' => $automation->load(['flowNodes', 'flowEdges']),
             ]);
         } catch (\Illuminate\Database\QueryException $e) {
-            Log::error('Flow automation DB error: ' . $e->getMessage());
-            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: ' . $e->getMessage()], 500);
+            Log::error('Flow automation DB error: '.$e->getMessage());
+
+            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: '.$e->getMessage()], 500);
         } catch (\Exception $e) {
-            Log::error('Flow automation error: ' . $e->getMessage());
-            return response()->json(['error' => 'Xatolik: ' . $e->getMessage()], 500);
+            Log::error('Flow automation error: '.$e->getMessage());
+
+            return response()->json(['error' => 'Xatolik: '.$e->getMessage()], 500);
         }
     }
 
@@ -453,7 +465,7 @@ class InstagramChatbotController extends Controller
 
             // Determine type from first trigger node
             $type = $automation->type;
-            if (!empty($validated['nodes'])) {
+            if (! empty($validated['nodes'])) {
                 foreach ($validated['nodes'] as $node) {
                     if (str_starts_with($node['node_type'], 'trigger_')) {
                         $typeMap = [
@@ -513,11 +525,13 @@ class InstagramChatbotController extends Controller
                 'automation' => $automation->fresh(['flowNodes', 'flowEdges']),
             ]);
         } catch (\Illuminate\Database\QueryException $e) {
-            Log::error('Flow automation update DB error: ' . $e->getMessage());
-            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: ' . $e->getMessage()], 500);
+            Log::error('Flow automation update DB error: '.$e->getMessage());
+
+            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: '.$e->getMessage()], 500);
         } catch (\Exception $e) {
-            Log::error('Flow automation update error: ' . $e->getMessage());
-            return response()->json(['error' => 'Xatolik: ' . $e->getMessage()], 500);
+            Log::error('Flow automation update error: '.$e->getMessage());
+
+            return response()->json(['error' => 'Xatolik: '.$e->getMessage()], 500);
         }
     }
 
@@ -539,13 +553,13 @@ class InstagramChatbotController extends Controller
                     'trigger_count' => $automation->trigger_count,
                     'conversion_count' => $automation->conversion_count,
                 ],
-                'nodes' => $automation->flowNodes->map(fn($n) => [
+                'nodes' => $automation->flowNodes->map(fn ($n) => [
                     'node_id' => $n->node_id,
                     'node_type' => $n->node_type,
                     'position' => $n->position,
                     'data' => $n->data ?? [],
                 ]),
-                'edges' => $automation->flowEdges->map(fn($e) => [
+                'edges' => $automation->flowEdges->map(fn ($e) => [
                     'edge_id' => $e->edge_id,
                     'source_node_id' => $e->source_node_id,
                     'target_node_id' => $e->target_node_id,
@@ -563,7 +577,7 @@ class InstagramChatbotController extends Controller
     protected function getSelectedAccount(Request $request): ?InstagramAccount
     {
         $business = $this->getCurrentBusiness($request);
-        if (!$business) {
+        if (! $business) {
             return null;
         }
 
@@ -571,7 +585,7 @@ class InstagramChatbotController extends Controller
         return Cache::remember(
             "instagram_account_business_{$business->id}",
             300,
-            fn() => InstagramAccount::where('business_id', $business->id)
+            fn () => InstagramAccount::where('business_id', $business->id)
                 ->where('is_primary', true)
                 ->first()
                 ?? InstagramAccount::where('business_id', $business->id)->first()

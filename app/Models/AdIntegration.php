@@ -43,8 +43,11 @@ class AdIntegration extends Model
      * Platform types
      */
     const PLATFORM_GOOGLE_ADS = 'google_ads';
+
     const PLATFORM_YANDEX_DIRECT = 'yandex_direct';
+
     const PLATFORM_YOUTUBE = 'youtube';
+
     const PLATFORM_FACEBOOK = 'facebook';
 
     /**
@@ -92,7 +95,7 @@ class AdIntegration extends Model
      */
     public function isTokenExpired(): bool
     {
-        if (!$this->token_expires_at) {
+        if (! $this->token_expires_at) {
             return true;
         }
 

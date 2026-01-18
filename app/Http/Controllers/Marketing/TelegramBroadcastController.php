@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Telegram\TelegramBroadcastController as BaseTelegramBroadcastController;
-use Inertia\Inertia;
-use Inertia\Response as InertiaResponse;
-use Illuminate\Http\Request;
 use App\Models\TelegramBot;
 use App\Models\TelegramBroadcast;
 use App\Models\TelegramUser;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class TelegramBroadcastController extends BaseTelegramBroadcastController
 {
@@ -27,7 +27,7 @@ class TelegramBroadcastController extends BaseTelegramBroadcastController
             ->with('creator:id,name')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($broadcast) => [
+            ->map(fn ($broadcast) => [
                 'id' => $broadcast->id,
                 'name' => $broadcast->name,
                 'status' => $broadcast->status,

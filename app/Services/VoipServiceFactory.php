@@ -18,6 +18,7 @@ class VoipServiceFactory
      * Supported VoIP providers
      */
     public const PROVIDER_ONLINEPBX = 'onlinepbx';
+
     public const PROVIDER_SIPUNI = 'sipuni';
 
     /**
@@ -69,6 +70,7 @@ class VoipServiceFactory
                 if ($account) {
                     $service = app(OnlinePbxService::class);
                     $service->setAccount($account);
+
                     return $service;
                 }
                 break;
@@ -127,7 +129,7 @@ class VoipServiceFactory
                 $result = $service->syncCallHistory($dateFrom);
                 $totalSynced += $result['synced'] ?? 0;
 
-                if (!empty($result['error'])) {
+                if (! empty($result['error'])) {
                     $errors[$provider] = $result['error'];
                 }
 

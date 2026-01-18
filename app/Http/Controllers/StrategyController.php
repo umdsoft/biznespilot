@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnnualStrategy;
-use App\Models\QuarterlyPlan;
-use App\Models\MonthlyPlan;
-use App\Models\WeeklyPlan;
-use App\Models\StrategyTemplate;
-use App\Models\KpiTarget;
 use App\Models\BudgetAllocation;
-use App\Services\StrategyBuilderService;
-use App\Services\KPITargetService;
+use App\Models\KpiTarget;
+use App\Models\MonthlyPlan;
+use App\Models\QuarterlyPlan;
+use App\Models\StrategyTemplate;
+use App\Models\WeeklyPlan;
 use App\Services\BudgetAllocationService;
+use App\Services\KPITargetService;
+use App\Services\StrategyBuilderService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -406,7 +406,7 @@ class StrategyController extends Controller
      */
     public function approve(Request $request, string $type, int $id)
     {
-        $model = match($type) {
+        $model = match ($type) {
             'annual' => AnnualStrategy::findOrFail($id),
             'quarterly' => QuarterlyPlan::findOrFail($id),
             'monthly' => MonthlyPlan::findOrFail($id),
@@ -429,7 +429,7 @@ class StrategyController extends Controller
             'actual_results' => 'nullable|array',
         ]);
 
-        $model = match($type) {
+        $model = match ($type) {
             'annual' => AnnualStrategy::findOrFail($id),
             'quarterly' => QuarterlyPlan::findOrFail($id),
             'monthly' => MonthlyPlan::findOrFail($id),
@@ -448,7 +448,7 @@ class StrategyController extends Controller
      */
     public function getKPIs(Request $request, string $type, int $id)
     {
-        $model = match($type) {
+        $model = match ($type) {
             'annual' => AnnualStrategy::findOrFail($id),
             'quarterly' => QuarterlyPlan::findOrFail($id),
             'monthly' => MonthlyPlan::findOrFail($id),
@@ -483,7 +483,7 @@ class StrategyController extends Controller
      */
     public function getBudget(Request $request, string $type, int $id)
     {
-        $model = match($type) {
+        $model = match ($type) {
             'annual' => AnnualStrategy::findOrFail($id),
             'quarterly' => QuarterlyPlan::findOrFail($id),
             'monthly' => MonthlyPlan::findOrFail($id),

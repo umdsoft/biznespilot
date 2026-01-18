@@ -20,7 +20,7 @@ return new class extends Migration
         });
 
         // Add dream_buyer_id to customers table if not exists
-        if (!Schema::hasColumn('customers', 'dream_buyer_id')) {
+        if (! Schema::hasColumn('customers', 'dream_buyer_id')) {
             Schema::table('customers', function (Blueprint $table) {
                 $table->foreignId('dream_buyer_id')->nullable()->after('business_id');
             });

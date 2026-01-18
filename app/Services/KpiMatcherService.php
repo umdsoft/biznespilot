@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\KpiTemplate;
-use App\Models\IndustryBenchmark;
 use App\Models\Business;
 use App\Models\BusinessKpiConfiguration;
+use App\Models\IndustryBenchmark;
+use App\Models\KpiTemplate;
 use Illuminate\Support\Collection;
 
 class KpiMatcherService
@@ -43,7 +43,7 @@ class KpiMatcherService
             'kpi_weights' => $configuration['weights'],
             'kpi_details' => $configuration['details'],
             'total_count' => count($configuration['kpi_codes']),
-            'critical_count' => count(array_filter($configuration['priorities'], fn($p) => $p === 'critical')),
+            'critical_count' => count(array_filter($configuration['priorities'], fn ($p) => $p === 'critical')),
             'recommendations' => $this->generateRecommendations($configuration, $primaryGoal),
         ];
     }
@@ -65,7 +65,7 @@ class KpiMatcherService
                     ->orWhere(function ($q) use ($industryCode, $subCategory, $maturity) {
                         // Fixed SQL Injection - using parameter binding
                         $q->whereRaw(
-                            "JSON_CONTAINS(applicable_industries, ?) OR JSON_CONTAINS(applicable_industries, ?)",
+                            'JSON_CONTAINS(applicable_industries, ?) OR JSON_CONTAINS(applicable_industries, ?)',
                             [json_encode($industryCode), json_encode('all')]
                         );
 
@@ -73,7 +73,7 @@ class KpiMatcherService
                             $q->where(function ($sq) use ($subCategory) {
                                 $sq->whereNull('applicable_subcategories')
                                     ->orWhereRaw(
-                                        "JSON_CONTAINS(applicable_subcategories, ?)",
+                                        'JSON_CONTAINS(applicable_subcategories, ?)',
                                         [json_encode($subCategory)]
                                     );
                             });
@@ -81,7 +81,7 @@ class KpiMatcherService
 
                         $q->where(function ($mq) use ($maturity) {
                             $mq->whereNull('min_maturity_level')
-                                ->orWhereRaw("FIND_IN_SET(?, min_maturity_level)", [$maturity]);
+                                ->orWhereRaw('FIND_IN_SET(?, min_maturity_level)', [$maturity]);
                         });
                     });
             })
@@ -102,7 +102,7 @@ class KpiMatcherService
             $score = 0;
 
             // Base score from template priority
-            $score += match($kpi->priority_level) {
+            $score += match ($kpi->priority_level) {
                 'critical' => 100,
                 'high' => 75,
                 'medium' => 50,
@@ -115,7 +115,7 @@ class KpiMatcherService
             $score += $goalScore * 2; // Double weight for goal alignment
 
             // Industry specificity score
-            if (!$kpi->is_universal) {
+            if (! $kpi->is_universal) {
                 $score += 30; // Prefer industry-specific KPIs
             }
 
@@ -144,6 +144,7 @@ class KpiMatcherService
             }
 
             $kpi->relevance_score = $score;
+
             return $kpi;
         })->sortByDesc('relevance_score');
     }
@@ -341,7 +342,7 @@ class KpiMatcherService
         }
 
         // Recommend balance
-        $criticalCount = count(array_filter($configuration['priorities'], fn($p) => $p === 'critical'));
+        $criticalCount = count(array_filter($configuration['priorities'], fn ($p) => $p === 'critical'));
         if ($criticalCount > 8) {
             $recommendations[] = [
                 'type' => 'warning',
@@ -409,7 +410,7 @@ class KpiMatcherService
                     'realistic' => $benchmark->percentile_50,
                     'optimistic' => $benchmark->percentile_75,
                     'aggressive' => $benchmark->percentile_90,
-                    'recommended' => match($scenario) {
+                    'recommended' => match ($scenario) {
                         'conservative' => $benchmark->percentile_25,
                         'realistic' => $benchmark->percentile_50,
                         'optimistic' => $benchmark->percentile_75,
@@ -507,6 +508,7 @@ class KpiMatcherService
             $currentCategories = array_count_values(
                 array_map(function ($code) {
                     $template = KpiTemplate::where('kpi_code', $code)->first();
+
                     return $template ? $template->category : null;
                 }, $configuration->selected_kpis ?? [])
             );
@@ -520,7 +522,7 @@ class KpiMatcherService
             }
 
             // Prioritize based on template priority
-            $score += match($kpi->priority_level) {
+            $score += match ($kpi->priority_level) {
                 'critical' => 40,
                 'high' => 30,
                 'medium' => 20,
@@ -555,7 +557,7 @@ class KpiMatcherService
         }
 
         if ($kpi->priority_level === 'critical') {
-            return "Critical KPI for comprehensive business monitoring";
+            return 'Critical KPI for comprehensive business monitoring';
         }
 
         return "Complements your existing {$kpi->category} metrics";
@@ -584,7 +586,7 @@ class KpiMatcherService
         }
 
         if ($kpi->priority_level === 'critical') {
-            return "Biznesni keng qamrovli monitoring qilish uchun kritik KPI";
+            return 'Biznesni keng qamrovli monitoring qilish uchun kritik KPI';
         }
 
         return "Mavjud {$categoryName} ko'rsatkichlaringizni to'ldiradi";

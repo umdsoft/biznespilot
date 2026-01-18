@@ -2,11 +2,11 @@
 
 namespace App\Services\Algorithm\Performance;
 
-use App\Models\Business;
 use App\Jobs\ProcessDiagnosticJob;
-use Illuminate\Support\Facades\Queue;
+use App\Models\Business;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * Algorithm Queue Manager
@@ -27,28 +27,33 @@ class AlgorithmQueueManager
      * Queue names
      */
     protected const QUEUE_HIGH = 'diagnostic-high';
+
     protected const QUEUE_DEFAULT = 'diagnostic';
+
     protected const QUEUE_LOW = 'diagnostic-low';
 
     /**
      * Status keys
      */
     protected const STATUS_PREFIX = 'diagnostic_status:';
+
     protected const RESULT_PREFIX = 'diagnostic_result:';
 
     /**
      * Status values
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     /**
      * Queue a diagnostic calculation
      *
-     * @param Business $business
-     * @param string $priority high|default|low
+     * @param  string  $priority  high|default|low
      * @return string Job ID for status tracking
      */
     public function queueDiagnostic(Business $business, string $priority = 'default'): string
@@ -67,7 +72,7 @@ class AlgorithmQueueManager
         ProcessDiagnosticJob::dispatch($business, $jobId)
             ->onQueue($queue);
 
-        Log::info("Diagnostic queued", [
+        Log::info('Diagnostic queued', [
             'job_id' => $jobId,
             'business_id' => $business->id,
             'queue' => $queue,
@@ -87,7 +92,7 @@ class AlgorithmQueueManager
             $jobIds[$business->id] = $this->queueDiagnostic($business, $priority);
         }
 
-        Log::info("Batch diagnostic queued", [
+        Log::info('Batch diagnostic queued', [
             'count' => count($businesses),
             'queue' => $this->getQueueName($priority),
         ]);
@@ -101,6 +106,7 @@ class AlgorithmQueueManager
     public function isReady(string $jobId): bool
     {
         $status = $this->getStatus($jobId);
+
         return $status === self::STATUS_COMPLETED;
     }
 
@@ -109,7 +115,8 @@ class AlgorithmQueueManager
      */
     public function getStatus(string $jobId): ?string
     {
-        $data = Cache::get(self::STATUS_PREFIX . $jobId);
+        $data = Cache::get(self::STATUS_PREFIX.$jobId);
+
         return $data['status'] ?? null;
     }
 
@@ -118,7 +125,7 @@ class AlgorithmQueueManager
      */
     public function getStatusInfo(string $jobId): array
     {
-        return Cache::get(self::STATUS_PREFIX . $jobId) ?? [
+        return Cache::get(self::STATUS_PREFIX.$jobId) ?? [
             'status' => 'not_found',
             'error' => 'Job not found',
         ];
@@ -129,19 +136,18 @@ class AlgorithmQueueManager
      */
     public function getResult(string $jobId): ?array
     {
-        if (!$this->isReady($jobId)) {
+        if (! $this->isReady($jobId)) {
             return null;
         }
 
-        return Cache::get(self::RESULT_PREFIX . $jobId);
+        return Cache::get(self::RESULT_PREFIX.$jobId);
     }
 
     /**
      * Wait for result with polling
      *
-     * @param string $jobId
-     * @param int $maxWaitSeconds Maximum time to wait
-     * @param int $pollIntervalMs Polling interval in milliseconds
+     * @param  int  $maxWaitSeconds  Maximum time to wait
+     * @param  int  $pollIntervalMs  Polling interval in milliseconds
      * @return array|null Result or null if timeout
      */
     public function waitForResult(string $jobId, int $maxWaitSeconds = 30, int $pollIntervalMs = 200): ?array
@@ -178,7 +184,7 @@ class AlgorithmQueueManager
             'updated_at' => now()->toIso8601String(),
         ]);
 
-        Cache::put(self::STATUS_PREFIX . $jobId, $statusData, 3600); // 1 hour TTL
+        Cache::put(self::STATUS_PREFIX.$jobId, $statusData, 3600); // 1 hour TTL
     }
 
     /**
@@ -186,7 +192,7 @@ class AlgorithmQueueManager
      */
     public function storeResult(string $jobId, array $result): void
     {
-        Cache::put(self::RESULT_PREFIX . $jobId, $result, 3600); // 1 hour TTL
+        Cache::put(self::RESULT_PREFIX.$jobId, $result, 3600); // 1 hour TTL
 
         $this->setStatus($jobId, self::STATUS_COMPLETED, [
             'completed_at' => now()->toIso8601String(),
@@ -251,7 +257,8 @@ class AlgorithmQueueManager
     {
         // Note: This would require Redis SCAN or database cleanup
         // depending on cache driver
-        Log::info("Queue cleanup requested", ['older_than_hours' => $olderThanHours]);
+        Log::info('Queue cleanup requested', ['older_than_hours' => $olderThanHours]);
+
         return 0;
     }
 }

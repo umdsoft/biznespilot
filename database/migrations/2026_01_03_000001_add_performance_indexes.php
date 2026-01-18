@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -23,15 +23,15 @@ return new class extends Migration
         if (Schema::hasTable('leads')) {
             Schema::table('leads', function (Blueprint $table) {
                 // For filtering by source
-                if (!$this->indexExists('leads', 'leads_business_id_source_index')) {
+                if (! $this->indexExists('leads', 'leads_business_id_source_index')) {
                     $table->index(['business_id', 'source'], 'leads_business_id_source_index');
                 }
                 // For date range queries
-                if (!$this->indexExists('leads', 'leads_created_at_index')) {
+                if (! $this->indexExists('leads', 'leads_created_at_index')) {
                     $table->index('created_at', 'leads_created_at_index');
                 }
                 // For assigned user filtering
-                if (!$this->indexExists('leads', 'leads_assigned_to_index')) {
+                if (! $this->indexExists('leads', 'leads_assigned_to_index')) {
                     $table->index('assigned_to', 'leads_assigned_to_index');
                 }
             });
@@ -41,15 +41,15 @@ return new class extends Migration
         if (Schema::hasTable('ai_insights')) {
             Schema::table('ai_insights', function (Blueprint $table) {
                 // For dashboard queries (unread insights)
-                if (!$this->indexExists('ai_insights', 'ai_insights_business_is_read_created_index')) {
+                if (! $this->indexExists('ai_insights', 'ai_insights_business_is_read_created_index')) {
                     $table->index(['business_id', 'is_read', 'created_at'], 'ai_insights_business_is_read_created_index');
                 }
                 // For status filtering
-                if (!$this->indexExists('ai_insights', 'ai_insights_business_status_index')) {
+                if (! $this->indexExists('ai_insights', 'ai_insights_business_status_index')) {
                     $table->index(['business_id', 'status'], 'ai_insights_business_status_index');
                 }
                 // For priority sorting
-                if (!$this->indexExists('ai_insights', 'ai_insights_business_priority_index')) {
+                if (! $this->indexExists('ai_insights', 'ai_insights_business_priority_index')) {
                     $table->index(['business_id', 'priority'], 'ai_insights_business_priority_index');
                 }
             });
@@ -59,15 +59,15 @@ return new class extends Migration
         if (Schema::hasTable('activity_logs')) {
             Schema::table('activity_logs', function (Blueprint $table) {
                 // For action filtering
-                if (!$this->indexExists('activity_logs', 'activity_logs_action_index')) {
+                if (! $this->indexExists('activity_logs', 'activity_logs_action_index')) {
                     $table->index('action', 'activity_logs_action_index');
                 }
                 // For user activity queries
-                if (!$this->indexExists('activity_logs', 'activity_logs_user_created_index')) {
+                if (! $this->indexExists('activity_logs', 'activity_logs_user_created_index')) {
                     $table->index(['user_id', 'created_at'], 'activity_logs_user_created_index');
                 }
                 // For business activity queries
-                if (!$this->indexExists('activity_logs', 'activity_logs_business_created_index')) {
+                if (! $this->indexExists('activity_logs', 'activity_logs_business_created_index')) {
                     $table->index(['business_id', 'created_at'], 'activity_logs_business_created_index');
                 }
             });
@@ -77,14 +77,14 @@ return new class extends Migration
         if (Schema::hasTable('customers')) {
             Schema::table('customers', function (Blueprint $table) {
                 // For status filtering
-                if (!$this->indexExists('customers', 'customers_business_status_index')) {
+                if (! $this->indexExists('customers', 'customers_business_status_index')) {
                     $table->index(['business_id', 'status'], 'customers_business_status_index');
                 }
                 // For duplicate detection
-                if (!$this->indexExists('customers', 'customers_email_index')) {
+                if (! $this->indexExists('customers', 'customers_email_index')) {
                     $table->index('email', 'customers_email_index');
                 }
-                if (!$this->indexExists('customers', 'customers_phone_index')) {
+                if (! $this->indexExists('customers', 'customers_phone_index')) {
                     $table->index('phone', 'customers_phone_index');
                 }
             });
@@ -94,7 +94,7 @@ return new class extends Migration
         if (Schema::hasTable('marketing_channels')) {
             Schema::table('marketing_channels', function (Blueprint $table) {
                 // For active channels query
-                if (!$this->indexExists('marketing_channels', 'marketing_channels_business_active_index')) {
+                if (! $this->indexExists('marketing_channels', 'marketing_channels_business_active_index')) {
                     $table->index(['business_id', 'is_active', 'created_at'], 'marketing_channels_business_active_index');
                 }
             });
@@ -104,7 +104,7 @@ return new class extends Migration
         if (Schema::hasTable('chatbot_messages')) {
             Schema::table('chatbot_messages', function (Blueprint $table) {
                 // For conversation history
-                if (!$this->indexExists('chatbot_messages', 'chatbot_messages_conversation_created_index')) {
+                if (! $this->indexExists('chatbot_messages', 'chatbot_messages_conversation_created_index')) {
                     $table->index(['conversation_id', 'created_at'], 'chatbot_messages_conversation_created_index');
                 }
             });
@@ -114,11 +114,11 @@ return new class extends Migration
         if (Schema::hasTable('content_posts')) {
             Schema::table('content_posts', function (Blueprint $table) {
                 // For calendar view
-                if (!$this->indexExists('content_posts', 'content_posts_business_scheduled_index')) {
+                if (! $this->indexExists('content_posts', 'content_posts_business_scheduled_index')) {
                     $table->index(['business_id', 'scheduled_at'], 'content_posts_business_scheduled_index');
                 }
                 // For status filtering
-                if (!$this->indexExists('content_posts', 'content_posts_business_status_index')) {
+                if (! $this->indexExists('content_posts', 'content_posts_business_status_index')) {
                     $table->index(['business_id', 'status'], 'content_posts_business_status_index');
                 }
             });
@@ -128,7 +128,7 @@ return new class extends Migration
         if (Schema::hasTable('competitors')) {
             Schema::table('competitors', function (Blueprint $table) {
                 // For business competitors listing
-                if (!$this->indexExists('competitors', 'competitors_business_created_index')) {
+                if (! $this->indexExists('competitors', 'competitors_business_created_index')) {
                     $table->index(['business_id', 'created_at'], 'competitors_business_created_index');
                 }
             });
@@ -138,11 +138,11 @@ return new class extends Migration
         if (Schema::hasTable('orders')) {
             Schema::table('orders', function (Blueprint $table) {
                 // For date range revenue queries
-                if (!$this->indexExists('orders', 'orders_business_created_index')) {
+                if (! $this->indexExists('orders', 'orders_business_created_index')) {
                     $table->index(['business_id', 'created_at'], 'orders_business_created_index');
                 }
                 // For customer orders
-                if (!$this->indexExists('orders', 'orders_customer_created_index')) {
+                if (! $this->indexExists('orders', 'orders_customer_created_index')) {
                     $table->index(['customer_id', 'created_at'], 'orders_customer_created_index');
                 }
             });
@@ -240,13 +240,13 @@ return new class extends Migration
     {
         $database = config('database.connections.mysql.database');
 
-        $result = \DB::select("
+        $result = \DB::select('
             SELECT COUNT(*) as count
             FROM information_schema.statistics
             WHERE table_schema = ?
             AND table_name = ?
             AND index_name = ?
-        ", [$database, $table, $indexName]);
+        ', [$database, $table, $indexName]);
 
         return $result[0]->count > 0;
     }

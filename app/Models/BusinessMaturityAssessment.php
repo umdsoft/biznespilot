@@ -130,11 +130,21 @@ class BusinessMaturityAssessment extends Model
     public function getInfrastructureScore(): int
     {
         $score = 0;
-        if ($this->has_website) $score += 20;
-        if ($this->has_crm) $score += 25;
-        if ($this->uses_analytics) $score += 20;
-        if ($this->has_automation) $score += 20;
-        if (!empty($this->current_tools)) $score += min(count($this->current_tools) * 5, 15);
+        if ($this->has_website) {
+            $score += 20;
+        }
+        if ($this->has_crm) {
+            $score += 25;
+        }
+        if ($this->uses_analytics) {
+            $score += 20;
+        }
+        if ($this->has_automation) {
+            $score += 20;
+        }
+        if (! empty($this->current_tools)) {
+            $score += min(count($this->current_tools) * 5, 15);
+        }
 
         return $score; // Max 100
     }
@@ -142,10 +152,18 @@ class BusinessMaturityAssessment extends Model
     public function getProcessScore(): int
     {
         $score = 0;
-        if ($this->has_documented_processes) $score += 25;
-        if ($this->has_sales_process) $score += 25;
-        if ($this->has_support_process) $score += 25;
-        if ($this->has_marketing_process) $score += 25;
+        if ($this->has_documented_processes) {
+            $score += 25;
+        }
+        if ($this->has_sales_process) {
+            $score += 25;
+        }
+        if ($this->has_support_process) {
+            $score += 25;
+        }
+        if ($this->has_marketing_process) {
+            $score += 25;
+        }
 
         return $score; // Max 100
     }
@@ -153,10 +171,18 @@ class BusinessMaturityAssessment extends Model
     public function getMarketingScore(): int
     {
         $score = 0;
-        if (!empty($this->marketing_channels)) $score += min(count($this->marketing_channels) * 10, 30);
-        if ($this->has_marketing_budget) $score += 25;
-        if ($this->tracks_marketing_metrics) $score += 25;
-        if ($this->has_dedicated_marketing) $score += 20;
+        if (! empty($this->marketing_channels)) {
+            $score += min(count($this->marketing_channels) * 10, 30);
+        }
+        if ($this->has_marketing_budget) {
+            $score += 25;
+        }
+        if ($this->tracks_marketing_metrics) {
+            $score += 25;
+        }
+        if ($this->has_dedicated_marketing) {
+            $score += 20;
+        }
 
         return $score; // Max 100
     }
@@ -178,6 +204,6 @@ class BusinessMaturityAssessment extends Model
 
     public function isAssessed(): bool
     {
-        return !is_null($this->assessed_at);
+        return ! is_null($this->assessed_at);
     }
 }

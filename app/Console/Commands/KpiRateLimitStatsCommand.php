@@ -34,7 +34,7 @@ class KpiRateLimitStatsCommand extends Command
             if ($businessId) {
                 $this->line("<fg=cyan>Business ID:</> {$businessId}");
             } else {
-                $this->line("<fg=cyan>Scope:</> Global");
+                $this->line('<fg=cyan>Scope:</> Global');
             }
 
             $this->line("<fg=cyan>Limit:</> {$stats['limit']} requests per {$stats['window_seconds']}s");
@@ -53,16 +53,16 @@ class KpiRateLimitStatsCommand extends Command
                 default => 'green',
             };
 
-            $bar = str_repeat('█', $filled) . str_repeat('░', $empty);
+            $bar = str_repeat('█', $filled).str_repeat('░', $empty);
             $this->line("<fg=cyan>Usage:</> <fg={$barColor}>{$bar}</> {$percentage}%");
 
             // Status
             if ($percentage >= 90) {
-                $this->line("<fg=red>⚠ Critical: Approaching rate limit</>");
+                $this->line('<fg=red>⚠ Critical: Approaching rate limit</>');
             } elseif ($percentage >= 75) {
-                $this->line("<fg=yellow>⚠ Warning: High usage</>");
+                $this->line('<fg=yellow>⚠ Warning: High usage</>');
             } else {
-                $this->line("<fg=green>✓ Normal usage</>");
+                $this->line('<fg=green>✓ Normal usage</>');
             }
 
             $this->line('─────────────────────────────────────────');

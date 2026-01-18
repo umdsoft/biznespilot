@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('content_posts', function (Blueprint $table) {
-            if (!Schema::hasColumn('content_posts', 'hashtags')) {
+            if (! Schema::hasColumn('content_posts', 'hashtags')) {
                 $table->json('hashtags')->nullable()->after('metrics');
             }
         });

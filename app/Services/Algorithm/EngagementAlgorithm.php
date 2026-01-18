@@ -5,7 +5,6 @@ namespace App\Services\Algorithm;
 use App\Models\Business;
 use App\Models\InstagramAccount;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Engagement Algorithm
@@ -22,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 class EngagementAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'engagement_';
+
     protected int $cacheTTL = 1800; // 30 minutes
 
     /**
@@ -140,7 +140,9 @@ class EngagementAlgorithm extends AlgorithmEngine
     public function calculateInstagramER(InstagramAccount $account): float
     {
         $followers = $account->followers_count ?? 0;
-        if ($followers === 0) return 0;
+        if ($followers === 0) {
+            return 0;
+        }
 
         // Get average engagement from recent posts
         $avgLikes = $account->metrics['avg_likes'] ?? 0;
@@ -160,7 +162,7 @@ class EngagementAlgorithm extends AlgorithmEngine
     {
         $account = $business->instagramAccounts()->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'connected' => false,
                 'score' => 0,
@@ -226,7 +228,7 @@ class EngagementAlgorithm extends AlgorithmEngine
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return [
                 'connected' => false,
                 'score' => 0,
@@ -297,7 +299,7 @@ class EngagementAlgorithm extends AlgorithmEngine
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return [
                 'connected' => false,
                 'score' => 0,
@@ -329,10 +331,19 @@ class EngagementAlgorithm extends AlgorithmEngine
      */
     protected function getMetricScore(float $value, array $thresholds): int
     {
-        if ($value >= $thresholds['excellent']) return 90;
-        if ($value >= $thresholds['good']) return 70;
-        if ($value >= $thresholds['average']) return 50;
-        if ($value >= $thresholds['poor']) return 30;
+        if ($value >= $thresholds['excellent']) {
+            return 90;
+        }
+        if ($value >= $thresholds['good']) {
+            return 70;
+        }
+        if ($value >= $thresholds['average']) {
+            return 50;
+        }
+        if ($value >= $thresholds['poor']) {
+            return 30;
+        }
+
         return 10;
     }
 
@@ -342,12 +353,19 @@ class EngagementAlgorithm extends AlgorithmEngine
     protected function getERStatus(float $rate, string $platform): string
     {
         $thresholds = $this->benchmarks[$platform]['engagement_rate'] ?? [
-            'excellent' => 5, 'good' => 3, 'average' => 1.5, 'poor' => 0.5
+            'excellent' => 5, 'good' => 3, 'average' => 1.5, 'poor' => 0.5,
         ];
 
-        if ($rate >= $thresholds['excellent']) return 'excellent';
-        if ($rate >= $thresholds['good']) return 'good';
-        if ($rate >= $thresholds['average']) return 'average';
+        if ($rate >= $thresholds['excellent']) {
+            return 'excellent';
+        }
+        if ($rate >= $thresholds['good']) {
+            return 'good';
+        }
+        if ($rate >= $thresholds['average']) {
+            return 'average';
+        }
+
         return 'poor';
     }
 
@@ -356,9 +374,16 @@ class EngagementAlgorithm extends AlgorithmEngine
      */
     protected function getStatus(int $score): string
     {
-        if ($score >= 80) return 'excellent';
-        if ($score >= 60) return 'good';
-        if ($score >= 40) return 'average';
+        if ($score >= 80) {
+            return 'excellent';
+        }
+        if ($score >= 60) {
+            return 'good';
+        }
+        if ($score >= 40) {
+            return 'average';
+        }
+
         return 'poor';
     }
 
@@ -372,14 +397,23 @@ class EngagementAlgorithm extends AlgorithmEngine
         $followers = $account->followers_count ?? 0;
         $mediaCount = $account->media_count ?? 0;
 
-        if ($mediaCount === 0) return 0;
+        if ($mediaCount === 0) {
+            return 0;
+        }
 
         // Rough estimate: followers / posts ratio indicates organic growth
         $ratio = $followers / $mediaCount;
 
-        if ($ratio > 100) return 8; // High growth
-        if ($ratio > 50) return 5;  // Good growth
-        if ($ratio > 20) return 2;  // Average growth
+        if ($ratio > 100) {
+            return 8;
+        } // High growth
+        if ($ratio > 50) {
+            return 5;
+        }  // Good growth
+        if ($ratio > 20) {
+            return 2;
+        }  // Average growth
+
         return 0.5; // Low growth
     }
 
@@ -388,7 +422,9 @@ class EngagementAlgorithm extends AlgorithmEngine
      */
     protected function calculateOverallScore(array $channelScores): int
     {
-        if (empty($channelScores)) return 0;
+        if (empty($channelScores)) {
+            return 0;
+        }
 
         $totalScore = 0;
         $count = 0;
@@ -453,7 +489,9 @@ class EngagementAlgorithm extends AlgorithmEngine
     protected function analyzeContentTypes(Business $business): array
     {
         $account = $business->instagramAccounts()->first();
-        if (!$account) return [];
+        if (! $account) {
+            return [];
+        }
 
         // Get media by type
         try {
@@ -484,7 +522,9 @@ class EngagementAlgorithm extends AlgorithmEngine
     protected function analyzeBestPostingTimes(Business $business): array
     {
         $account = $business->instagramAccounts()->first();
-        if (!$account) return [];
+        if (! $account) {
+            return [];
+        }
 
         try {
             // Get best hours
@@ -510,11 +550,11 @@ class EngagementAlgorithm extends AlgorithmEngine
             $dayNames = ['', 'Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
 
             return [
-                'best_hours' => $hourStats->map(fn($h) => [
+                'best_hours' => $hourStats->map(fn ($h) => [
                     'hour' => sprintf('%02d:00', $h->hour),
                     'avg_engagement' => round($h->avg_er, 2),
                 ])->toArray(),
-                'best_days' => $dayStats->map(fn($d) => [
+                'best_days' => $dayStats->map(fn ($d) => [
                     'day' => $dayNames[$d->day] ?? 'Noma\'lum',
                     'avg_engagement' => round($d->avg_er, 2),
                 ])->toArray(),
@@ -566,7 +606,9 @@ class EngagementAlgorithm extends AlgorithmEngine
         $trends = [];
 
         foreach ($channelScores as $channel => $data) {
-            if (!($data['connected'] ?? false)) continue;
+            if (! ($data['connected'] ?? false)) {
+                continue;
+            }
 
             $metrics = $data['metrics'] ?? [];
 
@@ -588,8 +630,13 @@ class EngagementAlgorithm extends AlgorithmEngine
     {
         $growthRate = $metrics['growth_rate'] ?? $metrics['engagement_rate'] ?? 0;
 
-        if ($growthRate >= 5) return 'up';
-        if ($growthRate >= 2) return 'stable';
+        if ($growthRate >= 5) {
+            return 'up';
+        }
+        if ($growthRate >= 2) {
+            return 'stable';
+        }
+
         return 'down';
     }
 
@@ -622,13 +669,14 @@ class EngagementAlgorithm extends AlgorithmEngine
         $recommendations = [];
 
         foreach ($channelScores as $channel => $data) {
-            if (!($data['connected'] ?? false)) {
+            if (! ($data['connected'] ?? false)) {
                 $recommendations[] = [
                     'channel' => $channel,
                     'priority' => 'medium',
-                    'title' => ucfirst($channel) . ' ni ulang',
-                    'description' => 'Ko\'proq auditoriyaga yetish uchun ' . $channel . ' ni ulang',
+                    'title' => ucfirst($channel).' ni ulang',
+                    'description' => 'Ko\'proq auditoriyaga yetish uchun '.$channel.' ni ulang',
                 ];
+
                 continue;
             }
 
@@ -642,6 +690,7 @@ class EngagementAlgorithm extends AlgorithmEngine
         // Sort by priority
         usort($recommendations, function ($a, $b) {
             $order = ['high' => 0, 'medium' => 1, 'low' => 2];
+
             return ($order[$a['priority']] ?? 2) <=> ($order[$b['priority']] ?? 2);
         });
 

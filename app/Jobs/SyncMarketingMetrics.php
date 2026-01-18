@@ -3,10 +3,10 @@
 namespace App\Jobs;
 
 use App\Models\MarketingChannel;
-use App\Services\InstagramService;
-use App\Services\TelegramService;
 use App\Services\FacebookService;
 use App\Services\GoogleAdsService;
+use App\Services\InstagramService;
+use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -54,20 +54,22 @@ class SyncMarketingMetrics implements ShouldQueue
     public function handle(): void
     {
         // Skip if channel is inactive
-        if (!$this->channel->is_active) {
+        if (! $this->channel->is_active) {
             Log::info('Skipping inactive channel', [
                 'channel_id' => $this->channel->id,
                 'channel_name' => $this->channel->name,
             ]);
+
             return;
         }
 
         // Skip if channel doesn't have access token
-        if (!$this->channel->access_token) {
+        if (! $this->channel->access_token) {
             Log::warning('Channel missing access token', [
                 'channel_id' => $this->channel->id,
                 'channel_name' => $this->channel->name,
             ]);
+
             return;
         }
 
@@ -140,6 +142,7 @@ class SyncMarketingMetrics implements ShouldQueue
     private function syncTelegram(): mixed
     {
         $service = app(TelegramService::class);
+
         return $service->syncMetrics($this->channel, $this->date);
     }
 
@@ -165,6 +168,7 @@ class SyncMarketingMetrics implements ShouldQueue
     private function syncGoogleAds(): mixed
     {
         $service = app(GoogleAdsService::class);
+
         return $service->syncMetrics($this->channel, $this->date);
     }
 

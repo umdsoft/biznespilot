@@ -9,11 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
 class Lead extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     /**
      * Yo'qotilgan lid sabablari
@@ -421,20 +420,20 @@ class Lead extends Model
     protected function formatDuration(int $seconds): string
     {
         if ($seconds < 60) {
-            return '0:' . str_pad($seconds, 2, '0', STR_PAD_LEFT);
+            return '0:'.str_pad($seconds, 2, '0', STR_PAD_LEFT);
         }
 
         $minutes = floor($seconds / 60);
         $secs = $seconds % 60;
 
         if ($minutes < 60) {
-            return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+            return $minutes.':'.str_pad($secs, 2, '0', STR_PAD_LEFT);
         }
 
         $hours = floor($minutes / 60);
         $mins = $minutes % 60;
 
-        return $hours . ':' . str_pad($mins, 2, '0', STR_PAD_LEFT) . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+        return $hours.':'.str_pad($mins, 2, '0', STR_PAD_LEFT).':'.str_pad($secs, 2, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -453,20 +452,20 @@ class Lead extends Model
         $totalSeconds = $this->calls()->sum('duration') ?? 0;
 
         if ($totalSeconds < 60) {
-            return $totalSeconds . ' sek';
+            return $totalSeconds.' sek';
         }
 
         $minutes = floor($totalSeconds / 60);
         $seconds = $totalSeconds % 60;
 
         if ($minutes < 60) {
-            return $minutes . ' min ' . $seconds . ' sek';
+            return $minutes.' min '.$seconds.' sek';
         }
 
         $hours = floor($minutes / 60);
         $mins = $minutes % 60;
 
-        return $hours . ' soat ' . $mins . ' min';
+        return $hours.' soat '.$mins.' min';
     }
 
     /**

@@ -3,21 +3,24 @@
 namespace App\Services;
 
 use App\Models\Competitor;
-use App\Models\CompetitorActivity;
 use App\Models\CompetitorAlert;
 use App\Models\CompetitorMetric;
 use App\Models\Integration;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class CompetitorMonitoringService
 {
     protected SocialMediaScraperService $scraper;
+
     protected ?ContentAnalysisService $contentService = null;
+
     protected ?MetaAdLibraryService $adService = null;
+
     protected ?PriceMonitoringService $priceService = null;
+
     protected ?ReviewsMonitoringService $reviewsService = null;
 
     public function __construct(
@@ -45,7 +48,7 @@ class CompetitorMonitoringService
             ->where('is_active', true)
             ->first();
 
-        if ($integration && !$integration->isExpired()) {
+        if ($integration && ! $integration->isExpired()) {
             return $integration->getAccessToken();
         }
 
@@ -86,7 +89,7 @@ class CompetitorMonitoringService
             try {
                 $contentResults = $this->contentService->analyzeCompetitor($competitor);
                 $results['content_analyzed'] = $contentResults['success'];
-                if (!$contentResults['success'] && !empty($contentResults['errors'])) {
+                if (! $contentResults['success'] && ! empty($contentResults['errors'])) {
                     $results['errors'] = array_merge($results['errors'], $contentResults['errors']);
                 }
             } catch (\Exception $e) {
@@ -98,7 +101,7 @@ class CompetitorMonitoringService
                 try {
                     $adResults = $this->adService->searchCompetitorAds($competitor);
                     $results['ads_scanned'] = $adResults['success'];
-                    if (!$adResults['success'] && !empty($adResults['errors'])) {
+                    if (! $adResults['success'] && ! empty($adResults['errors'])) {
                         $results['errors'] = array_merge($results['errors'], $adResults['errors']);
                     }
                 } catch (\Exception $e) {
@@ -122,7 +125,7 @@ class CompetitorMonitoringService
                 try {
                     $reviewResults = $this->reviewsService->monitorReviews($competitor);
                     $results['reviews_fetched'] = $reviewResults['success'];
-                    if (!$reviewResults['success'] && !empty($reviewResults['errors'])) {
+                    if (! $reviewResults['success'] && ! empty($reviewResults['errors'])) {
                         $results['errors'] = array_merge($results['errors'], $reviewResults['errors']);
                     }
                 } catch (\Exception $e) {
@@ -200,7 +203,7 @@ class CompetitorMonitoringService
             }
 
             // Fallback to scraper
-            if (!$instagramData) {
+            if (! $instagramData) {
                 $instagramData = $this->getInstagramMetrics($competitor->instagram_handle);
                 if ($instagramData) {
                     $dataSources['instagram'] = 'scraper';
@@ -227,7 +230,7 @@ class CompetitorMonitoringService
             }
 
             // Fallback to scraper
-            if (!$facebookData) {
+            if (! $facebookData) {
                 $facebookData = $this->getFacebookMetrics($competitor->facebook_page);
                 if ($facebookData) {
                     $dataSources['facebook'] = 'scraper';
@@ -242,7 +245,7 @@ class CompetitorMonitoringService
         }
 
         // Store data sources info
-        if (!empty($dataSources)) {
+        if (! empty($dataSources)) {
             $metrics['_data_sources'] = $dataSources;
         }
 
@@ -269,6 +272,7 @@ class CompetitorMonitoringService
 
             if ($metrics) {
                 Log::info('Instagram Graph API success', ['handle' => $handle]);
+
                 return $metrics;
             }
 
@@ -279,6 +283,7 @@ class CompetitorMonitoringService
                 'handle' => $handle,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -295,6 +300,7 @@ class CompetitorMonitoringService
 
             if ($metrics) {
                 Log::info('Facebook Graph API success', ['page_id' => $pageId]);
+
                 return $metrics;
             }
 
@@ -305,6 +311,7 @@ class CompetitorMonitoringService
                 'page_id' => $pageId,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -415,7 +422,7 @@ class CompetitorMonitoringService
         $dataSource = 'scraper';
         if (in_array('api', $dataSources)) {
             $dataSource = 'api';
-        } elseif (empty(array_filter($dataSources, fn($s) => $s !== 'manual_required'))) {
+        } elseif (empty(array_filter($dataSources, fn ($s) => $s !== 'manual_required'))) {
             $dataSource = 'manual';
         }
 
@@ -464,7 +471,7 @@ class CompetitorMonitoringService
      */
     protected function scanInstagramPosts(Competitor $competitor): array
     {
-        if (!$competitor->instagram_handle) {
+        if (! $competitor->instagram_handle) {
             return [];
         }
 
@@ -481,7 +488,7 @@ class CompetitorMonitoringService
                         ->where('external_id', $post['id'])
                         ->exists();
 
-                    if (!$exists) {
+                    if (! $exists) {
                         $content = $competitor->contents()->create([
                             'platform' => 'instagram',
                             'external_id' => $post['id'],
@@ -524,7 +531,7 @@ class CompetitorMonitoringService
      */
     protected function scanTelegramPosts(Competitor $competitor): array
     {
-        if (!$competitor->telegram_handle) {
+        if (! $competitor->telegram_handle) {
             return [];
         }
 
@@ -541,7 +548,7 @@ class CompetitorMonitoringService
                         ->where('external_id', $post['id'])
                         ->exists();
 
-                    if (!$exists) {
+                    if (! $exists) {
                         $content = $competitor->contents()->create([
                             'platform' => 'telegram',
                             'external_id' => $post['id'],
@@ -582,6 +589,7 @@ class CompetitorMonitoringService
     protected function extractHashtags(string $text): array
     {
         preg_match_all('/#(\w+)/u', $text, $matches);
+
         return array_unique($matches[1] ?? []);
     }
 
@@ -591,6 +599,7 @@ class CompetitorMonitoringService
     protected function extractMentions(string $text): array
     {
         preg_match_all('/@(\w+)/u', $text, $matches);
+
         return array_unique($matches[1] ?? []);
     }
 
@@ -607,7 +616,7 @@ class CompetitorMonitoringService
             ->orderBy('recorded_date', 'desc')
             ->first();
 
-        if (!$previousMetric) {
+        if (! $previousMetric) {
             return $alerts;
         }
 

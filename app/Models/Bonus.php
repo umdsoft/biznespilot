@@ -12,8 +12,11 @@ class Bonus extends Model
     use BelongsToBusiness, HasUuid;
 
     const TYPE_PERFORMANCE = 'performance';
+
     const TYPE_ANNUAL = 'annual';
+
     const TYPE_SPOT = 'spot';
+
     const TYPE_REFERRAL = 'referral';
 
     const TYPES = [

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\DreamBuyer;
-use App\Services\ClaudeAIService;
 
 class DreamBuyerService
 {
@@ -319,8 +318,9 @@ PROMPT;
     protected function formatArray($data): string
     {
         if (is_array($data)) {
-            return implode("\n", array_map(fn($item) => "- $item", $data));
+            return implode("\n", array_map(fn ($item) => "- $item", $data));
         }
+
         return $data ?? '';
     }
 }

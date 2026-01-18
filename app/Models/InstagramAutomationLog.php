@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramAutomationLog extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'automation_id',
         'conversation_id',
@@ -25,8 +26,11 @@ class InstagramAutomationLog extends Model
 
     // Status constants
     const STATUS_TRIGGERED = 'triggered';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_SKIPPED = 'skipped';
 
     public function automation(): BelongsTo
@@ -69,7 +73,7 @@ class InstagramAutomationLog extends Model
         ]);
     }
 
-    public function markSkipped(string $reason = null): void
+    public function markSkipped(?string $reason = null): void
     {
         $this->update([
             'status' => self::STATUS_SKIPPED,

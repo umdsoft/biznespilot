@@ -27,7 +27,6 @@ use Illuminate\Support\Facades\Log;
  * 5. Churn Risk
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class CustomerSegmentationAlgorithm extends AlgorithmEngine
 {
@@ -61,8 +60,8 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Perform customer segmentation
      *
-     * @param Business $business Business to analyze
-     * @param array $options Additional options
+     * @param  Business  $business  Business to analyze
+     * @param  array  $options  Additional options
      * @return array Segmentation results
      */
     public function analyze(Business $business, array $options = []): array
@@ -143,8 +142,6 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Get customer data
      *
-     * @param Business $business
-     * @param array $options
      * @return array Customer records
      */
     protected function getCustomerData(Business $business, array $options = []): array
@@ -158,9 +155,9 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
         $customerMap = [];
 
         foreach ($sales as $sale) {
-            $customerId = $sale->customer_id ?? 'GUEST_' . $sale->id;
+            $customerId = $sale->customer_id ?? 'GUEST_'.$sale->id;
 
-            if (!isset($customerMap[$customerId])) {
+            if (! isset($customerMap[$customerId])) {
                 $customerMap[$customerId] = [
                     'customer_id' => $customerId,
                     'purchases' => [],
@@ -207,7 +204,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
      *
      * Features: [Recency, Frequency, Monetary, Engagement, Tenure]
      *
-     * @param array $customers Customer data
+     * @param  array  $customers  Customer data
      * @return array Feature vectors
      */
     protected function extractFeatures(array $customers): array
@@ -218,7 +215,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
         foreach ($customers as $customer) {
             // Recency: Days since last purchase (lower is better)
             $recency = 0;
-            if (!empty($customer['last_purchase'])) {
+            if (! empty($customer['last_purchase'])) {
                 $lastPurchase = Carbon::parse($customer['last_purchase']);
                 $recency = $now->diffInDays($lastPurchase);
             }
@@ -231,7 +228,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
 
             // Engagement: Purchase frequency per month active
             $tenure = 1;
-            if (!empty($customer['first_purchase'])) {
+            if (! empty($customer['first_purchase'])) {
                 $firstPurchase = Carbon::parse($customer['first_purchase']);
                 $tenure = max(1, $now->diffInMonths($firstPurchase));
             }
@@ -255,9 +252,9 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Label segments based on cluster characteristics
      *
-     * @param array $clusteringResult Clustering result
-     * @param array $customers Customer data
-     * @param array $features Feature vectors
+     * @param  array  $clusteringResult  Clustering result
+     * @param  array  $customers  Customer data
+     * @param  array  $features  Feature vectors
      * @return array Labeled segments
      */
     protected function labelSegments(
@@ -303,7 +300,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
         }
 
         // Sort segments by value (monetary)
-        usort($segments, function($a, $b) {
+        usort($segments, function ($a, $b) {
             return $b['characteristics']['avg_monetary'] <=> $a['characteristics']['avg_monetary'];
         });
 
@@ -313,9 +310,9 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Calculate cluster characteristics
      *
-     * @param array $pointIndices Indices of points in cluster
-     * @param array $customers Customer data
-     * @param array $features Feature vectors
+     * @param  array  $pointIndices  Indices of points in cluster
+     * @param  array  $customers  Customer data
+     * @param  array  $features  Feature vectors
      * @return array Characteristics
      */
     protected function calculateClusterCharacteristics(
@@ -362,7 +359,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Assign label based on RFM characteristics
      *
-     * @param array $characteristics Cluster characteristics
+     * @param  array  $characteristics  Cluster characteristics
      * @return string Segment label
      */
     protected function assignLabel(array $characteristics): string
@@ -409,7 +406,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Calculate segment statistics
      *
-     * @param array $segments Labeled segments
+     * @param  array  $segments  Labeled segments
      * @return array Statistics
      */
     protected function calculateSegmentStatistics(array $segments): array
@@ -428,9 +425,9 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
 
             $statistics[$segment['label']] = [
                 'customer_count' => $segment['size'],
-                'percentage' => $totalCustomers > 0 ? round(($segment['size'] / $totalCustomers) * 100, 1) . '%' : '0%',
+                'percentage' => $totalCustomers > 0 ? round(($segment['size'] / $totalCustomers) * 100, 1).'%' : '0%',
                 'total_revenue' => round($segmentRevenue, 2),
-                'revenue_percentage' => $totalRevenue > 0 ? round(($segmentRevenue / $totalRevenue) * 100, 1) . '%' : '0%',
+                'revenue_percentage' => $totalRevenue > 0 ? round(($segmentRevenue / $totalRevenue) * 100, 1).'%' : '0%',
                 'avg_customer_value' => round($segment['characteristics']['avg_monetary'], 2),
             ];
         }
@@ -445,7 +442,7 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Generate recommendations per segment
      *
-     * @param array $segments Labeled segments
+     * @param  array  $segments  Labeled segments
      * @return array Recommendations
      */
     protected function generateRecommendations(array $segments): array
@@ -550,15 +547,24 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
     /**
      * Get quality level from silhouette score
      *
-     * @param float $score Silhouette score (-1 to +1)
+     * @param  float  $score  Silhouette score (-1 to +1)
      * @return string Quality level
      */
     protected function getQualityLevel(float $score): string
     {
-        if ($score >= 0.7) return 'excellent';
-        if ($score >= 0.5) return 'good';
-        if ($score >= 0.3) return 'fair';
-        if ($score >= 0.0) return 'weak';
+        if ($score >= 0.7) {
+            return 'excellent';
+        }
+        if ($score >= 0.5) {
+            return 'good';
+        }
+        if ($score >= 0.3) {
+            return 'fair';
+        }
+        if ($score >= 0.0) {
+            return 'weak';
+        }
+
         return 'poor';
     }
 
@@ -622,12 +628,12 @@ class CustomerSegmentationAlgorithm extends AlgorithmEngine
                 $totalRevenue += $amount;
             }
 
-            usort($purchases, function($a, $b) {
+            usort($purchases, function ($a, $b) {
                 return $a['date'] <=> $b['date'];
             });
 
             $customers[] = [
-                'customer_id' => 'CUST_' . str_pad($i, 5, '0', STR_PAD_LEFT),
+                'customer_id' => 'CUST_'.str_pad($i, 5, '0', STR_PAD_LEFT),
                 'purchases' => $purchases,
                 'total_revenue' => $totalRevenue,
                 'first_purchase' => $purchases[0]['date'] ?? now(),

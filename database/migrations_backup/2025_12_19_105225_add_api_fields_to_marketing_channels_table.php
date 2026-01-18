@@ -34,7 +34,7 @@ return new class extends Migration
                 'affiliate',
                 'direct',
                 'referral',
-                'other'
+                'other',
             ])->default('other')->after('name');
 
             // Add API-related fields

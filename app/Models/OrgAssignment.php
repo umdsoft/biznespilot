@@ -69,7 +69,7 @@ class OrgAssignment extends Model
     {
         return $query->where(function ($q) {
             $q->whereNull('end_date')
-              ->orWhere('end_date', '>=', now());
+                ->orWhere('end_date', '>=', now());
         });
     }
 
@@ -77,13 +77,14 @@ class OrgAssignment extends Model
 
     public function getIsCurrentAttribute(): bool
     {
-        return $this->is_active && 
+        return $this->is_active &&
                ($this->end_date === null || $this->end_date >= now());
     }
 
     public function getDurationInDaysAttribute(): int
     {
         $endDate = $this->end_date ?? now();
+
         return $this->assigned_date->diffInDays($endDate);
     }
 }

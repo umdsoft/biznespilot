@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 class ContentOptimizationAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'content_opt_';
+
     protected int $cacheTTL = 1800; // 30 minutes
 
     /**
@@ -124,7 +125,9 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
     {
         try {
             $instagram = $business->instagramAccounts()->first();
-            if (!$instagram) return [];
+            if (! $instagram) {
+                return [];
+            }
 
             $media = DB::table('instagram_media')
                 ->where('instagram_account_id', $instagram->id)
@@ -132,10 +135,11 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
                 ->orderBy('timestamp', 'desc')
                 ->get();
 
-            return $media->map(fn($m) => (array) $m)->toArray();
+            return $media->map(fn ($m) => (array) $m)->toArray();
 
         } catch (\Exception $e) {
             Log::warning('Could not get content data', ['error' => $e->getMessage()]);
+
             return $this->generateSampleData();
         }
     }
@@ -151,7 +155,9 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
 
         foreach ($contentData as $post) {
             $timestamp = $post['timestamp'] ?? $post['created_at'] ?? null;
-            if (!$timestamp) continue;
+            if (! $timestamp) {
+                continue;
+            }
 
             $hour = (int) date('G', strtotime($timestamp));
             $day = (int) date('N', strtotime($timestamp)); // 1=Monday, 7=Sunday
@@ -200,7 +206,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
             'score' => $score,
             'by_hour' => $avgByHour,
             'by_day' => $avgByDay,
-            'best_hours' => array_map(fn($h) => sprintf('%02d:00', $h), $bestHours),
+            'best_hours' => array_map(fn ($h) => sprintf('%02d:00', $h), $bestHours),
             'best_days' => $bestDays,
             'optimal_schedule' => array_slice($optimalSchedule, 0, 7),
             'current_pattern' => $this->getCurrentPostingPattern($contentData),
@@ -219,7 +225,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
             $type = $post['media_type'] ?? 'IMAGE';
             $engagement = $this->calculatePostEngagement($post);
 
-            if (!isset($byType[$type])) {
+            if (! isset($byType[$type])) {
                 $byType[$type] = ['engagements' => [], 'count' => 0];
             }
             $byType[$type]['engagements'][] = $engagement;
@@ -241,7 +247,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         }
 
         // Sort by engagement
-        uasort($analysis, fn($a, $b) => $b['avg_engagement'] <=> $a['avg_engagement']);
+        uasort($analysis, fn ($a, $b) => $b['avg_engagement'] <=> $a['avg_engagement']);
 
         // Score based on content mix
         $score = $this->calculateContentMixScore($analysis);
@@ -290,7 +296,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
                 : 0;
 
             $analysis[$bucket] = [
-                'range' => $data['range'][0] . '-' . $data['range'][1] . ' belgi',
+                'range' => $data['range'][0].'-'.$data['range'][1].' belgi',
                 'posts_count' => count($data['engagements']),
                 'avg_engagement' => round($avgEngagement, 2),
             ];
@@ -311,7 +317,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         return [
             'score' => $score,
             'by_length' => $analysis,
-            'optimal_length' => $lengthBuckets[$bestBucket]['range'][0] . '-' . $lengthBuckets[$bestBucket]['range'][1],
+            'optimal_length' => $lengthBuckets[$bestBucket]['range'][0].'-'.$lengthBuckets[$bestBucket]['range'][1],
             'recommendation' => $this->getCaptionRecommendation($bestBucket),
             'tips' => [
                 'Hook bilan boshlang (birinchi 125 belgi)',
@@ -344,7 +350,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
                 default => '20+',
             };
 
-            if (!isset($byCount[$bucket])) {
+            if (! isset($byCount[$bucket])) {
                 $byCount[$bucket] = ['engagements' => [], 'hashtags' => []];
             }
             $byCount[$bucket]['engagements'][] = $engagement;
@@ -390,7 +396,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
             'by_count' => $analysis,
             'optimal_count' => $bestBucket,
             'top_hashtags' => $topHashtags,
-            'recommendation' => $bestBucket . ' ta hashtag ishlating',
+            'recommendation' => $bestBucket.' ta hashtag ishlating',
             'tips' => [
                 'Niche hashtag ishlating (juda popular emas)',
                 'Mahalliy hashtag qo\'shing (#toshkent, #uzbekistan)',
@@ -409,7 +415,9 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
 
         foreach ($contentData as $post) {
             $timestamp = $post['timestamp'] ?? $post['created_at'] ?? null;
-            if (!$timestamp) continue;
+            if (! $timestamp) {
+                continue;
+            }
 
             $week = date('Y-W', strtotime($timestamp));
             $postsByWeek[$week] = ($postsByWeek[$week] ?? 0) + 1;
@@ -440,7 +448,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
             'benchmark' => $this->benchmarks['posts_per_week'],
             'weekly_data' => array_slice($postsByWeek, -8, 8, true),
             'recommendation' => $this->getFrequencyRecommendation($avgPerWeek),
-            'target' => $this->benchmarks['posts_per_week']['optimal'] . ' post/hafta',
+            'target' => $this->benchmarks['posts_per_week']['optimal'].' post/hafta',
         ];
     }
 
@@ -493,6 +501,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         if ($score >= 40) {
             return ['level' => 'average', 'label' => 'O\'rtacha', 'color' => 'yellow'];
         }
+
         return ['level' => 'poor', 'label' => 'Zaif', 'color' => 'red'];
     }
 
@@ -507,8 +516,8 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
             $recommendations[] = [
                 'priority' => 'high',
                 'area' => 'Post chastotasi',
-                'issue' => 'Haftada ' . ($frequency['avg_per_week'] ?? 0) . ' post - kam',
-                'solution' => 'Haftada ' . $this->benchmarks['posts_per_week']['optimal'] . ' ga oshiring',
+                'issue' => 'Haftada '.($frequency['avg_per_week'] ?? 0).' post - kam',
+                'solution' => 'Haftada '.$this->benchmarks['posts_per_week']['optimal'].' ga oshiring',
                 'impact' => '+30% reach',
             ];
         }
@@ -518,7 +527,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
                 'priority' => 'high',
                 'area' => 'Kontent turi',
                 'issue' => 'Kontent mix optimal emas',
-                'solution' => ($contentType['best_performing_label'] ?? 'Reels') . ' ko\'proq joylang',
+                'solution' => ($contentType['best_performing_label'] ?? 'Reels').' ko\'proq joylang',
                 'impact' => '+25% engagement',
             ];
         }
@@ -528,7 +537,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
                 'priority' => 'medium',
                 'area' => 'Post vaqti',
                 'issue' => 'Optimal vaqtda post qilmayapsiz',
-                'solution' => 'Eng yaxshi vaqtlar: ' . implode(', ', $posting['best_hours'] ?? ['12:00', '19:00']),
+                'solution' => 'Eng yaxshi vaqtlar: '.implode(', ', $posting['best_hours'] ?? ['12:00', '19:00']),
                 'impact' => '+20% engagement',
             ];
         }
@@ -538,7 +547,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
                 'priority' => 'medium',
                 'area' => 'Hashtag',
                 'issue' => 'Hashtag strategiyasi zaif',
-                'solution' => ($hashtag['optimal_count'] ?? '6-10') . ' ta hashtag ishlating',
+                'solution' => ($hashtag['optimal_count'] ?? '6-10').' ta hashtag ishlating',
                 'impact' => '+15% reach',
             ];
         }
@@ -571,7 +580,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
      */
     protected function getQuickWins(array $recommendations): array
     {
-        return array_filter($recommendations, fn($r) => $r['priority'] === 'high');
+        return array_filter($recommendations, fn ($r) => $r['priority'] === 'high');
     }
 
     /**
@@ -593,6 +602,7 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         if ($engagement >= 3) {
             return 'Ajoyib natija! Ko\'proq joylang';
         }
+
         return match ($type) {
             'IMAGE' => 'Carousel formatga o\'ting',
             'VIDEO' => 'Reels formatga o\'ting',
@@ -615,24 +625,30 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
     protected function getCurrentMix(array $analysis): array
     {
         $total = array_sum(array_column($analysis, 'count'));
-        if ($total === 0) return [];
+        if ($total === 0) {
+            return [];
+        }
 
         $mix = [];
         foreach ($analysis as $type => $data) {
             $mix[$type] = round(($data['count'] / $total) * 100);
         }
+
         return $mix;
     }
 
     protected function getPostingRecommendation(array $bestHours, array $bestDays): string
     {
-        return 'Eng yaxshi vaqtlar: ' . implode(', ', array_map(fn($h) => sprintf('%02d:00', $h), $bestHours)) .
-               ' | Eng yaxshi kunlar: ' . implode(', ', $bestDays);
+        return 'Eng yaxshi vaqtlar: '.implode(', ', array_map(fn ($h) => sprintf('%02d:00', $h), $bestHours)).
+               ' | Eng yaxshi kunlar: '.implode(', ', $bestDays);
     }
 
     protected function getCurrentPostingPattern(array $contentData): string
     {
-        if (count($contentData) < 5) return 'Ma\'lumot yetarli emas';
+        if (count($contentData) < 5) {
+            return 'Ma\'lumot yetarli emas';
+        }
+
         return 'Tahlil qilindi';
     }
 
@@ -648,8 +664,13 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
 
     protected function getFrequencyRecommendation(float $avg): string
     {
-        if ($avg >= 5) return 'Ajoyib chastota! Sifatni saqlang';
-        if ($avg >= 3) return 'Yaxshi, lekin 5 ga oshiring';
+        if ($avg >= 5) {
+            return 'Ajoyib chastota! Sifatni saqlang';
+        }
+        if ($avg >= 3) {
+            return 'Yaxshi, lekin 5 ga oshiring';
+        }
+
         return 'Kamida haftada 3-5 marta post qiling';
     }
 
@@ -665,8 +686,12 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         $hasCarousel = isset($analysis['CAROUSEL_ALBUM']) && $analysis['CAROUSEL_ALBUM']['count'] > 0;
 
         $score = 50;
-        if ($hasReels) $score += 25;
-        if ($hasCarousel) $score += 15;
+        if ($hasReels) {
+            $score += 25;
+        }
+        if ($hasCarousel) {
+            $score += 15;
+        }
 
         return min(100, $score);
     }
@@ -676,7 +701,10 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         $medium = $analysis['medium'] ?? ['posts_count' => 0];
         $total = array_sum(array_column($analysis, 'posts_count'));
 
-        if ($total === 0) return 50;
+        if ($total === 0) {
+            return 50;
+        }
+
         return min(100, 50 + ($medium['posts_count'] / $total) * 50);
     }
 
@@ -685,7 +713,10 @@ class ContentOptimizationAlgorithm extends AlgorithmEngine
         $optimal = $analysis['6-10'] ?? ['posts_count' => 0];
         $total = array_sum(array_column($analysis, 'posts_count'));
 
-        if ($total === 0) return 50;
+        if ($total === 0) {
+            return 50;
+        }
+
         return min(100, 50 + ($optimal['posts_count'] / $total) * 50);
     }
 

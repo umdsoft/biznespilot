@@ -30,6 +30,7 @@ class SocialMediaScraperService
 
             if ($metrics) {
                 Cache::put($cacheKey, $metrics, $this->cacheTTL);
+
                 return $metrics;
             }
 
@@ -38,6 +39,7 @@ class SocialMediaScraperService
 
             if ($metrics) {
                 Cache::put($cacheKey, $metrics, $this->cacheTTL);
+
                 return $metrics;
             }
 
@@ -90,6 +92,7 @@ class SocialMediaScraperService
 
         } catch (\Exception $e) {
             Log::warning('Instagram web API failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -106,7 +109,7 @@ class SocialMediaScraperService
                 'Accept-Language' => 'en-US,en;q=0.9',
             ])->timeout(15)->get("https://www.instagram.com/{$username}/");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -136,6 +139,7 @@ class SocialMediaScraperService
 
         } catch (\Exception $e) {
             Log::warning('Instagram scraping failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -172,6 +176,7 @@ class SocialMediaScraperService
         }
 
         $avgEngagement = $totalEngagement / $postCount;
+
         return round(($avgEngagement / $followers) * 100, 2);
     }
 
@@ -194,6 +199,7 @@ class SocialMediaScraperService
 
             if ($metrics) {
                 Cache::put($cacheKey, $metrics, $this->cacheTTL);
+
                 return $metrics;
             }
 
@@ -221,7 +227,7 @@ class SocialMediaScraperService
                 'Accept-Language' => 'en-US,en;q=0.9',
             ])->timeout(15)->get("https://www.facebook.com/{$pageIdentifier}");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -241,15 +247,16 @@ class SocialMediaScraperService
 
             // Extract from structured data
             if (preg_match('/"userInteractionCount":\s*"?([\d]+)"?/i', $html, $matches)) {
-                if (!isset($metrics['facebook_followers'])) {
+                if (! isset($metrics['facebook_followers'])) {
                     $metrics['facebook_followers'] = (int) $matches[1];
                 }
             }
 
-            return !empty($metrics) ? $metrics : null;
+            return ! empty($metrics) ? $metrics : null;
 
         } catch (\Exception $e) {
             Log::warning('Facebook page fetch failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -280,6 +287,7 @@ class SocialMediaScraperService
 
         } catch (\Exception $e) {
             Log::error('Facebook Graph API error', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -311,6 +319,7 @@ class SocialMediaScraperService
 
         } catch (\Exception $e) {
             Log::error('Instagram Graph API error', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -396,6 +405,7 @@ class SocialMediaScraperService
 
             if ($metrics) {
                 Cache::put($cacheKey, $metrics, $this->cacheTTL);
+
                 return $metrics;
             }
 
@@ -404,6 +414,7 @@ class SocialMediaScraperService
 
             if ($metrics) {
                 Cache::put($cacheKey, $metrics, $this->cacheTTL);
+
                 return $metrics;
             }
 
@@ -431,7 +442,7 @@ class SocialMediaScraperService
                 'Accept-Language' => 'en-US,en;q=0.9',
             ])->timeout(15)->get("https://t.me/{$channelHandle}");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -478,10 +489,11 @@ class SocialMediaScraperService
             // Check if it's a channel or group
             $metrics['telegram_is_channel'] = strpos($html, 'Channel') !== false || strpos($html, 'kanal') !== false;
 
-            return !empty($metrics) ? $metrics : null;
+            return ! empty($metrics) ? $metrics : null;
 
         } catch (\Exception $e) {
             Log::warning('Telegram web preview failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -497,7 +509,7 @@ class SocialMediaScraperService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             ])->timeout(10)->get("https://t.me/s/{$channelHandle}");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -526,10 +538,11 @@ class SocialMediaScraperService
                 }
             }
 
-            return !empty($metrics) ? $metrics : null;
+            return ! empty($metrics) ? $metrics : null;
 
         } catch (\Exception $e) {
             Log::warning('Telegram API fetch failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -574,7 +587,7 @@ class SocialMediaScraperService
                 'Accept' => 'application/json',
             ])->timeout(15)->get("https://www.instagram.com/api/v1/users/web_profile_info/?username={$username}");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -603,7 +616,7 @@ class SocialMediaScraperService
                 }
             }
 
-            if (!empty($posts)) {
+            if (! empty($posts)) {
                 Cache::put($cacheKey, $posts, $this->cacheTTL);
             }
 
@@ -611,6 +624,7 @@ class SocialMediaScraperService
 
         } catch (\Exception $e) {
             Log::warning('Instagram posts fetch failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -621,7 +635,7 @@ class SocialMediaScraperService
     protected function getInstagramPostType(array $node): string
     {
         if (isset($node['__typename'])) {
-            return match($node['__typename']) {
+            return match ($node['__typename']) {
                 'GraphVideo' => 'video',
                 'GraphSidecar' => 'carousel',
                 'GraphImage' => 'post',
@@ -653,7 +667,7 @@ class SocialMediaScraperService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             ])->timeout(15)->get("https://t.me/s/{$channelHandle}");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -692,7 +706,7 @@ class SocialMediaScraperService
                 }
             }
 
-            if (!empty($posts)) {
+            if (! empty($posts)) {
                 Cache::put($cacheKey, $posts, $this->cacheTTL);
             }
 
@@ -700,6 +714,7 @@ class SocialMediaScraperService
 
         } catch (\Exception $e) {
             Log::warning('Telegram posts fetch failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }

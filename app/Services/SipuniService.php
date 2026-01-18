@@ -28,6 +28,7 @@ class SipuniService
     public function setAccount(SipuniAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -48,7 +49,7 @@ class SipuniService
         }
 
         // Add secret at the end and hash
-        $signString = implode('+', $parts) . '+' . $secret;
+        $signString = implode('+', $parts).'+'.$secret;
 
         Log::debug('SipUni hash generation', [
             'params' => $params,
@@ -78,17 +79,17 @@ class SipuniService
             ];
 
             // Generate hash - SipUni uses specific order
-            $hashString = $params['from'] . '+' . $params['to'] . '+' . $params['user'] . '+' . $secret;
+            $hashString = $params['from'].'+'.$params['to'].'+'.$params['user'].'+'.$secret;
             $params['hash'] = md5($hashString);
 
             Log::info('SipUni statistics request', [
-                'url' => self::API_BASE_URL . '/statistic/export',
+                'url' => self::API_BASE_URL.'/statistic/export',
                 'params' => $params,
                 'hashString' => $hashString,
             ]);
 
             $response = Http::timeout(15)
-                ->get(self::API_BASE_URL . '/statistic/export', $params);
+                ->get(self::API_BASE_URL.'/statistic/export', $params);
 
             Log::info('SipUni API response', [
                 'status' => $response->status(),
@@ -133,11 +134,11 @@ class SipuniService
                 'sipnumber' => '100',
                 'user' => $userId,
             ];
-            $callHashString = $callParams['phone'] . '+' . $callParams['sipnumber'] . '+' . $callParams['user'] . '+' . $secret;
+            $callHashString = $callParams['phone'].'+'.$callParams['sipnumber'].'+'.$callParams['user'].'+'.$secret;
             $callParams['hash'] = md5($callHashString);
 
             $callResponse = Http::timeout(10)
-                ->get(self::API_BASE_URL . '/callback/call_number', $callParams);
+                ->get(self::API_BASE_URL.'/callback/call_number', $callParams);
 
             Log::info('SipUni callback test', [
                 'status' => $callResponse->status(),
@@ -170,13 +171,14 @@ class SipuniService
 
             return [
                 'success' => false,
-                'error' => 'SipUni API ga ulanib bo\'lmadi (HTTP ' . $response->status() . ')',
+                'error' => 'SipUni API ga ulanib bo\'lmadi (HTTP '.$response->status().')',
             ];
         } catch (\Exception $e) {
             Log::error('SipUni connection test failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -215,7 +217,7 @@ class SipuniService
      */
     public function makeCall(string $toNumber, ?Lead $lead = null, ?string $sipNumber = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'SipUni account not configured'];
         }
 
@@ -240,7 +242,7 @@ class SipuniService
 
             // SipUni callback API params
             // Hash format: phone+sipnumber+user+secret
-            $hashString = $phone . '+' . $sipnumber . '+' . $user . '+' . $this->account->api_secret;
+            $hashString = $phone.'+'.$sipnumber.'+'.$user.'+'.$this->account->api_secret;
             $hash = md5($hashString);
 
             $params = [
@@ -252,13 +254,13 @@ class SipuniService
             ];
 
             Log::info('SipUni making call', [
-                'url' => self::API_BASE_URL . '/callback/call_number',
+                'url' => self::API_BASE_URL.'/callback/call_number',
                 'params' => $params,
                 'hashString' => $hashString,
             ]);
 
             $response = Http::timeout(30)
-                ->get(self::API_BASE_URL . '/callback/call_number', $params);
+                ->get(self::API_BASE_URL.'/callback/call_number', $params);
 
             Log::info('SipUni call response', [
                 'status' => $response->status(),
@@ -270,6 +272,7 @@ class SipuniService
 
                 if (isset($data['error'])) {
                     $callLog->markAsFailed($data['error']);
+
                     return [
                         'success' => false,
                         'error' => $this->translateError($data['error']),
@@ -300,7 +303,7 @@ class SipuniService
 
             return [
                 'success' => false,
-                'error' => 'Qo\'ng\'iroq qilib bo\'lmadi (HTTP ' . $response->status() . ')',
+                'error' => 'Qo\'ng\'iroq qilib bo\'lmadi (HTTP '.$response->status().')',
             ];
         } catch (\Exception $e) {
             Log::error('SipUni make call failed', [
@@ -314,7 +317,7 @@ class SipuniService
 
             return [
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ];
         }
     }
@@ -326,8 +329,9 @@ class SipuniService
     {
         $callId = $data['call_id'] ?? null;
 
-        if (!$callId) {
+        if (! $callId) {
             Log::warning('SipUni webhook: No call ID provided', $data);
+
             return;
         }
 
@@ -335,11 +339,12 @@ class SipuniService
             ->orWhere('id', $callId)
             ->first();
 
-        if (!$callLog) {
+        if (! $callLog) {
             // Try to find by phone numbers for inbound calls
             if (isset($data['src_num']) && isset($data['dst_num'])) {
                 $this->handleInboundCall($data);
             }
+
             return;
         }
 
@@ -386,7 +391,7 @@ class SipuniService
         }
 
         // Update recording URL if provided
-        if (!empty($data['record_url']) || !empty($data['recording_url'])) {
+        if (! empty($data['record_url']) || ! empty($data['recording_url'])) {
             $callLog->update([
                 'recording_url' => $data['record_url'] ?? $data['recording_url'],
             ]);
@@ -403,8 +408,9 @@ class SipuniService
             ->orWhere('api_key', $data['user'] ?? '')
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             Log::warning('SipUni inbound: Account not found', $data);
+
             return;
         }
 
@@ -413,7 +419,7 @@ class SipuniService
         $lead = Lead::where('business_id', $account->business_id)
             ->where(function ($q) use ($fromNumber) {
                 $q->where('phone', $fromNumber)
-                    ->orWhere('phone', 'like', '%' . substr($fromNumber, -9));
+                    ->orWhere('phone', 'like', '%'.substr($fromNumber, -9));
             })
             ->first();
 
@@ -438,7 +444,7 @@ class SipuniService
      */
     public function getBalance(): ?float
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return null;
         }
 
@@ -451,11 +457,11 @@ class SipuniService
             // Try GET first
             $response = Http::timeout(15)
                 ->withQueryParameters($params)
-                ->get(self::API_BASE_URL . '/statistic/balance');
+                ->get(self::API_BASE_URL.'/statistic/balance');
 
             if ($response->successful()) {
                 $data = $response->json();
-                if (!isset($data['error'])) {
+                if (! isset($data['error'])) {
                     $balance = $data['balance'] ?? $data['money'] ?? 0;
 
                     $this->account->update([
@@ -470,11 +476,11 @@ class SipuniService
             // Try POST if GET failed
             $response = Http::timeout(15)
                 ->asForm()
-                ->post(self::API_BASE_URL . '/statistic/balance', $params);
+                ->post(self::API_BASE_URL.'/statistic/balance', $params);
 
             if ($response->successful()) {
                 $data = $response->json();
-                if (!isset($data['error'])) {
+                if (! isset($data['error'])) {
                     $balance = $data['balance'] ?? $data['money'] ?? 0;
 
                     $this->account->update([
@@ -497,7 +503,7 @@ class SipuniService
      */
     public function getCallHistory(Carbon $from, Carbon $to): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return [];
         }
 
@@ -510,7 +516,7 @@ class SipuniService
             $params['hash'] = $this->generateSignature($params);
 
             $response = Http::timeout(30)
-                ->get(self::API_BASE_URL . '/statistic/calls', $params);
+                ->get(self::API_BASE_URL.'/statistic/calls', $params);
 
             if ($response->successful()) {
                 return $response->json()['calls'] ?? [];
@@ -568,7 +574,7 @@ class SipuniService
         ksort($params);
         $signString = '';
         foreach ($params as $key => $value) {
-            $signString .= $key . '=' . $value;
+            $signString .= $key.'='.$value;
         }
         $signString .= $this->account->api_secret;
 
@@ -585,7 +591,7 @@ class SipuniService
 
         // Add country code if needed (Uzbekistan)
         if (strlen($phone) === 9) {
-            $phone = '998' . $phone;
+            $phone = '998'.$phone;
         }
 
         return $phone;

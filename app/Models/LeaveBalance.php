@@ -121,7 +121,7 @@ class LeaveBalance extends Model
             ->where('year', $year)
             ->first();
 
-        if (!$balance) {
+        if (! $balance) {
             $leaveType = LeaveType::find($leaveTypeId);
 
             $balance = self::create([

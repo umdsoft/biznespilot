@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InstagramAutomation extends Model
 {
-    use SoftDeletes, HasUuid;
+    use HasUuid, SoftDeletes;
 
     protected $fillable = [
         'account_id',
@@ -35,15 +35,22 @@ class InstagramAutomation extends Model
 
     // Status constants
     const STATUS_ACTIVE = 'active';
+
     const STATUS_PAUSED = 'paused';
+
     const STATUS_DRAFT = 'draft';
 
     // Type constants
     const TYPE_KEYWORD = 'keyword';
+
     const TYPE_COMMENT = 'comment';
+
     const TYPE_STORY_MENTION = 'story_mention';
+
     const TYPE_STORY_REPLY = 'story_reply';
+
     const TYPE_DM = 'dm';
+
     const TYPE_WELCOME = 'welcome';
 
     public function instagramAccount(): BelongsTo
@@ -101,6 +108,7 @@ class InstagramAutomation extends Model
         if ($this->trigger_count === 0) {
             return 0;
         }
+
         return round(($this->conversion_count / $this->trigger_count) * 100, 2);
     }
 

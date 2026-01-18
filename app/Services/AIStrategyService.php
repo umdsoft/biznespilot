@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Business;
 use App\Models\AIDiagnostic;
 use App\Models\AnnualStrategy;
-use App\Models\QuarterlyPlan;
+use App\Models\Business;
 use App\Models\MonthlyPlan;
+use App\Models\QuarterlyPlan;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -28,7 +28,7 @@ class AIStrategyService
         ]);
 
         return [
-            'vision' => $business->name . ' uchun ' . $year . ' yillik rivojlanish strategiyasi',
+            'vision' => $business->name.' uchun '.$year.' yillik rivojlanish strategiyasi',
             'mission' => 'Bozorda yetakchi pozitsiyani egallash va mijozlarga eng yaxshi xizmatni ko\'rsatish',
             'goals' => [
                 [
@@ -84,7 +84,7 @@ class AIStrategyService
         ];
 
         return [
-            'theme' => $quarterNames[$quarter] ?? 'Chorak ' . $quarter,
+            'theme' => $quarterNames[$quarter] ?? 'Chorak '.$quarter,
             'focus_areas' => [
                 'O\'sish strategiyasi',
                 'Mijozlar bilan ishlash',
@@ -133,7 +133,7 @@ class AIStrategyService
         ];
 
         return [
-            'theme' => ($monthNames[$month] ?? 'Oy ' . $month) . ' rejasi',
+            'theme' => ($monthNames[$month] ?? 'Oy '.$month).' rejasi',
             'goals' => [
                 [
                     'title' => 'Oylik daromad',
@@ -168,7 +168,7 @@ class AIStrategyService
         ]);
 
         return [
-            'theme' => $week . '-hafta rejasi',
+            'theme' => $week.'-hafta rejasi',
             'focus' => 'Kontent va engagement',
             'goals' => [
                 [
@@ -213,10 +213,10 @@ class AIStrategyService
         $type = $params['type'] ?? 'post';
 
         $ideas = [];
-        
+
         $templates = [
             [
-                'title' => $business->name . ' bilan tanishing',
+                'title' => $business->name.' bilan tanishing',
                 'caption' => 'Bizning xizmatlarimiz haqida batafsil ma\'lumot oling! 🌟',
                 'hashtags' => ['biznes', 'xizmat', 'toshkent'],
             ],

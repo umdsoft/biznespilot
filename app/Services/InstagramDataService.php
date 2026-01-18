@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\InstagramAccount;
-use App\Models\InstagramMedia;
-use App\Models\InstagramDailyInsight;
 use App\Models\InstagramAudience;
+use App\Models\InstagramDailyInsight;
 use App\Models\InstagramHashtagStat;
+use App\Models\InstagramMedia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,7 +19,7 @@ class InstagramDataService
     public function getOverview(string $accountId, string $datePreset = 'last_30d'): array
     {
         $account = InstagramAccount::find($accountId);
-        if (!$account) {
+        if (! $account) {
             return [];
         }
 
@@ -57,7 +57,7 @@ class InstagramDataService
             ->whereBetween('posted_at', [$dates['start'], $dates['end']])
             ->orderByDesc('engagement_rate')
             ->get()
-            ->map(fn($m) => $this->formatMediaFull($m));
+            ->map(fn ($m) => $this->formatMediaFull($m));
 
         // Top performing posts (FEED + CAROUSEL)
         $topPosts = InstagramMedia::where('account_id', $accountId)
@@ -66,7 +66,7 @@ class InstagramDataService
             ->orderByDesc('engagement_rate')
             ->limit(10)
             ->get()
-            ->map(fn($m) => $this->formatMediaFull($m));
+            ->map(fn ($m) => $this->formatMediaFull($m));
 
         // Top performing reels
         $topReels = InstagramMedia::where('account_id', $accountId)
@@ -75,7 +75,7 @@ class InstagramDataService
             ->orderByDesc('reach')
             ->limit(10)
             ->get()
-            ->map(fn($m) => $this->formatMediaFull($m));
+            ->map(fn ($m) => $this->formatMediaFull($m));
 
         // Media by type stats
         $mediaByType = InstagramMedia::where('account_id', $accountId)
@@ -131,8 +131,8 @@ class InstagramDataService
         $totalReels = $reels->count();
 
         // Performance trend
-        $weeklyPerformance = $reels->groupBy(fn($r) => $r->posted_at->startOfWeek()->format('Y-m-d'))
-            ->map(fn($group) => [
+        $weeklyPerformance = $reels->groupBy(fn ($r) => $r->posted_at->startOfWeek()->format('Y-m-d'))
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'avg_plays' => round($group->avg('plays')),
                 'avg_engagement' => round($group->avg('engagement_rate'), 2),
@@ -148,11 +148,11 @@ class InstagramDataService
                 'total_plays' => $reels->sum('plays'),
                 'total_reach' => $reels->sum('reach'),
             ],
-            'most_viewed' => $mostViewed->map(fn($m) => $this->formatMediaFull($m)),
-            'most_engaged' => $mostEngaged->map(fn($m) => $this->formatMediaFull($m)),
-            'most_commented' => $mostCommented->map(fn($m) => $this->formatMediaFull($m)),
+            'most_viewed' => $mostViewed->map(fn ($m) => $this->formatMediaFull($m)),
+            'most_engaged' => $mostEngaged->map(fn ($m) => $this->formatMediaFull($m)),
+            'most_commented' => $mostCommented->map(fn ($m) => $this->formatMediaFull($m)),
             'weekly_performance' => $weeklyPerformance,
-            'all_reels' => $reels->map(fn($m) => $this->formatMediaFull($m)),
+            'all_reels' => $reels->map(fn ($m) => $this->formatMediaFull($m)),
             'date_range' => [
                 'start' => $dates['start']->format('Y-m-d'),
                 'end' => $dates['end']->format('Y-m-d'),
@@ -173,8 +173,8 @@ class InstagramDataService
             ->get();
 
         // Engagement by day of week
-        $byDayOfWeek = $media->groupBy(fn($m) => $m->posted_at->dayOfWeek)
-            ->map(fn($group) => [
+        $byDayOfWeek = $media->groupBy(fn ($m) => $m->posted_at->dayOfWeek)
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'avg_likes' => round($group->avg('like_count')),
                 'avg_comments' => round($group->avg('comments_count')),
@@ -182,8 +182,8 @@ class InstagramDataService
             ]);
 
         // Engagement by hour
-        $byHour = $media->groupBy(fn($m) => $m->posted_at->hour)
-            ->map(fn($group) => [
+        $byHour = $media->groupBy(fn ($m) => $m->posted_at->hour)
+            ->map(fn ($group) => [
                 'count' => $group->count(),
                 'avg_engagement' => round($group->avg('engagement_rate'), 2),
             ]);
@@ -193,8 +193,8 @@ class InstagramDataService
         $bestHours = collect($byHour)->sortByDesc('avg_engagement')->take(3)->keys();
 
         // Engagement trend over time
-        $dailyEngagement = $media->groupBy(fn($m) => $m->posted_at->format('Y-m-d'))
-            ->map(fn($group) => [
+        $dailyEngagement = $media->groupBy(fn ($m) => $m->posted_at->format('Y-m-d'))
+            ->map(fn ($group) => [
                 'posts' => $group->count(),
                 'total_likes' => $group->sum('like_count'),
                 'total_comments' => $group->sum('comments_count'),
@@ -204,7 +204,7 @@ class InstagramDataService
         return [
             'by_day_of_week' => $byDayOfWeek,
             'by_hour' => $byHour,
-            'best_posting_days' => $bestDays->map(fn($d) => $this->getDayName($d))->values(),
+            'best_posting_days' => $bestDays->map(fn ($d) => $this->getDayName($d))->values(),
             'best_posting_hours' => $bestHours->values(),
             'daily_trend' => $dailyEngagement,
         ];
@@ -217,7 +217,7 @@ class InstagramDataService
     {
         $audience = InstagramAudience::where('account_id', $accountId)->first();
 
-        if (!$audience) {
+        if (! $audience) {
             return [
                 'age_gender' => [],
                 'age_distribution' => [],
@@ -320,7 +320,7 @@ class InstagramDataService
                 $parts = explode('.', $key);
                 $ageRange = $parts[1] ?? $key;
 
-                if (!isset($ageGroups[$ageRange])) {
+                if (! isset($ageGroups[$ageRange])) {
                     $ageGroups[$ageRange] = 0;
                 }
                 $ageGroups[$ageRange] += $value;
@@ -335,6 +335,7 @@ class InstagramDataService
         uksort($ageGroups, function ($a, $b) {
             $aNum = (int) preg_replace('/[^0-9]/', '', explode('-', $a)[0]);
             $bNum = (int) preg_replace('/[^0-9]/', '', explode('-', $b)[0]);
+
             return $aNum - $bNum;
         });
 
@@ -342,7 +343,7 @@ class InstagramDataService
         $total = array_sum($ageGroups);
 
         // Format for frontend
-        return collect($ageGroups)->map(fn($count, $range) => [
+        return collect($ageGroups)->map(fn ($count, $range) => [
             'range' => $range,
             'count' => $count,
             'percentage' => $total > 0 ? round(($count / $total) * 100, 1) : 0,
@@ -364,20 +365,20 @@ class InstagramDataService
         $mostUsed = $hashtags->sortByDesc('usage_count')->take(10)->values();
 
         return [
-            'top_by_engagement' => $topByEngagement->map(fn($h) => [
-                'hashtag' => '#' . $h->hashtag,
+            'top_by_engagement' => $topByEngagement->map(fn ($h) => [
+                'hashtag' => '#'.$h->hashtag,
                 'usage_count' => $h->usage_count,
                 'avg_engagement_rate' => round($h->avg_engagement_rate, 2),
                 'avg_reach' => $h->avg_reach_per_use,
             ]),
-            'top_by_reach' => $topByReach->map(fn($h) => [
-                'hashtag' => '#' . $h->hashtag,
+            'top_by_reach' => $topByReach->map(fn ($h) => [
+                'hashtag' => '#'.$h->hashtag,
                 'usage_count' => $h->usage_count,
                 'total_reach' => $h->total_reach,
                 'avg_reach' => $h->avg_reach_per_use,
             ]),
-            'most_used' => $mostUsed->map(fn($h) => [
-                'hashtag' => '#' . $h->hashtag,
+            'most_used' => $mostUsed->map(fn ($h) => [
+                'hashtag' => '#'.$h->hashtag,
                 'usage_count' => $h->usage_count,
                 'avg_engagement_rate' => round($h->avg_engagement_rate, 2),
             ]),
@@ -394,7 +395,7 @@ class InstagramDataService
             ->orderBy('insight_date')
             ->get();
 
-        return $insights->map(fn($i) => [
+        return $insights->map(fn ($i) => [
             'date' => $i->insight_date->format('Y-m-d'),
             'followers' => $i->follower_count,
             'impressions' => $i->impressions,
@@ -566,7 +567,7 @@ class InstagramDataService
     private function formatMediaFull($media): array
     {
         // Map media_product_type to frontend expected media_type
-        $mediaType = match($media->media_product_type) {
+        $mediaType = match ($media->media_product_type) {
             'REELS' => 'VIDEO',
             'CAROUSEL_ALBUM' => 'CAROUSEL_ALBUM',
             'FEED' => $media->media_type ?? 'IMAGE',
@@ -668,6 +669,7 @@ class InstagramDataService
     private function getDayName(int $dayOfWeek): string
     {
         $days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+
         return $days[$dayOfWeek] ?? '';
     }
 
@@ -700,7 +702,7 @@ class InstagramDataService
             ->orderBy('posted_at', 'desc')
             ->first();
 
-        if (!$oldest || !$newest) {
+        if (! $oldest || ! $newest) {
             return [
                 'start' => Carbon::today()->subDays(30)->startOfDay(),
                 'end' => Carbon::today()->endOfDay(),

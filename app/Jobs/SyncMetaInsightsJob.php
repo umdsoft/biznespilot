@@ -4,8 +4,8 @@ namespace App\Jobs;
 
 use App\Models\Business;
 use App\Models\Integration;
-use App\Services\MetaSyncService;
 use App\Services\InstagramSyncService;
+use App\Services\MetaSyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,7 +18,9 @@ class SyncMetaInsightsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 120;
+
     public int $timeout = 1800; // 30 minutes for full sync
 
     public function __construct(
@@ -29,8 +31,9 @@ class SyncMetaInsightsJob implements ShouldQueue
     public function handle(MetaSyncService $syncService, InstagramSyncService $instagramSyncService): void
     {
         $business = Business::find($this->businessId);
-        if (!$business) {
+        if (! $business) {
             Log::warning('SyncMetaInsightsJob: Business not found', ['business_id' => $this->businessId]);
+
             return;
         }
 
@@ -39,8 +42,9 @@ class SyncMetaInsightsJob implements ShouldQueue
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             Log::warning('SyncMetaInsightsJob: No connected Meta integration', ['business_id' => $this->businessId]);
+
             return;
         }
 
@@ -70,7 +74,7 @@ class SyncMetaInsightsJob implements ShouldQueue
                 $instagramSyncService->initialize($integration);
                 $igAccounts = $instagramSyncService->syncInstagramAccounts();
 
-                if (!empty($igAccounts)) {
+                if (! empty($igAccounts)) {
                     // Get access token from integration
                     $credentials = json_decode($integration->credentials, true);
 
@@ -110,7 +114,7 @@ class SyncMetaInsightsJob implements ShouldQueue
                 ]);
             }
 
-            if (!empty($results['errors'])) {
+            if (! empty($results['errors'])) {
                 Log::warning('SyncMetaInsightsJob: Completed with errors', [
                     'business_id' => $this->businessId,
                     'errors' => $results['errors'],

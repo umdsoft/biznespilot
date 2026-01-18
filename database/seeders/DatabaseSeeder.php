@@ -16,23 +16,23 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-                // 1. Core permissions and roles
+            // 1. Core permissions and roles
             RolesAndPermissionsSeeder::class,
 
-                // 2. Base configuration data
+            // 2. Base configuration data
             PlanSeeder::class,
             StepDefinitionSeeder::class,
             IndustrySeeder::class,
 
-                // 3. Industry-related reference data
+            // 3. Industry-related reference data
             IndustryBenchmarkSeeder::class,
             StrategyTemplateSeeder::class,
 
-                // 4. User and Business setup
+            // 4. User and Business setup
             TestUserSeeder::class,
             BusinessSeeder::class,
 
-                // 5. Business-dependent seeders
+            // 5. Business-dependent seeders
             AlertRuleSeeder::class,
             DreamBuyerSeeder::class,
             OfferSeeder::class,

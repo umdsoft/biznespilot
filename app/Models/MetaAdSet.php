@@ -66,6 +66,7 @@ class MetaAdSet extends Model
     public function getAgeRangeAttribute(): ?array
     {
         $targeting = $this->targeting ?? [];
+
         return [
             'min' => $targeting['age_min'] ?? null,
             'max' => $targeting['age_max'] ?? null,
@@ -77,7 +78,7 @@ class MetaAdSet extends Model
         $targeting = $this->targeting ?? [];
         $genders = $targeting['genders'] ?? [1, 2];
 
-        return collect($genders)->map(fn($g) => match ($g) {
+        return collect($genders)->map(fn ($g) => match ($g) {
             1 => 'male',
             2 => 'female',
             default => 'unknown',

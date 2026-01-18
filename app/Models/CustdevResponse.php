@@ -62,7 +62,7 @@ class CustdevResponse extends Model
      */
     public function getDeviceIcon(): string
     {
-        return match($this->device_type) {
+        return match ($this->device_type) {
             'mobile' => '📱',
             'tablet' => '📱',
             'desktop' => '💻',

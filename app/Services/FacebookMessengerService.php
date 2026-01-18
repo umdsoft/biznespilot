@@ -24,14 +24,14 @@ class FacebookMessengerService
         try {
             $messaging = $entry['messaging'][0] ?? null;
 
-            if (!$messaging) {
+            if (! $messaging) {
                 return ['success' => false, 'message' => 'No messaging in entry'];
             }
 
             $senderId = $messaging['sender']['id'] ?? null;
             $message = $messaging['message'] ?? null;
 
-            if (!$message || !isset($message['text'])) {
+            if (! $message || ! isset($message['text'])) {
                 return ['success' => false, 'message' => 'No text message'];
             }
 
@@ -70,11 +70,11 @@ class FacebookMessengerService
     {
         $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-        if (!$config || !$config->facebook_enabled || !$config->facebook_access_token) {
+        if (! $config || ! $config->facebook_enabled || ! $config->facebook_access_token) {
             return false;
         }
 
-        $url = "https://graph.facebook.com/v18.0/me/messages";
+        $url = 'https://graph.facebook.com/v18.0/me/messages';
 
         $payload = [
             'recipient' => ['id' => $recipientId],
@@ -82,8 +82,8 @@ class FacebookMessengerService
         ];
 
         // Add quick replies if present
-        if (!empty($quickReplies)) {
-            $payload['message']['quick_replies'] = array_map(fn($reply) => [
+        if (! empty($quickReplies)) {
+            $payload['message']['quick_replies'] = array_map(fn ($reply) => [
                 'content_type' => 'text',
                 'title' => $reply['text'] ?? $reply['title'],
                 'payload' => $reply['payload'] ?? $reply['value'],
@@ -114,11 +114,11 @@ class FacebookMessengerService
     {
         $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-        if (!$config || !$config->facebook_access_token) {
+        if (! $config || ! $config->facebook_access_token) {
             return false;
         }
 
-        $url = "https://graph.facebook.com/v18.0/me/messages";
+        $url = 'https://graph.facebook.com/v18.0/me/messages';
 
         try {
             $response = Http::withHeaders([

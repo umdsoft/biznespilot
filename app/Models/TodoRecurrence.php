@@ -15,8 +15,11 @@ class TodoRecurrence extends Model
 
     // Frequencies
     public const FREQUENCY_DAILY = 'daily';
+
     public const FREQUENCY_WEEKLY = 'weekly';
+
     public const FREQUENCY_MONTHLY = 'monthly';
+
     public const FREQUENCY_YEARLY = 'yearly';
 
     public const FREQUENCIES = [
@@ -28,6 +31,7 @@ class TodoRecurrence extends Model
 
     // Generation Modes
     public const MODE_ADVANCE = 'advance';
+
     public const MODE_ON_TIME = 'on_time';
 
     public const MODES = [
@@ -118,12 +122,12 @@ class TodoRecurrence extends Model
 
     public function getDaysOfWeekLabelsAttribute(): array
     {
-        if (!$this->days_of_week) {
+        if (! $this->days_of_week) {
             return [];
         }
 
         return array_map(
-            fn($day) => self::DAYS_OF_WEEK[$day] ?? $day,
+            fn ($day) => self::DAYS_OF_WEEK[$day] ?? $day,
             $this->days_of_week
         );
     }
@@ -183,6 +187,7 @@ class TodoRecurrence extends Model
                 if ($this->day_of_month) {
                     $next->day = min($this->day_of_month, $next->daysInMonth);
                 }
+
                 return $next;
 
             case self::FREQUENCY_YEARLY:
@@ -227,13 +232,13 @@ class TodoRecurrence extends Model
 
     public function generateNextTodo(): ?Todo
     {
-        if (!$this->is_active || $this->is_expired) {
+        if (! $this->is_active || $this->is_expired) {
             return null;
         }
 
         $originalTodo = $this->todo;
 
-        if (!$originalTodo) {
+        if (! $originalTodo) {
             return null;
         }
 
@@ -283,7 +288,7 @@ class TodoRecurrence extends Model
 
     public function shouldGenerate(): bool
     {
-        if (!$this->is_active || $this->is_expired) {
+        if (! $this->is_active || $this->is_expired) {
             return false;
         }
 

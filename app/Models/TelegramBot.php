@@ -46,7 +46,9 @@ class TelegramBot extends Model
 
     public function getBotTokenAttribute($value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
         try {
             return decrypt($value);
         } catch (\Exception $e) {

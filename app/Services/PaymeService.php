@@ -14,13 +14,21 @@ class PaymeService
 
     // Payme Error Codes
     public const ERROR_INTERNAL_SYSTEM = -32400;
+
     public const ERROR_INSUFFICIENT_PRIVILEGE = -32504;
+
     public const ERROR_INVALID_JSON_RPC_OBJECT = -32600;
+
     public const ERROR_METHOD_NOT_FOUND = -32601;
+
     public const ERROR_INVALID_AMOUNT = -31001;
+
     public const ERROR_TRANSACTION_NOT_FOUND = -31003;
+
     public const ERROR_INVALID_ACCOUNT = -31050;
+
     public const ERROR_COULD_NOT_CANCEL = -31007;
+
     public const ERROR_COULD_NOT_PERFORM = -31008;
 
     /**
@@ -29,6 +37,7 @@ class PaymeService
     public function setAccount(PaymentAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -37,7 +46,7 @@ class PaymeService
      */
     public function generatePaymentUrl(PaymentTransaction $transaction, ?string $returnUrl = null): string
     {
-        if (!$this->account) {
+        if (! $this->account) {
             throw new \Exception('Payment account not configured');
         }
 
@@ -58,7 +67,7 @@ class PaymeService
 
         // Build params string
         $paramsString = implode(';', array_map(
-            fn($key, $value) => "{$key}={$value}",
+            fn ($key, $value) => "{$key}={$value}",
             array_keys($params),
             array_values($params)
         ));
@@ -84,7 +93,7 @@ class PaymeService
         Log::info('Payme webhook received', $body);
 
         // Validate JSON-RPC format
-        if (!isset($body['method']) || !isset($body['params'])) {
+        if (! isset($body['method']) || ! isset($body['params'])) {
             return $this->errorResponse(self::ERROR_INVALID_JSON_RPC_OBJECT, 'Invalid JSON-RPC object', $body['id'] ?? null);
         }
 
@@ -93,7 +102,7 @@ class PaymeService
         $id = $body['id'] ?? null;
 
         // Authenticate request
-        if (!$this->authenticate($request)) {
+        if (! $this->authenticate($request)) {
             return $this->errorResponse(self::ERROR_INSUFFICIENT_PRIVILEGE, 'Insufficient privilege', $id);
         }
 
@@ -116,7 +125,7 @@ class PaymeService
     {
         $auth = $request->header('Authorization');
 
-        if (!$auth || !str_starts_with($auth, 'Basic ')) {
+        if (! $auth || ! str_starts_with($auth, 'Basic ')) {
             return false;
         }
 
@@ -129,7 +138,7 @@ class PaymeService
             ->where('is_active', true)
             ->first();
 
-        if (!$this->account) {
+        if (! $this->account) {
             return false;
         }
 
@@ -144,13 +153,13 @@ class PaymeService
         $orderId = $params['account']['order_id'] ?? null;
         $amount = $params['amount'] ?? 0;
 
-        if (!$orderId) {
+        if (! $orderId) {
             return $this->errorResponse(self::ERROR_INVALID_ACCOUNT, 'Order not found', $id);
         }
 
         $transaction = PaymentTransaction::findByOrderId($orderId);
 
-        if (!$transaction) {
+        if (! $transaction) {
             return $this->errorResponse(self::ERROR_INVALID_ACCOUNT, 'Order not found', $id);
         }
 
@@ -177,13 +186,13 @@ class PaymeService
         $amount = $params['amount'] ?? 0;
         $time = $params['time'] ?? null;
 
-        if (!$orderId) {
+        if (! $orderId) {
             return $this->errorResponse(self::ERROR_INVALID_ACCOUNT, 'Order not found', $id);
         }
 
         $transaction = PaymentTransaction::findByOrderId($orderId);
 
-        if (!$transaction) {
+        if (! $transaction) {
             return $this->errorResponse(self::ERROR_INVALID_ACCOUNT, 'Order not found', $id);
         }
 
@@ -238,7 +247,7 @@ class PaymeService
 
         $paymeTransaction = PaymeTransaction::where('payme_transaction_id', $paymeTransactionId)->first();
 
-        if (!$paymeTransaction) {
+        if (! $paymeTransaction) {
             return $this->errorResponse(self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found', $id);
         }
 
@@ -291,7 +300,7 @@ class PaymeService
 
         $paymeTransaction = PaymeTransaction::where('payme_transaction_id', $paymeTransactionId)->first();
 
-        if (!$paymeTransaction) {
+        if (! $paymeTransaction) {
             return $this->errorResponse(self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found', $id);
         }
 
@@ -337,7 +346,7 @@ class PaymeService
 
         $paymeTransaction = PaymeTransaction::where('payme_transaction_id', $paymeTransactionId)->first();
 
-        if (!$paymeTransaction) {
+        if (! $paymeTransaction) {
             return $this->errorResponse(self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found', $id);
         }
 
@@ -369,6 +378,7 @@ class PaymeService
             ->get()
             ->map(function ($pt) {
                 $t = $pt->paymentTransaction;
+
                 return [
                     'id' => $pt->payme_transaction_id,
                     'time' => $pt->payme_time,

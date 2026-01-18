@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\ContentPost;
 use App\Services\ContentStrategyService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class ContentController extends Controller
 {
@@ -27,7 +25,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -40,12 +38,12 @@ class ContentController extends Controller
 
         if ($request->filled('platform')) {
             $query->where(function ($q) use ($request) {
-                $q->where('platform', 'like', '%' . $request->platform . '%');
+                $q->where('platform', 'like', '%'.$request->platform.'%');
             });
         }
 
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $query->where('title', 'like', '%'.$request->search.'%');
         }
 
         $contents = $query->orderBy('scheduled_at', 'desc')
@@ -94,7 +92,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -129,7 +127,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -176,7 +174,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -213,7 +211,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -249,7 +247,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -267,7 +265,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -290,7 +288,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -304,7 +302,7 @@ class ContentController extends Controller
         ]);
 
         $scheduledAt = Carbon::parse($validated['date']);
-        if (!empty($validated['time'])) {
+        if (! empty($validated['time'])) {
             $time = Carbon::createFromFormat('H:i', $validated['time']);
             $scheduledAt->setTime($time->hour, $time->minute);
         }
@@ -321,7 +319,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -334,11 +332,11 @@ class ContentController extends Controller
         ]);
 
         $newContent = $content->replicate();
-        $newContent->title = $content->title . ' (nusxa)';
+        $newContent->title = $content->title.' (nusxa)';
         $newContent->status = 'draft';
         $newContent->published_at = null;
 
-        if (!empty($validated['date'])) {
+        if (! empty($validated['date'])) {
             $newContent->scheduled_at = Carbon::parse($validated['date']);
         } else {
             $newContent->scheduled_at = $content->scheduled_at?->addWeek();
@@ -356,7 +354,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -380,7 +378,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -407,7 +405,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -438,7 +436,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -450,12 +448,12 @@ class ContentController extends Controller
             // AI tavsiyalar generatsiyasi
             $suggestions = [
                 'title_options' => [
-                    $content->title . ' - yangilangan versiya',
-                    'Eng zo\'r ' . strtolower($content->title),
-                    $content->title . ' 2.0',
+                    $content->title.' - yangilangan versiya',
+                    'Eng zo\'r '.strtolower($content->title),
+                    $content->title.' 2.0',
                 ],
                 'hashtag_suggestions' => [
-                    '#marketing', '#biznes', '#uzbekistan', '#content', '#smm'
+                    '#marketing', '#biznes', '#uzbekistan', '#content', '#smm',
                 ],
                 'best_time' => '18:00 - 20:00',
                 'content_tips' => [
@@ -486,7 +484,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -513,7 +511,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -561,7 +559,7 @@ class ContentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -570,7 +568,7 @@ class ContentController extends Controller
 
         $currentDate = Carbon::parse($date);
 
-        [$startDate, $endDate] = match($view) {
+        [$startDate, $endDate] = match ($view) {
             'month' => [$currentDate->copy()->startOfMonth(), $currentDate->copy()->endOfMonth()],
             'week' => [$currentDate->copy()->startOfWeek(), $currentDate->copy()->endOfWeek()],
             'day' => [$currentDate->copy()->startOfDay(), $currentDate->copy()->endOfDay()],

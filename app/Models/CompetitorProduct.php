@@ -66,7 +66,7 @@ class CompetitorProduct extends Model
             ->latest('recorded_date')
             ->first();
 
-        if (!$lastPrice || !$lastPrice->price || !$this->current_price) {
+        if (! $lastPrice || ! $lastPrice->price || ! $this->current_price) {
             return null;
         }
 

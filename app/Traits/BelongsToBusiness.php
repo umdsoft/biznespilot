@@ -15,7 +15,7 @@ trait BelongsToBusiness
     {
         // Auto-assign business_id when creating
         static::creating(function ($model) {
-            if (!$model->business_id && session()->has('current_business_id')) {
+            if (! $model->business_id && session()->has('current_business_id')) {
                 $model->business_id = session('current_business_id');
             }
         });
@@ -23,7 +23,7 @@ trait BelongsToBusiness
         // Add global scope to filter by business
         static::addGlobalScope('business', function (Builder $builder) {
             if (session()->has('current_business_id')) {
-                $builder->where($builder->getModel()->getTable() . '.business_id', session('current_business_id'));
+                $builder->where($builder->getModel()->getTable().'.business_id', session('current_business_id'));
             }
         });
     }

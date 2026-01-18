@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\BudgetAllocation;
 use App\Models\AnnualStrategy;
-use App\Models\QuarterlyPlan;
-use App\Models\MonthlyPlan;
-use App\Models\WeeklyPlan;
+use App\Models\BudgetAllocation;
 use App\Models\Business;
-use Illuminate\Support\Str;
+use App\Models\MonthlyPlan;
+use App\Models\QuarterlyPlan;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class BudgetAllocationService
 {
@@ -227,7 +226,7 @@ class BudgetAllocationService
                 'channel' => $channel,
                 'planned_budget' => $amount,
                 'allocation_percent' => $normalizedPercent,
-                'description' => ucfirst($channel) . ' reklama byudjeti',
+                'description' => ucfirst($channel).' reklama byudjeti',
                 'status' => 'planned',
                 'overspend_threshold_percent' => 100,
             ]);
@@ -244,6 +243,7 @@ class BudgetAllocationService
     public function recordSpending(BudgetAllocation $allocation, float $amount, ?string $description = null): BudgetAllocation
     {
         $allocation->addSpending($amount, $description);
+
         return $allocation->fresh();
     }
 
@@ -253,6 +253,7 @@ class BudgetAllocationService
     public function recordResults(BudgetAllocation $allocation, int $leads = 0, float $revenue = 0): BudgetAllocation
     {
         $allocation->addResult($leads, $revenue);
+
         return $allocation->fresh();
     }
 
@@ -269,7 +270,7 @@ class BudgetAllocationService
         }
 
         if ($period) {
-            $periodColumn = match($periodType) {
+            $periodColumn = match ($periodType) {
                 'quarterly' => 'quarter',
                 'monthly' => 'month',
                 'weekly' => 'week',
@@ -363,7 +364,9 @@ class BudgetAllocationService
      */
     private function calculateEfficiencyScore(float $spent, int $leads, float $revenue): int
     {
-        if ($spent <= 0) return 0;
+        if ($spent <= 0) {
+            return 0;
+        }
 
         $roi = (($revenue - $spent) / $spent) * 100;
         $cpl = $leads > 0 ? $spent / $leads : PHP_INT_MAX;

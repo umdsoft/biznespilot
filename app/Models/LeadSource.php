@@ -71,7 +71,7 @@ class LeadSource extends Model
     {
         return $query->where(function ($q) use ($businessId) {
             $q->whereNull('business_id')
-              ->orWhere('business_id', $businessId);
+                ->orWhere('business_id', $businessId);
         });
     }
 

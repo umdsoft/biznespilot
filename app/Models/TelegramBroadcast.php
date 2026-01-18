@@ -202,6 +202,7 @@ class TelegramBroadcast extends Model
         if ($this->total_recipients === 0) {
             return 0;
         }
+
         return round(($this->sent_count / $this->total_recipients) * 100, 2);
     }
 
@@ -210,6 +211,7 @@ class TelegramBroadcast extends Model
         if ($this->sent_count === 0) {
             return 0;
         }
+
         return round(($this->delivered_count / $this->sent_count) * 100, 2);
     }
 
@@ -218,6 +220,7 @@ class TelegramBroadcast extends Model
         if ($this->sent_count === 0) {
             return 0;
         }
+
         return round(($this->blocked_count / $this->sent_count) * 100, 2);
     }
 
@@ -238,7 +241,7 @@ class TelegramBroadcast extends Model
 
     public function hasKeyboard(): bool
     {
-        return !empty($this->keyboard);
+        return ! empty($this->keyboard);
     }
 
     public function getFilterDescription(): string
@@ -249,16 +252,16 @@ class TelegramBroadcast extends Model
 
         $parts = [];
 
-        if (!empty($this->target_filter['tags'])) {
-            $parts[] = 'Teglar: ' . implode(', ', $this->target_filter['tags']);
+        if (! empty($this->target_filter['tags'])) {
+            $parts[] = 'Teglar: '.implode(', ', $this->target_filter['tags']);
         }
 
-        if (!empty($this->target_filter['exclude_blocked'])) {
+        if (! empty($this->target_filter['exclude_blocked'])) {
             $parts[] = 'Bloklangan foydalanuvchilar chiqarilgan';
         }
 
-        if (!empty($this->target_filter['active_after'])) {
-            $parts[] = 'Oxirgi faollik: ' . $this->target_filter['active_after'];
+        if (! empty($this->target_filter['active_after'])) {
+            $parts[] = 'Oxirgi faollik: '.$this->target_filter['active_after'];
         }
 
         return empty($parts) ? 'Barcha foydalanuvchilar' : implode('; ', $parts);

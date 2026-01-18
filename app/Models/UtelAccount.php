@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UtelAccount extends Model
 {
-    use HasFactory, HasUuid, BelongsToBusiness;
+    use BelongsToBusiness, HasFactory, HasUuid;
 
     protected $fillable = [
         'business_id',
@@ -47,7 +47,7 @@ class UtelAccount extends Model
      */
     public function isConfigured(): bool
     {
-        return !empty($this->email) && !empty($this->password);
+        return ! empty($this->email) && ! empty($this->password);
     }
 
     /**
@@ -55,7 +55,7 @@ class UtelAccount extends Model
      */
     public function hasValidToken(): bool
     {
-        return !empty($this->access_token)
+        return ! empty($this->access_token)
             && $this->token_expires_at
             && $this->token_expires_at->isFuture();
     }
@@ -84,6 +84,7 @@ class UtelAccount extends Model
         $settings = $this->settings ?? [];
         data_set($settings, $key, $value);
         $this->settings = $settings;
+
         return $this;
     }
 
@@ -92,6 +93,6 @@ class UtelAccount extends Model
      */
     public function getFormattedBalanceAttribute(): string
     {
-        return number_format($this->balance, 0, '.', ' ') . ' ' . $this->currency;
+        return number_format($this->balance, 0, '.', ' ').' '.$this->currency;
     }
 }

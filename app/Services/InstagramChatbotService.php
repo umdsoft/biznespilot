@@ -9,7 +9,6 @@ use App\Models\InstagramAutomationLog;
 use App\Models\InstagramAutomationTrigger;
 use App\Models\InstagramConversation;
 use App\Models\InstagramMessage;
-use App\Models\InstagramBroadcast;
 use App\Models\InstagramQuickReply;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -67,7 +66,7 @@ class InstagramChatbotService
             ->orderByDesc('trigger_count')
             ->limit(5)
             ->get()
-            ->map(fn($a) => [
+            ->map(fn ($a) => [
                 'id' => $a->id,
                 'name' => $a->name,
                 'type' => $a->type,
@@ -83,7 +82,7 @@ class InstagramChatbotService
             ->orderByDesc('last_message_at')
             ->limit(10)
             ->get()
-            ->map(fn($c) => [
+            ->map(fn ($c) => [
                 'id' => $c->id,
                 'username' => $c->participant_username,
                 'name' => $c->display_name,
@@ -130,7 +129,7 @@ class InstagramChatbotService
             ->orderByDesc('updated_at')
             ->get();
 
-        return $automations->map(fn($a) => $this->formatAutomation($a))->toArray();
+        return $automations->map(fn ($a) => $this->formatAutomation($a))->toArray();
     }
 
     /**
@@ -149,7 +148,7 @@ class InstagramChatbotService
         ]);
 
         // Create triggers
-        if (!empty($data['triggers'])) {
+        if (! empty($data['triggers'])) {
             foreach ($data['triggers'] as $triggerData) {
                 $automation->triggers()->create([
                     'trigger_type' => $triggerData['trigger_type'],
@@ -162,7 +161,7 @@ class InstagramChatbotService
         }
 
         // Create actions
-        if (!empty($data['actions'])) {
+        if (! empty($data['actions'])) {
             foreach ($data['actions'] as $index => $actionData) {
                 $automation->actions()->create([
                     'order' => $index,
@@ -238,6 +237,7 @@ class InstagramChatbotService
     public function deleteAutomation(string $automationId): bool
     {
         $automation = InstagramAutomation::findOrFail($automationId);
+
         return $automation->delete();
     }
 
@@ -263,19 +263,19 @@ class InstagramChatbotService
             ->with(['latestMessage', 'currentAutomation']);
 
         // Apply filters
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['needs_human'])) {
+        if (! empty($filters['needs_human'])) {
             $query->where('needs_human', true);
         }
 
-        if (!empty($filters['tag'])) {
+        if (! empty($filters['tag'])) {
             $query->withTag($filters['tag']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('participant_username', 'like', "%{$search}%")
@@ -319,7 +319,7 @@ class InstagramChatbotService
                 'needs_human' => $conversation->needs_human,
                 'current_automation' => $conversation->currentAutomation?->name,
             ],
-            'messages' => $conversation->messages->map(fn($m) => [
+            'messages' => $conversation->messages->map(fn ($m) => [
                 'id' => $m->id,
                 'direction' => $m->direction,
                 'type' => $m->message_type,
@@ -341,7 +341,7 @@ class InstagramChatbotService
             ->findOrFail($conversationId);
 
         $integration = $conversation->instagramAccount->integration;
-        if (!$integration || !$integration->access_token) {
+        if (! $integration || ! $integration->access_token) {
             throw new \Exception('Instagram integratsiyasi topilmadi');
         }
 
@@ -353,7 +353,7 @@ class InstagramChatbotService
             $integration->access_token
         );
 
-        if (!$response['success']) {
+        if (! $response['success']) {
             throw new \Exception($response['error'] ?? 'Xabar yuborishda xatolik');
         }
 
@@ -408,17 +408,17 @@ class InstagramChatbotService
         $senderId = $data['sender_id'] ?? null;
         $messageText = $data['message'] ?? '';
 
-        if (!$instagramId || !$senderId) {
+        if (! $instagramId || ! $senderId) {
             return;
         }
 
         $account = InstagramAccount::where('instagram_id', $instagramId)->first();
-        if (!$account) {
+        if (! $account) {
             return;
         }
 
         // Generate unique conversation_id based on account and sender
-        $conversationId = 'conv_' . md5($account->instagram_id . '_' . $senderId);
+        $conversationId = 'conv_'.md5($account->instagram_id.'_'.$senderId);
 
         // Get or create conversation
         $conversation = InstagramConversation::firstOrCreate(
@@ -436,7 +436,7 @@ class InstagramChatbotService
         );
 
         // Save incoming message
-        $instagramMsgId = $data['message_id'] ?? ('msg_' . uniqid());
+        $instagramMsgId = $data['message_id'] ?? ('msg_'.uniqid());
         InstagramMessage::create([
             'conversation_id' => $conversation->id,
             'instagram_message_id' => $instagramMsgId,
@@ -462,12 +462,12 @@ class InstagramChatbotService
         $commentText = $data['text'] ?? '';
         $commenterId = $data['commenter_id'] ?? null;
 
-        if (!$instagramId || !$commenterId) {
+        if (! $instagramId || ! $commenterId) {
             return;
         }
 
         $account = InstagramAccount::where('instagram_id', $instagramId)->first();
-        if (!$account) {
+        if (! $account) {
             return;
         }
 
@@ -483,19 +483,19 @@ class InstagramChatbotService
         $instagramId = $data['mentioned_user_id'] ?? null;
         $mentionerId = $data['mentioner_id'] ?? null;
 
-        if (!$instagramId || !$mentionerId) {
+        if (! $instagramId || ! $mentionerId) {
             return;
         }
 
         $account = InstagramAccount::where('instagram_id', $instagramId)->first();
-        if (!$account) {
+        if (! $account) {
             return;
         }
 
         // Find story_mention automations
         $automations = $account->automations()
             ->active()
-            ->whereHas('triggers', fn($q) => $q->where('trigger_type', 'story_mention'))
+            ->whereHas('triggers', fn ($q) => $q->where('trigger_type', 'story_mention'))
             ->get();
 
         foreach ($automations as $automation) {
@@ -512,19 +512,19 @@ class InstagramChatbotService
         $replierId = $data['replier_id'] ?? null;
         $replyText = $data['reply_text'] ?? '';
 
-        if (!$instagramId || !$replierId) {
+        if (! $instagramId || ! $replierId) {
             return;
         }
 
         $account = InstagramAccount::where('instagram_id', $instagramId)->first();
-        if (!$account) {
+        if (! $account) {
             return;
         }
 
         // Find story_reply automations
         $automations = $account->automations()
             ->active()
-            ->whereHas('triggers', fn($q) => $q->where('trigger_type', 'story_reply'))
+            ->whereHas('triggers', fn ($q) => $q->where('trigger_type', 'story_reply'))
             ->get();
 
         foreach ($automations as $automation) {
@@ -544,7 +544,7 @@ class InstagramChatbotService
         // Get active automations with matching trigger type (traditional)
         $automations = $account->automations()
             ->active()
-            ->whereHas('triggers', fn($q) => $q->where('trigger_type', $triggerType))
+            ->whereHas('triggers', fn ($q) => $q->where('trigger_type', $triggerType))
             ->with('triggers')
             ->get();
 
@@ -560,6 +560,7 @@ class InstagramChatbotService
                         ['keyword' => $keyword, 'text' => $text],
                         $conversation
                     );
+
                     return; // Only trigger first matching automation
                 }
             }
@@ -588,7 +589,7 @@ class InstagramChatbotService
         ];
 
         $flowNodeType = $nodeTypeMap[$triggerType] ?? null;
-        if (!$flowNodeType) {
+        if (! $flowNodeType) {
             return;
         }
 
@@ -612,7 +613,7 @@ class InstagramChatbotService
                 }
             }
 
-            if (!$triggerNode) {
+            if (! $triggerNode) {
                 continue;
             }
 
@@ -624,7 +625,7 @@ class InstagramChatbotService
             $keywordList = [];
             if (is_array($keywords)) {
                 $keywordList = $keywords;
-            } elseif (is_string($keywords) && !empty($keywords)) {
+            } elseif (is_string($keywords) && ! empty($keywords)) {
                 // Parse keywords (comma or space separated)
                 $keywordList = preg_split('/[\s,]+/', $keywords, -1, PREG_SPLIT_NO_EMPTY);
             }
@@ -636,11 +637,12 @@ class InstagramChatbotService
                     'text' => $text,
                 ]);
                 $this->executeFlowAutomation($automation, $account, $conversation, $text, $triggerNode);
+
                 return;
             }
 
             foreach ($keywordList as $keyword) {
-                $keyword = trim(mb_strtolower((string)$keyword));
+                $keyword = trim(mb_strtolower((string) $keyword));
                 if (empty($keyword) || $keyword === '+') {
                     continue;
                 }
@@ -653,6 +655,7 @@ class InstagramChatbotService
                         'text' => $text,
                     ]);
                     $this->executeFlowAutomation($automation, $account, $conversation, $text, $triggerNode, $keyword);
+
                     return;
                 }
             }
@@ -693,7 +696,7 @@ class InstagramChatbotService
             $adjacencyList = [];
             foreach ($edges as $edge) {
                 $sourceId = $edge['source_node_id'];
-                if (!isset($adjacencyList[$sourceId])) {
+                if (! isset($adjacencyList[$sourceId])) {
                     $adjacencyList[$sourceId] = [];
                 }
                 $adjacencyList[$sourceId][] = [
@@ -748,7 +751,7 @@ class InstagramChatbotService
             }
         }
 
-        if (!$node) {
+        if (! $node) {
             return;
         }
 
@@ -778,8 +781,8 @@ class InstagramChatbotService
 
             case 'action_delay':
                 $delayType = $nodeData['delay_type'] ?? 'seconds';
-                $delayValue = (int)($nodeData['delay_value'] ?? 0);
-                $seconds = match($delayType) {
+                $delayValue = (int) ($nodeData['delay_value'] ?? 0);
+                $seconds = match ($delayType) {
                     'minutes' => $delayValue * 60,
                     'hours' => $delayValue * 3600,
                     default => $delayValue,
@@ -807,7 +810,7 @@ class InstagramChatbotService
             case 'action_send_link':
                 $url = $nodeData['url'] ?? '';
                 $linkMessage = $nodeData['message'] ?? 'Link';
-                $fullMessage = $linkMessage . "\n" . $url;
+                $fullMessage = $linkMessage."\n".$url;
                 $this->sendFlowDM($account, $conversation, $fullMessage, $automation);
                 break;
 
@@ -820,7 +823,7 @@ class InstagramChatbotService
                 // Comment reply handled elsewhere
                 break;
 
-            // Trigger nodes don't execute anything
+                // Trigger nodes don't execute anything
             case 'trigger_keyword_dm':
             case 'trigger_keyword_comment':
             case 'trigger_story_mention':
@@ -861,8 +864,9 @@ class InstagramChatbotService
         InstagramAutomation $automation
     ): void {
         $integration = $account->integration;
-        if (!$integration || !$integration->access_token) {
+        if (! $integration || ! $integration->access_token) {
             Log::warning('Cannot send DM - no access token', ['account_id' => $account->id]);
+
             return;
         }
 
@@ -905,7 +909,7 @@ class InstagramChatbotService
     ): void {
         $automations = $account->automations()
             ->active()
-            ->whereHas('triggers', fn($q) => $q->where('trigger_type', 'keyword_comment'))
+            ->whereHas('triggers', fn ($q) => $q->where('trigger_type', 'keyword_comment'))
             ->with('triggers')
             ->get();
 
@@ -955,7 +959,7 @@ class InstagramChatbotService
 
         try {
             // Get or create conversation for DM actions
-            if (!$conversation) {
+            if (! $conversation) {
                 $conversation = InstagramConversation::firstOrCreate(
                     [
                         'account_id' => $account->id,
@@ -1123,7 +1127,7 @@ class InstagramChatbotService
             'trigger_count' => $automation->trigger_count,
             'conversion_count' => $automation->conversion_count,
             'conversion_rate' => $automation->conversion_rate,
-            'triggers' => $automation->triggers->map(fn($t) => [
+            'triggers' => $automation->triggers->map(fn ($t) => [
                 'id' => $t->id,
                 'trigger_type' => $t->trigger_type,
                 'trigger_type_label' => InstagramAutomationTrigger::getTriggerTypeLabel($t->trigger_type),
@@ -1132,7 +1136,7 @@ class InstagramChatbotService
                 'case_sensitive' => $t->case_sensitive,
                 'exact_match' => $t->exact_match,
             ]),
-            'actions' => $automation->actions->map(fn($a) => [
+            'actions' => $automation->actions->map(fn ($a) => [
                 'id' => $a->id,
                 'order' => $a->order,
                 'action_type' => $a->action_type,

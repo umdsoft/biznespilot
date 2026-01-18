@@ -4,22 +4,24 @@ namespace App\Jobs;
 
 use App\Models\Business;
 use App\Models\ScheduledReport;
-use App\Services\ReportingService;
 use App\Services\NotificationService;
+use App\Services\ReportingService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class GenerateDailyBriefJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 120;
+
     public int $timeout = 600;
 
     public function __construct(
@@ -89,6 +91,7 @@ class GenerateDailyBriefJob implements ShouldQueue
                     'scheduled_report_id' => $scheduledReport->id,
                     'error' => $e->getMessage(),
                 ]);
+
                 continue;
             }
         }

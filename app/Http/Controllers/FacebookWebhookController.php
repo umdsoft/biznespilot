@@ -29,11 +29,12 @@ class FacebookWebhookController extends Controller
             }
 
             // SECURITY: Verify webhook signature (HMAC-SHA256)
-            if (!$this->verifySignature($request)) {
+            if (! $this->verifySignature($request)) {
                 Log::warning('Facebook webhook signature verification failed', [
                     'business_id' => $businessId,
                     'ip' => $request->ip(),
                 ]);
+
                 return response()->json(['error' => 'Invalid signature'], 403);
             }
 
@@ -43,7 +44,7 @@ class FacebookWebhookController extends Controller
             // Validate config
             $config = ChatbotConfig::where('business_id', $business->id)->first();
 
-            if (!$config || !$config->facebook_enabled || !$config->facebook_access_token) {
+            if (! $config || ! $config->facebook_enabled || ! $config->facebook_access_token) {
                 Log::warning('Facebook webhook received but bot not configured', [
                     'business_id' => $businessId,
                 ]);
@@ -64,7 +65,7 @@ class FacebookWebhookController extends Controller
                 foreach ($data['entry'] as $entry) {
                     $result = $this->facebookService->handleWebhook($entry, $business);
 
-                    if (!$result['success']) {
+                    if (! $result['success']) {
                         Log::warning('Facebook webhook processing failed', [
                             'business_id' => $businessId,
                             'error' => $result['error'] ?? 'Unknown error',
@@ -100,6 +101,7 @@ class FacebookWebhookController extends Controller
 
         if ($mode === 'subscribe' && $token === $verifyToken) {
             Log::info('Facebook webhook verified');
+
             return response($challenge, 200);
         }
 
@@ -120,22 +122,24 @@ class FacebookWebhookController extends Controller
     {
         $signature = $request->header('X-Hub-Signature-256');
 
-        if (!$signature) {
+        if (! $signature) {
             // Allow if no signature header (for backwards compatibility during setup)
             // In production, you should return false here
             Log::warning('Facebook webhook received without signature header');
+
             return true; // Change to false in production after setup
         }
 
         $appSecret = config('services.facebook.app_secret');
 
-        if (!$appSecret) {
+        if (! $appSecret) {
             Log::warning('Facebook app secret not configured');
+
             return false;
         }
 
         $payload = $request->getContent();
-        $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, $appSecret);
+        $expectedSignature = 'sha256='.hash_hmac('sha256', $payload, $appSecret);
 
         return hash_equals($expectedSignature, $signature);
     }

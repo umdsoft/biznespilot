@@ -1,17 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\OnboardingController;
+use App\Http\Controllers\Api\IntegrationsController;
 use App\Http\Controllers\Api\KpiConfigurationController;
 use App\Http\Controllers\Api\KpiDailyDataController;
 use App\Http\Controllers\Api\KpiDashboardController;
-use App\Http\Controllers\Api\IntegrationsController;
 use App\Http\Controllers\Api\KpiEntryController;
+use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\TranslationController;
-use App\Http\Controllers\PbxWebhookController;
 use App\Http\Controllers\MoiZvonkiWebhookController;
+use App\Http\Controllers\PbxWebhookController;
 use App\Http\Controllers\UtelWebhookController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------

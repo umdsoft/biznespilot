@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Competitor extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -175,7 +175,10 @@ class Competitor extends Model
     public function getAverageRatingAttribute(): ?float
     {
         $sources = $this->reviewSources()->whereNotNull('current_rating')->get();
-        if ($sources->isEmpty()) return null;
+        if ($sources->isEmpty()) {
+            return null;
+        }
+
         return round($sources->avg('current_rating'), 1);
     }
 
@@ -212,7 +215,7 @@ class Competitor extends Model
         $this->saveQuietly();
 
         // If this competitor has SWOT data, merge it to global with business_id
-        if (!empty($this->swot_data)) {
+        if (! empty($this->swot_data)) {
             $globalCompetitor->mergeSwotData($this->swot_data, $this->business_id);
         }
     }
@@ -223,12 +226,12 @@ class Competitor extends Model
     public function getEffectiveSwotDataAttribute(): array
     {
         // First check local SWOT data
-        if (!empty($this->swot_data)) {
+        if (! empty($this->swot_data)) {
             return $this->swot_data;
         }
 
         // Fall back to global competitor SWOT data
-        if ($this->globalCompetitor && !empty($this->globalCompetitor->swot_data)) {
+        if ($this->globalCompetitor && ! empty($this->globalCompetitor->swot_data)) {
             return $this->globalCompetitor->swot_data;
         }
 

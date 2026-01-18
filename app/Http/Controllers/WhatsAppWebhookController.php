@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
-use App\Services\WhatsAppService;
 use App\Services\WhatsAppAIChatService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookController extends Controller
 {
     protected WhatsAppService $whatsappService;
+
     protected WhatsAppAIChatService $aiChatService;
 
     public function __construct(
@@ -24,8 +25,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Handle WhatsApp webhook (GET for verification, POST for messages)
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse|string
      */
     public function handle(Request $request, Business $business)
@@ -42,7 +41,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Verify webhook (called by WhatsApp during setup)
      *
-     * @param Request $request
      * @return string|\Illuminate\Http\JsonResponse
      */
     protected function verifyWebhook(Request $request)
@@ -60,29 +58,30 @@ class WhatsAppWebhookController extends Controller
 
         if ($verifiedChallenge) {
             Log::info('WhatsApp webhook verified successfully');
+
             return response($verifiedChallenge, 200)
                 ->header('Content-Type', 'text/plain');
         }
 
         Log::warning('WhatsApp webhook verification failed');
+
         return response()->json(['error' => 'Forbidden'], 403);
     }
 
     /**
      * Handle incoming webhook data with AI processing
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     protected function handleIncomingWebhook(Request $request, Business $business)
     {
         // SECURITY: Verify WhatsApp webhook signature (X-Hub-Signature-256)
-        if (!$this->verifySignature($request)) {
+        if (! $this->verifySignature($request)) {
             Log::warning('WhatsApp webhook signature verification failed', [
                 'business_id' => $business->id,
                 'ip' => $request->ip(),
             ]);
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
@@ -94,8 +93,9 @@ class WhatsAppWebhookController extends Controller
         ]);
 
         // Validate payload structure
-        if (!isset($payload['object']) || $payload['object'] !== 'whatsapp_business_account') {
+        if (! isset($payload['object']) || $payload['object'] !== 'whatsapp_business_account') {
             Log::warning('Invalid WhatsApp webhook payload', ['payload' => $payload]);
+
             return response()->json(['status' => 'error', 'message' => 'Invalid payload'], 400);
         }
 
@@ -161,8 +161,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Send test message
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendTestMessage(Request $request, Business $business)
@@ -193,7 +191,7 @@ class WhatsAppWebhookController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -201,8 +199,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Send template message
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendTemplate(Request $request, Business $business)
@@ -237,7 +233,7 @@ class WhatsAppWebhookController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -245,8 +241,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Send interactive button message
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendButtons(Request $request, Business $business)
@@ -285,7 +279,7 @@ class WhatsAppWebhookController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -293,8 +287,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Send media message
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendMedia(Request $request, Business $business)
@@ -331,7 +323,7 @@ class WhatsAppWebhookController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -339,7 +331,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Get webhook info and setup instructions
      *
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function getWebhookInfo(Business $business)
@@ -354,8 +345,8 @@ class WhatsAppWebhookController extends Controller
             'setup_instructions' => [
                 '1. Go to Meta Business Suite > WhatsApp > Configuration',
                 '2. Click "Edit" on Webhooks',
-                '3. Enter Callback URL: ' . $webhookUrl,
-                '4. Enter Verify Token: ' . $verifyToken,
+                '3. Enter Callback URL: '.$webhookUrl,
+                '4. Enter Verify Token: '.$verifyToken,
                 '5. Subscribe to: messages, message_status',
                 '6. Click "Verify and Save"',
             ],
@@ -365,7 +356,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Get AI chatbot configuration
      *
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function getAIConfig(Business $business)
@@ -398,8 +388,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Update AI chatbot configuration
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function updateAIConfig(Request $request, Business $business)
@@ -435,8 +423,6 @@ class WhatsAppWebhookController extends Controller
     /**
      * Save AI templates
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function saveAITemplates(Request $request, Business $business)
@@ -479,22 +465,24 @@ class WhatsAppWebhookController extends Controller
     {
         $signature = $request->header('X-Hub-Signature-256');
 
-        if (!$signature) {
+        if (! $signature) {
             // Allow if no signature header (for backwards compatibility during setup)
             // In production, you should return false here
             Log::warning('WhatsApp webhook received without signature header');
+
             return true; // Change to false in production after setup
         }
 
         $appSecret = config('services.whatsapp.app_secret') ?? config('services.facebook.app_secret');
 
-        if (!$appSecret) {
+        if (! $appSecret) {
             Log::warning('WhatsApp app secret not configured');
+
             return false;
         }
 
         $payload = $request->getContent();
-        $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, $appSecret);
+        $expectedSignature = 'sha256='.hash_hmac('sha256', $payload, $appSecret);
 
         return hash_equals($expectedSignature, $signature);
     }

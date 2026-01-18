@@ -62,6 +62,7 @@ class BusinessSuccessStory extends Model
         if ($this->is_anonymous) {
             return "O'xshash biznes";
         }
+
         return $this->display_name ?? $this->business?->name ?? "O'xshash biznes";
     }
 
@@ -72,7 +73,7 @@ class BusinessSuccessStory extends Model
 
     public function getActionsList(): array
     {
-        if (!$this->actions_taken) {
+        if (! $this->actions_taken) {
             return [];
         }
 

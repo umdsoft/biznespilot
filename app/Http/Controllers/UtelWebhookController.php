@@ -67,10 +67,11 @@ class UtelWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$account) {
+            if (! $account) {
                 Log::warning('UTEL webhook: No active account for business', [
                     'business_id' => $businessId,
                 ]);
+
                 return response()->json(['error' => 'No active UTEL account'], 404);
             }
 
@@ -79,10 +80,11 @@ class UtelWebhookController extends Controller
                 $signature = $request->header('X-Utel-Signature') ?? $request->header('X-Webhook-Signature');
                 if ($signature) {
                     $expectedSignature = hash_hmac('sha256', $request->getContent(), $account->webhook_secret);
-                    if (!hash_equals($expectedSignature, $signature)) {
+                    if (! hash_equals($expectedSignature, $signature)) {
                         Log::warning('UTEL webhook: Invalid signature', [
                             'business_id' => $businessId,
                         ]);
+
                         return response()->json(['error' => 'Invalid signature'], 401);
                     }
                 }

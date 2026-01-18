@@ -135,7 +135,7 @@ class KpiEntryService
             ->whereBetween('date', [$startOfWeek, $endOfWeek])
             ->orderBy('date')
             ->get()
-            ->keyBy(fn($entry) => $entry->date->format('Y-m-d'));
+            ->keyBy(fn ($entry) => $entry->date->format('Y-m-d'));
 
         // Build complete week with empty entries for missing days
         $weekData = [];

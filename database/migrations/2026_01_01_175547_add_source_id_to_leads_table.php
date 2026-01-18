@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::table('leads', function (Blueprint $table) {
             // Add source_id column for foreign key relationship
-            if (!Schema::hasColumn('leads', 'source_id')) {
+            if (! Schema::hasColumn('leads', 'source_id')) {
                 $table->unsignedBigInteger('source_id')->nullable()->after('source');
             }
 
             // Add score column if it doesn't exist
-            if (!Schema::hasColumn('leads', 'score')) {
+            if (! Schema::hasColumn('leads', 'score')) {
                 $table->integer('score')->default(0)->after('estimated_value');
             }
 
             // Add uuid column if it doesn't exist
-            if (!Schema::hasColumn('leads', 'uuid')) {
+            if (! Schema::hasColumn('leads', 'uuid')) {
                 $table->uuid('uuid')->nullable()->after('id');
             }
         });

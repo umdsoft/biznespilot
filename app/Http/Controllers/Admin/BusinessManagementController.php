@@ -4,11 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
-use App\Models\Customer;
-use App\Models\Campaign;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class BusinessManagementController extends Controller
 {
@@ -89,7 +86,7 @@ class BusinessManagementController extends Controller
             ->latest()
             ->limit(5)
             ->get()
-            ->map(fn($customer) => [
+            ->map(fn ($customer) => [
                 'id' => $customer->id,
                 'name' => $customer->name,
                 'phone' => $customer->phone,
@@ -100,7 +97,7 @@ class BusinessManagementController extends Controller
             ->latest()
             ->limit(5)
             ->get()
-            ->map(fn($campaign) => [
+            ->map(fn ($campaign) => [
                 'id' => $campaign->id,
                 'name' => $campaign->name,
                 'type' => $campaign->type,

@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Traits\HasUuid;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class BusinessUser extends Pivot
 {
@@ -13,6 +13,7 @@ class BusinessUser extends Pivot
     protected $table = 'business_user';
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     const DEPARTMENTS = [
@@ -73,7 +74,7 @@ class BusinessUser extends Pivot
      */
     public function isPending(): bool
     {
-        return $this->invited_at && !$this->accepted_at;
+        return $this->invited_at && ! $this->accepted_at;
     }
 
     /**

@@ -14,8 +14,11 @@ class JobPosting extends Model
 
     // Status constants
     public const STATUS_OPEN = 'open';
+
     public const STATUS_CLOSED = 'closed';
+
     public const STATUS_FILLED = 'filled';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
@@ -27,9 +30,13 @@ class JobPosting extends Model
 
     // Employment types
     public const EMPLOYMENT_TYPE_FULL_TIME = 'full_time';
+
     public const EMPLOYMENT_TYPE_PART_TIME = 'part_time';
+
     public const EMPLOYMENT_TYPE_CONTRACT = 'contract';
+
     public const EMPLOYMENT_TYPE_TEMPORARY = 'temporary';
+
     public const EMPLOYMENT_TYPE_INTERNSHIP = 'internship';
 
     public const EMPLOYMENT_TYPES = [
@@ -123,24 +130,25 @@ class JobPosting extends Model
     public function getDepartmentLabelAttribute(): string
     {
         $departments = \App\Models\BusinessUser::DEPARTMENTS;
+
         return $departments[$this->department] ?? $this->department;
     }
 
     public function getSalaryRangeFormattedAttribute(): ?string
     {
-        if (!$this->salary_min && !$this->salary_max) {
+        if (! $this->salary_min && ! $this->salary_max) {
             return null;
         }
 
         if ($this->salary_min && $this->salary_max) {
-            return number_format($this->salary_min, 0, '.', ' ') . ' - ' . number_format($this->salary_max, 0, '.', ' ') . ' UZS';
+            return number_format($this->salary_min, 0, '.', ' ').' - '.number_format($this->salary_max, 0, '.', ' ').' UZS';
         }
 
         if ($this->salary_min) {
-            return 'dan ' . number_format($this->salary_min, 0, '.', ' ') . ' UZS';
+            return 'dan '.number_format($this->salary_min, 0, '.', ' ').' UZS';
         }
 
-        return 'gacha ' . number_format($this->salary_max, 0, '.', ' ') . ' UZS';
+        return 'gacha '.number_format($this->salary_max, 0, '.', ' ').' UZS';
     }
 
     public function getApplicationsCountAttribute(): int
@@ -156,12 +164,12 @@ class JobPosting extends Model
     public function getIsActiveAttribute(): bool
     {
         return $this->status === self::STATUS_OPEN &&
-               (!$this->closing_date || $this->closing_date->isFuture());
+               (! $this->closing_date || $this->closing_date->isFuture());
     }
 
     public function getDaysUntilClosingAttribute(): ?int
     {
-        if (!$this->closing_date) {
+        if (! $this->closing_date) {
             return null;
         }
 

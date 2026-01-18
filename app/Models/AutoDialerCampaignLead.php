@@ -30,17 +30,24 @@ class AutoDialerCampaignLead extends Model
      * Status constants
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_CALLING = 'calling';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_SKIPPED = 'skipped';
 
     /**
      * Result constants
      */
     public const RESULT_ANSWERED = 'answered';
+
     public const RESULT_NO_ANSWER = 'no_answer';
+
     public const RESULT_BUSY = 'busy';
+
     public const RESULT_FAILED = 'failed';
 
     /**
@@ -88,7 +95,7 @@ class AutoDialerCampaignLead extends Model
     {
         return $this->attempts < $maxAttempts
             && in_array($this->status, [self::STATUS_PENDING, self::STATUS_FAILED])
-            && (!$this->next_retry_at || $this->next_retry_at <= now());
+            && (! $this->next_retry_at || $this->next_retry_at <= now());
     }
 
     /**
@@ -118,7 +125,7 @@ class AutoDialerCampaignLead extends Model
     /**
      * Mark as skipped
      */
-    public function skip(string $reason = null): void
+    public function skip(?string $reason = null): void
     {
         $this->update([
             'status' => self::STATUS_SKIPPED,

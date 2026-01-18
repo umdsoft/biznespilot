@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -114,40 +113,67 @@ return new class extends Migration
     {
         if (Schema::hasTable('kpi_daily_actuals')) {
             Schema::table('kpi_daily_actuals', function (Blueprint $table) {
-                try { $table->dropIndex('idx_kpi_business_date_code'); } catch (\Exception $e) {}
-                try { $table->dropIndex('idx_kpi_sync_status'); } catch (\Exception $e) {}
-                try { $table->dropIndex('idx_kpi_source_date'); } catch (\Exception $e) {}
-                try { $table->dropIndex('idx_kpi_overridden_at'); } catch (\Exception $e) {}
+                try {
+                    $table->dropIndex('idx_kpi_business_date_code');
+                } catch (\Exception $e) {
+                }
+                try {
+                    $table->dropIndex('idx_kpi_sync_status');
+                } catch (\Exception $e) {
+                }
+                try {
+                    $table->dropIndex('idx_kpi_source_date');
+                } catch (\Exception $e) {
+                }
+                try {
+                    $table->dropIndex('idx_kpi_overridden_at');
+                } catch (\Exception $e) {
+                }
             });
         }
 
         if (Schema::hasTable('leads')) {
             Schema::table('leads', function (Blueprint $table) {
-                try { $table->dropIndex('idx_leads_status'); } catch (\Exception $e) {}
+                try {
+                    $table->dropIndex('idx_leads_status');
+                } catch (\Exception $e) {
+                }
             });
         }
 
         if (Schema::hasTable('instagram_accounts')) {
             Schema::table('instagram_accounts', function (Blueprint $table) {
-                try { $table->dropIndex('idx_instagram_business_active'); } catch (\Exception $e) {}
+                try {
+                    $table->dropIndex('idx_instagram_business_active');
+                } catch (\Exception $e) {
+                }
             });
         }
 
         if (Schema::hasTable('facebook_pages')) {
             Schema::table('facebook_pages', function (Blueprint $table) {
-                try { $table->dropIndex('idx_facebook_business_active'); } catch (\Exception $e) {}
+                try {
+                    $table->dropIndex('idx_facebook_business_active');
+                } catch (\Exception $e) {
+                }
             });
         }
 
         if (Schema::hasTable('jobs')) {
             Schema::table('jobs', function (Blueprint $table) {
-                try { $table->dropIndex('idx_jobs_queue_reserved'); } catch (\Exception $e) {}
+                try {
+                    $table->dropIndex('idx_jobs_queue_reserved');
+                } catch (\Exception $e) {
+                }
             });
         }
 
         if (Schema::hasTable('failed_jobs')) {
             Schema::table('failed_jobs', function (Blueprint $table) {
-                try { $table->dropIndex('idx_failed_jobs_failed_at'); } catch (\Exception $e) {}
+                try {
+                    $table->dropIndex('idx_failed_jobs_failed_at');
+                } catch (\Exception $e) {
+                }
             });
         }
     }

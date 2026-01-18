@@ -3,9 +3,7 @@
 namespace App\Events;
 
 use App\Models\Notification;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -22,12 +20,12 @@ class NotificationCreated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         $channels = [
-            new PrivateChannel('business.' . $this->notification->business_id),
+            new PrivateChannel('business.'.$this->notification->business_id),
         ];
 
         // Also broadcast to specific user if set
         if ($this->notification->user_id) {
-            $channels[] = new PrivateChannel('user.' . $this->notification->user_id);
+            $channels[] = new PrivateChannel('user.'.$this->notification->user_id);
         }
 
         return $channels;

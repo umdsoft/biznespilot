@@ -39,7 +39,7 @@ trait BelongsToBusiness
     {
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return $query->whereRaw('1 = 0'); // Return empty result if no business in session
         }
 
@@ -64,6 +64,7 @@ trait BelongsToBusiness
     public function belongsToCurrentBusiness(): bool
     {
         $currentBusinessId = session('current_business_id');
+
         return $currentBusinessId && $this->business_id === $currentBusinessId;
     }
 }

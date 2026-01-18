@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompetitorActivity extends Model
 {
-    use SoftDeletes, HasUuid;
+    use HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

@@ -2,7 +2,7 @@
 
 return [
     // Meta
-    'meta_title' => "BiznesPilot - Biznesingiz 60% Samaraliroq Ishlaydi | Marketing, Sotuv, Moliya",
+    'meta_title' => 'BiznesPilot - Biznesingiz 60% Samaraliroq Ishlaydi | Marketing, Sotuv, Moliya',
     'meta_description' => "5 xil dasturdan voz keching. Marketing, Sotuv, Moliya - hammasi bir joyda. 500+ O'zbekiston bizneslari ishonadi. 14 kun bepul sinab ko'ring.",
 
     // Navigation
@@ -35,7 +35,7 @@ return [
 
     // Problem Section (NEW)
     'problem' => [
-        'badge' => "😩 Tanish holat emasmi?",
+        'badge' => '😩 Tanish holat emasmi?',
         'title' => "Ko'p dastur — ko'p bosh og'rig'i",
         'items' => [
             [
@@ -50,23 +50,23 @@ return [
             ],
             [
                 'icon' => '🔄',
-                'title' => "5 xil dastur orasida yugurish",
+                'title' => '5 xil dastur orasida yugurish',
                 'description' => "CRM, buxgalteriya, task manager... har biriga alohida to'lov.",
             ],
             [
                 'icon' => '😴',
-                'title' => "Hisobotlar uchun tunlar",
+                'title' => 'Hisobotlar uchun tunlar',
                 'description' => "Oy oxirida Excel'da qotib qolasiz.",
             ],
         ],
-        'solution_intro' => "Bizda yechim bor 👇",
+        'solution_intro' => 'Bizda yechim bor 👇',
     ],
 
     // Features Section
     'features' => [
         'badge' => '✨ Bitta platforma — cheksiz imkoniyat',
-        'title' => "Hammasi shu yerda. Boshqa hech narsa kerak emas.",
-        'subtitle' => "6 ta modul. 1 ta narx. Cheksiz foydalanish.",
+        'title' => 'Hammasi shu yerda. Boshqa hech narsa kerak emas.',
+        'subtitle' => '6 ta modul. 1 ta narx. Cheksiz foydalanish.',
         'items' => [
             [
                 'title' => '📈 Marketing Automation',
@@ -88,19 +88,19 @@ return [
             ],
             [
                 'title' => '⚡ AI Avtomatlashtirish',
-                'description' => "Takroriy ishlarni AI qiladi. Siz strategiyaga vaqt ajrating.",
+                'description' => 'Takroriy ishlarni AI qiladi. Siz strategiyaga vaqt ajrating.',
                 'icon' => 'calendar',
                 'stat' => '60% vaqt tejash',
             ],
             [
                 'title' => '📊 Real-time Dashboard',
-                'description' => "Biznes holati bitta ekranda. Qaror qabul qilish tezlashadi.",
+                'description' => 'Biznes holati bitta ekranda. Qaror qabul qilish tezlashadi.',
                 'icon' => 'dashboard',
                 'stat' => 'Onlayn nazorat',
             ],
             [
                 'title' => '👥 Jamoa Boshqaruvi',
-                'description' => "Vazifalar, KPI, xodimlar — hammasi shaffof. Kim nima qilayotgani aniq.",
+                'description' => 'Vazifalar, KPI, xodimlar — hammasi shaffof. Kim nima qilayotgani aniq.',
                 'icon' => 'team',
                 'stat' => '2x samaradorlik',
             ],
@@ -110,25 +110,25 @@ return [
     // How It Works Section
     'how_it_works' => [
         'badge' => '⏱️ 10 daqiqada tayyor',
-        'title' => "Bugun boshlang, ertaga natija oling",
+        'title' => 'Bugun boshlang, ertaga natija oling',
         'subtitle' => "Murakkab o'rnatish yo'q. Texnik bilim shart emas.",
         'steps' => [
             [
                 'number' => '01',
                 'title' => "Ro'yxatdan o'ting",
-                'description' => "2 daqiqada akkount oching. Kredit karta kerak emas.",
+                'description' => '2 daqiqada akkount oching. Kredit karta kerak emas.',
                 'time' => '2 daqiqa',
             ],
             [
                 'number' => '02',
                 'title' => 'AI sozlab beradi',
-                'description' => "Biznesingiz haqida ayting — AI tizimni avtomatik sozlaydi.",
+                'description' => 'Biznesingiz haqida ayting — AI tizimni avtomatik sozlaydi.',
                 'time' => '5 daqiqa',
             ],
             [
                 'number' => '03',
                 'title' => 'Ishlang va o\'sing',
-                'description' => "Bitta dashboarddan hamma narsani boshqaring. Natijalarni kuzating.",
+                'description' => 'Bitta dashboarddan hamma narsani boshqaring. Natijalarni kuzating.',
                 'time' => '♾️ Cheksiz',
             ],
         ],
@@ -137,16 +137,16 @@ return [
 
     // Benefits Section
     'benefits' => [
-        'badge' => "💎 Nega aynan BiznesPilot?",
+        'badge' => '💎 Nega aynan BiznesPilot?',
         'title' => "Raqobatchilardan bir qadam oldinda bo'ling",
         'subtitle' => "Boshqalar hali Excel'da qotib turganida, siz allaqachon o'sib bo'lasiz",
         'items' => [
             [
                 'title' => "5 ta dastur o'rniga 1 ta",
-                'description' => "CRM, buxgalteriya, task manager, analytics, automation — hammasi BiznesPilotda. Oyiga $500 tejaysiz.",
+                'description' => 'CRM, buxgalteriya, task manager, analytics, automation — hammasi BiznesPilotda. Oyiga $500 tejaysiz.',
                 'icon' => 'clock',
-                'before' => "Oldin: 5 ta dastur, $500/oy",
-                'after' => "Hozir: 1 ta platforma, 80% arzon",
+                'before' => 'Oldin: 5 ta dastur, $500/oy',
+                'after' => 'Hozir: 1 ta platforma, 80% arzon',
             ],
             [
                 'title' => 'Kun davomida 4 soat tejang',
@@ -167,14 +167,14 @@ return [
                 'description' => "Sun'iy intellekt tendentsiyalarni ko'radi, xatolarni topadi, tavsiyalar beradi. 24/7 ishlaydi.",
                 'icon' => 'target',
                 'before' => "Oldin: Qo'lda tahlil",
-                'after' => "Hozir: AI aqlli tavsiyalar",
+                'after' => 'Hozir: AI aqlli tavsiyalar',
             ],
         ],
     ],
 
     // Testimonials Section
     'testimonials' => [
-        'badge' => "⭐ Haqiqiy natijalar",
+        'badge' => '⭐ Haqiqiy natijalar',
         'title' => "Ular allaqachon o'sishni his qilmoqda",
         'subtitle' => 'Real bizneslar, real raqamlar, real muvaffaqiyat',
         'items' => [
@@ -213,12 +213,12 @@ return [
 
     // FAQ Section
     'faq' => [
-        'badge' => "❓ Savollar va javoblar",
+        'badge' => '❓ Savollar va javoblar',
         'title' => 'Hamma savollaringizga javob',
         'subtitle' => "Tushunmagan narsa bo'lsa — yozing, javob beramiz",
         'items' => [
             [
-                'question' => "Nima uchun BiznesPilot boshqa dasturlardan yaxshiroq?",
+                'question' => 'Nima uchun BiznesPilot boshqa dasturlardan yaxshiroq?',
                 'answer' => "Oddiy: Boshqa tizimlar faqat bitta ishni qiladi — CRM yoki buxgalteriya yoki task manager. BiznesPilot HAMMASINI qiladi. Bitta narxga Marketing, Sotuv, Moliya, Jamoa boshqaruvi. Bundan tashqari O'zbekiston uchun maxsus — so'm valyutasi, mahalliy integratsiyalar, o'zbek/rus tillar.",
             ],
             [
@@ -230,7 +230,7 @@ return [
                 'answer' => "100% xavfsiz. Serverlar O'zbekistonda. Bank darajasidagi shifrlash. Har kuni avtomatik backup. GDPR talablariga mos. Siz xohlagan vaqtda ma'lumotlaringizni yuklab olishingiz mumkin.",
             ],
             [
-                'question' => "Qancha turadi?",
+                'question' => 'Qancha turadi?',
                 'answer' => "14 kunlik to'liq versiyani BEPUL sinab ko'ring. Keyin — biznesingiz hajmiga qarab tariflar. 5 xil dastur o'rniga bitta to'lov — oyiga 80% gacha tejaysiz. Aniq narxlar uchun demo so'rang.",
             ],
             [
@@ -242,21 +242,21 @@ return [
                 'answer' => "14 kun ichida fikirni o'zgartirsangiz — hech narsa to'lamaysiz. So'roq yo'q, protsedura yo'q. Faqat bekor qiling. Lekin 95% mijozlarimiz qolishadi 😉",
             ],
         ],
-        'still_questions' => "Hali savollaringiz bormi?",
-        'contact_us' => "Bizga yozing →",
+        'still_questions' => 'Hali savollaringiz bormi?',
+        'contact_us' => 'Bizga yozing →',
     ],
 
     // CTA Section
     'cta' => [
-        'badge' => "🎁 Maxsus taklif",
-        'title' => "Bugun boshlang — 14 kun BEPUL",
+        'badge' => '🎁 Maxsus taklif',
+        'title' => 'Bugun boshlang — 14 kun BEPUL',
         'subtitle' => "Kredit karta kerak emas. Majburiyat yo'q. Risk yo'q.",
         'button' => 'Hoziroq bepul boshlash →',
         'note' => "⏰ 500+ biznes allaqachon foydalanmoqda. Siz ham qo'shiling!",
         'features' => [
             "✓ 14 kun to'liq versiya",
-            "✓ Barcha modullar ochiq",
-            "✓ Cheksiz foydalanuvchilar",
+            '✓ Barcha modullar ochiq',
+            '✓ Cheksiz foydalanuvchilar',
             "✓ Bepul yordam va o'rnatish",
         ],
         'urgency' => "🔥 Bu oy oxirigacha ro'yxatdan o'tganlar uchun +30 kun bonus!",
@@ -288,6 +288,6 @@ return [
             'title' => 'Ijtimoiy tarmoqlar',
         ],
         'copyright' => "© :year BiznesPilot. O'zbekistonda ishlab chiqilgan ❤️",
-        'support' => "24/7 yordam: +998 XX XXX XX XX",
+        'support' => '24/7 yordam: +998 XX XXX XX XX',
     ],
 ];

@@ -2,11 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Business;
+use App\Models\BusinessUser;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\BusinessUser;
-use App\Models\Business;
 
 class EnsureHasBusiness
 {
@@ -18,12 +18,12 @@ class EnsureHasBusiness
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
         // Skip redirects for non-GET requests
-        if (!$request->isMethod('GET')) {
+        if (! $request->isMethod('GET')) {
             return $next($request);
         }
 
@@ -49,7 +49,7 @@ class EnsureHasBusiness
         }
 
         // Handle users with roles but no business (e.g., manually assigned operators/hr without team membership)
-        if (!$userContext['has_business']) {
+        if (! $userContext['has_business']) {
             // Check if user has a specific role that grants access to a panel
             $roleRedirect = $this->getRedirectForUserRole($user);
 
@@ -194,7 +194,7 @@ class EnsureHasBusiness
     {
         $currentBusinessId = session('current_business_id');
 
-        if (!$currentBusinessId || $currentBusinessId !== $context['business_id']) {
+        if (! $currentBusinessId || $currentBusinessId !== $context['business_id']) {
             session(['current_business_id' => $context['business_id']]);
         }
     }
@@ -231,6 +231,7 @@ class EnsureHasBusiness
                 if (request()->routeIs($routeName)) {
                     return null; // Will be handled by userHasRoleAndOnCorrectRoute
                 }
+
                 return redirect()->route($routeName);
             }
         }
@@ -261,5 +262,4 @@ class EnsureHasBusiness
 
         return false;
     }
-
 }

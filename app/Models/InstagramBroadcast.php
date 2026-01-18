@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramBroadcast extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'account_id',
         'name',
@@ -37,9 +38,13 @@ class InstagramBroadcast extends Model
 
     // Status constants
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_SENDING = 'sending';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
 
     public function instagramAccount(): BelongsTo
@@ -122,6 +127,7 @@ class InstagramBroadcast extends Model
         if ($this->total_recipients === 0) {
             return 0;
         }
+
         return round(($this->sent_count / $this->total_recipients) * 100, 2);
     }
 
@@ -130,6 +136,7 @@ class InstagramBroadcast extends Model
         if ($this->sent_count === 0) {
             return 0;
         }
+
         return round(($this->opened_count / $this->sent_count) * 100, 2);
     }
 }

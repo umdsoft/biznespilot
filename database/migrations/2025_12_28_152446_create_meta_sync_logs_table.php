@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('meta_sync_logs')) {
+        if (! Schema::hasTable('meta_sync_logs')) {
             Schema::create('meta_sync_logs', function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid('business_id');

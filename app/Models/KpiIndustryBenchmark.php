@@ -127,7 +127,7 @@ class KpiIndustryBenchmark extends Model
      */
     public function getSeasonalizedValue(int $month): float
     {
-        if (!is_array($this->seasonality_factors) || empty($this->seasonality_factors)) {
+        if (! is_array($this->seasonality_factors) || empty($this->seasonality_factors)) {
             return (float) $this->benchmark_value;
         }
 
@@ -203,7 +203,7 @@ class KpiIndustryBenchmark extends Model
      */
     public function isRecent(): bool
     {
-        if (!$this->last_updated) {
+        if (! $this->last_updated) {
             return false;
         }
 
@@ -215,7 +215,7 @@ class KpiIndustryBenchmark extends Model
      */
     public function getConfidenceDescription(): string
     {
-        return match($this->confidence_level) {
+        return match ($this->confidence_level) {
             'high' => 'Yuqori ishonch - katta sample size, tasdiqlangan',
             'medium' => 'O\'rtacha ishonch - yetarli sample size',
             'low' => 'Past ishonch - kichik sample size yoki eski ma\'lumot',

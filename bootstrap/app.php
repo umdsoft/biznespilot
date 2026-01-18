@@ -1,26 +1,25 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CheckFeatureLimit;
+use App\Http\Middleware\CheckSubscription;
+use App\Http\Middleware\EnsureBusinessAccess;
+use App\Http\Middleware\EnsureHasBusiness;
+use App\Http\Middleware\FinanceMiddleware;
+use App\Http\Middleware\ForceHttps;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\HRMiddleware;
+use App\Http\Middleware\MarketingMiddleware;
+use App\Http\Middleware\OperatorMiddleware;
+use App\Http\Middleware\SalesHeadMiddleware;
+use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SetBusinessContext;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Request;
-use App\Http\Middleware\EnsureBusinessAccess;
-use App\Http\Middleware\EnsureHasBusiness;
-use App\Http\Middleware\CheckSubscription;
-use App\Http\Middleware\CheckFeatureLimit;
-use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\SetBusinessContext;
-use App\Http\Middleware\AdminMiddleware;
-use App\Http\Middleware\SalesHeadMiddleware;
-use App\Http\Middleware\MarketingMiddleware;
-use App\Http\Middleware\FinanceMiddleware;
-use App\Http\Middleware\HRMiddleware;
-use App\Http\Middleware\OperatorMiddleware;
-use App\Http\Middleware\SecurityHeaders;
-use App\Http\Middleware\ForceHttps;
-use App\Http\Middleware\TrustProxies;
+use Illuminate\Support\Facades\RateLimiter;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -150,7 +149,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ];
 
                 // Add debug info in non-production
-                if (!app()->environment('production')) {
+                if (! app()->environment('production')) {
                     $response['debug'] = [
                         'exception' => get_class($e),
                         'file' => $e->getFile(),
@@ -191,7 +190,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Throttle exception reporting to prevent log flooding
         $exceptions->throttle(function (\Throwable $e) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by(
-                get_class($e) . '|' . $e->getFile() . '|' . $e->getLine()
+                get_class($e).'|'.$e->getFile().'|'.$e->getLine()
             );
         });
     })->create();

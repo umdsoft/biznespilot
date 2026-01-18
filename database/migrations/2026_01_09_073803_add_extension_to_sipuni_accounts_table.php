@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('sipuni_accounts') && !Schema::hasColumn('sipuni_accounts', 'extension')) {
+        if (Schema::hasTable('sipuni_accounts') && ! Schema::hasColumn('sipuni_accounts', 'extension')) {
             Schema::table('sipuni_accounts', function (Blueprint $table) {
                 $table->string('extension')->nullable()->after('caller_id');
             });

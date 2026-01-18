@@ -213,7 +213,7 @@ class ActivityLogger
      */
     protected static function generateDescription(string $action, ?Model $subject): string
     {
-        if (!$subject) {
+        if (! $subject) {
             return ucfirst($action);
         }
 

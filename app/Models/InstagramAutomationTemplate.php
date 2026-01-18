@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class InstagramAutomationTemplate extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'name',
         'description',

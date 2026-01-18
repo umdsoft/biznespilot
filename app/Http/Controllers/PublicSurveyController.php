@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CustdevSurvey;
-use App\Models\CustdevResponse;
 use App\Models\CustdevAnswer;
+use App\Models\CustdevResponse;
+use App\Models\CustdevSurvey;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Jenssegers\Agent\Agent;
@@ -22,12 +22,12 @@ class PublicSurveyController extends Controller
             }, 'business:id,name,logo'])
             ->first();
 
-        if (!$survey) {
+        if (! $survey) {
             abort(404, 'So\'rovnoma topilmadi');
         }
 
         // Check if survey is active
-        if (!$survey->isActive()) {
+        if (! $survey->isActive()) {
             return Inertia::render('Public/SurveyInactive', [
                 'survey' => [
                     'title' => $survey->title,
@@ -72,14 +72,14 @@ class PublicSurveyController extends Controller
         try {
             $survey = CustdevSurvey::where('slug', $slug)->firstOrFail();
 
-            if (!$survey->isActive()) {
+            if (! $survey->isActive()) {
                 return response()->json(['error' => 'Survey is not active'], 400);
             }
 
             // Detect device type
             $deviceType = 'desktop';
             try {
-                $agent = new Agent();
+                $agent = new Agent;
                 if ($agent->isMobile()) {
                     $deviceType = 'mobile';
                 } elseif ($agent->isTablet()) {

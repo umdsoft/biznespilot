@@ -183,9 +183,9 @@ class SalesMetrics extends Model
      */
     public function hasData(): bool
     {
-        return !empty($this->monthly_lead_volume) ||
-               !empty($this->lead_sources) ||
-               !empty($this->monthly_sales_volume);
+        return ! empty($this->monthly_lead_volume) ||
+               ! empty($this->lead_sources) ||
+               ! empty($this->monthly_sales_volume);
     }
 
     /**
@@ -207,7 +207,7 @@ class SalesMetrics extends Model
         $filled = 0;
         foreach ($fields as $field) {
             $value = $this->$field;
-            if (!empty($value) && (!is_array($value) || count($value) > 0)) {
+            if (! empty($value) && (! is_array($value) || count($value) > 0)) {
                 $filled++;
             }
         }

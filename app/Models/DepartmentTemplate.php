@@ -66,10 +66,10 @@ class DepartmentTemplate extends Model
     {
         return $query->where(function ($q) use ($businessTypeId) {
             $q->where('type', 'static')
-              ->orWhere(function ($q2) use ($businessTypeId) {
-                  $q2->where('type', 'dynamic')
-                     ->where('business_type_id', $businessTypeId);
-              });
+                ->orWhere(function ($q2) use ($businessTypeId) {
+                    $q2->where('type', 'dynamic')
+                        ->where('business_type_id', $businessTypeId);
+                });
         });
     }
 
@@ -78,6 +78,7 @@ class DepartmentTemplate extends Model
     public function getNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $this->{"name_{$locale}"} ?? $this->name_uz;
     }
 

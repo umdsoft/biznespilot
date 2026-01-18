@@ -4,19 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
-use App\Models\InstagramAccount;
 use App\Models\FacebookPage;
+use App\Models\GoogleAdsAccount;
+use App\Models\GoogleAnalyticsAccount;
+use App\Models\InstagramAccount;
+use App\Models\PosSystem;
 use App\Models\TelegramBot;
 use App\Models\WhatsAppAccount;
-use App\Models\PosSystem;
-use App\Models\GoogleAnalyticsAccount;
-use App\Models\YandexMetricaAccount;
-use App\Models\GoogleAdsAccount;
 use App\Models\YandexDirectAccount;
+use App\Models\YandexMetricaAccount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class IntegrationsController extends Controller
 {
@@ -103,7 +102,7 @@ class IntegrationsController extends Controller
                     ], 400);
             }
 
-            Log::info("Integration disconnected", [
+            Log::info('Integration disconnected', [
                 'business_id' => $businessId,
                 'integration' => $integrationId,
             ]);
@@ -113,7 +112,7 @@ class IntegrationsController extends Controller
                 'message' => 'Integration disconnected successfully',
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to disconnect integration", [
+            Log::error('Failed to disconnect integration', [
                 'business_id' => $businessId,
                 'integration' => $integrationId,
                 'error' => $e->getMessage(),
@@ -176,7 +175,7 @@ class IntegrationsController extends Controller
                     ], 400);
             }
 
-            Log::info("Integration synced", [
+            Log::info('Integration synced', [
                 'business_id' => $businessId,
                 'integration' => $integrationId,
                 'result' => $syncResult,
@@ -188,7 +187,7 @@ class IntegrationsController extends Controller
                 'data' => $syncResult,
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to sync integration", [
+            Log::error('Failed to sync integration', [
                 'business_id' => $businessId,
                 'integration' => $integrationId,
                 'error' => $e->getMessage(),
@@ -209,7 +208,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -225,7 +224,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Followers', 'value' => $account->followers_count ?? 0],
                 ['label' => 'Posts', 'value' => $account->posts_count ?? 0],
-                ['label' => 'Engagement', 'value' => $account->engagement_rate ? round($account->engagement_rate, 1) . '%' : '0%'],
+                ['label' => 'Engagement', 'value' => $account->engagement_rate ? round($account->engagement_rate, 1).'%' : '0%'],
             ],
         ];
     }
@@ -267,7 +266,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$page) {
+        if (! $page) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -321,7 +320,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$bot) {
+        if (! $bot) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -375,7 +374,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -391,7 +390,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Contacts', 'value' => $account->total_contacts ?? 0],
                 ['label' => 'Messages', 'value' => $account->total_messages ?? 0],
-                ['label' => 'Delivered', 'value' => $account->delivered_rate ? round($account->delivered_rate, 1) . '%' : '0%'],
+                ['label' => 'Delivered', 'value' => $account->delivered_rate ? round($account->delivered_rate, 1).'%' : '0%'],
             ],
         ];
     }
@@ -429,7 +428,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$pos) {
+        if (! $pos) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -445,7 +444,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Sales', 'value' => $pos->total_sales ?? 0],
                 ['label' => 'Transactions', 'value' => $pos->total_transactions ?? 0],
-                ['label' => 'Revenue', 'value' => $pos->total_revenue ? number_format($pos->total_revenue) . ' so\'m' : '0'],
+                ['label' => 'Revenue', 'value' => $pos->total_revenue ? number_format($pos->total_revenue).' so\'m' : '0'],
             ],
         ];
     }
@@ -483,7 +482,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -500,7 +499,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Users', 'value' => $account->total_users ?? 0],
                 ['label' => 'Sessions', 'value' => $account->sessions ?? 0],
-                ['label' => 'Conv. Rate', 'value' => $account->conversion_rate ? round($account->conversion_rate, 1) . '%' : '0%'],
+                ['label' => 'Conv. Rate', 'value' => $account->conversion_rate ? round($account->conversion_rate, 1).'%' : '0%'],
             ],
         ];
     }
@@ -542,7 +541,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -559,7 +558,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Visitors', 'value' => $account->visitors ?? 0],
                 ['label' => 'Visits', 'value' => $account->visits ?? 0],
-                ['label' => 'Conv. Rate', 'value' => $account->conversion_rate ? round($account->conversion_rate, 1) . '%' : '0%'],
+                ['label' => 'Conv. Rate', 'value' => $account->conversion_rate ? round($account->conversion_rate, 1).'%' : '0%'],
             ],
         ];
     }
@@ -601,7 +600,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -617,7 +616,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Campaigns', 'value' => $account->active_campaigns ?? 0],
                 ['label' => 'Clicks', 'value' => $account->clicks ?? 0],
-                ['label' => 'ROAS', 'value' => $account->roas ? round($account->roas, 2) . 'x' : '0x'],
+                ['label' => 'ROAS', 'value' => $account->roas ? round($account->roas, 2).'x' : '0x'],
             ],
         ];
     }
@@ -660,7 +659,7 @@ class IntegrationsController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return [
                 'isConnected' => false,
                 'isActive' => false,
@@ -676,7 +675,7 @@ class IntegrationsController extends Controller
             'stats' => [
                 ['label' => 'Campaigns', 'value' => $account->active_campaigns ?? 0],
                 ['label' => 'Clicks', 'value' => $account->clicks ?? 0],
-                ['label' => 'ROI', 'value' => $account->roi ? round($account->roi, 1) . '%' : '0%'],
+                ['label' => 'ROI', 'value' => $account->roi ? round($account->roi, 1).'%' : '0%'],
             ],
         ];
     }

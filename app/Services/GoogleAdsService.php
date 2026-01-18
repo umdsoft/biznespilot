@@ -18,24 +18,24 @@ class GoogleAdsService
     /**
      * Google Ads API base URL
      */
-    private const API_BASE_URL = 'https://googleads.googleapis.com/' . self::API_VERSION;
+    private const API_BASE_URL = 'https://googleads.googleapis.com/'.self::API_VERSION;
 
     /**
      * Fetch and store Google Ads metrics for a channel
      *
-     * @param MarketingChannel $channel
-     * @param Carbon|null $date
      * @return array Array of GoogleAdsMetric instances (one per campaign)
      */
     public function syncMetrics(MarketingChannel $channel, ?Carbon $date = null): array
     {
         if ($channel->type !== 'google_ads') {
             Log::error('Channel is not Google Ads type', ['channel_id' => $channel->id]);
+
             return [];
         }
 
-        if (!$channel->access_token) {
+        if (! $channel->access_token) {
             Log::error('Google Ads channel missing access token', ['channel_id' => $channel->id]);
+
             return [];
         }
 
@@ -106,17 +106,13 @@ class GoogleAdsService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return [];
         }
     }
 
     /**
      * Fetch campaign metrics using Google Ads API
-     *
-     * @param string $accessToken
-     * @param string $customerId
-     * @param Carbon $date
-     * @return array
      */
     private function fetchCampaignMetrics(string $accessToken, string $customerId, Carbon $date): array
     {
@@ -152,18 +148,19 @@ class GoogleAdsService
             ";
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer '.$accessToken,
                 'developer-token' => config('services.google_ads.developer_token'),
                 'login-customer-id' => $customerId,
-            ])->post(self::API_BASE_URL . "/customers/{$customerId}/googleAds:searchStream", [
+            ])->post(self::API_BASE_URL."/customers/{$customerId}/googleAds:searchStream", [
                 'query' => $query,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Google Ads API request failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return [];
             }
 
@@ -171,7 +168,7 @@ class GoogleAdsService
             $campaigns = [];
 
             foreach ($results as $result) {
-                if (!isset($result['results'])) {
+                if (! isset($result['results'])) {
                     continue;
                 }
 
@@ -235,16 +232,13 @@ class GoogleAdsService
             Log::error('Failed to fetch Google Ads campaign metrics', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
 
     /**
      * Get account hierarchy (customer accounts)
-     *
-     * @param string $accessToken
-     * @param string $managerId
-     * @return array
      */
     public function getCustomerAccounts(string $accessToken, string $managerId): array
     {
@@ -260,14 +254,14 @@ class GoogleAdsService
             ";
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer '.$accessToken,
                 'developer-token' => config('services.google_ads.developer_token'),
                 'login-customer-id' => $managerId,
-            ])->post(self::API_BASE_URL . "/customers/{$managerId}/googleAds:search", [
+            ])->post(self::API_BASE_URL."/customers/{$managerId}/googleAds:search", [
                 'query' => $query,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [];
             }
 
@@ -290,15 +284,13 @@ class GoogleAdsService
             Log::error('Failed to fetch Google Ads customer accounts', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
 
     /**
      * Refresh OAuth2 access token
-     *
-     * @param string $refreshToken
-     * @return string|null
      */
     public function refreshAccessToken(string $refreshToken): ?string
     {
@@ -310,10 +302,11 @@ class GoogleAdsService
                 'grant_type' => 'refresh_token',
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Failed to refresh Google Ads token', [
                     'response' => $response->body(),
                 ]);
+
                 return null;
             }
 
@@ -323,16 +316,13 @@ class GoogleAdsService
             Log::error('Failed to refresh Google Ads access token', [
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Get campaign list
-     *
-     * @param string $accessToken
-     * @param string $customerId
-     * @return array
      */
     public function getCampaigns(string $accessToken, string $customerId): array
     {
@@ -348,14 +338,14 @@ class GoogleAdsService
             ";
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer '.$accessToken,
                 'developer-token' => config('services.google_ads.developer_token'),
                 'login-customer-id' => $customerId,
-            ])->post(self::API_BASE_URL . "/customers/{$customerId}/googleAds:search", [
+            ])->post(self::API_BASE_URL."/customers/{$customerId}/googleAds:search", [
                 'query' => $query,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [];
             }
 
@@ -378,27 +368,24 @@ class GoogleAdsService
             Log::error('Failed to fetch Google Ads campaigns', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
 
     /**
      * Validate Google Ads API credentials
-     *
-     * @param string $accessToken
-     * @param string $customerId
-     * @return bool
      */
     public function validateCredentials(string $accessToken, string $customerId): bool
     {
         try {
-            $query = "SELECT customer.id FROM customer LIMIT 1";
+            $query = 'SELECT customer.id FROM customer LIMIT 1';
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer '.$accessToken,
                 'developer-token' => config('services.google_ads.developer_token'),
                 'login-customer-id' => $customerId,
-            ])->post(self::API_BASE_URL . "/customers/{$customerId}/googleAds:search", [
+            ])->post(self::API_BASE_URL."/customers/{$customerId}/googleAds:search", [
                 'query' => $query,
             ]);
 
@@ -408,6 +395,7 @@ class GoogleAdsService
             Log::error('Failed to validate Google Ads credentials', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -415,9 +403,6 @@ class GoogleAdsService
     /**
      * Sync metrics for date range
      *
-     * @param MarketingChannel $channel
-     * @param Carbon $startDate
-     * @param Carbon $endDate
      * @return int Total metrics synced
      */
     public function syncMetricsRange(MarketingChannel $channel, Carbon $startDate, Carbon $endDate): int
@@ -436,10 +421,6 @@ class GoogleAdsService
 
     /**
      * Get conversion actions
-     *
-     * @param string $accessToken
-     * @param string $customerId
-     * @return array
      */
     public function getConversionActions(string $accessToken, string $customerId): array
     {
@@ -455,14 +436,14 @@ class GoogleAdsService
             ";
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer '.$accessToken,
                 'developer-token' => config('services.google_ads.developer_token'),
                 'login-customer-id' => $customerId,
-            ])->post(self::API_BASE_URL . "/customers/{$customerId}/googleAds:search", [
+            ])->post(self::API_BASE_URL."/customers/{$customerId}/googleAds:search", [
                 'query' => $query,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [];
             }
 
@@ -484,6 +465,7 @@ class GoogleAdsService
             Log::error('Failed to fetch Google Ads conversion actions', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }

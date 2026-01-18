@@ -10,7 +10,6 @@ use App\Services\ClickService;
 use App\Services\PaymeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PaymentController extends Controller
@@ -31,7 +30,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -50,7 +49,7 @@ class PaymentController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
-            ->map(fn($t) => [
+            ->map(fn ($t) => [
                 'id' => $t->id,
                 'order_id' => $t->order_id,
                 'amount' => $t->amount,
@@ -117,7 +116,7 @@ class PaymentController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -146,7 +145,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -171,7 +170,7 @@ class PaymentController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -201,7 +200,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -227,7 +226,7 @@ class PaymentController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -241,9 +240,9 @@ class PaymentController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return response()->json([
-                'error' => ucfirst($validated['provider']) . ' tizimi sozlanmagan',
+                'error' => ucfirst($validated['provider']).' tizimi sozlanmagan',
             ], 400);
         }
 
@@ -289,7 +288,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -318,7 +317,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -329,7 +328,7 @@ class PaymentController extends Controller
         $transactions = PaymentTransaction::where('lead_id', $lead->id)
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($t) => [
+            ->map(fn ($t) => [
                 'id' => $t->id,
                 'order_id' => $t->order_id,
                 'amount' => $t->amount,
@@ -353,7 +352,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -361,7 +360,7 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Ruxsat berilmagan'], 403);
         }
 
-        if (!$transaction->canBeCancelled()) {
+        if (! $transaction->canBeCancelled()) {
             return response()->json(['error' => 'Bu to\'lovni bekor qilib bo\'lmaydi'], 400);
         }
 
@@ -382,7 +381,7 @@ class PaymentController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -414,7 +413,7 @@ class PaymentController extends Controller
 
         $transactions = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
-        $transactions->getCollection()->transform(fn($t) => [
+        $transactions->getCollection()->transform(fn ($t) => [
             'id' => $t->id,
             'order_id' => $t->order_id,
             'amount' => $t->amount,
@@ -476,7 +475,7 @@ class PaymentController extends Controller
 
         $transaction = PaymentTransaction::where('order_id', $orderId)->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return redirect()->route('business.index')
                 ->with('error', 'To\'lov topilmadi');
         }

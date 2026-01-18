@@ -58,19 +58,27 @@ class ReportSchedule extends Model
 
     // Frequency constants
     public const FREQUENCY_DAILY = 'daily';
+
     public const FREQUENCY_WEEKLY = 'weekly';
+
     public const FREQUENCY_MONTHLY = 'monthly';
 
     // Report type constants
     public const TYPE_SUMMARY = 'summary';
+
     public const TYPE_DETAILED = 'detailed';
+
     public const TYPE_EXECUTIVE = 'executive';
+
     public const TYPE_CUSTOM = 'custom';
 
     // Period constants
     public const PERIOD_DAILY = 'daily';
+
     public const PERIOD_WEEKLY = 'weekly';
+
     public const PERIOD_MONTHLY = 'monthly';
+
     public const PERIOD_QUARTERLY = 'quarterly';
 
     // Relationships

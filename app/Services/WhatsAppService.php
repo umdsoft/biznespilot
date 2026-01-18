@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\Business;
-use App\Models\Customer;
 use App\Models\ChatbotConversation;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -22,8 +22,11 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppService
 {
     protected string $apiUrl;
+
     protected string $apiVersion;
+
     protected ?string $phoneNumberId;
+
     protected ?string $accessToken;
 
     public function __construct()
@@ -37,9 +40,8 @@ class WhatsAppService
     /**
      * Send text message
      *
-     * @param string $to Phone number in international format (e.g., +998901234567)
-     * @param string $message Text message
-     * @return array|null
+     * @param  string  $to  Phone number in international format (e.g., +998901234567)
+     * @param  string  $message  Text message
      */
     public function sendTextMessage(string $to, string $message): ?array
     {
@@ -57,12 +59,6 @@ class WhatsAppService
 
     /**
      * Send template message
-     *
-     * @param string $to
-     * @param string $templateName
-     * @param string $languageCode
-     * @param array $components
-     * @return array|null
      */
     public function sendTemplateMessage(
         string $to,
@@ -89,12 +85,7 @@ class WhatsAppService
     /**
      * Send interactive button message
      *
-     * @param string $to
-     * @param string $bodyText
-     * @param array $buttons [[id, title], ...]
-     * @param string|null $headerText
-     * @param string|null $footerText
-     * @return array|null
+     * @param  array  $buttons  [[id, title], ...]
      */
     public function sendButtonMessage(
         string $to,
@@ -140,13 +131,7 @@ class WhatsAppService
     /**
      * Send interactive list message
      *
-     * @param string $to
-     * @param string $bodyText
-     * @param string $buttonText
-     * @param array $sections [[title, rows[[id, title, description]]]]
-     * @param string|null $headerText
-     * @param string|null $footerText
-     * @return array|null
+     * @param  array  $sections  [[title, rows[[id, title, description]]]]
      */
     public function sendListMessage(
         string $to,
@@ -186,12 +171,9 @@ class WhatsAppService
     /**
      * Send media message (image, video, document)
      *
-     * @param string $to
-     * @param string $mediaType image|video|document|audio
-     * @param string $mediaUrl URL or Media ID
-     * @param string|null $caption
-     * @param string|null $filename For documents
-     * @return array|null
+     * @param  string  $mediaType  image|video|document|audio
+     * @param  string  $mediaUrl  URL or Media ID
+     * @param  string|null  $filename  For documents
      */
     public function sendMediaMessage(
         string $to,
@@ -224,9 +206,6 @@ class WhatsAppService
 
     /**
      * Mark message as read
-     *
-     * @param string $messageId
-     * @return array|null
      */
     public function markAsRead(string $messageId): ?array
     {
@@ -241,15 +220,11 @@ class WhatsAppService
 
     /**
      * Handle incoming webhook
-     *
-     * @param array $payload
-     * @param Business $business
-     * @return bool
      */
     public function handleWebhook(array $payload, Business $business): bool
     {
         try {
-            if (!isset($payload['entry'][0]['changes'][0]['value'])) {
+            if (! isset($payload['entry'][0]['changes'][0]['value'])) {
                 return false;
             }
 
@@ -271,20 +246,17 @@ class WhatsAppService
 
             return true;
         } catch (\Exception $e) {
-            Log::error('WhatsApp webhook error: ' . $e->getMessage(), [
+            Log::error('WhatsApp webhook error: '.$e->getMessage(), [
                 'payload' => $payload,
                 'business_id' => $business->id,
             ]);
+
             return false;
         }
     }
 
     /**
      * Process incoming message
-     *
-     * @param array $message
-     * @param array $contact
-     * @param Business $business
      */
     protected function processIncomingMessage(array $message, array $contact, Business $business): void
     {
@@ -335,9 +307,6 @@ class WhatsAppService
 
     /**
      * Process status update (sent, delivered, read)
-     *
-     * @param array $status
-     * @param Business $business
      */
     protected function processStatusUpdate(array $status, Business $business): void
     {
@@ -351,9 +320,6 @@ class WhatsAppService
 
     /**
      * Extract text from message based on type
-     *
-     * @param array $message
-     * @return string
      */
     protected function extractMessageText(array $message): string
     {
@@ -382,11 +348,6 @@ class WhatsAppService
 
     /**
      * Get or create customer from WhatsApp contact
-     *
-     * @param string $phone
-     * @param array $contact
-     * @param Business $business
-     * @return Customer
      */
     protected function getOrCreateCustomer(string $phone, array $contact, Business $business): Customer
     {
@@ -409,9 +370,6 @@ class WhatsAppService
 
     /**
      * Send API request
-     *
-     * @param array $payload
-     * @return array|null
      */
     protected function sendRequest(array $payload): ?array
     {
@@ -419,7 +377,7 @@ class WhatsAppService
             $url = "{$this->apiUrl}/{$this->apiVersion}/{$this->phoneNumberId}/messages";
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->accessToken,
+                'Authorization' => 'Bearer '.$this->accessToken,
                 'Content-Type' => 'application/json',
             ])->post($url, $payload);
 
@@ -435,18 +393,16 @@ class WhatsAppService
 
             return null;
         } catch (\Exception $e) {
-            Log::error('WhatsApp API exception: ' . $e->getMessage(), [
+            Log::error('WhatsApp API exception: '.$e->getMessage(), [
                 'payload' => $payload,
             ]);
+
             return null;
         }
     }
 
     /**
      * Format phone number to international format
-     *
-     * @param string $phone
-     * @return string
      */
     protected function formatPhoneNumber(string $phone): string
     {
@@ -460,7 +416,7 @@ class WhatsAppService
 
         // If starts with 0, replace with 998
         if (str_starts_with($phone, '0')) {
-            return '998' . substr($phone, 1);
+            return '998'.substr($phone, 1);
         }
 
         // Otherwise assume it's already formatted
@@ -469,11 +425,6 @@ class WhatsAppService
 
     /**
      * Verify webhook token
-     *
-     * @param string $mode
-     * @param string $token
-     * @param string $challenge
-     * @return string|null
      */
     public function verifyWebhook(string $mode, string $token, string $challenge): ?string
     {

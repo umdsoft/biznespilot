@@ -13,9 +13,9 @@ class BusinessCategoryMapper
     /**
      * Business kategoriyasidan KPI industry code ni aniqlash
      *
-     * @param string|null $category Business category
-     * @param string|null $industry Business industry
-     * @param string|null $businessType Business type
+     * @param  string|null  $category  Business category
+     * @param  string|null  $industry  Business industry
+     * @param  string|null  $businessType  Business type
      * @return string Industry code for KPI configuration
      */
     public static function getIndustryCode(
@@ -127,9 +127,6 @@ class BusinessCategoryMapper
 
     /**
      * Get industry display name (UZ)
-     *
-     * @param string $industryCode
-     * @return string
      */
     public static function getIndustryName(string $industryCode): string
     {
@@ -149,8 +146,6 @@ class BusinessCategoryMapper
 
     /**
      * Get all available industry codes
-     *
-     * @return array
      */
     public static function getAvailableIndustries(): array
     {
@@ -203,8 +198,7 @@ class BusinessCategoryMapper
     /**
      * Detect industry from Business model
      *
-     * @param \App\Models\Business $business
-     * @return string
+     * @param  \App\Models\Business  $business
      */
     public static function detectFromBusiness($business): string
     {
@@ -217,21 +211,16 @@ class BusinessCategoryMapper
 
     /**
      * Validate industry code
-     *
-     * @param string $code
-     * @return bool
      */
     public static function isValidIndustry(string $code): bool
     {
         $validCodes = array_column(self::getAvailableIndustries(), 'code');
+
         return in_array($code, $validCodes);
     }
 
     /**
      * Get industry icon
-     *
-     * @param string $industryCode
-     * @return string
      */
     public static function getIndustryIcon(string $industryCode): string
     {
@@ -251,13 +240,11 @@ class BusinessCategoryMapper
 
     /**
      * Get KPI count for industry
-     *
-     * @param string $industryCode
-     * @return int
      */
     public static function getKpiCount(string $industryCode): int
     {
         $kpis = IndustryKpiConfiguration::getIndustryKpis($industryCode);
+
         return count(array_filter($kpis)); // Filter out nulls
     }
 }

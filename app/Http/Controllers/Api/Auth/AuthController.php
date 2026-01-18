@@ -15,9 +15,6 @@ class AuthController extends Controller
 {
     /**
      * Register a new user
-     *
-     * @param RegisterRequest $request
-     * @return JsonResponse
      */
     public function register(RegisterRequest $request): JsonResponse
     {
@@ -51,9 +48,6 @@ class AuthController extends Controller
 
     /**
      * Login user with login/phone and password
-     *
-     * @param LoginRequest $request
-     * @return JsonResponse
      */
     public function login(LoginRequest $request): JsonResponse
     {
@@ -67,6 +61,7 @@ class AuthController extends Controller
             // Check if account is locked
             if ($user && $user->locked_until && now()->lt($user->locked_until)) {
                 $minutesLeft = now()->diffInMinutes($user->locked_until);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Account temporarily locked',
@@ -76,7 +71,7 @@ class AuthController extends Controller
             }
 
             // Check if user exists and password is correct
-            if (!$user || !Hash::check($request->password, $user->password)) {
+            if (! $user || ! Hash::check($request->password, $user->password)) {
                 // Increment failed login attempts
                 if ($user) {
                     $user->increment('failed_login_attempts');
@@ -142,9 +137,6 @@ class AuthController extends Controller
 
     /**
      * Logout current user
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
@@ -167,9 +159,6 @@ class AuthController extends Controller
 
     /**
      * Get authenticated user with businesses
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function me(Request $request): JsonResponse
     {

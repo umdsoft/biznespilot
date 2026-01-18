@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\FeedbackAttachment;
 use App\Models\FeedbackReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,7 +50,7 @@ class FeedbackManagementController extends Controller
 
         $feedbacks = $query->paginate($perPage);
 
-        $feedbacks->getCollection()->transform(fn($f) => [
+        $feedbacks->getCollection()->transform(fn ($f) => [
             'id' => $f->id,
             'type' => $f->type,
             'type_label' => $f->type_label,
@@ -74,7 +73,7 @@ class FeedbackManagementController extends Controller
                 'id' => $f->business->id,
                 'name' => $f->business->name,
             ] : null,
-            'attachments' => $f->attachments->map(fn($a) => [
+            'attachments' => $f->attachments->map(fn ($a) => [
                 'id' => $a->id,
                 'file_name' => $a->file_name,
                 'file_type' => $a->file_type,
@@ -156,7 +155,7 @@ class FeedbackManagementController extends Controller
                     'id' => $feedback->business->id,
                     'name' => $feedback->business->name,
                 ] : null,
-                'attachments' => $feedback->attachments->map(fn($a) => [
+                'attachments' => $feedback->attachments->map(fn ($a) => [
                     'id' => $a->id,
                     'file_name' => $a->file_name,
                     'file_type' => $a->file_type,

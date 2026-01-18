@@ -13,14 +13,15 @@ trait PanelTodoController
     use HasCurrentBusiness;
 
     abstract protected function getViewPrefix(): string;
+
     abstract protected function getRoutePrefix(): string;
 
     public function index(Request $request)
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
-            return inertia($this->getViewPrefix() . '/Todos/Index', [
+        if (! $business) {
+            return inertia($this->getViewPrefix().'/Todos/Index', [
                 'todos' => [
                     'overdue' => [],
                     'today' => [],
@@ -91,10 +92,11 @@ trait PanelTodoController
                 if ($statusFilter !== 'active') {
                     $groupedTodos['later'][] = $todoData;
                 }
+
                 continue;
             }
 
-            if (!$todo->due_date) {
+            if (! $todo->due_date) {
                 $groupedTodos['later'][] = $todoData;
             } elseif ($todo->due_date->lt($today)) {
                 $groupedTodos['overdue'][] = $todoData;
@@ -124,7 +126,7 @@ trait PanelTodoController
             $q->where('businesses.id', $business->id);
         })->select('id', 'name', 'email')->get();
 
-        return inertia($this->getViewPrefix() . '/Todos/Index', [
+        return inertia($this->getViewPrefix().'/Todos/Index', [
             'todos' => $groupedTodos,
             'stats' => $stats,
             'teamMembers' => $teamMembers,
@@ -173,7 +175,7 @@ trait PanelTodoController
         if ($todo->due_date) {
             $isOverdue = $todo->due_date->lt(Carbon::today()) && $todo->status !== 'completed';
             if ($todo->due_time) {
-                $dueDateFormatted = $todo->due_date->format('d.m') . ' ' . $todo->due_time;
+                $dueDateFormatted = $todo->due_date->format('d.m').' '.$todo->due_time;
             } else {
                 $dueDateFormatted = $todo->due_date->format('d.m.Y');
             }
@@ -194,7 +196,7 @@ trait PanelTodoController
             'is_overdue' => $isOverdue,
             'is_recurring' => $todo->is_recurring ?? false,
             'recurrence_pattern' => $todo->recurrence_pattern,
-            'subtasks' => $todo->subtasks->map(fn($st) => [
+            'subtasks' => $todo->subtasks->map(fn ($st) => [
                 'id' => $st->id,
                 'title' => $st->title,
                 'is_completed' => $st->is_completed,
@@ -206,7 +208,7 @@ trait PanelTodoController
                 'id' => $todo->assignee->id,
                 'name' => $todo->assignee->name,
             ] : null,
-            'assignees' => $todo->assignees ? $todo->assignees->map(fn($a) => [
+            'assignees' => $todo->assignees ? $todo->assignees->map(fn ($a) => [
                 'id' => $a->id,
                 'user_id' => $a->user_id,
                 'user' => $a->user ? [
@@ -276,7 +278,7 @@ trait PanelTodoController
             ]);
         }
 
-        return redirect()->route($this->getRoutePrefix() . '.todos.index');
+        return redirect()->route($this->getRoutePrefix().'.todos.index');
     }
 
     public function store(Request $request)
@@ -323,7 +325,7 @@ trait PanelTodoController
             ]);
         }
 
-        return redirect()->route($this->getRoutePrefix() . '.todos.index')
+        return redirect()->route($this->getRoutePrefix().'.todos.index')
             ->with('success', 'Vazifa yaratildi');
     }
 
@@ -350,7 +352,7 @@ trait PanelTodoController
             ]);
         }
 
-        return redirect()->route($this->getRoutePrefix() . '.todos.index')
+        return redirect()->route($this->getRoutePrefix().'.todos.index')
             ->with('success', 'Vazifa yangilandi');
     }
 
@@ -363,7 +365,7 @@ trait PanelTodoController
             return response()->json(['success' => true]);
         }
 
-        return redirect()->route($this->getRoutePrefix() . '.todos.index')
+        return redirect()->route($this->getRoutePrefix().'.todos.index')
             ->with('success', 'Vazifa o\'chirildi');
     }
 
@@ -394,7 +396,7 @@ trait PanelTodoController
     {
         $todo = Todo::findOrFail($todoId);
         $subtask = $todo->subtasks()->findOrFail($subtaskId);
-        $subtask->update(['is_completed' => !$subtask->is_completed]);
+        $subtask->update(['is_completed' => ! $subtask->is_completed]);
 
         return response()->json([
             'success' => true,

@@ -32,9 +32,8 @@ class KPIPlanCalculator
     /**
      * Calculate all KPIs for next month based on minimal user input
      *
-     * @param Business $business
-     * @param int $newSales Number of new sales planned
-     * @param float $avgCheck Average check amount
+     * @param  int  $newSales  Number of new sales planned
+     * @param  float  $avgCheck  Average check amount
      * @return array All calculated KPI metrics
      */
     public function calculateNextMonthPlan(Business $business, int $newSales, float $avgCheck): array
@@ -252,11 +251,11 @@ class KPIPlanCalculator
             $benchmark = IndustryBenchmark::where('industry', 'LIKE', "%{$industry}%")->first();
 
             // Fallback to default industry if not found
-            if (!$benchmark) {
+            if (! $benchmark) {
                 $benchmark = IndustryBenchmark::where('industry', 'default')->first();
             }
 
-            if (!$benchmark) {
+            if (! $benchmark) {
                 return $default;
             }
 
@@ -275,7 +274,7 @@ class KPIPlanCalculator
             }
         } catch (\Exception $e) {
             // If database error occurs, return default value
-            \Log::warning('IndustryBenchmark query failed: ' . $e->getMessage());
+            \Log::warning('IndustryBenchmark query failed: '.$e->getMessage());
         }
 
         return $default;
@@ -301,7 +300,7 @@ class KPIPlanCalculator
         // Metrics that should NOT be divided (percentages, ratios)
         $nonDivisibleMetrics = [
             'conversion_rate', 'ctr', 'roi', 'roas', 'churn_rate',
-            'gross_margin_percent', 'ltv_cac_ratio', 'calculation_method'
+            'gross_margin_percent', 'ltv_cac_ratio', 'calculation_method',
         ];
 
         $breakdown = [
@@ -315,7 +314,7 @@ class KPIPlanCalculator
 
         // Calculate weekly (divide by number of weeks)
         foreach ($monthlyMetrics as $key => $value) {
-            if (is_numeric($value) && !in_array($key, $nonDivisibleMetrics)) {
+            if (is_numeric($value) && ! in_array($key, $nonDivisibleMetrics)) {
                 $breakdown['weekly'][$key] = round($value / $weeks);
             } else {
                 $breakdown['weekly'][$key] = $value;
@@ -324,7 +323,7 @@ class KPIPlanCalculator
 
         // Calculate daily (divide by working days)
         foreach ($monthlyMetrics as $key => $value) {
-            if (is_numeric($value) && !in_array($key, $nonDivisibleMetrics)) {
+            if (is_numeric($value) && ! in_array($key, $nonDivisibleMetrics)) {
                 $breakdown['daily'][$key] = round($value / $workingDays);
             } else {
                 $breakdown['daily'][$key] = $value;
@@ -371,12 +370,8 @@ class KPIPlanCalculator
     /**
      * Create a full KPI plan with all breakdowns
      *
-     * @param Business $business
-     * @param int $newSales
-     * @param float $avgCheck
-     * @param int|null $leads (optional, calculated if not provided)
-     * @param float|null $leadCost (optional, uses default if not provided)
-     * @return array
+     * @param  int|null  $leads  (optional, calculated if not provided)
+     * @param  float|null  $leadCost  (optional, uses default if not provided)
      */
     public function createFullPlan(
         Business $business,

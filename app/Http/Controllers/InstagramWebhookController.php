@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Log;
 class InstagramWebhookController extends Controller
 {
     protected InstagramDMService $instagramService;
+
     protected InstagramChatbotService $chatbotService;
+
     protected ?object $aiChatService = null;
 
     public function __construct(
@@ -41,11 +43,12 @@ class InstagramWebhookController extends Controller
             }
 
             // POST request uchun signature verification
-            if (!$this->verifySignature($request)) {
+            if (! $this->verifySignature($request)) {
                 Log::warning('Instagram webhook signature verification failed', [
                     'business_id' => $businessId,
                     'ip' => $request->ip(),
                 ]);
+
                 return response()->json(['error' => 'Invalid signature'], 403);
             }
 
@@ -87,7 +90,7 @@ class InstagramWebhookController extends Controller
                     if ($config && $config->instagram_enabled && $config->instagram_access_token) {
                         $result = $this->instagramService->handleWebhook($entry, $business);
 
-                        if (!$result['success']) {
+                        if (! $result['success']) {
                             Log::warning('Instagram webhook processing failed', [
                                 'business_id' => $businessId,
                                 'error' => $result['error'] ?? 'Unknown error',
@@ -131,6 +134,7 @@ class InstagramWebhookController extends Controller
                 // Skip echo messages (our own outgoing messages)
                 if (isset($event['message']['is_echo']) && $event['message']['is_echo']) {
                     Log::debug('Skipping echo message', ['sender_id' => $senderId]);
+
                     continue;
                 }
 
@@ -214,23 +218,26 @@ class InstagramWebhookController extends Controller
         // Development/local muhitda signature verification'ni o'chirish
         if (app()->environment('local', 'development')) {
             Log::info('Instagram webhook signature verification skipped (development mode)');
+
             return true;
         }
 
         // Agar app_secret sozlanmagan bo'lsa, log qilib true qaytaramiz (development uchun)
         if (empty($appSecret)) {
             Log::warning('Instagram app_secret not configured - signature verification skipped');
+
             return true;
         }
 
         // Signature yo'q bo'lsa, rad etamiz
         if (empty($signature)) {
             Log::warning('Instagram webhook received without signature header');
+
             return false;
         }
 
         // Signature formatini tekshirish: sha256=HASH
-        if (!str_starts_with($signature, 'sha256=')) {
+        if (! str_starts_with($signature, 'sha256=')) {
             return false;
         }
 
@@ -255,6 +262,7 @@ class InstagramWebhookController extends Controller
 
         if ($mode === 'subscribe' && $token === $verifyToken) {
             Log::info('Instagram webhook verified');
+
             return response($challenge, 200);
         }
 
@@ -268,16 +276,13 @@ class InstagramWebhookController extends Controller
 
     /**
      * Process Instagram webhook entry with AI
-     *
-     * @param array $entry
-     * @param Business $business
-     * @return void
      */
     private function processWithAI(array $entry, Business $business): void
     {
         // Skip if AI service is not available
-        if (!$this->aiChatService) {
+        if (! $this->aiChatService) {
             Log::debug('Instagram AI service not available, skipping AI processing');
+
             return;
         }
 
@@ -342,7 +347,6 @@ class InstagramWebhookController extends Controller
     /**
      * Get AI chatbot configuration
      *
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function getAIConfig(Business $business)
@@ -375,8 +379,6 @@ class InstagramWebhookController extends Controller
     /**
      * Update AI chatbot configuration
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function updateAIConfig(Request $request, Business $business)
@@ -412,8 +414,6 @@ class InstagramWebhookController extends Controller
     /**
      * Save AI templates
      *
-     * @param Request $request
-     * @param Business $business
      * @return \Illuminate\Http\JsonResponse
      */
     public function saveAITemplates(Request $request, Business $business)

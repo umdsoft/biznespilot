@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use Carbon\Carbon;
 
 /**
  * Next Step Predictor
@@ -17,6 +16,7 @@ use Carbon\Carbon;
 class NextStepPredictor extends AlgorithmEngine
 {
     protected string $cachePrefix = 'next_step_';
+
     protected int $cacheTTL = 900; // 15 minutes - fresher predictions
 
     protected ModuleAnalyzer $moduleAnalyzer;
@@ -242,7 +242,7 @@ class NextStepPredictor extends AlgorithmEngine
             // Low AOV
             if ($salesMetrics['current_aov'] < $salesMetrics['last_aov'] * 0.9) {
                 $actions[] = $this->createAction('improve_aov', [
-                    'reason' => "O'rtacha chek " . abs($salesMetrics['aov_growth']) . "% pasaygan",
+                    'reason' => "O'rtacha chek ".abs($salesMetrics['aov_growth']).'% pasaygan',
                     'urgency' => 'high',
                     'data' => ['aov_change' => $salesMetrics['aov_growth']],
                 ]);
@@ -251,7 +251,7 @@ class NextStepPredictor extends AlgorithmEngine
             // Downward trend
             if ($salesTrend['direction'] === 'down' && $salesTrend['r_squared'] > 0.5) {
                 $actions[] = $this->createAction('increase_sales_volume', [
-                    'reason' => "Sotuvlarda pasayish trendi (ishonchlilik: " . round($salesTrend['r_squared'] * 100) . "%)",
+                    'reason' => 'Sotuvlarda pasayish trendi (ishonchlilik: '.round($salesTrend['r_squared'] * 100).'%)',
                     'urgency' => 'high',
                     'data' => ['trend_slope' => $salesTrend['slope'], 'r_squared' => $salesTrend['r_squared']],
                 ]);
@@ -342,7 +342,7 @@ class NextStepPredictor extends AlgorithmEngine
             // Low frequency
             if ($contentMetrics['content_frequency'] < 0.3) {
                 $actions[] = $this->createAction('increase_content_frequency', [
-                    'reason' => "Kontent chiqarish chastotasi juda past",
+                    'reason' => 'Kontent chiqarish chastotasi juda past',
                     'urgency' => 'medium',
                     'data' => ['frequency' => $contentMetrics['content_frequency']],
                 ]);
@@ -400,7 +400,7 @@ class NextStepPredictor extends AlgorithmEngine
     {
         $template = $this->actionTemplates[$templateKey] ?? null;
 
-        if (!$template) {
+        if (! $template) {
             return [];
         }
 
@@ -479,7 +479,7 @@ class NextStepPredictor extends AlgorithmEngine
         }
 
         // Sort by final score descending
-        usort($actions, fn($a, $b) => $b['final_score'] <=> $a['final_score']);
+        usort($actions, fn ($a, $b) => $b['final_score'] <=> $a['final_score']);
 
         return $actions;
     }
@@ -516,7 +516,7 @@ class NextStepPredictor extends AlgorithmEngine
      */
     protected function generateActionDetails(array $actions, array $analysis): array
     {
-        return array_map(function ($action, $index) use ($analysis) {
+        return array_map(function ($action, $index) {
             $template = $action['template'];
             $context = $action['context'];
 
@@ -745,7 +745,7 @@ class NextStepPredictor extends AlgorithmEngine
     protected function calculatePredictionConfidence(array $analysis): array
     {
         $dataAccuracy = $analysis['data_accuracy']['overall'] ?? 0;
-        $modulesWithData = count(array_filter($analysis['modules'], fn($m) => $m['data_completeness'] > 50));
+        $modulesWithData = count(array_filter($analysis['modules'], fn ($m) => $m['data_completeness'] > 50));
         $totalModules = count($analysis['modules']);
 
         $confidence = ($dataAccuracy * 0.6) + (($modulesWithData / $totalModules) * 100 * 0.4);

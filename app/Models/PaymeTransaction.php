@@ -12,16 +12,24 @@ class PaymeTransaction extends Model
 
     // Payme Transaction States
     public const STATE_CREATED = 1;
+
     public const STATE_COMPLETED = 2;
+
     public const STATE_CANCELLED_AFTER_COMPLETE = -1;
+
     public const STATE_CANCELLED = -2;
 
     // Cancel Reasons
     public const REASON_RECEIVER_NOT_FOUND = 1;
+
     public const REASON_PROCESSING_ERROR = 2;
+
     public const REASON_TRANSACTION_ERROR = 3;
+
     public const REASON_TIMEOUT = 4;
+
     public const REASON_REFUND = 5;
+
     public const REASON_UNKNOWN = 10;
 
     protected $fillable = [
@@ -66,7 +74,7 @@ class PaymeTransaction extends Model
 
     public function getReasonNameAttribute(): ?string
     {
-        if (!$this->reason) {
+        if (! $this->reason) {
             return null;
         }
 
@@ -77,7 +85,7 @@ class PaymeTransaction extends Model
             self::REASON_TIMEOUT => 'Vaqt tugadi',
             self::REASON_REFUND => 'Qaytarildi',
             self::REASON_UNKNOWN => 'Noma\'lum sabab',
-            default => 'Sabab: ' . $this->reason,
+            default => 'Sabab: '.$this->reason,
         };
     }
 

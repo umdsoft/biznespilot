@@ -48,7 +48,7 @@ class InstagramKpiSyncService extends BaseKpiSyncService
     public function isAvailable(int $businessId): bool
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return false;
         }
 
@@ -65,7 +65,7 @@ class InstagramKpiSyncService extends BaseKpiSyncService
      */
     public function syncKpi(int $businessId, string $kpiCode, string $date): array
     {
-        if (!in_array($kpiCode, $this->supportedKpis)) {
+        if (! in_array($kpiCode, $this->supportedKpis)) {
             return [
                 'success' => false,
                 'kpi_code' => $kpiCode,
@@ -78,7 +78,7 @@ class InstagramKpiSyncService extends BaseKpiSyncService
             ->where('is_active', true)
             ->first();
 
-        if (!$instagram) {
+        if (! $instagram) {
             return [
                 'success' => false,
                 'kpi_code' => $kpiCode,
@@ -204,7 +204,7 @@ class InstagramKpiSyncService extends BaseKpiSyncService
             ->where('record_date', $previousDate->format('Y-m-d'))
             ->value('actual_value');
 
-        if (!$previousFollowers) {
+        if (! $previousFollowers) {
             // Try to get from instagram account history or use current as baseline
             $previousFollowers = $currentFollowers > 100 ? $currentFollowers - 10 : $currentFollowers;
         }

@@ -6,13 +6,12 @@ use App\Models\Competitor;
 use App\Models\CompetitorContent;
 use App\Models\CompetitorContentStat;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ContentAnalysisService
 {
     protected SocialMediaScraperService $scraper;
+
     protected ClaudeAIService $claudeAI;
 
     public function __construct(SocialMediaScraperService $scraper, ClaudeAIService $claudeAI)
@@ -79,7 +78,7 @@ class ContentAnalysisService
             // Get recent posts via scraper
             $posts = $this->scraper->getInstagramPosts($competitor->instagram_handle, 12);
 
-            if (!$posts) {
+            if (! $posts) {
                 return null;
             }
 
@@ -92,7 +91,7 @@ class ContentAnalysisService
                     ->where('external_id', $post['id'] ?? null)
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     $this->saveContent($competitor, 'instagram', $post);
                     $newPosts++;
                 }
@@ -105,6 +104,7 @@ class ContentAnalysisService
                 'handle' => $competitor->instagram_handle,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -120,7 +120,7 @@ class ContentAnalysisService
             // Get recent posts via scraper
             $posts = $this->scraper->getTelegramPosts($competitor->telegram_handle, 20);
 
-            if (!$posts) {
+            if (! $posts) {
                 return null;
             }
 
@@ -133,7 +133,7 @@ class ContentAnalysisService
                     ->where('external_id', $post['id'] ?? null)
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     $this->saveContent($competitor, 'telegram', $post);
                     $newPosts++;
                 }
@@ -146,6 +146,7 @@ class ContentAnalysisService
                 'handle' => $competitor->telegram_handle,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -192,6 +193,7 @@ class ContentAnalysisService
     protected function extractHashtags(string $text): array
     {
         preg_match_all('/#(\w+)/u', $text, $matches);
+
         return $matches[1] ?? [];
     }
 
@@ -201,6 +203,7 @@ class ContentAnalysisService
     protected function extractMentions(string $text): array
     {
         preg_match_all('/@(\w+)/u', $text, $matches);
+
         return $matches[1] ?? [];
     }
 
@@ -264,7 +267,9 @@ class ContentAnalysisService
                 ->whereDate('published_at', today())
                 ->get();
 
-            if ($todayContent->isEmpty()) continue;
+            if ($todayContent->isEmpty()) {
+                continue;
+            }
 
             $topContent = $todayContent->sortByDesc(function ($c) {
                 return $c->likes + $c->comments + $c->shares;
@@ -298,7 +303,7 @@ class ContentAnalysisService
                     'avg_engagement_rate' => $todayContent->avg('engagement_rate'),
                     'top_content_id' => $topContent?->id,
                     'top_content_engagement' => $topContent ? ($topContent->likes + $topContent->comments + $topContent->shares) : 0,
-                    'top_hashtags' => array_map(fn($tag, $count) => ['tag' => $tag, 'count' => $count], array_keys($topHashtags), $topHashtags),
+                    'top_hashtags' => array_map(fn ($tag, $count) => ['tag' => $tag, 'count' => $count], array_keys($topHashtags), $topHashtags),
                 ]
             );
         }
@@ -362,7 +367,9 @@ class ContentAnalysisService
      */
     public function analyzeContentSentiment(CompetitorContent $content): ?string
     {
-        if (!$content->caption) return null;
+        if (! $content->caption) {
+            return null;
+        }
 
         try {
             $prompt = "Analyze the sentiment of this social media post and respond with only one word: positive, negative, or neutral.\n\nPost: {$content->caption}";
@@ -372,6 +379,7 @@ class ContentAnalysisService
 
             if (in_array($sentiment, ['positive', 'negative', 'neutral'])) {
                 $content->update(['sentiment' => $sentiment]);
+
                 return $sentiment;
             }
 
@@ -379,6 +387,7 @@ class ContentAnalysisService
 
         } catch (\Exception $e) {
             Log::warning('Sentiment analysis failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }

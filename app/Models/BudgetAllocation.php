@@ -186,7 +186,7 @@ class BudgetAllocation extends Model
 
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'planned' => 'gray',
             'approved' => 'blue',
             'active' => 'green',
@@ -200,16 +200,26 @@ class BudgetAllocation extends Model
     public function getSpentPercent(): float
     {
         $budget = $this->allocated_budget ?? $this->planned_budget;
-        if ($budget == 0) return 0;
+        if ($budget == 0) {
+            return 0;
+        }
+
         return round(($this->spent_amount / $budget) * 100, 1);
     }
 
     public function getSpentPercentColor(): string
     {
         $percent = $this->getSpentPercent();
-        if ($percent >= 100) return 'red';
-        if ($percent >= 80) return 'yellow';
-        if ($percent >= 50) return 'blue';
+        if ($percent >= 100) {
+            return 'red';
+        }
+        if ($percent >= 80) {
+            return 'yellow';
+        }
+        if ($percent >= 50) {
+            return 'blue';
+        }
+
         return 'green';
     }
 
@@ -284,21 +294,31 @@ class BudgetAllocation extends Model
     private function formatMoney(float $amount): string
     {
         if ($amount >= 1000000) {
-            return number_format($amount / 1000000, 1) . 'M so\'m';
+            return number_format($amount / 1000000, 1).'M so\'m';
         }
         if ($amount >= 1000) {
-            return number_format($amount / 1000, 1) . 'K so\'m';
+            return number_format($amount / 1000, 1).'K so\'m';
         }
-        return number_format($amount, 0) . ' so\'m';
+
+        return number_format($amount, 0).' so\'m';
     }
 
     public function getROIColor(): string
     {
         $roi = $this->actual_roi ?? 0;
-        if ($roi >= 200) return 'emerald';
-        if ($roi >= 100) return 'green';
-        if ($roi >= 50) return 'blue';
-        if ($roi >= 0) return 'yellow';
+        if ($roi >= 200) {
+            return 'emerald';
+        }
+        if ($roi >= 100) {
+            return 'green';
+        }
+        if ($roi >= 50) {
+            return 'blue';
+        }
+        if ($roi >= 0) {
+            return 'yellow';
+        }
+
         return 'red';
     }
 }

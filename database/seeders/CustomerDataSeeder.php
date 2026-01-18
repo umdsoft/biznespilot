@@ -3,9 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Customer;
-use App\Models\Business;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class CustomerDataSeeder extends Seeder
 {
@@ -18,6 +17,7 @@ class CustomerDataSeeder extends Seeder
 
         if ($customers->isEmpty()) {
             $this->command->warn('No customers found.');
+
             return;
         }
 

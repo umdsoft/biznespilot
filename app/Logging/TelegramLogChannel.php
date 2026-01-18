@@ -2,10 +2,10 @@
 
 namespace App\Logging;
 
-use Monolog\Logger;
-use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\LogRecord;
 use Illuminate\Support\Facades\Http;
+use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Logger;
+use Monolog\LogRecord;
 
 class TelegramLogChannel
 {
@@ -24,6 +24,7 @@ class TelegramLogChannel
 class TelegramLogHandler extends AbstractProcessingHandler
 {
     private string $token;
+
     private string $chatId;
 
     public function __construct(string $token, string $chatId, $level = Logger::CRITICAL, bool $bubble = true)
@@ -69,15 +70,15 @@ class TelegramLogHandler extends AbstractProcessingHandler
 
         $message = "<b>{$emoji} [{$record->level->getName()}] {$appName}</b>\n";
         $message .= "<b>Environment:</b> {$env}\n";
-        $message .= "<b>Time:</b> " . $record->datetime->format('Y-m-d H:i:s') . "\n\n";
-        $message .= "<b>Message:</b>\n<code>" . htmlspecialchars(substr($record->message, 0, 1000)) . "</code>";
+        $message .= '<b>Time:</b> '.$record->datetime->format('Y-m-d H:i:s')."\n\n";
+        $message .= "<b>Message:</b>\n<code>".htmlspecialchars(substr($record->message, 0, 1000)).'</code>';
 
-        if (!empty($record->context)) {
+        if (! empty($record->context)) {
             $context = json_encode($record->context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             if (strlen($context) > 500) {
-                $context = substr($context, 0, 500) . '...';
+                $context = substr($context, 0, 500).'...';
             }
-            $message .= "\n\n<b>Context:</b>\n<code>" . htmlspecialchars($context) . "</code>";
+            $message .= "\n\n<b>Context:</b>\n<code>".htmlspecialchars($context).'</code>';
         }
 
         return $message;

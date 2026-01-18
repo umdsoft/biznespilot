@@ -68,6 +68,7 @@ class PositionTemplate extends Model
     public function getTitleAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $this->{"title_{$locale}"} ?? $this->title_uz;
     }
 
@@ -80,6 +81,7 @@ class PositionTemplate extends Model
             3 => 'Mutaxassis',
             4 => 'Junior',
         ];
+
         return $labels[$this->level] ?? 'N/A';
     }
 }

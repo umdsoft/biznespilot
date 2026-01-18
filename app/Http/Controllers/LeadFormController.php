@@ -70,7 +70,7 @@ class LeadFormController extends Controller
             ->get()
             ->groupBy('category')
             ->map(function ($sources) {
-                return $sources->map(fn($s) => [
+                return $sources->map(fn ($s) => [
                     'id' => $s->id,
                     'name' => $s->name,
                     'icon' => $s->icon,
@@ -210,7 +210,7 @@ class LeadFormController extends Controller
                 'default_score' => $leadForm->default_score,
                 'created_at' => $leadForm->created_at->format('d.m.Y H:i'),
             ],
-            'recentSubmissions' => $leadForm->submissions->map(fn($s) => [
+            'recentSubmissions' => $leadForm->submissions->map(fn ($s) => [
                 'id' => $s->id,
                 'form_data' => $s->form_data,
                 'utm_source' => $s->utm_source,
@@ -243,7 +243,7 @@ class LeadFormController extends Controller
             ->get()
             ->groupBy('category')
             ->map(function ($sources) {
-                return $sources->map(fn($s) => [
+                return $sources->map(fn ($s) => [
                     'id' => $s->id,
                     'name' => $s->name,
                     'icon' => $s->icon,
@@ -328,7 +328,7 @@ class LeadFormController extends Controller
         $this->authorize('update', $leadForm);
 
         $leadForm->update([
-            'is_active' => !$leadForm->is_active,
+            'is_active' => ! $leadForm->is_active,
         ]);
 
         return back()->with('success', $leadForm->is_active ? 'Forma aktivlashtirildi!' : 'Forma o\'chirildi!');
@@ -342,7 +342,7 @@ class LeadFormController extends Controller
         $this->authorize('view', $leadForm);
 
         $newForm = $leadForm->replicate();
-        $newForm->name = $leadForm->name . ' (nusxa)';
+        $newForm->name = $leadForm->name.' (nusxa)';
         $newForm->slug = LeadForm::generateUniqueSlug($newForm->name);
         $newForm->views_count = 0;
         $newForm->submissions_count = 0;
@@ -359,7 +359,7 @@ class LeadFormController extends Controller
     {
         $this->authorize('view', $leadForm);
 
-        $embedCode = '<iframe src="' . $leadForm->public_url . '?embed=1" width="100%" height="500" frameborder="0"></iframe>';
+        $embedCode = '<iframe src="'.$leadForm->public_url.'?embed=1" width="100%" height="500" frameborder="0"></iframe>';
 
         return response()->json([
             'embed_code' => $embedCode,

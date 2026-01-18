@@ -32,10 +32,11 @@ class PbxWebhookController extends Controller
             ]);
 
             // Verify webhook signature if configured
-            if (!$this->verifyWebhookSignature($request)) {
+            if (! $this->verifyWebhookSignature($request)) {
                 Log::warning('OnlinePBX webhook signature verification failed', [
                     'ip' => $request->ip(),
                 ]);
+
                 return response()->json(['error' => 'Invalid signature'], 403);
             }
 
@@ -75,10 +76,11 @@ class PbxWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$pbxAccount) {
+            if (! $pbxAccount) {
                 Log::warning('OnlinePBX webhook: No active PBX account for business', [
                     'business_id' => $businessId,
                 ]);
+
                 return response()->json(['error' => 'No active PBX account'], 404);
             }
 
@@ -108,7 +110,7 @@ class PbxWebhookController extends Controller
             ?? $request->header('X-PBX-Signature')
             ?? null;
 
-        if (!$signature) {
+        if (! $signature) {
             // Allow if no signature (for backwards compatibility)
             // In production, consider requiring signatures
             return true;
@@ -117,8 +119,9 @@ class PbxWebhookController extends Controller
         // Get configured webhook secret
         $secret = config('services.onlinepbx.webhook_secret');
 
-        if (!$secret) {
+        if (! $secret) {
             Log::warning('OnlinePBX webhook secret not configured');
+
             return true; // Allow if not configured
         }
 
@@ -151,7 +154,7 @@ class PbxWebhookController extends Controller
             $user = $request->user();
             $business = $user?->currentBusiness;
 
-            if (!$business) {
+            if (! $business) {
                 return response()->json(['error' => 'Business not found'], 404);
             }
 
@@ -160,7 +163,7 @@ class PbxWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$pbxAccount) {
+            if (! $pbxAccount) {
                 return response()->json([
                     'success' => false,
                     'error' => 'OnlinePBX hisobi topilmadi',
@@ -176,7 +179,7 @@ class PbxWebhookController extends Controller
             $this->pbxService->setAccount($pbxAccount);
             $result = $this->pbxService->syncCallHistory($dateFrom);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return response()->json([
                     'success' => false,
                     'error' => $result['error'] ?? 'Sinxronlash xatosi',
@@ -199,7 +202,7 @@ class PbxWebhookController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Sinxronlash xatosi: ' . $e->getMessage(),
+                'error' => 'Sinxronlash xatosi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -214,7 +217,7 @@ class PbxWebhookController extends Controller
             $user = $request->user();
             $business = $user?->currentBusiness;
 
-            if (!$business) {
+            if (! $business) {
                 return response()->json(['error' => 'Business not found'], 404);
             }
 
@@ -237,7 +240,7 @@ class PbxWebhookController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Bog\'lash xatosi: ' . $e->getMessage(),
+                'error' => 'Bog\'lash xatosi: '.$e->getMessage(),
             ], 500);
         }
     }

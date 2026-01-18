@@ -33,7 +33,7 @@ class UnifiedInboxController extends Controller
         $stats = $this->inboxService->getInboxStats($currentBusiness);
 
         // Return JSON for AJAX polling requests (but not for Inertia requests)
-        if (!$request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
+        if (! $request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
             return response()->json([
                 'conversations' => $conversations,
                 'stats' => $stats,

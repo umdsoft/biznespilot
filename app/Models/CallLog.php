@@ -42,25 +42,35 @@ class CallLog extends Model
      * Status constants
      */
     public const STATUS_INITIATED = 'initiated';
+
     public const STATUS_RINGING = 'ringing';
+
     public const STATUS_ANSWERED = 'answered';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_MISSED = 'missed';
+
     public const STATUS_BUSY = 'busy';
+
     public const STATUS_NO_ANSWER = 'no_answer';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Direction constants
      */
     public const DIRECTION_INBOUND = 'inbound';
+
     public const DIRECTION_OUTBOUND = 'outbound';
 
     /**
      * Provider constants
      */
     public const PROVIDER_PBX = 'pbx';
+
     public const PROVIDER_SIPUNI = 'sipuni';
 
     /**
@@ -237,7 +247,7 @@ class CallLog extends Model
     /**
      * Mark call as failed
      */
-    public function markAsFailed(string $reason = null): void
+    public function markAsFailed(?string $reason = null): void
     {
         $metadata = $this->metadata ?? [];
         if ($reason) {

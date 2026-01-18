@@ -48,6 +48,7 @@ class KpiDailySourceDetail extends Model
         if ($this->leads_count > 0) {
             return round(($this->conversions / $this->leads_count) * 100, 2);
         }
+
         return 0;
     }
 
@@ -59,6 +60,7 @@ class KpiDailySourceDetail extends Model
         if ($this->leads_count > 0 && $this->spend_amount > 0) {
             return round($this->spend_amount / $this->leads_count, 0);
         }
+
         return 0;
     }
 
@@ -70,6 +72,7 @@ class KpiDailySourceDetail extends Model
         if ($this->spend_amount > 0) {
             return round((($this->revenue - $this->spend_amount) / $this->spend_amount) * 100, 1);
         }
+
         return $this->revenue > 0 ? 100 : 0; // If no spend but has revenue, ROI is infinite (show 100%)
     }
 }

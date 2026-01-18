@@ -8,32 +8,38 @@ use App\Services\Integration\InstagramKpiSyncService;
 use App\Services\Integration\PosKpiSyncService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
+class SyncDailyKpisFromIntegrationsJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $businessId;
+
     public $date;
+
     public $batchSize;
+
     public $batchNumber;
+
     public $tries = 3;
+
     public $timeout = 900; // 15 minutes
+
     public $maxExceptions = 3; // Maximum exceptions before failing
 
     /**
      * Create a new job instance.
      *
-     * @param int|null $businessId If null, syncs all businesses
-     * @param string|null $date Date to sync (Y-m-d format). If null, syncs yesterday
-     * @param int $batchSize Number of businesses to process per batch
-     * @param int|null $batchNumber Specific batch number to process (for manual triggers)
+     * @param  int|null  $businessId  If null, syncs all businesses
+     * @param  string|null  $date  Date to sync (Y-m-d format). If null, syncs yesterday
+     * @param  int  $batchSize  Number of businesses to process per batch
+     * @param  int|null  $batchNumber  Specific batch number to process (for manual triggers)
      */
     public function __construct(
         ?int $businessId = null,
@@ -54,6 +60,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
     public function uniqueId(): string
     {
         $businessKey = $this->businessId ?? 'all';
+
         return "sync_kpis_{$businessKey}_{$this->date}";
     }
 
@@ -82,6 +89,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
         // If specific business ID provided, sync only that business
         if ($this->businessId) {
             $this->syncBusiness($this->businessId, $instagramSync, $facebookSync, $posSync);
+
             return;
         }
 
@@ -104,7 +112,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
         // Get total count for logging
         $totalBusinesses = $query->count();
 
-        Log::info("Starting distributed batched KPI sync", [
+        Log::info('Starting distributed batched KPI sync', [
             'total_businesses' => $totalBusinesses,
             'batch_size' => $this->batchSize,
             'date' => $this->date,
@@ -118,6 +126,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
                 $facebookSync,
                 $posSync
             );
+
             return;
         }
 
@@ -126,9 +135,9 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
 
         // Initialize progress tracking
         $progressKey = "kpi_sync_progress:{$this->date}";
-        cache()->put($progressKey . ':completed_batches', 0, now()->addHours(24));
-        cache()->put($progressKey . ':total_success', 0, now()->addHours(24));
-        cache()->put($progressKey . ':total_failed', 0, now()->addHours(24));
+        cache()->put($progressKey.':completed_batches', 0, now()->addHours(24));
+        cache()->put($progressKey.':total_success', 0, now()->addHours(24));
+        cache()->put($progressKey.':total_failed', 0, now()->addHours(24));
 
         // Mark sync as running
         $monitor = app(\App\Services\Integration\SyncMonitor::class);
@@ -229,8 +238,9 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
         PosKpiSyncService $posSync
     ): void {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             Log::warning("Business not found: {$businessId}");
+
             return;
         }
 
@@ -252,7 +262,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
             $result = $instagramSync->syncDailyKpis($businessId, $this->date);
             $syncResults['integrations']['instagram'] = $result;
 
-            Log::info("Instagram sync completed", [
+            Log::info('Instagram sync completed', [
                 'business_id' => $businessId,
                 'synced' => $result['synced_count'],
                 'failed' => $result['failed_count'],
@@ -271,7 +281,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
             $result = $facebookSync->syncDailyKpis($businessId, $this->date);
             $syncResults['integrations']['facebook'] = $result;
 
-            Log::info("Facebook sync completed", [
+            Log::info('Facebook sync completed', [
                 'business_id' => $businessId,
                 'synced' => $result['synced_count'],
                 'failed' => $result['failed_count'],
@@ -290,7 +300,7 @@ class SyncDailyKpisFromIntegrationsJob implements ShouldQueue, ShouldBeUnique
             $result = $posSync->syncDailyKpis($businessId, $this->date);
             $syncResults['integrations']['pos'] = $result;
 
-            Log::info("POS sync completed", [
+            Log::info('POS sync completed', [
                 'business_id' => $businessId,
                 'synced' => $result['synced_count'],
                 'failed' => $result['failed_count'],

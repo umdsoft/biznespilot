@@ -6,7 +6,6 @@ use App\Models\FeedbackAttachment;
 use App\Models\FeedbackReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class FeedbackController extends Controller
@@ -51,7 +50,7 @@ class FeedbackController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $fileName = $file->getClientOriginalName();
-                $filePath = $file->store('feedback/' . $feedback->id, 'public');
+                $filePath = $file->store('feedback/'.$feedback->id, 'public');
 
                 FeedbackAttachment::create([
                     'feedback_report_id' => $feedback->id,
@@ -92,7 +91,7 @@ class FeedbackController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $feedbacks->getCollection()->transform(fn($f) => [
+        $feedbacks->getCollection()->transform(fn ($f) => [
             'id' => $f->id,
             'type' => $f->type,
             'type_label' => $f->type_label,

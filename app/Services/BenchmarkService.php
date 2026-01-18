@@ -15,7 +15,7 @@ class BenchmarkService
     {
         $industryId = $business->industry_id;
 
-        if (!$industryId) {
+        if (! $industryId) {
             // Return empty collection if no industry set
             return collect();
         }
@@ -53,7 +53,7 @@ class BenchmarkService
 
             $benchmark = $benchmarks->get($metricCode);
 
-            if (!$benchmark) {
+            if (! $benchmark) {
                 continue;
             }
 
@@ -103,7 +103,7 @@ class BenchmarkService
         }
 
         // Sort by gap percent (highest first)
-        usort($strengths, fn($a, $b) => $b['gap_percent'] <=> $a['gap_percent']);
+        usort($strengths, fn ($a, $b) => $b['gap_percent'] <=> $a['gap_percent']);
 
         return $strengths;
     }
@@ -129,7 +129,7 @@ class BenchmarkService
         }
 
         // Sort by gap percent (lowest first - worst metrics)
-        usort($weaknesses, fn($a, $b) => $a['gap_percent'] <=> $b['gap_percent']);
+        usort($weaknesses, fn ($a, $b) => $a['gap_percent'] <=> $b['gap_percent']);
 
         return $weaknesses;
     }

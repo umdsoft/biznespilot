@@ -32,7 +32,6 @@ use Illuminate\Support\Facades\Log;
  * - Conversion rate deviations
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class AnomalyDetectionAlgorithm extends AlgorithmEngine
 {
@@ -50,7 +49,9 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
      * Z-score thresholds
      */
     protected const Z_THRESHOLD_CRITICAL = 3.0;  // 99.7% confidence
+
     protected const Z_THRESHOLD_WARNING = 2.0;   // 95% confidence
+
     protected const Z_THRESHOLD_NOTABLE = 1.5;   // 86.6% confidence
 
     /**
@@ -78,8 +79,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Analyze business metrics for anomalies
      *
-     * @param Business $business Business to analyze
-     * @param array $options Additional options
+     * @param  Business  $business  Business to analyze
+     * @param  array  $options  Additional options
      * @return array Detected anomalies and analysis
      */
     public function analyze(Business $business, array $options = []): array
@@ -143,8 +144,6 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Collect time series data for metrics
      *
-     * @param Business $business
-     * @param array $options
      * @return array Time series data by metric
      */
     protected function collectTimeSeriesData(Business $business, array $options = []): array
@@ -160,7 +159,7 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             $posts = $account->posts ?? collect();
 
             foreach ($posts as $post) {
-                if (!empty($post->engagement_rate)) {
+                if (! empty($post->engagement_rate)) {
                     $engagementRates[] = [
                         'value' => $post->engagement_rate,
                         'timestamp' => $post->posted_at ?? now(),
@@ -169,7 +168,7 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             }
 
             // Follower growth tracking
-            if (!empty($account->followers_count)) {
+            if (! empty($account->followers_count)) {
                 $followerCounts[] = [
                     'value' => $account->followers_count,
                     'timestamp' => $account->updated_at ?? now(),
@@ -177,11 +176,11 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             }
         }
 
-        if (!empty($engagementRates)) {
+        if (! empty($engagementRates)) {
             $data['engagement_rate'] = $engagementRates;
         }
 
-        if (!empty($followerCounts)) {
+        if (! empty($followerCounts)) {
             $data['follower_count'] = $followerCounts;
         }
 
@@ -191,14 +190,14 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
         $conversionData = [];
 
         foreach ($sales as $sale) {
-            if (!empty($sale->amount)) {
+            if (! empty($sale->amount)) {
                 $revenueData[] = [
                     'value' => $sale->amount,
                     'timestamp' => $sale->created_at ?? now(),
                 ];
             }
 
-            if (!empty($sale->conversion_rate)) {
+            if (! empty($sale->conversion_rate)) {
                 $conversionData[] = [
                     'value' => $sale->conversion_rate,
                     'timestamp' => $sale->created_at ?? now(),
@@ -206,11 +205,11 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             }
         }
 
-        if (!empty($revenueData)) {
+        if (! empty($revenueData)) {
             $data['revenue'] = $revenueData;
         }
 
-        if (!empty($conversionData)) {
+        if (! empty($conversionData)) {
             $data['conversion_rate'] = $conversionData;
         }
 
@@ -227,8 +226,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
      *
      * Uses multiple detection methods for robust analysis
      *
-     * @param string $metric Metric name
-     * @param array $data Time series data
+     * @param  string  $metric  Metric name
+     * @param  array  $data  Time series data
      * @return array Detected anomalies
      */
     protected function detectAnomalies(string $metric, array $data): array
@@ -278,7 +277,7 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Calculate statistical measures
      *
-     * @param array $values Array of numeric values
+     * @param  array  $values  Array of numeric values
      * @return array Statistical measures
      */
     protected function calculateStatistics(array $values): array
@@ -324,8 +323,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Calculate percentile value
      *
-     * @param array $sortedValues Sorted array of values
-     * @param float $percentile Percentile (0-100)
+     * @param  array  $sortedValues  Sorted array of values
+     * @param  float  $percentile  Percentile (0-100)
      * @return float Percentile value
      */
     protected function calculatePercentile(array $sortedValues, float $percentile): float
@@ -342,6 +341,7 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
 
         // Linear interpolation
         $weight = $index - $lower;
+
         return $sortedValues[$lower] * (1 - $weight) + $sortedValues[$upper] * $weight;
     }
 
@@ -352,8 +352,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
      * Z > 3: Critical anomaly (99.7% confidence)
      * Z > 2: Warning (95% confidence)
      *
-     * @param array $data Time series data
-     * @param array $stats Statistics
+     * @param  array  $data  Time series data
+     * @param  array  $stats  Statistics
      * @return array Anomalies detected
      */
     protected function detectZScoreAnomalies(array $data, array $stats): array
@@ -401,8 +401,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
      * Lower Fence = Q1 - 1.5 × IQR
      * Upper Fence = Q3 + 1.5 × IQR
      *
-     * @param array $data Time series data
-     * @param array $stats Statistics
+     * @param  array  $data  Time series data
+     * @param  array  $stats  Statistics
      * @return array Anomalies detected
      */
     protected function detectIQRAnomalies(array $data, array $stats): array
@@ -441,8 +441,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
      * UCL = μ + 3σ (Upper Control Limit)
      * LCL = μ - 3σ (Lower Control Limit)
      *
-     * @param array $data Time series data
-     * @param array $stats Statistics
+     * @param  array  $data  Time series data
+     * @param  array  $stats  Statistics
      * @return array Anomalies detected
      */
     protected function detectSPCAnomalies(array $data, array $stats): array
@@ -490,8 +490,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
      *
      * Compares current value to moving average
      *
-     * @param array $data Time series data
-     * @param array $stats Statistics
+     * @param  array  $data  Time series data
+     * @param  array  $stats  Statistics
      * @return array Anomalies detected
      */
     protected function detectMovingAverageAnomalies(array $data, array $stats): array
@@ -539,7 +539,7 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Remove duplicate anomalies (same timestamp)
      *
-     * @param array $anomalies All anomalies
+     * @param  array  $anomalies  All anomalies
      * @return array Unique anomalies
      */
     protected function deduplicateAnomalies(array $anomalies): array
@@ -548,19 +548,20 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
         $seen = [];
 
         foreach ($anomalies as $anomaly) {
-            $key = $anomaly['timestamp'] . '_' . $anomaly['value'];
+            $key = $anomaly['timestamp'].'_'.$anomaly['value'];
 
-            if (!isset($seen[$key])) {
+            if (! isset($seen[$key])) {
                 $seen[$key] = true;
                 $unique[] = $anomaly;
             }
         }
 
         // Sort by severity (critical > warning > notable)
-        usort($unique, function($a, $b) {
+        usort($unique, function ($a, $b) {
             $severityOrder = ['critical' => 3, 'warning' => 2, 'notable' => 1];
             $aLevel = $severityOrder[$a['severity']] ?? 0;
             $bLevel = $severityOrder[$b['severity']] ?? 0;
+
             return $bLevel <=> $aLevel;
         });
 
@@ -570,7 +571,7 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Calculate overall anomaly score (0-100)
      *
-     * @param array $anomalies All anomalies by metric
+     * @param  array  $anomalies  All anomalies by metric
      * @return float Overall score
      */
     protected function calculateAnomalyScore(array $anomalies): float
@@ -599,21 +600,28 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Get status level based on anomaly score
      *
-     * @param float $score Anomaly score
+     * @param  float  $score  Anomaly score
      * @return string Status level
      */
     protected function getStatusLevel(float $score): string
     {
-        if ($score >= 50) return 'critical';
-        if ($score >= 25) return 'warning';
-        if ($score >= 10) return 'notable';
+        if ($score >= 50) {
+            return 'critical';
+        }
+        if ($score >= 25) {
+            return 'warning';
+        }
+        if ($score >= 10) {
+            return 'notable';
+        }
+
         return 'normal';
     }
 
     /**
      * Generate alerts for anomalies
      *
-     * @param array $anomalies Anomalies by metric
+     * @param  array  $anomalies  Anomalies by metric
      * @return array Alerts
      */
     protected function generateAlerts(array $anomalies): array
@@ -641,8 +649,8 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
     /**
      * Get alert message for anomaly
      *
-     * @param string $metric Metric name
-     * @param array $anomaly Anomaly data
+     * @param  string  $metric  Metric name
+     * @param  array  $anomaly  Anomaly data
      * @return string Alert message
      */
     protected function getAlertMessage(string $metric, array $anomaly): string
@@ -650,15 +658,15 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
         $direction = $anomaly['direction'] === 'above' ? 'yuqori' : 'past';
         $value = $anomaly['value'];
 
-        return "{$metric} metrikasi ({$value}) kutilganidan ancha {$direction}! " .
+        return "{$metric} metrikasi ({$value}) kutilganidan ancha {$direction}! ".
                "Severity: {$anomaly['severity']}, Method: {$anomaly['method']}";
     }
 
     /**
      * Get recommended action for anomaly
      *
-     * @param string $metric Metric name
-     * @param array $anomaly Anomaly data
+     * @param  string  $metric  Metric name
+     * @param  array  $anomaly  Anomaly data
      * @return string Recommended action
      */
     protected function getRecommendedAction(string $metric, array $anomaly): string
@@ -670,14 +678,13 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             'conversion_rate' => "Conversion anomaliyasi - funnel'da muammo bo'lishi mumkin",
         ];
 
-        return $actions[$metric] ?? "Ushbu metrikani diqqat bilan monitoring qiling";
+        return $actions[$metric] ?? 'Ushbu metrikani diqqat bilan monitoring qiling';
     }
 
     /**
      * Generate recommendations based on anomalies
      *
-     * @param array $anomalies Anomalies by metric
-     * @param Business $business
+     * @param  array  $anomalies  Anomalies by metric
      * @return array Recommendations
      */
     protected function generateRecommendations(array $anomalies, Business $business): array
@@ -724,8 +731,12 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             $baseValue = 4.5 + (rand(-50, 50) / 100); // Normal: 4.0-5.0%
 
             // Add anomalies
-            if ($i == 10) $baseValue = 1.5; // Sudden drop
-            if ($i == 20) $baseValue = 8.0; // Sudden spike
+            if ($i == 10) {
+                $baseValue = 1.5;
+            } // Sudden drop
+            if ($i == 20) {
+                $baseValue = 8.0;
+            } // Sudden spike
 
             $engagementData[] = [
                 'value' => round($baseValue, 2),
@@ -740,7 +751,9 @@ class AnomalyDetectionAlgorithm extends AlgorithmEngine
             $baseValue = 100000 + (rand(-10000, 10000));
 
             // Add anomaly
-            if ($i == 15) $baseValue = 200000; // Big sale day
+            if ($i == 15) {
+                $baseValue = 200000;
+            } // Big sale day
 
             $revenueData[] = [
                 'value' => $baseValue,

@@ -8,7 +8,6 @@ use App\Models\BusinessUser;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\LeadSource;
-use App\Models\MarketingChannel;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -28,7 +27,7 @@ class SalesController extends Controller
     {
         $business = $business ?? $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return false;
         }
 
@@ -53,7 +52,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes yarating');
         }
@@ -93,7 +92,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -137,7 +136,7 @@ class SalesController extends Controller
         // Transform the data
         $leads->getCollection()->transform(function ($lead) {
             // Load source relationship if source_id exists but source is not loaded
-            if ($lead->source_id && !$lead->relationLoaded('source')) {
+            if ($lead->source_id && ! $lead->relationLoaded('source')) {
                 $lead->load('source');
             }
 
@@ -179,7 +178,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -217,7 +216,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -262,10 +261,10 @@ class SalesController extends Controller
         ]);
 
         // Check for duplicate by phone number (if phone is provided)
-        if (!empty($validated['phone']) && !($validated['force_create'] ?? false)) {
+        if (! empty($validated['phone']) && ! ($validated['force_create'] ?? false)) {
             $normalizedPhone = $this->normalizePhoneNumber($validated['phone']);
             $existingLead = Lead::where('business_id', $currentBusiness->id)
-                ->where(function ($query) use ($normalizedPhone, $validated) {
+                ->where(function ($query) use ($normalizedPhone) {
                     // Check phone match
                     $query->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), '(', '') LIKE ?", ["%{$normalizedPhone}%"]);
                 })
@@ -275,7 +274,7 @@ class SalesController extends Controller
                 return redirect()->back()
                     ->withInput()
                     ->with('duplicate_warning', [
-                        'message' => "Bu telefon raqami bilan lid allaqachon mavjud",
+                        'message' => 'Bu telefon raqami bilan lid allaqachon mavjud',
                         'existing_lead' => [
                             'id' => $existingLead->id,
                             'name' => $existingLead->name,
@@ -323,7 +322,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -335,7 +334,7 @@ class SalesController extends Controller
         $duplicates = [];
 
         // Check phone
-        if (!empty($validated['phone'])) {
+        if (! empty($validated['phone'])) {
             $normalizedPhone = $this->normalizePhoneNumber($validated['phone']);
 
             $phoneDuplicates = Lead::where('business_id', $currentBusiness->id)
@@ -347,7 +346,7 @@ class SalesController extends Controller
                 ->get();
 
             if ($phoneDuplicates->isNotEmpty()) {
-                $duplicates['phone'] = $phoneDuplicates->map(fn($lead) => [
+                $duplicates['phone'] = $phoneDuplicates->map(fn ($lead) => [
                     'id' => $lead->id,
                     'name' => $lead->name,
                     'phone' => $lead->phone,
@@ -359,7 +358,7 @@ class SalesController extends Controller
         }
 
         // Check email
-        if (!empty($validated['email'])) {
+        if (! empty($validated['email'])) {
             $emailDuplicates = Lead::where('business_id', $currentBusiness->id)
                 ->where('email', $validated['email'])
                 ->select('id', 'name', 'phone', 'email', 'status', 'created_at')
@@ -367,7 +366,7 @@ class SalesController extends Controller
                 ->get();
 
             if ($emailDuplicates->isNotEmpty()) {
-                $duplicates['email'] = $emailDuplicates->map(fn($lead) => [
+                $duplicates['email'] = $emailDuplicates->map(fn ($lead) => [
                     'id' => $lead->id,
                     'name' => $lead->name,
                     'phone' => $lead->phone,
@@ -379,7 +378,7 @@ class SalesController extends Controller
         }
 
         return response()->json([
-            'has_duplicates' => !empty($duplicates),
+            'has_duplicates' => ! empty($duplicates),
             'duplicates' => $duplicates,
         ]);
     }
@@ -391,7 +390,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -461,7 +460,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -513,7 +512,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -583,13 +582,13 @@ class SalesController extends Controller
         $lead->update($validated);
 
         // Log activity if there are changes
-        if (!empty($changes)) {
-            $changedFields = array_map(fn($c) => $c['label'], $changes);
+        if (! empty($changes)) {
+            $changedFields = array_map(fn ($c) => $c['label'], $changes);
             LeadActivity::log(
                 $lead->id,
                 LeadActivity::TYPE_UPDATED,
                 'Ma\'lumotlar yangilandi',
-                implode(', ', $changedFields) . ' o\'zgartirildi',
+                implode(', ', $changedFields).' o\'zgartirildi',
                 $changes
             );
         }
@@ -621,7 +620,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -652,7 +651,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -661,7 +660,7 @@ class SalesController extends Controller
         }
 
         // Only owner or sales head can assign leads
-        if (!$this->canAssignLeads($currentBusiness)) {
+        if (! $this->canAssignLeads($currentBusiness)) {
             return response()->json(['error' => 'Faqat biznes egasi yoki sotuv bo\'limi rahbari tayinlay oladi'], 403);
         }
 
@@ -708,7 +707,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -765,7 +764,7 @@ class SalesController extends Controller
         }
 
         // Sort by won value descending
-        usort($stats, fn($a, $b) => $b['leads']['won_value'] <=> $a['leads']['won_value']);
+        usort($stats, fn ($a, $b) => $b['leads']['won_value'] <=> $a['leads']['won_value']);
 
         return response()->json(['stats' => $stats]);
     }
@@ -777,12 +776,12 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         // Only owner or sales head can assign leads
-        if (!$this->canAssignLeads($currentBusiness)) {
+        if (! $this->canAssignLeads($currentBusiness)) {
             return response()->json(['error' => 'Faqat biznes egasi yoki sotuv bo\'limi rahbari tayinlay oladi'], 403);
         }
 
@@ -824,9 +823,9 @@ class SalesController extends Controller
         return response()->json([
             'success' => true,
             'message' => $newOperatorId
-                ? count($leadIds) . ' ta lead muvaffaqiyatli tayinlandi'
-                : count($leadIds) . ' ta lead tayinlovi bekor qilindi',
-            'leads' => $leads->map(fn($lead) => [
+                ? count($leadIds).' ta lead muvaffaqiyatli tayinlandi'
+                : count($leadIds).' ta lead tayinlovi bekor qilindi',
+            'leads' => $leads->map(fn ($lead) => [
                 'id' => $lead->id,
                 'assigned_to' => $newOperatorId,
             ]),
@@ -840,23 +839,23 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         // Get counts by status
         $statusCounts = Lead::where('business_id', $currentBusiness->id)
-            ->selectRaw("
+            ->selectRaw('
                 status,
                 COUNT(*) as count,
                 SUM(COALESCE(estimated_value, 0)) as value
-            ")
+            ')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
         $statusValues = Lead::where('business_id', $currentBusiness->id)
-            ->selectRaw("status, SUM(COALESCE(estimated_value, 0)) as value")
+            ->selectRaw('status, SUM(COALESCE(estimated_value, 0)) as value')
             ->groupBy('status')
             ->pluck('value', 'status')
             ->toArray();
@@ -919,7 +918,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -961,7 +960,7 @@ class SalesController extends Controller
         }
 
         // Sort by total descending
-        usort($result, fn($a, $b) => $b['total'] <=> $a['total']);
+        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         return response()->json([
             'sources' => $result,
@@ -976,17 +975,17 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
         $lostStats = Lead::where('business_id', $currentBusiness->id)
             ->where('status', 'lost')
-            ->selectRaw("
+            ->selectRaw('
                 lost_reason,
                 COUNT(*) as count,
                 SUM(COALESCE(estimated_value, 0)) as lost_value
-            ")
+            ')
             ->groupBy('lost_reason')
             ->get();
 
@@ -1014,7 +1013,7 @@ class SalesController extends Controller
         }
 
         // Sort by count descending
-        usort($result, fn($a, $b) => $b['count'] <=> $a['count']);
+        usort($result, fn ($a, $b) => $b['count'] <=> $a['count']);
 
         return response()->json([
             'reasons' => $result,
@@ -1030,7 +1029,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1039,7 +1038,7 @@ class SalesController extends Controller
         }
 
         $validated = $request->validate([
-            'lost_reason' => 'required|in:' . implode(',', array_keys(Lead::LOST_REASONS)),
+            'lost_reason' => 'required|in:'.implode(',', array_keys(Lead::LOST_REASONS)),
             'lost_reason_details' => 'nullable|string|max:1000',
         ]);
 
@@ -1057,8 +1056,8 @@ class SalesController extends Controller
             $lead->id,
             LeadActivity::TYPE_STATUS_CHANGED,
             'Yo\'qotildi deb belgilandi',
-            'Sabab: ' . (Lead::LOST_REASONS[$validated['lost_reason']] ?? $validated['lost_reason']) .
-                ($validated['lost_reason_details'] ? ' - ' . $validated['lost_reason_details'] : ''),
+            'Sabab: '.(Lead::LOST_REASONS[$validated['lost_reason']] ?? $validated['lost_reason']).
+                ($validated['lost_reason_details'] ? ' - '.$validated['lost_reason_details'] : ''),
             ['old_status' => 'active', 'new_status' => 'lost', 'lost_reason' => $validated['lost_reason']]
         );
 
@@ -1081,7 +1080,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1094,7 +1093,7 @@ class SalesController extends Controller
             ->latest()
             ->take(50)
             ->get()
-            ->map(fn($activity) => [
+            ->map(fn ($activity) => [
                 'id' => $activity->id,
                 'type' => $activity->type,
                 'title' => $activity->title,
@@ -1118,7 +1117,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1151,7 +1150,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1163,7 +1162,7 @@ class SalesController extends Controller
             $calls = $lead->calls()
                 ->with('user:id,name')
                 ->get()
-                ->map(fn($call) => [
+                ->map(fn ($call) => [
                     'id' => $call->id,
                     'direction' => $call->direction,
                     'direction_label' => $call->direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi',
@@ -1222,7 +1221,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1266,7 +1265,7 @@ class SalesController extends Controller
             $calls = $lead->fresh()->calls()
                 ->with('user:id,name')
                 ->get()
-                ->map(fn($call) => [
+                ->map(fn ($call) => [
                     'id' => $call->id,
                     'direction' => $call->direction,
                     'direction_label' => $call->direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi',
@@ -1311,7 +1310,7 @@ class SalesController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Sinxronlash xatosi: ' . $e->getMessage(),
+                'error' => 'Sinxronlash xatosi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1335,8 +1334,8 @@ class SalesController extends Controller
         $orphanCalls = \App\Models\CallLog::where('business_id', $businessId)
             ->whereNull('lead_id')
             ->where(function ($query) use ($phone, $last9) {
-                $query->where('from_number', 'like', '%' . $last9)
-                    ->orWhere('to_number', 'like', '%' . $last9)
+                $query->where('from_number', 'like', '%'.$last9)
+                    ->orWhere('to_number', 'like', '%'.$last9)
                     ->orWhere('from_number', $phone)
                     ->orWhere('to_number', $phone);
             })
@@ -1350,9 +1349,9 @@ class SalesController extends Controller
         // Also check calls that might have different lead_id but same phone
         $mismatchedCalls = \App\Models\CallLog::where('business_id', $businessId)
             ->where('lead_id', '!=', $lead->id)
-            ->where(function ($query) use ($phone, $last9) {
-                $query->where('from_number', 'like', '%' . $last9)
-                    ->orWhere('to_number', 'like', '%' . $last9);
+            ->where(function ($query) use ($last9) {
+                $query->where('from_number', 'like', '%'.$last9)
+                    ->orWhere('to_number', 'like', '%'.$last9);
             })
             ->get();
 
@@ -1392,15 +1391,16 @@ class SalesController extends Controller
      */
     protected function formatCallDuration(?int $seconds): string
     {
-        if (!$seconds) {
+        if (! $seconds) {
             return '-';
         }
         if ($seconds < 60) {
-            return $seconds . ' sek';
+            return $seconds.' sek';
         }
         $minutes = floor($seconds / 60);
         $secs = $seconds % 60;
-        return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+
+        return $minutes.':'.str_pad($secs, 2, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -1410,7 +1410,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1443,7 +1443,7 @@ class SalesController extends Controller
                 $lead->id,
                 LeadActivity::TYPE_STATUS_CHANGED,
                 'Holat o\'zgardi',
-                ($statusLabels[$oldStatus] ?? $oldStatus) . ' dan ' . ($statusLabels[$validated['status']] ?? $validated['status']) . ' ga o\'zgartirildi',
+                ($statusLabels[$oldStatus] ?? $oldStatus).' dan '.($statusLabels[$validated['status']] ?? $validated['status']).' ga o\'zgartirildi',
                 ['old_status' => $oldStatus, 'new_status' => $validated['status']]
             );
         }
@@ -1465,7 +1465,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1473,7 +1473,7 @@ class SalesController extends Controller
             ->where('business_id', $currentBusiness->id)
             ->first();
 
-        if (!$call) {
+        if (! $call) {
             return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
         }
 
@@ -1489,7 +1489,7 @@ class SalesController extends Controller
         }
 
         // If marking as completed/answered and no ended_at, set it
-        if (in_array($validated['status'], ['completed', 'answered']) && !$call->ended_at) {
+        if (in_array($validated['status'], ['completed', 'answered']) && ! $call->ended_at) {
             $updates['ended_at'] = now();
         }
 
@@ -1515,7 +1515,7 @@ class SalesController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -1523,7 +1523,7 @@ class SalesController extends Controller
             ->where('id', $callId)
             ->first();
 
-        if (!$call) {
+        if (! $call) {
             return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
         }
 
@@ -1540,7 +1540,7 @@ class SalesController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             return response()->json([
                 'success' => false,
                 'error' => 'PBX hisobi topilmadi',
@@ -1553,7 +1553,7 @@ class SalesController extends Controller
 
             // Try to get recording URL using provider_call_id
             $providerCallId = $call->provider_call_id;
-            if (!$providerCallId) {
+            if (! $providerCallId) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Yozuv topilmadi',

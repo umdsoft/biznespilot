@@ -15,7 +15,7 @@ return new class extends Migration
 
             // Report Info
             $table->enum('report_type', [
-                'daily_brief', 'weekly_summary', 'monthly_report', 'quarterly_review', 'diagnostic', 'custom'
+                'daily_brief', 'weekly_summary', 'monthly_report', 'quarterly_review', 'diagnostic', 'custom',
             ]);
             $table->string('title');
             $table->date('period_start');

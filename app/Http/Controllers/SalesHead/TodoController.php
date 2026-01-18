@@ -5,9 +5,7 @@ namespace App\Http\Controllers\SalesHead;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Todo;
-use App\Models\TodoRecurrence;
 use App\Models\TodoTemplate;
-use App\Models\Business;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +22,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -60,7 +58,7 @@ class TodoController extends Controller
         // Team members for assignment
         $teamMembers = $business->teamMembers()
             ->get()
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'role' => $user->pivot->role ?? 'member',
@@ -107,9 +105,9 @@ class TodoController extends Controller
                 continue;
             }
 
-            if (!$todo->due_date) {
+            if (! $todo->due_date) {
                 $grouped['no_date'][] = $todoData;
-            } elseif ($todo->due_date->lt($now) && !$todo->due_date->isToday()) {
+            } elseif ($todo->due_date->lt($now) && ! $todo->due_date->isToday()) {
                 $grouped['overdue'][] = $todoData;
             } elseif ($todo->due_date->isToday()) {
                 $grouped['today'][] = $todoData;
@@ -130,7 +128,7 @@ class TodoController extends Controller
      */
     protected function formatTodoForResponse(Todo $todo): array
     {
-        $subtasksData = $todo->subtasks->map(fn($subtask) => [
+        $subtasksData = $todo->subtasks->map(fn ($subtask) => [
             'id' => $subtask->id,
             'title' => $subtask->title,
             'status' => $subtask->status,
@@ -138,7 +136,7 @@ class TodoController extends Controller
             'order' => $subtask->order,
         ])->toArray();
 
-        $assigneesData = $todo->assignees->map(fn($assignee) => [
+        $assigneesData = $todo->assignees->map(fn ($assignee) => [
             'id' => $assignee->id,
             'user_id' => $assignee->user_id,
             'user' => $assignee->user ? [
@@ -242,7 +240,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -281,13 +279,13 @@ class TodoController extends Controller
                 'order' => $maxOrder + 1,
             ]);
 
-            if (!empty($validated['subtasks'])) {
+            if (! empty($validated['subtasks'])) {
                 foreach ($validated['subtasks'] as $subtaskData) {
                     $todo->addSubtask($subtaskData['title'], $subtaskData['description'] ?? null);
                 }
             }
 
-            if ($validated['type'] === Todo::TYPE_TEAM && !empty($validated['assignee_ids'])) {
+            if ($validated['type'] === Todo::TYPE_TEAM && ! empty($validated['assignee_ids'])) {
                 $todo->syncAssignees($validated['assignee_ids']);
             }
 
@@ -302,9 +300,10 @@ class TodoController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -316,7 +315,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $todo->business_id !== $business->id) {
+        if (! $business || $todo->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -342,7 +341,7 @@ class TodoController extends Controller
         }
 
         if (array_key_exists('assignee_ids', $validated)) {
-            if (!empty($validated['assignee_ids']) && ($validated['type'] ?? $todo->type) === Todo::TYPE_TEAM) {
+            if (! empty($validated['assignee_ids']) && ($validated['type'] ?? $todo->type) === Todo::TYPE_TEAM) {
                 $todo->syncAssignees($validated['assignee_ids']);
             } else {
                 $todo->assignees()->delete();
@@ -368,7 +367,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $todo->business_id !== $business->id) {
+        if (! $business || $todo->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -395,7 +394,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $todo->business_id !== $business->id) {
+        if (! $business || $todo->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -419,7 +418,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $todo->business_id !== $business->id) {
+        if (! $business || $todo->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -438,7 +437,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $todo->business_id !== $business->id) {
+        if (! $business || $todo->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -469,7 +468,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $todo->business_id !== $business->id || $subtask->parent_id !== $todo->id) {
+        if (! $business || $todo->business_id !== $business->id || $subtask->parent_id !== $todo->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -495,7 +494,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -512,7 +511,7 @@ class TodoController extends Controller
             ->orderBy('due_date')
             ->limit(5)
             ->get()
-            ->map(fn($todo) => [
+            ->map(fn ($todo) => [
                 'id' => $todo->id,
                 'title' => $todo->title,
                 'priority' => $todo->priority,

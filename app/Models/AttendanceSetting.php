@@ -67,6 +67,6 @@ class AttendanceSetting extends Model
      */
     public function getFormattedWorkHoursAttribute(): string
     {
-        return $this->work_start_time . ' - ' . $this->work_end_time;
+        return $this->work_start_time.' - '.$this->work_end_time;
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use App\Services\Algorithm\Math\Clustering;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -28,13 +27,14 @@ use Illuminate\Support\Facades\Log;
 class RecommendationEngine extends AlgorithmEngine
 {
     protected string $version = '1.0.0';
+
     protected int $cacheTTL = 1800;
 
     /**
      * Generate recommendations for a business
      *
-     * @param Business $business Target business
-     * @param array $options Options
+     * @param  Business  $business  Target business
+     * @param  array  $options  Options
      * @return array Recommendations
      */
     public function analyze(Business $business, array $options = []): array
@@ -75,6 +75,7 @@ class RecommendationEngine extends AlgorithmEngine
                 'business_id' => $business->id,
                 'error' => $e->getMessage(),
             ]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -123,9 +124,9 @@ class RecommendationEngine extends AlgorithmEngine
             $recommendations[] = [
                 'action' => $action,
                 'confidence_score' => round($score / count($similarBusinesses), 2),
-                'recommended_by' => count(array_filter($similarBusinesses, function($b) use ($action) {
+                'recommended_by' => count(array_filter($similarBusinesses, function ($b) use ($action) {
                     return in_array($action, $b['successful_actions'] ?? []);
-                })) . ' similar businesses',
+                })).' similar businesses',
                 'description' => $this->getActionDescription($action),
             ];
         }
@@ -179,6 +180,7 @@ class RecommendationEngine extends AlgorithmEngine
             'seo_optimization' => 'Website SEO optimize qilish - organic traffic uchun',
             'referral_program' => 'Referral program - customer acquisition cost kamaytirish',
         ];
+
         return $descriptions[$action] ?? $action;
     }
 }

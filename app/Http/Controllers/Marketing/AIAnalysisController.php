@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\InstagramAccount;
-use App\Models\InstagramMedia;
 use App\Models\InstagramDailyInsight;
+use App\Models\InstagramMedia;
 use App\Models\Integration;
 use App\Models\MarketingChannel;
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ class AIAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -58,7 +58,7 @@ class AIAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -69,13 +69,13 @@ class AIAnalysisController extends Controller
             ->first();
 
         // If no dedicated Instagram integration, check Meta Ads (includes Instagram)
-        if (!$instagramIntegration) {
+        if (! $instagramIntegration) {
             $metaIntegration = Integration::where('business_id', $business->id)
                 ->where('type', 'meta_ads')
                 ->whereIn('status', ['connected', 'expired'])
                 ->first();
 
-            if (!$metaIntegration) {
+            if (! $metaIntegration) {
                 // No integration at all - show connect page
                 return Inertia::render('Marketing/AI/Instagram', [
                     'channel' => null,
@@ -140,7 +140,7 @@ class AIAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -166,7 +166,7 @@ class AIAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -184,7 +184,7 @@ class AIAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 

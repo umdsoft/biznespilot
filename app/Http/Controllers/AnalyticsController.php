@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Services\SalesAnalyticsService;
 use App\Services\ExportService;
+use App\Services\SalesAnalyticsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
@@ -15,7 +14,9 @@ class AnalyticsController extends Controller
     use HasCurrentBusiness;
 
     protected SalesAnalyticsService $analyticsService;
+
     protected ExportService $exportService;
+
     protected int $cacheTTL = 300; // 5 minutes
 
     public function __construct(
@@ -33,7 +34,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -76,7 +77,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -103,7 +104,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -134,7 +135,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -159,7 +160,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -181,7 +182,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -207,7 +208,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -229,7 +230,7 @@ class AnalyticsController extends Controller
     {
         $currentBusiness = $this->getCurrentBusiness();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -455,14 +456,14 @@ class AnalyticsController extends Controller
             $filename = $this->exportService->generatePDF($currentBusiness, $data, $reportType);
 
             return response()->download(
-                storage_path('app/exports/' . $filename),
+                storage_path('app/exports/'.$filename),
                 $filename,
                 ['Content-Type' => 'application/pdf']
             )->deleteFileAfterSend(true);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'PDF yaratishda xatolik: ' . $e->getMessage(),
+                'message' => 'PDF yaratishda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -499,17 +500,17 @@ class AnalyticsController extends Controller
             $filename = $this->exportService->generateExcel($currentBusiness, $data, $reportType);
 
             return response()->download(
-                storage_path('app/exports/' . $filename),
+                storage_path('app/exports/'.$filename),
                 $filename,
                 [
                     'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                    'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                 ]
             )->deleteFileAfterSend(true);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Excel yaratishda xatolik: ' . $e->getMessage(),
+                'message' => 'Excel yaratishda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }

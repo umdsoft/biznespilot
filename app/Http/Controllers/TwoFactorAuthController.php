@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\TwoFactorAuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Inertia\Inertia;
 
 class TwoFactorAuthController extends Controller
@@ -79,14 +78,14 @@ class TwoFactorAuthController extends Controller
         $user = $request->user();
         $secret = session('two_factor_secret_temp');
 
-        if (!$secret) {
+        if (! $secret) {
             return back()->withErrors(['code' => 'Sessiya tugagan. Qaytadan boshlang.']);
         }
 
         // Try to enable 2FA
         $enabled = $this->twoFactorService->enable($user, $secret, $request->code);
 
-        if (!$enabled) {
+        if (! $enabled) {
             return back()->withErrors(['code' => 'Noto\'g\'ri kod. Qaytadan urinib ko\'ring.']);
         }
 
@@ -114,7 +113,7 @@ class TwoFactorAuthController extends Controller
         $user = $request->user();
 
         // Verify password
-        if (!\Hash::check($request->password, $user->password)) {
+        if (! \Hash::check($request->password, $user->password)) {
             return back()->withErrors(['password' => 'Noto\'g\'ri parol.']);
         }
 
@@ -130,7 +129,7 @@ class TwoFactorAuthController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->two_factor_enabled) {
+        if (! $user->two_factor_enabled) {
             return redirect()->route('settings.two-factor');
         }
 
@@ -153,11 +152,11 @@ class TwoFactorAuthController extends Controller
         $user = $request->user();
 
         // Verify password
-        if (!\Hash::check($request->password, $user->password)) {
+        if (! \Hash::check($request->password, $user->password)) {
             return back()->withErrors(['password' => 'Noto\'g\'ri parol.']);
         }
 
-        if (!$user->two_factor_enabled) {
+        if (! $user->two_factor_enabled) {
             return back()->withErrors(['message' => '2FA yoqilmagan.']);
         }
 

@@ -18,19 +18,19 @@ class CheckPermission
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             abort(401, 'Unauthenticated');
         }
 
         // Get current business from session
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             abort(403, 'No business selected');
         }
 
         // Check if user has permission
-        if (!$user->hasPermission($businessId, $permission)) {
+        if (! $user->hasPermission($businessId, $permission)) {
             abort(403, 'You do not have permission to perform this action');
         }
 

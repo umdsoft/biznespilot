@@ -105,7 +105,7 @@ return new class extends Migration
                 'top_response_time_minutes', 'top_repeat_purchase_rate',
                 'optimal_post_frequency_weekly', 'optimal_stories_daily',
                 'optimal_caption_length', 'optimal_hashtag_count', 'optimal_posting_times',
-                'proven_tactics', 'businesses_count', 'last_calculated_at'
+                'proven_tactics', 'businesses_count', 'last_calculated_at',
             ]);
         });
 
@@ -119,7 +119,7 @@ return new class extends Migration
                 'offer_strength', 'channels_analysis', 'funnel_analysis',
                 'automation_analysis', 'risks', 'action_plan', 'expected_results',
                 'platform_recommendations', 'recommended_videos',
-                'ai_model', 'tokens_used', 'generation_time_ms', 'expires_at'
+                'ai_model', 'tokens_used', 'generation_time_ms', 'expires_at',
             ]);
         });
     }

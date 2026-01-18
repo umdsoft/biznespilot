@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MarketingChannel extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -107,7 +107,7 @@ class MarketingChannel extends Model
      */
     public function latestMetrics()
     {
-        return match($this->type) {
+        return match ($this->type) {
             'instagram' => $this->instagramMetrics()->latest('metric_date')->first(),
             'telegram' => $this->telegramMetrics()->latest('metric_date')->first(),
             'facebook' => $this->facebookMetrics()->latest('metric_date')->first(),

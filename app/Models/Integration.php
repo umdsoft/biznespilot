@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Integration extends Model
 {
-    use BelongsToBusiness, SoftDeletes, HasUuid;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -69,11 +69,12 @@ class Integration extends Model
      */
     public function getAccessToken(): ?string
     {
-        if (!$this->credentials) {
+        if (! $this->credentials) {
             return null;
         }
 
         $credentials = json_decode($this->credentials, true);
+
         return $credentials['access_token'] ?? null;
     }
 

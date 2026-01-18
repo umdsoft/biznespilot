@@ -20,7 +20,7 @@ class LeaveTypeSeeder extends Seeder
             // Check if business already has leave types
             $exists = LeaveType::where('business_id', $businessId)->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 // Create default leave types for this business
                 LeaveType::createDefaultTypes($businessId);
 

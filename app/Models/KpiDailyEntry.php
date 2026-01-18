@@ -167,7 +167,7 @@ class KpiDailyEntry extends Model
     public function scopeCurrentMonth($query)
     {
         return $query->whereYear('date', now()->year)
-                     ->whereMonth('date', now()->month);
+            ->whereMonth('date', now()->month);
     }
 
     /**

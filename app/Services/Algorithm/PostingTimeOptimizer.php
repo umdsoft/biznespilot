@@ -23,7 +23,6 @@ use Illuminate\Support\Facades\Log;
  * - Buffer (2024) - Optimal Posting Times Study
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class PostingTimeOptimizer extends AlgorithmEngine
 {
@@ -88,8 +87,8 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Analyze optimal posting times for a business
      *
-     * @param Business $business Business to analyze
-     * @param array $options Additional options
+     * @param  Business  $business  Business to analyze
+     * @param  array  $options  Additional options
      * @return array Optimal posting times and recommendations
      */
     public function analyze(Business $business, array $options = []): array
@@ -155,8 +154,6 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Get historical engagement data from posts
      *
-     * @param Business $business
-     * @param array $options
      * @return array Engagement data with timestamps
      */
     protected function getEngagementData(Business $business, array $options = []): array
@@ -170,7 +167,7 @@ class PostingTimeOptimizer extends AlgorithmEngine
             $posts = $account->posts ?? collect();
 
             foreach ($posts as $post) {
-                if (!empty($post->posted_at) && !empty($post->engagement_rate)) {
+                if (! empty($post->posted_at) && ! empty($post->engagement_rate)) {
                     $postedAt = Carbon::parse($post->posted_at);
 
                     $data[] = [
@@ -199,7 +196,6 @@ class PostingTimeOptimizer extends AlgorithmEngine
      * Circular statistics properly handle the 24-hour cycle where
      * 23:00 and 1:00 are close together.
      *
-     * @param array $engagementData
      * @return array Top hours with engagement scores
      */
     protected function calculateOptimalHours(array $engagementData): array
@@ -280,7 +276,6 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Analyze day-of-week patterns
      *
-     * @param array $engagementData
      * @return array Day patterns with best days
      */
     protected function analyzeDayPatterns(array $engagementData): array
@@ -333,23 +328,25 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Calculate relative performance percentage
      *
-     * @param float $value Current value
-     * @param array $allValues All values for comparison
+     * @param  float  $value  Current value
+     * @param  array  $allValues  All values for comparison
      * @return string Percentage string
      */
     protected function calculateRelativePerformance(float $value, array $allValues): string
     {
         $max = max($allValues);
-        if ($max == 0) return '0%';
+        if ($max == 0) {
+            return '0%';
+        }
 
         $percentage = ($value / $max) * 100;
-        return round($percentage) . '%';
+
+        return round($percentage).'%';
     }
 
     /**
      * Compare weekday vs weekend performance
      *
-     * @param array $dayAverages
      * @return array Comparison data
      */
     protected function compareWeekdayWeekend(array $dayAverages): array
@@ -399,9 +396,6 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Generate posting recommendations
      *
-     * @param Business $business
-     * @param array $optimalHours
-     * @param array $dayPatterns
      * @return array Recommendations
      */
     protected function generateRecommendations(
@@ -412,7 +406,7 @@ class PostingTimeOptimizer extends AlgorithmEngine
         $recommendations = [];
 
         // Best posting times recommendation
-        if (!empty($optimalHours['top_hours'])) {
+        if (! empty($optimalHours['top_hours'])) {
             $topHour = $optimalHours['top_hours'][0];
             $recommendations[] = [
                 'priority' => 'high',
@@ -420,8 +414,8 @@ class PostingTimeOptimizer extends AlgorithmEngine
                 'description' => "Sizning eng yaxshi natija beruvchi vaqtingiz: {$topHour['time']}. Bu vaqtda engagement {$topHour['relative_performance']} yuqori.",
                 'action_items' => [
                     "Har kuni {$topHour['time']} da post qiling",
-                    "Content calendar yarating",
-                    "Scheduling tool ishlatishni boshlang",
+                    'Content calendar yarating',
+                    'Scheduling tool ishlatishni boshlang',
                 ],
                 'estimated_impact' => [
                     'engagement_increase' => '+20-30%',
@@ -431,19 +425,19 @@ class PostingTimeOptimizer extends AlgorithmEngine
         }
 
         // Day-of-week recommendation
-        if (!empty($dayPatterns['best_days'])) {
+        if (! empty($dayPatterns['best_days'])) {
             $bestDay = $dayPatterns['best_days'][0];
             $worstDay = $dayPatterns['worst_days'][0] ?? null;
 
             $recommendations[] = [
                 'priority' => 'medium',
                 'title' => 'Haftaning eng samarali kunlari',
-                'description' => "{$bestDay['day']} kuni eng yaxshi natija beradi. " .
+                'description' => "{$bestDay['day']} kuni eng yaxshi natija beradi. ".
                                 ($worstDay ? "{$worstDay['day']} kuni eng past engagement." : ''),
                 'action_items' => [
                     "{$bestDay['day']} kuniga eng muhim contentni joylashtiring",
-                    "Kam samarali kunlarda kamroq post qiling yoki repost bajaring",
-                    "Har hafta consistent posting schedule yarating",
+                    'Kam samarali kunlarda kamroq post qiling yoki repost bajaring',
+                    'Har hafta consistent posting schedule yarating',
                 ],
                 'estimated_impact' => [
                     'engagement_increase' => '+15-20%',
@@ -457,10 +451,10 @@ class PostingTimeOptimizer extends AlgorithmEngine
             $better = $comparison['better_performance'];
             $recommendations[] = [
                 'priority' => 'medium',
-                'title' => ucfirst($better) . ' strategiyasiga e\'tibor bering',
-                'description' => ucfirst($better) . " kunlari {$comparison['difference_percent']}% yaxshiroq natija bermoqda.",
+                'title' => ucfirst($better).' strategiyasiga e\'tibor bering',
+                'description' => ucfirst($better)." kunlari {$comparison['difference_percent']}% yaxshiroq natija bermoqda.",
                 'action_items' => [
-                    ucfirst($better) . " kunlari ko'proq post qiling",
+                    ucfirst($better)." kunlari ko'proq post qiling",
                     "Content type'larni {$better} uchun optimizatsiya qiling",
                     "Budget'ni {$better} kunlarga ko'proq ajrating",
                 ],
@@ -485,8 +479,6 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Calculate next best posting slots (next 7 days)
      *
-     * @param array $optimalHours
-     * @param array $dayPatterns
      * @return array Recommended posting times
      */
     protected function calculateNextPostingSlots(array $optimalHours, array $dayPatterns): array
@@ -538,7 +530,7 @@ class PostingTimeOptimizer extends AlgorithmEngine
         }
 
         // Sort by predicted engagement
-        usort($slots, function($a, $b) {
+        usort($slots, function ($a, $b) {
             return $b['predicted_engagement'] <=> $a['predicted_engagement'];
         });
 
@@ -549,21 +541,27 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Get time quality label
      *
-     * @param float $score Engagement score
+     * @param  float  $score  Engagement score
      * @return string Quality level
      */
     protected function getTimeQuality(float $score): string
     {
-        if ($score >= 4.0) return 'excellent';
-        if ($score >= 3.0) return 'good';
-        if ($score >= 2.0) return 'average';
+        if ($score >= 4.0) {
+            return 'excellent';
+        }
+        if ($score >= 3.0) {
+            return 'good';
+        }
+        if ($score >= 2.0) {
+            return 'average';
+        }
+
         return 'poor';
     }
 
     /**
      * Get industry benchmark posting times
      *
-     * @param string $industry
      * @return array Industry-specific recommendations
      */
     protected function getIndustryBenchmark(string $industry): array
@@ -581,7 +579,6 @@ class PostingTimeOptimizer extends AlgorithmEngine
     /**
      * Generate synthetic data for demo purposes
      *
-     * @param Business $business
      * @return array Synthetic engagement data
      */
     protected function generateSyntheticData(Business $business): array

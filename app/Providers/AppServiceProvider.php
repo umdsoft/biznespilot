@@ -4,10 +4,10 @@ namespace App\Providers;
 
 use App\Models\CustdevResponse;
 use App\Observers\CustdevResponseObserver;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureProductionSettings(): void
     {
-        if (!app()->environment('production')) {
+        if (! app()->environment('production')) {
             return;
         }
 
@@ -77,7 +77,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Prevent lazy loading in development to catch N+1 issues
-        Model::preventLazyLoading(!app()->runningInConsole());
+        Model::preventLazyLoading(! app()->runningInConsole());
 
         // Log all queries in development (optional, can be heavy)
         if (config('app.debug') && config('kpi_sync.query_log', false)) {

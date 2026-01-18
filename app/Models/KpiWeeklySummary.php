@@ -103,7 +103,7 @@ class KpiWeeklySummary extends Model
      */
     public function getWeekLabelAttribute(): string
     {
-        return $this->week_number . '-hafta';
+        return $this->week_number.'-hafta';
     }
 
     /**
@@ -111,7 +111,7 @@ class KpiWeeklySummary extends Model
      */
     public function getDateRangeLabelAttribute(): string
     {
-        return $this->start_date->format('d.m') . ' - ' . $this->end_date->format('d.m');
+        return $this->start_date->format('d.m').' - '.$this->end_date->format('d.m');
     }
 
     /**

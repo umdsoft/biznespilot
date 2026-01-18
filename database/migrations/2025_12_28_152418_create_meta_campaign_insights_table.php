@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('meta_campaign_insights')) {
+        if (! Schema::hasTable('meta_campaign_insights')) {
             Schema::create('meta_campaign_insights', function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid('campaign_id'); // References meta_campaigns.id

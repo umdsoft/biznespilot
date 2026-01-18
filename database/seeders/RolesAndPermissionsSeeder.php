@@ -82,8 +82,8 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permissionName) {
-            if (!Permission::where('name', $permissionName)->where('guard_name', 'web')->exists()) {
-                $permission = new Permission();
+            if (! Permission::where('name', $permissionName)->where('guard_name', 'web')->exists()) {
+                $permission = new Permission;
                 $permission->id = Str::uuid()->toString();
                 $permission->name = $permissionName;
                 $permission->guard_name = 'web';
@@ -194,8 +194,8 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         $role = Role::where('name', $roleName)->where('guard_name', 'web')->first();
 
-        if (!$role) {
-            $role = new Role();
+        if (! $role) {
+            $role = new Role;
             $role->id = Str::uuid()->toString();
             $role->name = $roleName;
             $role->guard_name = 'web';

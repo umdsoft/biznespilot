@@ -6,7 +6,6 @@ use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -17,9 +16,13 @@ class TeamInvitation extends Mailable
     use Queueable, SerializesModels;
 
     public Business $business;
+
     public User $inviter;
+
     public BusinessUser $member;
+
     public string $token;
+
     public string $acceptUrl;
 
     public function __construct(Business $business, User $inviter, BusinessUser $member, string $token)

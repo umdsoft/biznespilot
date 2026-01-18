@@ -44,7 +44,7 @@ return new class extends Migration
                 'education_level', 'family_status', 'buying_triggers',
                 'decision_factors', 'objection_patterns', 'preferred_channels',
                 'content_preferences', 'price_sensitivity', 'decision_time_days',
-                'ai_enriched_at', 'ai_insights'
+                'ai_enriched_at', 'ai_insights',
             ]);
         });
     }

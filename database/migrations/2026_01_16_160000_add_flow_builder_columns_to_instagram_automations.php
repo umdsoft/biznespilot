@@ -13,25 +13,25 @@ return new class extends Migration
     {
         Schema::table('instagram_automations', function (Blueprint $table) {
             // Add missing columns for flow builder
-            if (!Schema::hasColumn('instagram_automations', 'description')) {
+            if (! Schema::hasColumn('instagram_automations', 'description')) {
                 $table->text('description')->nullable()->after('name');
             }
-            if (!Schema::hasColumn('instagram_automations', 'status')) {
+            if (! Schema::hasColumn('instagram_automations', 'status')) {
                 $table->string('status', 20)->default('draft')->after('type');
             }
-            if (!Schema::hasColumn('instagram_automations', 'is_ai_enabled')) {
+            if (! Schema::hasColumn('instagram_automations', 'is_ai_enabled')) {
                 $table->boolean('is_ai_enabled')->default(false)->after('is_active');
             }
-            if (!Schema::hasColumn('instagram_automations', 'settings')) {
+            if (! Schema::hasColumn('instagram_automations', 'settings')) {
                 $table->json('settings')->nullable()->after('action_config');
             }
-            if (!Schema::hasColumn('instagram_automations', 'is_flow_based')) {
+            if (! Schema::hasColumn('instagram_automations', 'is_flow_based')) {
                 $table->boolean('is_flow_based')->default(false)->after('flow_data');
             }
-            if (!Schema::hasColumn('instagram_automations', 'trigger_count')) {
+            if (! Schema::hasColumn('instagram_automations', 'trigger_count')) {
                 $table->integer('trigger_count')->default(0)->after('executions_count');
             }
-            if (!Schema::hasColumn('instagram_automations', 'conversion_count')) {
+            if (! Schema::hasColumn('instagram_automations', 'conversion_count')) {
                 $table->integer('conversion_count')->default(0)->after('trigger_count');
             }
         });

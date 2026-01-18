@@ -2,27 +2,29 @@
 
 namespace App\Services\Telegram;
 
-use App\Models\TelegramBot;
-use App\Models\TelegramFunnel;
-use App\Models\TelegramFunnelStep;
-use App\Models\TelegramUser;
-use App\Models\TelegramUserState;
-use App\Models\TelegramTrigger;
-use App\Models\TelegramConversation;
-use App\Models\TelegramMessage;
-use App\Models\TelegramDailyStat;
 use App\Models\Lead;
 use App\Models\LeadSource;
+use App\Models\TelegramBot;
+use App\Models\TelegramConversation;
+use App\Models\TelegramDailyStat;
+use App\Models\TelegramFunnel;
+use App\Models\TelegramFunnelStep;
+use App\Models\TelegramMessage;
+use App\Models\TelegramTrigger;
+use App\Models\TelegramUser;
+use App\Models\TelegramUserState;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class FunnelEngineService
 {
     protected TelegramApiService $api;
+
     protected TelegramBot $bot;
+
     protected TelegramUser $user;
+
     protected TelegramUserState $state;
+
     protected TelegramConversation $conversation;
 
     public function __construct(TelegramBot $bot, TelegramUser $user)
@@ -49,7 +51,7 @@ class FunnelEngineService
             ->whereIn('status', ['active', 'handoff'])
             ->first();
 
-        if (!$conversation) {
+        if (! $conversation) {
             $conversation = TelegramConversation::create([
                 'business_id' => $this->bot->business_id,
                 'telegram_user_id' => $this->user->id,
@@ -102,22 +104,26 @@ class FunnelEngineService
                 $waitingFor = $this->state->waiting_for;
                 if (in_array($waitingFor, ['phone', 'contact', 'text', 'any'])) {
                     $this->processInput($message);
+
                     return;
                 }
             }
             $this->processInput($message);
+
             return;
         }
 
         // Handle contact message (phone number) - only if NOT in funnel input mode
         if (isset($message['contact'])) {
             $this->handleContactMessage($message['contact']);
+
             return;
         }
 
         // Check for command
         if ($this->isCommand($message)) {
             $this->processCommand($message);
+
             return;
         }
 
@@ -125,6 +131,7 @@ class FunnelEngineService
         $trigger = $this->findTrigger($this->getMessageText($message));
         if ($trigger) {
             $this->processTrigger($trigger, $message);
+
             return;
         }
 
@@ -132,6 +139,7 @@ class FunnelEngineService
         $funnelTrigger = $this->findFunnelByKeyword($messageText);
         if ($funnelTrigger) {
             $this->startFunnelFromTriggerStep($funnelTrigger['funnel'], $funnelTrigger['step']);
+
             return;
         }
 
@@ -160,6 +168,7 @@ class FunnelEngineService
         // Check if in handoff mode
         if ($this->conversation->isHandoff()) {
             $this->api->answerCallbackQuery($callbackQueryId);
+
             return;
         }
 
@@ -231,6 +240,7 @@ class FunnelEngineService
 
         if ($trigger) {
             $this->processTrigger($trigger, $message);
+
             return;
         }
 
@@ -279,6 +289,7 @@ class FunnelEngineService
 
             if ($trigger) {
                 $this->processTrigger($trigger, ['payload' => $payload]);
+
                 return;
             }
         }
@@ -292,6 +303,7 @@ class FunnelEngineService
 
         if ($trigger) {
             $this->processTrigger($trigger, []);
+
             return;
         }
 
@@ -305,6 +317,7 @@ class FunnelEngineService
                     'user_id' => $this->user->id,
                 ]);
                 $this->startFunnel($defaultFunnel->id);
+
                 return;
             }
         }
@@ -321,6 +334,7 @@ class FunnelEngineService
                 'user_id' => $this->user->id,
             ]);
             $this->startFunnel($firstActiveFunnel->id);
+
             return;
         }
 
@@ -328,7 +342,7 @@ class FunnelEngineService
         $welcomeMessage = $this->bot->getWelcomeMessage();
         $requestContact = $this->bot->getSettingValue('request_contact_on_start', true);
 
-        if ($requestContact && !$this->user->phone) {
+        if ($requestContact && ! $this->user->phone) {
             // Send welcome with contact request keyboard
             $keyboard = TelegramApiService::buildReplyKeyboard(
                 [[TelegramApiService::buildContactButton('📱 Telefon raqamni yuborish')]],
@@ -336,7 +350,7 @@ class FunnelEngineService
                 true,
                 'Telefon raqamingizni yuboring'
             );
-            $this->api->sendMessage($chatId, $welcomeMessage . "\n\n📲 Davom etish uchun telefon raqamingizni yuboring:", $keyboard);
+            $this->api->sendMessage($chatId, $welcomeMessage."\n\n📲 Davom etish uchun telefon raqamingizni yuboring:", $keyboard);
         } else {
             $this->api->sendMessage($chatId, $welcomeMessage);
         }
@@ -359,7 +373,7 @@ class FunnelEngineService
     /**
      * Start funnel
      */
-    public function startFunnel(string $funnelId, string $stepId = null): void
+    public function startFunnel(string $funnelId, ?string $stepId = null): void
     {
         Log::info('FunnelEngine: startFunnel called', [
             'funnel_id' => $funnelId,
@@ -369,13 +383,14 @@ class FunnelEngineService
 
         $funnel = TelegramFunnel::find($funnelId);
 
-        if (!$funnel || !$funnel->is_active) {
+        if (! $funnel || ! $funnel->is_active) {
             Log::warning('FunnelEngine: Funnel not found or inactive', [
                 'funnel_id' => $funnelId,
                 'funnel_exists' => $funnel !== null,
                 'is_active' => $funnel?->is_active,
                 'user_id' => $this->user->id,
             ]);
+
             return;
         }
 
@@ -394,11 +409,12 @@ class FunnelEngineService
             'step_type' => $step?->step_type,
         ]);
 
-        if (!$step) {
+        if (! $step) {
             Log::warning('FunnelEngine: Funnel has no steps', [
                 'funnel_id' => $funnelId,
                 'funnel_name' => $funnel->name,
             ]);
+
             return;
         }
 
@@ -428,8 +444,9 @@ class FunnelEngineService
     {
         $step = TelegramFunnelStep::find($stepId);
 
-        if (!$step) {
+        if (! $step) {
             Log::warning('Step not found', ['step_id' => $stepId]);
+
             return;
         }
 
@@ -448,28 +465,34 @@ class FunnelEngineService
         switch ($step->step_type) {
             case 'condition':
                 $this->executeConditionStep($step);
+
                 return;
 
             case 'subscribe_check':
                 $this->executeSubscribeCheckStep($step);
+
                 return;
 
             case 'quiz':
                 $this->executeQuizStep($step);
+
                 return;
 
             case 'ab_test':
                 $this->executeABTestStep($step);
+
                 return;
 
             case 'tag':
                 $this->executeTagStep($step);
+
                 return;
 
             case 'trigger_keyword':
                 // Trigger keyword step - just proceed to next step
                 // This step is primarily used as an entry point
                 $this->executeTriggerKeywordStep($step);
+
                 return;
         }
 
@@ -564,17 +587,17 @@ class FunnelEngineService
             'equals' => $actualValue == $expectedValue,
             'not_equals' => $actualValue != $expectedValue,
             'contains' => is_string($actualValue) && str_contains(strtolower($actualValue), strtolower($expectedValue)),
-            'not_contains' => is_string($actualValue) && !str_contains(strtolower($actualValue), strtolower($expectedValue)),
+            'not_contains' => is_string($actualValue) && ! str_contains(strtolower($actualValue), strtolower($expectedValue)),
             'starts_with' => is_string($actualValue) && str_starts_with(strtolower($actualValue), strtolower($expectedValue)),
             'ends_with' => is_string($actualValue) && str_ends_with(strtolower($actualValue), strtolower($expectedValue)),
-            'is_set' => !empty($actualValue),
+            'is_set' => ! empty($actualValue),
             'is_empty' => empty($actualValue),
             'greater_than' => is_numeric($actualValue) && $actualValue > $expectedValue,
             'less_than' => is_numeric($actualValue) && $actualValue < $expectedValue,
             'greater_or_equal' => is_numeric($actualValue) && $actualValue >= $expectedValue,
             'less_or_equal' => is_numeric($actualValue) && $actualValue <= $expectedValue,
             'is_true' => filter_var($actualValue, FILTER_VALIDATE_BOOLEAN),
-            'is_false' => !filter_var($actualValue, FILTER_VALIDATE_BOOLEAN),
+            'is_false' => ! filter_var($actualValue, FILTER_VALIDATE_BOOLEAN),
             default => false,
         };
     }
@@ -592,7 +615,7 @@ class FunnelEngineService
 
         // Check for marketing-specific fields
         if ($field === 'has_tag') {
-            return !empty($this->user->tags);
+            return ! empty($this->user->tags);
         }
         if ($field === 'quiz_answer') {
             return $collectedData['quiz_answer'] ?? null;
@@ -628,11 +651,12 @@ class FunnelEngineService
             if ($step->subscribe_true_step_id) {
                 $this->goToStep($step->subscribe_true_step_id);
             }
+
             return;
         }
 
         // Check subscription using getChatMember API
-        $channelId = '@' . ltrim($channelUsername, '@');
+        $channelId = '@'.ltrim($channelUsername, '@');
         $result = $this->api->getChatMember($channelId, $this->user->telegram_id);
 
         $isSubscribed = false;
@@ -665,7 +689,7 @@ class FunnelEngineService
                         ['text' => $buttonText, 'url' => "https://t.me/{$channelUsername}"],
                     ],
                     [
-                        ['text' => "Tekshirish ✓", 'callback_data' => "recheck_subscribe:{$step->id}"],
+                        ['text' => 'Tekshirish ✓', 'callback_data' => "recheck_subscribe:{$step->id}"],
                     ],
                 ],
             ];
@@ -701,7 +725,7 @@ class FunnelEngineService
         $buttons = [];
         foreach ($options as $i => $option) {
             $buttons[] = [
-                ['text' => $option['text'] ?? "Variant " . ($i + 1), 'callback_data' => "quiz_answer:{$step->id}:{$i}"],
+                ['text' => $option['text'] ?? 'Variant '.($i + 1), 'callback_data' => "quiz_answer:{$step->id}:{$i}"],
             ];
         }
 
@@ -753,7 +777,7 @@ class FunnelEngineService
         }
 
         // Fallback to first variant
-        if (!$selectedVariant) {
+        if (! $selectedVariant) {
             $selectedVariant = $variants[0];
         }
 
@@ -770,7 +794,7 @@ class FunnelEngineService
         $this->state->update(['collected_data' => $collectedData]);
 
         // Go to selected variant's next step
-        if (!empty($selectedVariant['next_step_id'])) {
+        if (! empty($selectedVariant['next_step_id'])) {
             usleep(200000);
             $this->goToStep($selectedVariant['next_step_id']);
         }
@@ -791,12 +815,13 @@ class FunnelEngineService
                 usleep(200000);
                 $this->goToStep($step->next_step_id);
             }
+
             return;
         }
 
         // Get current user tags
         $currentTags = $this->user->tags ?? [];
-        if (!is_array($currentTags)) {
+        if (! is_array($currentTags)) {
             $currentTags = [];
         }
 
@@ -911,7 +936,7 @@ class FunnelEngineService
 
                     switch ($actionType) {
                         case 'url':
-                            if (!empty($button['url'])) {
+                            if (! empty($button['url'])) {
                                 $btn['url'] = $button['url'];
                             }
                             break;
@@ -921,10 +946,10 @@ class FunnelEngineService
                             break;
 
                         case 'go_to_step':
-                            if (!empty($button['next_step_id'])) {
+                            if (! empty($button['next_step_id'])) {
                                 $btn['callback_data'] = "step:{$button['next_step_id']}";
                             } else {
-                                $btn['callback_data'] = "step:next";
+                                $btn['callback_data'] = 'step:next';
                             }
                             break;
 
@@ -934,18 +959,18 @@ class FunnelEngineService
                             if ($step->next_step_id) {
                                 $btn['callback_data'] = "step:{$step->next_step_id}";
                             } else {
-                                $btn['callback_data'] = "finish";
+                                $btn['callback_data'] = 'finish';
                             }
                             break;
                     }
 
                     // Fallback: if no action was set, use callback_data from button if available
-                    if (!isset($btn['callback_data']) && !isset($btn['url'])) {
-                        if (!empty($button['callback_data'])) {
+                    if (! isset($btn['callback_data']) && ! isset($btn['url'])) {
+                        if (! empty($button['callback_data'])) {
                             $btn['callback_data'] = $button['callback_data'];
-                        } elseif (!empty($button['next_step_id'])) {
+                        } elseif (! empty($button['next_step_id'])) {
                             $btn['callback_data'] = "step:{$button['next_step_id']}";
-                        } elseif (!empty($button['value'])) {
+                        } elseif (! empty($button['value'])) {
                             $field = $step->input_field ?? 'choice';
                             $btn['callback_data'] = "input:{$field}:{$button['value']}";
                         } else {
@@ -955,10 +980,11 @@ class FunnelEngineService
 
                     $buttonRow[] = $btn;
                 }
-                if (!empty($buttonRow)) {
+                if (! empty($buttonRow)) {
                     $rows[] = $buttonRow;
                 }
             }
+
             return TelegramApiService::buildInlineKeyboard($rows);
         }
 
@@ -969,15 +995,15 @@ class FunnelEngineService
             foreach ($row as $button) {
                 $actionType = $button['action_type'] ?? null;
 
-                if ($actionType === 'request_contact' || !empty($button['request_contact'])) {
+                if ($actionType === 'request_contact' || ! empty($button['request_contact'])) {
                     $buttonRow[] = TelegramApiService::buildContactButton($button['text'] ?? '📱 Kontakt yuborish');
-                } elseif ($actionType === 'request_location' || !empty($button['request_location'])) {
+                } elseif ($actionType === 'request_location' || ! empty($button['request_location'])) {
                     $buttonRow[] = TelegramApiService::buildLocationButton($button['text'] ?? '📍 Lokatsiya yuborish');
                 } else {
                     $buttonRow[] = $button['text'] ?? 'Button';
                 }
             }
-            if (!empty($buttonRow)) {
+            if (! empty($buttonRow)) {
                 $rows[] = $buttonRow;
             }
         }
@@ -997,8 +1023,9 @@ class FunnelEngineService
     {
         $step = TelegramFunnelStep::find($this->state->current_step_id);
 
-        if (!$step) {
+        if (! $step) {
             $this->state->update(['waiting_for' => 'none']);
+
             return;
         }
 
@@ -1011,12 +1038,14 @@ class FunnelEngineService
         if ($value === null) {
             // Invalid input, send error message
             $this->sendValidationError($step, $message['chat']['id']);
+
             return;
         }
 
         // Validate input
-        if (!$this->validateInput($value, $step)) {
+        if (! $this->validateInput($value, $step)) {
             $this->sendValidationError($step, $message['chat']['id']);
+
             return;
         }
 
@@ -1055,7 +1084,7 @@ class FunnelEngineService
     {
         $step = TelegramFunnelStep::find($this->state->current_step_id);
 
-        if (!$step) {
+        if (! $step) {
             return;
         }
 
@@ -1089,6 +1118,7 @@ class FunnelEngineService
                 if (isset($message['contact'])) {
                     return $message['contact']['phone_number'];
                 }
+
                 return $message['text'] ?? null;
 
             case 'contact':
@@ -1099,6 +1129,7 @@ class FunnelEngineService
                         'last_name' => $message['contact']['last_name'] ?? null,
                     ];
                 }
+
                 return null;
 
             case 'location':
@@ -1108,13 +1139,16 @@ class FunnelEngineService
                         'longitude' => $message['location']['longitude'],
                     ];
                 }
+
                 return null;
 
             case 'photo':
                 if (isset($message['photo'])) {
                     $photo = end($message['photo']);
+
                     return $photo['file_id'];
                 }
+
                 return null;
 
             case 'document':
@@ -1136,19 +1170,19 @@ class FunnelEngineService
         // Type-specific validation
         switch ($inputType) {
             case 'email':
-                if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
                     return false;
                 }
                 break;
 
             case 'phone':
-                if (!preg_match('/^[\+]?[0-9\s\-\(\)]{7,20}$/', $value)) {
+                if (! preg_match('/^[\+]?[0-9\s\-\(\)]{7,20}$/', $value)) {
                     return false;
                 }
                 break;
 
             case 'number':
-                if (!is_numeric($value)) {
+                if (! is_numeric($value)) {
                     return false;
                 }
                 $value = (float) $value;
@@ -1167,7 +1201,7 @@ class FunnelEngineService
                 if (isset($validation['max_length']) && strlen($value) > $validation['max_length']) {
                     return false;
                 }
-                if (isset($validation['pattern']) && !preg_match($validation['pattern'], $value)) {
+                if (isset($validation['pattern']) && ! preg_match($validation['pattern'], $value)) {
                     return false;
                 }
                 break;
@@ -1226,7 +1260,7 @@ class FunnelEngineService
 
         // Get source_id from config or create default Telegram source
         $sourceId = $config['source_id'] ?? null;
-        if (!$sourceId) {
+        if (! $sourceId) {
             $source = $this->getOrCreateTelegramSource();
             $sourceId = $source?->id;
         }
@@ -1296,7 +1330,7 @@ class FunnelEngineService
         try {
             $source = LeadSource::create([
                 'business_id' => $businessId,
-                'code' => 'telegram_bot_' . substr($businessId, 0, 8),
+                'code' => 'telegram_bot_'.substr($businessId, 0, 8),
                 'name' => 'Telegram Bot',
                 'category' => 'digital',
                 'icon' => 'telegram',
@@ -1313,7 +1347,7 @@ class FunnelEngineService
             try {
                 $source = LeadSource::create([
                     'business_id' => $businessId,
-                    'code' => 'telegram_bot_' . time(),
+                    'code' => 'telegram_bot_'.time(),
                     'name' => 'Telegram Bot',
                     'category' => 'digital',
                     'icon' => 'telegram',
@@ -1324,6 +1358,7 @@ class FunnelEngineService
                 ]);
             } catch (\Exception $e2) {
                 Log::error('LeadSource creation failed completely', ['error' => $e2->getMessage()]);
+
                 return null;
             }
         }
@@ -1353,7 +1388,7 @@ class FunnelEngineService
             }
         }
 
-        if (!empty($updateData)) {
+        if (! empty($updateData)) {
             $this->user->update($updateData);
         }
     }
@@ -1403,7 +1438,7 @@ class FunnelEngineService
     {
         if ($this->state->isInFunnel()) {
             $this->state->reset();
-            $this->api->sendMessage($chatId, "Jarayon bekor qilindi.");
+            $this->api->sendMessage($chatId, 'Jarayon bekor qilindi.');
         } else {
             $this->api->sendMessage($chatId, "Hozirda hech qanday jarayon yo'q.");
         }
@@ -1426,14 +1461,14 @@ class FunnelEngineService
     {
         $step = TelegramFunnelStep::find($stepId);
 
-        if (!$step || $step->step_type !== 'quiz') {
+        if (! $step || $step->step_type !== 'quiz') {
             return;
         }
 
         $quiz = $step->quiz ?? [];
         $options = $quiz['options'] ?? [];
 
-        if (!isset($options[$optionIndex])) {
+        if (! isset($options[$optionIndex])) {
             return;
         }
 
@@ -1449,15 +1484,15 @@ class FunnelEngineService
         // Save answer to collected data
         $collectedData = $this->state->collected_data ?? [];
         $saveField = $quiz['save_answer_to'] ?? 'quiz_answer';
-        $collectedData[$saveField] = $selectedOption['text'] ?? "Variant " . ($optionIndex + 1);
-        $collectedData[$saveField . '_index'] = $optionIndex;
+        $collectedData[$saveField] = $selectedOption['text'] ?? 'Variant '.($optionIndex + 1);
+        $collectedData[$saveField.'_index'] = $optionIndex;
         $this->state->update([
             'collected_data' => $collectedData,
             'waiting_for' => 'none',
         ]);
 
         // Go to the option's next step if configured
-        if (!empty($selectedOption['next_step_id'])) {
+        if (! empty($selectedOption['next_step_id'])) {
             usleep(200000);
             $this->goToStep($selectedOption['next_step_id']);
         } elseif ($step->next_step_id) {
@@ -1474,8 +1509,9 @@ class FunnelEngineService
     {
         $step = TelegramFunnelStep::find($stepId);
 
-        if (!$step || $step->step_type !== 'subscribe_check') {
+        if (! $step || $step->step_type !== 'subscribe_check') {
             $this->api->answerCallbackQuery($callbackQueryId);
+
             return;
         }
 
@@ -1484,11 +1520,12 @@ class FunnelEngineService
 
         if (empty($channelUsername)) {
             $this->api->answerCallbackQuery($callbackQueryId);
+
             return;
         }
 
         // Check subscription again
-        $channelId = '@' . ltrim($channelUsername, '@');
+        $channelId = '@'.ltrim($channelUsername, '@');
         $result = $this->api->getChatMember($channelId, $this->user->telegram_id);
 
         $isSubscribed = false;
@@ -1507,8 +1544,8 @@ class FunnelEngineService
 
         if ($isSubscribed) {
             // User is now subscribed - answer callback and continue
-            $this->api->answerCallbackQuery($callbackQueryId, "✅ Obuna tasdiqlandi!");
-            $this->api->sendMessage($chatId, "✅ Obuna tasdiqlandi! Davom etamiz...");
+            $this->api->answerCallbackQuery($callbackQueryId, '✅ Obuna tasdiqlandi!');
+            $this->api->sendMessage($chatId, '✅ Obuna tasdiqlandi! Davom etamiz...');
             $this->state->update(['waiting_for' => 'none']);
 
             if ($step->subscribe_true_step_id) {
@@ -1583,11 +1620,12 @@ class FunnelEngineService
                 $trigger = $step->trigger ?? [];
 
                 // Check if is_all_messages is true
-                if (!empty($trigger['is_all_messages'])) {
+                if (! empty($trigger['is_all_messages'])) {
                     Log::info('Trigger matched: is_all_messages', [
                         'funnel_id' => $funnel->id,
                         'step_id' => $step->id,
                     ]);
+
                     return ['funnel' => $funnel, 'step' => $step];
                 }
 
@@ -1601,7 +1639,7 @@ class FunnelEngineService
 
                 // Split keywords by comma or newline
                 $keywordList = preg_split('/[,\n]+/', $keywords);
-                $keywordList = array_map(fn($k) => mb_strtolower(trim($k)), $keywordList);
+                $keywordList = array_map(fn ($k) => mb_strtolower(trim($k)), $keywordList);
                 $keywordList = array_filter($keywordList);
 
                 foreach ($keywordList as $keyword) {
@@ -1610,7 +1648,7 @@ class FunnelEngineService
                         'contains' => str_contains($text, $keyword),
                         'starts_with' => str_starts_with($text, $keyword),
                         'ends_with' => str_ends_with($text, $keyword),
-                        'regex' => @preg_match('/' . $keyword . '/iu', $text) === 1,
+                        'regex' => @preg_match('/'.$keyword.'/iu', $text) === 1,
                         default => str_contains($text, $keyword),
                     };
 
@@ -1622,6 +1660,7 @@ class FunnelEngineService
                             'match_type' => $matchType,
                             'text' => $text,
                         ]);
+
                         return ['funnel' => $funnel, 'step' => $step];
                     }
                 }
@@ -1678,7 +1717,7 @@ class FunnelEngineService
             '{first_name}' => $this->user->first_name ?? '',
             '{last_name}' => $this->user->last_name ?? '',
             '{full_name}' => $this->user->getFullName(),
-            '{username}' => $this->user->username ? '@' . $this->user->username : '',
+            '{username}' => $this->user->username ? '@'.$this->user->username : '',
             '{phone}' => $this->user->phone ?? '',
             '{bot_name}' => $this->bot->bot_first_name ?? '',
         ];
@@ -1686,7 +1725,7 @@ class FunnelEngineService
         // Add collected data variables
         foreach ($this->state->collected_data ?? [] as $key => $value) {
             if (is_string($value)) {
-                $replacements['{' . $key . '}'] = $value;
+                $replacements['{'.$key.'}'] = $value;
             }
         }
 
@@ -1759,6 +1798,7 @@ class FunnelEngineService
     protected function isCommand(array $message): bool
     {
         $text = $message['text'] ?? '';
+
         return str_starts_with($text, '/');
     }
 
@@ -1778,6 +1818,7 @@ class FunnelEngineService
     protected function extractCommandArgs(string $text): ?string
     {
         $parts = explode(' ', $text, 2);
+
         return $parts[1] ?? null;
     }
 
@@ -1807,7 +1848,7 @@ class FunnelEngineService
                 break;
             case 'quiz_answer':
                 $result['step_id'] = $parts[1] ?? null;
-                $result['option_index'] = (int)($parts[2] ?? 0);
+                $result['option_index'] = (int) ($parts[2] ?? 0);
                 break;
             case 'recheck_subscribe':
                 $result['step_id'] = $parts[1] ?? null;
@@ -1877,15 +1918,34 @@ class FunnelEngineService
 
     protected function determineContentType(array $message): string
     {
-        if (isset($message['photo'])) return 'photo';
-        if (isset($message['video'])) return 'video';
-        if (isset($message['document'])) return 'document';
-        if (isset($message['voice'])) return 'voice';
-        if (isset($message['audio'])) return 'audio';
-        if (isset($message['sticker'])) return 'sticker';
-        if (isset($message['location'])) return 'location';
-        if (isset($message['contact'])) return 'contact';
-        if (str_starts_with($message['text'] ?? '', '/')) return 'command';
+        if (isset($message['photo'])) {
+            return 'photo';
+        }
+        if (isset($message['video'])) {
+            return 'video';
+        }
+        if (isset($message['document'])) {
+            return 'document';
+        }
+        if (isset($message['voice'])) {
+            return 'voice';
+        }
+        if (isset($message['audio'])) {
+            return 'audio';
+        }
+        if (isset($message['sticker'])) {
+            return 'sticker';
+        }
+        if (isset($message['location'])) {
+            return 'location';
+        }
+        if (isset($message['contact'])) {
+            return 'contact';
+        }
+        if (str_starts_with($message['text'] ?? '', '/')) {
+            return 'command';
+        }
+
         return 'text';
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramAutomationTrigger extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'automation_id',
         'trigger_type',
@@ -26,13 +27,21 @@ class InstagramAutomationTrigger extends Model
 
     // Trigger type constants
     const TYPE_KEYWORD_DM = 'keyword_dm';
+
     const TYPE_KEYWORD_COMMENT = 'keyword_comment';
+
     const TYPE_STORY_MENTION = 'story_mention';
+
     const TYPE_STORY_REPLY = 'story_reply';
+
     const TYPE_NEW_FOLLOWER = 'new_follower';
+
     const TYPE_POST_LIKE = 'post_like';
+
     const TYPE_POST_SAVE = 'post_save';
+
     const TYPE_REEL_COMMENT = 'reel_comment';
+
     const TYPE_MEDIA_SHARE = 'media_share';
 
     public function automation(): BelongsTo

@@ -95,7 +95,7 @@ class BusinessKpiConfiguration extends Model
     public function scopeDueForReview($query)
     {
         return $query->where('next_review_due', '<=', now())
-                     ->where('status', 'active');
+            ->where('status', 'active');
     }
 
     /**
@@ -108,8 +108,8 @@ class BusinessKpiConfiguration extends Model
         }
 
         return KpiTemplate::whereIn('kpi_code', $this->selected_kpis)
-                         ->active()
-                         ->get();
+            ->active()
+            ->get();
     }
 
     /**
@@ -143,6 +143,7 @@ class BusinessKpiConfiguration extends Model
     public function getCriticalKpis()
     {
         $byPriority = $this->getKpisByPriority();
+
         return collect($byPriority['critical'] ?? []);
     }
 
@@ -157,11 +158,11 @@ class BusinessKpiConfiguration extends Model
     /**
      * Add KPI to configuration
      */
-    public function addKpi(string $kpiCode, string $priority = null, float $weight = null): void
+    public function addKpi(string $kpiCode, ?string $priority = null, ?float $weight = null): void
     {
         $selectedKpis = $this->selected_kpis ?? [];
 
-        if (!in_array($kpiCode, $selectedKpis)) {
+        if (! in_array($kpiCode, $selectedKpis)) {
             $selectedKpis[] = $kpiCode;
             $this->selected_kpis = $selectedKpis;
 
@@ -243,7 +244,7 @@ class BusinessKpiConfiguration extends Model
         $this->total_kpis_count = count($this->selected_kpis ?? []);
 
         $priorities = $this->kpi_priorities ?? [];
-        $this->critical_kpis_count = count(array_filter($priorities, fn($p) => $p === 'critical'));
+        $this->critical_kpis_count = count(array_filter($priorities, fn ($p) => $p === 'critical'));
     }
 
     /**
@@ -298,7 +299,7 @@ class BusinessKpiConfiguration extends Model
      */
     public function isReviewDue(): bool
     {
-        if (!$this->next_review_due) {
+        if (! $this->next_review_due) {
             return false;
         }
 
@@ -311,6 +312,7 @@ class BusinessKpiConfiguration extends Model
     public function getNotificationChannels(): array
     {
         $settings = $this->notification_settings ?? [];
+
         return $settings['channels'] ?? ['email'];
     }
 
@@ -320,6 +322,7 @@ class BusinessKpiConfiguration extends Model
     public function isNotificationEnabled(string $type): bool
     {
         $settings = $this->notification_settings ?? [];
+
         return $settings[$type] ?? false;
     }
 
@@ -329,6 +332,7 @@ class BusinessKpiConfiguration extends Model
     public function getDigestTime(): string
     {
         $settings = $this->notification_settings ?? [];
+
         return $settings['digest_time'] ?? '07:00';
     }
 

@@ -16,7 +16,7 @@ return new class extends Migration
             // Widget Config
             $table->enum('widget_type', [
                 'kpi_card', 'chart_line', 'chart_bar', 'chart_pie',
-                'chart_funnel', 'table', 'list', 'gauge', 'heatmap'
+                'chart_funnel', 'table', 'list', 'gauge', 'heatmap',
             ]);
             $table->string('widget_code', 50);
             $table->string('title');
@@ -27,10 +27,10 @@ return new class extends Migration
             $table->enum('aggregation', ['sum', 'avg', 'count', 'min', 'max'])->default('sum');
             $table->enum('period', [
                 'today', 'yesterday', 'this_week', 'last_week',
-                'this_month', 'last_month', 'this_quarter', 'this_year', 'custom'
+                'this_month', 'last_month', 'this_quarter', 'this_year', 'custom',
             ])->default('this_month');
             $table->enum('comparison_period', [
-                'previous_period', 'same_period_last_year', 'target'
+                'previous_period', 'same_period_last_year', 'target',
             ])->nullable();
 
             // Layout

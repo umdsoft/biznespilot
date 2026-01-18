@@ -4,7 +4,6 @@ namespace App\Services\Integration;
 
 use App\Models\Business;
 use App\Models\KpiDailyActual;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +25,7 @@ class SyncMonitor
     /**
      * Get current sync health status
      *
-     * @param string|null $date Date to check (Y-m-d format). Defaults to today
+     * @param  string|null  $date  Date to check (Y-m-d format). Defaults to today
      * @return array Health status
      */
     public function getHealthStatus(?string $date = null): array
@@ -36,7 +35,7 @@ class SyncMonitor
         // Get overall stats from cache
         $overallStats = cache()->get("kpi_sync_overall_stats:{$date}");
 
-        if (!$overallStats) {
+        if (! $overallStats) {
             return [
                 'status' => 'unknown',
                 'message' => 'No sync data available for this date',
@@ -82,9 +81,9 @@ class SyncMonitor
     /**
      * Calculate overall health status based on metrics
      *
-     * @param float $successRate Success rate percentage
-     * @param float $avgDuration Average duration per business
-     * @param int $failedCount Number of failed businesses
+     * @param  float  $successRate  Success rate percentage
+     * @param  float  $avgDuration  Average duration per business
+     * @param  int  $failedCount  Number of failed businesses
      * @return string 'healthy', 'warning', or 'critical'
      */
     protected function calculateHealthStatus(
@@ -116,14 +115,14 @@ class SyncMonitor
     /**
      * Get detailed batch statistics
      *
-     * @param string $date Date to check (Y-m-d format)
+     * @param  string  $date  Date to check (Y-m-d format)
      * @return array Batch statistics
      */
     public function getBatchStats(string $date): array
     {
         $overallStats = cache()->get("kpi_sync_overall_stats:{$date}");
 
-        if (!$overallStats) {
+        if (! $overallStats) {
             return [];
         }
 
@@ -143,7 +142,7 @@ class SyncMonitor
     /**
      * Get failed businesses for a specific date
      *
-     * @param string $date Date to check (Y-m-d format)
+     * @param  string  $date  Date to check (Y-m-d format)
      * @return array Failed business details
      */
     public function getFailedBusinesses(string $date): array
@@ -186,9 +185,10 @@ class SyncMonitor
     /**
      * Get last sync attempt for a business (no longer needed - kept for backward compatibility)
      *
-     * @param int $businessId Business ID
-     * @param string $date Date
+     * @param  int  $businessId  Business ID
+     * @param  string  $date  Date
      * @return string|null ISO timestamp or null
+     *
      * @deprecated Use eager-loaded data instead
      */
     protected function getLastSyncAttempt(int $businessId, string $date): ?string
@@ -204,7 +204,7 @@ class SyncMonitor
     /**
      * Get sync performance trends over time
      *
-     * @param int $days Number of days to analyze
+     * @param  int  $days  Number of days to analyze
      * @return array Trend data
      */
     public function getPerformanceTrends(int $days = 7): array
@@ -239,7 +239,7 @@ class SyncMonitor
     /**
      * Get integration-specific statistics
      *
-     * @param string $date Date to check
+     * @param  string  $date  Date to check
      * @return array Integration statistics
      */
     public function getIntegrationStats(string $date): array
@@ -285,7 +285,7 @@ class SyncMonitor
         $lockKey = 'kpi_sync:running';
         $isRunning = Cache::has($lockKey);
 
-        if (!$isRunning) {
+        if (! $isRunning) {
             return [
                 'running' => false,
                 'message' => 'No sync currently running',
@@ -306,8 +306,7 @@ class SyncMonitor
     /**
      * Mark sync as running
      *
-     * @param array $info Sync information
-     * @return void
+     * @param  array  $info  Sync information
      */
     public function markAsRunning(array $info): void
     {
@@ -319,8 +318,6 @@ class SyncMonitor
 
     /**
      * Mark sync as completed
-     *
-     * @return void
      */
     public function markAsCompleted(): void
     {
@@ -330,7 +327,7 @@ class SyncMonitor
     /**
      * Get comprehensive dashboard data
      *
-     * @param string|null $date Date to check
+     * @param  string|null  $date  Date to check
      * @return array Dashboard data
      */
     public function getDashboard(?string $date = null): array
@@ -351,8 +348,7 @@ class SyncMonitor
     /**
      * Alert on critical issues
      *
-     * @param string $date Date to check
-     * @return void
+     * @param  string  $date  Date to check
      */
     public function checkAndAlert(string $date): void
     {

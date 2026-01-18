@@ -14,7 +14,7 @@ return new class extends Migration
 
             // Report Config
             $table->enum('report_type', [
-                'daily_brief', 'weekly_summary', 'monthly_report', 'quarterly_review', 'custom'
+                'daily_brief', 'weekly_summary', 'monthly_report', 'quarterly_review', 'custom',
             ]);
             $table->string('report_name');
 

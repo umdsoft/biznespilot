@@ -80,7 +80,7 @@ class GoogleAdsCampaignInsight extends Model
      */
     public function getFormattedCostAttribute(): string
     {
-        return number_format($this->cost, 0, ',', ' ') . ' so\'m';
+        return number_format($this->cost, 0, ',', ' ').' so\'m';
     }
 
     /**
@@ -88,7 +88,7 @@ class GoogleAdsCampaignInsight extends Model
      */
     public function getFormattedCtrAttribute(): string
     {
-        return number_format($this->ctr, 2) . '%';
+        return number_format($this->ctr, 2).'%';
     }
 
     /**
@@ -96,6 +96,6 @@ class GoogleAdsCampaignInsight extends Model
      */
     public function getFormattedCpcAttribute(): string
     {
-        return number_format($this->cpc, 0, ',', ' ') . ' so\'m';
+        return number_format($this->cpc, 0, ',', ' ').' so\'m';
     }
 }

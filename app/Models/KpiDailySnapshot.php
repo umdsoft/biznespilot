@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class KpiDailySnapshot extends Model
 {
-    use HasUuids, BelongsToBusiness;
+    use BelongsToBusiness, HasUuids;
 
     protected $fillable = [
         'business_id',
@@ -96,17 +96,19 @@ class KpiDailySnapshot extends Model
 
     public function getRevenueChange($previousSnapshot)
     {
-        if (!$previousSnapshot || $previousSnapshot->revenue_total == 0) {
+        if (! $previousSnapshot || $previousSnapshot->revenue_total == 0) {
             return null;
         }
+
         return (($this->revenue_total - $previousSnapshot->revenue_total) / $previousSnapshot->revenue_total) * 100;
     }
 
     public function getLeadsChange($previousSnapshot)
     {
-        if (!$previousSnapshot || $previousSnapshot->leads_total == 0) {
+        if (! $previousSnapshot || $previousSnapshot->leads_total == 0) {
             return null;
         }
+
         return (($this->leads_total - $previousSnapshot->leads_total) / $previousSnapshot->leads_total) * 100;
     }
 

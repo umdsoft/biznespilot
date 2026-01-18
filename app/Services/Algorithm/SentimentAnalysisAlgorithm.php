@@ -32,11 +32,11 @@ use App\Services\Algorithm\Lexicons\SentimentLexicon;
  * +0.6 to +1.0: Very Positive
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class SentimentAnalysisAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'sentiment_';
+
     protected int $cacheTTL = 900; // 15 minutes
 
     /**
@@ -53,8 +53,8 @@ class SentimentAnalysisAlgorithm extends AlgorithmEngine
     /**
      * Analyze sentiment of text
      *
-     * @param string $text Text to analyze
-     * @param array $options Additional options
+     * @param  string  $text  Text to analyze
+     * @param  array  $options  Additional options
      * @return array Sentiment analysis results
      */
     public function analyze(string $text, array $options = []): array
@@ -149,6 +149,7 @@ class SentimentAnalysisAlgorithm extends AlgorithmEngine
 
             if ($score == 0) {
                 $neutralCount++;
+
                 continue;
             }
 
@@ -560,8 +561,8 @@ class SentimentAnalysisAlgorithm extends AlgorithmEngine
         $scores = array_column($results, 'sentiment_score');
         $avgSentiment = count($scores) > 0 ? array_sum($scores) / count($scores) : 0;
 
-        $positive = count(array_filter($scores, fn($s) => $s > 0.2));
-        $negative = count(array_filter($scores, fn($s) => $s < -0.2));
+        $positive = count(array_filter($scores, fn ($s) => $s > 0.2));
+        $negative = count(array_filter($scores, fn ($s) => $s < -0.2));
         $neutral = count($scores) - $positive - $negative;
 
         return [
@@ -584,9 +585,16 @@ class SentimentAnalysisAlgorithm extends AlgorithmEngine
      */
     protected function getOverallMood(float $avgScore): string
     {
-        if ($avgScore > 0.3) return 'Mostly Positive';
-        if ($avgScore > 0) return 'Slightly Positive';
-        if ($avgScore > -0.3) return 'Neutral/Mixed';
+        if ($avgScore > 0.3) {
+            return 'Mostly Positive';
+        }
+        if ($avgScore > 0) {
+            return 'Slightly Positive';
+        }
+        if ($avgScore > -0.3) {
+            return 'Neutral/Mixed';
+        }
+
         return 'Negative';
     }
 }

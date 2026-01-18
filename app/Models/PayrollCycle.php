@@ -13,8 +13,11 @@ class PayrollCycle extends Model
     use BelongsToBusiness, HasUuid;
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_PAID = 'paid';
 
     const STATUSES = [

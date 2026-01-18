@@ -16,7 +16,7 @@ class ChatbotController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 

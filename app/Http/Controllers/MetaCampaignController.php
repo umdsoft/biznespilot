@@ -12,7 +12,6 @@ use App\Models\MetaCampaignInsight;
 use App\Services\MetaSyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -38,7 +37,7 @@ class MetaCampaignController extends Controller
             'session_business_id' => session('current_business_id'),
         ]);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             return response()->json([
                 'success' => false,
                 'message' => 'Meta Ad hesob tanlanmagan',
@@ -66,7 +65,7 @@ class MetaCampaignController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Date filter for insights
@@ -121,7 +120,7 @@ class MetaCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $adAccount = $this->getSelectedMetaAccount($business->id);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             return redirect()->route('business.target-analysis.index')
                 ->with('error', 'Meta Ad hesob tanlanmagan');
         }
@@ -148,8 +147,9 @@ class MetaCampaignController extends Controller
             'ad_account_id' => $adAccount?->id,
         ]);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             \Log::warning('showPage: No ad account found');
+
             return redirect()->route('business.target-analysis.index')
                 ->with('error', 'Meta Ad hesob tanlanmagan');
         }
@@ -164,8 +164,9 @@ class MetaCampaignController extends Controller
             'campaign_name' => $campaign?->name,
         ]);
 
-        if (!$campaign) {
+        if (! $campaign) {
             \Log::warning('showPage: Campaign not found');
+
             return redirect()->route('business.target-analysis.index')
                 ->with('error', 'Kampaniya topilmadi');
         }
@@ -185,7 +186,7 @@ class MetaCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $adAccount = $this->getSelectedMetaAccount($business->id);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             return response()->json([
                 'success' => false,
                 'message' => 'Meta Ad hesob tanlanmagan',
@@ -197,7 +198,7 @@ class MetaCampaignController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$campaign) {
+        if (! $campaign) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kampaniya topilmadi',
@@ -227,7 +228,7 @@ class MetaCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $adAccount = $this->getSelectedMetaAccount($business->id);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -244,7 +245,7 @@ class MetaCampaignController extends Controller
             ->whereNotNull('effective_status')
             ->distinct()
             ->pluck('effective_status')
-            ->map(fn($s) => [
+            ->map(fn ($s) => [
                 'value' => $s,
                 'label' => $this->formatStatus($s),
             ]);
@@ -255,7 +256,7 @@ class MetaCampaignController extends Controller
             ->whereNotNull('objective')
             ->distinct()
             ->pluck('objective')
-            ->map(fn($o) => [
+            ->map(fn ($o) => [
                 'value' => $o,
                 'label' => $this->formatObjective($o),
             ]);
@@ -282,7 +283,7 @@ class MetaCampaignController extends Controller
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'success' => false,
                 'message' => 'Meta Ads ulanmagan',
@@ -301,7 +302,7 @@ class MetaCampaignController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sinxronlashda xatolik: ' . $e->getMessage(),
+                'message' => 'Sinxronlashda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -325,7 +326,7 @@ class MetaCampaignController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         $summary = $query->selectRaw('
@@ -448,11 +449,12 @@ class MetaCampaignController extends Controller
     {
         $businessId = $request->input('business_id') ?? session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             $business = auth()->user()->businesses()->first();
-            if (!$business) {
+            if (! $business) {
                 abort(400, 'Biznes tanlanmagan');
             }
+
             return $business;
         }
 
@@ -468,7 +470,7 @@ class MetaCampaignController extends Controller
             ->where('type', 'meta_ads')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return null;
         }
 
@@ -476,7 +478,7 @@ class MetaCampaignController extends Controller
             ->where('is_primary', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             $account = MetaAdAccount::where('integration_id', $integration->id)->first();
         }
 
@@ -491,7 +493,7 @@ class MetaCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $adAccount = $this->getSelectedMetaAccount($business->id);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             return response()->json([
                 'success' => false,
                 'message' => 'Meta Ad hesob tanlanmagan',
@@ -504,7 +506,7 @@ class MetaCampaignController extends Controller
             ->where('id', $campaignId)
             ->first();
 
-        if (!$campaign) {
+        if (! $campaign) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kampaniya topilmadi',
@@ -521,18 +523,18 @@ class MetaCampaignController extends Controller
                 $targeting = $adSet->targeting ?? [];
                 $parts = [];
 
-                if (!empty($targeting['age_min']) || !empty($targeting['age_max'])) {
+                if (! empty($targeting['age_min']) || ! empty($targeting['age_max'])) {
                     $min = $targeting['age_min'] ?? 18;
                     $max = $targeting['age_max'] ?? 65;
                     $parts[] = "{$min}-{$max} yosh";
                 }
 
-                if (!empty($targeting['genders'])) {
-                    $genderLabels = collect($targeting['genders'])->map(fn($g) => $g == 1 ? 'Erkak' : 'Ayol')->implode(', ');
+                if (! empty($targeting['genders'])) {
+                    $genderLabels = collect($targeting['genders'])->map(fn ($g) => $g == 1 ? 'Erkak' : 'Ayol')->implode(', ');
                     $parts[] = $genderLabels;
                 }
 
-                if (!empty($targeting['geo_locations']['countries'])) {
+                if (! empty($targeting['geo_locations']['countries'])) {
                     $parts[] = implode(', ', $targeting['geo_locations']['countries']);
                 }
 
@@ -576,7 +578,7 @@ class MetaCampaignController extends Controller
         $business = $this->getCurrentBusiness($request);
         $adAccount = $this->getSelectedMetaAccount($business->id);
 
-        if (!$adAccount) {
+        if (! $adAccount) {
             return response()->json([
                 'success' => false,
                 'message' => 'Meta Ad hesob tanlanmagan',
@@ -589,7 +591,7 @@ class MetaCampaignController extends Controller
             ->where('id', $campaignId)
             ->first();
 
-        if (!$campaign) {
+        if (! $campaign) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kampaniya topilmadi',

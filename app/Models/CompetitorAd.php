@@ -71,9 +71,12 @@ class CompetitorAd extends Model
      */
     public function calculateDaysRunning(): int
     {
-        if (!$this->started_at) return 0;
+        if (! $this->started_at) {
+            return 0;
+        }
 
         $endDate = $this->ended_at ?? now();
+
         return $this->started_at->diffInDays($endDate);
     }
 
@@ -85,6 +88,7 @@ class CompetitorAd extends Model
         if ($this->estimated_spend_min && $this->estimated_spend_max) {
             return ($this->estimated_spend_min + $this->estimated_spend_max) / 2;
         }
+
         return $this->estimated_spend_min ?? $this->estimated_spend_max;
     }
 

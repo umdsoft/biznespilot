@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class CompetitorMetric extends Model
 {
     use HasUuid;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -108,7 +109,7 @@ class CompetitorMetric extends Model
             ->orderBy('recorded_date', 'desc')
             ->first();
 
-        if (!$previous) {
+        if (! $previous) {
             return;
         }
 

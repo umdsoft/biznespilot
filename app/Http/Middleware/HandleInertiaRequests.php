@@ -58,7 +58,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function getAuthData($user): ?array
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -75,7 +75,7 @@ class HandleInertiaRequests extends Middleware
                 'login' => $user->login,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'roles' => $user->roles->map(fn($role) => [
+                'roles' => $user->roles->map(fn ($role) => [
                     'id' => $role->id,
                     'name' => $role->name,
                 ])->toArray(),
@@ -93,7 +93,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function getUserBusinesses($user): array
     {
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 
@@ -104,7 +104,7 @@ class HandleInertiaRequests extends Middleware
             return $user->businesses()
                 ->select('id', 'name', 'slug', 'category', 'logo')
                 ->get()
-                ->map(fn($b) => [
+                ->map(fn ($b) => [
                     'id' => $b->id,
                     'name' => $b->name,
                     'slug' => $b->slug,
@@ -120,13 +120,13 @@ class HandleInertiaRequests extends Middleware
      */
     private function getCurrentBusiness($user): ?array
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
         $currentBusinessId = session('current_business_id');
 
-        if (!$currentBusinessId) {
+        if (! $currentBusinessId) {
             // Get first business if no session
             $firstBusiness = $user->businesses()
                 ->select('id', 'name', 'slug', 'category', 'logo')
@@ -134,6 +134,7 @@ class HandleInertiaRequests extends Middleware
 
             if ($firstBusiness) {
                 session(['current_business_id' => $firstBusiness->id]);
+
                 return $this->formatBusiness($firstBusiness);
             }
 
@@ -150,7 +151,7 @@ class HandleInertiaRequests extends Middleware
                 ->find($currentBusinessId);
 
             // If not found, might be team member
-            if (!$business) {
+            if (! $business) {
                 $business = \App\Models\Business::select('id', 'name', 'slug', 'category', 'logo')
                     ->find($currentBusinessId);
             }
@@ -198,7 +199,7 @@ class HandleInertiaRequests extends Middleware
         $allowedLocales = ['uz-latn', 'uz-cyrl', 'ru'];
         $locale = $request->cookie('locale', 'uz-latn');
 
-        if (!in_array($locale, $allowedLocales)) {
+        if (! in_array($locale, $allowedLocales)) {
             $locale = 'uz-latn';
         }
 

@@ -3,9 +3,7 @@
 namespace App\Events;
 
 use App\Models\Alert;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -22,7 +20,7 @@ class AlertTriggered implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('business.' . $this->alert->business_id),
+            new PrivateChannel('business.'.$this->alert->business_id),
         ];
     }
 

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Telegram\TelegramFunnelController as BaseTelegramFunnelController;
-use Inertia\Inertia;
-use Inertia\Response as InertiaResponse;
-use Illuminate\Http\Request;
 use App\Models\TelegramBot;
 use App\Models\TelegramFunnel;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class TelegramFunnelController extends BaseTelegramFunnelController
 {
@@ -26,7 +26,7 @@ class TelegramFunnelController extends BaseTelegramFunnelController
             ->withCount('steps')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($funnel) => [
+            ->map(fn ($funnel) => [
                 'id' => $funnel->id,
                 'name' => $funnel->name,
                 'description' => $funnel->description,
@@ -61,7 +61,7 @@ class TelegramFunnelController extends BaseTelegramFunnelController
             ->with('steps')
             ->firstOrFail();
 
-        $steps = $funnel->steps->map(fn($step) => [
+        $steps = $funnel->steps->map(fn ($step) => [
             'id' => $step->id,
             'name' => $step->name,
             'step_type' => $step->step_type,

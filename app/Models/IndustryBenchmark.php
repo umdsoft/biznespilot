@@ -108,7 +108,7 @@ class IndustryBenchmark extends Model
     {
         return $query->where(function ($q) {
             $q->whereNull('valid_until')
-              ->orWhere('valid_until', '>=', now());
+                ->orWhere('valid_until', '>=', now());
         });
     }
 
@@ -137,15 +137,29 @@ class IndustryBenchmark extends Model
     public function getStatus(float $value): string
     {
         if ($this->isHigherBetter()) {
-            if ($value >= $this->excellent_threshold) return 'excellent';
-            if ($value >= $this->good_threshold) return 'good';
-            if ($value >= $this->average_value) return 'average';
+            if ($value >= $this->excellent_threshold) {
+                return 'excellent';
+            }
+            if ($value >= $this->good_threshold) {
+                return 'good';
+            }
+            if ($value >= $this->average_value) {
+                return 'average';
+            }
+
             return 'poor';
         } else {
             // Lower is better
-            if ($value <= $this->excellent_threshold) return 'excellent';
-            if ($value <= $this->good_threshold) return 'good';
-            if ($value <= $this->average_value) return 'average';
+            if ($value <= $this->excellent_threshold) {
+                return 'excellent';
+            }
+            if ($value <= $this->good_threshold) {
+                return 'good';
+            }
+            if ($value <= $this->average_value) {
+                return 'average';
+            }
+
             return 'poor';
         }
     }
@@ -204,6 +218,7 @@ class IndustryBenchmark extends Model
         }
 
         $gap = $this->calculateGap($value);
+
         return round(($gap / $this->average_value) * 100, 1);
     }
 
@@ -213,10 +228,10 @@ class IndustryBenchmark extends Model
     public function formatValue(float $value): string
     {
         $formatted = match ($this->unit) {
-            'currency' => number_format($value, 0, '.', ' ') . ' UZS',
-            'percent' => number_format($value, 1) . '%',
-            'hours' => number_format($value, 1) . ' soat',
-            'days' => number_format($value, 0) . ' kun',
+            'currency' => number_format($value, 0, '.', ' ').' UZS',
+            'percent' => number_format($value, 1).'%',
+            'hours' => number_format($value, 1).' soat',
+            'days' => number_format($value, 0).' kun',
             default => number_format($value, 2),
         };
 

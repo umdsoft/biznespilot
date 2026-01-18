@@ -78,10 +78,11 @@ class TodoService
                 if ($statusFilter !== 'active') {
                     $grouped['later'][] = $todoData;
                 }
+
                 continue;
             }
 
-            if (!$todo->due_date) {
+            if (! $todo->due_date) {
                 $grouped['later'][] = $todoData;
             } elseif ($todo->due_date->lt($today)) {
                 $grouped['overdue'][] = $todoData;
@@ -110,7 +111,7 @@ class TodoService
             ->where('status', '!=', 'completed')
             ->get();
 
-        $overdueCount = $activeTodos->filter(fn($t) => $t->due_date && $t->due_date->lt($today))->count();
+        $overdueCount = $activeTodos->filter(fn ($t) => $t->due_date && $t->due_date->lt($today))->count();
 
         $completedTodayCount = Todo::where('business_id', $business->id)
             ->where('status', 'completed')
@@ -150,7 +151,7 @@ class TodoService
         if ($todo->due_date) {
             $isOverdue = $todo->due_date->lt(Carbon::today()) && $todo->status !== 'completed';
             if ($todo->due_time) {
-                $dueDateFormatted = $todo->due_date->format('d.m') . ' ' . $todo->due_time;
+                $dueDateFormatted = $todo->due_date->format('d.m').' '.$todo->due_time;
             } else {
                 $dueDateFormatted = $todo->due_date->format('d.m.Y');
             }
@@ -171,7 +172,7 @@ class TodoService
             'is_overdue' => $isOverdue,
             'is_recurring' => $todo->is_recurring ?? false,
             'recurrence_pattern' => $todo->recurrence_pattern,
-            'subtasks' => $todo->subtasks->map(fn($st) => [
+            'subtasks' => $todo->subtasks->map(fn ($st) => [
                 'id' => $st->id,
                 'title' => $st->title,
                 'is_completed' => $st->is_completed,
@@ -183,7 +184,7 @@ class TodoService
                 'id' => $todo->assignee->id,
                 'name' => $todo->assignee->name,
             ] : null,
-            'assignees' => $todo->assignees ? $todo->assignees->map(fn($a) => [
+            'assignees' => $todo->assignees ? $todo->assignees->map(fn ($a) => [
                 'id' => $a->id,
                 'user_id' => $a->user_id,
                 'user' => $a->user ? [
@@ -236,6 +237,7 @@ class TodoService
     public function update(Todo $todo, array $data): Todo
     {
         $todo->update($data);
+
         return $todo->fresh(['subtasks', 'assignees.user', 'assignee']);
     }
 
@@ -278,7 +280,8 @@ class TodoService
     public function toggleSubtask(Todo $todo, int $subtaskId): object
     {
         $subtask = $todo->subtasks()->findOrFail($subtaskId);
-        $subtask->update(['is_completed' => !$subtask->is_completed]);
+        $subtask->update(['is_completed' => ! $subtask->is_completed]);
+
         return $subtask;
     }
 

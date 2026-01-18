@@ -6,7 +6,6 @@ use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\TodoTemplate;
 use App\Models\TodoTemplateItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -21,7 +20,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -37,7 +36,7 @@ class TodoTemplateController extends Controller
             $query->byCategory($category);
         }
 
-        $templates = $query->get()->map(fn($t) => $this->formatTemplateForResponse($t));
+        $templates = $query->get()->map(fn ($t) => $this->formatTemplateForResponse($t));
 
         return Inertia::render('Business/Todos/Templates', [
             'templates' => $templates,
@@ -54,7 +53,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -63,7 +62,7 @@ class TodoTemplateController extends Controller
             ->withCount('items')
             ->orderBy('usage_count', 'desc')
             ->get()
-            ->map(fn($t) => $this->formatTemplateForResponse($t));
+            ->map(fn ($t) => $this->formatTemplateForResponse($t));
 
         return response()->json([
             'templates' => $templates,
@@ -97,7 +96,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -136,7 +135,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -168,7 +167,7 @@ class TodoTemplateController extends Controller
             ]);
 
             // Create items
-            if (!empty($validated['items'])) {
+            if (! empty($validated['items'])) {
                 $this->createItemsFromArray($template, $validated['items'], null);
             }
 
@@ -183,9 +182,10 @@ class TodoTemplateController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -207,7 +207,7 @@ class TodoTemplateController extends Controller
             ]);
 
             // Create children
-            if (!empty($itemData['children'])) {
+            if (! empty($itemData['children'])) {
                 $this->createItemsFromArray($template, $itemData['children'], $item->id);
             }
         }
@@ -220,7 +220,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -250,7 +250,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -269,7 +269,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -290,7 +290,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -317,7 +317,7 @@ class TodoTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -331,7 +331,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -369,7 +369,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id || $item->template_id !== $template->id) {
+        if (! $business || $template->business_id !== $business->id || $item->template_id !== $template->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -405,7 +405,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id || $item->template_id !== $template->id) {
+        if (! $business || $template->business_id !== $business->id || $item->template_id !== $template->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -424,7 +424,7 @@ class TodoTemplateController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $template->business_id !== $business->id) {
+        if (! $business || $template->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -455,9 +455,10 @@ class TodoTemplateController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ], 500);
         }
     }

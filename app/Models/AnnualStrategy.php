@@ -169,9 +169,16 @@ class AnnualStrategy extends Model
     public function getProgressColor(): string
     {
         $percent = $this->completion_percent ?? 0;
-        if ($percent >= 80) return 'green';
-        if ($percent >= 50) return 'blue';
-        if ($percent >= 25) return 'yellow';
+        if ($percent >= 80) {
+            return 'green';
+        }
+        if ($percent >= 50) {
+            return 'blue';
+        }
+        if ($percent >= 25) {
+            return 'yellow';
+        }
+
         return 'gray';
     }
 
@@ -180,6 +187,7 @@ class AnnualStrategy extends Model
         $quarters = $this->quarterlyPlans()->count();
         if ($quarters === 0) {
             $this->update(['completion_percent' => 0]);
+
             return;
         }
 

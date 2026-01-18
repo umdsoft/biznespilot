@@ -25,12 +25,12 @@ return new class extends Migration
 
             // Revenue ranges
             $table->enum('monthly_revenue_range', [
-                'none', 'under_10m', '10m_50m', '50m_200m', '200m_500m', '500m_1b', 'over_1b'
+                'none', 'under_10m', '10m_50m', '50m_200m', '200m_500m', '500m_1b', 'over_1b',
             ])->default('none');
 
             // Marketing budget ranges
             $table->enum('monthly_marketing_budget_range', [
-                'none', 'under_1m', '1m_5m', '5m_20m', '20m_50m', 'over_50m'
+                'none', 'under_1m', '1m_5m', '5m_20m', '20m_50m', 'over_50m',
             ])->default('none');
 
             // Team sizes

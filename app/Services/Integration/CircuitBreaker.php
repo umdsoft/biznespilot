@@ -22,15 +22,20 @@ class CircuitBreaker
      * Circuit states
      */
     public const STATE_CLOSED = 'closed';
+
     public const STATE_OPEN = 'open';
+
     public const STATE_HALF_OPEN = 'half_open';
 
     /**
      * Configuration from config/kpi_sync.php
      */
     protected bool $enabled;
+
     protected int $failureThreshold;
+
     protected int $timeout;
+
     protected int $successThreshold;
 
     public function __construct()
@@ -45,15 +50,16 @@ class CircuitBreaker
     /**
      * Execute a callback with circuit breaker protection
      *
-     * @param string $service Service identifier (instagram_api, facebook_api, pos_system)
-     * @param callable $callback Function to execute
-     * @param int|string|null $businessId Optional business ID for per-business tracking
+     * @param  string  $service  Service identifier (instagram_api, facebook_api, pos_system)
+     * @param  callable  $callback  Function to execute
+     * @param  int|string|null  $businessId  Optional business ID for per-business tracking
      * @return mixed Result of callback
+     *
      * @throws \Exception If circuit is open or callback fails
      */
     public function execute(string $service, callable $callback, int|string|null $businessId = null)
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return $callback();
         }
 
@@ -63,7 +69,7 @@ class CircuitBreaker
         if ($state === self::STATE_OPEN) {
             if ($this->shouldAttemptReset($service, $businessId)) {
                 $this->setState($service, self::STATE_HALF_OPEN, $businessId);
-                Log::info("Circuit breaker entering HALF_OPEN state", [
+                Log::info('Circuit breaker entering HALF_OPEN state', [
                     'service' => $service,
                     'business_id' => $businessId,
                 ]);
@@ -75,6 +81,7 @@ class CircuitBreaker
         try {
             $result = $callback();
             $this->recordSuccess($service, $businessId);
+
             return $result;
         } catch (\Exception $e) {
             $this->recordFailure($service, $businessId);
@@ -85,9 +92,8 @@ class CircuitBreaker
     /**
      * Record a successful request
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      */
     public function recordSuccess(string $service, int|string|null $businessId = null): void
     {
@@ -103,7 +109,7 @@ class CircuitBreaker
                 $this->setState($service, self::STATE_CLOSED, $businessId);
                 $this->resetCounters($service, $businessId);
 
-                Log::info("Circuit breaker CLOSED - service recovered", [
+                Log::info('Circuit breaker CLOSED - service recovered', [
                     'service' => $service,
                     'business_id' => $businessId,
                     'success_count' => $successCount,
@@ -118,9 +124,8 @@ class CircuitBreaker
     /**
      * Record a failed request
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      */
     public function recordFailure(string $service, int|string|null $businessId = null): void
     {
@@ -132,10 +137,11 @@ class CircuitBreaker
             $this->setState($service, self::STATE_OPEN, $businessId);
             $this->resetCounters($service, $businessId);
 
-            Log::warning("Circuit breaker reopened from HALF_OPEN state", [
+            Log::warning('Circuit breaker reopened from HALF_OPEN state', [
                 'service' => $service,
                 'business_id' => $businessId,
             ]);
+
             return;
         }
 
@@ -152,14 +158,14 @@ class CircuitBreaker
         if ($failureCount >= $this->failureThreshold) {
             $this->setState($service, self::STATE_OPEN, $businessId);
 
-            Log::critical("Circuit breaker OPENED - threshold exceeded", [
+            Log::critical('Circuit breaker OPENED - threshold exceeded', [
                 'service' => $service,
                 'business_id' => $businessId,
                 'failure_count' => $failureCount,
                 'threshold' => $this->failureThreshold,
             ]);
         } else {
-            Log::warning("Circuit breaker failure recorded", [
+            Log::warning('Circuit breaker failure recorded', [
                 'service' => $service,
                 'business_id' => $businessId,
                 'failure_count' => $failureCount,
@@ -171,23 +177,23 @@ class CircuitBreaker
     /**
      * Get current circuit state
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      * @return string Circuit state
      */
     public function getState(string $service, int|string|null $businessId = null): string
     {
         $key = $this->getStateKey($service, $businessId);
+
         return Cache::get($key, self::STATE_CLOSED);
     }
 
     /**
      * Set circuit state
      *
-     * @param string $service Service identifier
-     * @param string $state New state
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $service  Service identifier
+     * @param  string  $state  New state
+     * @param  int|string|null  $businessId  Optional business ID
      */
     protected function setState(string $service, string $state, int|string|null $businessId = null): void
     {
@@ -204,8 +210,8 @@ class CircuitBreaker
     /**
      * Check if circuit should attempt reset
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      * @return bool True if timeout has elapsed
      */
     protected function shouldAttemptReset(string $service, int|string|null $businessId = null): bool
@@ -213,20 +219,20 @@ class CircuitBreaker
         $openedAtKey = $this->getOpenedAtKey($service, $businessId);
         $openedAt = Cache::get($openedAtKey);
 
-        if (!$openedAt) {
+        if (! $openedAt) {
             return true; // No record of when it opened, allow reset
         }
 
         $elapsedSeconds = now()->timestamp - $openedAt;
+
         return $elapsedSeconds >= $this->timeout;
     }
 
     /**
      * Reset all counters
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      */
     protected function resetCounters(string $service, int|string|null $businessId = null): void
     {
@@ -238,9 +244,8 @@ class CircuitBreaker
     /**
      * Reset failure counter
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      */
     protected function resetFailureCount(string $service, int|string|null $businessId = null): void
     {
@@ -250,16 +255,15 @@ class CircuitBreaker
     /**
      * Force reset circuit to closed state
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
-     * @return void
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      */
     public function reset(string $service, int|string|null $businessId = null): void
     {
         $this->setState($service, self::STATE_CLOSED, $businessId);
         $this->resetCounters($service, $businessId);
 
-        Log::info("Circuit breaker manually reset", [
+        Log::info('Circuit breaker manually reset', [
             'service' => $service,
             'business_id' => $businessId,
         ]);
@@ -268,8 +272,8 @@ class CircuitBreaker
     /**
      * Get circuit breaker statistics
      *
-     * @param string $service Service identifier
-     * @param int|string|null $businessId Optional business ID
+     * @param  string  $service  Service identifier
+     * @param  int|string|null  $businessId  Optional business ID
      * @return array Statistics
      */
     public function getStats(string $service, int|string|null $businessId = null): array
@@ -319,9 +323,11 @@ class CircuitBreaker
     {
         $sanitizedService = $this->sanitizeCacheKeyComponent($service);
         if ($businessId) {
-            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string)$businessId);
+            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string) $businessId);
+
             return "circuit_breaker:{$sanitizedService}:business_{$sanitizedBusinessId}:state";
         }
+
         return "circuit_breaker:{$sanitizedService}:global:state";
     }
 
@@ -329,9 +335,11 @@ class CircuitBreaker
     {
         $sanitizedService = $this->sanitizeCacheKeyComponent($service);
         if ($businessId) {
-            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string)$businessId);
+            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string) $businessId);
+
             return "circuit_breaker:{$sanitizedService}:business_{$sanitizedBusinessId}:failures";
         }
+
         return "circuit_breaker:{$sanitizedService}:global:failures";
     }
 
@@ -339,9 +347,11 @@ class CircuitBreaker
     {
         $sanitizedService = $this->sanitizeCacheKeyComponent($service);
         if ($businessId) {
-            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string)$businessId);
+            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string) $businessId);
+
             return "circuit_breaker:{$sanitizedService}:business_{$sanitizedBusinessId}:successes";
         }
+
         return "circuit_breaker:{$sanitizedService}:global:successes";
     }
 
@@ -349,9 +359,11 @@ class CircuitBreaker
     {
         $sanitizedService = $this->sanitizeCacheKeyComponent($service);
         if ($businessId) {
-            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string)$businessId);
+            $sanitizedBusinessId = $this->sanitizeCacheKeyComponent((string) $businessId);
+
             return "circuit_breaker:{$sanitizedService}:business_{$sanitizedBusinessId}:opened_at";
         }
+
         return "circuit_breaker:{$sanitizedService}:global:opened_at";
     }
 }

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 abstract class BaseKpiSyncService implements KpiSyncServiceInterface
 {
     protected CircuitBreaker $circuitBreaker;
+
     protected RateLimiter $rateLimiter;
 
     public function __construct()
@@ -27,7 +28,7 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
     public function syncDailyKpis(int $businessId, string $date): array
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return [
                 'success' => false,
                 'synced_count' => 0,
@@ -36,7 +37,7 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
             ];
         }
 
-        if (!$this->isAvailable($businessId)) {
+        if (! $this->isAvailable($businessId)) {
             return [
                 'success' => false,
                 'synced_count' => 0,
@@ -49,11 +50,11 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
         try {
             return $this->circuitBreaker->execute(
                 $this->getIntegrationName(),
-                fn() => $this->performSync($businessId, $date),
+                fn () => $this->performSync($businessId, $date),
                 $businessId
             );
         } catch (\Exception $e) {
-            Log::error("Circuit breaker prevented sync", [
+            Log::error('Circuit breaker prevented sync', [
                 'integration' => $this->getIntegrationName(),
                 'business_id' => $businessId,
                 'error' => $e->getMessage(),
@@ -89,7 +90,7 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
                 // Apply rate limiting
                 $this->rateLimiter->waitIfNeeded($this->getIntegrationName(), $businessId);
 
-                if (!$this->rateLimiter->allowRequest($this->getIntegrationName(), $businessId)) {
+                if (! $this->rateLimiter->allowRequest($this->getIntegrationName(), $businessId)) {
                     throw new \Exception("Rate limit exceeded for {$this->getIntegrationName()}");
                 }
 
@@ -160,12 +161,7 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
     /**
      * Save or update KPI daily actual value
      *
-     * @param int $businessId
-     * @param string $kpiCode
-     * @param string $date
-     * @param float $value
-     * @param array $metadata Additional sync metadata
-     * @return KpiDailyActual
+     * @param  array  $metadata  Additional sync metadata
      */
     protected function saveKpiValue(
         int $businessId,
@@ -196,7 +192,7 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
                 'actual_value' => $value,
                 'planned_value' => $plannedValue,
                 'data_source' => $this->getIntegrationName(),
-                'integration_sync_id' => $metadata['sync_id'] ?? uniqid($this->getIntegrationName() . '_'),
+                'integration_sync_id' => $metadata['sync_id'] ?? uniqid($this->getIntegrationName().'_'),
                 'sync_status' => 'synced',
                 'last_synced_at' => now(),
                 'auto_calculated' => true,
@@ -251,7 +247,10 @@ abstract class BaseKpiSyncService implements KpiSyncServiceInterface
      * Abstract methods that must be implemented by child classes
      */
     abstract public function syncKpi(int $businessId, string $kpiCode, string $date): array;
+
     abstract public function getSupportedKpis(): array;
+
     abstract public function isAvailable(int $businessId): bool;
+
     abstract public function getIntegrationName(): string;
 }

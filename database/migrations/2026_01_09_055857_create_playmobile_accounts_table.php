@@ -31,10 +31,10 @@ return new class extends Migration
         // Add provider column to sms_messages table if it exists
         if (Schema::hasTable('sms_messages')) {
             Schema::table('sms_messages', function (Blueprint $table) {
-                if (!Schema::hasColumn('sms_messages', 'provider')) {
+                if (! Schema::hasColumn('sms_messages', 'provider')) {
                     $table->string('provider')->default('eskiz')->after('business_id');
                 }
-                if (!Schema::hasColumn('sms_messages', 'playmobile_account_id')) {
+                if (! Schema::hasColumn('sms_messages', 'playmobile_account_id')) {
                     $table->foreignUuid('playmobile_account_id')->nullable()->after('eskiz_account_id')
                         ->constrained('playmobile_accounts')->nullOnDelete();
                 }

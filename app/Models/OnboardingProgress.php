@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OnboardingProgress extends Model
 {
     use HasUuid;
+
     protected $table = 'onboarding_progress';
 
     protected $fillable = [
@@ -88,12 +89,12 @@ class OnboardingProgress extends Model
 
     public function isLaunched(): bool
     {
-        return $this->phase_4_status === 'launched' && !is_null($this->launched_at);
+        return $this->phase_4_status === 'launched' && ! is_null($this->launched_at);
     }
 
     public function isOnboardingCompleted(): bool
     {
-        return !is_null($this->onboarding_completed_at);
+        return ! is_null($this->onboarding_completed_at);
     }
 
     // Helpers

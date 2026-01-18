@@ -10,10 +10,6 @@ class SecurityHeaders
 {
     /**
      * Security headers for production environment.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -38,7 +34,7 @@ class SecurityHeaders
 
             // Content Security Policy (adjust as needed for your app)
             // Note: This is a basic CSP, you may need to adjust based on your frontend needs
-            if (!$request->is('api/*')) {
+            if (! $request->is('api/*')) {
                 $response->headers->set('Content-Security-Policy', implode('; ', [
                     "default-src 'self'",
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",

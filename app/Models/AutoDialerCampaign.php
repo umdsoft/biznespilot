@@ -44,10 +44,15 @@ class AutoDialerCampaign extends Model
      * Status constants
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_SCHEDULED = 'scheduled';
+
     public const STATUS_RUNNING = 'running';
+
     public const STATUS_PAUSED = 'paused';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -124,7 +129,7 @@ class AutoDialerCampaign extends Model
         // Check working days
         if ($this->working_days) {
             $currentDay = now()->dayOfWeek; // 0 = Sunday
-            if (!in_array($currentDay, $this->working_days)) {
+            if (! in_array($currentDay, $this->working_days)) {
                 return false;
             }
         }

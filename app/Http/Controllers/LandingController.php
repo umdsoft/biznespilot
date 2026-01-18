@@ -48,7 +48,7 @@ class LandingController extends Controller
     public function setLanguage(Request $request, string $locale)
     {
         // Validate locale
-        if (!in_array($locale, $this->supportedLocales)) {
+        if (! in_array($locale, $this->supportedLocales)) {
             $locale = $this->defaultLocale;
         }
 
@@ -131,7 +131,7 @@ class LandingController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        if (!$user->businesses()->exists()) {
+        if (! $user->businesses()->exists()) {
             return redirect()->route('welcome.index');
         }
 

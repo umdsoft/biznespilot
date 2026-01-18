@@ -26,12 +26,19 @@ class LeadActivity extends Model
      * Activity types
      */
     public const TYPE_CREATED = 'created';
+
     public const TYPE_UPDATED = 'updated';
+
     public const TYPE_STATUS_CHANGED = 'status_changed';
+
     public const TYPE_NOTE_ADDED = 'note_added';
+
     public const TYPE_ASSIGNED = 'assigned';
+
     public const TYPE_CONTACTED = 'contacted';
+
     public const TYPE_TASK_CREATED = 'task_created';
+
     public const TYPE_TASK_COMPLETED = 'task_completed';
 
     /**

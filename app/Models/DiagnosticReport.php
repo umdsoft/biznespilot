@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class DiagnosticReport extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'uuid',
         'diagnostic_id',
@@ -77,7 +78,7 @@ class DiagnosticReport extends Model
 
     public function markAsOpened(): void
     {
-        if (!$this->opened_at) {
+        if (! $this->opened_at) {
             $this->update(['opened_at' => now()]);
         }
     }
@@ -94,15 +95,15 @@ class DiagnosticReport extends Model
 
     public function hasPdf(): bool
     {
-        return !empty($this->pdf_path);
+        return ! empty($this->pdf_path);
     }
 
     public function getPdfUrl(): ?string
     {
-        if (!$this->hasPdf()) {
+        if (! $this->hasPdf()) {
             return null;
         }
 
-        return asset('storage/' . $this->pdf_path);
+        return asset('storage/'.$this->pdf_path);
     }
 }

@@ -15,6 +15,7 @@ class ClickService
 
     // Click Actions
     public const ACTION_PREPARE = 0;
+
     public const ACTION_COMPLETE = 1;
 
     /**
@@ -23,6 +24,7 @@ class ClickService
     public function setAccount(PaymentAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -31,7 +33,7 @@ class ClickService
      */
     public function generatePaymentUrl(PaymentTransaction $transaction, ?string $returnUrl = null): string
     {
-        if (!$this->account) {
+        if (! $this->account) {
             throw new \Exception('Payment account not configured');
         }
 
@@ -44,7 +46,7 @@ class ClickService
             'return_url' => $returnUrl ?? url('/'),
         ]);
 
-        return PaymentAccount::CLICK_CHECKOUT_URL . '?' . $params;
+        return PaymentAccount::CLICK_CHECKOUT_URL.'?'.$params;
     }
 
     /**
@@ -52,19 +54,19 @@ class ClickService
      */
     public function createInvoice(PaymentTransaction $transaction, string $phoneNumber): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'Account not configured'];
         }
 
         try {
             $timestamp = time();
-            $digest = sha1($timestamp . $this->account->secret_key);
+            $digest = sha1($timestamp.$this->account->secret_key);
 
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Auth' => "{$this->account->merchant_user_id}:{$digest}:{$timestamp}",
-            ])->post(PaymentAccount::CLICK_API_URL . '/invoice/create', [
+            ])->post(PaymentAccount::CLICK_API_URL.'/invoice/create', [
                 'service_id' => (int) $this->account->service_id,
                 'amount' => (float) $transaction->amount,
                 'phone_number' => $phoneNumber,
@@ -88,6 +90,7 @@ class ClickService
             ];
         } catch (\Exception $e) {
             Log::error('Click create invoice failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -120,7 +123,7 @@ class ClickService
             ->where('is_active', true)
             ->first();
 
-        if (!$this->account) {
+        if (! $this->account) {
             return $this->errorResponse(
                 ClickTransaction::ERROR_USER_NOT_FOUND,
                 $clickTransId,
@@ -129,7 +132,7 @@ class ClickService
         }
 
         // Verify signature
-        if (!$this->verifySignature($data)) {
+        if (! $this->verifySignature($data)) {
             return $this->errorResponse(
                 ClickTransaction::ERROR_SIGN_CHECK_FAILED,
                 $clickTransId,
@@ -140,7 +143,7 @@ class ClickService
         // Find transaction
         $transaction = PaymentTransaction::findByOrderId($merchantTransId);
 
-        if (!$transaction) {
+        if (! $transaction) {
             return $this->errorResponse(
                 ClickTransaction::ERROR_USER_NOT_FOUND,
                 $clickTransId,
@@ -217,7 +220,7 @@ class ClickService
         // Find Click transaction
         $clickTransaction = ClickTransaction::where('click_trans_id', $clickTransId)->first();
 
-        if (!$clickTransaction) {
+        if (! $clickTransaction) {
             return $this->errorResponse(
                 ClickTransaction::ERROR_TRANSACTION_NOT_FOUND,
                 $clickTransId,
@@ -289,11 +292,11 @@ class ClickService
         // Build sign string based on action
         $action = (int) $action;
         if ($action === self::ACTION_PREPARE) {
-            $toSign = $clickTransId . $serviceId . $this->account->secret_key .
-                $merchantTransId . $amount . $action . $signTime;
+            $toSign = $clickTransId.$serviceId.$this->account->secret_key.
+                $merchantTransId.$amount.$action.$signTime;
         } else {
-            $toSign = $clickTransId . $serviceId . $this->account->secret_key .
-                $merchantTransId . $merchantPrepareId . $amount . $action . $signTime;
+            $toSign = $clickTransId.$serviceId.$this->account->secret_key.
+                $merchantTransId.$merchantPrepareId.$amount.$action.$signTime;
         }
 
         $expectedSign = md5($toSign);
@@ -319,18 +322,18 @@ class ClickService
      */
     public function checkPaymentStatus(string $paymentId): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'Account not configured'];
         }
 
         try {
             $timestamp = time();
-            $digest = sha1($timestamp . $this->account->secret_key);
+            $digest = sha1($timestamp.$this->account->secret_key);
 
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
                 'Auth' => "{$this->account->merchant_user_id}:{$digest}:{$timestamp}",
-            ])->get(PaymentAccount::CLICK_API_URL . "/payment/status/{$this->account->service_id}/{$paymentId}");
+            ])->get(PaymentAccount::CLICK_API_URL."/payment/status/{$this->account->service_id}/{$paymentId}");
 
             return [
                 'success' => true,

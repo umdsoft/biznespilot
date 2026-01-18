@@ -76,18 +76,24 @@ class MarketResearch extends Model
 
     public function getMethodologyLabel(): ?string
     {
-        if (!$this->methodology) return null;
+        if (! $this->methodology) {
+            return null;
+        }
+
         return self::METHODOLOGIES[$this->methodology] ?? $this->methodology;
     }
 
     public function isValid(): bool
     {
-        if (!$this->valid_until) return true;
+        if (! $this->valid_until) {
+            return true;
+        }
+
         return $this->valid_until->isFuture();
     }
 
     public function isExpired(): bool
     {
-        return !$this->isValid();
+        return ! $this->isValid();
     }
 }

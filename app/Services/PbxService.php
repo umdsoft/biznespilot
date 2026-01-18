@@ -22,6 +22,7 @@ class PbxService
     public function setAccount(PbxAccount $account): self
     {
         $this->account = $account;
+
         return $this;
     }
 
@@ -31,11 +32,11 @@ class PbxService
     public function testConnection(string $apiUrl, string $apiKey, ?string $apiSecret = null): array
     {
         try {
-            $url = rtrim($apiUrl, '/') . '/status';
+            $url = rtrim($apiUrl, '/').'/status';
 
             $response = Http::timeout(15)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Authorization' => 'Bearer '.$apiKey,
                     'X-API-Key' => $apiKey,
                 ])
                 ->get($url);
@@ -61,13 +62,14 @@ class PbxService
 
             return [
                 'success' => false,
-                'error' => 'Ulanib bo\'lmadi: ' . $response->status(),
+                'error' => 'Ulanib bo\'lmadi: '.$response->status(),
             ];
         } catch (\Exception $e) {
             Log::error('PBX connection test failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
-                'error' => 'Tarmoq xatosi: ' . $e->getMessage(),
+                'error' => 'Tarmoq xatosi: '.$e->getMessage(),
             ];
         }
     }
@@ -77,7 +79,7 @@ class PbxService
      */
     public function makeCall(string $toNumber, ?Lead $lead = null, ?string $fromNumber = null): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'PBX account not configured'];
         }
 
@@ -101,11 +103,11 @@ class PbxService
             // Make API call to PBX
             $response = Http::timeout(30)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->account->api_key,
+                    'Authorization' => 'Bearer '.$this->account->api_key,
                     'X-API-Key' => $this->account->api_key,
                     'Content-Type' => 'application/json',
                 ])
-                ->post($this->account->api_url . 'calls/originate', [
+                ->post($this->account->api_url.'calls/originate', [
                     'from' => $fromNumber,
                     'to' => $this->formatPhoneNumber($toNumber),
                     'extension' => $this->account->extension,
@@ -142,7 +144,7 @@ class PbxService
 
             return [
                 'success' => false,
-                'error' => 'Qo\'ng\'iroq qilib bo\'lmadi: ' . $response->body(),
+                'error' => 'Qo\'ng\'iroq qilib bo\'lmadi: '.$response->body(),
             ];
         } catch (\Exception $e) {
             Log::error('PBX make call failed', [
@@ -156,7 +158,7 @@ class PbxService
 
             return [
                 'success' => false,
-                'error' => 'Xatolik: ' . $e->getMessage(),
+                'error' => 'Xatolik: '.$e->getMessage(),
             ];
         }
     }
@@ -166,7 +168,7 @@ class PbxService
      */
     public function hangupCall(string $callId): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'PBX account not configured'];
         }
 
@@ -175,9 +177,9 @@ class PbxService
 
             $response = Http::timeout(15)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->account->api_key,
+                    'Authorization' => 'Bearer '.$this->account->api_key,
                 ])
-                ->post($this->account->api_url . 'calls/' . ($callLog?->provider_call_id ?? $callId) . '/hangup');
+                ->post($this->account->api_url.'calls/'.($callLog?->provider_call_id ?? $callId).'/hangup');
 
             if ($response->successful() && $callLog) {
                 $callLog->update([
@@ -192,6 +194,7 @@ class PbxService
             ];
         } catch (\Exception $e) {
             Log::error('PBX hangup call failed', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -204,16 +207,16 @@ class PbxService
      */
     public function getCallStatus(string $callId): array
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return ['success' => false, 'error' => 'PBX account not configured'];
         }
 
         try {
             $response = Http::timeout(15)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->account->api_key,
+                    'Authorization' => 'Bearer '.$this->account->api_key,
                 ])
-                ->get($this->account->api_url . 'calls/' . $callId . '/status');
+                ->get($this->account->api_url.'calls/'.$callId.'/status');
 
             if ($response->successful()) {
                 return [
@@ -241,8 +244,9 @@ class PbxService
     {
         $callId = $data['call_id'] ?? $data['CALL_ID'] ?? null;
 
-        if (!$callId) {
+        if (! $callId) {
             Log::warning('PBX webhook: No call ID provided', $data);
+
             return;
         }
 
@@ -250,8 +254,9 @@ class PbxService
             ->orWhere('id', $callId)
             ->first();
 
-        if (!$callLog) {
+        if (! $callLog) {
             Log::warning('PBX webhook: Call not found', ['call_id' => $callId]);
+
             return;
         }
 
@@ -301,7 +306,7 @@ class PbxService
         }
 
         // Update recording URL if provided
-        if (!empty($data['recording_url'])) {
+        if (! empty($data['recording_url'])) {
             $callLog->update(['recording_url' => $data['recording_url']]);
         }
     }
@@ -311,16 +316,16 @@ class PbxService
      */
     public function getBalance(): ?int
     {
-        if (!$this->account) {
+        if (! $this->account) {
             return null;
         }
 
         try {
             $response = Http::timeout(15)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->account->api_key,
+                    'Authorization' => 'Bearer '.$this->account->api_key,
                 ])
-                ->get($this->account->api_url . 'account/balance');
+                ->get($this->account->api_url.'account/balance');
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -388,7 +393,7 @@ class PbxService
 
         // Add country code if needed (Uzbekistan)
         if (strlen($phone) === 9) {
-            $phone = '998' . $phone;
+            $phone = '998'.$phone;
         }
 
         return $phone;

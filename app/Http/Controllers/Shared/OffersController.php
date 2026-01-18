@@ -29,10 +29,18 @@ class OffersController extends Controller
     {
         $prefix = $request->route()->getPrefix();
 
-        if (str_contains($prefix, 'marketing')) return 'marketing';
-        if (str_contains($prefix, 'finance')) return 'finance';
-        if (str_contains($prefix, 'operator')) return 'operator';
-        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
 
         return 'business';
     }
@@ -44,7 +52,7 @@ class OffersController extends Controller
     {
         $panel = $this->getPanelType($request);
 
-        return match($panel) {
+        return match ($panel) {
             'marketing' => 'marketing.offers',
             'finance' => 'finance.offers',
             'operator' => 'operator.offers',
@@ -60,7 +68,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -110,7 +118,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -133,7 +141,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -215,7 +223,7 @@ class OffersController extends Controller
             $validated['business_id'] = $business->id;
             $offer = Offer::create($validated);
 
-            if (!empty($validated['offer_components'])) {
+            if (! empty($validated['offer_components'])) {
                 foreach ($validated['offer_components'] as $component) {
                     $offer->components()->create($component);
                 }
@@ -223,12 +231,13 @@ class OffersController extends Controller
 
             DB::commit();
 
-            return redirect()->route($routePrefix . '.show', $offer)
+            return redirect()->route($routePrefix.'.show', $offer)
                 ->with('success', 'Offer muvaffaqiyatli yaratildi!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Offer yaratishda xatolik: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Offer yaratishda xatolik: '.$e->getMessage()]);
         }
     }
 
@@ -239,7 +248,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $offer->business_id !== $business->id) {
+        if (! $business || $offer->business_id !== $business->id) {
             abort(403);
         }
 
@@ -274,7 +283,7 @@ class OffersController extends Controller
                 'metadata' => $offer->metadata,
                 'created_at' => $offer->created_at->format('d.m.Y H:i'),
             ],
-            'components' => $offer->components->map(fn($c) => [
+            'components' => $offer->components->map(fn ($c) => [
                 'id' => $c->id,
                 'type' => $c->type,
                 'name' => $c->name,
@@ -294,7 +303,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $offer->business_id !== $business->id) {
+        if (! $business || $offer->business_id !== $business->id) {
             abort(403);
         }
 
@@ -342,7 +351,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $offer->business_id !== $business->id) {
+        if (! $business || $offer->business_id !== $business->id) {
             abort(403);
         }
 
@@ -374,7 +383,7 @@ class OffersController extends Controller
 
         $offer->update($validated);
 
-        return redirect()->route($routePrefix . '.show', $offer)
+        return redirect()->route($routePrefix.'.show', $offer)
             ->with('success', 'Offer yangilandi!');
     }
 
@@ -385,7 +394,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $offer->business_id !== $business->id) {
+        if (! $business || $offer->business_id !== $business->id) {
             abort(403);
         }
 
@@ -393,7 +402,7 @@ class OffersController extends Controller
 
         $offer->delete();
 
-        return redirect()->route($routePrefix . '.index')
+        return redirect()->route($routePrefix.'.index')
             ->with('success', 'Offer o\'chirildi!');
     }
 
@@ -430,7 +439,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $offer->business_id !== $business->id) {
+        if (! $business || $offer->business_id !== $business->id) {
             abort(403);
         }
 
@@ -449,7 +458,7 @@ class OffersController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $offer->business_id !== $business->id) {
+        if (! $business || $offer->business_id !== $business->id) {
             abort(403);
         }
 
@@ -459,7 +468,7 @@ class OffersController extends Controller
 
         try {
             $newOffer = $offer->replicate();
-            $newOffer->name = $offer->name . ' (Copy)';
+            $newOffer->name = $offer->name.' (Copy)';
             $newOffer->status = 'draft';
             $newOffer->save();
 
@@ -471,11 +480,12 @@ class OffersController extends Controller
 
             DB::commit();
 
-            return redirect()->route($routePrefix . '.edit', $newOffer)
+            return redirect()->route($routePrefix.'.edit', $newOffer)
                 ->with('success', 'Offer nusxalandi!');
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->withErrors(['error' => 'Nusxalashda xatolik']);
         }
     }

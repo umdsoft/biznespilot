@@ -10,10 +10,8 @@ use App\Models\DreamBuyer;
 use App\Models\Integration;
 use App\Models\MarketingHypothesis;
 use App\Models\MarketResearch;
-use App\Models\MarketingMetrics;
 use App\Models\OnboardingProgress;
 use App\Models\OnboardingStep;
-use App\Models\SalesMetrics;
 use App\Models\StepDefinition;
 use Illuminate\Support\Collection;
 
@@ -32,7 +30,7 @@ class OnboardingService
         ]);
 
         // Create maturity assessment if not exists
-        if (!$business->maturityAssessment) {
+        if (! $business->maturityAssessment) {
             BusinessMaturityAssessment::create([
                 'business_id' => $business->id,
             ]);
@@ -85,7 +83,7 @@ class OnboardingService
     {
         $progress = $business->onboardingProgress;
 
-        if (!$progress) {
+        if (! $progress) {
             $progress = $this->initializeOnboarding($business);
         } else {
             // Ensure onboarding steps exist
@@ -273,7 +271,7 @@ class OnboardingService
     {
         $stepDef = StepDefinition::where('code', $stepCode)->first();
 
-        if (!$stepDef) {
+        if (! $stepDef) {
             return ['is_valid' => false, 'errors' => ['Step not found']];
         }
 
@@ -284,12 +282,29 @@ class OnboardingService
             case 'business_basic':
                 $totalFields = 4;
                 $filledFields = 0;
-                if (!empty($business->name)) $filledFields++; else $errors[] = 'Biznes nomi kiritilmagan';
-                if (!empty($business->industry_id) || !empty($business->category)) $filledFields++; else $errors[] = 'Soha/kategoriya tanlanmagan';
-                if (!empty($business->business_type)) $filledFields++; else $errors[] = 'Biznes turi tanlanmagan';
-                if (!empty($business->business_model)) $filledFields++; else $errors[] = 'Biznes modeli tanlanmagan';
+                if (! empty($business->name)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Biznes nomi kiritilmagan';
+                }
+                if (! empty($business->industry_id) || ! empty($business->category)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Soha/kategoriya tanlanmagan';
+                }
+                if (! empty($business->business_type)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Biznes turi tanlanmagan';
+                }
+                if (! empty($business->business_model)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Biznes modeli tanlanmagan';
+                }
 
                 $percent = (int) round(($filledFields / $totalFields) * 100);
+
                 return [
                     'is_valid' => empty($errors),
                     'errors' => $errors,
@@ -299,11 +314,24 @@ class OnboardingService
             case 'business_details':
                 $totalFields = 3;
                 $filledFields = 0;
-                if (!empty($business->team_size)) $filledFields++; else $errors[] = 'Jamoa hajmi kiritilmagan';
-                if (!empty($business->city)) $filledFields++; else $errors[] = 'Shahar kiritilmagan';
-                if (!empty($business->business_stage)) $filledFields++; else $errors[] = 'Biznes bosqichi tanlanmagan';
+                if (! empty($business->team_size)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Jamoa hajmi kiritilmagan';
+                }
+                if (! empty($business->city)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Shahar kiritilmagan';
+                }
+                if (! empty($business->business_stage)) {
+                    $filledFields++;
+                } else {
+                    $errors[] = 'Biznes bosqichi tanlanmagan';
+                }
 
                 $percent = (int) round(($filledFields / $totalFields) * 100);
+
                 return [
                     'is_valid' => empty($errors),
                     'errors' => $errors,
@@ -316,19 +344,19 @@ class OnboardingService
                 $assessment = $business->maturityAssessment;
 
                 if ($assessment) {
-                    if (!empty($assessment->monthly_revenue_range) && $assessment->monthly_revenue_range !== 'none') {
+                    if (! empty($assessment->monthly_revenue_range) && $assessment->monthly_revenue_range !== 'none') {
                         $filledFields++;
                     } else {
                         $errors[] = 'Oylik daromad ko\'rsatilmagan';
                     }
 
-                    if (!empty($assessment->monthly_marketing_budget_range)) {
+                    if (! empty($assessment->monthly_marketing_budget_range)) {
                         $filledFields++;
                     } else {
                         $errors[] = 'Marketing byudjeti ko\'rsatilmagan';
                     }
 
-                    if (!empty($assessment->main_challenges) && is_array($assessment->main_challenges) && count($assessment->main_challenges) > 0) {
+                    if (! empty($assessment->main_challenges) && is_array($assessment->main_challenges) && count($assessment->main_challenges) > 0) {
                         $filledFields++;
                     } else {
                         $errors[] = 'Asosiy qiyinchiliklar tanlanmagan';
@@ -338,6 +366,7 @@ class OnboardingService
                 }
 
                 $percent = (int) round(($filledFields / $totalFields) * 100);
+
                 return [
                     'is_valid' => empty($errors),
                     'errors' => $errors,
@@ -349,6 +378,7 @@ class OnboardingService
                     ->where('type', 'instagram')
                     ->where('status', 'connected')
                     ->exists();
+
                 return [
                     'is_valid' => $hasInstagram,
                     'errors' => $hasInstagram ? [] : ['Instagram ulanmagan'],
@@ -360,6 +390,7 @@ class OnboardingService
                     ->whereIn('type', ['telegram', 'telegram_channel', 'telegram_bot'])
                     ->where('status', 'connected')
                     ->exists();
+
                 return [
                     'is_valid' => $hasTelegram,
                     'errors' => $hasTelegram ? [] : ['Telegram ulanmagan'],
@@ -371,6 +402,7 @@ class OnboardingService
                     ->whereIn('status', ['active', 'identified'])
                     ->count();
                 $percent = $problemCount >= 1 ? 100 : 0;
+
                 return [
                     'is_valid' => $problemCount >= 1,
                     'errors' => $problemCount >= 1 ? [] : ['Kamida 1 ta muammo kiritilmagan'],
@@ -382,7 +414,7 @@ class OnboardingService
                     ->where('is_primary', true)
                     ->first();
 
-                if (!$dreamBuyer) {
+                if (! $dreamBuyer) {
                     return [
                         'is_valid' => false,
                         'errors' => ['Dream Buyer yaratilmagan'],
@@ -394,14 +426,17 @@ class OnboardingService
                 $questions = [
                     'where_spend_time', 'info_sources', 'frustrations',
                     'dreams', 'fears', 'communication_preferences',
-                    'language_style', 'daily_routine', 'happiness_triggers'
+                    'language_style', 'daily_routine', 'happiness_triggers',
                 ];
                 $answeredCount = 0;
                 foreach ($questions as $q) {
-                    if (!empty($dreamBuyer->$q)) $answeredCount++;
+                    if (! empty($dreamBuyer->$q)) {
+                        $answeredCount++;
+                    }
                 }
 
                 $percent = (int) round(($answeredCount / 9) * 100);
+
                 return [
                     'is_valid' => $answeredCount >= 9,
                     'errors' => $answeredCount >= 9 ? [] : ["9 ta savoldan faqat {$answeredCount} tasi javoblangan"],
@@ -413,6 +448,7 @@ class OnboardingService
                     ->where('is_active', true)
                     ->count();
                 $percent = min(100, (int) round(($competitorCount / 2) * 100));
+
                 return [
                     'is_valid' => $competitorCount >= 2,
                     'errors' => $competitorCount >= 2 ? [] : ["Kamida 2 ta raqobatchi kerak (hozirda: {$competitorCount})"],
@@ -421,24 +457,27 @@ class OnboardingService
 
             case 'framework_hypotheses':
                 $hypothesisCount = MarketingHypothesis::where('business_id', $business->id)->count();
+
                 return [
                     'is_valid' => $hypothesisCount >= 1,
                     'errors' => $hypothesisCount >= 1 ? [] : ['Kamida 1 ta gipoteza yaratilmagan'],
                     'percent' => $hypothesisCount >= 1 ? 100 : 0,
                 ];
 
-            // KPI Steps - optional but track completion based on data
+                // KPI Steps - optional but track completion based on data
             case 'kpi_sales':
                 $salesMetrics = $business->salesMetrics;
                 if ($salesMetrics && $salesMetrics->hasData()) {
                     // Has data - calculate completion percent from model
                     $percent = $salesMetrics->completion_percent ?? 100;
+
                     return [
                         'is_valid' => true,
                         'errors' => [],
                         'percent' => $percent,
                     ];
                 }
+
                 return [
                     'is_valid' => true,
                     'errors' => [],
@@ -450,19 +489,21 @@ class OnboardingService
                 if ($marketingMetrics && $marketingMetrics->hasData()) {
                     // Has data - calculate completion percent from model
                     $percent = $marketingMetrics->completion_percent ?? 100;
+
                     return [
                         'is_valid' => true,
                         'errors' => [],
                         'percent' => $percent,
                     ];
                 }
+
                 return [
                     'is_valid' => true,
                     'errors' => [],
                     'percent' => 0,
                 ];
 
-            // Optional integration steps - check if connected
+                // Optional integration steps - check if connected
             case 'integration_amocrm':
             case 'integration_google_ads':
                 // Integration steps - check if actually connected
@@ -470,6 +511,7 @@ class OnboardingService
                     ->where('type', str_replace('integration_', '', $stepCode))
                     ->where('status', 'connected')
                     ->exists();
+
                 return [
                     'is_valid' => true,
                     'errors' => [],
@@ -479,6 +521,7 @@ class OnboardingService
             case 'framework_research':
                 // Research step - check if research data exists
                 $hasResearch = MarketResearch::where('business_id', $business->id)->exists();
+
                 return [
                     'is_valid' => true,
                     'errors' => [],
@@ -522,7 +565,7 @@ class OnboardingService
     {
         $stepDef = StepDefinition::where('code', $stepCode)->first();
 
-        if (!$stepDef) {
+        if (! $stepDef) {
             return;
         }
 
@@ -546,7 +589,7 @@ class OnboardingService
     {
         $stepDef = StepDefinition::where('code', $stepCode)->first();
 
-        if (!$stepDef) {
+        if (! $stepDef) {
             return;
         }
 
@@ -622,7 +665,7 @@ class OnboardingService
     {
         $progress = $business->onboardingProgress;
 
-        if (!$progress) {
+        if (! $progress) {
             return false;
         }
 
@@ -634,7 +677,7 @@ class OnboardingService
      */
     public function startPhase2(Business $business): bool
     {
-        if (!$this->canStartPhase2($business)) {
+        if (! $this->canStartPhase2($business)) {
             return false;
         }
 
@@ -652,7 +695,7 @@ class OnboardingService
     {
         $stepDef = StepDefinition::where('code', $stepCode)->first();
 
-        if (!$stepDef) {
+        if (! $stepDef) {
             return null;
         }
 

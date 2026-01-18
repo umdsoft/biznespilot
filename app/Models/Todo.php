@@ -4,11 +4,9 @@ namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Todo extends Model
@@ -17,7 +15,9 @@ class Todo extends Model
 
     // Types
     public const TYPE_PERSONAL = 'personal';
+
     public const TYPE_TEAM = 'team';
+
     public const TYPE_PROCESS = 'process';
 
     public const TYPES = [
@@ -28,8 +28,11 @@ class Todo extends Model
 
     // Priorities
     public const PRIORITY_LOW = 'low';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_URGENT = 'urgent';
 
     public const PRIORITIES = [
@@ -48,8 +51,11 @@ class Todo extends Model
 
     // Statuses
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
@@ -237,7 +243,7 @@ class Todo extends Model
     {
         return $this->due_date
             && $this->due_date->isPast()
-            && !in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
+            && ! in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
     }
 
     public function getTypeLabelAttribute(): string
@@ -361,8 +367,8 @@ class Todo extends Model
     /**
      * Add subtask to this todo
      *
-     * @param string|array $titleOrData - Title string or array with title/description
-     * @param string|null $description - Description (only used if first param is string)
+     * @param  string|array  $titleOrData  - Title string or array with title/description
+     * @param  string|null  $description  - Description (only used if first param is string)
      */
     public function addSubtask(string|array $titleOrData, ?string $description = null): Todo
     {
@@ -403,7 +409,7 @@ class Todo extends Model
      */
     public function getIsTeamCompletedAttribute(): bool
     {
-        if (!$this->is_team_task) {
+        if (! $this->is_team_task) {
             return $this->status === self::STATUS_COMPLETED;
         }
 
@@ -457,7 +463,7 @@ class Todo extends Model
         }
 
         // Reopen if not all completed but was marked complete
-        if (!$this->is_team_completed && $this->status === self::STATUS_COMPLETED && $this->assignees_count > 0) {
+        if (! $this->is_team_completed && $this->status === self::STATUS_COMPLETED && $this->assignees_count > 0) {
             $this->update([
                 'status' => self::STATUS_IN_PROGRESS,
                 'completed_at' => null,
@@ -471,6 +477,7 @@ class Todo extends Model
     public function getMyAssignment(?string $userId = null): ?TodoAssignee
     {
         $userId = $userId ?? auth()->id();
+
         return $this->assignees()->where('user_id', $userId)->first();
     }
 
@@ -509,7 +516,7 @@ class Todo extends Model
      */
     public function getDueDateFormattedAttribute(): ?string
     {
-        if (!$this->due_date) {
+        if (! $this->due_date) {
             return null;
         }
 
@@ -517,20 +524,21 @@ class Todo extends Model
         $now = now();
 
         if ($date->isToday()) {
-            return 'Bugun ' . $date->format('H:i');
+            return 'Bugun '.$date->format('H:i');
         }
 
         if ($date->isTomorrow()) {
-            return 'Ertaga ' . $date->format('H:i');
+            return 'Ertaga '.$date->format('H:i');
         }
 
         if ($date->isYesterday()) {
-            return 'Kecha ' . $date->format('H:i');
+            return 'Kecha '.$date->format('H:i');
         }
 
         if ($date->isSameWeek($now)) {
             $days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
-            return $days[$date->dayOfWeek] . ' ' . $date->format('H:i');
+
+            return $days[$date->dayOfWeek].' '.$date->format('H:i');
         }
 
         return $date->format('d.m.Y H:i');
@@ -541,14 +549,14 @@ class Todo extends Model
      */
     public function getTimePeriodAttribute(): string
     {
-        if (!$this->due_date) {
+        if (! $this->due_date) {
             return 'no_date';
         }
 
         $date = $this->due_date;
         $now = now();
 
-        if ($date->isPast() && !in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED])) {
+        if ($date->isPast() && ! in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED])) {
             return 'overdue';
         }
 

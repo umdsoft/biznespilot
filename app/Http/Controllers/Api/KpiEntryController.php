@@ -5,14 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\KpiDailyEntry;
-use App\Models\KpiDailySourceDetail;
-use App\Models\KpiWeeklySummary;
 use App\Models\KpiMonthlySummary;
 use App\Models\LeadSource;
-use App\Models\SalesChannel;
 use App\Models\PaymentMethod;
-use App\Services\KPI\KpiEntryService;
+use App\Models\SalesChannel;
 use App\Services\KPI\KpiAggregationService;
+use App\Services\KPI\KpiEntryService;
 use App\Services\KPI\KpiSourceAnalyzer;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +20,9 @@ use Illuminate\Support\Facades\Validator;
 class KpiEntryController extends Controller
 {
     protected KpiEntryService $entryService;
+
     protected KpiAggregationService $aggregationService;
+
     protected KpiSourceAnalyzer $sourceAnalyzer;
 
     public function __construct(
@@ -41,7 +41,7 @@ class KpiEntryController extends Controller
     public function getReferenceData(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -73,7 +73,7 @@ class KpiEntryController extends Controller
     public function getQuickEntryData(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -159,7 +159,7 @@ class KpiEntryController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -188,7 +188,7 @@ class KpiEntryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik yuz berdi: ' . $e->getMessage(),
+                'message' => 'Xatolik yuz berdi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -199,7 +199,7 @@ class KpiEntryController extends Controller
     public function getFullEntryData(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -280,7 +280,7 @@ class KpiEntryController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -300,7 +300,7 @@ class KpiEntryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik yuz berdi: ' . $e->getMessage(),
+                'message' => 'Xatolik yuz berdi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -367,7 +367,7 @@ class KpiEntryController extends Controller
             ->with('sourceDetails.leadSource')
             ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ma\'lumot topilmadi',
@@ -389,7 +389,7 @@ class KpiEntryController extends Controller
             ->whereDate('date', $date)
             ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ma\'lumot topilmadi',
@@ -410,7 +410,7 @@ class KpiEntryController extends Controller
     public function getWeeklyData(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -434,7 +434,7 @@ class KpiEntryController extends Controller
     public function getMonthlyData(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -476,8 +476,9 @@ class KpiEntryController extends Controller
         ]);
 
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             \Log::error('Business not found', ['businessId' => $businessId]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -503,7 +504,7 @@ class KpiEntryController extends Controller
     public function getTrends(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -532,7 +533,7 @@ class KpiEntryController extends Controller
     public function getSourceAnalysis(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -565,7 +566,7 @@ class KpiEntryController extends Controller
     public function getCategoryAnalysis(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -594,7 +595,7 @@ class KpiEntryController extends Controller
     public function triggerWeeklyAggregation(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -615,7 +616,7 @@ class KpiEntryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik yuz berdi: ' . $e->getMessage(),
+                'message' => 'Xatolik yuz berdi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -626,7 +627,7 @@ class KpiEntryController extends Controller
     public function triggerMonthlyAggregation(Request $request, string $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biznes topilmadi',
@@ -647,7 +648,7 @@ class KpiEntryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Xatolik yuz berdi: ' . $e->getMessage(),
+                'message' => 'Xatolik yuz berdi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -661,7 +662,7 @@ class KpiEntryController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ma\'lumot topilmadi',

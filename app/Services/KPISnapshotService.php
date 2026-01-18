@@ -3,13 +3,12 @@
 namespace App\Services;
 
 use App\Models\Business;
-use App\Models\KpiDailySnapshot;
 use App\Models\ChannelMetric;
+use App\Models\KpiDailySnapshot;
 use App\Models\Lead;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class KPISnapshotService
 {
@@ -38,6 +37,7 @@ class KPISnapshotService
     {
         $kpis = $this->calculateDailyKPIs($business, $date);
         $snapshot->update($kpis);
+
         return $snapshot->fresh();
     }
 
@@ -348,7 +348,7 @@ class KPISnapshotService
             ->where('snapshot_date', $date->copy()->subDay()->format('Y-m-d'))
             ->first();
 
-        if (!$previous) {
+        if (! $previous) {
             return [
                 'current' => $current->toKpiArray(),
                 'previous' => null,
@@ -380,7 +380,7 @@ class KPISnapshotService
     protected function getOrdersQuery(Business $business, Carbon $start, Carbon $end)
     {
         // Check if Order model exists and has the required structure
-        if (!class_exists(Order::class)) {
+        if (! class_exists(Order::class)) {
             return collect();
         }
 
@@ -391,7 +391,7 @@ class KPISnapshotService
 
     protected function getAverageOrderValue(Business $business): float
     {
-        if (!class_exists(Order::class)) {
+        if (! class_exists(Order::class)) {
             return 0;
         }
 
@@ -404,6 +404,7 @@ class KPISnapshotService
     {
         // Simple projection based on today's revenue * remaining days
         $remainingDays = Carbon::today()->daysInMonth - Carbon::today()->day + 1;
+
         return $todayRevenue * $remainingDays;
     }
 

@@ -172,24 +172,31 @@ class WeeklyPlan extends Model
 
     public function getFullLabel(): string
     {
-        return $this->start_date->format('d.m') . ' - ' . $this->end_date->format('d.m.Y');
+        return $this->start_date->format('d.m').' - '.$this->end_date->format('d.m.Y');
     }
 
     public function getDayPlan(string $day): ?array
     {
         $day = strtolower($day);
+
         return $this->$day ?? null;
     }
 
     public function getTaskCompletionPercent(): int
     {
-        if ($this->total_tasks === 0) return 0;
+        if ($this->total_tasks === 0) {
+            return 0;
+        }
+
         return round(($this->completed_tasks / $this->total_tasks) * 100);
     }
 
     public function getContentCompletionPercent(): int
     {
-        if ($this->posts_planned === 0) return 0;
+        if ($this->posts_planned === 0) {
+            return 0;
+        }
+
         return round(($this->posts_published / $this->posts_planned) * 100);
     }
 
@@ -235,6 +242,7 @@ class WeeklyPlan extends Model
                 $task['status'] = 'completed';
                 $task['completed_at'] = now()->toIso8601String();
             }
+
             return $task;
         })->toArray();
 

@@ -5,13 +5,11 @@ namespace App\Http\Controllers\HR;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\AttendanceRecord;
-use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
 use App\Models\Todo;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -61,7 +59,7 @@ class DashboardController extends Controller
                 if ($member->accepted_at) {
                     $description = 'Xodim qo\'shildi';
                     $type = 'accepted';
-                } elseif (!$member->accepted_at) {
+                } elseif (! $member->accepted_at) {
                     $description = 'Taklifnoma yuborildi';
                     $type = 'invitation_sent';
                 }
@@ -119,7 +117,7 @@ class DashboardController extends Controller
             ->where('year', now()->year)
             ->with('leaveType')
             ->get()
-            ->map(fn($balance) => [
+            ->map(fn ($balance) => [
                 'id' => $balance->id,
                 'leave_type' => [
                     'name' => $balance->leaveType->name,
@@ -139,7 +137,7 @@ class DashboardController extends Controller
             ->with('leaveType')
             ->take(3)
             ->get()
-            ->map(fn($leave) => [
+            ->map(fn ($leave) => [
                 'id' => $leave->id,
                 'leave_type' => $leave->leaveType->name,
                 'start_date' => $leave->start_date->format('d.m.Y'),

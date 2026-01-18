@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
-use App\Models\Integration;
 use App\Models\InstagramAccount;
+use App\Models\Integration;
 use App\Services\InstagramDataService;
-use App\Services\InstagramSyncService;
 use App\Services\InstagramInsightsService;
-use App\Jobs\SyncInstagramDataJob;
-use Illuminate\Http\Request;
+use App\Services\InstagramSyncService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,16 +27,33 @@ class InstagramAnalysisController extends Controller
     protected function getPanelType(Request $request): string
     {
         $prefix = $request->route()->getPrefix();
-        if (str_contains($prefix, 'marketing')) return 'marketing';
-        if (str_contains($prefix, 'finance')) return 'finance';
-        if (str_contains($prefix, 'operator')) return 'operator';
-        if (str_contains($prefix, 'saleshead')) return 'saleshead';
+        if (str_contains($prefix, 'marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($prefix, 'finance')) {
+            return 'finance';
+        }
+        if (str_contains($prefix, 'operator')) {
+            return 'operator';
+        }
+        if (str_contains($prefix, 'saleshead')) {
+            return 'saleshead';
+        }
         // For /integrations route, check referer
         $referer = $request->headers->get('referer', '');
-        if (str_contains($referer, '/marketing')) return 'marketing';
-        if (str_contains($referer, '/finance')) return 'finance';
-        if (str_contains($referer, '/operator')) return 'operator';
-        if (str_contains($referer, '/saleshead')) return 'saleshead';
+        if (str_contains($referer, '/marketing')) {
+            return 'marketing';
+        }
+        if (str_contains($referer, '/finance')) {
+            return 'finance';
+        }
+        if (str_contains($referer, '/operator')) {
+            return 'operator';
+        }
+        if (str_contains($referer, '/saleshead')) {
+            return 'saleshead';
+        }
+
         return 'business';
     }
 
@@ -74,7 +90,7 @@ class InstagramAnalysisController extends Controller
             }
 
             // Fallback to is_primary or first account
-            if (!$selectedAccount) {
+            if (! $selectedAccount) {
                 $selectedAccount = $instagramAccounts->where('is_primary', true)->first()
                     ?? $instagramAccounts->first();
 
@@ -101,7 +117,7 @@ class InstagramAnalysisController extends Controller
                 'connected_at' => $displayIntegration->connected_at?->format('d.m.Y H:i'),
                 'last_sync_at' => $displayIntegration->last_sync_at?->format('d.m.Y H:i'),
             ] : null,
-            'instagramAccounts' => $instagramAccounts->map(fn($acc) => [
+            'instagramAccounts' => $instagramAccounts->map(fn ($acc) => [
                 'id' => $acc->id,
                 'instagram_id' => $acc->instagram_id,
                 'username' => $acc->username,
@@ -130,7 +146,7 @@ class InstagramAnalysisController extends Controller
     public function getOverview(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -138,6 +154,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getOverview($account->id, $datePreset);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -150,7 +167,7 @@ class InstagramAnalysisController extends Controller
     public function getMediaPerformance(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -158,6 +175,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getMediaPerformance($account->id, $datePreset);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -170,7 +188,7 @@ class InstagramAnalysisController extends Controller
     public function getReelsAnalytics(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -178,6 +196,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getReelsAnalytics($account->id, $datePreset);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -190,7 +209,7 @@ class InstagramAnalysisController extends Controller
     public function getEngagementAnalytics(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -198,6 +217,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getEngagementAnalytics($account->id, $datePreset);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -210,12 +230,13 @@ class InstagramAnalysisController extends Controller
     public function getAudienceDemographics(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $data = $this->dataService->getAudienceDemographics($account->id);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -228,7 +249,7 @@ class InstagramAnalysisController extends Controller
     public function getHashtagPerformance(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -236,6 +257,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getHashtagPerformance($account->id, $limit);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -248,7 +270,7 @@ class InstagramAnalysisController extends Controller
     public function getGrowthTrend(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -256,6 +278,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getGrowthTrend($account->id, $days);
+
             return response()->json(['trend' => $data]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -268,7 +291,7 @@ class InstagramAnalysisController extends Controller
     public function getContentComparison(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -276,6 +299,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             $data = $this->dataService->getContentComparison($account->id, $datePreset);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -288,12 +312,13 @@ class InstagramAnalysisController extends Controller
     public function getBusinessInsights(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $data = $this->insightsService->getBusinessInsights($account->id);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -306,12 +331,13 @@ class InstagramAnalysisController extends Controller
     public function getContentWinners(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $data = $this->insightsService->getContentWinners($account->id);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -324,12 +350,13 @@ class InstagramAnalysisController extends Controller
     public function getGrowthDrivers(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $data = $this->insightsService->analyzeGrowthDrivers($account->id);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -342,12 +369,13 @@ class InstagramAnalysisController extends Controller
     public function getViralAnalysis(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
         try {
             $data = $this->insightsService->analyzeViralPotential($account->id);
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -360,7 +388,7 @@ class InstagramAnalysisController extends Controller
     public function getAIInsights(Request $request): JsonResponse
     {
         $account = $this->getSelectedAccount($request);
-        if (!$account) {
+        if (! $account) {
             return response()->json(['success' => false, 'error' => 'Account not found']);
         }
 
@@ -394,7 +422,7 @@ class InstagramAnalysisController extends Controller
             ->where('type', 'meta_ads')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json(['error' => 'Not connected'], 400);
         }
 
@@ -403,7 +431,7 @@ class InstagramAnalysisController extends Controller
             ->where('id', $request->account_id)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'Account not found'], 404);
         }
 
@@ -431,7 +459,7 @@ class InstagramAnalysisController extends Controller
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json([
                 'connected' => false,
                 'message' => 'Meta hisobingiz ulanmagan',
@@ -441,7 +469,7 @@ class InstagramAnalysisController extends Controller
         $credentials = json_decode($integration->credentials, true);
         $accessToken = $credentials['access_token'] ?? null;
 
-        if (!$accessToken) {
+        if (! $accessToken) {
             return response()->json([
                 'connected' => true,
                 'has_permissions' => false,
@@ -451,7 +479,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             // Check current permissions
-            $response = \Http::get("https://graph.facebook.com/v18.0/me/permissions", [
+            $response = \Http::get('https://graph.facebook.com/v18.0/me/permissions', [
                 'access_token' => $accessToken,
             ]);
 
@@ -471,7 +499,7 @@ class InstagramAnalysisController extends Controller
 
             $missingPermissions = [];
             foreach ($requiredPermissions as $perm => $label) {
-                if (!in_array($perm, $grantedPermissions)) {
+                if (! in_array($perm, $grantedPermissions)) {
                     $missingPermissions[$perm] = $label;
                 }
             }
@@ -479,7 +507,7 @@ class InstagramAnalysisController extends Controller
             // Check if we have Facebook Pages with Instagram
             $hasInstagramAccount = false;
             if (in_array('pages_show_list', $grantedPermissions)) {
-                $pagesResponse = \Http::get("https://graph.facebook.com/v18.0/me/accounts", [
+                $pagesResponse = \Http::get('https://graph.facebook.com/v18.0/me/accounts', [
                     'access_token' => $accessToken,
                     'fields' => 'id,name,instagram_business_account',
                 ]);
@@ -506,7 +534,7 @@ class InstagramAnalysisController extends Controller
             return response()->json([
                 'connected' => true,
                 'has_permissions' => false,
-                'message' => 'Token tekshirishda xatolik: ' . $e->getMessage(),
+                'message' => 'Token tekshirishda xatolik: '.$e->getMessage(),
             ]);
         }
     }
@@ -523,20 +551,20 @@ class InstagramAnalysisController extends Controller
             ->where('status', 'connected')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return response()->json(['error' => 'Meta hisobingiz ulanmagan'], 400);
         }
 
         $credentials = json_decode($integration->credentials, true);
         $accessToken = $credentials['access_token'] ?? null;
 
-        if (!$accessToken) {
+        if (! $accessToken) {
             return response()->json(['error' => 'Access token topilmadi'], 400);
         }
 
         try {
             // First check if we have required permissions
-            $permResponse = \Http::get("https://graph.facebook.com/v18.0/me/permissions", [
+            $permResponse = \Http::get('https://graph.facebook.com/v18.0/me/permissions', [
                 'access_token' => $accessToken,
             ]);
 
@@ -548,7 +576,7 @@ class InstagramAnalysisController extends Controller
             }
 
             // Check for pages_show_list - minimum required for Instagram sync
-            if (!in_array('pages_show_list', $grantedPermissions)) {
+            if (! in_array('pages_show_list', $grantedPermissions)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Instagram uchun qo\'shimcha ruxsatlar kerak. Meta Ads integratsiyasini qayta ulang va "pages_show_list", "instagram_basic" ruxsatlarini bering.',
@@ -558,7 +586,7 @@ class InstagramAnalysisController extends Controller
             }
 
             // Check if there are any Facebook Pages with Instagram accounts
-            $pagesResponse = \Http::get("https://graph.facebook.com/v18.0/me/accounts", [
+            $pagesResponse = \Http::get('https://graph.facebook.com/v18.0/me/accounts', [
                 'access_token' => $accessToken,
                 'fields' => 'id,name,instagram_business_account',
             ]);
@@ -581,11 +609,12 @@ class InstagramAnalysisController extends Controller
                 }
             }
 
-            if (!$hasInstagram) {
+            if (! $hasInstagram) {
                 $pageNames = array_column($pages, 'name');
+
                 return response()->json([
                     'success' => false,
-                    'error' => 'Facebook sahifalaringizga Instagram Business akkaunti ulanmagan. Sahifalar: ' . implode(', ', $pageNames),
+                    'error' => 'Facebook sahifalaringizga Instagram Business akkaunti ulanmagan. Sahifalar: '.implode(', ', $pageNames),
                     'pages' => $pageNames,
                     'no_instagram' => true,
                 ], 400);
@@ -612,11 +641,11 @@ class InstagramAnalysisController extends Controller
                 'errors' => $results['errors'] ?? [],
             ]);
         } catch (\Exception $e) {
-            \Log::error('Instagram sync error: ' . $e->getMessage());
+            \Log::error('Instagram sync error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'error' => 'Sinxronizatsiya xatosi: ' . $e->getMessage(),
+                'error' => 'Sinxronizatsiya xatosi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -627,13 +656,14 @@ class InstagramAnalysisController extends Controller
     {
         $businessId = $request->input('business_id') ?? session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             $business = auth()->user()->businesses()->first();
-            if (!$business) {
+            if (! $business) {
                 abort(400, 'Biznes tanlanmagan');
             }
             // Save to session for persistence
             session(['current_business_id' => $business->id]);
+
             return $business;
         }
 
@@ -653,7 +683,7 @@ class InstagramAnalysisController extends Controller
             ->where('type', 'meta_ads')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return null;
         }
 
@@ -672,7 +702,7 @@ class InstagramAnalysisController extends Controller
             ->where('is_primary', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             $account = InstagramAccount::where('integration_id', $integration->id)->first();
         }
 
@@ -697,8 +727,8 @@ class InstagramAnalysisController extends Controller
         $summary .= "Oxirgi davrda {$reach} ta foydalanuvchiga yetib bordingiz. ";
         $summary .= "O'rtacha engagement rate: {$engagementRate}%.";
 
-        if (!empty($reels)) {
-            $summary .= " Reelslaringiz o'rtacha " . number_format($reels['avg_plays'] ?? 0) . " marta ko'rildi.";
+        if (! empty($reels)) {
+            $summary .= " Reelslaringiz o'rtacha ".number_format($reels['avg_plays'] ?? 0)." marta ko'rildi.";
         }
 
         // Recommendations
@@ -707,49 +737,49 @@ class InstagramAnalysisController extends Controller
         if ($engagementRate < 1) {
             $recommendations[] = "Engagement rate past (< 1%). Ko'proq savol so'rang va auditoriya bilan muloqot qiling.";
         } elseif ($engagementRate > 3) {
-            $recommendations[] = "Engagement rate yaxshi (> 3%)! Shu formatda davom eting.";
+            $recommendations[] = 'Engagement rate yaxshi (> 3%)! Shu formatda davom eting.';
         }
 
         $reachChange = $changes['reach'] ?? 0;
         if ($reachChange < -10) {
-            $recommendations[] = "Reach " . abs($reachChange) . "% ga kamaygan. Yangi hashtaglar va formatlarni sinab ko'ring.";
+            $recommendations[] = 'Reach '.abs($reachChange)."% ga kamaygan. Yangi hashtaglar va formatlarni sinab ko'ring.";
         } elseif ($reachChange > 20) {
-            $recommendations[] = "Reach " . $reachChange . "% ga o'sgan! Qaysi kontent yaxshi ishlaganini tahlil qiling.";
+            $recommendations[] = 'Reach '.$reachChange."% ga o'sgan! Qaysi kontent yaxshi ishlaganini tahlil qiling.";
         }
 
         // Best posting times
         $bestDays = $bestPosting['days'] ?? [];
         $bestHours = $bestPosting['hours'] ?? [];
 
-        if (!empty($bestDays)) {
-            $recommendations[] = "Eng yaxshi post qilish kunlari: " . implode(', ', $bestDays) . ".";
+        if (! empty($bestDays)) {
+            $recommendations[] = 'Eng yaxshi post qilish kunlari: '.implode(', ', $bestDays).'.';
         }
 
-        if (!empty($bestHours)) {
-            $recommendations[] = "Eng faol soatlar: " . implode(', ', array_map(fn($h) => "{$h}:00", $bestHours)) . ".";
+        if (! empty($bestHours)) {
+            $recommendations[] = 'Eng faol soatlar: '.implode(', ', array_map(fn ($h) => "{$h}:00", $bestHours)).'.';
         }
 
         // Top hashtags
         $topHashtags = $data['top_hashtags'] ?? [];
-        if (!empty($topHashtags)) {
+        if (! empty($topHashtags)) {
             $tags = array_column($topHashtags, 'hashtag');
-            $recommendations[] = "Eng samarali hashtaglar: " . implode(' ', array_slice($tags, 0, 5));
+            $recommendations[] = 'Eng samarali hashtaglar: '.implode(' ', array_slice($tags, 0, 5));
         }
 
         // Content insights
         $bestPost = $data['top_content']['best_post'] ?? null;
         $bestReel = $data['top_content']['best_reel'] ?? null;
 
-        $content = "";
+        $content = '';
         if ($bestPost) {
-            $content .= "Eng yaxshi post: " . ($bestPost['engagement_rate'] ?? 0) . "% engagement. ";
+            $content .= 'Eng yaxshi post: '.($bestPost['engagement_rate'] ?? 0).'% engagement. ';
         }
         if ($bestReel) {
-            $content .= "Eng yaxshi reel: " . number_format($bestReel['plays'] ?? 0) . " ko'rish.";
+            $content .= 'Eng yaxshi reel: '.number_format($bestReel['plays'] ?? 0)." ko'rish.";
         }
 
         if (empty($recommendations)) {
-            $recommendations[] = "Kontentingiz yaxshi ishlayapti. Izchil post qilishni davom ettiring.";
+            $recommendations[] = 'Kontentingiz yaxshi ishlayapti. Izchil post qilishni davom ettiring.';
         }
 
         return [

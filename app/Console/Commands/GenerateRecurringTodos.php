@@ -46,8 +46,9 @@ class GenerateRecurringTodos extends Command
         foreach ($recurrences as $recurrence) {
             try {
                 // Check if should generate
-                if (!$force && !$recurrence->shouldGenerate()) {
+                if (! $force && ! $recurrence->shouldGenerate()) {
                     $progressBar->advance();
+
                     continue;
                 }
 

@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Telegram\TelegramTriggerController as BaseTelegramTriggerController;
+use App\Models\TelegramBot;
+use App\Models\TelegramFunnel;
+use App\Models\TelegramTrigger;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Models\TelegramBot;
-use App\Models\TelegramTrigger;
-use App\Models\TelegramFunnel;
 
 class TelegramTriggerController extends BaseTelegramTriggerController
 {
@@ -29,7 +29,7 @@ class TelegramTriggerController extends BaseTelegramTriggerController
             ->orderBy('priority', 'desc')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($trigger) => [
+            ->map(fn ($trigger) => [
                 'id' => $trigger->id,
                 'name' => $trigger->name,
                 'type' => $trigger->type,

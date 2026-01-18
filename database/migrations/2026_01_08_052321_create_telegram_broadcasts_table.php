@@ -40,7 +40,7 @@ return new class extends Migration
                 'sending',
                 'paused',
                 'completed',
-                'cancelled'
+                'cancelled',
             ])->default('draft');
 
             // Schedule

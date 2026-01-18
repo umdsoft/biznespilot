@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OnboardingStep extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'business_id',
         'step_definition_id',
@@ -87,7 +88,7 @@ class OnboardingStep extends Model
 
     public function hasErrors(): bool
     {
-        return !empty($this->validation_errors);
+        return ! empty($this->validation_errors);
     }
 
     public function getCode(): string

@@ -20,7 +20,7 @@ return new class extends Migration
                 'command',
                 'callback',
                 'keyword',
-                'event'
+                'event',
             ]);
 
             // Trigger value
@@ -33,7 +33,7 @@ return new class extends Migration
                 'starts_with',
                 'ends_with',
                 'regex',
-                'wildcard'
+                'wildcard',
             ])->default('exact');
 
             // Priority

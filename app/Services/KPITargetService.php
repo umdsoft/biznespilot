@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\KpiTarget;
 use App\Models\AnnualStrategy;
-use App\Models\QuarterlyPlan;
-use App\Models\MonthlyPlan;
-use App\Models\WeeklyPlan;
 use App\Models\Business;
-use Illuminate\Support\Str;
+use App\Models\KpiTarget;
+use App\Models\MonthlyPlan;
+use App\Models\QuarterlyPlan;
+use App\Models\WeeklyPlan;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class KPITargetService
 {
@@ -243,6 +243,7 @@ class KPITargetService
     public function updateKPIValue(KpiTarget $kpi, float $value): KpiTarget
     {
         $kpi->updateValue($value);
+
         return $kpi->fresh();
     }
 
@@ -259,7 +260,7 @@ class KPITargetService
         }
 
         if ($period) {
-            $periodColumn = match($periodType) {
+            $periodColumn = match ($periodType) {
                 'quarterly' => 'quarter',
                 'monthly' => 'month',
                 'weekly' => 'week',
@@ -306,7 +307,7 @@ class KPITargetService
     // Helper methods
     private function calculateAnnualTarget(AnnualStrategy $annual, string $kpiKey): ?float
     {
-        return match($kpiKey) {
+        return match ($kpiKey) {
             'revenue' => $annual->revenue_target,
             'leads' => $annual->lead_target ?? ($annual->customer_target ? $annual->customer_target * 10 : 1000),
             'customers' => $annual->customer_target ?? 100,
@@ -325,7 +326,7 @@ class KPITargetService
 
     private function calculateQuarterlyTarget(QuarterlyPlan $quarterly, string $kpiKey): ?float
     {
-        return match($kpiKey) {
+        return match ($kpiKey) {
             'revenue' => $quarterly->revenue_target,
             'leads' => $quarterly->lead_target ?? 250,
             'customers' => $quarterly->customer_target ?? 25,

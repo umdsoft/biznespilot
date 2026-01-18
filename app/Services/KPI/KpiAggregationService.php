@@ -6,9 +6,7 @@ use App\Models\Business;
 use App\Models\KpiDailyEntry;
 use App\Models\KpiPlan;
 use App\Models\KpiWeeklySummary;
-use App\Models\KpiMonthlySummary;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class KpiAggregationService
 {
@@ -94,7 +92,7 @@ class KpiAggregationService
             ->where('status', 'active')
             ->first();
 
-        if (!$plan) {
+        if (! $plan) {
             return null;
         }
 

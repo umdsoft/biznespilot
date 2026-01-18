@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CallController extends Controller

@@ -101,14 +101,17 @@ class MarketingHypothesis extends Model
 
     public function getTestMethodLabel(): ?string
     {
-        if (!$this->test_method) return null;
+        if (! $this->test_method) {
+            return null;
+        }
+
         return self::TEST_METHODS[$this->test_method] ?? $this->test_method;
     }
 
     public function getFullHypothesis(): string
     {
         return sprintf(
-            "AGAR %s, U HOLDA %s, CHUNKI %s",
+            'AGAR %s, U HOLDA %s, CHUNKI %s',
             $this->if_statement,
             $this->then_statement,
             $this->because_statement

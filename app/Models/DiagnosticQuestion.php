@@ -105,6 +105,6 @@ class DiagnosticQuestion extends Model
 
     public function hasMultipleChoice(): bool
     {
-        return !empty($this->answer_options);
+        return ! empty($this->answer_options);
     }
 }

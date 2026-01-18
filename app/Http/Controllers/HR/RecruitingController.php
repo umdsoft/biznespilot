@@ -4,10 +4,10 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\JobPosting;
+use App\Models\BusinessUser;
 use App\Models\JobApplication;
 use App\Models\JobDescription;
-use App\Models\BusinessUser;
+use App\Models\JobPosting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -21,7 +21,7 @@ class RecruitingController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -68,7 +68,7 @@ class RecruitingController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -123,20 +123,20 @@ class RecruitingController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
         $validated = $request->validate([
             'job_description_id' => 'nullable|exists:job_descriptions,id',
             'title' => 'required|string|max:255',
-            'department' => 'required|in:' . implode(',', array_keys(BusinessUser::DEPARTMENTS)),
+            'department' => 'required|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
             'description' => 'nullable|string',
             'requirements' => 'nullable|string',
             'salary_min' => 'nullable|numeric|min:0',
             'salary_max' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
-            'employment_type' => 'required|in:' . implode(',', array_keys(JobPosting::EMPLOYMENT_TYPES)),
+            'employment_type' => 'required|in:'.implode(',', array_keys(JobPosting::EMPLOYMENT_TYPES)),
             'openings' => 'required|integer|min:1',
             'posted_date' => 'nullable|date',
             'closing_date' => 'nullable|date|after_or_equal:posted_date',
@@ -169,7 +169,7 @@ class RecruitingController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -178,7 +178,7 @@ class RecruitingController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(JobPosting::STATUSES)),
+            'status' => 'required|in:'.implode(',', array_keys(JobPosting::STATUSES)),
         ]);
 
         $jobPosting->update($validated);
@@ -194,7 +194,7 @@ class RecruitingController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -203,7 +203,7 @@ class RecruitingController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(JobApplication::STATUSES)),
+            'status' => 'required|in:'.implode(',', array_keys(JobApplication::STATUSES)),
             'notes' => 'nullable|string',
             'rating' => 'nullable|integer|min:1|max:5',
         ]);
@@ -221,7 +221,7 @@ class RecruitingController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -232,7 +232,7 @@ class RecruitingController extends Controller
         // Check if there are applications
         if ($jobPosting->applications()->count() > 0) {
             return response()->json([
-                'error' => 'Bu vakansiyaga arizalar mavjud. Avval statusni "Yopilgan" ga o\'zgartiring'
+                'error' => 'Bu vakansiyaga arizalar mavjud. Avval statusni "Yopilgan" ga o\'zgartiring',
             ], 422);
         }
 

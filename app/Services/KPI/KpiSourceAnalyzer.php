@@ -49,7 +49,7 @@ class KpiSourceAnalyzer
 
         foreach ($sourceStats as $stat) {
             $source = $leadSources->get($stat->lead_source_id);
-            if (!$source) {
+            if (! $source) {
                 continue;
             }
 
@@ -98,7 +98,7 @@ class KpiSourceAnalyzer
         }
 
         // Sort by leads descending
-        usort($analysis, fn($a, $b) => $b['leads'] <=> $a['leads']);
+        usort($analysis, fn ($a, $b) => $b['leads'] <=> $a['leads']);
 
         // Group by category
         $byCategory = collect($analysis)->groupBy('category');
@@ -152,7 +152,7 @@ class KpiSourceAnalyzer
         ];
 
         // If we have source details, use them
-        if (!empty($analysis['sources'])) {
+        if (! empty($analysis['sources'])) {
             foreach ($analysis['sources'] as $source) {
                 $cat = $source['category'];
                 if (isset($categorySummary[$cat])) {
@@ -230,8 +230,8 @@ class KpiSourceAnalyzer
                 $recommendations[] = [
                     'type' => 'positive',
                     'icon' => 'trending-up',
-                    'title' => $source['source_name'] . ' juda samarali',
-                    'message' => $source['conversion_rate'] . '% konversiya bilan eng yaxshi natija. Bu kanalni kengaytirish tavsiya etiladi.',
+                    'title' => $source['source_name'].' juda samarali',
+                    'message' => $source['conversion_rate'].'% konversiya bilan eng yaxshi natija. Bu kanalni kengaytirish tavsiya etiladi.',
                 ];
             }
         }
@@ -242,8 +242,8 @@ class KpiSourceAnalyzer
                 $recommendations[] = [
                     'type' => 'warning',
                     'icon' => 'alert-triangle',
-                    'title' => $source['source_name'] . ' da CPL yuqori',
-                    'message' => number_format($source['cpl'], 0, ',', ' ') . " so'm/lid - targetingni qayta ko'rib chiqing.",
+                    'title' => $source['source_name'].' da CPL yuqori',
+                    'message' => number_format($source['cpl'], 0, ',', ' ')." so'm/lid - targetingni qayta ko'rib chiqing.",
                 ];
             }
         }
@@ -259,7 +259,7 @@ class KpiSourceAnalyzer
                     'type' => 'info',
                     'icon' => 'lightbulb',
                     'title' => 'Organik trafikni oshiring',
-                    'message' => 'Organik manbalar faqat ' . round($organicPercent, 1) . '% tashkil qiladi. SEO va content marketingga e\'tibor bering.',
+                    'message' => 'Organik manbalar faqat '.round($organicPercent, 1).'% tashkil qiladi. SEO va content marketingga e\'tibor bering.',
                 ];
             }
         }
@@ -273,7 +273,7 @@ class KpiSourceAnalyzer
                     'type' => 'positive',
                     'icon' => 'users',
                     'title' => 'Referral dasturini kuchaytiring',
-                    'message' => 'Tavsiya orqali lidlar ' . round($avgReferralConversion, 1) . '% konversiya bermoqda - eng yuqori!',
+                    'message' => 'Tavsiya orqali lidlar '.round($avgReferralConversion, 1).'% konversiya bermoqda - eng yuqori!',
                 ];
             }
         }

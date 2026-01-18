@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\User;
 use App\Models\Business;
 use App\Models\BusinessUser;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,10 +24,11 @@ class TeamController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             if ($request->wantsJson()) {
                 return response()->json(['error' => 'Biznes topilmadi'], 404);
             }
+
             return redirect()->route('login');
         }
 
@@ -109,7 +110,7 @@ class TeamController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -117,7 +118,7 @@ class TeamController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|min:12|max:12',
             'password' => ['required', 'confirmed', Password::min(6)],
-            'department' => 'required|in:' . implode(',', array_keys(BusinessUser::DEPARTMENTS)),
+            'department' => 'required|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
         ], [
             'name.required' => 'F.I.O kiritilishi shart',
             'phone.required' => 'Telefon raqam kiritilishi shart',
@@ -141,12 +142,12 @@ class TeamController extends Controller
 
             if ($existingMember) {
                 return response()->json([
-                    'error' => 'Bu telefon raqam bilan foydalanuvchi allaqachon jamoada mavjud'
+                    'error' => 'Bu telefon raqam bilan foydalanuvchi allaqachon jamoada mavjud',
                 ], 422);
             }
 
             return response()->json([
-                'error' => 'Bu telefon raqam bilan foydalanuvchi allaqachon tizimda ro\'yxatdan o\'tgan'
+                'error' => 'Bu telefon raqam bilan foydalanuvchi allaqachon tizimda ro\'yxatdan o\'tgan',
             ], 422);
         }
 
@@ -194,13 +195,13 @@ class TeamController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $member->business_id !== $business->id) {
+        if (! $business || $member->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
         $validated = $request->validate([
-            'department' => 'sometimes|in:' . implode(',', array_keys(BusinessUser::DEPARTMENTS)),
-            'role' => 'sometimes|in:' . implode(',', array_keys(BusinessUser::ROLES)),
+            'department' => 'sometimes|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
+            'role' => 'sometimes|in:'.implode(',', array_keys(BusinessUser::ROLES)),
         ]);
 
         $member->update($validated);
@@ -225,7 +226,7 @@ class TeamController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $member->business_id !== $business->id) {
+        if (! $business || $member->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
@@ -262,7 +263,7 @@ class TeamController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business || $member->business_id !== $business->id) {
+        if (! $business || $member->business_id !== $business->id) {
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 

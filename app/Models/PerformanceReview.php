@@ -67,7 +67,9 @@ class PerformanceReview extends Model
 
     public function getRatingLabelAttribute(): ?string
     {
-        if (!$this->overall_rating) return null;
+        if (! $this->overall_rating) {
+            return null;
+        }
 
         $labels = [
             1 => 'Yomon',

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TelegramMetric extends Model
 {
     use HasUuid;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -85,6 +86,7 @@ class TelegramMetric extends Model
         }
 
         $netGrowth = $this->new_members - $this->left_members;
+
         return round(($netGrowth / $this->members_count) * 100, 2);
     }
 }

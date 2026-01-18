@@ -107,6 +107,7 @@ class MetaCampaign extends Model
         if (is_array($status)) {
             return $query->whereIn('effective_status', $status);
         }
+
         return $query->where('effective_status', $status);
     }
 

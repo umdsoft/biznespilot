@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\SalesHead;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
+use App\Models\BusinessUser;
 use App\Models\Lead;
 use App\Models\Task;
-use App\Models\BusinessUser;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {

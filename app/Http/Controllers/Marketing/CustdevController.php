@@ -4,9 +4,8 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
-use App\Models\CustdevSurvey;
 use App\Models\CustdevQuestion;
+use App\Models\CustdevSurvey;
 use App\Models\DreamBuyer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +19,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -39,7 +38,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -59,7 +58,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -93,7 +92,7 @@ class CustdevController extends Controller
         try {
             $dreamBuyer = DreamBuyer::create([
                 'business_id' => $business->id,
-                'name' => $request->title . ' - Ideal Mijoz',
+                'name' => $request->title.' - Ideal Mijoz',
                 'description' => 'CustDev so\'rovnomasi asosida avtomatik yaratilgan profil',
                 'priority' => 'medium',
                 'is_primary' => false,
@@ -139,7 +138,8 @@ class CustdevController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Xatolik yuz berdi: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Xatolik yuz berdi: '.$e->getMessage()]);
         }
     }
 
@@ -147,7 +147,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -166,7 +166,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -193,7 +193,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -231,7 +231,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -252,7 +252,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -279,7 +279,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -289,7 +289,7 @@ class CustdevController extends Controller
             ->firstOrFail();
 
         // Generate CSV export
-        $filename = 'custdev_' . $survey->slug . '_' . now()->format('Y-m-d') . '.csv';
+        $filename = 'custdev_'.$survey->slug.'_'.now()->format('Y-m-d').'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -349,7 +349,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -358,7 +358,7 @@ class CustdevController extends Controller
             ->with(['dreamBuyer', 'questions', 'responses.answers'])
             ->firstOrFail();
 
-        if (!$survey->dreamBuyer) {
+        if (! $survey->dreamBuyer) {
             return back()->with('error', 'So\'rovnoma Ideal Mijoz profiliga bog\'lanmagan');
         }
 
@@ -384,7 +384,7 @@ class CustdevController extends Controller
                     }
                 }
 
-                if (!empty($answers)) {
+                if (! empty($answers)) {
                     $existing = $dreamBuyer->{$categoryMap[$question->category]} ?? [];
                     $merged = array_unique(array_merge($existing, $answers));
                     $dreamBuyer->{$categoryMap[$question->category]} = $merged;
@@ -404,7 +404,7 @@ class CustdevController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 

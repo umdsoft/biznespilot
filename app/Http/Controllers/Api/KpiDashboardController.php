@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\KpiDailyActual;
-use App\Models\KpiWeeklySummary;
 use App\Models\KpiMonthlySummary;
+use App\Models\KpiWeeklySummary;
 use App\Services\KpiAggregationService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class KpiDashboardController extends Controller
@@ -28,7 +28,7 @@ class KpiDashboardController extends Controller
     public function getOverview(Request $request, int $businessId): JsonResponse
     {
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business or KPI configuration not found',
@@ -124,7 +124,7 @@ class KpiDashboardController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business or KPI configuration not found',
@@ -228,7 +228,7 @@ class KpiDashboardController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business or KPI configuration not found',
@@ -345,7 +345,7 @@ class KpiDashboardController extends Controller
         }
 
         $business = Business::find($businessId);
-        if (!$business || !$business->kpiConfiguration) {
+        if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
                 'message' => 'Business or KPI configuration not found',
@@ -393,13 +393,14 @@ class KpiDashboardController extends Controller
             ];
         })->sortByDesc(function ($item) {
             // Sort by priority then achievement
-            $priorityScore = match($item['priority']) {
+            $priorityScore = match ($item['priority']) {
                 'critical' => 4,
                 'high' => 3,
                 'medium' => 2,
                 'low' => 1,
                 default => 0,
             };
+
             return ($priorityScore * 1000) + $item['achievement_percentage'];
         })->values();
 
@@ -501,7 +502,7 @@ class KpiDashboardController extends Controller
 
         $overallAchievement = $totalWeight > 0 ? $weightedAchievement / $totalWeight : 0;
 
-        $status = match(true) {
+        $status = match (true) {
             $overallAchievement >= 90 => 'green',
             $overallAchievement >= 70 => 'yellow',
             default => 'red',
@@ -521,7 +522,7 @@ class KpiDashboardController extends Controller
     protected function getCriticalKpisStatus(int $businessId, array $kpiCodes, $configuration): array
     {
         $priorities = $configuration->kpi_priorities ?? [];
-        $criticalKpiCodes = array_keys(array_filter($priorities, fn($p) => $p === 'critical'));
+        $criticalKpiCodes = array_keys(array_filter($priorities, fn ($p) => $p === 'critical'));
 
         if (empty($criticalKpiCodes)) {
             return [];

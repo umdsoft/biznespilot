@@ -6,13 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Bonus;
 use App\Models\PayrollCycle;
-use App\Models\Payslip;
 use App\Models\SalaryHistory;
 use App\Models\SalaryStructure;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PayrollController extends Controller
@@ -26,7 +23,7 @@ class PayrollController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -36,7 +33,7 @@ class PayrollController extends Controller
             ->withCount('payslips')
             ->orderBy('start_date', 'desc')
             ->get()
-            ->map(fn($cycle) => [
+            ->map(fn ($cycle) => [
                 'id' => $cycle->id,
                 'period' => $cycle->period,
                 'start_date' => $cycle->start_date->format('d.m.Y'),
@@ -79,7 +76,7 @@ class PayrollController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -88,7 +85,7 @@ class PayrollController extends Controller
             ->orderBy('is_active', 'desc')
             ->orderBy('effective_from', 'desc')
             ->get()
-            ->map(fn($structure) => [
+            ->map(fn ($structure) => [
                 'id' => $structure->id,
                 'user_name' => $structure->user->name,
                 'base_salary' => $structure->base_salary,
@@ -123,7 +120,7 @@ class PayrollController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -193,7 +190,7 @@ class PayrollController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -201,7 +198,7 @@ class PayrollController extends Controller
             ->with(['user:id,name', 'approver:id,name'])
             ->orderBy('granted_date', 'desc')
             ->get()
-            ->map(fn($bonus) => [
+            ->map(fn ($bonus) => [
                 'id' => $bonus->id,
                 'user_name' => $bonus->user->name,
                 'type' => $bonus->type,
@@ -233,7 +230,7 @@ class PayrollController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 

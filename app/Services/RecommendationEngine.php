@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Business;
-
 class RecommendationEngine
 {
     // Priority weights for different factors
@@ -63,7 +61,7 @@ class RecommendationEngine
         // Get specific recommendation based on metric
         $specificRec = $this->getMetricSpecificRecommendation($metric, $status, $gapPercent, $data);
 
-        if (!$specificRec) {
+        if (! $specificRec) {
             return null;
         }
 
@@ -431,6 +429,7 @@ class RecommendationEngine
 
         if ($rec) {
             $rec['id'] = uniqid('rec_');
+
             return $rec;
         }
 
@@ -445,7 +444,7 @@ class RecommendationEngine
         $recommendations = [];
 
         // Check for missing integrations
-        if (!$data['integrations']['has_crm']) {
+        if (! $data['integrations']['has_crm']) {
             $recommendations[] = [
                 'id' => uniqid('rec_'),
                 'title' => 'CRM tizimini ulash',
@@ -468,7 +467,7 @@ class RecommendationEngine
         }
 
         // Check for missing analytics
-        if (!$data['integrations']['has_analytics']) {
+        if (! $data['integrations']['has_analytics']) {
             $recommendations[] = [
                 'id' => uniqid('rec_'),
                 'title' => 'Web analitika o\'rnatish',
@@ -591,7 +590,7 @@ class RecommendationEngine
             $rec['priority_score'] = $this->calculatePriorityScore($rec);
         }
 
-        usort($recommendations, fn($a, $b) => $b['priority_score'] <=> $a['priority_score']);
+        usort($recommendations, fn ($a, $b) => $b['priority_score'] <=> $a['priority_score']);
 
         return $recommendations;
     }
@@ -638,9 +637,9 @@ class RecommendationEngine
         $unique = [];
 
         foreach ($recommendations as $rec) {
-            $key = $rec['category'] . '_' . ($rec['metric'] ?? $rec['title']);
+            $key = $rec['category'].'_'.($rec['metric'] ?? $rec['title']);
 
-            if (!isset($seen[$key])) {
+            if (! isset($seen[$key])) {
                 $seen[$key] = true;
                 $unique[] = $rec;
             }
@@ -659,7 +658,7 @@ class RecommendationEngine
         foreach ($recommendations as $rec) {
             $category = $rec['category'] ?? 'other';
 
-            if (!isset($grouped[$category])) {
+            if (! isset($grouped[$category])) {
                 $grouped[$category] = [];
             }
 

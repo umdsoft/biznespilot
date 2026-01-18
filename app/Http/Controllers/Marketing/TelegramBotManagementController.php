@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Marketing;
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
 use App\Services\Telegram\TelegramApiService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -24,7 +24,7 @@ class TelegramBotManagementController extends Controller
             ->withCount(['users', 'funnels', 'conversations'])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($bot) => [
+            ->map(fn ($bot) => [
                 'id' => $bot->id,
                 'username' => $bot->bot_username,
                 'first_name' => $bot->bot_first_name,
@@ -66,7 +66,7 @@ class TelegramBotManagementController extends Controller
         $api = new TelegramApiService($tempBot);
         $result = $api->getMe();
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bot tokeni noto\'g\'ri yoki bot topilmadi',
@@ -103,7 +103,7 @@ class TelegramBotManagementController extends Controller
         ]);
 
         // Avtomatik webhook o'rnatish (APP_URL dan foydalanib)
-        $webhookUrl = config('app.url') . '/webhooks/telegram-funnel/' . $bot->id;
+        $webhookUrl = config('app.url').'/webhooks/telegram-funnel/'.$bot->id;
         $webhookResult = $api->setWebhook($webhookUrl, $bot->webhook_secret);
 
         $webhookMessage = '';
@@ -126,7 +126,7 @@ class TelegramBotManagementController extends Controller
                 'first_name' => $bot->bot_first_name,
             ],
             'webhook_connected' => $webhookResult['success'],
-            'message' => 'Bot muvaffaqiyatli qo\'shildi.' . $webhookMessage,
+            'message' => 'Bot muvaffaqiyatli qo\'shildi.'.$webhookMessage,
         ]);
     }
 
@@ -147,7 +147,7 @@ class TelegramBotManagementController extends Controller
             ->orderBy('date', 'desc')
             ->limit(7)
             ->get()
-            ->map(fn($stat) => [
+            ->map(fn ($stat) => [
                 'date' => $stat->date->format('d.m'),
                 'new_users' => $stat->new_users,
                 'messages_in' => $stat->messages_in,
@@ -159,7 +159,7 @@ class TelegramBotManagementController extends Controller
         $funnels = $bot->funnels()
             ->where('is_active', true)
             ->get()
-            ->map(fn($f) => [
+            ->map(fn ($f) => [
                 'id' => $f->id,
                 'name' => $f->name,
             ]);
@@ -244,7 +244,7 @@ class TelegramBotManagementController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        $bot->update(['is_active' => !$bot->is_active]);
+        $bot->update(['is_active' => ! $bot->is_active]);
 
         return response()->json([
             'success' => true,
@@ -292,7 +292,7 @@ class TelegramBotManagementController extends Controller
             ->firstOrFail();
 
         // Generate webhook URL (APP_URL dan foydalanib)
-        $webhookUrl = config('app.url') . '/webhooks/telegram-funnel/' . $bot->id;
+        $webhookUrl = config('app.url').'/webhooks/telegram-funnel/'.$bot->id;
 
         // Set webhook via Telegram API
         $api = new TelegramApiService($bot);
@@ -314,7 +314,7 @@ class TelegramBotManagementController extends Controller
 
         // Xatolik sababini aniqlash
         $errorDescription = $result['description'] ?? 'Noma\'lum xatolik';
-        $errorMessage = 'Webhook o\'rnatishda xatolik: ' . $errorDescription;
+        $errorMessage = 'Webhook o\'rnatishda xatolik: '.$errorDescription;
 
         // Umumiy xatoliklar uchun yaxshiroq xabarlar
         if (str_contains($errorDescription, 'HTTPS')) {
@@ -365,7 +365,7 @@ class TelegramBotManagementController extends Controller
             'new_users_period' => $stats->sum('new_users'),
         ];
 
-        $daily = $stats->map(fn($stat) => [
+        $daily = $stats->map(fn ($stat) => [
             'date' => $stat->date->format('Y-m-d'),
             'new_users' => $stat->new_users,
             'active_users' => $stat->active_users,

@@ -84,7 +84,7 @@ class KpiPlan extends Model
     public function scopeCurrentMonth($query)
     {
         return $query->where('year', now()->year)
-                     ->where('month', now()->month);
+            ->where('month', now()->month);
     }
 
     /**
@@ -115,6 +115,6 @@ class KpiPlan extends Model
      */
     public function getPeriodStringAttribute(): string
     {
-        return $this->month_name . ' ' . $this->year;
+        return $this->month_name.' '.$this->year;
     }
 }

@@ -10,14 +10,10 @@ class ForceHttps
 {
     /**
      * Force HTTPS in production environment.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (app()->environment('production') && !$request->secure()) {
+        if (app()->environment('production') && ! $request->secure()) {
             return redirect()->secure($request->getRequestUri(), 301);
         }
 

@@ -48,6 +48,7 @@ class SyncAllChannelsMetrics implements ShouldQueue
 
         if ($channels->isEmpty()) {
             Log::info('No active channels to sync');
+
             return;
         }
 

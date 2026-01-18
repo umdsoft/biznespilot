@@ -22,7 +22,7 @@ class PublicLeadFormController extends Controller
             ->firstOrFail();
 
         // Record view (only for non-embed and non-preview)
-        if (!$request->has('preview')) {
+        if (! $request->has('preview')) {
             $leadForm->recordView();
         }
 
@@ -87,7 +87,7 @@ class PublicLeadFormController extends Controller
             $rules[$field['id']] = $fieldRules;
 
             // Track field mapping to Lead model
-            if (!empty($field['map_to'])) {
+            if (! empty($field['map_to'])) {
                 $fieldMapping[$field['id']] = $field['map_to'];
             }
         }
@@ -97,7 +97,7 @@ class PublicLeadFormController extends Controller
         // Detect device type
         $deviceType = 'desktop';
         try {
-            $agent = new Agent();
+            $agent = new Agent;
             if ($agent->isMobile()) {
                 $deviceType = 'mobile';
             } elseif ($agent->isTablet()) {
@@ -130,7 +130,7 @@ class PublicLeadFormController extends Controller
             }
         }
 
-        if (!empty($customFields)) {
+        if (! empty($customFields)) {
             $leadData['custom_fields'] = $customFields;
         }
 
@@ -211,7 +211,7 @@ class PublicLeadFormController extends Controller
             ->where('lead_form_id', $leadForm->id)
             ->firstOrFail();
 
-        if ($leadForm->lead_magnet_type !== 'file' || !$leadForm->lead_magnet_file) {
+        if ($leadForm->lead_magnet_type !== 'file' || ! $leadForm->lead_magnet_file) {
             abort(404);
         }
 
@@ -249,7 +249,7 @@ class PublicLeadFormController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$leadForm) {
+        if (! $leadForm) {
             return response()->json(['error' => 'Form not found'], 404);
         }
 

@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Log;
 class MetaAdLibraryService
 {
     protected string $adLibraryUrl = 'https://www.facebook.com/ads/library/';
+
     protected string $apiUrl = 'https://graph.facebook.com/v23.0/ads_archive';
+
     protected int $cacheTTL = 3600; // 1 hour
 
     // Supported countries for Ad Library API (EU + Brazil + some others)
@@ -41,8 +43,9 @@ class MetaAdLibraryService
             // Try to find Facebook page ID
             $pageId = $this->findFacebookPageId($competitor);
 
-            if (!$pageId && !$competitor->facebook_page) {
+            if (! $pageId && ! $competitor->facebook_page) {
                 $results['errors'][] = 'Facebook page not found';
+
                 return $results;
             }
 
@@ -82,7 +85,7 @@ class MetaAdLibraryService
      */
     protected function findFacebookPageId(Competitor $competitor): ?string
     {
-        if (!$competitor->facebook_page) {
+        if (! $competitor->facebook_page) {
             return null;
         }
 
@@ -110,6 +113,7 @@ class MetaAdLibraryService
 
         if ($cached = Cache::get($cacheKey)) {
             Log::debug('Using cached Meta ads', ['page_id' => $pageId]);
+
             return $cached;
         }
 
@@ -131,7 +135,7 @@ class MetaAdLibraryService
                 $ads = $this->scrapeAdLibrary($pageId, $searchName);
             }
 
-            if (!empty($ads)) {
+            if (! empty($ads)) {
                 Cache::put($cacheKey, $ads, $this->cacheTTL);
             }
 
@@ -153,8 +157,9 @@ class MetaAdLibraryService
         // Get access token from config or parameter
         $token = $accessToken ?? config('services.meta.ad_library_token');
 
-        if (!$token) {
+        if (! $token) {
             Log::info('No Meta Ad Library access token configured');
+
             return $ads;
         }
 
@@ -251,7 +256,7 @@ class MetaAdLibraryService
             'started_at' => isset($adData['ad_delivery_start_time'])
                 ? Carbon::parse($adData['ad_delivery_start_time'])
                 : now(),
-            'is_active' => !isset($adData['ad_delivery_stop_time']),
+            'is_active' => ! isset($adData['ad_delivery_stop_time']),
             'spend' => $adData['spend'] ?? null,
             'impressions' => $adData['impressions'] ?? null,
             'raw_data' => $adData,
@@ -267,7 +272,7 @@ class MetaAdLibraryService
 
         try {
             // Build Ad Library URL
-            $url = "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=UZ&q=" . urlencode($searchName);
+            $url = 'https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=UZ&q='.urlencode($searchName);
 
             $response = Http::withHeaders([
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -275,7 +280,7 @@ class MetaAdLibraryService
                 'Accept-Language' => 'en-US,en;q=0.9',
             ])->timeout(30)->get($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return $ads;
             }
 
@@ -338,6 +343,7 @@ class MetaAdLibraryService
                 'headline' => $adData['headline'] ?? $existingAd->headline,
                 'body_text' => $adData['body_text'] ?? $existingAd->body_text,
             ]);
+
             return 'updated';
         }
 
@@ -378,7 +384,9 @@ class MetaAdLibraryService
                 ->where('is_active', true)
                 ->get();
 
-            if ($activeAds->isEmpty()) continue;
+            if ($activeAds->isEmpty()) {
+                continue;
+            }
 
             // Find longest running ad
             $longestRunning = $activeAds->sortByDesc('days_running')->first();
@@ -501,7 +509,7 @@ class MetaAdLibraryService
         $ctaDistribution = $activeAds->groupBy('call_to_action')->map->count();
 
         // Average ad lifespan
-        $avgLifespan = $ads->filter(fn($a) => !$a->is_active)->avg('days_running') ?? 0;
+        $avgLifespan = $ads->filter(fn ($a) => ! $a->is_active)->avg('days_running') ?? 0;
 
         return [
             'total_ads' => $ads->count(),

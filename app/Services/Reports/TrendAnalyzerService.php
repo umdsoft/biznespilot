@@ -23,12 +23,16 @@ class TrendAnalyzerService
 
     // Trend direction constants
     public const TREND_UP = 'up';
+
     public const TREND_DOWN = 'down';
+
     public const TREND_STABLE = 'stable';
 
     // Trend strength constants
     public const STRENGTH_STRONG = 'strong';
+
     public const STRENGTH_MODERATE = 'moderate';
+
     public const STRENGTH_WEAK = 'weak';
 
     /**
@@ -81,6 +85,7 @@ class TrendAnalyzerService
     protected function analyzeSalesTrend(Collection $data): array
     {
         $values = $data->pluck('actual_new_sales')->toArray();
+
         return $this->analyzeTrend($values, 'Sotuvlar');
     }
 
@@ -90,6 +95,7 @@ class TrendAnalyzerService
     protected function analyzeRevenueTrend(Collection $data): array
     {
         $values = $data->pluck('actual_revenue')->toArray();
+
         return $this->analyzeTrend($values, 'Daromad');
     }
 
@@ -99,6 +105,7 @@ class TrendAnalyzerService
     protected function analyzeLeadsTrend(Collection $data): array
     {
         $values = $data->pluck('actual_leads')->toArray();
+
         return $this->analyzeTrend($values, 'Lidlar');
     }
 
@@ -111,6 +118,7 @@ class TrendAnalyzerService
         $conversions = $data->map(function ($day) {
             $leads = $day->actual_leads ?? 0;
             $sales = $day->actual_new_sales ?? 0;
+
             return $leads > 0 ? ($sales / $leads) * 100 : 0;
         })->toArray();
 
@@ -172,8 +180,8 @@ class TrendAnalyzerService
             'strength_label' => $this->getStrengthLabel($strength),
             'change_percent' => round($changePercent, 1),
             'statistics' => $stats,
-            'sma_3day' => array_map(fn($v) => round($v, 2), $sma3),
-            'sma_7day' => array_map(fn($v) => round($v, 2), $sma7),
+            'sma_3day' => array_map(fn ($v) => round($v, 2), $sma3),
+            'sma_7day' => array_map(fn ($v) => round($v, 2), $sma7),
             'daily_values' => $values,
         ];
     }
@@ -327,17 +335,23 @@ class TrendAnalyzerService
         foreach ($metrics as $field => $label) {
             $values = $data->pluck($field)->filter()->toArray();
 
-            if (count($values) < 5) continue;
+            if (count($values) < 5) {
+                continue;
+            }
 
             $stats = $this->calculateStatistics($values);
 
             // Skip if no variation
-            if ($stats['std'] == 0) continue;
+            if ($stats['std'] == 0) {
+                continue;
+            }
 
             // Check each day for anomalies
             foreach ($data as $day) {
                 $value = $day->$field;
-                if ($value === null) continue;
+                if ($value === null) {
+                    continue;
+                }
 
                 // Calculate Z-Score
                 $zScore = ($value - $stats['mean']) / $stats['std'];
@@ -360,7 +374,7 @@ class TrendAnalyzerService
         }
 
         // Sort by date
-        usort($anomalies, fn($a, $b) => strcmp($b['date'], $a['date']));
+        usort($anomalies, fn ($a, $b) => strcmp($b['date'], $a['date']));
 
         return $anomalies;
     }
@@ -425,7 +439,9 @@ class TrendAnalyzerService
      */
     protected function calculateTrendFactor(array $values): float
     {
-        if (count($values) < 3) return 1.0;
+        if (count($values) < 3) {
+            return 1.0;
+        }
 
         // Simple linear regression slope
         $n = count($values);
@@ -440,13 +456,17 @@ class TrendAnalyzerService
         }
 
         $denominator = $n * $sumXX - $sumX * $sumX;
-        if ($denominator == 0) return 1.0;
+        if ($denominator == 0) {
+            return 1.0;
+        }
 
         $slope = ($n * $sumXY - $sumX * $sumY) / $denominator;
         $avgY = $sumY / $n;
 
         // Convert slope to growth factor
-        if ($avgY == 0) return 1.0;
+        if ($avgY == 0) {
+            return 1.0;
+        }
 
         $growthRate = $slope / $avgY;
 

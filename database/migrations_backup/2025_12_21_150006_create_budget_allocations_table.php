@@ -29,7 +29,7 @@ return new class extends Migration
             // Budget category
             $table->enum('category', [
                 'marketing', 'advertising', 'content', 'tools',
-                'team', 'events', 'pr', 'other'
+                'team', 'events', 'pr', 'other',
             ]);
             $table->string('subcategory')->nullable();
 
@@ -58,7 +58,7 @@ return new class extends Migration
 
             // Status
             $table->enum('status', [
-                'planned', 'approved', 'active', 'paused', 'completed', 'cancelled'
+                'planned', 'approved', 'active', 'paused', 'completed', 'cancelled',
             ])->default('planned');
 
             // Alerts

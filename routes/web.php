@@ -1,72 +1,71 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\BusinessManagementController;
+use App\Http\Controllers\Admin\FeedbackManagementController;
+use App\Http\Controllers\Admin\NotificationManagementController;
+use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\AlertController;
+use App\Http\Controllers\AlgorithmController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\ChannelAnalyticsController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ChatbotManagementController;
-use App\Http\Controllers\TelegramWebhookController;
-use App\Http\Controllers\Telegram\TelegramBotManagementController;
-use App\Http\Controllers\Telegram\TelegramFunnelController;
-use App\Http\Controllers\Telegram\TelegramTriggerController;
-use App\Http\Controllers\Telegram\TelegramBroadcastController;
-use App\Http\Controllers\Telegram\TelegramUserController;
-use App\Http\Controllers\Telegram\TelegramConversationController;
-use App\Http\Controllers\Telegram\TelegramFunnelWebhookController;
-use App\Http\Controllers\InstagramWebhookController;
-use App\Http\Controllers\FacebookWebhookController;
-use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\CompetitorController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\ContentCalendarController;
-use App\Http\Controllers\Shared\DreamBuyerController as SharedDreamBuyerController;
-use App\Http\Controllers\Shared\OffersController as SharedOffersController;
 use App\Http\Controllers\CustdevController;
-use App\Http\Controllers\PublicSurveyController;
-use App\Http\Controllers\MarketingController;
-use App\Http\Controllers\MarketingAnalyticsController;
-use App\Http\Controllers\MarketingCampaignController;
-use App\Http\Controllers\MetaCampaignController;
-use App\Http\Controllers\ReportsController;
-use App\Http\Controllers\SalesController;
-use App\Http\Controllers\SmsController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\TeamController;
-use App\Http\Controllers\TelephonyController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\TodoController;
-use App\Http\Controllers\TodoTemplateController;
-use App\Http\Controllers\LeadFormController;
-use App\Http\Controllers\PublicLeadFormController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\TwoFactorAuthController;
-use App\Http\Controllers\ActivityLogController;
-use App\Http\Controllers\UnifiedInboxController;
-use App\Http\Controllers\OnboardingWebController;
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\BusinessManagementController;
-use App\Http\Controllers\HealthCheckController;
-use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Controllers\Admin\FeedbackManagementController;
-use App\Http\Controllers\Admin\NotificationManagementController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\TargetAnalysisController;
-use App\Http\Controllers\InstagramAnalysisController;
-use App\Http\Controllers\InstagramChatbotController;
-use App\Http\Controllers\AlertController;
-use App\Http\Controllers\InsightController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\WelcomeController;
-use App\Http\Controllers\AlgorithmController;
-use App\Http\Controllers\YouTubeAnalyticsController;
 use App\Http\Controllers\GoogleAdsAnalyticsController;
 use App\Http\Controllers\GoogleAdsCampaignController;
+use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\InsightController;
+use App\Http\Controllers\InstagramAnalysisController;
+use App\Http\Controllers\InstagramChatbotController;
+use App\Http\Controllers\InstagramWebhookController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LeadFormController;
+use App\Http\Controllers\MarketingAnalyticsController;
+use App\Http\Controllers\MarketingCampaignController;
+use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\MetaCampaignController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OnboardingWebController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PublicLeadFormController;
+use App\Http\Controllers\PublicSurveyController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\Shared\DreamBuyerController as SharedDreamBuyerController;
+use App\Http\Controllers\Shared\OffersController as SharedOffersController;
+use App\Http\Controllers\SmsController;
+use App\Http\Controllers\StrategyController;
+use App\Http\Controllers\TargetAnalysisController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\Telegram\TelegramBotManagementController;
+use App\Http\Controllers\Telegram\TelegramBroadcastController;
+use App\Http\Controllers\Telegram\TelegramConversationController;
+use App\Http\Controllers\Telegram\TelegramFunnelController;
+use App\Http\Controllers\Telegram\TelegramFunnelWebhookController;
+use App\Http\Controllers\Telegram\TelegramTriggerController;
+use App\Http\Controllers\Telegram\TelegramUserController;
+use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\TelephonyController;
+use App\Http\Controllers\TodoController;
+use App\Http\Controllers\TodoTemplateController;
+use App\Http\Controllers\TwoFactorAuthController;
+use App\Http\Controllers\UnifiedInboxController;
+use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\WhatsAppWebhookController;
+use App\Http\Controllers\YouTubeAnalyticsController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // ==============================================
 // Landing Page (Public)
@@ -75,8 +74,8 @@ Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
 
 // Privacy Policy & Terms (Public - Meta App Review uchun kerak)
-Route::get('/privacy-policy', fn() => view('privacy-policy'))->name('privacy-policy');
-Route::get('/terms', fn() => view('privacy-policy'))->name('terms'); // Vaqtincha bir xil sahifa
+Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy-policy');
+Route::get('/terms', fn () => view('privacy-policy'))->name('terms'); // Vaqtincha bir xil sahifa
 
 // ==============================================
 // Health Check Routes (No Authentication)
@@ -472,7 +471,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
     // Sales routes (Lead management)
     Route::resource('sales', SalesController::class)->parameters([
-        'sales' => 'lead'
+        'sales' => 'lead',
     ]);
 
     // Sales API routes (Lazy Loading)
@@ -1837,7 +1836,7 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
         Route::get('/', function () {
             $business = auth()->user()->ownedBusinesses()->first() ?? auth()->user()->businesses()->first();
 
-            if (!$business) {
+            if (! $business) {
                 return redirect()->route('login');
             }
 
@@ -1846,13 +1845,14 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
                 ->with(['user:id,name,phone,login'])
                 ->orderBy('created_at', 'desc')
                 ->get()
-                ->map(fn($inv) => [
+                ->map(fn ($inv) => [
                     'id' => $inv->id,
                     'name' => $inv->user->name ?? 'N/A',
                     'phone' => $inv->user->phone ?? $inv->user->login ?? 'N/A',
                     'department' => $inv->department_label,
                     'invited_at' => $inv->created_at->format('d.m.Y H:i'),
                 ]);
+
             return inertia('HR/Invitations/Index', ['invitations' => $pendingInvitations]);
         })->name('index');
     });

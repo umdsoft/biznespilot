@@ -27,7 +27,7 @@ return new class extends Migration
                 'feedback',
                 'payment',
                 'broadcast',
-                'custom'
+                'custom',
             ])->default('custom');
 
             // Status

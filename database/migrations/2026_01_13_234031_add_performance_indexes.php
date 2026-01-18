@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -13,6 +13,7 @@ return new class extends Migration
     private function indexExists(string $table, string $indexName): bool
     {
         $indexes = DB::select("SHOW INDEX FROM {$table} WHERE Key_name = ?", [$indexName]);
+
         return count($indexes) > 0;
     }
 
@@ -30,30 +31,30 @@ return new class extends Migration
         // Leads table indexes
         Schema::table('leads', function (Blueprint $table) {
             // Index for assigned_to queries (operator performance)
-            if (!$this->indexExists('leads', 'leads_assigned_to_index')) {
+            if (! $this->indexExists('leads', 'leads_assigned_to_index')) {
                 $table->index('assigned_to', 'leads_assigned_to_index');
             }
 
             // Composite index for status + business_id (funnel queries)
-            if (!$this->indexExists('leads', 'leads_business_status_index')) {
+            if (! $this->indexExists('leads', 'leads_business_status_index')) {
                 $table->index(['business_id', 'status'], 'leads_business_status_index');
             }
 
             // Composite index for date range queries
-            if (!$this->indexExists('leads', 'leads_business_created_index')) {
+            if (! $this->indexExists('leads', 'leads_business_created_index')) {
                 $table->index(['business_id', 'created_at'], 'leads_business_created_index');
             }
-            if (!$this->indexExists('leads', 'leads_business_updated_index')) {
+            if (! $this->indexExists('leads', 'leads_business_updated_index')) {
                 $table->index(['business_id', 'updated_at'], 'leads_business_updated_index');
             }
 
             // Index for source_id (marketing channel analysis)
-            if (!$this->indexExists('leads', 'leads_source_id_index')) {
+            if (! $this->indexExists('leads', 'leads_source_id_index')) {
                 $table->index('source_id', 'leads_source_id_index');
             }
 
             // Index for estimated_value (revenue calculations)
-            if (!$this->indexExists('leads', 'leads_estimated_value_index')) {
+            if (! $this->indexExists('leads', 'leads_estimated_value_index')) {
                 $table->index('estimated_value', 'leads_estimated_value_index');
             }
         });
@@ -61,13 +62,13 @@ return new class extends Migration
         // Customers table indexes
         if (Schema::hasTable('customers')) {
             Schema::table('customers', function (Blueprint $table) {
-                if (!$this->indexExists('customers', 'customers_dream_buyer_id_index')) {
+                if (! $this->indexExists('customers', 'customers_dream_buyer_id_index')) {
                     $table->index('dream_buyer_id', 'customers_dream_buyer_id_index');
                 }
-                if (!$this->indexExists('customers', 'customers_last_purchase_index')) {
+                if (! $this->indexExists('customers', 'customers_last_purchase_index')) {
                     $table->index('last_purchase_at', 'customers_last_purchase_index');
                 }
-                if (!$this->indexExists('customers', 'customers_business_dream_buyer_index')) {
+                if (! $this->indexExists('customers', 'customers_business_dream_buyer_index')) {
                     $table->index(['business_id', 'dream_buyer_id'], 'customers_business_dream_buyer_index');
                 }
             });
@@ -76,13 +77,13 @@ return new class extends Migration
         // Sales table indexes
         if (Schema::hasTable('sales')) {
             Schema::table('sales', function (Blueprint $table) {
-                if (!$this->indexExists('sales', 'sales_marketing_channel_index')) {
+                if (! $this->indexExists('sales', 'sales_marketing_channel_index')) {
                     $table->index('marketing_channel_id', 'sales_marketing_channel_index');
                 }
-                if (!$this->indexExists('sales', 'sales_business_customer_index')) {
+                if (! $this->indexExists('sales', 'sales_business_customer_index')) {
                     $table->index(['business_id', 'customer_id'], 'sales_business_customer_index');
                 }
-                if (!$this->indexExists('sales', 'sales_business_created_index')) {
+                if (! $this->indexExists('sales', 'sales_business_created_index')) {
                     $table->index(['business_id', 'created_at'], 'sales_business_created_index');
                 }
             });
@@ -91,11 +92,11 @@ return new class extends Migration
         // Campaigns table indexes
         if (Schema::hasTable('campaigns')) {
             Schema::table('campaigns', function (Blueprint $table) {
-                if (!$this->indexExists('campaigns', 'campaigns_business_status_index') && Schema::hasColumn('campaigns', 'business_id') && Schema::hasColumn('campaigns', 'status')) {
+                if (! $this->indexExists('campaigns', 'campaigns_business_status_index') && Schema::hasColumn('campaigns', 'business_id') && Schema::hasColumn('campaigns', 'status')) {
                     $table->index(['business_id', 'status'], 'campaigns_business_status_index');
                 }
                 // Note: campaigns table uses starts_at/ends_at (not start_date/end_date)
-                if (!$this->indexExists('campaigns', 'campaigns_date_range_index') && Schema::hasColumn('campaigns', 'starts_at') && Schema::hasColumn('campaigns', 'ends_at')) {
+                if (! $this->indexExists('campaigns', 'campaigns_date_range_index') && Schema::hasColumn('campaigns', 'starts_at') && Schema::hasColumn('campaigns', 'ends_at')) {
                     $table->index(['starts_at', 'ends_at'], 'campaigns_date_range_index');
                 }
             });
@@ -104,10 +105,10 @@ return new class extends Migration
         // Tasks table indexes
         if (Schema::hasTable('tasks')) {
             Schema::table('tasks', function (Blueprint $table) {
-                if (!$this->indexExists('tasks', 'tasks_business_assigned_status_index')) {
+                if (! $this->indexExists('tasks', 'tasks_business_assigned_status_index')) {
                     $table->index(['business_id', 'assigned_to', 'status'], 'tasks_business_assigned_status_index');
                 }
-                if (!$this->indexExists('tasks', 'tasks_due_date_index')) {
+                if (! $this->indexExists('tasks', 'tasks_due_date_index')) {
                     $table->index('due_date', 'tasks_due_date_index');
                 }
             });
@@ -116,7 +117,7 @@ return new class extends Migration
         // Business users table indexes
         if (Schema::hasTable('business_users')) {
             Schema::table('business_users', function (Blueprint $table) {
-                if (!$this->indexExists('business_users', 'business_users_business_dept_index')) {
+                if (! $this->indexExists('business_users', 'business_users_business_dept_index')) {
                     $table->index(['business_id', 'department'], 'business_users_business_dept_index');
                 }
             });

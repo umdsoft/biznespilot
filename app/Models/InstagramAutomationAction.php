@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramAutomationAction extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'automation_id',
         'order',
@@ -31,16 +32,27 @@ class InstagramAutomationAction extends Model
 
     // Action type constants
     const TYPE_SEND_DM = 'send_dm';
+
     const TYPE_SEND_DM_WITH_BUTTONS = 'send_dm_with_buttons';
+
     const TYPE_SEND_MEDIA = 'send_media';
+
     const TYPE_SEND_VOICE = 'send_voice';
+
     const TYPE_ADD_TAG = 'add_tag';
+
     const TYPE_REMOVE_TAG = 'remove_tag';
+
     const TYPE_DELAY = 'delay';
+
     const TYPE_CONDITION = 'condition';
+
     const TYPE_AI_RESPONSE = 'ai_response';
+
     const TYPE_COLLECT_DATA = 'collect_data';
+
     const TYPE_WEBHOOK = 'webhook';
+
     const TYPE_REPLY_COMMENT = 'reply_comment';
 
     public function automation(): BelongsTo
@@ -53,7 +65,7 @@ class InstagramAutomationAction extends Model
         $message = $this->message_template ?? '';
 
         foreach ($variables as $key => $value) {
-            $message = str_replace('{' . $key . '}', $value, $message);
+            $message = str_replace('{'.$key.'}', $value, $message);
         }
 
         return $message;
@@ -61,16 +73,16 @@ class InstagramAutomationAction extends Model
 
     public function getDelayFormatted(): string
     {
-        if (!$this->delay_seconds) {
+        if (! $this->delay_seconds) {
             return '';
         }
 
         if ($this->delay_seconds < 60) {
-            return $this->delay_seconds . ' soniya';
+            return $this->delay_seconds.' soniya';
         } elseif ($this->delay_seconds < 3600) {
-            return round($this->delay_seconds / 60) . ' daqiqa';
+            return round($this->delay_seconds / 60).' daqiqa';
         } else {
-            return round($this->delay_seconds / 3600, 1) . ' soat';
+            return round($this->delay_seconds / 3600, 1).' soat';
         }
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramFlowEdge extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'automation_id',
         'edge_id',

@@ -12,7 +12,9 @@ class Payslip extends Model
     use BelongsToBusiness, HasUuid;
 
     const PAYMENT_STATUS_PENDING = 'pending';
+
     const PAYMENT_STATUS_PAID = 'paid';
+
     const PAYMENT_STATUS_FAILED = 'failed';
 
     const PAYMENT_STATUSES = [

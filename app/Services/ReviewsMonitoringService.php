@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\Competitor;
-use App\Models\CompetitorReviewSource;
-use App\Models\CompetitorReview;
-use App\Models\CompetitorReviewStat;
 use App\Models\CompetitorAlert;
+use App\Models\CompetitorReview;
+use App\Models\CompetitorReviewSource;
+use App\Models\CompetitorReviewStat;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 class ReviewsMonitoringService
 {
     protected ClaudeAIService $claudeAI;
+
     protected int $cacheTTL = 3600;
 
     public function __construct(ClaudeAIService $claudeAI)
@@ -67,7 +68,7 @@ class ReviewsMonitoringService
         $result = ['new_reviews' => 0];
 
         try {
-            $reviewData = match($source->platform) {
+            $reviewData = match ($source->platform) {
                 'google' => $this->fetchGoogleReviews($source),
                 '2gis' => $this->fetch2GISReviews($source),
                 'yandex' => $this->fetchYandexReviews($source),
@@ -111,7 +112,9 @@ class ReviewsMonitoringService
      */
     protected function fetchGoogleReviews(CompetitorReviewSource $source): ?array
     {
-        if (!$source->place_id) return null;
+        if (! $source->place_id) {
+            return null;
+        }
 
         $cacheKey = "google_reviews_{$source->place_id}";
 
@@ -128,7 +131,7 @@ class ReviewsMonitoringService
                 'Accept-Language' => 'uz-UZ,uz;q=0.9,ru;q=0.8,en;q=0.7',
             ])->timeout(20)->get($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -143,6 +146,7 @@ class ReviewsMonitoringService
 
         } catch (\Exception $e) {
             Log::warning('Google reviews fetch failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -188,7 +192,9 @@ class ReviewsMonitoringService
      */
     protected function fetch2GISReviews(CompetitorReviewSource $source): ?array
     {
-        if (!$source->place_id) return null;
+        if (! $source->place_id) {
+            return null;
+        }
 
         $cacheKey = "2gis_reviews_{$source->place_id}";
 
@@ -207,7 +213,7 @@ class ReviewsMonitoringService
                 'sort_by' => 'date_created',
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 // Fallback to web scraping
                 return $this->scrape2GISReviews($source);
             }
@@ -223,6 +229,7 @@ class ReviewsMonitoringService
 
         } catch (\Exception $e) {
             Log::warning('2GIS reviews fetch failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -239,7 +246,7 @@ class ReviewsMonitoringService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             ])->timeout(15)->get($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -288,7 +295,7 @@ class ReviewsMonitoringService
                 'text' => $review['text'] ?? '',
                 'date' => $review['date_created'] ?? null,
                 'likes' => $review['likes_count'] ?? 0,
-                'has_reply' => !empty($review['official_answer']),
+                'has_reply' => ! empty($review['official_answer']),
                 'reply_text' => $review['official_answer']['text'] ?? null,
             ];
 
@@ -323,7 +330,9 @@ class ReviewsMonitoringService
                 ->where('review_id', $reviewData['review_id'])
                 ->exists();
 
-            if ($exists) return false;
+            if ($exists) {
+                return false;
+            }
         }
 
         $review = CompetitorReview::create([
@@ -357,7 +366,9 @@ class ReviewsMonitoringService
      */
     protected function analyzeReviewSentiment(CompetitorReview $review): void
     {
-        if (!$review->review_text) return;
+        if (! $review->review_text) {
+            return;
+        }
 
         try {
             // Simple sentiment based on rating
@@ -431,8 +442,8 @@ class ReviewsMonitoringService
             'type' => 'negative_review',
             'severity' => $review->rating === 1 ? 'high' : 'medium',
             'title' => "{$competitor->name} - Salbiy sharh",
-            'message' => "Yangi {$review->rating}-yulduzli sharh {$source->platform}da. " .
-                mb_substr($review->review_text ?? '', 0, 100) . '...',
+            'message' => "Yangi {$review->rating}-yulduzli sharh {$source->platform}da. ".
+                mb_substr($review->review_text ?? '', 0, 100).'...',
             'data' => [
                 'review_id' => $review->id,
                 'platform' => $source->platform,
@@ -455,7 +466,9 @@ class ReviewsMonitoringService
                 ->whereDate('review_date', today())
                 ->get();
 
-            if ($todayReviews->isEmpty() && $platformSources->isEmpty()) continue;
+            if ($todayReviews->isEmpty() && $platformSources->isEmpty()) {
+                continue;
+            }
 
             // Calculate cumulative stats
             $allReviews = CompetitorReview::whereIn('source_id', $platformSources->pluck('id'))->get();
@@ -469,7 +482,7 @@ class ReviewsMonitoringService
             foreach ($todayReviews as $review) {
                 foreach ($review->topics ?? [] as $topic) {
                     $sentiment = $review->sentiment ?? 'neutral';
-                    if (!isset($allTopics[$topic])) {
+                    if (! isset($allTopics[$topic])) {
                         $allTopics[$topic] = ['positive' => 0, 'negative' => 0, 'neutral' => 0];
                     }
                     $allTopics[$topic][$sentiment]++;
@@ -535,7 +548,7 @@ class ReviewsMonitoringService
         // Aggregate by platform
         $platforms = [];
         foreach ($sources as $source) {
-            if (!isset($platforms[$source->platform])) {
+            if (! isset($platforms[$source->platform])) {
                 $platforms[$source->platform] = [
                     'rating' => null,
                     'reviews' => 0,

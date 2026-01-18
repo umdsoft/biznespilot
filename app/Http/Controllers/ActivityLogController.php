@@ -38,7 +38,7 @@ class ActivityLogController extends Controller
 
         // Search by description
         if ($request->has('search') && $request->search) {
-            $query->where('description', 'like', '%' . $request->search . '%');
+            $query->where('description', 'like', '%'.$request->search.'%');
         }
 
         $logs = $query->paginate(50)->withQueryString();
@@ -125,7 +125,7 @@ class ActivityLogController extends Controller
         $totalCount = $query->count();
 
         // Create CSV with streaming and chunking
-        $filename = 'activity-logs-' . now()->format('Y-m-d-His') . '.csv';
+        $filename = 'activity-logs-'.now()->format('Y-m-d-His').'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",

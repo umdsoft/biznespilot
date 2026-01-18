@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Models\User;
 use App\Models\BusinessUser;
+use App\Models\User;
 use App\Services\TwoFactorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +35,7 @@ class AuthController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['message' => $error], 422);
             }
+
             return back()->withErrors(['login' => $error])->onlyInput('login');
         }
 
@@ -60,6 +61,7 @@ class AuthController extends Controller
                 if ($request->wantsJson()) {
                     return response()->json(['redirect' => route('two-factor.verify')]);
                 }
+
                 return redirect()->route('two-factor.verify');
             }
 
@@ -97,6 +99,7 @@ class AuthController extends Controller
                 if ($request->wantsJson()) {
                     return response()->json(['message' => $error], 422);
                 }
+
                 return back()->withErrors(['login' => $error])->onlyInput('login');
             }
 
@@ -105,6 +108,7 @@ class AuthController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['message' => $error], 422);
             }
+
             return back()->withErrors(['login' => $error])->onlyInput('login');
         }
 
@@ -112,6 +116,7 @@ class AuthController extends Controller
         if ($request->wantsJson()) {
             return response()->json(['message' => $error], 422);
         }
+
         return back()->withErrors(['login' => $error])->onlyInput('login');
     }
 
@@ -198,7 +203,7 @@ class AuthController extends Controller
      */
     public function showTwoFactorVerify(Request $request)
     {
-        if (!session('two_factor_user_id')) {
+        if (! session('two_factor_user_id')) {
             return redirect()->route('login');
         }
 
@@ -217,14 +222,15 @@ class AuthController extends Controller
 
         $userId = session('two_factor_user_id');
 
-        if (!$userId) {
+        if (! $userId) {
             return redirect()->route('login')->withErrors(['message' => 'Sessiya tugagan.']);
         }
 
         $user = User::find($userId);
 
-        if (!$user) {
+        if (! $user) {
             session()->forget(['two_factor_user_id', 'two_factor_remember']);
+
             return redirect()->route('login')->withErrors(['message' => 'Foydalanuvchi topilmadi.']);
         }
 
@@ -237,7 +243,7 @@ class AuthController extends Controller
             $isValid = $twoFactorService->verifyUserCode($user, $request->code);
         }
 
-        if (!$isValid) {
+        if (! $isValid) {
             return back()->withErrors(['code' => 'Noto\'g\'ri kod.']);
         }
 

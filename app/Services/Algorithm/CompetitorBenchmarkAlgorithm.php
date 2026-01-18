@@ -3,8 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Competitor Benchmark Algorithm
@@ -21,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'competitor_bench_';
+
     protected int $cacheTTL = 3600; // 1 hour
 
     /**
@@ -138,7 +137,9 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     protected function calculateER($instagram): float
     {
         $followers = $instagram->followers_count ?? 0;
-        if ($followers === 0) return 0;
+        if ($followers === 0) {
+            return 0;
+        }
 
         $avgLikes = $instagram->metrics['avg_likes'] ?? 0;
         $avgComments = $instagram->metrics['avg_comments'] ?? 0;
@@ -152,9 +153,12 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     protected function calculatePostFrequency(Business $business): float
     {
         $instagram = $business->instagramAccounts()->first();
-        if (!$instagram) return 0;
+        if (! $instagram) {
+            return 0;
+        }
 
         $postsCount = $instagram->media_count ?? 0;
+
         // Estimate posts per week (assume 3 months of activity)
         return round($postsCount / 12, 1);
     }
@@ -165,20 +169,28 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     protected function estimateContentQuality(Business $business): int
     {
         $instagram = $business->instagramAccounts()->first();
-        if (!$instagram) return 50;
+        if (! $instagram) {
+            return 50;
+        }
 
         // Base score
         $score = 50;
 
         // Engagement rate bonus
         $er = $this->calculateER($instagram);
-        if ($er >= 3) $score += 20;
-        elseif ($er >= 1.5) $score += 10;
+        if ($er >= 3) {
+            $score += 20;
+        } elseif ($er >= 1.5) {
+            $score += 10;
+        }
 
         // Post count bonus
         $posts = $instagram->media_count ?? 0;
-        if ($posts >= 100) $score += 15;
-        elseif ($posts >= 50) $score += 10;
+        if ($posts >= 100) {
+            $score += 15;
+        } elseif ($posts >= 50) {
+            $score += 10;
+        }
 
         return min(100, $score);
     }
@@ -189,6 +201,7 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     protected function getResponseTime(Business $business): float
     {
         $hasChatbot = $business->chatbotConfigs()->where('is_active', true)->exists();
+
         return $hasChatbot ? 0.1 : 2; // 6 minutes vs 2 hours
     }
 
@@ -198,15 +211,26 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     protected function getPricePositioning(Business $business): int
     {
         $offer = $business->offers()->first();
-        if (!$offer || !$offer->price) return 5;
+        if (! $offer || ! $offer->price) {
+            return 5;
+        }
 
         // Estimate based on price
         $price = $offer->price;
 
-        if ($price < 500000) return 2;
-        if ($price < 1000000) return 3;
-        if ($price < 2000000) return 5;
-        if ($price < 5000000) return 7;
+        if ($price < 500000) {
+            return 2;
+        }
+        if ($price < 1000000) {
+            return 3;
+        }
+        if ($price < 2000000) {
+            return 5;
+        }
+        if ($price < 5000000) {
+            return 7;
+        }
+
         return 9;
     }
 
@@ -221,7 +245,7 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
             $ourValue = $ourMetrics[$metric] ?? 0;
 
             // Calculate competitor statistics
-            $competitorValues = array_map(fn($c) => $c['metrics'][$metric] ?? 0, $competitors);
+            $competitorValues = array_map(fn ($c) => $c['metrics'][$metric] ?? 0, $competitors);
             $competitorAvg = count($competitorValues) > 0 ? array_sum($competitorValues) / count($competitorValues) : 0;
             $competitorMax = count($competitorValues) > 0 ? max($competitorValues) : 0;
             $competitorMin = count($competitorValues) > 0 ? min($competitorValues) : 0;
@@ -261,7 +285,9 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
      */
     protected function calculateMetricPosition(float $ourValue, float $avg, float $max, bool $higherBetter): int
     {
-        if ($max == 0) return 50;
+        if ($max == 0) {
+            return 50;
+        }
 
         if ($higherBetter) {
             // Normalize to 0-100 based on max
@@ -272,7 +298,9 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
             }
         } else {
             // For metrics where lower is better (inverted)
-            if ($ourValue <= 0) return 100;
+            if ($ourValue <= 0) {
+                return 100;
+            }
             $normalized = 100 - (($ourValue / $max) * 100);
             // Bonus if below average
             if ($ourValue < $avg) {
@@ -288,7 +316,9 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
      */
     protected function calculatePositionScore(array $comparisons): int
     {
-        if (empty($comparisons)) return 50;
+        if (empty($comparisons)) {
+            return 50;
+        }
 
         $totalScore = 0;
         foreach ($comparisons as $comparison) {
@@ -350,14 +380,14 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
                 $strengths[] = [
                     'metric' => $metric,
                     'label' => $data['label'],
-                    'advantage' => '+' . abs($data['gap_percent']) . '%',
+                    'advantage' => '+'.abs($data['gap_percent']).'%',
                     'description' => $this->getStrengthDescription($metric, $data['gap_percent']),
                 ];
             }
         }
 
         // Sort by advantage
-        usort($strengths, fn($a, $b) => $b['advantage'] <=> $a['advantage']);
+        usort($strengths, fn ($a, $b) => $b['advantage'] <=> $a['advantage']);
 
         return $strengths;
     }
@@ -370,11 +400,11 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
         $weaknesses = [];
 
         foreach ($comparisons as $metric => $data) {
-            if (!$data['is_ahead'] && abs($data['gap_percent']) > 10) {
+            if (! $data['is_ahead'] && abs($data['gap_percent']) > 10) {
                 $weaknesses[] = [
                     'metric' => $metric,
                     'label' => $data['label'],
-                    'disadvantage' => '-' . abs($data['gap_percent']) . '%',
+                    'disadvantage' => '-'.abs($data['gap_percent']).'%',
                     'description' => $this->getWeaknessDescription($metric, $data['gap_percent']),
                     'priority' => abs($data['gap_percent']) > 30 ? 'high' : 'medium',
                 ];
@@ -386,6 +416,7 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
             if ($a['priority'] !== $b['priority']) {
                 return $a['priority'] === 'high' ? -1 : 1;
             }
+
             return $b['disadvantage'] <=> $a['disadvantage'];
         });
 
@@ -399,7 +430,7 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     {
         $allFollowers = array_merge(
             [$ourMetrics['followers']],
-            array_map(fn($c) => $c['metrics']['followers'] ?? 0, $competitors)
+            array_map(fn ($c) => $c['metrics']['followers'] ?? 0, $competitors)
         );
 
         $totalFollowers = array_sum($allFollowers);
@@ -424,10 +455,19 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
      */
     protected function getPositionLabel(int $rank, int $total): string
     {
-        if ($rank === 1) return '🥇 Birinchi o\'rin';
-        if ($rank === 2) return '🥈 Ikkinchi o\'rin';
-        if ($rank === 3) return '🥉 Uchinchi o\'rin';
-        if ($rank <= $total / 2) return "📈 Yuqori yarmi ({$rank}/{$total})";
+        if ($rank === 1) {
+            return '🥇 Birinchi o\'rin';
+        }
+        if ($rank === 2) {
+            return '🥈 Ikkinchi o\'rin';
+        }
+        if ($rank === 3) {
+            return '🥉 Uchinchi o\'rin';
+        }
+        if ($rank <= $total / 2) {
+            return "📈 Yuqori yarmi ({$rank}/{$total})";
+        }
+
         return "📉 Pastki yarmi ({$rank}/{$total})";
     }
 
@@ -462,12 +502,23 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
     {
         $score = 0;
 
-        if (($metrics['followers'] ?? 0) > 10000) $score += 2;
-        if (($metrics['engagement_rate'] ?? 0) > 3) $score += 2;
-        if (($metrics['post_frequency'] ?? 0) > 5) $score += 1;
+        if (($metrics['followers'] ?? 0) > 10000) {
+            $score += 2;
+        }
+        if (($metrics['engagement_rate'] ?? 0) > 3) {
+            $score += 2;
+        }
+        if (($metrics['post_frequency'] ?? 0) > 5) {
+            $score += 1;
+        }
 
-        if ($score >= 4) return 'high';
-        if ($score >= 2) return 'medium';
+        if ($score >= 4) {
+            return 'high';
+        }
+        if ($score >= 2) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -479,12 +530,12 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
         $opportunities = [];
 
         // Weak competitors
-        $weakCompetitors = array_filter($trends, fn($t) => $t['engagement_trend'] === 'weak');
+        $weakCompetitors = array_filter($trends, fn ($t) => $t['engagement_trend'] === 'weak');
         if (count($weakCompetitors) > 0) {
             $opportunities[] = [
                 'type' => 'weak_competitor',
                 'title' => 'Zaif raqobatchilar',
-                'description' => count($weakCompetitors) . ' ta raqobatchi zaif engagement ko\'rsatmoqda',
+                'description' => count($weakCompetitors).' ta raqobatchi zaif engagement ko\'rsatmoqda',
                 'action' => 'Ularning auditoriyasini jalb qiling',
             ];
         }
@@ -494,8 +545,8 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
             if ($data['is_ahead'] && $data['gap_percent'] > 20) {
                 $opportunities[] = [
                     'type' => 'market_gap',
-                    'title' => $data['label'] . ' da ustunlik',
-                    'description' => 'Siz ' . $data['gap_percent'] . '% oldinda - bu ustunlikni marketing qiling',
+                    'title' => $data['label'].' da ustunlik',
+                    'description' => 'Siz '.$data['gap_percent'].'% oldinda - bu ustunlikni marketing qiling',
                     'action' => 'Bu farqni reklama qiling',
                 ];
             }
@@ -512,12 +563,12 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
         $threats = [];
 
         // Fast growing competitors
-        $growingCompetitors = array_filter($trends, fn($t) => $t['threat_level'] === 'high');
+        $growingCompetitors = array_filter($trends, fn ($t) => $t['threat_level'] === 'high');
         if (count($growingCompetitors) > 0) {
             $threats[] = [
                 'type' => 'growing_competitor',
                 'title' => 'Tez o\'sayotgan raqobatchi',
-                'description' => count($growingCompetitors) . ' ta raqobatchi tez o\'smoqda',
+                'description' => count($growingCompetitors).' ta raqobatchi tez o\'smoqda',
                 'severity' => 'high',
                 'action' => 'Ularni kuzatib boring va differensiatsiya qiling',
             ];
@@ -525,11 +576,11 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
 
         // Areas where we're behind
         foreach ($comparisons as $metric => $data) {
-            if (!$data['is_ahead'] && abs($data['gap_percent']) > 30) {
+            if (! $data['is_ahead'] && abs($data['gap_percent']) > 30) {
                 $threats[] = [
                     'type' => 'competitive_gap',
-                    'title' => $data['label'] . ' bo\'yicha orqada',
-                    'description' => 'Raqobatchilardan ' . abs($data['gap_percent']) . '% orqadasiz',
+                    'title' => $data['label'].' bo\'yicha orqada',
+                    'description' => 'Raqobatchilardan '.abs($data['gap_percent']).'% orqadasiz',
                     'severity' => 'medium',
                     'action' => $this->getImprovementAction($metric),
                 ];
@@ -557,8 +608,7 @@ class CompetitorBenchmarkAlgorithm extends AlgorithmEngine
         }
 
         // Sort by priority
-        usort($recommendations, fn($a, $b) =>
-            ($a['priority'] === 'high' ? 0 : 1) <=> ($b['priority'] === 'high' ? 0 : 1)
+        usort($recommendations, fn ($a, $b) => ($a['priority'] === 'high' ? 0 : 1) <=> ($b['priority'] === 'high' ? 0 : 1)
         );
 
         return array_slice($recommendations, 0, 5);

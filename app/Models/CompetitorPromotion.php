@@ -47,12 +47,18 @@ class CompetitorPromotion extends Model
      */
     public function isCurrentlyActive(): bool
     {
-        if (!$this->is_active) return false;
+        if (! $this->is_active) {
+            return false;
+        }
 
         $today = now()->startOfDay();
 
-        if ($this->start_date && $this->start_date > $today) return false;
-        if ($this->end_date && $this->end_date < $today) return false;
+        if ($this->start_date && $this->start_date > $today) {
+            return false;
+        }
+        if ($this->end_date && $this->end_date < $today) {
+            return false;
+        }
 
         return true;
     }
@@ -62,7 +68,9 @@ class CompetitorPromotion extends Model
      */
     public function getDiscountDisplayAttribute(): ?string
     {
-        if (!$this->discount_value) return null;
+        if (! $this->discount_value) {
+            return null;
+        }
 
         if ($this->discount_type === 'percent') {
             return "-{$this->discount_value}%";

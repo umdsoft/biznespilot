@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Models\CustdevResponse;
-use App\Models\CustdevAnswer;
 use App\Models\DreamBuyer;
 
 class CustdevResponseObserver
@@ -27,13 +26,13 @@ class CustdevResponseObserver
     {
         $survey = $response->survey;
 
-        if (!$survey || !$survey->dream_buyer_id) {
+        if (! $survey || ! $survey->dream_buyer_id) {
             return;
         }
 
         $dreamBuyer = DreamBuyer::find($survey->dream_buyer_id);
 
-        if (!$dreamBuyer) {
+        if (! $dreamBuyer) {
             return;
         }
 
@@ -46,7 +45,7 @@ class CustdevResponseObserver
         foreach ($answers as $answer) {
             $question = $answer->question;
 
-            if (!$question || !$question->category || $question->category === 'custom' || $question->category === 'satisfaction') {
+            if (! $question || ! $question->category || $question->category === 'custom' || $question->category === 'satisfaction') {
                 continue;
             }
 
@@ -59,8 +58,8 @@ class CustdevResponseObserver
                 $values = [$answer->answer];
             }
 
-            if (!empty($values)) {
-                if (!isset($categoryData[$category])) {
+            if (! empty($values)) {
+                if (! isset($categoryData[$category])) {
                     $categoryData[$category] = [];
                 }
                 $categoryData[$category] = array_merge($categoryData[$category], $values);
@@ -82,7 +81,7 @@ class CustdevResponseObserver
         ];
 
         foreach ($categoryMapping as $category => $field) {
-            if (!empty($categoryData[$category])) {
+            if (! empty($categoryData[$category])) {
                 $existing = $dreamBuyer->$field ? explode("\n", $dreamBuyer->$field) : [];
                 $existing = array_filter($existing); // Remove empty
                 $merged = array_unique(array_merge($existing, $categoryData[$category]));
@@ -90,7 +89,7 @@ class CustdevResponseObserver
             }
         }
 
-        if (!empty($updateData)) {
+        if (! empty($updateData)) {
             $dreamBuyer->update($updateData);
         }
     }

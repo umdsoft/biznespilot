@@ -40,8 +40,9 @@ class RecordCompetitorMetricsCommand extends Command
         $competitorId = $this->argument('competitor');
         $competitor = Competitor::find($competitorId);
 
-        if (!$competitor) {
+        if (! $competitor) {
             $this->error("Raqobatchi topilmadi: {$competitorId}");
+
             return Command::FAILURE;
         }
 
@@ -77,6 +78,7 @@ class RecordCompetitorMetricsCommand extends Command
             $this->line('');
             $this->line('Masalan:');
             $this->line('  php artisan competitors:record-metrics abc123 --instagram-followers=15000');
+
             return Command::FAILURE;
         }
 
@@ -84,7 +86,7 @@ class RecordCompetitorMetricsCommand extends Command
 
         $metric = $service->recordManualMetrics($competitor, $metrics, $date);
 
-        $this->info("Metrikalar saqlandi:");
+        $this->info('Metrikalar saqlandi:');
         $this->table(
             ['Metrika', 'Qiymat'],
             collect($metrics)->map(fn ($value, $key) => [$key, $value])->values()->toArray()

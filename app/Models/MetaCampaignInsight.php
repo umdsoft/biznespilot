@@ -79,7 +79,7 @@ class MetaCampaignInsight extends Model
      */
     public function getActionValue(string $actionType): int
     {
-        if (!$this->actions) {
+        if (! $this->actions) {
             return 0;
         }
 

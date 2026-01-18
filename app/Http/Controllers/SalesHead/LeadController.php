@@ -11,7 +11,6 @@ use App\Models\LeadActivity;
 use App\Models\LeadSource;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
@@ -26,7 +25,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login')->with('error', 'Biznes topilmadi');
         }
 
@@ -36,7 +35,7 @@ class LeadController extends Controller
                 ->active()
                 ->orderBy('sort_order')
                 ->get()
-                ->map(fn($source) => [
+                ->map(fn ($source) => [
                     'id' => $source->id,
                     'name' => $source->name,
                     'category' => $source->category,
@@ -48,7 +47,7 @@ class LeadController extends Controller
             ->whereIn('department', ['sales_head', 'sales_operator'])
             ->with('user:id,name,email')
             ->get()
-            ->map(fn($bu) => [
+            ->map(fn ($bu) => [
                 'id' => $bu->user_id,
                 'name' => $bu->user->name,
                 'email' => $bu->user->email,
@@ -71,7 +70,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -113,9 +112,9 @@ class LeadController extends Controller
         $leads = $query->latest()->paginate($perPage);
 
         // Transform the data
-        $leads->getCollection()->transform(function($lead) {
+        $leads->getCollection()->transform(function ($lead) {
             // Load source relationship if source_id exists but source is not loaded
-            if ($lead->source_id && !$lead->relationLoaded('source')) {
+            if ($lead->source_id && ! $lead->relationLoaded('source')) {
                 $lead->load('source');
             }
 
@@ -152,7 +151,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -191,7 +190,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -204,7 +203,7 @@ class LeadController extends Controller
             ->whereIn('department', ['sales_head', 'sales_operator'])
             ->with('user:id,name')
             ->get()
-            ->map(fn($bu) => [
+            ->map(fn ($bu) => [
                 'id' => $bu->user_id,
                 'name' => $bu->user->name,
             ]);
@@ -222,7 +221,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -254,7 +253,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -271,7 +270,7 @@ class LeadController extends Controller
             ->whereIn('department', ['sales_head', 'sales_operator'])
             ->with('user:id,name,email')
             ->get()
-            ->map(fn($bu) => [
+            ->map(fn ($bu) => [
                 'id' => $bu->user_id,
                 'name' => $bu->user->name,
                 'email' => $bu->user->email,
@@ -282,7 +281,7 @@ class LeadController extends Controller
             ->active()
             ->orderBy('sort_order')
             ->get()
-            ->map(fn($source) => [
+            ->map(fn ($source) => [
                 'id' => $source->id,
                 'name' => $source->name,
             ]);
@@ -328,7 +327,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -357,12 +356,12 @@ class LeadController extends Controller
         if (isset($validated['source_id']) && $validated['source_id'] !== null && $validated['source_id'] !== '') {
             // Validate source exists
             $source = LeadSource::where('id', $validated['source_id'])
-                ->where(function($q) use ($business) {
+                ->where(function ($q) use ($business) {
                     $q->where('business_id', $business->id)
-                      ->orWhereNull('business_id');
+                        ->orWhereNull('business_id');
                 })
                 ->first();
-            if (!$source) {
+            if (! $source) {
                 $validated['source_id'] = null;
             }
         } else {
@@ -401,13 +400,13 @@ class LeadController extends Controller
         $lead->update($validated);
 
         // Log activity if there are changes
-        if (!empty($changes)) {
-            $changedFields = array_map(fn($c) => $c['label'], $changes);
+        if (! empty($changes)) {
+            $changedFields = array_map(fn ($c) => $c['label'], $changes);
             LeadActivity::log(
                 $lead->id,
                 LeadActivity::TYPE_UPDATED,
                 'Ma\'lumotlar yangilandi',
-                implode(', ', $changedFields) . ' o\'zgartirildi',
+                implode(', ', $changedFields).' o\'zgartirildi',
                 $changes
             );
         }
@@ -431,7 +430,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -484,7 +483,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -516,7 +515,7 @@ class LeadController extends Controller
                 $lead->id,
                 LeadActivity::TYPE_STATUS_CHANGED,
                 'Holat o\'zgardi',
-                ($statusLabels[$oldStatus] ?? $oldStatus) . ' dan ' . ($statusLabels[$validated['status']] ?? $validated['status']) . ' ga o\'zgartirildi',
+                ($statusLabels[$oldStatus] ?? $oldStatus).' dan '.($statusLabels[$validated['status']] ?? $validated['status']).' ga o\'zgartirildi',
                 ['old_status' => $oldStatus, 'new_status' => $validated['status']]
             );
         }
@@ -535,7 +534,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -558,7 +557,7 @@ class LeadController extends Controller
             $lead->id,
             LeadActivity::TYPE_STATUS_CHANGED,
             'Yo\'qotildi deb belgilandi',
-            'Sabab: ' . $validated['lost_reason'] . ($validated['lost_reason_details'] ? ' - ' . $validated['lost_reason_details'] : ''),
+            'Sabab: '.$validated['lost_reason'].($validated['lost_reason_details'] ? ' - '.$validated['lost_reason_details'] : ''),
             ['old_status' => $oldStatus, 'new_status' => 'lost', 'lost_reason' => $validated['lost_reason']]
         );
 
@@ -575,7 +574,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -586,7 +585,7 @@ class LeadController extends Controller
             ->latest()
             ->take(50)
             ->get()
-            ->map(fn($activity) => [
+            ->map(fn ($activity) => [
                 'id' => $activity->id,
                 'type' => $activity->type,
                 'title' => $activity->title,
@@ -610,7 +609,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -641,7 +640,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -650,7 +649,7 @@ class LeadController extends Controller
         $calls = $lead->calls()
             ->with('user:id,name')
             ->get()
-            ->map(fn($call) => [
+            ->map(fn ($call) => [
                 'id' => $call->id,
                 'direction' => $call->direction,
                 'direction_label' => $call->direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi',
@@ -691,7 +690,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -733,7 +732,7 @@ class LeadController extends Controller
             $calls = $lead->fresh()->calls()
                 ->with('user:id,name')
                 ->get()
-                ->map(fn($call) => [
+                ->map(fn ($call) => [
                     'id' => $call->id,
                     'direction' => $call->direction,
                     'direction_label' => $call->direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi',
@@ -777,7 +776,7 @@ class LeadController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Sinxronlash xatosi: ' . $e->getMessage(),
+                'error' => 'Sinxronlash xatosi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -799,8 +798,8 @@ class LeadController extends Controller
         $orphanCalls = \App\Models\CallLog::where('business_id', $businessId)
             ->whereNull('lead_id')
             ->where(function ($query) use ($phone, $last9) {
-                $query->where('from_number', 'like', '%' . $last9)
-                    ->orWhere('to_number', 'like', '%' . $last9)
+                $query->where('from_number', 'like', '%'.$last9)
+                    ->orWhere('to_number', 'like', '%'.$last9)
                     ->orWhere('from_number', $phone)
                     ->orWhere('to_number', $phone);
             })
@@ -819,7 +818,7 @@ class LeadController extends Controller
      */
     protected function getCallStatusLabel(string $status): string
     {
-        return match($status) {
+        return match ($status) {
             'initiated' => 'Boshlandi',
             'ringing' => 'Jiringlayapti',
             'answered' => 'Javob berildi',
@@ -838,25 +837,25 @@ class LeadController extends Controller
      */
     protected function formatDuration(?int $seconds): string
     {
-        if (!$seconds || $seconds <= 0) {
+        if (! $seconds || $seconds <= 0) {
             return '0 sek';
         }
 
         if ($seconds < 60) {
-            return $seconds . ' sek';
+            return $seconds.' sek';
         }
 
         $minutes = floor($seconds / 60);
         $secs = $seconds % 60;
 
         if ($minutes < 60) {
-            return $minutes . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+            return $minutes.':'.str_pad($secs, 2, '0', STR_PAD_LEFT);
         }
 
         $hours = floor($minutes / 60);
         $mins = $minutes % 60;
 
-        return $hours . ':' . str_pad($mins, 2, '0', STR_PAD_LEFT) . ':' . str_pad($secs, 2, '0', STR_PAD_LEFT);
+        return $hours.':'.str_pad($mins, 2, '0', STR_PAD_LEFT).':'.str_pad($secs, 2, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -866,7 +865,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -874,7 +873,7 @@ class LeadController extends Controller
             ->where('id', $callId)
             ->first();
 
-        if (!$call) {
+        if (! $call) {
             return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
         }
 
@@ -889,11 +888,11 @@ class LeadController extends Controller
             $updates['duration'] = $validated['duration'];
         }
 
-        if (in_array($validated['status'], ['completed', 'answered']) && !$call->answered_at) {
+        if (in_array($validated['status'], ['completed', 'answered']) && ! $call->answered_at) {
             $updates['answered_at'] = $call->started_at ?? now();
         }
 
-        if (in_array($validated['status'], ['completed', 'answered', 'missed', 'no_answer', 'busy', 'failed']) && !$call->ended_at) {
+        if (in_array($validated['status'], ['completed', 'answered', 'missed', 'no_answer', 'busy', 'failed']) && ! $call->ended_at) {
             $updates['ended_at'] = now();
         }
 
@@ -919,7 +918,7 @@ class LeadController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -927,7 +926,7 @@ class LeadController extends Controller
             ->where('id', $callId)
             ->first();
 
-        if (!$call) {
+        if (! $call) {
             return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
         }
 
@@ -944,7 +943,7 @@ class LeadController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             return response()->json([
                 'success' => false,
                 'error' => 'PBX hisobi topilmadi',
@@ -957,7 +956,7 @@ class LeadController extends Controller
 
             // Try to get recording URL using provider_call_id
             $providerCallId = $call->provider_call_id;
-            if (!$providerCallId) {
+            if (! $providerCallId) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Yozuv topilmadi',

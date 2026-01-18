@@ -21,11 +21,11 @@ namespace App\Services\Algorithm;
  * 4. Relevance (20%): Hashtags, keywords, topics
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class ContentQualityAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'content_quality_';
+
     protected int $cacheTTL = 1800; // 30 minutes
 
     /**
@@ -66,8 +66,8 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     /**
      * Calculate content quality score
      *
-     * @param string $text Caption or post text
-     * @param array $metadata Additional metadata (hashtags, mentions, etc.)
+     * @param  string  $text  Caption or post text
+     * @param  array  $metadata  Additional metadata (hashtags, mentions, etc.)
      * @return array Quality score and recommendations
      */
     public function calculate(string $text, array $metadata = []): array
@@ -329,6 +329,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     {
         // Split by sentence endings
         $sentences = preg_split('/[.!?]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
+
         return max(1, count($sentences));
     }
 
@@ -338,6 +339,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     protected function getSentences(string $text): array
     {
         $sentences = preg_split('/[.!?]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
+
         return array_map('trim', $sentences);
     }
 
@@ -347,6 +349,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     protected function countWords(string $text): int
     {
         $words = preg_split('/\s+/', trim($text), -1, PREG_SPLIT_NO_EMPTY);
+
         return max(1, count($words));
     }
 
@@ -362,7 +365,9 @@ class ContentQualityAlgorithm extends AlgorithmEngine
         foreach ($words as $word) {
             // Remove non-letters
             $word = preg_replace('/[^a-z]/', '', $word);
-            if (empty($word)) continue;
+            if (empty($word)) {
+                continue;
+            }
 
             // Count vowel groups
             $syllables = preg_match_all('/[aeiouy]+/', $word);
@@ -388,7 +393,9 @@ class ContentQualityAlgorithm extends AlgorithmEngine
 
         foreach ($words as $word) {
             $word = preg_replace('/[^a-z]/', '', $word);
-            if (empty($word)) continue;
+            if (empty($word)) {
+                continue;
+            }
 
             $syllables = preg_match_all('/[aeiouy]+/', $word);
             if ($syllables >= 3) {
@@ -407,6 +414,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
         // Unicode emoji pattern
         $emojiPattern = '/[\x{1F600}-\x{1F64F}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{1F1E0}-\x{1F1FF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}]/u';
         preg_match_all($emojiPattern, $text, $matches);
+
         return count($matches[0]);
     }
 
@@ -480,9 +488,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
         $optimal = $this->optimalRanges['emoji_density']['optimal'];
         $max = $this->optimalRanges['emoji_density']['max'];
 
-        if ($density <= 0) return 30;
-        if ($density <= $optimal) return 100;
-        if ($density <= $max) return 80;
+        if ($density <= 0) {
+            return 30;
+        }
+        if ($density <= $optimal) {
+            return 100;
+        }
+        if ($density <= $max) {
+            return 80;
+        }
+
         return 50; // Too many
     }
 
@@ -516,9 +531,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     {
         $ranges = $this->optimalRanges['hashtag_count'];
 
-        if ($count < $ranges['min']) return 50;
-        if ($count >= $ranges['optimal_min'] && $count <= $ranges['optimal_max']) return 100;
-        if ($count <= $ranges['max']) return 80;
+        if ($count < $ranges['min']) {
+            return 50;
+        }
+        if ($count >= $ranges['optimal_min'] && $count <= $ranges['optimal_max']) {
+            return 100;
+        }
+        if ($count <= $ranges['max']) {
+            return 80;
+        }
+
         return 40; // Too many
     }
 
@@ -530,13 +552,19 @@ class ContentQualityAlgorithm extends AlgorithmEngine
         $score = 50;
 
         // Starts with question
-        if (mb_strpos($hook, '?') !== false) $score += 20;
+        if (mb_strpos($hook, '?') !== false) {
+            $score += 20;
+        }
 
         // Has emoji
-        if ($this->countEmojis($hook) > 0) $score += 15;
+        if ($this->countEmojis($hook) > 0) {
+            $score += 15;
+        }
 
         // Has power word
-        if ($this->scorePowerWords($hook) > 0) $score += 15;
+        if ($this->scorePowerWords($hook) > 0) {
+            $score += 15;
+        }
 
         return min(100, $score);
     }
@@ -547,7 +575,9 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     protected function calculateKeywordDensity(string $text): float
     {
         $words = preg_split('/\s+/', mb_strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
-        if (empty($words)) return 0;
+        if (empty($words)) {
+            return 0;
+        }
 
         $wordCounts = array_count_values($words);
         $maxCount = max($wordCounts);
@@ -560,9 +590,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
      */
     protected function scoreKeywordDensity(float $density): int
     {
-        if ($density <= 3) return 100; // Good
-        if ($density <= 5) return 80;  // Acceptable
-        if ($density <= 8) return 60;  // Warning
+        if ($density <= 3) {
+            return 100;
+        } // Good
+        if ($density <= 5) {
+            return 80;
+        }  // Acceptable
+        if ($density <= 8) {
+            return 60;
+        }  // Warning
+
         return 30; // Spam
     }
 
@@ -575,7 +612,9 @@ class ContentQualityAlgorithm extends AlgorithmEngine
         // Simple heuristic: text should focus on 1-2 main topics
 
         $sentences = $this->getSentences($text);
-        if (count($sentences) <= 2) return 100;
+        if (count($sentences) <= 2) {
+            return 100;
+        }
 
         // More sophisticated: would use TF-IDF here
         // For now, simple heuristic based on sentence similarity
@@ -608,12 +647,25 @@ class ContentQualityAlgorithm extends AlgorithmEngine
      */
     protected function getFleschLevel(float $score): string
     {
-        if ($score >= 90) return 'Very Easy (5th grade)';
-        if ($score >= 80) return 'Easy (6th grade)';
-        if ($score >= 70) return 'Fairly Easy (7th grade)';
-        if ($score >= 60) return 'Standard (8-9th grade)';
-        if ($score >= 50) return 'Fairly Difficult (10-12th grade)';
-        if ($score >= 30) return 'Difficult (College)';
+        if ($score >= 90) {
+            return 'Very Easy (5th grade)';
+        }
+        if ($score >= 80) {
+            return 'Easy (6th grade)';
+        }
+        if ($score >= 70) {
+            return 'Fairly Easy (7th grade)';
+        }
+        if ($score >= 60) {
+            return 'Standard (8-9th grade)';
+        }
+        if ($score >= 50) {
+            return 'Fairly Difficult (10-12th grade)';
+        }
+        if ($score >= 30) {
+            return 'Difficult (College)';
+        }
+
         return 'Very Difficult (College graduate)';
     }
 
@@ -622,9 +674,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
      */
     protected function getFogLevel(float $index): string
     {
-        if ($index <= 8) return 'Easy (8th grade)';
-        if ($index <= 12) return 'Ideal (High school)';
-        if ($index <= 16) return 'Difficult (College)';
+        if ($index <= 8) {
+            return 'Easy (8th grade)';
+        }
+        if ($index <= 12) {
+            return 'Ideal (High school)';
+        }
+        if ($index <= 16) {
+            return 'Difficult (College)';
+        }
+
         return 'Very Difficult (Graduate level)';
     }
 
@@ -635,9 +694,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     {
         $ranges = $this->optimalRanges['caption_length'];
 
-        if ($length < $ranges['min']) return 'Too short';
-        if ($length >= $ranges['optimal_min'] && $length <= $ranges['optimal_max']) return 'Optimal';
-        if ($length <= $ranges['max']) return 'Good';
+        if ($length < $ranges['min']) {
+            return 'Too short';
+        }
+        if ($length >= $ranges['optimal_min'] && $length <= $ranges['optimal_max']) {
+            return 'Optimal';
+        }
+        if ($length <= $ranges['max']) {
+            return 'Good';
+        }
+
         return 'Too long';
     }
 
@@ -648,9 +714,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
     {
         $ranges = $this->optimalRanges['hashtag_count'];
 
-        if ($count < $ranges['min']) return 'Too few';
-        if ($count >= $ranges['optimal_min'] && $count <= $ranges['optimal_max']) return 'Optimal';
-        if ($count <= $ranges['max']) return 'Good';
+        if ($count < $ranges['min']) {
+            return 'Too few';
+        }
+        if ($count >= $ranges['optimal_min'] && $count <= $ranges['optimal_max']) {
+            return 'Optimal';
+        }
+        if ($count <= $ranges['max']) {
+            return 'Good';
+        }
+
         return 'Too many';
     }
 
@@ -723,7 +796,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
                     'category' => 'readability',
                     'issue' => 'Jumlalar juda uzun',
                     'suggestion' => 'O\'rtacha jumla uzunligini 15-20 so\'z oralig\'ida saqlang',
-                    'current' => round($readability['metrics']['avg_sentence_length'], 1) . ' so\'z',
+                    'current' => round($readability['metrics']['avg_sentence_length'], 1).' so\'z',
                     'target' => '15-20 so\'z',
                 ];
             }
@@ -741,7 +814,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
                 ];
             }
 
-            if (!$engagement['factors']['has_cta']) {
+            if (! $engagement['factors']['has_cta']) {
                 $recommendations[] = [
                     'priority' => 'high',
                     'category' => 'engagement',
@@ -771,7 +844,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
                     'category' => 'structure',
                     'issue' => 'Caption juda qisqa',
                     'suggestion' => 'Kamida 150 belgigacha yozing',
-                    'current' => $length . ' belgi',
+                    'current' => $length.' belgi',
                     'target' => '150-300 belgi',
                 ];
             } elseif ($length > 500) {
@@ -780,7 +853,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
                     'category' => 'structure',
                     'issue' => 'Caption juda uzun',
                     'suggestion' => 'Qisqartiring, odamlar uzun matnni o\'qimaydi',
-                    'current' => $length . ' belgi',
+                    'current' => $length.' belgi',
                     'target' => '150-300 belgi',
                 ];
             }
@@ -804,7 +877,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
                     'category' => 'relevance',
                     'issue' => 'Hashtag kam',
                     'suggestion' => '3-5 ta relevant hashtag qo\'shing',
-                    'current' => $hashtagCount . ' ta',
+                    'current' => $hashtagCount.' ta',
                     'target' => '3-5 ta',
                     'expected_impact' => '+40% reach',
                 ];
@@ -814,15 +887,16 @@ class ContentQualityAlgorithm extends AlgorithmEngine
                     'category' => 'relevance',
                     'issue' => 'Hashtag juda ko\'p',
                     'suggestion' => 'Hashtag sonini 5 tagacha kamaytiring',
-                    'current' => $hashtagCount . ' ta',
+                    'current' => $hashtagCount.' ta',
                     'target' => '3-5 ta',
                 ];
             }
         }
 
         // Sort by priority
-        usort($recommendations, function($a, $b) {
+        usort($recommendations, function ($a, $b) {
             $priority = ['high' => 0, 'medium' => 1, 'low' => 2];
+
             return $priority[$a['priority']] <=> $priority[$b['priority']];
         });
 
@@ -853,7 +927,7 @@ class ContentQualityAlgorithm extends AlgorithmEngine
      */
     protected function getQuickFixes(array $recommendations): array
     {
-        $quickFixes = array_filter($recommendations, function($rec) {
+        $quickFixes = array_filter($recommendations, function ($rec) {
             return in_array($rec['category'], ['engagement', 'relevance']);
         });
 

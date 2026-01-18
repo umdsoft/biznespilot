@@ -13,31 +13,31 @@ return new class extends Migration
     {
         Schema::table('content_calendar', function (Blueprint $table) {
             // Analytics metrics columns
-            if (!Schema::hasColumn('content_calendar', 'views')) {
+            if (! Schema::hasColumn('content_calendar', 'views')) {
                 $table->unsignedBigInteger('views')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'likes')) {
+            if (! Schema::hasColumn('content_calendar', 'likes')) {
                 $table->unsignedBigInteger('likes')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'comments')) {
+            if (! Schema::hasColumn('content_calendar', 'comments')) {
                 $table->unsignedBigInteger('comments')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'shares')) {
+            if (! Schema::hasColumn('content_calendar', 'shares')) {
                 $table->unsignedBigInteger('shares')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'saves')) {
+            if (! Schema::hasColumn('content_calendar', 'saves')) {
                 $table->unsignedBigInteger('saves')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'clicks')) {
+            if (! Schema::hasColumn('content_calendar', 'clicks')) {
                 $table->unsignedBigInteger('clicks')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'reach')) {
+            if (! Schema::hasColumn('content_calendar', 'reach')) {
                 $table->unsignedBigInteger('reach')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'impressions')) {
+            if (! Schema::hasColumn('content_calendar', 'impressions')) {
                 $table->unsignedBigInteger('impressions')->nullable()->default(0);
             }
-            if (!Schema::hasColumn('content_calendar', 'engagement_rate')) {
+            if (! Schema::hasColumn('content_calendar', 'engagement_rate')) {
                 $table->decimal('engagement_rate', 8, 2)->nullable()->default(0);
             }
         });

@@ -2,9 +2,9 @@
 
 namespace App\Services\Algorithm\Performance;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Collection;
 use Closure;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -45,7 +45,7 @@ class AsyncAlgorithmRunner
     /**
      * Run multiple algorithms in parallel using PHP's native capabilities
      *
-     * @param array<string, Closure> $algorithms Key => Callable pairs
+     * @param  array<string, Closure>  $algorithms  Key => Callable pairs
      * @return array Results keyed by algorithm name
      */
     public function runParallel(array $algorithms): array
@@ -56,7 +56,7 @@ class AsyncAlgorithmRunner
         $this->executionTimes = [];
 
         // For PHP without parallel extension, use optimized sequential with early bailout
-        if (!extension_loaded('parallel')) {
+        if (! extension_loaded('parallel')) {
             return $this->runOptimizedSequential($algorithms);
         }
 
@@ -271,6 +271,7 @@ class AsyncAlgorithmRunner
     public function setMaxParallel(int $max): self
     {
         $this->maxParallel = max(1, min($max, 50));
+
         return $this;
     }
 
@@ -280,6 +281,7 @@ class AsyncAlgorithmRunner
     public function setTimeout(int $seconds): self
     {
         $this->timeout = max(5, min($seconds, 120));
+
         return $this;
     }
 }

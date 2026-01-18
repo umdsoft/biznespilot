@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContentPost;
 use App\Models\MarketingChannel;
 use App\Models\MarketingSpend;
-use App\Models\ContentPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -20,7 +20,7 @@ class MarketingController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes yarating');
         }
@@ -92,7 +92,7 @@ class MarketingController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -207,7 +207,7 @@ class MarketingController extends Controller
             ? Auth::user()->businesses()->find(session('current_business_id'))
             : Auth::user()->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 

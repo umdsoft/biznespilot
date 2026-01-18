@@ -13,7 +13,9 @@ class GoogleAdsKeyword extends Model
 
     // Match type constants
     public const MATCH_EXACT = 'EXACT';
+
     public const MATCH_PHRASE = 'PHRASE';
+
     public const MATCH_BROAD = 'BROAD';
 
     protected $fillable = [
@@ -107,7 +109,9 @@ class GoogleAdsKeyword extends Model
 
     public function getQualityScoreColorAttribute(): string
     {
-        if (!$this->quality_score) return 'gray';
+        if (! $this->quality_score) {
+            return 'gray';
+        }
 
         return match (true) {
             $this->quality_score >= 7 => 'green',
@@ -121,7 +125,10 @@ class GoogleAdsKeyword extends Model
      */
     public function getCtrAttribute(): float
     {
-        if ($this->total_impressions <= 0) return 0;
+        if ($this->total_impressions <= 0) {
+            return 0;
+        }
+
         return ($this->total_clicks / $this->total_impressions) * 100;
     }
 
@@ -131,8 +138,8 @@ class GoogleAdsKeyword extends Model
     public function getFormattedKeywordAttribute(): string
     {
         return match ($this->match_type) {
-            self::MATCH_EXACT => '[' . $this->keyword_text . ']',
-            self::MATCH_PHRASE => '"' . $this->keyword_text . '"',
+            self::MATCH_EXACT => '['.$this->keyword_text.']',
+            self::MATCH_PHRASE => '"'.$this->keyword_text.'"',
             default => $this->keyword_text,
         };
     }

@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class UserManagementController extends Controller
 {
@@ -20,7 +20,7 @@ class UserManagementController extends Controller
         $users = User::withCount('businesses')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'login' => $user->login,
@@ -111,7 +111,7 @@ class UserManagementController extends Controller
                     : null,
                 'last_login_ip' => $user->last_login_ip,
                 'created_at' => $user->created_at->format('d.m.Y H:i'),
-                'businesses' => $user->businesses->map(fn($business) => [
+                'businesses' => $user->businesses->map(fn ($business) => [
                     'id' => $business->id,
                     'name' => $business->name,
                     'industry' => $business->industry,
@@ -145,8 +145,8 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'login' => ['required', 'string', 'max:255', 'unique:users,login,' . $user->id],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'login' => ['required', 'string', 'max:255', 'unique:users,login,'.$user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['nullable', Password::defaults()],
             'role' => ['required', 'string', 'in:user,owner,admin,super_admin'],
@@ -159,7 +159,7 @@ class UserManagementController extends Controller
             'phone' => $validated['phone'] ?? null,
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $user->update(['password' => Hash::make($validated['password'])]);
         }
 
@@ -218,9 +218,16 @@ class UserManagementController extends Controller
      */
     protected function getUserRole(User $user): string
     {
-        if ($user->hasRole('super_admin')) return 'super_admin';
-        if ($user->hasRole('admin')) return 'admin';
-        if ($user->hasRole('owner')) return 'owner';
+        if ($user->hasRole('super_admin')) {
+            return 'super_admin';
+        }
+        if ($user->hasRole('admin')) {
+            return 'admin';
+        }
+        if ($user->hasRole('owner')) {
+            return 'owner';
+        }
+
         return 'user';
     }
 }

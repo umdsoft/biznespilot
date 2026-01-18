@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\Competitor;
 use App\Models\DreamBuyer;
 use App\Models\GeneratedReport;
@@ -38,7 +37,7 @@ class ReportsController extends Controller
             ? $user->businesses()->find(session('current_business_id'))
             : $user->businesses()->first();
 
-        if (!$currentBusiness) {
+        if (! $currentBusiness) {
             return redirect()->route('business.index');
         }
 
@@ -133,7 +132,7 @@ class ReportsController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
-            ->map(fn($r) => $r->getSummary());
+            ->map(fn ($r) => $r->getSummary());
 
         return Inertia::render('Business/Reports/Index', [
             'stats' => $stats,
@@ -167,7 +166,7 @@ class ReportsController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get()
-            ->map(fn($r) => $r->getSummary());
+            ->map(fn ($r) => $r->getSummary());
 
         // Get report schedules
         $schedules = ReportSchedule::where('business_id', $business->id)
@@ -188,7 +187,7 @@ class ReportsController extends Controller
         // Get report templates
         $templates = ReportTemplate::where(function ($q) use ($business) {
             $q->whereNull('business_id')
-              ->orWhere('business_id', $business->id);
+                ->orWhere('business_id', $business->id);
         })
             ->where('is_active', true)
             ->orderBy('is_default', 'desc')
@@ -261,7 +260,7 @@ class ReportsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Hisobot yaratishda xatolik: ' . $e->getMessage(),
+                'message' => 'Hisobot yaratishda xatolik: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -381,7 +380,7 @@ class ReportsController extends Controller
             'frequency' => $request->frequency,
             'day_of_week' => $request->day_of_week,
             'day_of_month' => $request->day_of_month,
-            'send_time' => $request->send_time . ':00',
+            'send_time' => $request->send_time.':00',
             'period' => $request->period,
             'delivery_channels' => $request->delivery_channels,
             'telegram_chat_id' => $request->telegram_chat_id,
@@ -440,7 +439,7 @@ class ReportsController extends Controller
         $schedule = ReportSchedule::where('business_id', $business->id)
             ->findOrFail($id);
 
-        $schedule->is_active = !$schedule->is_active;
+        $schedule->is_active = ! $schedule->is_active;
         $schedule->save();
 
         if ($schedule->is_active) {
@@ -496,7 +495,7 @@ class ReportsController extends Controller
 
         return response()->json([
             'success' => true,
-            'reports' => $reports->map(fn($r) => $r->getSummary()),
+            'reports' => $reports->map(fn ($r) => $r->getSummary()),
             'pagination' => [
                 'current_page' => $reports->currentPage(),
                 'last_page' => $reports->lastPage(),

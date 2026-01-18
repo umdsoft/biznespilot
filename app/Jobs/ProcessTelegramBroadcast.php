@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\TelegramBroadcast;
 use App\Models\TelegramBot;
+use App\Models\TelegramBroadcast;
 use App\Models\TelegramUser;
 use App\Services\Telegram\TelegramApiService;
 use Illuminate\Bus\Queueable;
@@ -18,7 +18,9 @@ class ProcessTelegramBroadcast implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 60;
+
     public int $timeout = 3600; // 1 hour max
 
     protected string $broadcastId;
@@ -32,29 +34,32 @@ class ProcessTelegramBroadcast implements ShouldQueue
     {
         $broadcast = TelegramBroadcast::find($this->broadcastId);
 
-        if (!$broadcast) {
+        if (! $broadcast) {
             Log::warning('ProcessTelegramBroadcast: Broadcast not found', [
                 'broadcast_id' => $this->broadcastId,
             ]);
+
             return;
         }
 
         // Check if broadcast is still in sending state
-        if (!in_array($broadcast->status, ['sending'])) {
+        if (! in_array($broadcast->status, ['sending'])) {
             Log::info('ProcessTelegramBroadcast: Broadcast not in sending state', [
                 'broadcast_id' => $this->broadcastId,
                 'status' => $broadcast->status,
             ]);
+
             return;
         }
 
         $bot = TelegramBot::find($broadcast->telegram_bot_id);
-        if (!$bot) {
+        if (! $bot) {
             Log::error('ProcessTelegramBroadcast: Bot not found', [
                 'broadcast_id' => $this->broadcastId,
                 'bot_id' => $broadcast->telegram_bot_id,
             ]);
             $broadcast->update(['status' => 'failed']);
+
             return;
         }
 
@@ -73,7 +78,7 @@ class ProcessTelegramBroadcast implements ShouldQueue
         // Apply filters
         $filter = $broadcast->target_filter ?? [];
 
-        if (!empty($filter['tags'])) {
+        if (! empty($filter['tags'])) {
             $recipientsQuery->where(function ($q) use ($filter) {
                 foreach ($filter['tags'] as $tag) {
                     $q->orWhereJsonContains('tags', $tag);
@@ -81,7 +86,7 @@ class ProcessTelegramBroadcast implements ShouldQueue
             });
         }
 
-        if (!empty($filter['active_after'])) {
+        if (! empty($filter['active_after'])) {
             $recipientsQuery->where('last_active_at', '>=', $filter['active_after']);
         }
 
@@ -100,6 +105,7 @@ class ProcessTelegramBroadcast implements ShouldQueue
                             'broadcast_id' => $broadcast->id,
                             'processed' => $processedCount,
                         ]);
+
                         return false; // Stop processing
                     }
 
@@ -108,6 +114,7 @@ class ProcessTelegramBroadcast implements ShouldQueue
                             'broadcast_id' => $broadcast->id,
                             'processed' => $processedCount,
                         ]);
+
                         return false; // Stop processing
                     }
 

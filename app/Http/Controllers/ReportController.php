@@ -3,16 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\GeneratedReport;
 use App\Models\ScheduledReport;
 use App\Services\ReportingService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Carbon\Carbon;
 
 class ReportController extends Controller
 {
@@ -55,19 +53,19 @@ class ReportController extends Controller
         $business = $this->getCurrentBusiness();
         $report = GeneratedReport::where('business_id', $business->id)->findOrFail($id);
 
-        if (!$report->hasPdf()) {
+        if (! $report->hasPdf()) {
             // Generate PDF if not exists
             $this->reportingService->exportToPDF($report);
             $report->refresh();
         }
 
-        if (!$report->hasPdf()) {
+        if (! $report->hasPdf()) {
             return back()->with('error', 'PDF fayl topilmadi');
         }
 
         $report->incrementDownloadCount();
 
-        return Storage::download($report->pdf_path, $report->title . '.pdf');
+        return Storage::download($report->pdf_path, $report->title.'.pdf');
     }
 
     public function generateDaily(Request $request)
@@ -224,7 +222,7 @@ class ReportController extends Controller
         $schedule = ScheduledReport::where('business_id', $business->id)->findOrFail($id);
 
         $schedule->update($request->only([
-            'name', 'schedule_time', 'schedule_day', 'schedule_date', 'recipients', 'is_active'
+            'name', 'schedule_time', 'schedule_day', 'schedule_date', 'recipients', 'is_active',
         ]));
 
         if ($schedule->is_active) {

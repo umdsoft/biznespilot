@@ -13,28 +13,28 @@ return new class extends Migration
     {
         Schema::table('businesses', function (Blueprint $table) {
             // Add new fields for AI training data
-            if (!Schema::hasColumn('businesses', 'category')) {
+            if (! Schema::hasColumn('businesses', 'category')) {
                 $table->string('category', 100)->nullable()->after('slug');
             }
-            if (!Schema::hasColumn('businesses', 'region')) {
+            if (! Schema::hasColumn('businesses', 'region')) {
                 $table->string('region', 100)->nullable()->after('city');
             }
-            if (!Schema::hasColumn('businesses', 'employee_count')) {
+            if (! Schema::hasColumn('businesses', 'employee_count')) {
                 $table->string('employee_count', 50)->nullable()->after('team_size');
             }
-            if (!Schema::hasColumn('businesses', 'monthly_revenue')) {
+            if (! Schema::hasColumn('businesses', 'monthly_revenue')) {
                 $table->string('monthly_revenue', 50)->nullable()->after('employee_count');
             }
-            if (!Schema::hasColumn('businesses', 'target_audience')) {
+            if (! Schema::hasColumn('businesses', 'target_audience')) {
                 $table->text('target_audience')->nullable()->after('monthly_revenue');
             }
-            if (!Schema::hasColumn('businesses', 'main_goals')) {
+            if (! Schema::hasColumn('businesses', 'main_goals')) {
                 $table->json('main_goals')->nullable()->after('target_audience');
             }
-            if (!Schema::hasColumn('businesses', 'onboarding_status')) {
+            if (! Schema::hasColumn('businesses', 'onboarding_status')) {
                 $table->string('onboarding_status', 50)->default('pending')->after('is_onboarding_completed');
             }
-            if (!Schema::hasColumn('businesses', 'onboarding_current_step')) {
+            if (! Schema::hasColumn('businesses', 'onboarding_current_step')) {
                 $table->string('onboarding_current_step', 50)->nullable()->after('onboarding_status');
             }
         });

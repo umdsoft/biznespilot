@@ -88,6 +88,6 @@ class StepDefinition extends Model
 
     public function hasDependencies(): bool
     {
-        return !empty($this->depends_on);
+        return ! empty($this->depends_on);
     }
 }

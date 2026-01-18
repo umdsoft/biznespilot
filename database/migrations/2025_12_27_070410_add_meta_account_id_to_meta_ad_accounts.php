@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,32 +14,32 @@ return new class extends Migration
     {
         Schema::table('meta_ad_accounts', function (Blueprint $table) {
             // Add meta_account_id column if not exists
-            if (!Schema::hasColumn('meta_ad_accounts', 'meta_account_id')) {
+            if (! Schema::hasColumn('meta_ad_accounts', 'meta_account_id')) {
                 $table->string('meta_account_id')->nullable()->after('integration_id');
             }
 
             // Add is_primary column if not exists
-            if (!Schema::hasColumn('meta_ad_accounts', 'is_primary')) {
+            if (! Schema::hasColumn('meta_ad_accounts', 'is_primary')) {
                 $table->boolean('is_primary')->default(false)->after('timezone');
             }
 
             // Add amount_spent column if not exists
-            if (!Schema::hasColumn('meta_ad_accounts', 'amount_spent')) {
+            if (! Schema::hasColumn('meta_ad_accounts', 'amount_spent')) {
                 $table->decimal('amount_spent', 14, 2)->default(0)->after('is_primary');
             }
 
             // Add account_status column if not exists
-            if (!Schema::hasColumn('meta_ad_accounts', 'account_status')) {
+            if (! Schema::hasColumn('meta_ad_accounts', 'account_status')) {
                 $table->integer('account_status')->default(1)->after('amount_spent');
             }
 
             // Add metadata column if not exists
-            if (!Schema::hasColumn('meta_ad_accounts', 'metadata')) {
+            if (! Schema::hasColumn('meta_ad_accounts', 'metadata')) {
                 $table->json('metadata')->nullable()->after('account_status');
             }
 
             // Add last_sync_at column if not exists
-            if (!Schema::hasColumn('meta_ad_accounts', 'last_sync_at')) {
+            if (! Schema::hasColumn('meta_ad_accounts', 'last_sync_at')) {
                 $table->timestamp('last_sync_at')->nullable()->after('metadata');
             }
         });

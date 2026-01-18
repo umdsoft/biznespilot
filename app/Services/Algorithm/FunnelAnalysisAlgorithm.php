@@ -3,7 +3,6 @@
 namespace App\Services\Algorithm;
 
 use App\Models\Business;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Funnel Analysis Algorithm - Research-Based Implementation
@@ -27,6 +26,7 @@ use Illuminate\Support\Facades\Cache;
 class FunnelAnalysisAlgorithm extends AlgorithmEngine
 {
     protected string $cachePrefix = 'funnel_analysis_';
+
     protected int $cacheTTL = 900; // 15 minutes for real-time insights
 
     /**
@@ -222,7 +222,9 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         $totalLeak = 0;
 
         foreach ($stageNames as $index => $stage) {
-            if ($index === 0) continue; // Skip awareness
+            if ($index === 0) {
+                continue;
+            } // Skip awareness
 
             $data = $stageMetrics[$stage] ?? [];
             $droppedCount = $data['dropped_count'] ?? 0;
@@ -246,7 +248,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         }
 
         // Sort by leak value
-        usort($leaks, fn($a, $b) => $b['leak_value'] <=> $a['leak_value']);
+        usort($leaks, fn ($a, $b) => $b['leak_value'] <=> $a['leak_value']);
 
         return [
             'total_monthly_leak' => $totalLeak,
@@ -263,18 +265,18 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
     protected function formatMoney(int $amount): string
     {
         if ($amount >= 1000000000) {
-            return round($amount / 1000000000, 1) . ' mlrd';
+            return round($amount / 1000000000, 1).' mlrd';
         }
 
         if ($amount >= 1000000) {
-            return round($amount / 1000000, 1) . ' mln';
+            return round($amount / 1000000, 1).' mln';
         }
 
         if ($amount >= 1000) {
-            return round($amount / 1000) . ' ming';
+            return round($amount / 1000).' ming';
         }
 
-        return $amount . ' so\'m';
+        return $amount.' so\'m';
     }
 
     /**
@@ -286,7 +288,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         $stages = $funnelMetrics['stages'] ?? [];
 
         // If we have data from metrics, use it
-        if (!empty($stages)) {
+        if (! empty($stages)) {
             return $stages;
         }
 
@@ -366,7 +368,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
                 $metrics[$stage]['dropped_count'] = $previousCount - $count;
 
                 // Get benchmark for this transition
-                $benchmarkKey = $stageNames[$index - 1] . '_to_' . $stage;
+                $benchmarkKey = $stageNames[$index - 1].'_to_'.$stage;
                 $benchmark = $this->benchmarks[$benchmarkKey] ?? 50;
                 $metrics[$stage]['benchmark'] = $benchmark;
                 $metrics[$stage]['vs_benchmark'] = round($conversionRate - $benchmark, 1);
@@ -400,7 +402,9 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         $stageNames = array_keys($this->stages);
 
         foreach ($stageNames as $index => $stage) {
-            if ($index === 0) continue; // Skip first stage
+            if ($index === 0) {
+                continue;
+            } // Skip first stage
 
             $data = $stageMetrics[$stage] ?? [];
             $dropRate = $data['drop_rate'] ?? 0;
@@ -430,6 +434,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         // Sort by severity
         usort($bottlenecks, function ($a, $b) {
             $severityOrder = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];
+
             return $severityOrder[$a['severity']] <=> $severityOrder[$b['severity']];
         });
 
@@ -441,9 +446,16 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
      */
     protected function getSeverity(float $dropRate, float $vsBenchmark): string
     {
-        if ($dropRate >= 90 || $vsBenchmark <= -30) return 'critical';
-        if ($dropRate >= 80 || $vsBenchmark <= -20) return 'high';
-        if ($dropRate >= 70 || $vsBenchmark <= -10) return 'medium';
+        if ($dropRate >= 90 || $vsBenchmark <= -30) {
+            return 'critical';
+        }
+        if ($dropRate >= 80 || $vsBenchmark <= -20) {
+            return 'high';
+        }
+        if ($dropRate >= 70 || $vsBenchmark <= -10) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -459,7 +471,8 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
             'intent_purchase' => "Sotib olmayapti - {$dropRate}% odamlar oxirigacha yetmayapti",
         ];
 
-        $key = $fromStage . '_' . $toStage;
+        $key = $fromStage.'_'.$toStage;
+
         return $descriptions[$key] ?? "{$dropRate}% yo'qotish {$fromStage} dan {$toStage} ga o'tishda";
     }
 
@@ -475,7 +488,8 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
             'intent_purchase' => 'To\'lov jarayonini soddalshtiring, follow-up tizimini yaxshilang',
         ];
 
-        $key = $fromStage . '_' . $toStage;
+        $key = $fromStage.'_'.$toStage;
+
         return $solutions[$key] ?? 'Bu bosqichni optimizatsiya qilish kerak';
     }
 
@@ -488,7 +502,9 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         $stageNames = array_keys($this->stages);
 
         foreach ($stageNames as $index => $stage) {
-            if ($index === 0) continue;
+            if ($index === 0) {
+                continue;
+            }
 
             $data = $stageMetrics[$stage] ?? [];
             $conversionRate = $data['conversion_rate'] ?? 0;
@@ -502,7 +518,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
             }
         }
 
-        return !empty($scores) ? (int) round(array_sum($scores) / count($scores)) : 50;
+        return ! empty($scores) ? (int) round(array_sum($scores) / count($scores)) : 50;
     }
 
     /**
@@ -517,7 +533,9 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         $avgDealSize = $salesMetrics['average_deal_size'] ?? 2000000;
 
         foreach ($stageNames as $index => $stage) {
-            if ($index === 0) continue;
+            if ($index === 0) {
+                continue;
+            }
 
             $data = $stageMetrics[$stage] ?? [];
             $droppedCount = $data['dropped_count'] ?? 0;
@@ -543,7 +561,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
                 if ($estimatedLoss > $maxLoss) {
                     $maxLoss = $estimatedLoss;
                     $biggestLeak = [
-                        'stage' => $previousStage . '_to_' . $stage,
+                        'stage' => $previousStage.'_to_'.$stage,
                         'from_stage' => $previousStage,
                         'to_stage' => $stage,
                         'from_name' => $this->stages[$previousStage]['name'],
@@ -644,10 +662,10 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
                     default => 4,
                 },
                 'type' => 'fix_bottleneck',
-                'stage' => $bottleneck['from_stage'] . ' → ' . $bottleneck['to_stage'],
+                'stage' => $bottleneck['from_stage'].' → '.$bottleneck['to_stage'],
                 'title' => $this->getRecommendationTitle($bottleneck['from_stage'], $bottleneck['to_stage']),
                 'description' => $bottleneck['solution'],
-                'expected_impact' => '+' . round($bottleneck['gap'] * 0.5) . '% konversiya',
+                'expected_impact' => '+'.round($bottleneck['gap'] * 0.5).'% konversiya',
                 'effort' => $this->getEffortLevel($bottleneck['from_stage'], $bottleneck['to_stage']),
             ];
         }
@@ -661,13 +679,13 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
                 'stage' => 'overall',
                 'title' => 'Umumiy konversiyani oshiring',
                 'description' => 'Har bir bosqichni 10% yaxshilash umumiy konversiyani 40%+ oshiradi',
-                'expected_impact' => '+' . round($this->benchmarks['overall_conversion'] - $overallConversion, 1) . '% konversiya',
+                'expected_impact' => '+'.round($this->benchmarks['overall_conversion'] - $overallConversion, 1).'% konversiya',
                 'effort' => 'o\'rta',
             ];
         }
 
         // Sort by priority
-        usort($recommendations, fn($a, $b) => $a['priority'] <=> $b['priority']);
+        usort($recommendations, fn ($a, $b) => $a['priority'] <=> $b['priority']);
 
         return array_slice($recommendations, 0, 5);
     }
@@ -684,7 +702,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
             'intent_purchase' => 'Sotib olish jarayonini soddalshtiring',
         ];
 
-        return $titles[$fromStage . '_' . $toStage] ?? 'Bu bosqichni optimizatsiya qiling';
+        return $titles[$fromStage.'_'.$toStage] ?? 'Bu bosqichni optimizatsiya qiling';
     }
 
     /**
@@ -699,7 +717,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
             'intent_purchase' => 'past',
         ];
 
-        return $efforts[$fromStage . '_' . $toStage] ?? 'o\'rta';
+        return $efforts[$fromStage.'_'.$toStage] ?? 'o\'rta';
     }
 
     /**
@@ -728,20 +746,20 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
      */
     protected function getImprovementTimeline(array $bottlenecks): array
     {
-        $criticalCount = count(array_filter($bottlenecks, fn($b) => $b['severity'] === 'critical'));
-        $highCount = count(array_filter($bottlenecks, fn($b) => $b['severity'] === 'high'));
+        $criticalCount = count(array_filter($bottlenecks, fn ($b) => $b['severity'] === 'critical'));
+        $highCount = count(array_filter($bottlenecks, fn ($b) => $b['severity'] === 'high'));
 
         return [
             '30_days' => [
-                'improvement' => '+' . ($criticalCount * 5 + $highCount * 3) . '%',
+                'improvement' => '+'.($criticalCount * 5 + $highCount * 3).'%',
                 'focus' => 'Kritik bottlenecklarni tuzatish',
             ],
             '60_days' => [
-                'improvement' => '+' . (($criticalCount * 5 + $highCount * 3) * 1.8) . '%',
+                'improvement' => '+'.(($criticalCount * 5 + $highCount * 3) * 1.8).'%',
                 'focus' => 'O\'rta darajali muammolarni hal qilish',
             ],
             '90_days' => [
-                'improvement' => '+' . (($criticalCount * 5 + $highCount * 3) * 2.5) . '%',
+                'improvement' => '+'.(($criticalCount * 5 + $highCount * 3) * 2.5).'%',
                 'focus' => 'Fine-tuning va optimizatsiya',
             ],
         ];
@@ -758,7 +776,7 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
         for ($i = 1; $i < count($stageNames); $i++) {
             $fromStage = $stageNames[$i - 1];
             $toStage = $stageNames[$i];
-            $key = $fromStage . '_to_' . $toStage;
+            $key = $fromStage.'_to_'.$toStage;
 
             $actual = $stageMetrics[$toStage]['conversion_rate'] ?? 0;
             $benchmark = $this->benchmarks[$key] ?? 50;
@@ -811,11 +829,19 @@ class FunnelAnalysisAlgorithm extends AlgorithmEngine
      */
     protected function getStageHealth(float $vsBenchmark): string
     {
-        if ($vsBenchmark >= 10) return 'excellent';
-        if ($vsBenchmark >= 0) return 'good';
-        if ($vsBenchmark >= -10) return 'average';
-        if ($vsBenchmark >= -20) return 'poor';
+        if ($vsBenchmark >= 10) {
+            return 'excellent';
+        }
+        if ($vsBenchmark >= 0) {
+            return 'good';
+        }
+        if ($vsBenchmark >= -10) {
+            return 'average';
+        }
+        if ($vsBenchmark >= -20) {
+            return 'poor';
+        }
+
         return 'critical';
     }
-
 }

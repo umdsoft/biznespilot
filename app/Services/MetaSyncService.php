@@ -3,25 +3,26 @@
 namespace App\Services;
 
 use App\Models\Integration;
-use App\Models\MetaAdAccount;
-use App\Models\MetaCampaign;
-use App\Models\MetaAdSet;
 use App\Models\MetaAd;
-use App\Models\MetaInsight;
+use App\Models\MetaAdAccount;
+use App\Models\MetaAdSet;
+use App\Models\MetaCampaign;
 use App\Models\MetaCampaignInsight;
-use App\Models\MetaSyncLog;
+use App\Models\MetaInsight;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class MetaSyncService
 {
     private const API_VERSION = 'v18.0';
+
     private const BASE_URL = 'https://graph.facebook.com';
 
     private string $accessToken;
+
     private Integration $integration;
+
     private string $businessId;
 
     /**
@@ -91,8 +92,8 @@ class MetaSyncService
                     $account->update(['last_sync_at' => now()]);
 
                 } catch (\Exception $e) {
-                    Log::error("Error syncing account {$account->meta_account_id}: " . $e->getMessage());
-                    $results['errors'][] = "Account {$account->name}: " . $e->getMessage();
+                    Log::error("Error syncing account {$account->meta_account_id}: ".$e->getMessage());
+                    $results['errors'][] = "Account {$account->name}: ".$e->getMessage();
                 }
             }
 
@@ -105,7 +106,7 @@ class MetaSyncService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("MetaSyncService fullSync error: " . $e->getMessage());
+            Log::error('MetaSyncService fullSync error: '.$e->getMessage());
             $results['success'] = false;
             $results['errors'][] = $e->getMessage();
 
@@ -160,7 +161,7 @@ class MetaSyncService
         }
 
         // Set first account as primary if none is set
-        if (!empty($accounts) && !MetaAdAccount::where('integration_id', $this->integration->id)->where('is_primary', true)->exists()) {
+        if (! empty($accounts) && ! MetaAdAccount::where('integration_id', $this->integration->id)->where('is_primary', true)->exists()) {
             $accounts[0]->update(['is_primary' => true]);
         }
 
@@ -396,7 +397,7 @@ class MetaSyncService
 
                 $count += $this->saveInsights($account, $response['data'] ?? [], 'account', $account->meta_account_id, $account->name);
             } catch (\Exception $e) {
-                Log::warning("Error syncing account insights for {$currentStart->format('Y-m')}: " . $e->getMessage());
+                Log::warning("Error syncing account insights for {$currentStart->format('Y-m')}: ".$e->getMessage());
                 // Continue with next month instead of failing completely
             }
 
@@ -424,7 +425,7 @@ class MetaSyncService
 
             try {
                 $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
-                    'fields' => $this->getInsightFields() . ',campaign_id,campaign_name',
+                    'fields' => $this->getInsightFields().',campaign_id,campaign_name',
                     'time_range' => json_encode([
                         'since' => $currentStart->format('Y-m-d'),
                         'until' => $currentEnd->format('Y-m-d'),
@@ -444,7 +445,7 @@ class MetaSyncService
                     );
                 }
             } catch (\Exception $e) {
-                Log::warning("Error syncing campaign insights for {$currentStart->format('Y-m')}: " . $e->getMessage());
+                Log::warning("Error syncing campaign insights for {$currentStart->format('Y-m')}: ".$e->getMessage());
                 // Continue with next month instead of failing completely
             }
 
@@ -485,7 +486,7 @@ class MetaSyncService
 
             try {
                 $response = $this->makeRequest("/{$account->meta_account_id}/insights", [
-                    'fields' => $this->getInsightFields() . ',campaign_id,campaign_name',
+                    'fields' => $this->getInsightFields().',campaign_id,campaign_name',
                     'time_range' => json_encode([
                         'since' => $currentStart->format('Y-m-d'),
                         'until' => $currentEnd->format('Y-m-d'),
@@ -499,7 +500,7 @@ class MetaSyncService
                     $metaCampaignId = $insight['campaign_id'] ?? null;
                     $campaign = $campaigns->get($metaCampaignId);
 
-                    if (!$campaign) {
+                    if (! $campaign) {
                         continue;
                     }
 
@@ -539,7 +540,7 @@ class MetaSyncService
                     $count++;
                 }
             } catch (\Exception $e) {
-                Log::warning("Error syncing detailed campaign insights: " . $e->getMessage());
+                Log::warning('Error syncing detailed campaign insights: '.$e->getMessage());
             }
 
             $currentStart = $currentEnd->addDay();
@@ -752,6 +753,7 @@ class MetaSyncService
                 return (int) ($action['value'] ?? 0);
             }
         }
+
         return 0;
     }
 
@@ -766,6 +768,7 @@ class MetaSyncService
                 $sum += (float) ($action['value'] ?? 0);
             }
         }
+
         return $sum;
     }
 
@@ -836,6 +839,7 @@ class MetaSyncService
             if ($parsed->year < 1990) {
                 return null;
             }
+
             return $parsed;
         } catch (\Exception $e) {
             return null;
@@ -847,15 +851,15 @@ class MetaSyncService
      */
     private function makeRequest(string $endpoint, array $params = []): array
     {
-        $url = self::BASE_URL . '/' . self::API_VERSION . $endpoint;
+        $url = self::BASE_URL.'/'.self::API_VERSION.$endpoint;
 
         $params['access_token'] = $this->accessToken;
 
         $response = Http::timeout(60)->get($url, $params);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             $error = $response->json('error') ?? ['message' => 'Unknown error'];
-            throw new \Exception("Meta API Error: " . ($error['message'] ?? 'Request failed'));
+            throw new \Exception('Meta API Error: '.($error['message'] ?? 'Request failed'));
         }
 
         return $response->json();
@@ -891,7 +895,7 @@ class MetaSyncService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("MetaSyncService quickSync error: " . $e->getMessage());
+            Log::error('MetaSyncService quickSync error: '.$e->getMessage());
             $results['success'] = false;
             $results['errors'][] = $e->getMessage();
         }

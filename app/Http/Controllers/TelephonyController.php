@@ -10,12 +10,11 @@ use App\Models\PbxAccount;
 use App\Models\SipuniAccount;
 use App\Models\UtelAccount;
 use App\Services\MoiZvonkiService;
-use App\Services\SipuniService;
 use App\Services\OnlinePbxService;
+use App\Services\SipuniService;
 use App\Services\UtelService;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
@@ -101,7 +100,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -172,9 +171,9 @@ class TelephonyController extends Controller
             ] : null,
             'stats' => $stats,
             'webhookUrls' => [
-                'onlinepbx' => $webhookBaseUrl . '/api/webhooks/pbx/onlinepbx',
-                'moizvonki' => $webhookBaseUrl . '/api/webhooks/moizvonki/' . $business->id,
-                'utel' => $webhookBaseUrl . '/api/webhooks/utel/' . $business->id,
+                'onlinepbx' => $webhookBaseUrl.'/api/webhooks/pbx/onlinepbx',
+                'moizvonki' => $webhookBaseUrl.'/api/webhooks/moizvonki/'.$business->id,
+                'utel' => $webhookBaseUrl.'/api/webhooks/utel/'.$business->id,
             ],
         ]);
     }
@@ -194,7 +193,7 @@ class TelephonyController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -205,7 +204,7 @@ class TelephonyController extends Controller
             $validated['api_secret'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['error']);
         }
 
@@ -236,7 +235,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -261,7 +260,7 @@ class TelephonyController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -274,7 +273,7 @@ class TelephonyController extends Controller
         // Log the result for debugging
         Log::info('SipUni connection result', $result);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['error']);
         }
 
@@ -304,7 +303,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -328,7 +327,7 @@ class TelephonyController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -342,7 +341,7 @@ class TelephonyController extends Controller
         // Log the result for debugging
         Log::info('MoiZvonki connection result', $result);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['error']);
         }
 
@@ -370,7 +369,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -388,7 +387,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -396,7 +395,7 @@ class TelephonyController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return back()->with('error', 'Moi Zvonki ulangan emas');
         }
 
@@ -423,7 +422,7 @@ class TelephonyController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -436,7 +435,7 @@ class TelephonyController extends Controller
         // Log the result for debugging
         Log::info('UTEL connection result', $result);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['error']);
         }
 
@@ -467,7 +466,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -485,7 +484,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -493,7 +492,7 @@ class TelephonyController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return back()->with('error', 'UTEL ulangan emas');
         }
 
@@ -513,7 +512,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -521,7 +520,7 @@ class TelephonyController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             return response()->json(['error' => 'UTEL ulangan emas'], 400);
         }
 
@@ -548,13 +547,13 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['connected' => false]);
         }
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['account']) {
+        if (! $provider['account']) {
             return response()->json(['connected' => false]);
         }
 
@@ -575,7 +574,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -589,7 +588,7 @@ class TelephonyController extends Controller
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['service']) {
+        if (! $provider['service']) {
             return response()->json([
                 'error' => 'Telefoniya sozlanmagan. Avval Sozlamalar > Telefoniya bo\'limidan ulang.',
             ], 400);
@@ -623,20 +622,20 @@ class TelephonyController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['service']) {
+        if (! $provider['service']) {
             return response()->json([
                 'error' => 'Telefoniya sozlanmagan',
             ], 400);
         }
 
         $lead = null;
-        if (!empty($validated['lead_id'])) {
+        if (! empty($validated['lead_id'])) {
             $lead = Lead::where('id', $validated['lead_id'])
                 ->where('business_id', $business->id)
                 ->first();
@@ -665,7 +664,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -706,7 +705,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -777,7 +776,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('business.index');
         }
 
@@ -790,7 +789,7 @@ class TelephonyController extends Controller
         }
 
         // If no stats from provider, get from database directly
-        if (!$stats) {
+        if (! $stats) {
             $stats = $this->getDefaultStatistics($business->id);
         }
 
@@ -831,13 +830,13 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
         $provider = $this->getActiveProvider($business);
 
-        if (!$provider['service']) {
+        if (! $provider['service']) {
             return response()->json(['error' => 'Provayder ulanmagan'], 400);
         }
 
@@ -893,14 +892,14 @@ class TelephonyController extends Controller
 
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
         // Build API URL from domain
         $domain = rtrim($validated['domain'], '/');
-        if (!str_contains($domain, 'http')) {
-            $apiUrl = 'https://' . $domain . '.onpbx.ru';
+        if (! str_contains($domain, 'http')) {
+            $apiUrl = 'https://'.$domain.'.onpbx.ru';
         } else {
             $apiUrl = $domain;
         }
@@ -912,7 +911,7 @@ class TelephonyController extends Controller
             $validated['key_id'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['error']);
         }
 
@@ -946,7 +945,7 @@ class TelephonyController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -954,7 +953,7 @@ class TelephonyController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$pbxAccount) {
+        if (! $pbxAccount) {
             return response()->json(['error' => 'PBX sozlanmagan'], 400);
         }
 

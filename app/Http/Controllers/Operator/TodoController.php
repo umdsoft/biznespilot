@@ -9,7 +9,6 @@ use App\Models\TodoTemplate;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TodoController extends Controller
@@ -23,7 +22,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('operator.dashboard')
                 ->with('error', 'Avval biznes tanlang');
         }
@@ -59,7 +58,7 @@ class TodoController extends Controller
 
         $teamMembers = $business->teamMembers()
             ->get()
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'role' => $user->pivot->role ?? 'member',
@@ -98,8 +97,9 @@ class TodoController extends Controller
         ];
 
         foreach ($todos as $todo) {
-            if (!$todo->due_date) {
+            if (! $todo->due_date) {
                 $grouped['later'][] = $todo;
+
                 continue;
             }
 
@@ -133,7 +133,7 @@ class TodoController extends Controller
                 ->whereNull('parent_id')
                 ->where(function ($q) use ($userId) {
                     $q->where('assigned_to', $userId)
-                        ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId));
+                        ->orWhereHas('assignees', fn ($q) => $q->where('user_id', $userId));
                 })
                 ->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS])
                 ->count(),
@@ -141,7 +141,7 @@ class TodoController extends Controller
                 ->whereNull('parent_id')
                 ->where(function ($q) use ($userId) {
                     $q->where('assigned_to', $userId)
-                        ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId));
+                        ->orWhereHas('assignees', fn ($q) => $q->where('user_id', $userId));
                 })
                 ->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS])
                 ->where('due_date', '<', now()->startOfDay())
@@ -150,7 +150,7 @@ class TodoController extends Controller
                 ->whereNull('parent_id')
                 ->where(function ($q) use ($userId) {
                     $q->where('assigned_to', $userId)
-                        ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId));
+                        ->orWhereHas('assignees', fn ($q) => $q->where('user_id', $userId));
                 })
                 ->where('status', Todo::STATUS_COMPLETED)
                 ->whereDate('completed_at', today())
@@ -165,7 +165,7 @@ class TodoController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return back()->with('error', 'Biznes topilmadi');
         }
 
@@ -196,7 +196,7 @@ class TodoController extends Controller
             'order' => Todo::where('business_id', $business->id)->max('order') + 1,
         ]);
 
-        if (!empty($validated['assignees'])) {
+        if (! empty($validated['assignees'])) {
             foreach ($validated['assignees'] as $userId) {
                 $todo->assignees()->create(['user_id' => $userId]);
             }
@@ -291,8 +291,8 @@ class TodoController extends Controller
 
         if ($assignee) {
             $assignee->update([
-                'completed' => !$assignee->completed,
-                'completed_at' => !$assignee->completed ? now() : null,
+                'completed' => ! $assignee->completed,
+                'completed_at' => ! $assignee->completed ? now() : null,
             ]);
 
             // Check if all assignees completed

@@ -193,7 +193,7 @@ class LeaveRequest extends Model
 
         foreach ($period as $date) {
             // Skip weekends (Saturday = 6, Sunday = 0)
-            if (!in_array($date->dayOfWeek, [0, 6])) {
+            if (! in_array($date->dayOfWeek, [0, 6])) {
                 $workingDays++;
             }
         }
@@ -284,7 +284,7 @@ class LeaveRequest extends Model
      */
     public function cancel(): bool
     {
-        if (!in_array($this->status, ['pending', 'approved'])) {
+        if (! in_array($this->status, ['pending', 'approved'])) {
             return false;
         }
 
@@ -326,7 +326,7 @@ class LeaveRequest extends Model
 
         foreach ($period as $date) {
             // Skip weekends
-            if (!in_array($date->dayOfWeek, [0, 6])) {
+            if (! in_array($date->dayOfWeek, [0, 6])) {
                 LeaveCalendarEvent::create([
                     'business_id' => $this->business_id,
                     'leave_request_id' => $this->id,

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InstagramFlowNode extends Model
 {
     use HasUuid;
+
     protected $fillable = [
         'automation_id',
         'node_id',
@@ -24,7 +25,9 @@ class InstagramFlowNode extends Model
 
     // Node categories
     const CATEGORY_TRIGGER = 'trigger';
+
     const CATEGORY_CONDITION = 'condition';
+
     const CATEGORY_ACTION = 'action';
 
     // Node type definitions with metadata
@@ -272,12 +275,14 @@ class InstagramFlowNode extends Model
     public function getNodeMeta(): array
     {
         $types = self::getNodeTypes();
+
         return $types[$this->node_type] ?? [];
     }
 
     public function getCategory(): string
     {
         $meta = $this->getNodeMeta();
+
         return $meta['category'] ?? 'unknown';
     }
 
@@ -299,6 +304,7 @@ class InstagramFlowNode extends Model
     public function hasBranches(): bool
     {
         $meta = $this->getNodeMeta();
+
         return $meta['has_branches'] ?? false;
     }
 }

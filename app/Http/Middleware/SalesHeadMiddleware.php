@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BusinessUser;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\BusinessUser;
 
 class SalesHeadMiddleware
 {
@@ -17,13 +17,13 @@ class SalesHeadMiddleware
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return redirect('/business')->with('error', 'Biznes tanlanmagan');
         }
 
@@ -33,7 +33,7 @@ class SalesHeadMiddleware
             ->where('department', 'sales_head')
             ->first();
 
-        if (!$membership) {
+        if (! $membership) {
             // Check if user is business owner
             $business = \App\Models\Business::find($businessId);
             if ($business && $business->user_id === $user->id) {

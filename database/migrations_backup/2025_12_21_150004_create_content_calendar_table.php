@@ -25,7 +25,7 @@ return new class extends Migration
             // Type and format
             $table->enum('content_type', [
                 'post', 'story', 'reel', 'video', 'article',
-                'carousel', 'live', 'poll', 'ad', 'email', 'sms', 'other'
+                'carousel', 'live', 'poll', 'ad', 'email', 'sms', 'other',
             ])->default('post');
             $table->string('format')->nullable(); // Image, Video, Text, etc.
 
@@ -42,7 +42,7 @@ return new class extends Migration
             // Status
             $table->enum('status', [
                 'idea', 'draft', 'pending_review', 'approved',
-                'scheduled', 'published', 'failed', 'archived'
+                'scheduled', 'published', 'failed', 'archived',
             ])->default('idea');
 
             // Publishing

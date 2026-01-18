@@ -3,15 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\MarketingChannel;
-use App\Models\InstagramMetric;
-use App\Models\TelegramMetric;
-use App\Models\FacebookMetric;
-use App\Models\GoogleAdsMetric;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class MarketingAnalyticsController extends Controller
 {
@@ -24,7 +19,7 @@ class MarketingAnalyticsController extends Controller
     {
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return redirect()->route('business.index');
         }
 
@@ -99,7 +94,7 @@ class MarketingAnalyticsController extends Controller
     {
         $businessId = session('current_business_id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return response()->json(['error' => 'Business not found'], 404);
         }
 
@@ -109,9 +104,9 @@ class MarketingAnalyticsController extends Controller
             // Get all channels with their latest metrics (optimized query)
             $channels = MarketingChannel::where('business_id', $businessId)
                 ->with([
-                    'instagramMetrics' => fn($q) => $q->latest('metric_date')->limit(1),
-                    'telegramMetrics' => fn($q) => $q->latest('metric_date')->limit(1),
-                    'facebookMetrics' => fn($q) => $q->latest('metric_date')->limit(1),
+                    'instagramMetrics' => fn ($q) => $q->latest('metric_date')->limit(1),
+                    'telegramMetrics' => fn ($q) => $q->latest('metric_date')->limit(1),
+                    'facebookMetrics' => fn ($q) => $q->latest('metric_date')->limit(1),
                 ])
                 ->get();
 
@@ -126,7 +121,7 @@ class MarketingAnalyticsController extends Controller
 
             // Single pass aggregation (no additional queries)
             foreach ($channels as $channel) {
-                $latestMetric = match($channel->type) {
+                $latestMetric = match ($channel->type) {
                     'instagram' => $channel->instagramMetrics->first(),
                     'telegram' => $channel->telegramMetrics->first(),
                     'facebook' => $channel->facebookMetrics->first(),
@@ -268,7 +263,7 @@ class MarketingAnalyticsController extends Controller
     private function prepareInstagramChartData($metrics)
     {
         return [
-            'labels' => $metrics->pluck('metric_date')->map(fn($date) => $date->format('M d'))->reverse()->values(),
+            'labels' => $metrics->pluck('metric_date')->map(fn ($date) => $date->format('M d'))->reverse()->values(),
             'datasets' => [
                 [
                     'label' => 'Followers',
@@ -284,7 +279,7 @@ class MarketingAnalyticsController extends Controller
                 ],
                 [
                     'label' => 'Engagement',
-                    'data' => $metrics->map(fn($m) => $m->getTotalEngagementAttribute())->reverse()->values(),
+                    'data' => $metrics->map(fn ($m) => $m->getTotalEngagementAttribute())->reverse()->values(),
                     'borderColor' => 'rgb(54, 162, 235)',
                     'tension' => 0.1,
                 ],
@@ -298,7 +293,7 @@ class MarketingAnalyticsController extends Controller
     private function prepareTelegramChartData($metrics)
     {
         return [
-            'labels' => $metrics->pluck('metric_date')->map(fn($date) => $date->format('M d'))->reverse()->values(),
+            'labels' => $metrics->pluck('metric_date')->map(fn ($date) => $date->format('M d'))->reverse()->values(),
             'datasets' => [
                 [
                     'label' => 'Members',
@@ -314,7 +309,7 @@ class MarketingAnalyticsController extends Controller
                 ],
                 [
                     'label' => 'Engagement',
-                    'data' => $metrics->map(fn($m) => $m->getTotalEngagementAttribute())->reverse()->values(),
+                    'data' => $metrics->map(fn ($m) => $m->getTotalEngagementAttribute())->reverse()->values(),
                     'borderColor' => 'rgb(54, 162, 235)',
                     'tension' => 0.1,
                 ],
@@ -328,7 +323,7 @@ class MarketingAnalyticsController extends Controller
     private function prepareFacebookChartData($metrics)
     {
         return [
-            'labels' => $metrics->pluck('metric_date')->map(fn($date) => $date->format('M d'))->reverse()->values(),
+            'labels' => $metrics->pluck('metric_date')->map(fn ($date) => $date->format('M d'))->reverse()->values(),
             'datasets' => [
                 [
                     'label' => 'Page Followers',
@@ -344,7 +339,7 @@ class MarketingAnalyticsController extends Controller
                 ],
                 [
                     'label' => 'Engagement',
-                    'data' => $metrics->map(fn($m) => $m->getTotalEngagementAttribute())->reverse()->values(),
+                    'data' => $metrics->map(fn ($m) => $m->getTotalEngagementAttribute())->reverse()->values(),
                     'borderColor' => 'rgb(54, 162, 235)',
                     'tension' => 0.1,
                 ],
@@ -358,7 +353,7 @@ class MarketingAnalyticsController extends Controller
     private function prepareGoogleAdsChartData($metrics)
     {
         return [
-            'labels' => $metrics->pluck('metric_date')->map(fn($date) => $date->format('M d'))->reverse()->values(),
+            'labels' => $metrics->pluck('metric_date')->map(fn ($date) => $date->format('M d'))->reverse()->values(),
             'datasets' => [
                 [
                     'label' => 'Impressions',
@@ -409,21 +404,21 @@ class MarketingAnalyticsController extends Controller
         switch ($channelType) {
             case 'instagram':
                 $summary['total_reach'] = $metrics->sum('reach');
-                $summary['total_engagement'] = $metrics->sum(fn($m) => $m->getTotalEngagementAttribute());
+                $summary['total_engagement'] = $metrics->sum(fn ($m) => $m->getTotalEngagementAttribute());
                 $summary['avg_engagement_rate'] = $metrics->avg('engagement_rate');
                 $summary['growth'] = $latest->followers_count - $oldest->followers_count;
                 break;
 
             case 'telegram':
                 $summary['total_reach'] = $metrics->sum('total_views');
-                $summary['total_engagement'] = $metrics->sum(fn($m) => $m->getTotalEngagementAttribute());
+                $summary['total_engagement'] = $metrics->sum(fn ($m) => $m->getTotalEngagementAttribute());
                 $summary['avg_engagement_rate'] = $metrics->avg('engagement_rate');
                 $summary['growth'] = $latest->members_count - $oldest->members_count;
                 break;
 
             case 'facebook':
                 $summary['total_reach'] = $metrics->sum('reach');
-                $summary['total_engagement'] = $metrics->sum(fn($m) => $m->getTotalEngagementAttribute());
+                $summary['total_engagement'] = $metrics->sum(fn ($m) => $m->getTotalEngagementAttribute());
                 $summary['avg_engagement_rate'] = $metrics->avg('engagement_rate');
                 $summary['growth'] = $latest->page_followers - $oldest->page_followers;
                 break;

@@ -57,13 +57,18 @@ class ReportTemplate extends Model
 
     // Type constants
     public const TYPE_SYSTEM = 'system';
+
     public const TYPE_CUSTOM = 'custom';
 
     // Category constants
     public const CATEGORY_HEALTH = 'health';
+
     public const CATEGORY_MARKETING = 'marketing';
+
     public const CATEGORY_SALES = 'sales';
+
     public const CATEGORY_FINANCIAL = 'financial';
+
     public const CATEGORY_COMPREHENSIVE = 'comprehensive';
 
     // Default section configurations
@@ -177,6 +182,7 @@ class ReportTemplate extends Model
     public function getSectionsWithDefaults(): array
     {
         $sections = $this->sections ?? [];
+
         return array_merge(self::DEFAULT_SECTIONS, $sections);
     }
 
@@ -187,9 +193,9 @@ class ReportTemplate extends Model
     {
         $sections = $this->getSectionsWithDefaults();
 
-        $enabled = array_filter($sections, fn($s) => $s['enabled'] ?? true);
+        $enabled = array_filter($sections, fn ($s) => $s['enabled'] ?? true);
 
-        uasort($enabled, fn($a, $b) => ($a['order'] ?? 999) <=> ($b['order'] ?? 999));
+        uasort($enabled, fn ($a, $b) => ($a['order'] ?? 999) <=> ($b['order'] ?? 999));
 
         return $enabled;
     }

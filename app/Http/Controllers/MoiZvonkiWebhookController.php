@@ -67,10 +67,11 @@ class MoiZvonkiWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$account) {
+            if (! $account) {
                 Log::warning('MoiZvonki webhook: No active account for business', [
                     'business_id' => $businessId,
                 ]);
+
                 return response()->json(['error' => 'No active MoiZvonki account'], 404);
             }
 

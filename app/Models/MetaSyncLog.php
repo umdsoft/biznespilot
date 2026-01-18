@@ -108,6 +108,7 @@ class MetaSyncLog extends Model
         if ($this->total_items === 0) {
             return 0;
         }
+
         return (int) round(($this->processed_items / $this->total_items) * 100);
     }
 

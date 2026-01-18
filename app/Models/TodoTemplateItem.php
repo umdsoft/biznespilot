@@ -13,7 +13,9 @@ class TodoTemplateItem extends Model
 
     // Default assignee roles
     public const ROLE_OWNER = 'owner';
+
     public const ROLE_MANAGER = 'manager';
+
     public const ROLE_OPERATOR = 'operator';
 
     public const ROLES = [
@@ -58,7 +60,7 @@ class TodoTemplateItem extends Model
 
     public function getRoleLabelAttribute(): ?string
     {
-        if (!$this->default_assignee_role) {
+        if (! $this->default_assignee_role) {
             return null;
         }
 

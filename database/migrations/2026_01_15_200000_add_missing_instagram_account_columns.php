@@ -10,19 +10,19 @@ return new class extends Migration
     {
         Schema::table('instagram_accounts', function (Blueprint $table) {
             // Add missing columns for InstagramSyncService
-            if (!Schema::hasColumn('instagram_accounts', 'biography')) {
+            if (! Schema::hasColumn('instagram_accounts', 'biography')) {
                 $table->text('biography')->nullable()->after('name');
             }
-            if (!Schema::hasColumn('instagram_accounts', 'website')) {
+            if (! Schema::hasColumn('instagram_accounts', 'website')) {
                 $table->string('website')->nullable()->after('biography');
             }
-            if (!Schema::hasColumn('instagram_accounts', 'follows_count')) {
+            if (! Schema::hasColumn('instagram_accounts', 'follows_count')) {
                 $table->integer('follows_count')->default(0)->after('followers_count');
             }
-            if (!Schema::hasColumn('instagram_accounts', 'is_primary')) {
+            if (! Schema::hasColumn('instagram_accounts', 'is_primary')) {
                 $table->boolean('is_primary')->default(false)->after('media_count');
             }
-            if (!Schema::hasColumn('instagram_accounts', 'metadata')) {
+            if (! Schema::hasColumn('instagram_accounts', 'metadata')) {
                 $table->json('metadata')->nullable()->after('last_sync_at');
             }
         });

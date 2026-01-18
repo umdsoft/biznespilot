@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Algorithm\DataAccuracyEngine;
 use App\Services\Algorithm\ModuleAnalyzer;
 use App\Services\Algorithm\NextStepPredictor;
-use App\Services\Algorithm\DataAccuracyEngine;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AlgorithmController extends Controller
 {
     protected ModuleAnalyzer $moduleAnalyzer;
+
     protected NextStepPredictor $nextStepPredictor;
+
     protected DataAccuracyEngine $dataAccuracyEngine;
 
     public function __construct(
@@ -32,7 +34,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -51,7 +53,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -63,7 +65,7 @@ class AlgorithmController extends Controller
             'funnel' => 'analyzeFunnelModule',
         ];
 
-        if (!isset($methodMap[$module])) {
+        if (! isset($methodMap[$module])) {
             return response()->json(['error' => 'Noma\'lum modul'], 400);
         }
 
@@ -83,7 +85,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -103,7 +105,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -122,7 +124,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -141,7 +143,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -161,7 +163,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -201,7 +203,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('welcome.index');
         }
 
@@ -237,7 +239,7 @@ class AlgorithmController extends Controller
     {
         $business = auth()->user()->currentBusiness;
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 

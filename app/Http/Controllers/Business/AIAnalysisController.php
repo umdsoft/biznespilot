@@ -17,7 +17,7 @@ class AIAnalysisController extends Controller
     {
         $business = $this->getCurrentBusiness($request);
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\TelegramMetric;
 use App\Models\MarketingChannel;
+use App\Models\TelegramMetric;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -17,20 +17,18 @@ class TelegramService
 
     /**
      * Fetch and store Telegram metrics for a channel
-     *
-     * @param MarketingChannel $channel
-     * @param Carbon|null $date
-     * @return TelegramMetric|null
      */
     public function syncMetrics(MarketingChannel $channel, ?Carbon $date = null): ?TelegramMetric
     {
         if ($channel->type !== 'telegram') {
             Log::error('Channel is not Telegram type', ['channel_id' => $channel->id]);
+
             return null;
         }
 
-        if (!$channel->access_token) {
+        if (! $channel->access_token) {
             Log::error('Telegram channel missing bot token', ['channel_id' => $channel->id]);
+
             return null;
         }
 
@@ -101,29 +99,27 @@ class TelegramService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Fetch chat/channel information
-     *
-     * @param string $botToken
-     * @param string $chatId
-     * @return array
      */
     private function fetchChatInfo(string $botToken, string $chatId): array
     {
         try {
-            $response = Http::get(self::API_BASE_URL . "{$botToken}/getChat", [
+            $response = Http::get(self::API_BASE_URL."{$botToken}/getChat", [
                 'chat_id' => $chatId,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Telegram getChat request failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return [];
             }
 
@@ -132,7 +128,7 @@ class TelegramService
             // Get member count
             $membersCount = 0;
             if (isset($chatData['type']) && in_array($chatData['type'], ['channel', 'supergroup'])) {
-                $countResponse = Http::get(self::API_BASE_URL . "{$botToken}/getChatMemberCount", [
+                $countResponse = Http::get(self::API_BASE_URL."{$botToken}/getChatMemberCount", [
                     'chat_id' => $chatId,
                 ]);
 
@@ -152,17 +148,13 @@ class TelegramService
             Log::error('Failed to fetch Telegram chat info', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
 
     /**
      * Fetch message statistics for a specific date
-     *
-     * @param string $botToken
-     * @param string $chatId
-     * @param Carbon $date
-     * @return array
      */
     private function fetchMessageStats(string $botToken, string $chatId, Carbon $date): array
     {
@@ -185,19 +177,19 @@ class TelegramService
             // In production, you should implement a webhook to track messages in real-time
 
             // Get updates (this is limited and should be replaced with webhook in production)
-            $response = Http::get(self::API_BASE_URL . "{$botToken}/getUpdates", [
+            $response = Http::get(self::API_BASE_URL."{$botToken}/getUpdates", [
                 'offset' => -100,
                 'limit' => 100,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return $stats;
             }
 
             $updates = $response->json()['result'] ?? [];
 
             foreach ($updates as $update) {
-                if (!isset($update['message'])) {
+                if (! isset($update['message'])) {
                     continue;
                 }
 
@@ -205,7 +197,7 @@ class TelegramService
                 $messageDate = isset($message['date']) ? Carbon::createFromTimestamp($message['date']) : null;
 
                 // Only process messages from the specified date
-                if (!$messageDate || $messageDate->toDateString() !== $date->toDateString()) {
+                if (! $messageDate || $messageDate->toDateString() !== $date->toDateString()) {
                     continue;
                 }
 
@@ -244,6 +236,7 @@ class TelegramService
             Log::error('Failed to fetch Telegram message stats', [
                 'error' => $e->getMessage(),
             ]);
+
             return [
                 'new_members' => 0,
                 'left_members' => 0,
@@ -261,10 +254,6 @@ class TelegramService
 
     /**
      * Fetch bot statistics
-     *
-     * @param string $botToken
-     * @param Carbon $date
-     * @return array
      */
     private function fetchBotStats(string $botToken, Carbon $date): array
     {
@@ -293,6 +282,7 @@ class TelegramService
             Log::error('Failed to fetch Telegram bot stats', [
                 'error' => $e->getMessage(),
             ]);
+
             return [
                 'messages_sent' => 0,
                 'messages_received' => 0,
@@ -304,16 +294,13 @@ class TelegramService
 
     /**
      * Get bot information
-     *
-     * @param string $botToken
-     * @return array|null
      */
     public function getBotInfo(string $botToken): ?array
     {
         try {
-            $response = Http::get(self::API_BASE_URL . "{$botToken}/getMe");
+            $response = Http::get(self::API_BASE_URL."{$botToken}/getMe");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -323,33 +310,28 @@ class TelegramService
             Log::error('Failed to get Telegram bot info', [
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Validate bot token
-     *
-     * @param string $botToken
-     * @return bool
      */
     public function validateBotToken(string $botToken): bool
     {
         $botInfo = $this->getBotInfo($botToken);
+
         return $botInfo !== null;
     }
 
     /**
      * Set webhook for real-time updates
-     *
-     * @param string $botToken
-     * @param string $webhookUrl
-     * @return bool
      */
     public function setWebhook(string $botToken, string $webhookUrl): bool
     {
         try {
-            $response = Http::post(self::API_BASE_URL . "{$botToken}/setWebhook", [
+            $response = Http::post(self::API_BASE_URL."{$botToken}/setWebhook", [
                 'url' => $webhookUrl,
                 'allowed_updates' => [
                     'message',
@@ -359,10 +341,11 @@ class TelegramService
                 ],
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Failed to set Telegram webhook', [
                     'response' => $response->body(),
                 ]);
+
                 return false;
             }
 
@@ -376,20 +359,18 @@ class TelegramService
             Log::error('Failed to set Telegram webhook', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Delete webhook
-     *
-     * @param string $botToken
-     * @return bool
      */
     public function deleteWebhook(string $botToken): bool
     {
         try {
-            $response = Http::post(self::API_BASE_URL . "{$botToken}/deleteWebhook");
+            $response = Http::post(self::API_BASE_URL."{$botToken}/deleteWebhook");
 
             return $response->successful();
 
@@ -397,6 +378,7 @@ class TelegramService
             Log::error('Failed to delete Telegram webhook', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -404,9 +386,6 @@ class TelegramService
     /**
      * Sync metrics for date range
      *
-     * @param MarketingChannel $channel
-     * @param Carbon $startDate
-     * @param Carbon $endDate
      * @return int Number of days synced
      */
     public function syncMetricsRange(MarketingChannel $channel, Carbon $startDate, Carbon $endDate): int
@@ -427,12 +406,6 @@ class TelegramService
 
     /**
      * Send message to channel/chat
-     *
-     * @param string $botToken
-     * @param string $chatId
-     * @param string $text
-     * @param array $options
-     * @return bool
      */
     public function sendMessage(string $botToken, string $chatId, string $text, array $options = []): bool
     {
@@ -443,12 +416,13 @@ class TelegramService
                 'parse_mode' => 'HTML',
             ], $options);
 
-            $response = Http::post(self::API_BASE_URL . "{$botToken}/sendMessage", $params);
+            $response = Http::post(self::API_BASE_URL."{$botToken}/sendMessage", $params);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('Failed to send Telegram message', [
                     'response' => $response->body(),
                 ]);
+
                 return false;
             }
 
@@ -458,6 +432,7 @@ class TelegramService
             Log::error('Failed to send Telegram message', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

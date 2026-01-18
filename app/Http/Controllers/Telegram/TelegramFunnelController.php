@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
 use App\Models\TelegramFunnel;
 use App\Models\TelegramFunnelStep;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -28,7 +28,7 @@ class TelegramFunnelController extends Controller
             ->withCount('steps')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($funnel) => [
+            ->map(fn ($funnel) => [
                 'id' => $funnel->id,
                 'name' => $funnel->name,
                 'description' => $funnel->description,
@@ -63,7 +63,7 @@ class TelegramFunnelController extends Controller
             ->with('steps')
             ->firstOrFail();
 
-        $steps = $funnel->steps->map(fn($step) => [
+        $steps = $funnel->steps->map(fn ($step) => [
             'id' => $step->id,
             'name' => $step->name,
             'step_type' => $step->step_type,
@@ -130,7 +130,7 @@ class TelegramFunnelController extends Controller
             'business_id' => $business->id,
             'telegram_bot_id' => $bot->id,
             'name' => $request->name,
-            'slug' => \Illuminate\Support\Str::slug($request->name) . '-' . \Illuminate\Support\Str::random(6),
+            'slug' => \Illuminate\Support\Str::slug($request->name).'-'.\Illuminate\Support\Str::random(6),
             'description' => $request->description,
             'is_active' => false,
         ]);
@@ -158,7 +158,7 @@ class TelegramFunnelController extends Controller
     {
         $templates = $this->getFunnelTemplates();
 
-        if (!isset($templates[$template])) {
+        if (! isset($templates[$template])) {
             return;
         }
 
@@ -170,7 +170,7 @@ class TelegramFunnelController extends Controller
             $step = TelegramFunnelStep::create([
                 'funnel_id' => $funnel->id,
                 'name' => $stepData['name'],
-                'slug' => \Illuminate\Support\Str::slug($stepData['name']) . '-' . \Illuminate\Support\Str::random(6),
+                'slug' => \Illuminate\Support\Str::slug($stepData['name']).'-'.\Illuminate\Support\Str::random(6),
                 'step_type' => $stepData['step_type'],
                 'content' => $stepData['content'] ?? ['type' => 'text', 'text' => ''],
                 'keyboard' => $stepData['keyboard'] ?? null,
@@ -238,7 +238,7 @@ class TelegramFunnelController extends Controller
                 $updateData['ab_test'] = $abTest;
             }
 
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 TelegramFunnelStep::where('id', $stepId)->update($updateData);
             }
         }
@@ -353,7 +353,7 @@ class TelegramFunnelController extends Controller
                         'step_type' => 'input',
                         'content' => [
                             'type' => 'text',
-                            'text' => "📝 Ismingizni kiriting:",
+                            'text' => '📝 Ismingizni kiriting:',
                         ],
                         'input_type' => 'text',
                         'input_field' => 'name',
@@ -437,7 +437,7 @@ class TelegramFunnelController extends Controller
                         'name' => '1-savol',
                         'step_type' => 'quiz',
                         'quiz' => [
-                            'question' => "1️⃣ Sizning asosiy maqsadingiz nima?",
+                            'question' => '1️⃣ Sizning asosiy maqsadingiz nima?',
                             'options' => [
                                 ['text' => '💰 Daromadni oshirish', 'next_step_ref' => 'quiz2'],
                                 ['text' => '⏰ Vaqtni tejash', 'next_step_ref' => 'quiz2'],
@@ -453,7 +453,7 @@ class TelegramFunnelController extends Controller
                         'name' => '2-savol',
                         'step_type' => 'quiz',
                         'quiz' => [
-                            'question' => "2️⃣ Hozirgi holatingiz qanday?",
+                            'question' => '2️⃣ Hozirgi holatingiz qanday?',
                             'options' => [
                                 ['text' => '🌱 Yangi boshladim', 'next_step_ref' => 'quiz3'],
                                 ['text' => '📊 Tajribam bor', 'next_step_ref' => 'quiz3'],
@@ -469,7 +469,7 @@ class TelegramFunnelController extends Controller
                         'name' => '3-savol',
                         'step_type' => 'quiz',
                         'quiz' => [
-                            'question' => "3️⃣ Byudjetingiz qanday?",
+                            'question' => '3️⃣ Byudjetingiz qanday?',
                             'options' => [
                                 ['text' => '💵 Kam (1-5 mln)', 'next_step_ref' => 'result_basic'],
                                 ['text' => '💰 O\'rtacha (5-20 mln)', 'next_step_ref' => 'result_standard'],
@@ -807,7 +807,7 @@ class TelegramFunnelController extends Controller
         ]);
 
         $funnel->update($request->only([
-            'name', 'description', 'is_active', 'first_step_id', 'completion_message'
+            'name', 'description', 'is_active', 'first_step_id', 'completion_message',
         ]));
 
         return response()->json([
@@ -831,7 +831,7 @@ class TelegramFunnelController extends Controller
             ->where('id', $funnelId)
             ->firstOrFail();
 
-        $funnel->update(['is_active' => !$funnel->is_active]);
+        $funnel->update(['is_active' => ! $funnel->is_active]);
 
         return response()->json([
             'success' => true,
@@ -881,7 +881,7 @@ class TelegramFunnelController extends Controller
 
         // Create new funnel
         $newFunnel = $funnel->replicate();
-        $newFunnel->name = $funnel->name . ' (nusxa)';
+        $newFunnel->name = $funnel->name.' (nusxa)';
         $newFunnel->is_active = false;
         $newFunnel->first_step_id = null;
         $newFunnel->save();
@@ -974,20 +974,26 @@ class TelegramFunnelController extends Controller
         // First pass: create/update steps and build ID map
         foreach ($request->steps as $index => $stepData) {
             $stepId = $stepData['id'] ?? null;
-            $isNewStep = !$stepId || !in_array($stepId, $existingStepIds);
+            $isNewStep = ! $stepId || ! in_array($stepId, $existingStepIds);
 
             // Map input types from builder to database enum
             $inputType = $stepData['input_type'] ?? 'none';
-            if ($inputType === 'contact') $inputType = 'phone';
-            if ($inputType === 'document') $inputType = 'any';
-            if ($inputType === 'choice') $inputType = 'any';
+            if ($inputType === 'contact') {
+                $inputType = 'phone';
+            }
+            if ($inputType === 'document') {
+                $inputType = 'any';
+            }
+            if ($inputType === 'choice') {
+                $inputType = 'any';
+            }
 
             if ($isNewStep) {
                 // Create new step
                 $step = TelegramFunnelStep::create([
                     'funnel_id' => $funnel->id,
                     'name' => $stepData['name'],
-                    'slug' => \Illuminate\Support\Str::slug($stepData['name']) . '-' . \Illuminate\Support\Str::random(6),
+                    'slug' => \Illuminate\Support\Str::slug($stepData['name']).'-'.\Illuminate\Support\Str::random(6),
                     'step_type' => $stepData['step_type'],
                     'content' => $stepData['content'] ?? ['type' => 'text', 'text' => ''],
                     'keyboard' => $stepData['keyboard'] ?? null,
@@ -1046,7 +1052,9 @@ class TelegramFunnelController extends Controller
         foreach ($request->steps as $stepData) {
             $stepId = isset($stepData['id']) ? ($tempIdMap[$stepData['id']] ?? $stepData['id']) : null;
 
-            if (!$stepId) continue;
+            if (! $stepId) {
+                continue;
+            }
 
             $updateData = [];
 
@@ -1072,10 +1080,10 @@ class TelegramFunnelController extends Controller
             }
 
             // Quiz option next_step_ids need to be remapped
-            if (isset($stepData['quiz']) && !empty($stepData['quiz']['options'])) {
+            if (isset($stepData['quiz']) && ! empty($stepData['quiz']['options'])) {
                 $quiz = $stepData['quiz'];
                 foreach ($quiz['options'] as $i => $option) {
-                    if (!empty($option['next_step_id'])) {
+                    if (! empty($option['next_step_id'])) {
                         $quiz['options'][$i]['next_step_id'] = $tempIdMap[$option['next_step_id']] ?? $option['next_step_id'];
                     }
                 }
@@ -1083,24 +1091,24 @@ class TelegramFunnelController extends Controller
             }
 
             // A/B Test variant next_step_ids need to be remapped
-            if (isset($stepData['ab_test']) && !empty($stepData['ab_test']['variants'])) {
+            if (isset($stepData['ab_test']) && ! empty($stepData['ab_test']['variants'])) {
                 $abTest = $stepData['ab_test'];
                 foreach ($abTest['variants'] as $i => $variant) {
-                    if (!empty($variant['next_step_id'])) {
+                    if (! empty($variant['next_step_id'])) {
                         $abTest['variants'][$i]['next_step_id'] = $tempIdMap[$variant['next_step_id']] ?? $variant['next_step_id'];
                     }
                 }
                 $updateData['ab_test'] = $abTest;
             }
 
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 TelegramFunnelStep::where('id', $stepId)->update($updateData);
             }
         }
 
         // Delete removed steps
         $stepsToDelete = array_diff($existingStepIds, $updatedStepIds);
-        if (!empty($stepsToDelete)) {
+        if (! empty($stepsToDelete)) {
             TelegramFunnelStep::whereIn('id', $stepsToDelete)->delete();
         }
 
@@ -1111,7 +1119,7 @@ class TelegramFunnelController extends Controller
         }
 
         // Get updated steps
-        $steps = $funnel->fresh()->steps->map(fn($step) => [
+        $steps = $funnel->fresh()->steps->map(fn ($step) => [
             'id' => $step->id,
             'name' => $step->name,
             'step_type' => $step->step_type,

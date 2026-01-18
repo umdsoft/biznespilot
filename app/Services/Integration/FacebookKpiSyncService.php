@@ -3,10 +3,9 @@
 namespace App\Services\Integration;
 
 use App\Models\Business;
+use App\Models\FacebookAd;
 use App\Models\FacebookPage;
 use App\Models\FacebookPost;
-use App\Models\FacebookAd;
-use App\Models\FacebookAdCampaign;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -53,7 +52,7 @@ class FacebookKpiSyncService extends BaseKpiSyncService
     public function isAvailable(int $businessId): bool
     {
         $business = Business::find($businessId);
-        if (!$business) {
+        if (! $business) {
             return false;
         }
 
@@ -70,7 +69,7 @@ class FacebookKpiSyncService extends BaseKpiSyncService
      */
     public function syncKpi(int $businessId, string $kpiCode, string $date): array
     {
-        if (!in_array($kpiCode, $this->supportedKpis)) {
+        if (! in_array($kpiCode, $this->supportedKpis)) {
             return [
                 'success' => false,
                 'kpi_code' => $kpiCode,
@@ -83,7 +82,7 @@ class FacebookKpiSyncService extends BaseKpiSyncService
             ->where('is_active', true)
             ->first();
 
-        if (!$facebookPage) {
+        if (! $facebookPage) {
             return [
                 'success' => false,
                 'kpi_code' => $kpiCode,
@@ -367,7 +366,7 @@ class FacebookKpiSyncService extends BaseKpiSyncService
             ->where('record_date', $previousDate->format('Y-m-d'))
             ->value('actual_value');
 
-        if (!$previousFollowers) {
+        if (! $previousFollowers) {
             $previousFollowers = $currentFollowers > 100 ? $currentFollowers - 10 : $currentFollowers;
         }
 

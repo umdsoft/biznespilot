@@ -17,12 +17,12 @@ class SetBusinessContext
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
         // If no business is selected in session, auto-select the first one
-        if (!session()->has('current_business_id')) {
+        if (! session()->has('current_business_id')) {
             // Get user's first business (owned or member of)
             $firstBusiness = $user->businesses()->first() ?? $user->teamBusinesses()->first();
 
@@ -39,7 +39,7 @@ class SetBusinessContext
             $hasAccess = $user->businesses()->where('id', $businessId)->exists()
                 || $user->teamBusinesses()->where('business_id', $businessId)->exists();
 
-            if (!$hasAccess) {
+            if (! $hasAccess) {
                 // User lost access, clear and select a new one
                 session()->forget('current_business_id');
 

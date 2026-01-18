@@ -76,7 +76,7 @@ class HealthScoreService
                 $this->benchmarks = $benchmark->toAlgorithmArray();
             }
         } catch (\Exception $e) {
-            \Log::warning('Failed to load benchmarks: ' . $e->getMessage());
+            \Log::warning('Failed to load benchmarks: '.$e->getMessage());
         }
 
         // Set defaults
@@ -308,7 +308,7 @@ class HealthScoreService
     {
         $kpi = $metrics['kpi_progress'] ?? [];
 
-        if (!($kpi['has_plan'] ?? false)) {
+        if (! ($kpi['has_plan'] ?? false)) {
             return 50; // Neutral score if no plan
         }
 
@@ -377,7 +377,7 @@ class HealthScoreService
      */
     protected function calculateTrendModifier(array $trends): float
     {
-        if (!($trends['has_data'] ?? false)) {
+        if (! ($trends['has_data'] ?? false)) {
             return 0;
         }
 
@@ -413,7 +413,7 @@ class HealthScoreService
 
         // Anomalies penalty
         $anomalies = $trends['anomalies'] ?? [];
-        $negativeAnomalies = count(array_filter($anomalies, fn($a) => $a['type'] === 'drop'));
+        $negativeAnomalies = count(array_filter($anomalies, fn ($a) => $a['type'] === 'drop'));
         $modifier -= min(4, $negativeAnomalies);
 
         return max(-10, min(10, $modifier));

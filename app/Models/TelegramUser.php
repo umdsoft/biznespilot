@@ -100,15 +100,20 @@ class TelegramUser extends Model
     // Helpers
     public function getFullName(): string
     {
-        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+        return trim(($this->first_name ?? '').' '.($this->last_name ?? ''));
     }
 
     public function getDisplayName(): string
     {
         $name = $this->getFullName();
-        if ($name) return $name;
-        if ($this->username) return '@' . $this->username;
-        return 'User #' . $this->telegram_id;
+        if ($name) {
+            return $name;
+        }
+        if ($this->username) {
+            return '@'.$this->username;
+        }
+
+        return 'User #'.$this->telegram_id;
     }
 
     public function hasTag(string $tag): bool
@@ -119,7 +124,7 @@ class TelegramUser extends Model
     public function addTag(string $tag): void
     {
         $tags = $this->tags ?? [];
-        if (!in_array($tag, $tags)) {
+        if (! in_array($tag, $tags)) {
             $tags[] = $tag;
             $this->tags = $tags;
             $this->save();
@@ -129,7 +134,7 @@ class TelegramUser extends Model
     public function removeTag(string $tag): void
     {
         $tags = $this->tags ?? [];
-        $tags = array_filter($tags, fn($t) => $t !== $tag);
+        $tags = array_filter($tags, fn ($t) => $t !== $tag);
         $this->tags = array_values($tags);
         $this->save();
     }
@@ -160,7 +165,7 @@ class TelegramUser extends Model
             'is_blocked' => false,
         ]);
 
-        if (!$this->first_interaction_at) {
+        if (! $this->first_interaction_at) {
             $this->update(['first_interaction_at' => now()]);
         }
     }

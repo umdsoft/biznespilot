@@ -32,7 +32,6 @@ use Illuminate\Support\Facades\Log;
  * 8. Payment issues count
  *
  * @version 1.0.0
- * @package App\Services\Algorithm
  */
 class ChurnPredictionAlgorithm extends AlgorithmEngine
 {
@@ -68,8 +67,11 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
      * Churn risk thresholds
      */
     protected const RISK_CRITICAL = 0.70;   // 70%+ churn probability
+
     protected const RISK_HIGH = 0.50;       // 50-70%
+
     protected const RISK_MEDIUM = 0.30;     // 30-50%
+
     protected const RISK_LOW = 0.15;        // 15-30%
     // <15% = very low risk
 
@@ -91,8 +93,8 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Calculate churn prediction for customers
      *
-     * @param Business $business Business to analyze
-     * @param array $options Additional options
+     * @param  Business  $business  Business to analyze
+     * @param  array  $options  Additional options
      * @return array Churn predictions and recommendations
      */
     public function calculate(Business $business, array $options = []): array
@@ -168,8 +170,6 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Get customer data with features
      *
-     * @param Business $business
-     * @param array $options
      * @return array Customer data
      */
     protected function getCustomerData(Business $business, array $options = []): array
@@ -186,7 +186,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
         foreach ($sales as $sale) {
             $customerId = $sale->customer_id ?? $sale->id;
 
-            if (!isset($customerMap[$customerId])) {
+            if (! isset($customerMap[$customerId])) {
                 $customerMap[$customerId] = [
                     'customer_id' => $customerId,
                     'purchases' => [],
@@ -222,7 +222,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Extract features from customer data
      *
-     * @param array $customer Customer data
+     * @param  array  $customer  Customer data
      * @return array Features
      */
     protected function extractFeatures(array $customer): array
@@ -231,7 +231,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
 
         // Feature 1: Days since last purchase (recency)
         $daysSinceLastPurchase = 0;
-        if (!empty($customer['last_purchase'])) {
+        if (! empty($customer['last_purchase'])) {
             $lastPurchase = Carbon::parse($customer['last_purchase']);
             $daysSinceLastPurchase = $now->diffInDays($lastPurchase);
         }
@@ -275,7 +275,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Calculate purchase frequency decline rate
      *
-     * @param array $purchases Purchase history
+     * @param  array  $purchases  Purchase history
      * @return float Decline rate (%)
      */
     protected function calculateFrequencyDecline(array $purchases): float
@@ -285,7 +285,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
         }
 
         // Sort by date
-        usort($purchases, function($a, $b) {
+        usort($purchases, function ($a, $b) {
             return Carbon::parse($a['date'])->timestamp <=> Carbon::parse($b['date'])->timestamp;
         });
 
@@ -315,7 +315,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Calculate engagement decline rate
      *
-     * @param array $events Engagement events
+     * @param  array  $events  Engagement events
      * @return float Decline rate (%)
      */
     protected function calculateEngagementDecline(array $events): float
@@ -328,7 +328,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Calculate Average Order Value decline
      *
-     * @param array $purchases Purchase history
+     * @param  array  $purchases  Purchase history
      * @return float Decline rate (%)
      */
     protected function calculateAOVDecline(array $purchases): float
@@ -338,7 +338,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
         }
 
         // Sort by date
-        usort($purchases, function($a, $b) {
+        usort($purchases, function ($a, $b) {
             return Carbon::parse($a['date'])->timestamp <=> Carbon::parse($b['date'])->timestamp;
         });
 
@@ -367,7 +367,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
      * Formula: P(Churn) = 1 / (1 + e^-z)
      * where z = β₀ + β₁X₁ + β₂X₂ + ... + βₙXₙ
      *
-     * @param array $customer Customer with features
+     * @param  array  $customer  Customer with features
      * @return array Prediction with probability and risk level
      */
     protected function predictChurnProbability(array $customer): array
@@ -397,7 +397,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
         return [
             'customer_id' => $customer['customer_id'],
             'churn_probability' => round($churnProbability, 3),
-            'churn_percentage' => round($churnProbability * 100, 1) . '%',
+            'churn_percentage' => round($churnProbability * 100, 1).'%',
             'risk_level' => $riskLevel,
             'features' => $features,
             'recommended_actions' => $actions,
@@ -408,7 +408,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Get risk level from churn probability
      *
-     * @param float $probability Churn probability (0-1)
+     * @param  float  $probability  Churn probability (0-1)
      * @return string Risk level
      */
     protected function getRiskLevel(float $probability): string
@@ -429,8 +429,8 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Get retention actions based on features
      *
-     * @param float $churnProbability Churn probability
-     * @param array $features Customer features
+     * @param  float  $churnProbability  Churn probability
+     * @param  array  $features  Customer features
      * @return array Recommended actions
      */
     protected function getRetentionActions(float $churnProbability, array $features): array
@@ -451,7 +451,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
             $actions[] = [
                 'action' => 'Loyalty program taklif qilish',
                 'priority' => 'high',
-                'reason' => 'Xarid chastotasi ' . round($features['frequency_decline_rate']) . '% kamaygan',
+                'reason' => 'Xarid chastotasi '.round($features['frequency_decline_rate']).'% kamaygan',
             ];
         }
 
@@ -460,7 +460,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
             $actions[] = [
                 'action' => 'Feedback so\'rash va muammolarni hal qilish',
                 'priority' => 'critical',
-                'reason' => 'Past NPS score: ' . $features['nps_score'],
+                'reason' => 'Past NPS score: '.$features['nps_score'],
             ];
         }
 
@@ -478,7 +478,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
             $actions[] = [
                 'action' => 'Maxsus support manager tayinlash',
                 'priority' => 'high',
-                'reason' => 'Ko\'p support tickets: ' . $features['support_tickets'],
+                'reason' => 'Ko\'p support tickets: '.$features['support_tickets'],
             ];
         }
 
@@ -487,7 +487,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
             $actions[] = [
                 'action' => 'Maxsus chegirma/bonus taklif qilish',
                 'priority' => 'medium',
-                'reason' => 'Churn riski: ' . round($churnProbability * 100) . '%',
+                'reason' => 'Churn riski: '.round($churnProbability * 100).'%',
             ];
         }
 
@@ -497,7 +497,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Calculate aggregate statistics
      *
-     * @param array $predictions All predictions
+     * @param  array  $predictions  All predictions
      * @return array Statistics
      */
     protected function calculateStatistics(array $predictions): array
@@ -513,24 +513,24 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
 
         $totalCustomers = count($predictions);
         $avgChurnProb = array_sum(array_column($predictions, 'churn_probability')) / $totalCustomers;
-        $predictedChurnCount = count(array_filter($predictions, function($p) {
+        $predictedChurnCount = count(array_filter($predictions, function ($p) {
             return $p['churn_probability'] >= 0.5;
         }));
 
         return [
             'total_customers' => $totalCustomers,
             'average_churn_probability' => round($avgChurnProb, 3),
-            'average_churn_percentage' => round($avgChurnProb * 100, 1) . '%',
+            'average_churn_percentage' => round($avgChurnProb * 100, 1).'%',
             'predicted_churn_count' => $predictedChurnCount,
-            'predicted_churn_rate' => round(($predictedChurnCount / $totalCustomers) * 100, 1) . '%',
-            'retention_rate' => round(((1 - $avgChurnProb) * 100), 1) . '%',
+            'predicted_churn_rate' => round(($predictedChurnCount / $totalCustomers) * 100, 1).'%',
+            'retention_rate' => round(((1 - $avgChurnProb) * 100), 1).'%',
         ];
     }
 
     /**
      * Format risk segments
      *
-     * @param array $segments Risk segments
+     * @param  array  $segments  Risk segments
      * @return array Formatted segments
      */
     protected function formatRiskSegments(array $segments): array
@@ -549,7 +549,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
         $total = array_sum(array_column($formatted, 'count'));
         if ($total > 0) {
             foreach ($formatted as $level => &$segment) {
-                $segment['percentage'] = round(($segment['count'] / $total) * 100, 1) . '%';
+                $segment['percentage'] = round(($segment['count'] / $total) * 100, 1).'%';
             }
         }
 
@@ -559,8 +559,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Generate recommendations
      *
-     * @param array $riskSegments Risk segments
-     * @param Business $business
+     * @param  array  $riskSegments  Risk segments
      * @return array Recommendations
      */
     protected function generateRecommendations(array $riskSegments, Business $business): array
@@ -582,7 +581,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
                 ],
                 'estimated_impact' => [
                     'retention_increase' => '+15-25%',
-                    'revenue_saved' => 'Customer LTV × ' . $criticalCount,
+                    'revenue_saved' => 'Customer LTV × '.$criticalCount,
                 ],
             ];
         }
@@ -624,7 +623,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
     /**
      * Get industry benchmark
      *
-     * @param string $industry Industry name
+     * @param  string  $industry  Industry name
      * @return array Benchmark data
      */
     protected function getIndustryBenchmark(string $industry): array
@@ -633,8 +632,8 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
 
         return [
             'industry' => $industry,
-            'average_annual_churn_rate' => round($annualChurnRate * 100, 1) . '%',
-            'average_monthly_churn_rate' => round(($annualChurnRate / 12) * 100, 1) . '%',
+            'average_annual_churn_rate' => round($annualChurnRate * 100, 1).'%',
+            'average_monthly_churn_rate' => round(($annualChurnRate / 12) * 100, 1).'%',
             'retention_value' => '5-25x',
             'source' => 'Bain & Company, HBR, Gartner research',
             'key_insight' => 'Existing mijozni ushlab qolish yangi mijoz topishdan 5-25 marta arzon',
@@ -681,7 +680,7 @@ class ChurnPredictionAlgorithm extends AlgorithmEngine
             }
 
             $customers[] = [
-                'customer_id' => 'CUST_' . str_pad($i, 5, '0', STR_PAD_LEFT),
+                'customer_id' => 'CUST_'.str_pad($i, 5, '0', STR_PAD_LEFT),
                 'features' => [
                     'days_since_last_purchase' => $daysSince,
                     'frequency_decline_rate' => $freqDecline,

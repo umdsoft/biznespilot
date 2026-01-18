@@ -3,12 +3,10 @@
 namespace App\Services;
 
 use App\Models\Competitor;
-use App\Models\CompetitorProduct;
-use App\Models\CompetitorPriceHistory;
-use App\Models\CompetitorPromotion;
 use App\Models\CompetitorAlert;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
+use App\Models\CompetitorPriceHistory;
+use App\Models\CompetitorProduct;
+use App\Models\CompetitorPromotion;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -69,7 +67,9 @@ class PriceMonitoringService
      */
     protected function checkProductPrice(CompetitorProduct $product): void
     {
-        if (!$product->url) return;
+        if (! $product->url) {
+            return;
+        }
 
         try {
             $priceData = $this->fetchPriceFromUrl($product->url);
@@ -121,15 +121,17 @@ class PriceMonitoringService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             ])->timeout(15)->get($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
             $html = $response->body();
+
             return $this->extractPriceFromHTML($html, $url);
 
         } catch (\Exception $e) {
             Log::warning('Price URL fetch failed', ['url' => $url, 'error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -205,8 +207,8 @@ class PriceMonitoringService
             'type' => 'price_change',
             'severity' => $severity,
             'title' => "{$competitor->name} - Narx o'zgarishi",
-            'message' => "{$product->name} narxi " . abs(round($changePercent, 1)) . "% {$direction}. " .
-                number_format($oldPrice, 0, '', ' ') . " → " . number_format($newPrice, 0, '', ' ') . " so'm",
+            'message' => "{$product->name} narxi ".abs(round($changePercent, 1))."% {$direction}. ".
+                number_format($oldPrice, 0, '', ' ').' → '.number_format($newPrice, 0, '', ' ')." so'm",
             'data' => [
                 'product_id' => $product->id,
                 'product_name' => $product->name,
@@ -239,7 +241,7 @@ class PriceMonitoringService
                     ->where('is_active', true)
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     $promotion = CompetitorPromotion::create(array_merge($promoData, [
                         'competitor_id' => $competitor->id,
                         'detected_from' => $content->platform,
@@ -267,7 +269,7 @@ class PriceMonitoringService
         $promoKeywords = [
             'chegirma', 'скидка', 'discount', 'sale', 'aksiya', 'акция',
             'chegirma', 'black friday', 'flash sale', 'promo', 'chegirmalar',
-            '% off', 'tekin', 'бесплатно', 'free', 'bonus', 'sovg\'a', 'подарок'
+            '% off', 'tekin', 'бесплатно', 'free', 'bonus', 'sovg\'a', 'подарок',
         ];
 
         $isPromo = false;
@@ -278,7 +280,9 @@ class PriceMonitoringService
             }
         }
 
-        if (!$isPromo) return null;
+        if (! $isPromo) {
+            return null;
+        }
 
         // Extract discount value
         $discountValue = null;
@@ -424,12 +428,19 @@ class PriceMonitoringService
             }
         }
 
-        if (empty($changes)) return 'stable';
+        if (empty($changes)) {
+            return 'stable';
+        }
 
         $avgChange = array_sum($changes) / count($changes);
 
-        if ($avgChange > 5) return 'increasing';
-        if ($avgChange < -5) return 'decreasing';
+        if ($avgChange > 5) {
+            return 'increasing';
+        }
+        if ($avgChange < -5) {
+            return 'decreasing';
+        }
+
         return 'stable';
     }
 

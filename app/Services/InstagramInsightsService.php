@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\InstagramAccount;
-use App\Models\InstagramMedia;
-use App\Models\InstagramDailyInsight;
 use App\Models\InstagramAudience;
+use App\Models\InstagramDailyInsight;
+use App\Models\InstagramMedia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -27,7 +27,7 @@ class InstagramInsightsService
     public function getBusinessInsights(string $accountId): array
     {
         $account = InstagramAccount::find($accountId);
-        if (!$account) {
+        if (! $account) {
             return [];
         }
 
@@ -90,7 +90,7 @@ class InstagramInsightsService
                 $growthDriverPosts[] = [
                     'date' => $date,
                     'follower_growth' => $growth,
-                    'posts' => $posts->map(fn($p) => [
+                    'posts' => $posts->map(fn ($p) => [
                         'id' => $p->media_id,
                         'type' => $p->media_product_type,
                         'caption' => \Str::limit($p->caption, 100),
@@ -183,7 +183,7 @@ class InstagramInsightsService
         $dayPerformance = [];
         foreach ($media as $post) {
             $dayOfWeek = $post->posted_at->dayOfWeek;
-            if (!isset($dayPerformance[$dayOfWeek])) {
+            if (! isset($dayPerformance[$dayOfWeek])) {
                 $dayPerformance[$dayOfWeek] = [
                     'posts' => 0,
                     'total_reach' => 0,
@@ -208,14 +208,14 @@ class InstagramInsightsService
         }
 
         // Eng yaxshi kunlarni aniqlash
-        uasort($dayAnalysis, fn($a, $b) => $b['avg_reach'] <=> $a['avg_reach']);
+        uasort($dayAnalysis, fn ($a, $b) => $b['avg_reach'] <=> $a['avg_reach']);
         $bestDays = array_slice($dayAnalysis, 0, 3, true);
 
         // Soatlar bo'yicha tahlil
         $hourPerformance = [];
         foreach ($media as $post) {
             $hour = $post->posted_at->hour;
-            if (!isset($hourPerformance[$hour])) {
+            if (! isset($hourPerformance[$hour])) {
                 $hourPerformance[$hour] = [
                     'posts' => 0,
                     'total_reach' => 0,
@@ -239,7 +239,7 @@ class InstagramInsightsService
                 ];
             }
         }
-        uasort($hourAnalysis, fn($a, $b) => $b['avg_reach'] <=> $a['avg_reach']);
+        uasort($hourAnalysis, fn ($a, $b) => $b['avg_reach'] <=> $a['avg_reach']);
         $bestHours = array_slice($hourAnalysis, 0, 3, true);
 
         // Content type bo'yicha tahlil
@@ -274,7 +274,7 @@ class InstagramInsightsService
         $audience = InstagramAudience::where('account_id', $accountId)->first();
         $account = InstagramAccount::find($accountId);
 
-        if (!$audience || !$account) {
+        if (! $audience || ! $account) {
             return ['message' => 'Auditoriya ma\'lumotlari topilmadi'];
         }
 
@@ -300,14 +300,14 @@ class InstagramInsightsService
         $topCities = $audience->top_cities ?? [];
         $topCountries = $audience->top_countries ?? [];
 
-        if (!empty($topCities)) {
+        if (! empty($topCities)) {
             $topCity = array_key_first($topCities);
             $insights['location_insight'] = "Followerlaringizning ko'pchiligi {$topCity} da yashaydi. Mahalliy kontentni ko'paytiring.";
         }
 
         // Online vaqtlar
         $onlineHours = $audience->online_hours ?? [];
-        if (!empty($onlineHours)) {
+        if (! empty($onlineHours)) {
             arsort($onlineHours);
             $bestHour = array_key_first($onlineHours);
             $insights['timing_insight'] = "Auditoriyangiz eng faol soat {$bestHour}:00 da. Shu paytda post qiling.";
@@ -370,10 +370,10 @@ class InstagramInsightsService
                 'avg_reach' => round($recommendedType->avg_reach),
                 'reason' => $this->getContentTypeReason($recommendedType->media_product_type),
             ] : null,
-            'top_hashtags' => $hashtagPerformance->map(fn($h) => [
-                'hashtag' => '#' . $h->hashtag,
+            'top_hashtags' => $hashtagPerformance->map(fn ($h) => [
+                'hashtag' => '#'.$h->hashtag,
                 'usage' => $h->usage_count,
-                'engagement' => round($h->avg_engagement_rate, 2) . '%',
+                'engagement' => round($h->avg_engagement_rate, 2).'%',
             ])->toArray(),
             'caption_recommendation' => $captionAnalysis,
             'trending_topics' => $topTopics,
@@ -445,7 +445,7 @@ class InstagramInsightsService
     public function analyzeViralPotential(string $accountId): array
     {
         $account = InstagramAccount::find($accountId);
-        if (!$account) {
+        if (! $account) {
             return [];
         }
 
@@ -464,11 +464,11 @@ class InstagramInsightsService
             $viralCharacteristics['dominant_type'] = $typeCount->sort()->keys()->last();
 
             // Caption uzunligi
-            $avgCaptionLength = $viralPosts->avg(fn($p) => strlen($p->caption ?? ''));
+            $avgCaptionLength = $viralPosts->avg(fn ($p) => strlen($p->caption ?? ''));
             $viralCharacteristics['avg_caption_length'] = round($avgCaptionLength);
 
             // Posting soati
-            $hourCount = $viralPosts->groupBy(fn($p) => $p->posted_at->hour)->map->count();
+            $hourCount = $viralPosts->groupBy(fn ($p) => $p->posted_at->hour)->map->count();
             $viralCharacteristics['best_posting_hour'] = $hourCount->sort()->keys()->last();
 
             // Eng ko'p ishlatiladigan hashtaglar
@@ -482,7 +482,7 @@ class InstagramInsightsService
         }
 
         return [
-            'viral_posts' => $viralPosts->map(fn($p) => [
+            'viral_posts' => $viralPosts->map(fn ($p) => [
                 'id' => $p->media_id,
                 'type' => $p->media_product_type,
                 'thumbnail_url' => $p->thumbnail_url,
@@ -573,19 +573,19 @@ class InstagramInsightsService
             'CAROUSEL_ALBUM' => 'Carousellar',
         ];
 
-        return ($typeLabels[$dominantType] ?? $dominantType) . ' sizga eng ko\'p follower olib kelmoqda. Shu formatni ko\'proq ishlating.';
+        return ($typeLabels[$dominantType] ?? $dominantType).' sizga eng ko\'p follower olib kelmoqda. Shu formatni ko\'proq ishlating.';
     }
 
     private function generateStrategySummary(array $bestDays, array $bestHours, $bestContentType): string
     {
         $summary = [];
 
-        if (!empty($bestDays)) {
+        if (! empty($bestDays)) {
             $topDay = reset($bestDays);
             $summary[] = "{$topDay['name']} kuni post qiling";
         }
 
-        if (!empty($bestHours)) {
+        if (! empty($bestHours)) {
             $topHour = reset($bestHours);
             $summary[] = "soat {$topHour['hour']} da";
         }
@@ -599,7 +599,7 @@ class InstagramInsightsService
             $summary[] = $typeLabels[$bestContentType->media_product_type] ?? '';
         }
 
-        return implode(' ', $summary) . '.';
+        return implode(' ', $summary).'.';
     }
 
     private function generateAudienceProfile($audience, $account): string
@@ -622,20 +622,20 @@ class InstagramInsightsService
 
         // Lokatsiya
         $topCities = $audience->top_cities ?? [];
-        if (!empty($topCities)) {
-            $parts[] = array_key_first($topCities) . 'da yashovchi';
+        if (! empty($topCities)) {
+            $parts[] = array_key_first($topCities).'da yashovchi';
         }
 
-        return 'Sizning tipik followeringiz: ' . implode(', ', $parts) . '.';
+        return 'Sizning tipik followeringiz: '.implode(', ', $parts).'.';
     }
 
     private function analyzeCaptionLength(string $accountId): array
     {
         $media = InstagramMedia::where('account_id', $accountId)->get();
 
-        $shortCaptions = $media->filter(fn($m) => strlen($m->caption ?? '') < 100);
-        $mediumCaptions = $media->filter(fn($m) => strlen($m->caption ?? '') >= 100 && strlen($m->caption ?? '') < 500);
-        $longCaptions = $media->filter(fn($m) => strlen($m->caption ?? '') >= 500);
+        $shortCaptions = $media->filter(fn ($m) => strlen($m->caption ?? '') < 100);
+        $mediumCaptions = $media->filter(fn ($m) => strlen($m->caption ?? '') >= 100 && strlen($m->caption ?? '') < 500);
+        $longCaptions = $media->filter(fn ($m) => strlen($m->caption ?? '') >= 500);
 
         $results = [
             'short' => ['count' => $shortCaptions->count(), 'avg_reach' => round($shortCaptions->avg('reach'))],
@@ -706,14 +706,14 @@ class InstagramInsightsService
         }
 
         if ($hashtagPerformance->count() > 0) {
-            $topHashtags = $hashtagPerformance->take(3)->pluck('hashtag')->map(fn($h) => '#' . $h)->implode(', ');
+            $topHashtags = $hashtagPerformance->take(3)->pluck('hashtag')->map(fn ($h) => '#'.$h)->implode(', ');
             $items[] = [
                 'priority' => 'medium',
                 'action' => "Shu hashtaglarni ishlating: {$topHashtags}",
             ];
         }
 
-        if (!empty($captionAnalysis['recommendation'])) {
+        if (! empty($captionAnalysis['recommendation'])) {
             $items[] = [
                 'priority' => 'medium',
                 'action' => $captionAnalysis['recommendation'],
@@ -740,16 +740,16 @@ class InstagramInsightsService
 
         $formula = [];
 
-        if (!empty($characteristics['dominant_type'])) {
+        if (! empty($characteristics['dominant_type'])) {
             $typeLabels = ['REELS' => 'Reels', 'CAROUSEL_ALBUM' => 'Carousel', 'FEED' => 'Post'];
             $formula[] = $typeLabels[$characteristics['dominant_type']] ?? $characteristics['dominant_type'];
         }
 
-        if (!empty($characteristics['best_posting_hour'])) {
+        if (! empty($characteristics['best_posting_hour'])) {
             $formula[] = "soat {$characteristics['best_posting_hour']}:00 da";
         }
 
-        if (!empty($characteristics['avg_caption_length'])) {
+        if (! empty($characteristics['avg_caption_length'])) {
             $len = $characteristics['avg_caption_length'];
             if ($len > 500) {
                 $formula[] = 'batafsil caption bilan';
@@ -760,6 +760,6 @@ class InstagramInsightsService
             }
         }
 
-        return 'Viral formula: ' . implode(' ', $formula) . '.';
+        return 'Viral formula: '.implode(' ', $formula).'.';
     }
 }

@@ -15,7 +15,6 @@ namespace App\Services\Algorithm\Math;
  * - Fisher (1925) - Analysis of Variance (ANOVA)
  *
  * @version 1.0.0
- * @package App\Services\Algorithm\Math
  */
 class StatisticalTests
 {
@@ -27,9 +26,9 @@ class StatisticalTests
      * Formula:
      * t = (X̄₁ - X̄₂) / √(s²pooled × (1/n₁ + 1/n₂))
      *
-     * @param array $sample1 First sample
-     * @param array $sample2 Second sample
-     * @param float $alpha Significance level (default 0.05)
+     * @param  array  $sample1  First sample
+     * @param  array  $sample2  Second sample
+     * @param  float  $alpha  Significance level (default 0.05)
      * @return array Test results
      */
     public static function tTest(
@@ -57,7 +56,7 @@ class StatisticalTests
 
         // Pooled standard deviation
         $pooledVar = (($n1 - 1) * $var1 + ($n2 - 1) * $var2) / ($n1 + $n2 - 2);
-        $pooledStdDev = sqrt($pooledVar * (1/$n1 + 1/$n2));
+        $pooledStdDev = sqrt($pooledVar * (1 / $n1 + 1 / $n2));
 
         if ($pooledStdDev == 0) {
             return [
@@ -100,8 +99,8 @@ class StatisticalTests
      * Formula:
      * χ² = Σ (Observed - Expected)² / Expected
      *
-     * @param array $observed 2x2 contingency table [[a,b],[c,d]]
-     * @param float $alpha Significance level
+     * @param  array  $observed  2x2 contingency table [[a,b],[c,d]]
+     * @param  float  $alpha  Significance level
      * @return array Test results
      */
     public static function chiSquareTest(
@@ -177,14 +176,16 @@ class StatisticalTests
     /**
      * Calculate variance
      *
-     * @param array $sample Sample data
-     * @param float|null $mean Mean (optional, will calculate if not provided)
+     * @param  array  $sample  Sample data
+     * @param  float|null  $mean  Mean (optional, will calculate if not provided)
      * @return float Variance
      */
     protected static function variance(array $sample, ?float $mean = null): float
     {
         $n = count($sample);
-        if ($n < 2) return 0;
+        if ($n < 2) {
+            return 0;
+        }
 
         if ($mean === null) {
             $mean = array_sum($sample) / $n;
@@ -204,8 +205,8 @@ class StatisticalTests
      * Uses approximation for t-distribution cumulative distribution function.
      * Sufficient accuracy for most A/B testing use cases.
      *
-     * @param float $t T-statistic
-     * @param int $df Degrees of freedom
+     * @param  float  $t  T-statistic
+     * @param  int  $df  Degrees of freedom
      * @return float Cumulative probability
      */
     protected static function tDistributionCDF(float $t, int $df): float
@@ -228,7 +229,7 @@ class StatisticalTests
      *
      * Approximation using error function.
      *
-     * @param float $z Z-score
+     * @param  float  $z  Z-score
      * @return float Cumulative probability
      */
     protected static function normalCDF(float $z): float
@@ -241,18 +242,18 @@ class StatisticalTests
      *
      * Abramowitz and Stegun approximation (maximum error: 1.5e-7)
      *
-     * @param float $x Input value
+     * @param  float  $x  Input value
      * @return float Error function value
      */
     protected static function erf(float $x): float
     {
         // Constants
-        $a1 =  0.254829592;
+        $a1 = 0.254829592;
         $a2 = -0.284496736;
-        $a3 =  1.421413741;
+        $a3 = 1.421413741;
         $a4 = -1.453152027;
-        $a5 =  1.061405429;
-        $p  =  0.3275911;
+        $a5 = 1.061405429;
+        $p = 0.3275911;
 
         // Save the sign of x
         $sign = ($x < 0) ? -1 : 1;
@@ -270,17 +271,21 @@ class StatisticalTests
      *
      * Approximation for chi-square cumulative distribution.
      *
-     * @param float $x Chi-square statistic
-     * @param int $df Degrees of freedom
+     * @param  float  $x  Chi-square statistic
+     * @param  int  $df  Degrees of freedom
      * @return float Cumulative probability
      */
     protected static function chiSquareCDF(float $x, int $df): float
     {
-        if ($x <= 0) return 0;
-        if ($df <= 0) return 0;
+        if ($x <= 0) {
+            return 0;
+        }
+        if ($df <= 0) {
+            return 0;
+        }
 
         // Wilson-Hilferty approximation
-        $z = pow($x / $df, 1/3) - (1 - 2/(9*$df)) / sqrt(2/(9*$df));
+        $z = pow($x / $df, 1 / 3) - (1 - 2 / (9 * $df)) / sqrt(2 / (9 * $df));
 
         return self::normalCDF($z);
     }
@@ -288,16 +293,23 @@ class StatisticalTests
     /**
      * Interpret Cohen's d effect size
      *
-     * @param float $d Cohen's d value
+     * @param  float  $d  Cohen's d value
      * @return string Effect size interpretation
      */
     protected static function interpretCohenD(float $d): string
     {
         $absD = abs($d);
 
-        if ($absD < 0.2) return 'negligible';
-        if ($absD < 0.5) return 'small';
-        if ($absD < 0.8) return 'medium';
+        if ($absD < 0.2) {
+            return 'negligible';
+        }
+        if ($absD < 0.5) {
+            return 'small';
+        }
+        if ($absD < 0.8) {
+            return 'medium';
+        }
+
         return 'large';
     }
 
@@ -306,9 +318,9 @@ class StatisticalTests
      *
      * Power analysis for independent samples t-test.
      *
-     * @param float $effectSize Expected Cohen's d
-     * @param float $alpha Significance level (default 0.05)
-     * @param float $power Desired statistical power (default 0.80)
+     * @param  float  $effectSize  Expected Cohen's d
+     * @param  float  $alpha  Significance level (default 0.05)
+     * @param  float  $power  Desired statistical power (default 0.80)
      * @return int Required sample size per group
      */
     public static function calculateSampleSize(
@@ -320,23 +332,25 @@ class StatisticalTests
         // n ≈ 2(Zα/2 + Zβ)² / δ²
 
         // Critical values
-        $zAlpha = self::normalInverse(1 - $alpha/2); // Two-tailed
+        $zAlpha = self::normalInverse(1 - $alpha / 2); // Two-tailed
         $zBeta = self::normalInverse($power);
 
         $n = 2 * pow($zAlpha + $zBeta, 2) / pow($effectSize, 2);
 
-        return (int)ceil($n);
+        return (int) ceil($n);
     }
 
     /**
      * Inverse normal distribution (approximation)
      *
-     * @param float $p Probability (0 to 1)
+     * @param  float  $p  Probability (0 to 1)
      * @return float Z-score
      */
     protected static function normalInverse(float $p): float
     {
-        if ($p <= 0 || $p >= 1) return 0;
+        if ($p <= 0 || $p >= 1) {
+            return 0;
+        }
 
         // Beasley-Springer-Moro approximation
         $a0 = 2.50662823884;
@@ -367,13 +381,17 @@ class StatisticalTests
                       (((($b3 * $r + $b2) * $r + $b1) * $r + $b0) * $r + 1);
         } else {
             $r = $p;
-            if ($x > 0) $r = 1 - $p;
+            if ($x > 0) {
+                $r = 1 - $p;
+            }
 
             $r = log(-log($r));
             $result = $c0 + $r * ($c1 + $r * ($c2 + $r * ($c3 + $r * ($c4 + $r *
                       ($c5 + $r * ($c6 + $r * ($c7 + $r * $c8)))))));
 
-            if ($x < 0) $result = -$result;
+            if ($x < 0) {
+                $result = -$result;
+            }
         }
 
         return $result;
@@ -382,9 +400,9 @@ class StatisticalTests
     /**
      * Calculate confidence interval for proportion
      *
-     * @param int $successes Number of successes
-     * @param int $trials Number of trials
-     * @param float $confidenceLevel Confidence level (default 0.95)
+     * @param  int  $successes  Number of successes
+     * @param  int  $trials  Number of trials
+     * @param  float  $confidenceLevel  Confidence level (default 0.95)
      * @return array [lower_bound, upper_bound]
      */
     public static function proportionConfidenceInterval(

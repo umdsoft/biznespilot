@@ -4,8 +4,8 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\JobDescription;
 use App\Models\BusinessUser;
+use App\Models\JobDescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -18,7 +18,7 @@ class JobDescriptionsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -56,7 +56,7 @@ class JobDescriptionsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return redirect()->route('login');
         }
 
@@ -99,14 +99,14 @@ class JobDescriptionsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'department' => 'required|in:' . implode(',', array_keys(BusinessUser::DEPARTMENTS)),
-            'position_level' => 'nullable|in:' . implode(',', array_keys(JobDescription::POSITION_LEVELS)),
+            'department' => 'required|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
+            'position_level' => 'nullable|in:'.implode(',', array_keys(JobDescription::POSITION_LEVELS)),
             'reports_to' => 'nullable|string|max:255',
             'job_summary' => 'nullable|string',
             'responsibilities' => 'nullable|string',
@@ -115,7 +115,7 @@ class JobDescriptionsController extends Controller
             'skills' => 'nullable|string',
             'salary_range_min' => 'nullable|numeric|min:0',
             'salary_range_max' => 'nullable|numeric|min:0',
-            'employment_type' => 'required|in:' . implode(',', array_keys(JobDescription::EMPLOYMENT_TYPES)),
+            'employment_type' => 'required|in:'.implode(',', array_keys(JobDescription::EMPLOYMENT_TYPES)),
             'location' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ], [
@@ -145,7 +145,7 @@ class JobDescriptionsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -155,8 +155,8 @@ class JobDescriptionsController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'department' => 'required|in:' . implode(',', array_keys(BusinessUser::DEPARTMENTS)),
-            'position_level' => 'nullable|in:' . implode(',', array_keys(JobDescription::POSITION_LEVELS)),
+            'department' => 'required|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
+            'position_level' => 'nullable|in:'.implode(',', array_keys(JobDescription::POSITION_LEVELS)),
             'reports_to' => 'nullable|string|max:255',
             'job_summary' => 'nullable|string',
             'responsibilities' => 'nullable|string',
@@ -165,7 +165,7 @@ class JobDescriptionsController extends Controller
             'skills' => 'nullable|string',
             'salary_range_min' => 'nullable|numeric|min:0',
             'salary_range_max' => 'nullable|numeric|min:0',
-            'employment_type' => 'required|in:' . implode(',', array_keys(JobDescription::EMPLOYMENT_TYPES)),
+            'employment_type' => 'required|in:'.implode(',', array_keys(JobDescription::EMPLOYMENT_TYPES)),
             'location' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ], [
@@ -186,7 +186,7 @@ class JobDescriptionsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -206,7 +206,7 @@ class JobDescriptionsController extends Controller
     {
         $business = $this->getCurrentBusiness();
 
-        if (!$business) {
+        if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
         }
 
@@ -215,7 +215,7 @@ class JobDescriptionsController extends Controller
             ->firstOrFail();
 
         $jobDescription->update([
-            'is_active' => !$jobDescription->is_active,
+            'is_active' => ! $jobDescription->is_active,
         ]);
 
         return response()->json([

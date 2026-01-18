@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
-use App\Models\Business;
 use App\Models\Lead;
 use App\Models\Task;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -20,7 +18,7 @@ class DashboardController extends Controller
         $business = $this->getCurrentBusiness();
         $userId = Auth::id();
 
-        if (!$business) {
+        if (! $business) {
             return Inertia::render('Operator/Dashboard', [
                 'stats' => null,
                 'myLeads' => [],
@@ -35,7 +33,7 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
-            ->map(fn($lead) => [
+            ->map(fn ($lead) => [
                 'id' => $lead->id,
                 'name' => $lead->name,
                 'phone' => $lead->phone,
@@ -51,7 +49,7 @@ class DashboardController extends Controller
             ->orderBy('due_date', 'asc')
             ->limit(10)
             ->get()
-            ->map(fn($task) => [
+            ->map(fn ($task) => [
                 'id' => $task->id,
                 'title' => $task->title,
                 'status' => $task->status,

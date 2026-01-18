@@ -62,7 +62,7 @@ class SipuniAccount extends Model
      */
     public function isConfigured(): bool
     {
-        return !empty($this->api_key) && !empty($this->api_secret);
+        return ! empty($this->api_key) && ! empty($this->api_secret);
     }
 
     /**
@@ -73,7 +73,7 @@ class SipuniAccount extends Model
         ksort($params);
         $signString = '';
         foreach ($params as $key => $value) {
-            $signString .= $key . '=' . $value;
+            $signString .= $key.'='.$value;
         }
         $signString .= $this->api_secret;
 

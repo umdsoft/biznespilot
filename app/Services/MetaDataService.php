@@ -93,18 +93,18 @@ class MetaDataService
                 ->whereNotNull('campaign_id');
 
             // Apply date filter only if not 'maximum'
-            if (!($dates['no_filter'] ?? false)) {
+            if (! ($dates['no_filter'] ?? false)) {
                 $query->whereBetween('date_start', [$dates['start'], $dates['end']]);
             }
 
             $insights = $query->select(
-                    'campaign_id',
-                    DB::raw('SUM(impressions) as impressions'),
-                    DB::raw('SUM(reach) as reach'),
-                    DB::raw('SUM(clicks) as clicks'),
-                    DB::raw('SUM(spend) as spend'),
-                    DB::raw('SUM(conversions) as conversions')
-                )
+                'campaign_id',
+                DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
+                DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
+                DB::raw('SUM(conversions) as conversions')
+            )
                 ->groupBy('campaign_id')
                 ->get()
                 ->keyBy('campaign_id');
@@ -121,10 +121,10 @@ class MetaDataService
                     'objective' => $campaign->objective,
                     'status' => $campaign->status,
                     'created_time' => $campaign->start_time,
-                'spend' => (float) $spend,
-                'impressions' => (int) $impressions,
-                'clicks' => (int) $clicks,
-                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                    'spend' => (float) $spend,
+                    'impressions' => (int) $impressions,
+                    'clicks' => (int) $clicks,
+                    'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
                     'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
                     'conversions' => (int) ($insight?->conversions ?? 0),
                     'roas' => 0, // Not available in current schema
@@ -147,85 +147,85 @@ class MetaDataService
 
             // Age breakdown
             $ageQuery = MetaInsight::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->whereNotNull('age_range')
-            ->select(
-                'age_range',
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(reach) as reach'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions')
-            )
-            ->groupBy('age_range');
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('age_range')
+                ->select(
+                    'age_range',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('SUM(conversions) as conversions')
+                )
+                ->groupBy('age_range');
 
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $ageQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
-        }
+            if (! $noFilter && $dates['start'] && $dates['end']) {
+                $ageQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+            }
 
-        $ageRawData = $ageQuery->get();
-        $totalAgeSpend = $ageRawData->sum('spend');
+            $ageRawData = $ageQuery->get();
+            $totalAgeSpend = $ageRawData->sum('spend');
 
-        $ageData = $ageRawData->map(function ($row) use ($totalAgeSpend) {
-            $impressions = (int) ($row->impressions ?? 0);
-            $clicks = (int) ($row->clicks ?? 0);
-            $spend = (float) ($row->spend ?? 0);
+            $ageData = $ageRawData->map(function ($row) use ($totalAgeSpend) {
+                $impressions = (int) ($row->impressions ?? 0);
+                $clicks = (int) ($row->clicks ?? 0);
+                $spend = (float) ($row->spend ?? 0);
 
-            return [
-                'age_range' => $row->age_range,
-                'label' => $row->age_range, // Frontend expects 'label'
-                'impressions' => $impressions,
-                'reach' => (int) ($row->reach ?? 0),
-                'clicks' => $clicks,
-                'spend' => $spend,
-                'percentage' => $totalAgeSpend > 0 ? round(($spend / $totalAgeSpend) * 100, 1) : 0,
-                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
-                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
-                'conversions' => (int) ($row->conversions ?? 0),
-            ];
-        })->sortBy('age_range')->values()->toArray();
+                return [
+                    'age_range' => $row->age_range,
+                    'label' => $row->age_range, // Frontend expects 'label'
+                    'impressions' => $impressions,
+                    'reach' => (int) ($row->reach ?? 0),
+                    'clicks' => $clicks,
+                    'spend' => $spend,
+                    'percentage' => $totalAgeSpend > 0 ? round(($spend / $totalAgeSpend) * 100, 1) : 0,
+                    'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                    'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                    'conversions' => (int) ($row->conversions ?? 0),
+                ];
+            })->sortBy('age_range')->values()->toArray();
 
-        // Gender breakdown
-        $genderQuery = MetaInsight::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->whereNotNull('gender')
-            ->select(
-                'gender',
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(reach) as reach'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions')
-            )
-            ->groupBy('gender');
+            // Gender breakdown
+            $genderQuery = MetaInsight::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('gender')
+                ->select(
+                    'gender',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('SUM(conversions) as conversions')
+                )
+                ->groupBy('gender');
 
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $genderQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
-        }
+            if (! $noFilter && $dates['start'] && $dates['end']) {
+                $genderQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+            }
 
-        $genderRawData = $genderQuery->get();
-        $totalGenderSpend = $genderRawData->sum('spend');
+            $genderRawData = $genderQuery->get();
+            $totalGenderSpend = $genderRawData->sum('spend');
 
-        $genderData = $genderRawData->map(function ($row) use ($totalGenderSpend) {
-            $impressions = (int) ($row->impressions ?? 0);
-            $clicks = (int) ($row->clicks ?? 0);
-            $spend = (float) ($row->spend ?? 0);
+            $genderData = $genderRawData->map(function ($row) use ($totalGenderSpend) {
+                $impressions = (int) ($row->impressions ?? 0);
+                $clicks = (int) ($row->clicks ?? 0);
+                $spend = (float) ($row->spend ?? 0);
 
-            return [
-                'gender' => $row->gender,
-                'label' => $row->gender, // Raw value for Vue template comparison (male/female)
-                'impressions' => $impressions,
-                'reach' => (int) ($row->reach ?? 0),
-                'clicks' => $clicks,
-                'spend' => $spend,
-                'percentage' => $totalGenderSpend > 0 ? round(($spend / $totalGenderSpend) * 100, 1) : 0,
-                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
-                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
-                'conversions' => (int) ($row->conversions ?? 0),
-            ];
-        })->values()->toArray();
+                return [
+                    'gender' => $row->gender,
+                    'label' => $row->gender, // Raw value for Vue template comparison (male/female)
+                    'impressions' => $impressions,
+                    'reach' => (int) ($row->reach ?? 0),
+                    'clicks' => $clicks,
+                    'spend' => $spend,
+                    'percentage' => $totalGenderSpend > 0 ? round(($spend / $totalGenderSpend) * 100, 1) : 0,
+                    'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                    'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                    'conversions' => (int) ($row->conversions ?? 0),
+                ];
+            })->values()->toArray();
 
-            $hasData = !empty($ageData) || !empty($genderData);
+            $hasData = ! empty($ageData) || ! empty($genderData);
 
             return [
                 'age' => $ageData,
@@ -249,104 +249,104 @@ class MetaDataService
 
             // Platform breakdown (Facebook, Instagram, etc.)
             $platformQuery = MetaInsight::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->whereNotNull('publisher_platform')
-            ->select(
-                'publisher_platform',
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(reach) as reach'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions')
-            )
-            ->groupBy('publisher_platform');
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('publisher_platform')
+                ->select(
+                    'publisher_platform',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('SUM(conversions) as conversions')
+                )
+                ->groupBy('publisher_platform');
 
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $platformQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
-        }
+            if (! $noFilter && $dates['start'] && $dates['end']) {
+                $platformQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+            }
 
-        $platformRawData = $platformQuery->get();
-        $totalPlatformSpend = $platformRawData->sum('spend');
+            $platformRawData = $platformQuery->get();
+            $totalPlatformSpend = $platformRawData->sum('spend');
 
-        $platformData = $platformRawData->map(function ($row) use ($totalPlatformSpend) {
-            $impressions = (int) ($row->impressions ?? 0);
-            $clicks = (int) ($row->clicks ?? 0);
-            $spend = (float) ($row->spend ?? 0);
+            $platformData = $platformRawData->map(function ($row) use ($totalPlatformSpend) {
+                $impressions = (int) ($row->impressions ?? 0);
+                $clicks = (int) ($row->clicks ?? 0);
+                $spend = (float) ($row->spend ?? 0);
 
-            return [
-                'platform' => $row->publisher_platform,
-                'label' => match ($row->publisher_platform) {
-                    'facebook' => 'Facebook',
-                    'instagram' => 'Instagram',
-                    'messenger' => 'Messenger',
-                    'audience_network' => 'Audience Network',
-                    default => ucfirst($row->publisher_platform ?? 'Noma\'lum'),
-                },
-                'impressions' => $impressions,
-                'reach' => (int) ($row->reach ?? 0),
-                'clicks' => $clicks,
-                'spend' => $spend,
-                'percentage' => $totalPlatformSpend > 0 ? round(($spend / $totalPlatformSpend) * 100, 1) : 0,
-                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
-                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
-                'conversions' => (int) ($row->conversions ?? 0),
-            ];
-        })->sortByDesc('spend')->values()->toArray();
+                return [
+                    'platform' => $row->publisher_platform,
+                    'label' => match ($row->publisher_platform) {
+                        'facebook' => 'Facebook',
+                        'instagram' => 'Instagram',
+                        'messenger' => 'Messenger',
+                        'audience_network' => 'Audience Network',
+                        default => ucfirst($row->publisher_platform ?? 'Noma\'lum'),
+                    },
+                    'impressions' => $impressions,
+                    'reach' => (int) ($row->reach ?? 0),
+                    'clicks' => $clicks,
+                    'spend' => $spend,
+                    'percentage' => $totalPlatformSpend > 0 ? round(($spend / $totalPlatformSpend) * 100, 1) : 0,
+                    'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                    'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                    'conversions' => (int) ($row->conversions ?? 0),
+                ];
+            })->sortByDesc('spend')->values()->toArray();
 
-        // Position breakdown (Feed, Stories, Reels, etc.)
-        $positionQuery = MetaInsight::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->whereNotNull('platform_position')
-            ->select(
-                'platform_position',
-                'publisher_platform',
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(reach) as reach'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions')
-            )
-            ->groupBy('platform_position', 'publisher_platform');
+            // Position breakdown (Feed, Stories, Reels, etc.)
+            $positionQuery = MetaInsight::withoutGlobalScope('business')
+                ->where('ad_account_id', $adAccountId)
+                ->whereNotNull('platform_position')
+                ->select(
+                    'platform_position',
+                    'publisher_platform',
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(reach) as reach'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('SUM(conversions) as conversions')
+                )
+                ->groupBy('platform_position', 'publisher_platform');
 
-        if (!$noFilter && $dates['start'] && $dates['end']) {
-            $positionQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
-        }
+            if (! $noFilter && $dates['start'] && $dates['end']) {
+                $positionQuery->whereBetween('date_start', [$dates['start'], $dates['end']]);
+            }
 
-        $positionRawData = $positionQuery->get();
-        $totalPositionSpend = $positionRawData->sum('spend');
+            $positionRawData = $positionQuery->get();
+            $totalPositionSpend = $positionRawData->sum('spend');
 
-        $positionData = $positionRawData->map(function ($row) use ($totalPositionSpend) {
-            $impressions = (int) ($row->impressions ?? 0);
-            $clicks = (int) ($row->clicks ?? 0);
-            $spend = (float) ($row->spend ?? 0);
+            $positionData = $positionRawData->map(function ($row) use ($totalPositionSpend) {
+                $impressions = (int) ($row->impressions ?? 0);
+                $clicks = (int) ($row->clicks ?? 0);
+                $spend = (float) ($row->spend ?? 0);
 
-            return [
-                'position' => $row->platform_position,
-                'platform' => $row->publisher_platform,
-                'label' => match ($row->platform_position) {
-                    'feed' => 'Feed',
-                    'story' => 'Stories',
-                    'reels' => 'Reels',
-                    'explore' => 'Explore',
-                    'search' => 'Search',
-                    'instream_video' => 'In-Stream Video',
-                    'right_hand_column' => 'Right Column',
-                    'marketplace' => 'Marketplace',
-                    'an_classic' => 'Audience Network Classic',
-                    default => ucfirst(str_replace('_', ' ', $row->platform_position ?? 'Noma\'lum')),
-                },
-                'impressions' => $impressions,
-                'reach' => (int) ($row->reach ?? 0),
-                'clicks' => $clicks,
-                'spend' => $spend,
-                'percentage' => $totalPositionSpend > 0 ? round(($spend / $totalPositionSpend) * 100, 1) : 0,
-                'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
-                'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
-                'conversions' => (int) ($row->conversions ?? 0),
-            ];
-        })->sortByDesc('spend')->values()->toArray();
+                return [
+                    'position' => $row->platform_position,
+                    'platform' => $row->publisher_platform,
+                    'label' => match ($row->platform_position) {
+                        'feed' => 'Feed',
+                        'story' => 'Stories',
+                        'reels' => 'Reels',
+                        'explore' => 'Explore',
+                        'search' => 'Search',
+                        'instream_video' => 'In-Stream Video',
+                        'right_hand_column' => 'Right Column',
+                        'marketplace' => 'Marketplace',
+                        'an_classic' => 'Audience Network Classic',
+                        default => ucfirst(str_replace('_', ' ', $row->platform_position ?? 'Noma\'lum')),
+                    },
+                    'impressions' => $impressions,
+                    'reach' => (int) ($row->reach ?? 0),
+                    'clicks' => $clicks,
+                    'spend' => $spend,
+                    'percentage' => $totalPositionSpend > 0 ? round(($spend / $totalPositionSpend) * 100, 1) : 0,
+                    'ctr' => $impressions > 0 ? round(($clicks / $impressions) * 100, 2) : 0,
+                    'cpc' => $clicks > 0 ? round($spend / $clicks, 2) : 0,
+                    'conversions' => (int) ($row->conversions ?? 0),
+                ];
+            })->sortByDesc('spend')->values()->toArray();
 
-            $hasData = !empty($platformData) || !empty($positionData);
+            $hasData = ! empty($platformData) || ! empty($positionData);
 
             return [
                 'platforms' => $platformData,
@@ -369,18 +369,18 @@ class MetaDataService
             $endDate = Carbon::today();
 
             $trend = MetaInsight::withoutGlobalScope('business')
-            ->where('ad_account_id', $adAccountId)
-            ->whereBetween('date_start', [$startDate, $endDate])
-            ->select(
-                'date_start',
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(conversions) as conversions')
-            )
-            ->groupBy('date_start')
-            ->orderBy('date_start')
-            ->get();
+                ->where('ad_account_id', $adAccountId)
+                ->whereBetween('date_start', [$startDate, $endDate])
+                ->select(
+                    'date_start',
+                    DB::raw('SUM(spend) as spend'),
+                    DB::raw('SUM(impressions) as impressions'),
+                    DB::raw('SUM(clicks) as clicks'),
+                    DB::raw('SUM(conversions) as conversions')
+                )
+                ->groupBy('date_start')
+                ->orderBy('date_start')
+                ->get();
 
             return $trend->map(function ($row) {
                 $impressions = $row->impressions ?? 0;
@@ -414,17 +414,17 @@ class MetaDataService
             ->whereNull('platform_position');
 
         // Apply date filter only if not 'maximum'
-        if (!$noFilter && $startDate && $endDate) {
+        if (! $noFilter && $startDate && $endDate) {
             $query->whereBetween('date_start', [$startDate, $endDate]);
         }
 
         $data = $query->select(
-                DB::raw('SUM(impressions) as impressions'),
-                DB::raw('SUM(reach) as reach'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(spend) as spend'),
-                DB::raw('SUM(conversions) as conversions')
-            )
+            DB::raw('SUM(impressions) as impressions'),
+            DB::raw('SUM(reach) as reach'),
+            DB::raw('SUM(clicks) as clicks'),
+            DB::raw('SUM(spend) as spend'),
+            DB::raw('SUM(conversions) as conversions')
+        )
             ->first();
 
         $impressions = (int) ($data->impressions ?? 0);
@@ -531,7 +531,7 @@ class MetaDataService
     {
         $account = MetaAdAccount::withoutGlobalScope('business')->find($adAccountId);
 
-        if (!$account) {
+        if (! $account) {
             return ['synced' => false];
         }
 
@@ -575,13 +575,13 @@ class MetaDataService
             'change' => $overview['change'],
             'top_campaigns' => array_slice($campaigns, 0, 5),
             'worst_campaigns' => array_slice(
-                array_filter($campaigns, fn($c) => $c['spend'] > 0 && $c['ctr'] < 1),
+                array_filter($campaigns, fn ($c) => $c['spend'] > 0 && $c['ctr'] < 1),
                 0,
                 3
             ),
             'demographics' => $demographics,
             'placements' => $placements,
-            'active_campaigns' => count(array_filter($campaigns, fn($c) => $c['status'] === 'ACTIVE')),
+            'active_campaigns' => count(array_filter($campaigns, fn ($c) => $c['status'] === 'ACTIVE')),
             'total_campaigns' => count($campaigns),
         ];
     }
@@ -617,7 +617,7 @@ class MetaDataService
 
             // Process leads objectives
             $leadObjectives = ['OUTCOME_LEADS', 'LEAD_GENERATION'];
-            $leadStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $leadObjectives));
+            $leadStats = $objectiveStats->filter(fn ($s) => in_array($s->objective, $leadObjectives));
             if ($leadStats->isNotEmpty()) {
                 $totalLeads = $leadStats->sum('total_leads');
                 $totalSpend = $leadStats->sum('total_spend');
@@ -634,7 +634,7 @@ class MetaDataService
 
             // Process messages objectives
             $messageObjectives = ['MESSAGES'];
-            $messageStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $messageObjectives));
+            $messageStats = $objectiveStats->filter(fn ($s) => in_array($s->objective, $messageObjectives));
             if ($messageStats->isNotEmpty()) {
                 $totalMessages = $messageStats->sum('total_messages');
                 $totalSpend = $messageStats->sum('total_spend');
@@ -651,7 +651,7 @@ class MetaDataService
 
             // Process sales/conversion objectives
             $salesObjectives = ['OUTCOME_SALES', 'CONVERSIONS', 'PRODUCT_CATALOG_SALES'];
-            $salesStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $salesObjectives));
+            $salesStats = $objectiveStats->filter(fn ($s) => in_array($s->objective, $salesObjectives));
             if ($salesStats->isNotEmpty()) {
                 $totalPurchases = $salesStats->sum('total_purchases') ?: $salesStats->sum('total_conversions');
                 $totalSpend = $salesStats->sum('total_spend');
@@ -668,7 +668,7 @@ class MetaDataService
 
             // Process traffic objectives
             $trafficObjectives = ['OUTCOME_TRAFFIC', 'LINK_CLICKS'];
-            $trafficStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $trafficObjectives));
+            $trafficStats = $objectiveStats->filter(fn ($s) => in_array($s->objective, $trafficObjectives));
             if ($trafficStats->isNotEmpty()) {
                 $totalClicks = $trafficStats->sum('total_link_clicks');
                 $totalSpend = $trafficStats->sum('total_spend');
@@ -685,7 +685,7 @@ class MetaDataService
 
             // Process engagement objectives
             $engagementObjectives = ['OUTCOME_ENGAGEMENT', 'POST_ENGAGEMENT', 'PAGE_LIKES'];
-            $engagementStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $engagementObjectives));
+            $engagementStats = $objectiveStats->filter(fn ($s) => in_array($s->objective, $engagementObjectives));
             if ($engagementStats->isNotEmpty()) {
                 $totalClicks = $engagementStats->sum('total_clicks');
                 $totalSpend = $engagementStats->sum('total_spend');
@@ -702,7 +702,7 @@ class MetaDataService
 
             // Process video views objectives
             $videoObjectives = ['VIDEO_VIEWS'];
-            $videoStats = $objectiveStats->filter(fn($s) => in_array($s->objective, $videoObjectives));
+            $videoStats = $objectiveStats->filter(fn ($s) => in_array($s->objective, $videoObjectives));
             if ($videoStats->isNotEmpty()) {
                 $totalViews = $videoStats->sum('total_video_views');
                 $totalSpend = $videoStats->sum('total_spend');
@@ -741,19 +741,19 @@ class MetaDataService
                 ->whereNull('gender')
                 ->whereNull('publisher_platform');
 
-            if (!$noFilter && $startDate && $endDate) {
+            if (! $noFilter && $startDate && $endDate) {
                 $ageQuery->whereBetween('date_start', [$startDate, $endDate]);
             }
 
             $ageData = $ageQuery->select(
-                    'age_range',
-                    DB::raw('SUM(impressions) as impressions'),
-                    DB::raw('SUM(reach) as reach'),
-                    DB::raw('SUM(clicks) as clicks'),
-                    DB::raw('SUM(spend) as spend'),
-                    DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
-                    DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
-                )
+                'age_range',
+                DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
+                DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
+                DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
+                DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
+            )
                 ->groupBy('age_range')
                 ->orderByDesc(DB::raw('SUM(spend)'))
                 ->get();
@@ -765,19 +765,19 @@ class MetaDataService
                 ->whereNull('age_range')
                 ->whereNull('publisher_platform');
 
-            if (!$noFilter && $startDate && $endDate) {
+            if (! $noFilter && $startDate && $endDate) {
                 $genderQuery->whereBetween('date_start', [$startDate, $endDate]);
             }
 
             $genderData = $genderQuery->select(
-                    'gender',
-                    DB::raw('SUM(impressions) as impressions'),
-                    DB::raw('SUM(reach) as reach'),
-                    DB::raw('SUM(clicks) as clicks'),
-                    DB::raw('SUM(spend) as spend'),
-                    DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
-                    DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
-                )
+                'gender',
+                DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
+                DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
+                DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
+                DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
+            )
                 ->groupBy('gender')
                 ->orderByDesc(DB::raw('SUM(spend)'))
                 ->get();
@@ -790,19 +790,19 @@ class MetaDataService
                 ->whereNull('gender')
                 ->whereNull('platform_position');
 
-            if (!$noFilter && $startDate && $endDate) {
+            if (! $noFilter && $startDate && $endDate) {
                 $platformQuery->whereBetween('date_start', [$startDate, $endDate]);
             }
 
             $platformData = $platformQuery->select(
-                    'publisher_platform',
-                    DB::raw('SUM(impressions) as impressions'),
-                    DB::raw('SUM(reach) as reach'),
-                    DB::raw('SUM(clicks) as clicks'),
-                    DB::raw('SUM(spend) as spend'),
-                    DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
-                    DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
-                )
+                'publisher_platform',
+                DB::raw('SUM(impressions) as impressions'),
+                DB::raw('SUM(reach) as reach'),
+                DB::raw('SUM(clicks) as clicks'),
+                DB::raw('SUM(spend) as spend'),
+                DB::raw('CASE WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100 ELSE 0 END as ctr'),
+                DB::raw('CASE WHEN SUM(clicks) > 0 THEN SUM(spend) / SUM(clicks) ELSE 0 END as cpc')
+            )
                 ->groupBy('publisher_platform')
                 ->orderByDesc(DB::raw('SUM(spend)'))
                 ->get();
@@ -818,8 +818,8 @@ class MetaDataService
             $bestPlatform = $platformData->sortByDesc('ctr')->first();
 
             // Cheapest CPC performers
-            $cheapestAge = $ageData->filter(fn($a) => $a->clicks > 0)->sortBy('cpc')->first();
-            $cheapestGender = $genderData->filter(fn($g) => $g->clicks > 0)->sortBy('cpc')->first();
+            $cheapestAge = $ageData->filter(fn ($a) => $a->clicks > 0)->sortBy('cpc')->first();
+            $cheapestGender = $genderData->filter(fn ($g) => $g->clicks > 0)->sortBy('cpc')->first();
 
             // Calculate average CTR for performance comparison
             $avgCtr = $ageData->avg('ctr') ?? 0;
@@ -827,6 +827,7 @@ class MetaDataService
             // Format age data with performance metrics
             $agePerformance = $ageData->map(function ($item) use ($totalSpend, $bestAge, $avgCtr) {
                 $isBest = $bestAge && $item->age_range === $bestAge->age_range;
+
                 return [
                     'label' => $item->age_range,
                     'impressions' => (int) $item->impressions,
@@ -844,11 +845,12 @@ class MetaDataService
             // Format gender data with performance metrics
             $genderPerformance = $genderData->map(function ($item) use ($totalSpend, $bestGender) {
                 $isBest = $bestGender && $item->gender === $bestGender->gender;
-                $label = match($item->gender) {
+                $label = match ($item->gender) {
                     'male' => 'Erkaklar',
                     'female' => 'Ayollar',
                     default => 'Noma\'lum',
                 };
+
                 return [
                     'key' => $item->gender,
                     'label' => $label,
@@ -866,13 +868,14 @@ class MetaDataService
             // Format platform data
             $platformPerformance = $platformData->map(function ($item) use ($bestPlatform) {
                 $isBest = $bestPlatform && $item->publisher_platform === $bestPlatform->publisher_platform;
-                $label = match($item->publisher_platform) {
+                $label = match ($item->publisher_platform) {
                     'facebook' => 'Facebook',
                     'instagram' => 'Instagram',
                     'messenger' => 'Messenger',
                     'audience_network' => 'Audience Network',
                     default => ucfirst($item->publisher_platform ?? 'Boshqa'),
                 };
+
                 return [
                     'key' => $item->publisher_platform,
                     'label' => $label,
@@ -897,7 +900,7 @@ class MetaDataService
                     'color' => 'blue',
                     'title' => 'Eng yaxshi yosh guruhi',
                     'value' => $bestAge->age_range,
-                    'metric' => round($bestAge->ctr, 2) . '% CTR',
+                    'metric' => round($bestAge->ctr, 2).'% CTR',
                     'description' => "Bu yosh guruhi eng yuqori CTR ko'rsatmoqda",
                 ];
             }
@@ -911,7 +914,7 @@ class MetaDataService
                     'color' => $bestGender->gender === 'male' ? 'blue' : 'pink',
                     'title' => 'Eng faol jins',
                     'value' => $genderLabel,
-                    'metric' => round($bestGender->ctr, 2) . '% CTR',
+                    'metric' => round($bestGender->ctr, 2).'% CTR',
                     'description' => "Bu jins ko'proq bosimlar qilmoqda",
                 ];
             }
@@ -924,8 +927,8 @@ class MetaDataService
                     'color' => 'purple',
                     'title' => 'Eng samarali platforma',
                     'value' => ucfirst($bestPlatform->publisher_platform),
-                    'metric' => round($bestPlatform->ctr, 2) . '% CTR',
-                    'description' => "Bu platformada reklamalar yaxshiroq ishlaydi",
+                    'metric' => round($bestPlatform->ctr, 2).'% CTR',
+                    'description' => 'Bu platformada reklamalar yaxshiroq ishlaydi',
                 ];
             }
 
@@ -937,8 +940,8 @@ class MetaDataService
                     'color' => 'green',
                     'title' => 'Eng arzon klik',
                     'value' => $cheapestAge->age_range,
-                    'metric' => '$' . round($cheapestAge->cpc, 2) . '/klik',
-                    'description' => "Bu yosh guruhida klik narxi eng past",
+                    'metric' => '$'.round($cheapestAge->cpc, 2).'/klik',
+                    'description' => 'Bu yosh guruhida klik narxi eng past',
                 ];
             }
 
@@ -976,13 +979,24 @@ class MetaDataService
      */
     private function getPerformanceLevel(float $value, float $average): string
     {
-        if ($average <= 0) return 'normal';
+        if ($average <= 0) {
+            return 'normal';
+        }
 
         $ratio = $value / $average;
-        if ($ratio >= 1.3) return 'excellent';
-        if ($ratio >= 1.1) return 'good';
-        if ($ratio >= 0.9) return 'normal';
-        if ($ratio >= 0.7) return 'below';
+        if ($ratio >= 1.3) {
+            return 'excellent';
+        }
+        if ($ratio >= 1.1) {
+            return 'good';
+        }
+        if ($ratio >= 0.9) {
+            return 'normal';
+        }
+        if ($ratio >= 0.7) {
+            return 'below';
+        }
+
         return 'poor';
     }
 }

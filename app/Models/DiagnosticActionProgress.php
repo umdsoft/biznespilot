@@ -128,6 +128,7 @@ class DiagnosticActionProgress extends Model
         if ($this->result_score_before === null || $this->result_score_after === null) {
             return null;
         }
+
         return $this->result_score_after - $this->result_score_before;
     }
 }
