@@ -32,8 +32,8 @@ class SecurityTest extends TestCase
             'password' => 'password',
         ]);
 
-        // Should not crash the application
-        $response->assertStatus(401);
+        // Should not crash the application - returns 422 (validation error) for invalid credentials
+        $response->assertStatus(422);
 
         // Users table should still exist
         $this->assertDatabaseCount('users', 0);
@@ -44,6 +44,7 @@ class SecurityTest extends TestCase
         $user = User::factory()->create();
 
         $maliciousName = '<script>alert("XSS")</script>';
+        $password = 'Xk9#mPq2$zBn7Lw!';
 
         // Try to update profile with XSS payload
         $response = $this->actingAs($user)->post('/register', [
@@ -51,8 +52,8 @@ class SecurityTest extends TestCase
             'login' => 'newuser123',
             'email' => 'test@example.com',
             'phone' => '+998901234567',
-            'password' => 'Password123!',
-            'password_confirmation' => 'Password123!',
+            'password' => $password,
+            'password_confirmation' => $password,
         ]);
 
         // The script should be escaped or rejected
@@ -77,9 +78,9 @@ class SecurityTest extends TestCase
     public function test_sensitive_routes_require_authentication(): void
     {
         $sensitiveRoutes = [
-            '/business/dashboard',
-            '/admin/dashboard',
-            '/settings/profile',
+            '/business',           // Main business dashboard
+            '/dashboard',          // Admin dashboard
+            '/business/settings',  // Settings page
         ];
 
         foreach ($sensitiveRoutes as $route) {

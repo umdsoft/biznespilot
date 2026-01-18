@@ -104,6 +104,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Handle unauthenticated users for API requests
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+
+            return redirect()->guest(route('login'));
+        });
+
         // Handle CSRF token mismatch (419) specially for better UX
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, Request $request) {
             // For Inertia requests

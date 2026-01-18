@@ -26,7 +26,7 @@ class BusinessFactory extends Factory
         return [
             'name' => $name,
             'slug' => Str::slug($name).'-'.fake()->unique()->randomNumber(5),
-            'owner_id' => User::factory(),
+            'user_id' => User::factory(),
             'category' => fake()->randomElement(['retail', 'services', 'manufacturing', 'technology', 'food']),
             'description' => fake()->paragraph(),
             'logo' => null,
@@ -44,7 +44,7 @@ class BusinessFactory extends Factory
     public function forOwner(User $user): static
     {
         return $this->state(fn (array $attributes) => [
-            'owner_id' => $user->id,
+            'user_id' => $user->id,
         ]);
     }
 

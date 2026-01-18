@@ -65,13 +65,16 @@ class AuthenticationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        // Use a unique password unlikely to be in breach databases
+        $password = 'Xk9#mPq2$zBn7Lw!';
+
         $response = $this->post('/register', [
             'name' => 'Test User',
             'login' => 'newuser',
             'email' => 'test@example.com',
             'phone' => '+998901234567',
-            'password' => 'Password123!',
-            'password_confirmation' => 'Password123!',
+            'password' => $password,
+            'password_confirmation' => $password,
         ]);
 
         $this->assertAuthenticated();
@@ -81,13 +84,15 @@ class AuthenticationTest extends TestCase
     {
         User::factory()->create(['login' => 'existinguser']);
 
+        $password = 'Xk9#mPq2$zBn7Lw!';
+
         $response = $this->post('/register', [
             'name' => 'Test User',
             'login' => 'existinguser',
             'email' => 'test@example.com',
             'phone' => '+998901234567',
-            'password' => 'Password123!',
-            'password_confirmation' => 'Password123!',
+            'password' => $password,
+            'password_confirmation' => $password,
         ]);
 
         $response->assertSessionHasErrors('login');
