@@ -72,7 +72,10 @@
       "Bash(powershell -Command:*)",
       "Bash(more:*)",
       "Bash(del \"d:\\\\marketing startap\\\\biznespilot\\\\resources\\\\js\\\\Pages\\\\Business\\\\AI\\\\Instagram.vue\")",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)"
     ]
   }
 }
