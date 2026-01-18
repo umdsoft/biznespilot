@@ -131,24 +131,24 @@ class DashboardController extends Controller
     private function getTeamPerformance($businessId, $startOfMonth): array
     {
         // Get all operator performance in a single optimized query
-        $performance = DB::table('business_users')
-            ->join('users', 'business_users.user_id', '=', 'users.id')
+        $performance = DB::table('business_user')
+            ->join('users', 'business_user.user_id', '=', 'users.id')
             ->leftJoin('leads', function ($join) use ($businessId, $startOfMonth) {
-                $join->on('business_users.user_id', '=', 'leads.assigned_to')
+                $join->on('business_user.user_id', '=', 'leads.assigned_to')
                     ->where('leads.business_id', '=', $businessId)
                     ->where('leads.updated_at', '>=', $startOfMonth);
             })
-            ->where('business_users.business_id', $businessId)
-            ->where('business_users.department', 'sales_operator')
+            ->where('business_user.business_id', $businessId)
+            ->where('business_user.department', 'sales_operator')
             ->select(
-                'business_users.id',
-                'business_users.user_id',
+                'business_user.id',
+                'business_user.user_id',
                 'users.name',
                 DB::raw('COUNT(DISTINCT leads.id) as leads_handled'),
                 DB::raw('COUNT(DISTINCT CASE WHEN leads.status = "won" THEN leads.id END) as leads_won'),
                 DB::raw('COALESCE(SUM(CASE WHEN leads.status = "won" THEN leads.estimated_value ELSE 0 END), 0) as revenue')
             )
-            ->groupBy('business_users.id', 'business_users.user_id', 'users.name')
+            ->groupBy('business_user.id', 'business_user.user_id', 'users.name')
             ->orderByDesc('revenue')
             ->get()
             ->map(function ($row) {
