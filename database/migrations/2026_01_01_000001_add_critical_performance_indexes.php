@@ -62,7 +62,7 @@ return new class extends Migration
         }
 
         // Instagram accounts indexes
-        if (Schema::hasTable('instagram_accounts')) {
+        if (Schema::hasTable('instagram_accounts') && Schema::hasColumn('instagram_accounts', 'is_active')) {
             Schema::table('instagram_accounts', function (Blueprint $table) {
                 try {
                     $table->index(['business_id', 'is_active'], 'idx_instagram_business_active');
@@ -73,7 +73,7 @@ return new class extends Migration
         }
 
         // Facebook pages indexes
-        if (Schema::hasTable('facebook_pages')) {
+        if (Schema::hasTable('facebook_pages') && Schema::hasColumn('facebook_pages', 'is_active')) {
             Schema::table('facebook_pages', function (Blueprint $table) {
                 try {
                     $table->index(['business_id', 'is_active'], 'idx_facebook_business_active');
