@@ -83,7 +83,10 @@
       "Bash(comm -23:*)",
       "Bash(do echo \"Checking: $component\" grep -r \"$component\" --include=\"*.vue\" --include=\"*.js\" --include=\"*.ts\" .)",
       "Bash(npx vue-tsc:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: add welcome/* and new-business to CSRF exceptions\n\nFixes 419 CSRF errors on create-business form after registration.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: add welcome/* and new-business to CSRF exceptions\n\nFixes 419 CSRF errors on create-business form after registration.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(ssh root@213.230.65.239 \"cd /var/www/biznespilot && git pull origin main && php artisan optimize:clear && systemctl restart php8.2-fpm\")",
+      "Bash(ssh:*)",
+      "Bash(ping:*)"
     ]
   }
 }
