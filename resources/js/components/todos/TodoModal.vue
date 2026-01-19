@@ -2,6 +2,9 @@
 import { ref, watch, computed } from 'vue';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: Boolean,
@@ -114,14 +117,14 @@ const submit = async () => {
             emit('close');
             resetForm();
         } else {
-            errors.value = response.data.errors || { general: response.data.error || 'Xatolik yuz berdi' };
+            errors.value = response.data.errors || { general: response.data.error || t('todo.error_occurred') };
         }
     } catch (error) {
         console.error('Failed to save todo:', error);
 
         // Handle 419 CSRF error
         if (isCsrfError(error)) {
-            errors.value = { general: 'Sessiya muddati tugadi. Qayta urinib ko\'ring.' };
+            errors.value = { general: t('todo.session_expired') };
             await refreshCsrfToken();
             return;
         }
@@ -131,7 +134,7 @@ const submit = async () => {
         } else if (error.response?.data?.error) {
             errors.value = { general: error.response.data.error };
         } else {
-            errors.value = { general: 'Tarmoq xatosi' };
+            errors.value = { general: t('todo.network_error') };
         }
     } finally {
         loading.value = false;
@@ -146,7 +149,7 @@ const close = () => {
 
 // Computed
 const isEditing = computed(() => !!props.todo);
-const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yangi vazifa');
+const modalTitle = computed(() => isEditing.value ? t('todo.edit_title') : t('todo.new_title'));
 </script>
 
 <template>
@@ -198,14 +201,14 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <!-- Title -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Sarlavha *
+                                        {{ t('todo.title_label') }} *
                                     </label>
                                     <input
                                         v-model="form.title"
                                         type="text"
                                         required
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Vazifa nomi"
+                                        :placeholder="t('todo.title_placeholder')"
                                     />
                                     <p v-if="errors.title" class="mt-1 text-sm text-red-600">{{ errors.title[0] }}</p>
                                 </div>
@@ -213,13 +216,13 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <!-- Description -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Tavsif
+                                        {{ t('todo.description_label') }}
                                     </label>
                                     <textarea
                                         v-model="form.description"
                                         rows="3"
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Vazifa haqida..."
+                                        :placeholder="t('todo.description_placeholder')"
                                     ></textarea>
                                 </div>
 
@@ -227,7 +230,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Turi
+                                            {{ t('todo.type_label') }}
                                         </label>
                                         <select
                                             v-model="form.type"
@@ -240,7 +243,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Muhimlik
+                                            {{ t('todo.priority_label') }}
                                         </label>
                                         <select
                                             v-model="form.priority"
@@ -256,7 +259,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <!-- Due Date -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Muddat
+                                        {{ t('todo.due_date_label') }}
                                     </label>
                                     <input
                                         v-model="form.due_date"
@@ -268,13 +271,13 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <!-- Assignee -->
                                 <div v-if="teamMembers && teamMembers.length > 0">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Tayinlash
+                                        {{ t('todo.assignee_label') }}
                                     </label>
                                     <select
                                         v-model="form.assigned_to"
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">O'zim</option>
+                                        <option value="">{{ t('todo.assignee_self') }}</option>
                                         <option v-for="member in teamMembers" :key="member.id" :value="member.id">
                                             {{ member.name }} ({{ member.role }})
                                         </option>
@@ -284,7 +287,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                 <!-- Subtasks -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Sub-vazifalar
+                                        {{ t('todo.subtasks_label') }}
                                     </label>
                                     <div class="space-y-2 mb-2">
                                         <div
@@ -308,7 +311,7 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                             type="text"
                                             @keyup.enter="addSubtask"
                                             class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                                            placeholder="Yangi sub-vazifa..."
+                                            :placeholder="t('todo.new_subtask')"
                                         />
                                         <button
                                             type="button"
@@ -328,14 +331,14 @@ const modalTitle = computed(() => isEditing.value ? 'Vazifani tahrirlash' : 'Yan
                                     @click="close"
                                     class="px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                 >
-                                    Bekor qilish
+                                    {{ t('common.cancel') }}
                                 </button>
                                 <button
                                     @click="submit"
                                     :disabled="loading"
                                     class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
                                 >
-                                    {{ loading ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                    {{ loading ? t('todo.saving') : t('common.save') }}
                                 </button>
                             </div>
                         </div>

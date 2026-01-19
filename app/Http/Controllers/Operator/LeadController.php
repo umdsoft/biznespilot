@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Lead;
 use App\Models\LeadActivity;
+use App\Models\PipelineStage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -22,12 +23,26 @@ class LeadController extends Controller
             return redirect()->route('login')->with('error', 'Biznes topilmadi');
         }
 
+        // Get pipeline stages for kanban view
+        $pipelineStages = PipelineStage::forBusiness($business->id)
+            ->active()
+            ->ordered()
+            ->get()
+            ->map(fn ($stage) => [
+                'value' => $stage->slug,
+                'label' => $stage->name,
+                'color' => $stage->color,
+                'is_won' => $stage->is_won,
+                'is_lost' => $stage->is_lost,
+            ]);
+
         return Inertia::render('Operator/Leads/Index', [
             'leads' => null, // Lazy load via API
             'stats' => null, // Lazy load via API
             'channels' => [],
             'operators' => [],
             'lazyLoad' => true,
+            'pipelineStages' => $pipelineStages,
         ]);
     }
 

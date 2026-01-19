@@ -11,6 +11,9 @@ import {
     ArrowLeftIcon,
 } from '@heroicons/vue/24/outline';
 import TemplateModal from '@/components/todos/TemplateModal.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     templates: Array,
@@ -47,7 +50,7 @@ const changeCategory = (category) => {
 };
 
 const deleteTemplate = async (template) => {
-    if (!confirm('Shablonni o\'chirmoqchimisiz?')) return;
+    if (!confirm(t('templates.delete_confirm'))) return;
 
     try {
         const response = await fetch(route('business.todo-templates.destroy', template.id), {
@@ -124,8 +127,8 @@ const getCategoryColor = (category) => {
 </script>
 
 <template>
-    <BusinessLayout title="Shablon boshqaruvi">
-        <Head title="Shablon boshqaruvi" />
+    <BusinessLayout :title="t('templates.title')">
+        <Head :title="t('templates.title')" />
 
         <div class="h-full flex flex-col -m-4 sm:-m-6 lg:-m-8">
             <!-- Header -->
@@ -139,9 +142,9 @@ const getCategoryColor = (category) => {
                             <ArrowLeftIcon class="w-5 h-5" />
                         </Link>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Shablonlar</h1>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('templates.heading') }}</h1>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Tayyor shablonlardan foydalaning
+                                {{ t('templates.description') }}
                             </p>
                         </div>
                     </div>
@@ -150,7 +153,7 @@ const getCategoryColor = (category) => {
                         class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-blue-500/25"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        Yangi shablon
+                        {{ t('templates.new') }}
                     </button>
                 </div>
 
@@ -165,7 +168,7 @@ const getCategoryColor = (category) => {
                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                         ]"
                     >
-                        Barchasi
+                        {{ t('templates.all') }}
                     </button>
                     <button
                         v-for="(label, key) in categories"
@@ -214,11 +217,11 @@ const getCategoryColor = (category) => {
                             <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                                 <span class="flex items-center gap-1">
                                     <DocumentDuplicateIcon class="w-4 h-4" />
-                                    {{ template.items_count }} ta vazifa
+                                    {{ t('templates.tasks_count', { count: template.items_count }) }}
                                 </span>
                                 <span class="flex items-center gap-1">
                                     <PlayIcon class="w-4 h-4" />
-                                    {{ template.usage_count }} marta ishlatilgan
+                                    {{ t('templates.usage_count', { count: template.usage_count }) }}
                                 </span>
                             </div>
                         </div>
@@ -231,27 +234,27 @@ const getCategoryColor = (category) => {
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                             >
                                 <PlayIcon class="w-4 h-4" />
-                                {{ applyingTemplate === template.id ? 'Yaratilmoqda...' : 'Qo\'llash' }}
+                                {{ applyingTemplate === template.id ? t('templates.applying') : t('templates.apply') }}
                             </button>
                             <div class="flex items-center gap-1">
                                 <button
                                     @click="duplicateTemplate(template)"
                                     class="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    title="Nusxa olish"
+                                    :title="t('templates.duplicate')"
                                 >
                                     <DocumentDuplicateIcon class="w-5 h-5" />
                                 </button>
                                 <button
                                     @click="openTemplateModal(template)"
                                     class="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    title="Tahrirlash"
+                                    :title="t('templates.edit')"
                                 >
                                     <PencilSquareIcon class="w-5 h-5" />
                                 </button>
                                 <button
                                     @click="deleteTemplate(template)"
                                     class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    title="O'chirish"
+                                    :title="t('templates.delete')"
                                 >
                                     <TrashIcon class="w-5 h-5" />
                                 </button>
@@ -265,14 +268,14 @@ const getCategoryColor = (category) => {
                         class="col-span-full text-center py-16"
                     >
                         <DocumentDuplicateIcon class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Shablonlar yo'q</h3>
-                        <p class="text-gray-500 dark:text-gray-400 mb-6">Yangi shablon yarating</p>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('templates.empty') }}</h3>
+                        <p class="text-gray-500 dark:text-gray-400 mb-6">{{ t('templates.empty_desc') }}</p>
                         <button
                             @click="openTemplateModal()"
                             class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
                         >
                             <PlusIcon class="w-5 h-5" />
-                            Yangi shablon
+                            {{ t('templates.new') }}
                         </button>
                     </div>
                 </div>

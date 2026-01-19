@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     leadForm: Object,
@@ -35,7 +38,7 @@ const validateField = (field) => {
     const value = formData.value[field.id];
 
     if (field.required && !value) {
-        return 'Bu maydon majburiy';
+        return t('public_form.required_field');
     }
 
     if (value) {
@@ -43,13 +46,13 @@ const validateField = (field) => {
             case 'email':
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(value)) {
-                    return 'Noto\'g\'ri email format';
+                    return t('public_form.invalid_email');
                 }
                 break;
             case 'phone':
                 const phoneRegex = /^\+?[0-9\s\-()]{7,20}$/;
                 if (!phoneRegex.test(value.replace(/\s/g, ''))) {
-                    return 'Noto\'g\'ri telefon format';
+                    return t('public_form.invalid_phone');
                 }
                 break;
         }
@@ -104,10 +107,10 @@ const submitForm = async () => {
                 }, 3000);
             }
         } else {
-            errors.value = { form: result.error || 'Xatolik yuz berdi' };
+            errors.value = { form: result.error || t('public_form.error') };
         }
     } catch (error) {
-        errors.value = { form: 'Tarmoq xatosi. Qayta urinib ko\'ring.' };
+        errors.value = { form: t('public_form.network_error') };
     } finally {
         isSubmitting.value = false;
     }
@@ -279,7 +282,7 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                                 ]"
                                 :style="{ '--tw-ring-color': themeColor }"
                             >
-                                <option value="">{{ field.placeholder || 'Tanlang...' }}</option>
+                                <option value="">{{ field.placeholder || t('public_form.select_placeholder') }}</option>
                                 <option v-for="option in field.options" :key="option" :value="option">
                                     {{ option }}
                                 </option>
@@ -317,9 +320,9 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Yuborilmoqda...
+                                {{ t('public_form.submitting') }}
                             </span>
-                            <span v-else>{{ leadForm.submit_button_text || 'Yuborish' }}</span>
+                            <span v-else>{{ leadForm.submit_button_text || t('public_form.submit') }}</span>
                         </button>
                     </form>
                 </div>
@@ -343,9 +346,9 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                             </svg>
                         </div>
 
-                        <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">Rahmat!</h2>
+                        <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">{{ t('public_form.thank_you') }}</h2>
                         <p class="text-gray-600 dark:text-gray-300 mb-8 text-lg">
-                            {{ submitResult?.message || 'Ma\'lumotlaringiz muvaffaqiyatli qabul qilindi!' }}
+                            {{ submitResult?.message || t('public_form.success_message') }}
                         </p>
 
                         <!-- Lead Magnet -->
@@ -355,7 +358,7 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                                 :style="{ backgroundColor: themeColor + '08', borderColor: themeColor + '30' }"
                             >
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-4">
-                                    {{ submitResult.lead_magnet.title || 'Sizning sovg\'angiz:' }}
+                                    {{ submitResult.lead_magnet.title || t('public_form.your_gift') }}
                                 </p>
 
                                 <!-- File Download -->
@@ -368,7 +371,7 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
-                                    Yuklab olish
+                                    {{ t('public_form.download') }}
                                 </a>
 
                                 <!-- Link -->
@@ -382,7 +385,7 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                     </svg>
-                                    Ochish
+                                    {{ t('public_form.open') }}
                                 </a>
 
                                 <!-- Video Embed -->
@@ -400,7 +403,7 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
                                         ></iframe>
                                     </div>
                                     <p class="mt-3 text-xs text-gray-400 dark:text-gray-500 text-center">
-                                        Video faqat ko'rish uchun - yuklab olib bo'lmaydi
+                                        {{ t('public_form.video_notice') }}
                                     </p>
                                 </div>
 
@@ -422,7 +425,7 @@ const themeColor = computed(() => props.leadForm.theme_color || '#6366f1');
 
                         <!-- Redirect Notice -->
                         <p v-if="submitResult?.redirect_url" class="text-sm text-gray-500 dark:text-gray-400">
-                            3 soniyadan keyin yo'naltirilasiz...
+                            {{ t('public_form.redirect_notice') }}
                         </p>
                     </div>
                 </div>

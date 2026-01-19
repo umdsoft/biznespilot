@@ -3,9 +3,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Integratsiyalar</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ t('integrations.title') }}</h1>
         <p class="text-sm text-gray-600 mt-1">
-          Biznesingizni turli platformalar bilan birlashtiring
+          {{ t('integrations.description') }}
         </p>
       </div>
       <button
@@ -22,7 +22,7 @@
         >
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Hammasini Yangilash
+        {{ t('integrations.refresh_all') }}
       </button>
     </div>
 
@@ -31,7 +31,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600">Jami Integratsiyalar</p>
+            <p class="text-sm text-gray-600">{{ t('integrations.stats.total') }}</p>
             <p class="text-2xl font-bold text-gray-900 mt-1">{{ totalIntegrations }}</p>
           </div>
           <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -45,7 +45,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600">Ulangan</p>
+            <p class="text-sm text-gray-600">{{ t('integrations.stats.connected') }}</p>
             <p class="text-2xl font-bold text-green-600 mt-1">{{ connectedCount }}</p>
           </div>
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -59,7 +59,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600">Faol</p>
+            <p class="text-sm text-gray-600">{{ t('integrations.stats.active') }}</p>
             <p class="text-2xl font-bold text-blue-600 mt-1">{{ activeCount }}</p>
           </div>
           <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -73,7 +73,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600">Oxirgi Sinxronlash</p>
+            <p class="text-sm text-gray-600">{{ t('integrations.stats.last_sync') }}</p>
             <p class="text-sm font-medium text-gray-900 mt-1">{{ lastSyncTime }}</p>
           </div>
           <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -141,10 +141,10 @@
     >
       <div class="text-6xl mb-4">🔌</div>
       <h3 class="text-lg font-medium text-gray-900 mb-2">
-        Bu kategoriyada integratsiya topilmadi
+        {{ t('integrations.empty.title') }}
       </h3>
       <p class="text-gray-600">
-        Boshqa kategoriyani tanlang yoki barcha integratsiyalarni ko'ring
+        {{ t('integrations.empty.desc') }}
       </p>
     </div>
   </div>
@@ -157,7 +157,9 @@ import { useToastStore } from '@/stores/toast';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import IntegrationCard from '@/components/Integrations/IntegrationCard.vue';
+import { useI18n } from '@/i18n';
 
+const { t } = useI18n();
 const router = useRouter();
 const toast = useToastStore();
 const authStore = useAuthStore();
@@ -168,11 +170,11 @@ const integrations = ref([]);
 
 // Categories
 const categories = computed(() => [
-  { id: 'all', name: 'Barchasi', count: integrations.value.length },
-  { id: 'social', name: 'Ijtimoiy Tarmoqlar', count: integrations.value.filter(i => i.category === 'social').length },
-  { id: 'messaging', name: 'Xabarlar', count: integrations.value.filter(i => i.category === 'messaging').length },
-  { id: 'business', name: 'Biznes Tizimlari', count: integrations.value.filter(i => i.category === 'business').length },
-  { id: 'marketing', name: 'Marketing', count: integrations.value.filter(i => i.category === 'marketing').length },
+  { id: 'all', name: t('integrations.categories.all'), count: integrations.value.length },
+  { id: 'social', name: t('integrations.categories.social'), count: integrations.value.filter(i => i.category === 'social').length },
+  { id: 'messaging', name: t('integrations.categories.messaging'), count: integrations.value.filter(i => i.category === 'messaging').length },
+  { id: 'business', name: t('integrations.categories.business'), count: integrations.value.filter(i => i.category === 'business').length },
+  { id: 'marketing', name: t('integrations.categories.marketing'), count: integrations.value.filter(i => i.category === 'marketing').length },
 ]);
 
 // Filtered integrations
@@ -192,7 +194,7 @@ const lastSyncTime = computed(() => {
     .filter(i => i.connectionInfo?.lastSync)
     .map(i => new Date(i.connectionInfo.lastSync));
 
-  if (syncs.length === 0) return 'Hech qachon';
+  if (syncs.length === 0) return t('integrations.time.never');
 
   const latest = new Date(Math.max(...syncs));
   return formatRelativeTime(latest);
@@ -207,17 +209,11 @@ const initializeIntegrations = () => {
       category: 'social',
       icon: '📷',
       name: 'Instagram',
-      description: 'Instagram akkauntingizni ulang va postlaringiz, audiensiya statistikasini kuzating',
+      description: t('integrations.instagram.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Post va Reels statistikasi',
-        'Audiensiya demografiyasi',
-        'Engagement tahlili',
-        'Hashtag performance',
-        'Best posting times',
-      ],
+      features: t('integrations.instagram.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -226,17 +222,11 @@ const initializeIntegrations = () => {
       category: 'social',
       icon: '👥',
       name: 'Facebook',
-      description: 'Facebook sahifangiz va reklamalaringizni boshqaring',
+      description: t('integrations.facebook.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Sahifa statistikasi',
-        'Ads Manager integratsiyasi',
-        'Audiensiya tahlili',
-        'Post performance',
-        'Lead generation',
-      ],
+      features: t('integrations.facebook.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -245,17 +235,11 @@ const initializeIntegrations = () => {
       category: 'messaging',
       icon: '✈️',
       name: 'Telegram',
-      description: 'Telegram bot orqali mijozlar bilan muloqot qiling',
+      description: t('integrations.telegram.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'AI Chatbot',
-        'Avtomatik javoblar',
-        'Guruh boshqaruvi',
-        'Xabarlar statistikasi',
-        'Broadcasting',
-      ],
+      features: t('integrations.telegram.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -264,17 +248,11 @@ const initializeIntegrations = () => {
       category: 'messaging',
       icon: '💬',
       name: 'WhatsApp Business',
-      description: 'WhatsApp orqali mijozlar bilan professional muloqot',
+      description: t('integrations.whatsapp.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'AI Chatbot',
-        'Quick replies',
-        'Business catalog',
-        'Xabarlar templatelari',
-        'Avtomatlashtirish',
-      ],
+      features: t('integrations.whatsapp.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -283,17 +261,11 @@ const initializeIntegrations = () => {
       category: 'business',
       icon: '💳',
       name: 'POS Sistema',
-      description: 'POS tizimingizni ulang va savdo ma\'lumotlarini avtomatik sinxronlang',
+      description: t('integrations.pos.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Real-time savdo ma\'lumotlari',
-        'Inventar boshqaruvi',
-        'Kassir hisobotlari',
-        'Mijozlar bazasi',
-        'Chek tahlili',
-      ],
+      features: t('integrations.pos.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -302,17 +274,11 @@ const initializeIntegrations = () => {
       category: 'marketing',
       icon: '📊',
       name: 'Google Analytics 4',
-      description: 'Veb-sayt trafigi va foydalanuvchi xatti-harakatini kuzating',
+      description: t('integrations.google_analytics.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Website traffic tahlili',
-        'User behavior tracking',
-        'Conversion funnel',
-        'Real-time analytics',
-        'E-commerce tracking',
-      ],
+      features: t('integrations.google_analytics.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -321,17 +287,11 @@ const initializeIntegrations = () => {
       category: 'marketing',
       icon: '📈',
       name: 'Yandex.Metrica',
-      description: 'Yandex analytics platformasi (Rossiya va MDH uchun)',
+      description: t('integrations.yandex_metrica.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Website statistikasi',
-        'Session replay',
-        'Heatmaps',
-        'Form analytics',
-        'Webvisor',
-      ],
+      features: t('integrations.yandex_metrica.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -340,17 +300,11 @@ const initializeIntegrations = () => {
       category: 'marketing',
       icon: '🎯',
       name: 'Google Ads',
-      description: 'Google reklama kampaniyalarini boshqaring',
+      description: t('integrations.google_ads.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Campaign performance',
-        'Keyword tahlili',
-        'Budget optimization',
-        'ROAS tracking',
-        'Conversion tracking',
-      ],
+      features: t('integrations.google_ads.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -359,17 +313,11 @@ const initializeIntegrations = () => {
       category: 'marketing',
       icon: '🎪',
       name: 'Yandex.Direct',
-      description: 'Yandex reklama platformasi (Rossiya va MDH)',
+      description: t('integrations.yandex_direct.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Kampaniya boshqaruvi',
-        'CTR optimization',
-        'Budget tracking',
-        'ROI analysis',
-        'Geo-targeting',
-      ],
+      features: t('integrations.yandex_direct.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -378,17 +326,11 @@ const initializeIntegrations = () => {
       category: 'marketing',
       icon: '📧',
       name: 'Email Marketing',
-      description: 'Email kampaniyalaringizni boshqaring (MailChimp, SendGrid)',
+      description: t('integrations.email.desc'),
       isConnected: false,
       isActive: false,
       loading: false,
-      features: [
-        'Email campaigns',
-        'Subscriber management',
-        'Template builder',
-        'Analytics',
-        'A/B testing',
-      ],
+      features: t('integrations.email.features').split('|'),
       connectionInfo: null,
       stats: null,
     },
@@ -454,10 +396,10 @@ const handleConnect = async (integration) => {
     if (route) {
       router.push(route);
     } else {
-      toast.info(`${integration.name} integratsiyasi ishlab chiqilmoqda...`);
+      toast.info(t('integrations.toast.in_development', { name: integration.name }));
     }
   } catch (error) {
-    toast.error(`${integration.name}ni ulashda xatolik yuz berdi`);
+    toast.error(t('integrations.toast.connect_error', { name: integration.name }));
   } finally {
     integration.loading = false;
   }
@@ -465,7 +407,7 @@ const handleConnect = async (integration) => {
 
 // Handle disconnect
 const handleDisconnect = async (integration) => {
-  if (!confirm(`${integration.name}ni uzmoqchimisiz?`)) {
+  if (!confirm(t('integrations.confirm.disconnect', { name: integration.name }))) {
     return;
   }
 
@@ -481,9 +423,9 @@ const handleDisconnect = async (integration) => {
     integration.connectionInfo = null;
     integration.stats = null;
 
-    toast.success(`${integration.name} muvaffaqiyatli uzildi`);
+    toast.success(t('integrations.toast.disconnected', { name: integration.name }));
   } catch (error) {
-    toast.error(`${integration.name}ni uzishda xatolik yuz berdi`);
+    toast.error(t('integrations.toast.disconnect_error', { name: integration.name }));
   } finally {
     integration.loading = false;
   }
@@ -498,10 +440,10 @@ const handleSync = async (integration) => {
       business_id: authStore.currentBusiness?.id,
     });
 
-    toast.success(`${integration.name} sinxronlashdi`);
+    toast.success(t('integrations.toast.synced', { name: integration.name }));
     await loadIntegrationStatus();
   } catch (error) {
-    toast.error(`${integration.name}ni sinxronlashda xatolik yuz berdi`);
+    toast.error(t('integrations.toast.sync_error', { name: integration.name }));
   } finally {
     integration.loading = false;
   }
@@ -526,7 +468,7 @@ const handleSettings = (integration) => {
 // Refresh all
 const refreshAll = async () => {
   await loadIntegrationStatus();
-  toast.success('Barcha integratsiyalar yangilandi');
+  toast.success(t('integrations.toast.refreshed'));
 };
 
 // Format relative time
@@ -534,10 +476,10 @@ const formatRelativeTime = (date) => {
   const now = new Date();
   const diff = Math.floor((now - date) / 1000);
 
-  if (diff < 60) return 'Hozirgina';
-  if (diff < 3600) return `${Math.floor(diff / 60)} daqiqa oldin`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} soat oldin`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} kun oldin`;
+  if (diff < 60) return t('integrations.time.just_now');
+  if (diff < 3600) return t('integrations.time.minutes_ago', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('integrations.time.hours_ago', { count: Math.floor(diff / 3600) });
+  if (diff < 604800) return t('integrations.time.days_ago', { count: Math.floor(diff / 86400) });
 
   return date.toLocaleDateString('uz-UZ');
 };

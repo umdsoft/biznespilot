@@ -13,6 +13,7 @@ import {
     CurrencyDollarIcon,
     UsersIcon,
 } from '@heroicons/vue/24/outline';
+import { formatFullCurrency } from '@/utils/formatting';
 
 const props = defineProps({
     teamMembers: { type: Array, default: () => [] },
@@ -48,10 +49,7 @@ const currentDate = computed(() => {
     });
 });
 
-const formatCurrency = (value) => {
-    if (!value) return "0 so'm";
-    return new Intl.NumberFormat('uz-UZ').format(value) + " so'm";
-};
+const formatCurrency = (value) => formatFullCurrency(value);
 
 const getBasePath = () => {
     return props.panelType === 'saleshead' ? '/sales-head' : '/business';

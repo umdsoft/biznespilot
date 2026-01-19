@@ -38,7 +38,7 @@ class OffersController extends Controller
         if (str_contains($prefix, 'operator')) {
             return 'operator';
         }
-        if (str_contains($prefix, 'saleshead')) {
+        if (str_contains($prefix, 'sales-head') || str_contains($prefix, 'saleshead')) {
             return 'saleshead';
         }
 
@@ -56,7 +56,7 @@ class OffersController extends Controller
             'marketing' => 'marketing.offers',
             'finance' => 'finance.offers',
             'operator' => 'operator.offers',
-            'saleshead' => 'saleshead.offers',
+            'saleshead' => 'sales-head.offers',
             default => 'business.offers',
         };
     }

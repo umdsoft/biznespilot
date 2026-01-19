@@ -240,6 +240,7 @@ import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
+import { formatNumber, formatFullCurrency, formatDateFull } from '@/utils/formatting';
 
 const { t } = useI18n();
 
@@ -337,22 +338,14 @@ onMounted(() => {
   }
 });
 
-const formatNumber = (value) => {
-  if (!value) return '0';
-  return new Intl.NumberFormat('uz-UZ').format(value);
-};
-
+// formatCurrency funksiyasi valyuta bilan
 const formatCurrency = (value) => {
   if (!value) return '0 ' + t('common.currency');
-  return new Intl.NumberFormat('uz-UZ').format(value) + ' ' + t('common.currency');
+  return formatFullCurrency(value, t('common.currency'));
 };
 
+// formatDate - to'liq sana formati
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('uz-UZ', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  return formatDateFull(dateString);
 };
 </script>

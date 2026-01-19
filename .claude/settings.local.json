@@ -78,7 +78,11 @@
       "Bash(git add:*)",
       "Bash(./vendor/bin/pint:*)",
       "Bash(vendor/bin/pint:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(npx eslint:*)",
+      "Bash(comm -23:*)",
+      "Bash(do echo \"Checking: $component\" grep -r \"$component\" --include=\"*.vue\" --include=\"*.js\" --include=\"*.ts\" .)",
+      "Bash(npx vue-tsc:*)"
     ]
   }
 }

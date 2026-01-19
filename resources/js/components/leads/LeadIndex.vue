@@ -25,11 +25,21 @@ import {
     ArrowsPointingOutIcon,
     ChartPieIcon,
     PresentationChartLineIcon,
+    Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
 import { StarIcon } from '@heroicons/vue/24/solid';
 import BulkSmsModal from '@/components/BulkSmsModal.vue';
 import BulkAssignModal from '@/components/BulkAssignModal.vue';
 import LostReasonModal from '@/components/LostReasonModal.vue';
+import {
+    formatCurrency,
+    formatFullCurrency,
+    formatDateTime,
+    formatRelativeTime,
+    getInitials,
+    getAvatarColor,
+} from '@/utils/formatting';
+import { getCallStatusLabel, getCallStatusColor } from '@/composables/useLabels';
 
 const props = defineProps({
     panelType: {
@@ -67,6 +77,10 @@ const props = defineProps({
     canAssignLeads: {
         type: Boolean,
         default: false,
+    },
+    pipelineStages: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -158,6 +172,16 @@ const getRouteUrl = (action, id = null) => {
         }
     }
 };
+
+// Pipeline stages settings URL
+const pipelineStagesUrl = computed(() => {
+    if (props.panelType === 'saleshead') {
+        return '/sales-head/settings/pipeline-stages';
+    } else if (props.panelType === 'business') {
+        return '/business/settings/pipeline-stages';
+    }
+    return null; // Operator doesn't have access to settings
+});
 
 // SMS state
 const showBulkSmsModal = ref(false);
@@ -298,17 +322,52 @@ const operatorsList = computed(() => {
     return props.operators.length > 0 ? props.operators : localOperators.value;
 });
 
-// Pipeline stages configuration
-const pipelineStages = [
-    { value: 'new', label: 'Yangi', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50 dark:bg-blue-900/20', borderColor: 'border-blue-200 dark:border-blue-800' },
-    { value: 'contacted', label: 'Bog\'lanildi', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50 dark:bg-indigo-900/20', borderColor: 'border-indigo-200 dark:border-indigo-800' },
-    { value: 'callback', label: 'Keyinroq bog\'lanish qilamiz', color: 'purple', bgColor: 'bg-purple-500', lightBg: 'bg-purple-50 dark:bg-purple-900/20', borderColor: 'border-purple-200 dark:border-purple-800' },
-    { value: 'considering', label: 'O\'ylab ko\'radi', color: 'orange', bgColor: 'bg-orange-500', lightBg: 'bg-orange-50 dark:bg-orange-900/20', borderColor: 'border-orange-200 dark:border-orange-800' },
-    { value: 'meeting_scheduled', label: 'Uchrashuv belgilandi', color: 'yellow', bgColor: 'bg-yellow-500', lightBg: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-800' },
-    { value: 'meeting_attended', label: 'Uchrashuvga keldi', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50 dark:bg-teal-900/20', borderColor: 'border-teal-200 dark:border-teal-800' },
-    { value: 'won', label: 'Sotuv', color: 'green', bgColor: 'bg-green-500', lightBg: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-200 dark:border-green-800' },
-    { value: 'lost', label: 'Sifatsiz lid', color: 'red', bgColor: 'bg-red-500', lightBg: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800' },
+// Color mapping for dynamic pipeline stages
+const colorMapping = {
+    blue: { bgColor: 'bg-blue-500', lightBg: 'bg-blue-50 dark:bg-blue-900/20', borderColor: 'border-blue-200 dark:border-blue-800' },
+    indigo: { bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50 dark:bg-indigo-900/20', borderColor: 'border-indigo-200 dark:border-indigo-800' },
+    purple: { bgColor: 'bg-purple-500', lightBg: 'bg-purple-50 dark:bg-purple-900/20', borderColor: 'border-purple-200 dark:border-purple-800' },
+    pink: { bgColor: 'bg-pink-500', lightBg: 'bg-pink-50 dark:bg-pink-900/20', borderColor: 'border-pink-200 dark:border-pink-800' },
+    red: { bgColor: 'bg-red-500', lightBg: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800' },
+    orange: { bgColor: 'bg-orange-500', lightBg: 'bg-orange-50 dark:bg-orange-900/20', borderColor: 'border-orange-200 dark:border-orange-800' },
+    yellow: { bgColor: 'bg-yellow-500', lightBg: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-800' },
+    green: { bgColor: 'bg-green-500', lightBg: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-200 dark:border-green-800' },
+    teal: { bgColor: 'bg-teal-500', lightBg: 'bg-teal-50 dark:bg-teal-900/20', borderColor: 'border-teal-200 dark:border-teal-800' },
+    cyan: { bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50 dark:bg-cyan-900/20', borderColor: 'border-cyan-200 dark:border-cyan-800' },
+    gray: { bgColor: 'bg-gray-500', lightBg: 'bg-gray-50 dark:bg-gray-900/20', borderColor: 'border-gray-200 dark:border-gray-800' },
+};
+
+// Default pipeline stages (fallback if no dynamic stages provided)
+const defaultPipelineStages = [
+    { value: 'new', label: 'Yangi', color: 'blue' },
+    { value: 'contacted', label: 'Bog\'lanildi', color: 'indigo' },
+    { value: 'callback', label: 'Keyinroq bog\'lanish qilamiz', color: 'purple' },
+    { value: 'considering', label: 'O\'ylab ko\'radi', color: 'orange' },
+    { value: 'meeting_scheduled', label: 'Uchrashuv belgilandi', color: 'yellow' },
+    { value: 'meeting_attended', label: 'Uchrashuvga keldi', color: 'teal' },
+    { value: 'won', label: 'Sotuv', color: 'green', is_won: true },
+    { value: 'lost', label: 'Sifatsiz lid', color: 'red', is_lost: true },
 ];
+
+// Dynamic pipeline stages - use props if available, otherwise use defaults
+const pipelineStages = computed(() => {
+    const stages = props.pipelineStages.length > 0
+        ? props.pipelineStages.map(stage => ({
+            value: stage.slug,
+            label: stage.name,
+            color: stage.color,
+            is_won: stage.is_won,
+            is_lost: stage.is_lost,
+            is_system: stage.is_system,
+            ...colorMapping[stage.color] || colorMapping.gray,
+        }))
+        : defaultPipelineStages.map(stage => ({
+            ...stage,
+            ...colorMapping[stage.color] || colorMapping.gray,
+        }));
+
+    return stages;
+});
 
 // Load operators
 const loadOperators = async () => {
@@ -443,7 +502,7 @@ const filteredLeads = computed(() => {
 // Group leads by status for Kanban view
 const leadsByStatus = computed(() => {
     const grouped = {};
-    pipelineStages.forEach(stage => {
+    pipelineStages.value.forEach(stage => {
         grouped[stage.value] = filteredLeads.value.filter(lead => lead.status === stage.value);
     });
     return grouped;
@@ -452,7 +511,7 @@ const leadsByStatus = computed(() => {
 // Calculate totals for each column
 const columnTotals = computed(() => {
     const totals = {};
-    pipelineStages.forEach(stage => {
+    pipelineStages.value.forEach(stage => {
         const stageLeads = leadsByStatus.value[stage.value] || [];
         totals[stage.value] = {
             count: stageLeads.length,
@@ -462,36 +521,9 @@ const columnTotals = computed(() => {
     return totals;
 });
 
-const formatCurrency = (amount) => {
-    if (!amount) return '0';
-    if (amount >= 1000000) return (amount / 1000000).toFixed(1) + 'M';
-    if (amount >= 1000) return (amount / 1000).toFixed(0) + 'K';
-    return new Intl.NumberFormat('uz-UZ').format(amount);
-};
-
-const formatFullCurrency = (amount) => {
-    if (!amount) return '0 so\'m';
-    return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
-};
-
-const getInitials = (name) => {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-};
-
-const getAvatarColor = (name) => {
-    const colors = [
-        'from-blue-500 to-blue-600',
-        'from-purple-500 to-purple-600',
-        'from-green-500 to-green-600',
-        'from-orange-500 to-orange-600',
-        'from-pink-500 to-pink-600',
-        'from-indigo-500 to-indigo-600',
-        'from-teal-500 to-teal-600',
-        'from-red-500 to-red-600',
-    ];
-    const index = name ? name.charCodeAt(0) % colors.length : 0;
-    return colors[index];
+// Get stage by status value
+const getStageByStatus = (status) => {
+    return pipelineStages.value.find(s => s.value === status) || {};
 };
 
 // Check if lead came from phone call
@@ -513,81 +545,12 @@ const isPhoneCallLead = (lead) => {
     return false;
 };
 
-// Get call status color based on last call status
-const getCallStatusColor = (status) => {
-    switch (status) {
-        case 'completed':
-        case 'answered':
-            return 'text-green-500';
-        case 'missed':
-        case 'no_answer':
-            return 'text-red-500';
-        case 'busy':
-            return 'text-yellow-500';
-        case 'failed':
-            return 'text-gray-500';
-        default:
-            return 'text-blue-500';
-    }
-};
-
-// Get call status label in Uzbek
-const getCallStatusLabel = (status) => {
-    switch (status) {
-        case 'completed':
-        case 'answered':
-            return 'Javob berildi';
-        case 'missed':
-            return 'O\'tkazib yuborildi';
-        case 'no_answer':
-            return 'Javob yo\'q';
-        case 'busy':
-            return 'Band';
-        case 'failed':
-            return 'Muvaffaqiyatsiz';
-        case 'initiated':
-            return 'Boshlandi';
-        default:
-            return 'Noma\'lum';
-    }
-};
-
 const getScoreStars = (score) => {
     if (score >= 80) return 5;
     if (score >= 60) return 4;
     if (score >= 40) return 3;
     if (score >= 20) return 2;
     return 1;
-};
-
-const formatDateTime = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${day}.${month}.${year} | ${hours}:${minutes}`;
-};
-
-const formatRelativeTime = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Hozirgina';
-    if (diffMins < 60) return `${diffMins} daq oldin`;
-    if (diffHours < 24) return `${diffHours} soat oldin`;
-    if (diffDays < 7) return `${diffDays} kun oldin`;
-
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    return `${day}.${month}`;
 };
 
 // Mark lead as lost
@@ -882,6 +845,17 @@ onUnmounted(() => {
                             <ListBulletIcon class="w-5 h-5" />
                         </button>
                     </div>
+
+                    <!-- Pipeline Stages Settings Button -->
+                    <Link
+                        v-if="pipelineStagesUrl"
+                        :href="pipelineStagesUrl"
+                        class="inline-flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                        title="Voronka bosqichlarini sozlash"
+                    >
+                        <Cog6ToothIcon class="w-5 h-5" />
+                        <span class="hidden lg:inline">Voronka Sozlamalari</span>
+                    </Link>
 
                     <!-- Add Lead Button -->
                     <Link
@@ -1261,11 +1235,11 @@ onUnmounted(() => {
                             <td class="px-4 py-4">
                                 <span :class="[
                                     'inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border',
-                                    pipelineStages.find(s => s.value === lead.status)?.lightBg,
-                                    pipelineStages.find(s => s.value === lead.status)?.borderColor
+                                    getStageByStatus(lead.status)?.lightBg,
+                                    getStageByStatus(lead.status)?.borderColor
                                 ]">
-                                    <span :class="[pipelineStages.find(s => s.value === lead.status)?.bgColor, 'w-1.5 h-1.5 rounded-full mr-1.5']"></span>
-                                    {{ pipelineStages.find(s => s.value === lead.status)?.label }}
+                                    <span :class="[getStageByStatus(lead.status)?.bgColor, 'w-1.5 h-1.5 rounded-full mr-1.5']"></span>
+                                    {{ getStageByStatus(lead.status)?.label }}
                                 </span>
                             </td>
                             <td class="px-4 py-4">

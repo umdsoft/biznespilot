@@ -12,11 +12,11 @@
                             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
-                            Strategik Tahlil
+                            {{ t('swot.strategic_analysis') }}
                         </div>
-                        <h1 class="text-2xl lg:text-4xl font-bold">SWOT Tahlil Markazi</h1>
+                        <h1 class="text-2xl lg:text-4xl font-bold">{{ t('swot.title') }}</h1>
                         <p class="mt-2 text-white/80 text-lg max-w-2xl">
-                            O'z biznesingiz va raqobatchilaringizni chuqur tahlil qiling
+                            {{ t('swot.subtitle') }}
                         </p>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    Mening Biznesim
+                    {{ t('swot.my_business') }}
                     <span v-if="getTotalSwotItems(businessSwotData) > 0" class="px-2 py-0.5 bg-white/20 rounded-full text-xs">
                         {{ getTotalSwotItems(businessSwotData) }}
                     </span>
@@ -77,7 +77,7 @@
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Raqobatchi Qo'shish
+                    {{ t('swot.add_competitor') }}
                 </Link>
             </div>
         </div>
@@ -93,12 +93,12 @@
                         </div>
                         <div>
                             <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ currentBusiness?.name }}</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Sizning biznesingiz SWOT tahlili</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('swot.business_swot') }}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div v-if="lastUpdated" class="text-sm text-gray-500 dark:text-gray-400">
-                            <span class="font-medium">Oxirgi yangilanish:</span> {{ formatDate(lastUpdated) }}
+                            <span class="font-medium">{{ t('swot.last_update') }}:</span> {{ formatDate(lastUpdated) }}
                         </div>
                         <button
                             @click="generateBusinessSwot"
@@ -112,7 +112,7 @@
                             <svg v-else class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                             </svg>
-                            {{ generatingBusiness ? 'AI Tahlil qilmoqda...' : 'AI bilan Tahlil Qilish' }}
+                            {{ generatingBusiness ? t('swot.ai_analyzing') : t('swot.ai_analyze') }}
                         </button>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
                     <svg v-else class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    {{ savingBusiness ? 'Saqlanmoqda...' : 'O\'zgarishlarni Saqlash' }}
+                    {{ savingBusiness ? t('swot.saving') : t('swot.save_changes') }}
                 </button>
             </div>
 
@@ -148,8 +148,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">AI Tavsiyalar</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Biznesingiz uchun strategik tavsiyalar</p>
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ t('swot.ai_recommendations') }}</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('swot.business_recommendations') }}</p>
                     </div>
                 </div>
                 <div class="space-y-3">
@@ -186,12 +186,12 @@
                                     {{ getThreatLevelText(competitor.threat_level) }}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Raqobatchini SWOT tahlili</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('swot.competitor_swot') }}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div v-if="competitor.swot_analyzed_at" class="text-sm text-gray-500 dark:text-gray-400">
-                            <span class="font-medium">Tahlil:</span> {{ formatDate(competitor.swot_analyzed_at) }}
+                            <span class="font-medium">{{ t('swot.analysis') }}:</span> {{ formatDate(competitor.swot_analyzed_at) }}
                         </div>
                         <button
                             @click="generateCompetitorSwot(competitor)"
@@ -205,7 +205,7 @@
                             <svg v-else class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                             </svg>
-                            {{ generatingCompetitorId === competitor.id ? 'AI Tahlil qilmoqda...' : 'AI bilan Tahlil Qilish' }}
+                            {{ generatingCompetitorId === competitor.id ? t('swot.ai_analyzing') : t('swot.ai_analyze') }}
                         </button>
                         <Link
                             :href="getHref('competitor', competitor.id)"
@@ -215,7 +215,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            Profilni Ko'rish
+                            {{ t('swot.view_profile') }}
                         </Link>
                     </div>
                 </div>
@@ -255,10 +255,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                    <p class="text-sm font-medium text-indigo-800 dark:text-indigo-300">Global ma'lumotlar mavjud</p>
+                    <p class="text-sm font-medium text-indigo-800 dark:text-indigo-300">{{ t('swot.global_data') }}</p>
                     <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
-                        Bu raqobatchi haqida {{ competitor.global_contributors }} ta biznes ma'lumot kiritgan.
-                        Quyidagi SWOT ma'lumotlari global bazadan olingan.
+                        {{ t('swot.global_data_desc', { count: competitor.global_contributors }) }}
+                        {{ t('swot.global_swot_info') }}
                     </p>
                 </div>
             </div>
@@ -273,13 +273,13 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Saqlanmoqda...</span>
+                    <span>{{ t('swot.saving') }}</span>
                 </div>
                 <div v-else-if="savedCompetitors[competitor.id]" class="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>Saqlandi</span>
+                    <span>{{ t('swot.saved') }}</span>
                 </div>
             </div>
 
@@ -297,7 +297,7 @@
                     <svg v-else class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    {{ savingCompetitorId === competitor.id ? 'Saqlanmoqda...' : 'O\'zgarishlarni Saqlash' }}
+                    {{ savingCompetitorId === competitor.id ? t('swot.saving') : t('swot.save_changes') }}
                 </button>
             </div>
 
@@ -310,8 +310,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Solishtirma Tahlil</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ competitor.name }} bilan solishtirilganda sizning afzalliklaringiz</p>
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ t('swot.comparison') }}</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('swot.comparison_desc', { name: competitor.name }) }}</p>
                     </div>
                 </div>
 
@@ -322,7 +322,7 @@
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
-                            Sizning Afzalliklaringiz
+                            {{ t('swot.your_advantages') }}
                         </h3>
                         <ul class="space-y-2">
                             <li v-for="(strength, idx) in businessSwotData.strengths?.slice(0, 3)" :key="idx" class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
@@ -338,7 +338,7 @@
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
-                            Raqobatchining Zaif Tomonlari
+                            {{ t('swot.competitor_weaknesses') }}
                         </h3>
                         <ul class="space-y-2">
                             <li v-for="(weakness, idx) in competitor.swot_data?.weaknesses?.slice(0, 3)" :key="idx" class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
@@ -358,9 +358,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Raqobatchilarni Qo'shing</h3>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ t('swot.add_competitors_title') }}</h3>
             <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                Raqobatchilarni qo'shib, ularni individual tahlil qiling va o'z biznesingiz bilan solishtiring
+                {{ t('swot.add_competitors_desc') }}
             </p>
             <Link
                 :href="getHref('competitors')"
@@ -369,7 +369,7 @@
                 <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Raqobatchi Qo'shish
+                {{ t('swot.add_competitor') }}
             </Link>
         </div>
     </div>
@@ -379,7 +379,10 @@
 import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
 import SwotGrid from './SwotGrid.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     currentBusiness: {
@@ -450,8 +453,7 @@ const getTotalSwotItems = (swot) => {
 };
 
 const getThreatLevelText = (level) => {
-    const levels = { low: 'Past', medium: "O'rta", high: 'Yuqori', critical: 'Kritik' };
-    return levels[level] || level;
+    return t(`competitors.modal.${level}`) || level;
 };
 
 const getThreatBadgeClass = (level) => {
@@ -476,7 +478,7 @@ const generateBusinessSwot = async () => {
         }
     } catch (error) {
         console.error('Business SWOT generation failed:', error);
-        alert('SWOT tahlilini yaratishda xatolik yuz berdi');
+        alert(t('swot.error_business_swot'));
     } finally {
         generatingBusiness.value = false;
     }
@@ -499,7 +501,7 @@ const generateCompetitorSwot = async (competitor) => {
         }
     } catch (error) {
         console.error('Competitor SWOT generation failed:', error);
-        alert('Raqobatchi SWOT tahlilini yaratishda xatolik yuz berdi');
+        alert(t('swot.error_competitor_swot'));
     } finally {
         generatingCompetitorId.value = null;
     }
@@ -635,7 +637,7 @@ const saveBusinessSwot = async () => {
         businessSwotChanged.value = false;
     } catch (error) {
         console.error('Business SWOT save failed:', error);
-        alert('SWOT ma\'lumotlarini saqlashda xatolik yuz berdi');
+        alert(t('swot.error_save_business'));
     } finally {
         savingBusiness.value = false;
     }
@@ -656,7 +658,7 @@ const saveCompetitorSwot = async (competitor) => {
         delete competitorChanges.value[competitor.id];
     } catch (error) {
         console.error('Competitor SWOT save failed:', error);
-        alert('Raqobatchi SWOT ma\'lumotlarini saqlashda xatolik yuz berdi');
+        alert(t('swot.error_save_competitor'));
     } finally {
         savingCompetitorId.value = null;
     }

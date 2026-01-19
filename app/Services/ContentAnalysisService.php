@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Log;
 
 class ContentAnalysisService
 {
-    protected SocialMediaScraperService $scraper;
+    protected ?SocialMediaScraperService $scraper = null;
 
     protected ClaudeAIService $claudeAI;
 
-    public function __construct(SocialMediaScraperService $scraper, ClaudeAIService $claudeAI)
+    public function __construct(?SocialMediaScraperService $scraper, ClaudeAIService $claudeAI)
     {
         $this->scraper = $scraper;
         $this->claudeAI = $claudeAI;
@@ -74,6 +74,12 @@ class ContentAnalysisService
     {
         Log::info('Analyzing Instagram content', ['handle' => $competitor->instagram_handle]);
 
+        if (! $this->scraper) {
+            Log::warning('SocialMediaScraperService not available');
+
+            return null;
+        }
+
         try {
             // Get recent posts via scraper
             $posts = $this->scraper->getInstagramPosts($competitor->instagram_handle, 12);
@@ -115,6 +121,12 @@ class ContentAnalysisService
     protected function analyzeTelegramContent(Competitor $competitor): ?array
     {
         Log::info('Analyzing Telegram content', ['handle' => $competitor->telegram_handle]);
+
+        if (! $this->scraper) {
+            Log::warning('SocialMediaScraperService not available');
+
+            return null;
+        }
 
         try {
             // Get recent posts via scraper

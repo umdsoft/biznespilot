@@ -125,7 +125,7 @@ export const businessLayoutConfig = {
         { href: '/business', label: 'Bosh sahifa', labelKey: 'nav.dashboard', icon: HomeIcon, exact: true },
         { href: '/business/marketing', label: 'Marketing', labelKey: 'nav.marketing', icon: MegaphoneIcon },
         { href: '/business/marketing/content', label: 'Kontent Reja', labelKey: 'nav.content_plan', icon: CalendarIcon },
-        { href: '/business/inbox', label: 'Yagona Inbox', labelKey: 'nav.inbox', icon: InboxIcon },
+        { href: '/business/inbox', label: 'Yagona Inbox', labelKey: 'nav.inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
       ]
     },
     {
@@ -149,7 +149,7 @@ export const businessLayoutConfig = {
       title: null,
       titleKey: null,
       items: [
-        { href: '/business/sales', label: 'Sotuv / Leadlar', labelKey: 'nav.sales_leads', icon: PresentationChartLineIcon },
+        { href: '/business/sales', label: 'Lidlar', labelKey: 'nav.leads', icon: PresentationChartLineIcon, badgeKey: 'new_leads' },
         { href: '/business/tasks', label: 'Vazifalar', labelKey: 'nav.tasks', icon: ClipboardDocumentListIcon },
         { href: '/business/todos', label: 'Kunlik vazifalar', labelKey: 'nav.daily_tasks', icon: CheckCircleIcon },
         { href: '/business/lead-forms', label: 'Lead Formalar', labelKey: 'nav.lead_forms', icon: DocumentTextIcon },
@@ -170,9 +170,10 @@ export const businessLayoutConfig = {
       title: 'Tahlillar',
       titleKey: 'nav.analytics_section',
       items: [
-        { href: '/business/analytics', label: 'Sotuv Tahlili', labelKey: 'nav.sales_analytics', icon: ChartBarIcon },
-        { href: '/business/reports', label: 'Hisobotlar', labelKey: 'nav.reports', icon: DocumentChartBarIcon },
+        { href: '/business/analytics', label: 'Analitika', labelKey: 'nav.analytics', icon: ChartBarIcon },
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
+        { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },
+        { href: '/business/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', labelKey: 'nav.sales_scripts', icon: ChatBubbleLeftRightIcon },
       ]
     },
     {
@@ -243,7 +244,7 @@ export const salesHeadLayoutConfig = {
     {
       title: 'Sotuv',
       items: [
-        { href: '/sales-head/leads', label: 'Leadlar', icon: UserGroupIcon },
+        { href: '/sales-head/leads', label: 'Lidlar', icon: UserGroupIcon, badgeKey: 'new_leads' },
         { href: '/sales-head/deals', label: 'Bitimlar', icon: CurrencyDollarIcon },
       ]
     },
@@ -258,15 +259,13 @@ export const salesHeadLayoutConfig = {
     {
       title: 'Kommunikatsiya',
       items: [
-        { href: '/sales-head/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/sales-head/inbox', label: 'Yagona Inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
         { href: '/sales-head/calls', label: 'Qo\'ng\'iroqlar', icon: PhoneIcon },
-        { href: '/sales-head/messages', label: 'Xabarlar', icon: ChatBubbleLeftRightIcon },
       ]
     },
     {
       title: 'Hisobotlar va Analitika',
       items: [
-        { href: '/sales-head/reports', label: 'Hisobotlar', icon: DocumentChartBarIcon },
         { href: '/sales-head/analytics', label: 'Analitika', icon: ChartBarIcon },
         { href: '/sales-head/kpi', label: 'KPI', icon: PresentationChartLineIcon },
       ]
@@ -275,9 +274,15 @@ export const salesHeadLayoutConfig = {
       title: 'Marketing Ma\'lumotlari',
       items: [
         { href: '/sales-head/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
-        { href: '/sales-head/campaigns', label: 'Kampaniyalar', icon: PresentationChartLineIcon },
         { href: '/sales-head/offers', label: 'Takliflar', icon: TagIcon },
         { href: '/sales-head/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
+      ]
+    },
+    {
+      title: 'AI Tavsiyalar',
+      items: [
+        { href: '/sales-head/competitor-insights', label: 'Tavsiyalar', icon: LightBulbIcon },
+        { href: '/sales-head/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', icon: ChatBubbleLeftRightIcon },
       ]
     },
   ],
@@ -451,6 +456,8 @@ export const marketingLayoutConfig = {
         { href: '/marketing/competitors/dashboard', label: 'Raqobat Dashboard', icon: PresentationChartLineIcon },
         { href: '/marketing/offers', label: 'Takliflar', icon: TagIcon },
         { href: '/marketing/swot', label: 'SWOT Tahlil', icon: AdjustmentsHorizontalIcon },
+        { href: '/marketing/competitor-insights', label: 'AI Tavsiyalar', icon: LightBulbIcon },
+        { href: '/marketing/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', icon: ChatBubbleLeftRightIcon },
       ]
     },
     {
@@ -740,8 +747,8 @@ export const operatorLayoutConfig = {
     {
       title: 'Ishim',
       items: [
-        { href: '/operator/leads', label: 'Mening Leadlarim', icon: UserGroupIcon },
-        { href: '/operator/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/operator/leads', label: 'Mening Lidlarim', icon: UserGroupIcon, badgeKey: 'new_leads' },
+        { href: '/operator/inbox', label: 'Yagona Inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
         { href: '/operator/tasks', label: 'Vazifalarim', icon: ClipboardDocumentListIcon },
         { href: '/operator/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
       ]
@@ -879,11 +886,12 @@ export function useLayoutConfig(type, badgeCounts = {}) {
     config.navigation = config.navigation.map(section => ({
       ...section,
       items: section.items.map(item => {
-        const badgeKey = item.href.split('/').pop();
-        if (badgeCounts[badgeKey]) {
+        // Use badgeKey if defined, otherwise fall back to href
+        const key = item.badgeKey || item.href.split('/').pop();
+        if (badgeCounts[key]) {
           return {
             ...item,
-            badge: badgeCounts[badgeKey]
+            badge: badgeCounts[key]
           };
         }
         return item;

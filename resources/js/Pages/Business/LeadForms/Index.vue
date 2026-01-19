@@ -57,14 +57,14 @@ const getLeadMagnetIcon = (type) => {
 
 const getLeadMagnetLabel = (type) => {
     const labels = {
-        none: 'Oddiy forma',
-        file: 'Fayl yuklab olish',
-        video: 'Video dars',
-        link: 'Link',
-        coupon: 'Kupon kodi',
-        text: 'Maxsus matn',
+        none: t('lead_forms.type.none'),
+        file: t('lead_forms.type.file'),
+        video: t('lead_forms.type.video'),
+        link: t('lead_forms.type.link'),
+        coupon: t('lead_forms.type.coupon'),
+        text: t('lead_forms.type.text'),
     };
-    return labels[type] || 'Oddiy forma';
+    return labels[type] || t('lead_forms.type.none');
 };
 </script>
 
@@ -82,8 +82,8 @@ const getLeadMagnetLabel = (type) => {
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Lead Formalar</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Lidlarni to'plash uchun formalar yarating va ulashing</p>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('lead_forms.title') }}</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('lead_forms.subtitle') }}</p>
                     </div>
                 </div>
                 <Link
@@ -93,7 +93,7 @@ const getLeadMagnetLabel = (type) => {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Forma Yaratish
+                    {{ t('lead_forms.create') }}
                 </Link>
             </div>
 
@@ -108,7 +108,7 @@ const getLeadMagnetLabel = (type) => {
                         </div>
                         <div>
                             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.total_forms }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Jami formalar</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ t('lead_forms.stats.total') }}</div>
                         </div>
                     </div>
                 </div>
@@ -121,7 +121,7 @@ const getLeadMagnetLabel = (type) => {
                         </div>
                         <div>
                             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.active_forms }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Faol formalar</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ t('lead_forms.stats.active') }}</div>
                         </div>
                     </div>
                 </div>
@@ -135,7 +135,7 @@ const getLeadMagnetLabel = (type) => {
                         </div>
                         <div>
                             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.total_views?.toLocaleString() || 0 }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Ko'rishlar</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ t('lead_forms.stats.views') }}</div>
                         </div>
                     </div>
                 </div>
@@ -148,7 +148,7 @@ const getLeadMagnetLabel = (type) => {
                         </div>
                         <div>
                             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.total_submissions?.toLocaleString() || 0 }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Lidlar</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ t('lead_forms.stats.leads') }}</div>
                         </div>
                     </div>
                 </div>
@@ -167,27 +167,27 @@ const getLeadMagnetLabel = (type) => {
                         </div>
                     </div>
 
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Lead Forma Yarating</h3>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">{{ t('lead_forms.empty.title') }}</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-                        Lidlarni avtomatik to'plash uchun forma yarating. Target reklama yoki lead magnet sifatida ishlating.
+                        {{ t('lead_forms.empty.desc') }}
                     </p>
 
                     <!-- Benefits Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
                         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
                             <div class="text-3xl mb-3">🎯</div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Target Reklama</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Facebook, Instagram, Google Ads bilan integratsiya</p>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ t('lead_forms.empty.benefit1_title') }}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('lead_forms.empty.benefit1_desc') }}</p>
                         </div>
                         <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-4 border border-emerald-100 dark:border-emerald-800">
                             <div class="text-3xl mb-3">🎁</div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Lead Magnet</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Fayl, kupon yoki link evaziga kontakt oling</p>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ t('lead_forms.empty.benefit2_title') }}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('lead_forms.empty.benefit2_desc') }}</p>
                         </div>
                         <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border border-purple-100 dark:border-purple-800">
                             <div class="text-3xl mb-3">📊</div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Avtomatik Pipeline</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Lidlar to'g'ridan-to'g'ri pipeline ga tushadi</p>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ t('lead_forms.empty.benefit3_title') }}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('lead_forms.empty.benefit3_desc') }}</p>
                         </div>
                     </div>
 
@@ -198,7 +198,7 @@ const getLeadMagnetLabel = (type) => {
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Birinchi Formani Yaratish
+                        {{ t('lead_forms.empty.create_first') }}
                     </Link>
                 </div>
             </div>
@@ -210,28 +210,28 @@ const getLeadMagnetLabel = (type) => {
                         <thead>
                             <tr class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Forma
+                                    {{ t('lead_forms.table.form') }}
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Turi
+                                    {{ t('lead_forms.table.type') }}
                                 </th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Status
+                                    {{ t('lead_forms.table.status') }}
                                 </th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Ko'rishlar
+                                    {{ t('lead_forms.table.views') }}
                                 </th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Lidlar
+                                    {{ t('lead_forms.table.leads') }}
                                 </th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Konversiya
+                                    {{ t('lead_forms.table.conversion') }}
                                 </th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Yaratilgan
+                                    {{ t('lead_forms.table.created') }}
                                 </th>
                                 <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Amallar
+                                    {{ t('lead_forms.table.actions') }}
                                 </th>
                             </tr>
                         </thead>
@@ -282,7 +282,7 @@ const getLeadMagnetLabel = (type) => {
                                         ]"
                                     >
                                         <span :class="['w-1.5 h-1.5 rounded-full', form.is_active ? 'bg-green-500' : 'bg-gray-400']"></span>
-                                        {{ form.is_active ? 'Faol' : 'Nofaol' }}
+                                        {{ form.is_active ? t('lead_forms.status.active') : t('lead_forms.status.inactive') }}
                                     </button>
                                 </td>
 
@@ -337,7 +337,7 @@ const getLeadMagnetLabel = (type) => {
                                                     ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                                                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             ]"
-                                            :title="copiedLink === form.id ? 'Nusxalandi!' : 'Linkni nusxalash'"
+                                            :title="copiedLink === form.id ? t('lead_forms.actions.copied') : t('lead_forms.actions.copy_link')"
                                         >
                                             <svg v-if="copiedLink !== form.id" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -352,7 +352,7 @@ const getLeadMagnetLabel = (type) => {
                                             :href="form.public_url"
                                             target="_blank"
                                             class="p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-                                            title="Formani ochish"
+                                            :title="t('lead_forms.actions.open_form')"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -363,7 +363,7 @@ const getLeadMagnetLabel = (type) => {
                                         <Link
                                             :href="route('business.lead-forms.edit', form.id)"
                                             class="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                            title="Tahrirlash"
+                                            :title="t('lead_forms.actions.edit')"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -374,7 +374,7 @@ const getLeadMagnetLabel = (type) => {
                                         <Link
                                             :href="route('business.lead-forms.show', form.id)"
                                             class="p-2 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                            title="Batafsil"
+                                            :title="t('lead_forms.actions.details')"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -385,7 +385,7 @@ const getLeadMagnetLabel = (type) => {
                                         <button
                                             @click="confirmDelete(form)"
                                             class="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                            title="O'chirish"
+                                            :title="t('lead_forms.actions.delete')"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -402,7 +402,7 @@ const getLeadMagnetLabel = (type) => {
                 <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Jami <span class="font-medium text-gray-900 dark:text-gray-100">{{ leadForms.length }}</span> ta forma
+                            {{ t('lead_forms.footer.total', { count: leadForms.length }) }}
                         </p>
                         <Link
                             :href="route('business.lead-forms.create')"
@@ -411,7 +411,7 @@ const getLeadMagnetLabel = (type) => {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            Yangi forma
+                            {{ t('lead_forms.footer.new') }}
                         </Link>
                     </div>
                 </div>
@@ -431,13 +431,13 @@ const getLeadMagnetLabel = (type) => {
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Formani o'chirish</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Bu amalni qaytarib bo'lmaydi</p>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('lead_forms.delete.title') }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('lead_forms.delete.warning') }}</p>
                             </div>
                         </div>
 
                         <p class="text-gray-700 dark:text-gray-300 mb-6">
-                            <strong class="text-gray-900 dark:text-gray-100">{{ deletingForm.name }}</strong> formasini o'chirishni xohlaysizmi?
+                            {{ t('lead_forms.delete.confirm', { name: deletingForm.name }) }}
                         </p>
 
                         <div class="flex gap-3">
@@ -445,13 +445,13 @@ const getLeadMagnetLabel = (type) => {
                                 @click="cancelDelete"
                                 class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
                             >
-                                Bekor qilish
+                                {{ t('lead_forms.delete.cancel') }}
                             </button>
                             <button
                                 @click="deleteForm"
                                 class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
                             >
-                                O'chirish
+                                {{ t('lead_forms.delete.submit') }}
                             </button>
                         </div>
                     </div>

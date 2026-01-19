@@ -44,13 +44,6 @@
           >
             {{ callStats.missed > 99 ? '99+' : callStats.missed }}
           </span>
-          <!-- Messages Badge -->
-          <span
-            v-if="item.href === '/sales-head/messages' && messageStats.unread > 0"
-            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-blue-500 text-white rounded-full"
-          >
-            {{ messageStats.unread > 99 ? '99+' : messageStats.unread }}
-          </span>
           <!-- Inbox Badge -->
           <span
             v-if="item.href === '/sales-head/inbox' && inboxStats.unread > 0"
@@ -88,7 +81,6 @@ const layoutConfig = salesHeadLayoutConfig;
 const leadStats = ref({ new: 0, total: 0 });
 const taskStats = ref({ total: 0, overdue: 0 });
 const callStats = ref({ missed: 0, total: 0 });
-const messageStats = ref({ unread: 0, total: 0 });
 const inboxStats = ref({ unread: 0, total: 0 });
 const todayStats = ref({ deals: 0, revenue: 0 });
 
@@ -126,7 +118,6 @@ const fetchStats = async () => {
       leadStats.value = response.data.leads || { new: 0, total: 0 };
       taskStats.value = response.data.tasks || { total: 0, overdue: 0 };
       callStats.value = response.data.calls || { missed: 0, total: 0 };
-      messageStats.value = response.data.messages || { unread: 0, total: 0 };
       inboxStats.value = response.data.inbox || { unread: 0, total: 0 };
       todayStats.value = response.data.today || { deals: 0, revenue: 0 };
     }

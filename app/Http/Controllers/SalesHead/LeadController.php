@@ -9,6 +9,7 @@ use App\Models\BusinessUser;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\LeadSource;
+use App\Models\PipelineStage;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -53,11 +54,18 @@ class LeadController extends Controller
                 'email' => $bu->user->email,
             ]);
 
+        // Get pipeline stages for this business
+        $pipelineStages = PipelineStage::forBusiness($business->id)
+            ->active()
+            ->ordered()
+            ->get(['id', 'name', 'slug', 'color', 'order', 'is_system', 'is_won', 'is_lost']);
+
         return Inertia::render('SalesHead/Leads/Index', [
             'leads' => null, // Lazy load via API
             'stats' => null, // Lazy load via API
             'channels' => $channels,
             'operators' => $operators,
+            'pipelineStages' => $pipelineStages,
             'lazyLoad' => true,
         ]);
     }
@@ -490,8 +498,14 @@ class LeadController extends Controller
         $lead = Lead::where('business_id', $business->id)->findOrFail($leadId);
         $oldStatus = $lead->status;
 
+        // Get valid statuses from pipeline stages
+        $validStatuses = PipelineStage::forBusiness($business->id)
+            ->active()
+            ->pluck('slug')
+            ->toArray();
+
         $validated = $request->validate([
-            'status' => 'required|string|in:new,contacted,callback,considering,meeting_scheduled,meeting_attended,won,lost',
+            'status' => 'required|string|in:' . implode(',', $validStatuses),
             'lost_reason' => 'nullable|string',
             'lost_reason_details' => 'nullable|string',
         ]);
@@ -500,22 +514,20 @@ class LeadController extends Controller
 
         // Log status change activity
         if ($oldStatus != $validated['status']) {
-            $statusLabels = [
-                'new' => 'Yangi',
-                'contacted' => 'Bog\'lanildi',
-                'callback' => 'Keyinroq bog\'lanish qilamiz',
-                'considering' => 'O\'ylab ko\'radi',
-                'meeting_scheduled' => 'Uchrashuv belgilandi',
-                'meeting_attended' => 'Uchrashuvga keldi',
-                'won' => 'Sotuv',
-                'lost' => 'Sifatsiz lid',
-            ];
+            // Get stage names for logging
+            $stages = PipelineStage::forBusiness($business->id)
+                ->whereIn('slug', [$oldStatus, $validated['status']])
+                ->pluck('name', 'slug')
+                ->toArray();
+
+            $oldStatusLabel = $stages[$oldStatus] ?? $oldStatus;
+            $newStatusLabel = $stages[$validated['status']] ?? $validated['status'];
 
             LeadActivity::log(
                 $lead->id,
                 LeadActivity::TYPE_STATUS_CHANGED,
                 'Holat o\'zgardi',
-                ($statusLabels[$oldStatus] ?? $oldStatus).' dan '.($statusLabels[$validated['status']] ?? $validated['status']).' ga o\'zgartirildi',
+                $oldStatusLabel.' dan '.$newStatusLabel.' ga o\'zgartirildi',
                 ['old_status' => $oldStatus, 'new_status' => $validated['status']]
             );
         }

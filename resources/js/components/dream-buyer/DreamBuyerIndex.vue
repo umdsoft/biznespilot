@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     dreamBuyers: Array,
@@ -84,17 +87,17 @@ const cancelDelete = () => {
     deletingBuyer.value = null;
 };
 
-const insightSections = [
-    { key: 'whereSpendTime', title: 'Mijozlarimni qayerdan topaman?', subtitle: 'Qayerda vaqt o\'tkazadi', icon: '📍', color: 'blue', data: whereSpendTime, type: 'tags' },
-    { key: 'infoSources', title: 'Qayerdan ma\'lumot oladi?', subtitle: 'Ma\'lumot manbalari', icon: '🔍', color: 'indigo', data: infoSources, type: 'tags' },
-    { key: 'frustrations', title: 'Qanday muammolari bor?', subtitle: 'Frustratsiyalar va qiyinchiliklar', icon: '😤', color: 'red', data: frustrations, type: 'list' },
-    { key: 'dreams', title: 'Nimani xohlaydi?', subtitle: 'Orzulari va maqsadlari', icon: '✨', color: 'green', data: dreams, type: 'list' },
-    { key: 'fears', title: 'Nimadan qo\'rqadi?', subtitle: 'Qo\'rquvlar va e\'tirozlar', icon: '😰', color: 'amber', data: fears, type: 'list' },
-    { key: 'communicationPrefs', title: 'Qanday muloqotni afzal ko\'radi?', subtitle: 'Kommunikatsiya usullari', icon: '💬', color: 'purple', data: communicationPrefs, type: 'tags' },
-    { key: 'languageStyle', title: 'Qanday tilda gaplashadi?', subtitle: 'Til va jargon', icon: '🗣️', color: 'pink', data: languageStyle, type: 'tags' },
-    { key: 'dailyRoutine', title: 'Kundalik hayoti qanday?', subtitle: 'Kunlik tartib', icon: '📅', color: 'cyan', data: dailyRoutine, type: 'list' },
-    { key: 'happinessTriggers', title: 'Nima uni baxtli qiladi?', subtitle: 'Baxt omillari', icon: '😊', color: 'emerald', data: happinessTriggers, type: 'list' }
-];
+const insightSections = computed(() => [
+    { key: 'whereSpendTime', title: t('dream_buyer.where_spend_time'), subtitle: t('dream_buyer.where_spend_time_sub'), icon: '📍', color: 'blue', data: whereSpendTime, type: 'tags' },
+    { key: 'infoSources', title: t('dream_buyer.info_sources'), subtitle: t('dream_buyer.info_sources_sub'), icon: '🔍', color: 'indigo', data: infoSources, type: 'tags' },
+    { key: 'frustrations', title: t('dream_buyer.frustrations'), subtitle: t('dream_buyer.frustrations_sub'), icon: '😤', color: 'red', data: frustrations, type: 'list' },
+    { key: 'dreams', title: t('dream_buyer.dreams'), subtitle: t('dream_buyer.dreams_sub'), icon: '✨', color: 'green', data: dreams, type: 'list' },
+    { key: 'fears', title: t('dream_buyer.fears'), subtitle: t('dream_buyer.fears_sub'), icon: '😰', color: 'amber', data: fears, type: 'list' },
+    { key: 'communicationPrefs', title: t('dream_buyer.communication_prefs'), subtitle: t('dream_buyer.communication_prefs_sub'), icon: '💬', color: 'purple', data: communicationPrefs, type: 'tags' },
+    { key: 'languageStyle', title: t('dream_buyer.language_style'), subtitle: t('dream_buyer.language_style_sub'), icon: '🗣️', color: 'pink', data: languageStyle, type: 'tags' },
+    { key: 'dailyRoutine', title: t('dream_buyer.daily_routine'), subtitle: t('dream_buyer.daily_routine_sub'), icon: '📅', color: 'cyan', data: dailyRoutine, type: 'list' },
+    { key: 'happinessTriggers', title: t('dream_buyer.happiness_triggers'), subtitle: t('dream_buyer.happiness_triggers_sub'), icon: '😊', color: 'emerald', data: happinessTriggers, type: 'list' }
+]);
 
 const getColorClasses = (color) => {
     const colors = {
@@ -123,8 +126,8 @@ const getColorClasses = (color) => {
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ideal Mijoz</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Mijozlaringiz haqida barcha ma'lumotlar bir joyda</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('dream_buyer.title') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dream_buyer.subtitle') }}</p>
                 </div>
             </div>
             <Link
@@ -135,7 +138,7 @@ const getColorClasses = (color) => {
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Yangi Profil
+                {{ t('dream_buyer.new_profile') }}
             </Link>
         </div>
 
@@ -152,26 +155,26 @@ const getColorClasses = (color) => {
                     </div>
                 </div>
 
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Ideal Mijoz Profilini Yarating</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">{{ t('dream_buyer.create_title') }}</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-                    Mijozlaringizni yaxshi tushunish uchun profil yarating. Bu sizga marketing xabarlarini to'g'ri yo'naltirish va savdoni oshirishga yordam beradi.
+                    {{ t('dream_buyer.create_desc') }}
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
                         <div class="text-3xl mb-3">📍</div>
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Qayerdan Topaman?</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Mijozlaringiz qayerda vaqt o'tkazishini bilib oling</p>
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ t('dream_buyer.where_find') }}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('dream_buyer.where_find_desc') }}</p>
                     </div>
                     <div class="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800">
                         <div class="text-3xl mb-3">😤</div>
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Muammolari Nima?</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Ularning og'riqli nuqtalarini aniqlang</p>
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ t('dream_buyer.problems') }}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('dream_buyer.problems_desc') }}</p>
                     </div>
                     <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
                         <div class="text-3xl mb-3">✨</div>
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Nimani Xohlaydi?</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Orzulari va maqsadlarini tushuning</p>
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ t('dream_buyer.wants') }}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('dream_buyer.wants_desc') }}</p>
                     </div>
                 </div>
 
@@ -183,10 +186,10 @@ const getColorClasses = (color) => {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Ideal Mijoz Yaratish
+                    {{ t('dream_buyer.create_button') }}
                 </Link>
                 <div v-else class="text-gray-500 dark:text-gray-400">
-                    <p class="text-center">Hozircha Ideal Mijoz profillari yaratilmagan</p>
+                    <p class="text-center">{{ t('dream_buyer.not_created') }}</p>
                 </div>
             </div>
         </div>
@@ -196,7 +199,7 @@ const getColorClasses = (color) => {
             <!-- Profile Selector -->
             <div v-if="dreamBuyers.length > 1" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-2 mb-3">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Profil tanlang:</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('dream_buyer.select_profile') }}</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button
@@ -234,7 +237,7 @@ const getColorClasses = (color) => {
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                     </svg>
-                                    Asosiy
+                                    {{ t('dream_buyer.primary') }}
                                 </span>
                             </div>
                             <p v-if="selectedBuyer.description" class="text-indigo-100 mt-1">{{ selectedBuyer.description }}</p>
@@ -249,7 +252,7 @@ const getColorClasses = (color) => {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
-                            Tahrirlash
+                            {{ t('dream_buyer.edit') }}
                         </Link>
                         <button
                             v-if="!selectedBuyer.is_primary"
@@ -259,7 +262,7 @@ const getColorClasses = (color) => {
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                             </svg>
-                            Asosiy qilish
+                            {{ t('dream_buyer.set_primary') }}
                         </button>
                         <button
                             @click="confirmDelete(selectedBuyer)"
@@ -282,9 +285,9 @@ const getColorClasses = (color) => {
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-1">Profil to'ldirilmagan</h3>
+                        <h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-1">{{ t('dream_buyer.profile_incomplete') }}</h3>
                         <p class="text-amber-700 dark:text-amber-400 text-sm mb-3">
-                            Ideal mijoz profilini to'ldiring - bu sizga marketing va savdoda katta yordam beradi.
+                            {{ t('dream_buyer.profile_incomplete_desc') }}
                         </p>
                         <Link
                             v-if="!isReadOnly"
@@ -294,7 +297,7 @@ const getColorClasses = (color) => {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
-                            Profilni to'ldirish
+                            {{ t('dream_buyer.fill_profile') }}
                         </Link>
                     </div>
                 </div>
@@ -343,7 +346,7 @@ const getColorClasses = (color) => {
 
             <!-- Quick Actions -->
             <div v-if="hasData" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-4">Keyingi qadamlar</h3>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-4">{{ t('dream_buyer.next_steps') }}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Link
                         :href="panelType === 'business' ? route('business.offers.create') : route('marketing.content.create')"
@@ -355,8 +358,8 @@ const getColorClasses = (color) => {
                             </svg>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ panelType === 'business' ? 'Taklif yaratish' : 'Kontent yaratish' }}</h4>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Mijozga moslashtirilgan</p>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ panelType === 'business' ? t('dream_buyer.create_offer') : t('dream_buyer.create_content') }}</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dream_buyer.customer_tailored') }}</p>
                         </div>
                     </Link>
 
@@ -370,8 +373,8 @@ const getColorClasses = (color) => {
                             </svg>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100">Kontent yozish</h4>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Mijozga mo'ljallangan kontent</p>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ t('dream_buyer.write_content') }}</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dream_buyer.targeted_content') }}</p>
                         </div>
                     </Link>
 
@@ -385,8 +388,8 @@ const getColorClasses = (color) => {
                             </svg>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-gray-100">CustDev o'tkazish</h4>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Ko'proq ma'lumot to'plash</p>
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ t('dream_buyer.run_custdev') }}</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dream_buyer.collect_more') }}</p>
                         </div>
                     </Link>
                 </div>
@@ -407,19 +410,19 @@ const getColorClasses = (color) => {
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Profilni o'chirish</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Bu amalni qaytarib bo'lmaydi</p>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('dream_buyer.delete_profile') }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dream_buyer.delete_warning') }}</p>
                         </div>
                     </div>
                     <p class="text-gray-700 dark:text-gray-300 mb-6">
-                        <strong class="text-gray-900 dark:text-gray-100">{{ deletingBuyer.name }}</strong> nomli profilni o'chirishni xohlaysizmi?
+                        {{ t('dream_buyer.delete_confirm', { name: deletingBuyer.name }) }}
                     </p>
                     <div class="flex gap-3">
                         <button @click="cancelDelete" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors">
-                            Bekor qilish
+                            {{ t('common.cancel') }}
                         </button>
                         <button @click="deleteBuyer" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors">
-                            O'chirish
+                            {{ t('common.delete') }}
                         </button>
                     </div>
                 </div>

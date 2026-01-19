@@ -8,6 +8,7 @@ use App\Models\BusinessUser;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\LeadSource;
+use App\Models\PipelineStage;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -72,10 +73,17 @@ class SalesController extends Controller
                 });
         });
 
+        // Get pipeline stages for this business
+        $pipelineStages = PipelineStage::forBusiness($currentBusiness->id)
+            ->active()
+            ->ordered()
+            ->get(['id', 'name', 'slug', 'color', 'order', 'is_system', 'is_won', 'is_lost']);
+
         return Inertia::render('Business/Sales/Index', [
             'leads' => null, // Lazy load via API
             'stats' => null, // Lazy load via API
             'channels' => $channels,
+            'pipelineStages' => $pipelineStages,
             'lazyLoad' => true,
             'currentBusiness' => [
                 'id' => $currentBusiness->id,

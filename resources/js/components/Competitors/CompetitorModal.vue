@@ -7,7 +7,7 @@
                 <div class="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
                     <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                            {{ competitor ? 'Raqobatchini Tahrirlash' : 'Yangi Raqobatchi Qo\'shish' }}
+                            {{ competitor ? t('competitors.modal.edit_title') : t('competitors.modal.add_title') }}
                         </h3>
                         <button
                             @click="$emit('close')"
@@ -23,7 +23,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Name with Autocomplete -->
                             <div class="md:col-span-2 relative">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nomi *</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('competitors.modal.name') }} *</label>
                                 <div class="relative">
                                     <input
                                         v-model="form.name"
@@ -34,7 +34,7 @@
                                         required
                                         autocomplete="off"
                                         class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="Raqobatchi nomini yozing..."
+                                        :placeholder="t('competitors.modal.name_placeholder')"
                                     />
                                     <div v-if="searching" class="absolute right-3 top-1/2 -translate-y-1/2">
                                         <svg class="w-5 h-5 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@
                                     class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-72 overflow-y-auto"
                                 >
                                     <div class="p-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
-                                        {{ suggestions.length }} ta raqobatchi topildi
+                                        {{ t('competitors.modal.found_count', { count: suggestions.length }) }}
                                     </div>
                                     <button
                                         v-for="item in suggestions"
@@ -64,10 +64,10 @@
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-medium text-gray-900 dark:text-gray-100">{{ item.name }}</span>
                                                     <span v-if="item.same_industry" class="px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded">
-                                                        Bir soha
+                                                        {{ t('competitors.modal.same_industry') }}
                                                     </span>
                                                     <span v-if="item.same_region" class="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
-                                                        Bir viloyat
+                                                        {{ t('competitors.modal.same_region') }}
                                                     </span>
                                                 </div>
                                                 <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -90,10 +90,10 @@
                                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
-                                                    SWOT mavjud
+                                                    {{ t('competitors.modal.swot_available') }}
                                                 </div>
                                                 <div v-if="item.swot_contributors_count > 0" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                                                    {{ item.swot_contributors_count }} biznes
+                                                    {{ t('competitors.modal.business_count', { count: item.swot_contributors_count }) }}
                                                 </div>
                                             </div>
                                         </div>
@@ -108,8 +108,8 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             <div>
-                                                <p class="text-sm font-medium text-emerald-800 dark:text-emerald-300">Ma'lumotlar avtomatik yuklandi</p>
-                                                <p class="text-xs text-emerald-600 dark:text-emerald-400">Bu raqobatchi bazada mavjud edi</p>
+                                                <p class="text-sm font-medium text-emerald-800 dark:text-emerald-300">{{ t('competitors.modal.auto_loaded') }}</p>
+                                                <p class="text-xs text-emerald-600 dark:text-emerald-400">{{ t('competitors.modal.from_database') }}</p>
                                             </div>
                                         </div>
                                         <button
@@ -126,65 +126,65 @@
                             </div>
 
                             <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tavsif</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('competitors.modal.description') }}</label>
                                 <textarea
                                     v-model="form.description"
                                     rows="3"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                                    placeholder="Raqobatchi haqida qisqacha ma'lumot"
+                                    :placeholder="t('competitors.modal.description_placeholder')"
                                 ></textarea>
                             </div>
 
                             <!-- Location Fields -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Viloyat</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('competitors.modal.region') }}</label>
                                 <select
                                     v-model="form.region"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 >
-                                    <option value="">Tanlang</option>
+                                    <option value="">{{ t('competitors.modal.select') }}</option>
                                     <option v-for="region in regions" :key="region" :value="region">{{ region }}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tuman/Shahar</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('competitors.modal.district') }}</label>
                                 <input
                                     v-model="form.district"
                                     type="text"
-                                    placeholder="Tuman yoki shahar nomi"
+                                    :placeholder="t('competitors.modal.district_placeholder')"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tahdid Darajasi *</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('competitors.modal.threat_level') }} *</label>
                                 <select
                                     v-model="form.threat_level"
                                     required
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 >
-                                    <option value="low">Past</option>
-                                    <option value="medium">O'rta</option>
-                                    <option value="high">Yuqori</option>
-                                    <option value="critical">Kritik</option>
+                                    <option value="low">{{ t('competitors.modal.low') }}</option>
+                                    <option value="medium">{{ t('competitors.modal.medium') }}</option>
+                                    <option value="high">{{ t('competitors.modal.high') }}</option>
+                                    <option value="critical">{{ t('competitors.modal.critical') }}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('competitors.modal.status') }}</label>
                                 <select
                                     v-model="form.status"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 >
-                                    <option value="active">Faol</option>
-                                    <option value="inactive">Nofaol</option>
-                                    <option value="archived">Arxivlangan</option>
+                                    <option value="active">{{ t('competitors.modal.active') }}</option>
+                                    <option value="inactive">{{ t('competitors.modal.inactive') }}</option>
+                                    <option value="archived">{{ t('competitors.modal.archived') }}</option>
                                 </select>
                             </div>
 
                             <div class="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Platformalar</h4>
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">{{ t('competitors.modal.platforms') }}</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Instagram</label>
@@ -214,7 +214,7 @@
                                         type="checkbox"
                                         class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
                                     />
-                                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">Avtomatik kuzatishni yoqish</span>
+                                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">{{ t('competitors.modal.auto_monitor') }}</span>
                                 </label>
                             </div>
                         </div>
@@ -225,13 +225,13 @@
                                 @click="$emit('close')"
                                 class="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
                             >
-                                Bekor qilish
+                                {{ t('competitors.modal.cancel') }}
                             </button>
                             <button
                                 type="submit"
                                 class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
                             >
-                                {{ competitor ? 'Saqlash' : 'Qo\'shish' }}
+                                {{ competitor ? t('competitors.modal.save') : t('competitors.modal.add') }}
                             </button>
                         </div>
                     </form>
@@ -244,6 +244,9 @@
 <script setup>
 import { reactive, ref, watch } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     competitor: { type: Object, default: null },

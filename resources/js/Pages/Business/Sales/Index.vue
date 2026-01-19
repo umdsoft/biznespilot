@@ -29,6 +29,10 @@ defineProps({
         type: Object,
         default: null,
     },
+    pipelineStages: {
+        type: Array,
+        default: () => [],
+    },
     lazyLoad: {
         type: Boolean,
         default: false,
@@ -46,6 +50,7 @@ defineProps({
             :leads="leads"
             :stats="stats"
             :channels="channels"
+            :pipeline-stages="pipelineStages"
             :lazy-load="lazyLoad"
             :can-assign-leads="canAssignLeads"
             panel-type="business"

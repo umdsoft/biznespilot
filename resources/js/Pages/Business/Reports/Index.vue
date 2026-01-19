@@ -4,8 +4,8 @@
             <!-- Page Header with Generate Button -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Hisobotlar</h2>
-                    <p class="mt-2 text-gray-600 dark:text-gray-400">Biznesingiz bo'yicha to'liq tahlil va statistika</p>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ t('reports.title') }}</h2>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">{{ t('reports.subtitle') }}</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button
@@ -20,7 +20,7 @@
                         <svg v-else class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        {{ isGenerating ? 'Yaratilmoqda...' : 'Hisobot yaratish' }}
+                        {{ isGenerating ? t('reports.generating') : t('reports.generate') }}
                     </button>
                 </div>
             </div>
@@ -29,7 +29,7 @@
             <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex flex-wrap items-end gap-4">
                     <div class="flex-1 min-w-[200px]">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Boshlanish sanasi</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('reports.filter.start_date') }}</label>
                         <input
                             type="date"
                             v-model="filters.start_date"
@@ -38,7 +38,7 @@
                         >
                     </div>
                     <div class="flex-1 min-w-[200px]">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tugash sanasi</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('reports.filter.end_date') }}</label>
                         <input
                             type="date"
                             v-model="filters.end_date"
@@ -54,7 +54,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Tozalash
+                            {{ t('reports.filter.reset') }}
                         </button>
                     </div>
                 </div>
@@ -73,10 +73,10 @@
                 </div>
                 <div class="flex-1">
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        Biznes salomatligi: {{ realtimeData.health_score.label }}
+                        {{ t('reports.health.title') }}: {{ realtimeData.health_score.label }}
                     </h3>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Bu ko'rsatkich biznesingizning umumiy holatini 5 ta yo'nalish bo'yicha baholaydi
+                        {{ t('reports.health.description') }}
                     </p>
 
                     <!-- Breakdown Grid -->
@@ -99,7 +99,7 @@
         <!-- Insights Section -->
         <div v-if="realtimeData?.insights?.length" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                <span class="mr-2">💡</span> Tushunchalar
+                <span class="mr-2">💡</span> {{ t('reports.insights.title') }}
             </h3>
             <div class="space-y-3">
                 <div
@@ -120,7 +120,7 @@
         <!-- Recommendations Section -->
         <div v-if="realtimeData?.recommendations?.length" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                <span class="mr-2">📋</span> Tavsiyalar
+                <span class="mr-2">📋</span> {{ t('reports.recommendations.title') }}
             </h3>
             <div class="space-y-4">
                 <div
@@ -140,7 +140,7 @@
                                     'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': rec.priority === 'low'
                                 }"
                             >
-                                {{ rec.priority === 'high' ? 'Muhim' : rec.priority === 'medium' ? 'O\'rtacha' : 'Oddiy' }}
+                                {{ rec.priority === 'high' ? t('reports.recommendations.priority.high') : rec.priority === 'medium' ? t('reports.recommendations.priority.medium') : t('reports.recommendations.priority.low') }}
                             </span>
                         </div>
                     </div>
@@ -152,10 +152,10 @@
         <div v-if="recentReports?.length" class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    <span class="mr-2">📊</span> So'nggi hisobotlar
+                    <span class="mr-2">📊</span> {{ t('reports.recent.title') }}
                 </h3>
                 <Link :href="route('business.reports.algorithmic')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    Barchasini ko'rish →
+                    {{ t('reports.recent.view_all') }} →
                 </Link>
             </div>
             <div class="space-y-3">
@@ -195,7 +195,7 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-blue-100 text-sm font-medium mb-1">Jami sotuvlar</p>
+                <p class="text-blue-100 text-sm font-medium mb-1">{{ t('reports.stats.total_sales') }}</p>
                 <p class="text-3xl font-bold">{{ stats.total_sales }}</p>
             </div>
 
@@ -208,7 +208,7 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-green-100 text-sm font-medium mb-1">Jami daromad</p>
+                <p class="text-green-100 text-sm font-medium mb-1">{{ t('reports.stats.total_revenue') }}</p>
                 <p class="text-3xl font-bold">{{ formatCurrency(stats.total_revenue) }}</p>
             </div>
 
@@ -221,7 +221,7 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-purple-100 text-sm font-medium mb-1">Orzuidagi xaridorlar</p>
+                <p class="text-purple-100 text-sm font-medium mb-1">{{ t('reports.stats.dream_buyers') }}</p>
                 <p class="text-3xl font-bold">{{ stats.dream_buyers }}</p>
             </div>
 
@@ -234,7 +234,7 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-yellow-100 text-sm font-medium mb-1">Faol takliflar</p>
+                <p class="text-yellow-100 text-sm font-medium mb-1">{{ t('reports.stats.active_offers') }}</p>
                 <p class="text-3xl font-bold">{{ stats.active_offers }}</p>
             </div>
 
@@ -247,7 +247,7 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-indigo-100 text-sm font-medium mb-1">Marketing kanallari</p>
+                <p class="text-indigo-100 text-sm font-medium mb-1">{{ t('reports.stats.marketing_channels') }}</p>
                 <p class="text-3xl font-bold">{{ stats.marketing_channels }}</p>
             </div>
 
@@ -260,31 +260,31 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-red-100 text-sm font-medium mb-1">Kuzatilayotgan raqiblar</p>
+                <p class="text-red-100 text-sm font-medium mb-1">{{ t('reports.stats.competitors_tracked') }}</p>
                 <p class="text-3xl font-bold">{{ stats.competitors_tracked }}</p>
             </div>
         </div>
 
         <!-- Key Metrics from Realtime Data -->
         <div v-if="realtimeData?.metrics" class="mb-6">
-            <Card title="Asosiy ko'rsatkichlar (Real-time)">
+            <Card :title="t('reports.metrics.title')">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <!-- Sales Metrics -->
                     <div v-if="realtimeData.metrics.sales" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <div class="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Sotuvlar soni</div>
+                        <div class="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">{{ t('reports.metrics.sales_count') }}</div>
                         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ realtimeData.metrics.sales.total_sales || 0 }}</div>
                     </div>
                     <div v-if="realtimeData.metrics.sales" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <div class="text-sm text-green-600 dark:text-green-400 font-medium mb-1">Daromad</div>
+                        <div class="text-sm text-green-600 dark:text-green-400 font-medium mb-1">{{ t('reports.metrics.revenue') }}</div>
                         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(realtimeData.metrics.sales.total_revenue || 0) }}</div>
                     </div>
                     <!-- Marketing Metrics -->
                     <div v-if="realtimeData.metrics.marketing" class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                        <div class="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Lidlar</div>
+                        <div class="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">{{ t('reports.metrics.leads') }}</div>
                         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ realtimeData.metrics.marketing.total_leads || 0 }}</div>
                     </div>
                     <div v-if="realtimeData.metrics.marketing" class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                        <div class="text-sm text-yellow-600 dark:text-yellow-400 font-medium mb-1">Konversiya</div>
+                        <div class="text-sm text-yellow-600 dark:text-yellow-400 font-medium mb-1">{{ t('reports.metrics.conversion') }}</div>
                         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ (realtimeData.metrics.marketing.conversion_rate || 0).toFixed(1) }}%</div>
                     </div>
                     <!-- Financial Metrics -->
@@ -309,14 +309,14 @@
         </div>
 
         <!-- Sales Trend Chart -->
-        <Card title="Sotuvlar tendensiyasi" class="mb-6">
+        <Card :title="t('reports.sales_trend.title')" class="mb-6">
             <div v-if="salesTrend.length > 0" class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sana</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sotuvlar soni</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Daromad</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('reports.sales_trend.date') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('reports.sales_trend.count') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('reports.sales_trend.revenue') }}</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -332,13 +332,13 @@
                 <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <p class="text-gray-500 dark:text-gray-400">Ma'lumotlar topilmadi</p>
+                <p class="text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
             </div>
         </Card>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Sales by Status -->
-            <Card title="Sotuvlar holati bo'yicha">
+            <Card :title="t('reports.sales_by_status.title')">
                 <div v-if="salesByStatus.length > 0" class="space-y-3">
                     <div v-for="item in salesByStatus" :key="item.status" class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                         <div class="flex items-center">
@@ -362,7 +362,7 @@
             </Card>
 
             <!-- Marketing Content Stats -->
-            <Card title="Marketing kontent statistikasi">
+            <Card :title="t('reports.content_stats.title')">
                 <div v-if="contentStats.length > 0" class="space-y-3">
                     <div v-for="item in contentStats" :key="item.type" class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                         <span class="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">{{ item.type }}</span>
@@ -376,14 +376,14 @@
         </div>
 
         <!-- Top Marketing Channels -->
-        <Card title="Eng yaxshi marketing kanallari" class="mb-6">
+        <Card :title="t('reports.top_channels.title')" class="mb-6">
             <div v-if="topChannels.length > 0" class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nomi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Platforma</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Oylik byudjet</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('reports.top_channels.name') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('reports.top_channels.platform') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('reports.top_channels.budget') }}</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -403,32 +403,32 @@
                 <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                 </svg>
-                <p class="text-gray-500 dark:text-gray-400">Ma'lumotlar topilmadi</p>
+                <p class="text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
             </div>
         </Card>
 
         <!-- Offers Performance -->
-        <Card title="Takliflar ko'rsatkichlari" class="mb-6">
+        <Card :title="t('reports.offers.title')" class="mb-6">
             <div v-if="offersPerformance.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div v-for="item in offersPerformance" :key="item.status" class="p-5 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-all">
                     <div class="text-sm text-gray-500 dark:text-gray-400 capitalize mb-2">{{ item.status }}</div>
                     <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ item.count }}</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">O'rtacha konversiya: {{ item.avg_conversion }}%</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">{{ t('reports.offers.avg_conversion') }}: {{ item.avg_conversion }}%</div>
                 </div>
             </div>
             <div v-else class="text-center py-12">
                 <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                <p class="text-gray-500 dark:text-gray-400">Ma'lumotlar topilmadi</p>
+                <p class="text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
             </div>
         </Card>
 
         <!-- Competitor Analysis -->
-        <Card title="Raqiblar tahlili">
+        <Card :title="t('reports.competitors.title')">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="p-5 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-all">
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">Jami raqiblar</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">{{ t('reports.competitors.total') }}</div>
                     <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ competitorStats.total }}</div>
                 </div>
             </div>
@@ -496,7 +496,7 @@ const generateReport = async () => {
         }
     } catch (error) {
         console.error('Report generation failed:', error);
-        alert(error.response?.data?.message || 'Hisobot yaratishda xatolik yuz berdi');
+        alert(error.response?.data?.message || t('reports.error.generate'));
     } finally {
         isGenerating.value = false;
     }
@@ -547,11 +547,11 @@ const getScoreTextColor = (score) => {
 
 const getCategoryLabel = (key) => {
     const labels = {
-        sales: 'Sotuvlar',
-        marketing: 'Marketing',
-        financial: 'Moliyaviy',
-        customer: 'Mijozlar',
-        efficiency: 'Samaradorlik',
+        sales: t('reports.category.sales'),
+        marketing: t('reports.category.marketing'),
+        financial: t('reports.category.financial'),
+        customer: t('reports.category.customer'),
+        efficiency: t('reports.category.efficiency'),
     };
     return labels[key] || key;
 };

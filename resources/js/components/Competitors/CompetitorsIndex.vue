@@ -3,8 +3,8 @@
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Raqobatchilar</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Raqobatchilaringizni kuzating va tahlil qiling</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('competitors.title') }}</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t('competitors.subtitle') }}</p>
             </div>
             <div class="flex gap-3">
                 <Link
@@ -14,16 +14,17 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    Dashboard
+                    {{ t('competitors.dashboard') }}
                 </Link>
                 <button
+                    v-if="!readOnly"
                     @click="openAddModal"
                     class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
                 >
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Yangi Raqobatchi
+                    {{ t('competitors.new_competitor') }}
                 </button>
             </div>
         </div>
@@ -39,7 +40,7 @@
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ totalCompetitors }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('competitors.total') }}</p>
                     </div>
                 </div>
             </div>
@@ -53,7 +54,7 @@
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ activeCount }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Faol</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('competitors.active') }}</p>
                     </div>
                 </div>
             </div>
@@ -67,7 +68,7 @@
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ criticalCount }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Kritik tahdid</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('competitors.critical_threat') }}</p>
                     </div>
                 </div>
             </div>
@@ -81,7 +82,7 @@
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ highCount }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Yuqori tahdid</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('competitors.high_threat') }}</p>
                     </div>
                 </div>
             </div>
@@ -98,7 +99,7 @@
                         <input
                             v-model="filters.search"
                             type="text"
-                            placeholder="Nomi yoki tavsif bo'yicha qidiring..."
+                            :placeholder="t('competitors.search_placeholder')"
                             class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                     </div>
@@ -108,11 +109,11 @@
                         v-model="filters.threat_level"
                         class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     >
-                        <option value="">Barcha tahdidlar</option>
-                        <option value="low">Past tahdid</option>
-                        <option value="medium">O'rta tahdid</option>
-                        <option value="high">Yuqori tahdid</option>
-                        <option value="critical">Kritik tahdid</option>
+                        <option value="">{{ t('competitors.all_threats') }}</option>
+                        <option value="low">{{ t('competitors.low_threat') }}</option>
+                        <option value="medium">{{ t('competitors.medium_threat') }}</option>
+                        <option value="high">{{ t('competitors.high_threat') }}</option>
+                        <option value="critical">{{ t('competitors.critical_threat') }}</option>
                     </select>
                 </div>
                 <div>
@@ -120,10 +121,10 @@
                         v-model="filters.status"
                         class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     >
-                        <option value="">Barcha statuslar</option>
-                        <option value="active">Faol</option>
-                        <option value="inactive">Nofaol</option>
-                        <option value="archived">Arxivlangan</option>
+                        <option value="">{{ t('competitors.all_statuses') }}</option>
+                        <option value="active">{{ t('competitors.active') }}</option>
+                        <option value="inactive">{{ t('competitors.inactive') }}</option>
+                        <option value="archived">{{ t('competitors.archived') }}</option>
                     </select>
                 </div>
             </div>
@@ -136,16 +137,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Raqobatchilar topilmadi</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Yangi raqobatchi qo'shish uchun yuqoridagi tugmani bosing.</p>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">{{ t('competitors.not_found') }}</h3>
+            <p v-if="!readOnly" class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ t('competitors.not_found_desc') }}</p>
+            <p v-else class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ t('competitors.not_added') }}</p>
             <button
+                v-if="!readOnly"
                 @click="openAddModal"
                 class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-medium text-white transition-colors"
             >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Raqobatchi qo'shish
+                {{ t('competitors.add_competitor') }}
             </button>
         </div>
 
@@ -155,12 +158,12 @@
                 <table class="w-full">
                     <thead>
                         <tr class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Raqobatchi</th>
-                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Instagram</th>
-                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Telegram</th>
-                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Tahdid</th>
-                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Amallar</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('competitors.title') }}</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('competitors.instagram') }}</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('competitors.telegram') }}</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('competitors.threat') }}</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('common.status') }}</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('competitors.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -182,7 +185,7 @@
                                             {{ competitor.name }}
                                         </Link>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                            {{ competitor.industry || competitor.location || 'Ma\'lumot yo\'q' }}
+                                            {{ competitor.industry || competitor.location || t('competitors.no_data') }}
                                         </p>
                                     </div>
                                 </div>
@@ -226,7 +229,7 @@
                                     <Link
                                         :href="getRoute('show', competitor.id)"
                                         class="p-1.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                                        title="Ko'rish"
+                                        :title="t('competitors.view')"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -234,18 +237,20 @@
                                         </svg>
                                     </Link>
                                     <button
+                                        v-if="!readOnly"
                                         @click="$emit('edit', competitor)"
                                         class="p-1.5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                        title="Tahrirlash"
+                                        :title="t('competitors.edit')"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
                                     <button
+                                        v-if="!readOnly"
                                         @click="$emit('delete', competitor)"
                                         class="p-1.5 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        title="O'chirish"
+                                        :title="t('competitors.delete')"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -258,7 +263,7 @@
                 </table>
             </div>
             <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
-                Jami {{ filteredCompetitors.length }} ta raqobatchi
+                {{ t('competitors.total_count', { count: filteredCompetitors.length }) }}
             </div>
         </div>
     </div>
@@ -267,6 +272,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     competitors: { type: [Array, Object], default: () => [] },
@@ -277,6 +285,7 @@ const props = defineProps({
         required: true,
         validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v),
     },
+    readOnly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['add', 'edit', 'delete']);
@@ -289,7 +298,8 @@ const filters = ref({
 
 // Route helper based on panel type
 const getRoute = (action, id = null) => {
-    const prefix = props.panelType;
+    // saleshead -> sales-head URL prefix conversion
+    const prefix = props.panelType === 'saleshead' ? 'sales-head' : props.panelType;
     const routes = {
         dashboard: `/${prefix}/competitors/dashboard`,
         index: `/${prefix}/competitors`,
@@ -331,8 +341,7 @@ const filteredCompetitors = computed(() => {
 const openAddModal = () => emit('add');
 
 const getThreatLevelText = (level) => {
-    const levels = { low: 'Past', medium: "O'rta", high: 'Yuqori', critical: 'Kritik' };
-    return levels[level] || level;
+    return t(`competitors.modal.${level}`) || level;
 };
 
 const getThreatBadgeClass = (level) => {
@@ -346,8 +355,7 @@ const getThreatBadgeClass = (level) => {
 };
 
 const getStatusText = (status) => {
-    const statuses = { active: 'Faol', inactive: 'Nofaol', archived: 'Arxivlangan' };
-    return statuses[status] || status;
+    return t(`competitors.modal.${status}`) || status;
 };
 
 const getStatusBadgeClass = (status) => {

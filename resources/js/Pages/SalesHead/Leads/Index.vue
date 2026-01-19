@@ -26,6 +26,10 @@ defineProps({
         type: Array,
         default: () => [],
     },
+    pipelineStages: {
+        type: Array,
+        default: () => [],
+    },
     lazyLoad: {
         type: Boolean,
         default: false,
@@ -40,6 +44,7 @@ defineProps({
             :stats="stats"
             :channels="channels"
             :operators="operators"
+            :pipeline-stages="pipelineStages"
             :lazy-load="lazyLoad"
             :can-assign-leads="true"
             panel-type="saleshead"

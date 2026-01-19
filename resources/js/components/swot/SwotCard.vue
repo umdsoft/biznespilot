@@ -9,7 +9,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ subtitle }}</p>
             </div>
             <span :class="badgeClasses" class="text-xs font-medium px-2.5 py-1 rounded-full">
-                {{ items.length }} ta
+                {{ t('swot.card.items_count', { count: items.length }) }}
             </span>
         </div>
 
@@ -47,14 +47,14 @@
                         <button
                             @click="startEdit(index, getItemText(item))"
                             class="p-1 text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400 rounded"
-                            title="Tahrirlash"
+                            :title="t('common.edit')"
                         >
                             <PencilIcon class="w-3.5 h-3.5" />
                         </button>
                         <button
                             @click="$emit('remove', index)"
                             class="p-1 text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400 rounded"
-                            title="O'chirish"
+                            :title="t('common.delete')"
                         >
                             <TrashIcon class="w-3.5 h-3.5" />
                         </button>
@@ -64,13 +64,13 @@
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        <span>Boshqa biznes</span>
+                        <span>{{ t('swot.card.other_business') }}</span>
                     </div>
                 </template>
             </div>
 
             <p v-if="items.length === 0" class="text-sm text-gray-400 dark:text-gray-500 italic py-2">
-                Hozircha ma'lumot yo'q
+                {{ t('swot.card.no_data') }}
             </p>
         </div>
 
@@ -108,6 +108,9 @@ import {
     LightBulbIcon,
     BoltIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     type: {

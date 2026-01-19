@@ -12,7 +12,7 @@
             </div>
             <div>
               <h1 class="text-lg font-bold text-gray-900">BiznesPilot AI</h1>
-              <p class="text-xs text-gray-500">Onboarding</p>
+              <p class="text-xs text-gray-500">{{ t('onboarding.title') }}</p>
             </div>
           </div>
           <div class="flex items-center gap-4">
@@ -42,13 +42,13 @@
           <div class="text-center lg:text-left flex-1">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-4">
               <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              <span class="text-sm font-medium text-white">{{ overallPercent }}% tayyor</span>
+              <span class="text-sm font-medium text-white">{{ t('onboarding.ready_percent', { percent: overallPercent }) }}</span>
             </div>
             <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3">
-              Biznesingizni AI bilan tahlil qiling
+              {{ t('onboarding.hero_title') }}
             </h1>
             <p class="text-lg text-indigo-100 max-w-xl">
-              Ma'lumotlaringiz asosida AI sizning biznesingizni 360° tahlil qiladi va o'sish strategiyasini tavsiya qiladi
+              {{ t('onboarding.hero_desc') }}
             </p>
           </div>
 
@@ -60,12 +60,12 @@
               <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span>AI Diagnostikani Boshlash</span>
+              <span>{{ t('onboarding.start_diagnostic') }}</span>
               <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
-            <p class="text-indigo-200 text-sm">Bepul • 2-3 daqiqa • Aniq tavsiyalar</p>
+            <p class="text-indigo-200 text-sm">{{ t('onboarding.diagnostic_info') }}</p>
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@
       <div v-if="isLoading" class="flex items-center justify-center py-20">
         <div class="text-center">
           <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
+          <p class="text-gray-600">{{ t('onboarding.loading') }}</p>
         </div>
       </div>
 
@@ -85,10 +85,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 class="text-lg font-semibold text-red-800 mb-2">Xatolik yuz berdi</h3>
+        <h3 class="text-lg font-semibold text-red-800 mb-2">{{ t('onboarding.error_title') }}</h3>
         <p class="text-red-600 mb-4">{{ errorMessage }}</p>
         <button @click="loadData" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-          Qayta urinib ko'rish
+          {{ t('onboarding.retry') }}
         </button>
       </div>
 
@@ -99,7 +99,7 @@
           <!-- Overall Progress Card -->
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold text-gray-900">Umumiy Progress</h3>
+              <h3 class="text-lg font-semibold text-gray-900">{{ t('onboarding.overall_progress') }}</h3>
               <span class="text-2xl font-bold text-blue-600">{{ overallPercent }}%</span>
             </div>
 
@@ -112,7 +112,7 @@
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                   <span class="text-4xl font-bold text-gray-900">{{ overallPercent }}</span>
-                  <span class="text-sm text-gray-500">foiz</span>
+                  <span class="text-sm text-gray-500">{{ t('onboarding.percent') }}</span>
                 </div>
               </div>
             </div>
@@ -123,7 +123,7 @@
                 <div class="flex items-center justify-between mb-1">
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-medium text-gray-700">{{ cat.name }}</span>
-                    <span v-if="cat.isOptional" class="text-xs text-gray-400">(ixtiyoriy)</span>
+                    <span v-if="cat.isOptional" class="text-xs text-gray-400">({{ t('onboarding.optional') }})</span>
                   </div>
                   <span class="text-sm font-bold" :class="cat.percent >= 100 ? 'text-green-600' : 'text-gray-600'">{{ cat.percent }}%</span>
                 </div>
@@ -143,9 +143,9 @@
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold mb-1">Maslahat</h4>
+                <h4 class="font-semibold mb-1">{{ t('onboarding.tip_title') }}</h4>
                 <p class="text-sm text-blue-100">
-                  Barcha qadamlar ixtiyoriy! Xohlagan vaqtda Dashboard ga o'tishingiz mumkin.
+                  {{ t('onboarding.tip_text') }}
                 </p>
               </div>
             </div>
@@ -156,7 +156,7 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            Dashboard ga o'tish
+            {{ t('onboarding.go_dashboard') }}
           </button>
         </div>
 
@@ -172,8 +172,8 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-lg font-semibold text-gray-900">Biznes Profili</h3>
-                  <p class="text-sm text-gray-500">Asosiy ma'lumotlarni kiriting</p>
+                  <h3 class="text-lg font-semibold text-gray-900">{{ t('onboarding.profile.title') }}</h3>
+                  <p class="text-sm text-gray-500">{{ t('onboarding.profile.desc') }}</p>
                 </div>
                 <div class="px-3 py-1 rounded-full text-sm font-bold" :class="getCategoryPercent('profile') >= 100 ? 'bg-green-100 text-green-700' : getCategoryPercent('profile') > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'">
                   {{ getCategoryPercent('profile') }}%
@@ -307,8 +307,8 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-lg font-semibold text-gray-900">KPI va Metrikalar</h3>
-                  <p class="text-sm text-gray-500">Sotuv va marketing ko'rsatkichlari</p>
+                  <h3 class="text-lg font-semibold text-gray-900">{{ t('onboarding.kpi.title') }}</h3>
+                  <p class="text-sm text-gray-500">{{ t('onboarding.kpi.desc') }}</p>
                 </div>
                 <div class="px-3 py-1 rounded-full text-sm font-bold" :class="getCategoryPercent('kpi') >= 100 ? 'bg-green-100 text-green-700' : getCategoryPercent('kpi') > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'">
                   {{ getCategoryPercent('kpi') }}%
@@ -417,8 +417,8 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="text-lg font-semibold text-gray-900">Marketing Framework</h3>
-                  <p class="text-sm text-gray-500">Strategiya asoslarini yarating</p>
+                  <h3 class="text-lg font-semibold text-gray-900">{{ t('onboarding.framework.title') }}</h3>
+                  <p class="text-sm text-gray-500">{{ t('onboarding.framework.desc') }}</p>
                 </div>
                 <div class="px-3 py-1 rounded-full text-sm font-bold" :class="getCategoryPercent('framework') >= 100 ? 'bg-green-100 text-green-700' : getCategoryPercent('framework') > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'">
                   {{ getCategoryPercent('framework') }}%
@@ -661,7 +661,7 @@
                       </svg>
                     </div>
                     <div class="flex-1">
-                      <h4 class="text-lg font-semibold text-red-800 mb-2">Xatolik yuz berdi</h4>
+                      <h4 class="text-lg font-semibold text-red-800 mb-2">{{ t('onboarding.modal.error') }}</h4>
                       <p class="text-red-700 mb-2">{{ modalError.message }}</p>
                       <p class="text-sm text-red-600 mb-2">Info: {{ modalError.info }}</p>
                       <details class="mt-3">
@@ -670,7 +670,7 @@
                       </details>
                     </div>
                   </div>
-                  <button @click="closeModal" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Yopish</button>
+                  <button @click="closeModal" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">{{ t('onboarding.modal.close') }}</button>
                 </div>
 
                 <!-- Dynamic Form -->
@@ -691,11 +691,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
                     </div>
-                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Komponent topilmadi</h4>
-                    <p class="text-gray-500 mb-2">Step code: {{ activeStepCode }}</p>
-                    <p class="text-gray-500 mb-6">Bu qadamning komponenti topilmadi</p>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">{{ t('onboarding.modal.component_not_found') }}</h4>
+                    <p class="text-gray-500 mb-2">{{ t('onboarding.modal.step_code') }}: {{ activeStepCode }}</p>
+                    <p class="text-gray-500 mb-6">{{ t('onboarding.modal.component_missing') }}</p>
                     <button @click="closeModal" class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors">
-                      Yopish
+                      {{ t('onboarding.modal.close') }}
                     </button>
                   </div>
                 </template>
@@ -716,6 +716,9 @@ import { ref, computed, onMounted, shallowRef, onErrorCaptured, markRaw } from '
 import { usePage } from '@inertiajs/vue3';
 import { useOnboardingStore } from '@/stores/onboarding';
 import Toast from '@/components/Toast.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 // Form components
 import BusinessBasicForm from '@/components/onboarding/forms/BusinessBasicForm.vue';
@@ -775,9 +778,9 @@ const progress = computed(() => props.progress || store.progress);
 const overallPercent = computed(() => progress.value?.overall_percent || 0);
 
 const categoryProgress = computed(() => [
-  { key: 'profile', name: 'Biznes Profili', percent: progress.value?.categories?.profile?.required_percent || 0 },
-  { key: 'kpi', name: 'KPI va Metrikalar', percent: progress.value?.categories?.kpi?.percent || 0, isOptional: true },
-  { key: 'framework', name: 'Framework', percent: progress.value?.categories?.framework?.required_percent || 0 },
+  { key: 'profile', name: t('onboarding.profile.title'), percent: progress.value?.categories?.profile?.required_percent || 0 },
+  { key: 'kpi', name: t('onboarding.kpi.title'), percent: progress.value?.categories?.kpi?.percent || 0, isOptional: true },
+  { key: 'framework', name: t('onboarding.framework.title'), percent: progress.value?.categories?.framework?.required_percent || 0 },
 ]);
 
 // Use steps from props first (passed from server), fallback to progress.steps
@@ -805,22 +808,22 @@ const formComponents = {
 const modalTitle = computed(() => {
   if (!activeStepCode.value) return '';
   const titles = {
-    business_basic: 'Biznes ma\'lumotlari',
-    business_details: 'Biznes tafsilotlari',
-    business_maturity: 'Biznes holati',
-    framework_dream_buyer: 'Ideal mijoz profili',
-    framework_problem: 'Muammolar',
-    framework_competitors: 'Raqobatchilar',
-    framework_hypotheses: 'Gipotezalar',
-    framework_research: 'Tadqiqot',
-    kpi_sales: 'Sotuv ko\'rsatkichlari',
-    kpi_marketing: 'Marketing ko\'rsatkichlari',
+    business_basic: t('onboarding.modal.business_basic'),
+    business_details: t('onboarding.modal.business_details'),
+    business_maturity: t('onboarding.modal.business_maturity'),
+    framework_dream_buyer: t('onboarding.modal.dream_buyer'),
+    framework_problem: t('onboarding.modal.problems'),
+    framework_competitors: t('onboarding.modal.competitors'),
+    framework_hypotheses: t('onboarding.modal.hypotheses'),
+    framework_research: t('onboarding.modal.research'),
+    kpi_sales: t('onboarding.modal.sales_kpi'),
+    kpi_marketing: t('onboarding.modal.marketing_kpi'),
   };
-  return stepData.value?.step?.name?.uz || stepData.value?.step?.name_uz || titles[activeStepCode.value] || 'Ma\'lumotlar';
+  return stepData.value?.step?.name?.uz || stepData.value?.step?.name_uz || titles[activeStepCode.value] || t('onboarding.modal.enter_data');
 });
 
 const modalSubtitle = computed(() => {
-  return stepData.value?.step?.description?.uz || stepData.value?.step?.description_uz || 'Ma\'lumotlarni kiriting';
+  return stepData.value?.step?.description?.uz || stepData.value?.step?.description_uz || t('onboarding.modal.enter_data');
 });
 
 // Modal icon background based on step category

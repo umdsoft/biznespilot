@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
@@ -9,6 +10,8 @@ import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import CompetitorsIndex from '@/components/Competitors/CompetitorsIndex.vue';
 import CompetitorModal from '@/components/Competitors/CompetitorModal.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     competitors: { type: [Array, Object], default: () => [] },
@@ -32,12 +35,16 @@ const layoutComponent = computed(() => {
     return layouts[props.panelType] || BaseLayout;
 });
 
+// SalesHead panel faqat ko'rish uchun (read-only)
+const isReadOnly = computed(() => props.panelType === 'saleshead');
+
 const showModal = ref(false);
 const editingCompetitor = ref(null);
 
-// Route helper based on panel type
+// Route helper based on panel type (saleshead -> sales-head URL conversion)
 const getRoutePrefix = () => {
-    return '/' + props.panelType;
+    const prefix = props.panelType === 'saleshead' ? 'sales-head' : props.panelType;
+    return '/' + prefix;
 };
 
 const openAddModal = () => {
@@ -70,7 +77,7 @@ const submitForm = (formData) => {
 };
 
 const deleteCompetitor = (competitor) => {
-    if (confirm(`${competitor.name} raqobatchini o'chirishni tasdiqlaysizmi?`)) {
+    if (confirm(t('competitors.confirm_delete', { name: competitor.name }))) {
         const prefix = getRoutePrefix();
         router.delete(`${prefix}/competitors/${competitor.id}`);
     }
@@ -78,20 +85,21 @@ const deleteCompetitor = (competitor) => {
 </script>
 
 <template>
-    <component :is="layoutComponent" title="Raqobatchilar">
+    <component :is="layoutComponent" :title="t('competitors.title')">
         <CompetitorsIndex
             :competitors="competitors"
             :stats="stats"
             :current-business="currentBusiness"
             :panel-type="panelType"
+            :read-only="isReadOnly"
             @add="openAddModal"
             @edit="editCompetitor"
             @delete="deleteCompetitor"
         />
 
-        <!-- Add/Edit Competitor Modal -->
+        <!-- Add/Edit Competitor Modal (faqat read-only bo'lmagan panellarda) -->
         <CompetitorModal
-            v-if="showModal"
+            v-if="showModal && !isReadOnly"
             :competitor="editingCompetitor"
             :current-business="currentBusiness"
             @close="closeModal"

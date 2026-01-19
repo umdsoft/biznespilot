@@ -44,6 +44,10 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\Shared\DreamBuyerController as SharedDreamBuyerController;
 use App\Http\Controllers\Shared\OffersController as SharedOffersController;
+use App\Http\Controllers\Shared\OfferAutomationController;
+use App\Http\Controllers\Shared\CompetitorInsightsController as SharedCompetitorInsightsController;
+use App\Http\Controllers\Public\OfferViewController;
+use App\Http\Controllers\Business\PipelineStageController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\TargetAnalysisController;
@@ -360,6 +364,20 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::delete('/{offer}', [SharedOffersController::class, 'destroy'])->name('destroy');
         Route::post('/{offer}/duplicate', [SharedOffersController::class, 'duplicate'])->name('duplicate');
         Route::post('/{offer}/generate-variations', [SharedOffersController::class, 'generateVariations'])->name('generate-variations');
+    });
+
+    // Offer Automation routes
+    Route::prefix('offer-automation')->name('offer-automation.')->group(function () {
+        Route::get('/', [OfferAutomationController::class, 'index'])->name('index');
+        Route::get('/create', [OfferAutomationController::class, 'create'])->name('create');
+        Route::post('/', [OfferAutomationController::class, 'store'])->name('store');
+        Route::get('/{id}', [OfferAutomationController::class, 'show'])->name('show');
+        Route::get('/analytics/{offerId}', [OfferAutomationController::class, 'analytics'])->name('analytics');
+        Route::post('/{id}/resend', [OfferAutomationController::class, 'resend'])->name('resend');
+        Route::post('/{id}/convert', [OfferAutomationController::class, 'markConverted'])->name('convert');
+        Route::post('/{id}/cancel', [OfferAutomationController::class, 'cancel'])->name('cancel');
+        Route::post('/quick-send', [OfferAutomationController::class, 'quickSend'])->name('quick-send');
+        Route::get('/suggest/{leadId}', [OfferAutomationController::class, 'suggestOffer'])->name('suggest');
     });
 
     // Competitors routes - Full features with Monitoring & Alerts
@@ -804,6 +822,17 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/youtube/disconnect', [SettingsController::class, 'disconnectYoutube'])->name('youtube.disconnect');
         Route::get('/youtube/callback', [SettingsController::class, 'youtubeCallback'])->name('youtube.callback');
 
+        // Pipeline Stages (Voronka bosqichlari)
+        Route::prefix('pipeline-stages')->name('pipeline-stages.')->group(function () {
+            Route::get('/', [PipelineStageController::class, 'index'])->name('index');
+            Route::get('/list', [PipelineStageController::class, 'list'])->name('list');
+            Route::post('/', [PipelineStageController::class, 'store'])->name('store');
+            Route::put('/{pipelineStage}', [PipelineStageController::class, 'update'])->name('update');
+            Route::delete('/{pipelineStage}', [PipelineStageController::class, 'destroy'])->name('destroy');
+            Route::post('/reorder', [PipelineStageController::class, 'reorder'])->name('reorder');
+            Route::post('/{pipelineStage}/toggle-active', [PipelineStageController::class, 'toggleActive'])->name('toggle-active');
+        });
+
         // SMS Integration (Eskiz & PlayMobile)
         Route::get('/sms', [SmsController::class, 'settings'])->name('sms');
         // Eskiz
@@ -942,6 +971,18 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         // Lazy Loading API Endpoints
         Route::get('/api/insights', [CompetitorController::class, 'getInsights'])->name('api.insights');
         Route::get('/api/dashboard-data', [CompetitorController::class, 'getDashboardData'])->name('api.dashboard-data');
+    });
+
+    // Competitor Insights - Tavsiyalar va Tahlillar
+    Route::prefix('competitor-insights')->name('competitor-insights.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'index'])->name('index');
+        Route::post('/generate', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'generate'])->name('generate');
+        Route::get('/sales-scripts', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'salesScripts'])->name('sales-scripts');
+        Route::post('/{insight}/read', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'markRead'])->name('read');
+        Route::post('/{insight}/complete', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'markCompleted'])->name('complete');
+        Route::post('/{insight}/dismiss', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'dismiss'])->name('dismiss');
+        Route::get('/api/list', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiList'])->name('api.list');
+        Route::get('/api/summary', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiSummary'])->name('api.summary');
     });
 
     // Target Analysis API routes
@@ -1226,6 +1267,15 @@ Route::prefix('f')->name('lead-form.')->group(function () {
     Route::get('/{slug}/thank-you', [PublicLeadFormController::class, 'thankYou'])->name('thank-you');
 });
 
+// Public Offer View routes (no authentication required)
+Route::prefix('offer')->name('offers.public.')->group(function () {
+    Route::get('/{trackingCode}', [OfferViewController::class, 'view'])->name('view');
+    Route::post('/{trackingCode}/click', [OfferViewController::class, 'click'])->name('click');
+    Route::post('/{trackingCode}/interested', [OfferViewController::class, 'interested'])->name('interested');
+    Route::post('/{trackingCode}/callback', [OfferViewController::class, 'requestCallback'])->name('callback');
+    Route::post('/{trackingCode}/reject', [OfferViewController::class, 'reject'])->name('reject');
+});
+
 // API endpoint for lead form webhooks (Facebook, Google Ads, etc.)
 Route::post('/api/lead-forms/{slug}/submit', [PublicLeadFormController::class, 'apiSubmit'])->name('api.lead-form.submit');
 
@@ -1368,11 +1418,6 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/{call}', [App\Http\Controllers\SalesHead\CallController::class, 'show'])->name('show');
     });
 
-    // Messages
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/', [App\Http\Controllers\SalesHead\MessageController::class, 'index'])->name('index');
-    });
-
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [App\Http\Controllers\SalesHead\ReportController::class, 'index'])->name('index');
@@ -1387,11 +1432,15 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'index'])->name('index');
         Route::get('/conversion', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'conversion'])->name('conversion');
         Route::get('/revenue', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'revenue'])->name('revenue');
+        Route::get('/export', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'export'])->name('export');
     });
 
     // KPI
     Route::prefix('kpi')->name('kpi.')->group(function () {
         Route::get('/', [App\Http\Controllers\SalesHead\KpiController::class, 'index'])->name('index');
+        Route::get('/data-entry', [App\Http\Controllers\SalesHead\KpiController::class, 'dataEntry'])->name('data-entry');
+        Route::post('/plan', [App\Http\Controllers\SalesHead\KpiController::class, 'storePlan'])->name('plan.store');
+        Route::post('/daily-entry', [App\Http\Controllers\SalesHead\KpiController::class, 'storeDailyEntry'])->name('daily-entry.store');
         Route::post('/targets', [App\Http\Controllers\SalesHead\KpiController::class, 'setTargets'])->name('targets');
     });
 
@@ -1401,6 +1450,17 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
     Route::get('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [App\Http\Controllers\SalesHead\SettingsController::class, 'update'])->name('settings.update');
 
+    // Pipeline Stages Settings (Voronka bosqichlari)
+    Route::prefix('settings/pipeline-stages')->name('settings.pipeline-stages.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\PipelineStageController::class, 'index'])->name('index');
+        Route::get('/list', [App\Http\Controllers\Business\PipelineStageController::class, 'list'])->name('list');
+        Route::post('/', [App\Http\Controllers\Business\PipelineStageController::class, 'store'])->name('store');
+        Route::put('/{pipelineStage}', [App\Http\Controllers\Business\PipelineStageController::class, 'update'])->name('update');
+        Route::delete('/{pipelineStage}', [App\Http\Controllers\Business\PipelineStageController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [App\Http\Controllers\Business\PipelineStageController::class, 'reorder'])->name('reorder');
+        Route::post('/{pipelineStage}/toggle-active', [App\Http\Controllers\Business\PipelineStageController::class, 'toggleActive'])->name('toggle-active');
+    });
+
     // Marketing Information (Read-Only)
     Route::prefix('dream-buyer')->name('dream-buyer.')->group(function () {
         Route::get('/', [SharedDreamBuyerController::class, 'index'])->name('index');
@@ -1408,20 +1468,52 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::post('/{dreamBuyer}/content-ideas', [SharedDreamBuyerController::class, 'generateContentIdeas'])->name('content-ideas');
     });
 
-    Route::prefix('campaigns')->name('campaigns.')->group(function () {
-        Route::get('/', [MarketingCampaignController::class, 'index'])->name('index');
-        Route::get('/{campaign}', [MarketingCampaignController::class, 'show'])->name('show');
-    });
-
+    // Offers - Full CRUD for SalesHead
     Route::prefix('offers')->name('offers.')->group(function () {
         Route::get('/', [SharedOffersController::class, 'index'])->name('index');
+        Route::get('/create', [SharedOffersController::class, 'create'])->name('create');
+        Route::post('/', [SharedOffersController::class, 'store'])->name('store');
         Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
+        Route::get('/{offer}/edit', [SharedOffersController::class, 'edit'])->name('edit');
+        Route::put('/{offer}', [SharedOffersController::class, 'update'])->name('update');
+        Route::delete('/{offer}', [SharedOffersController::class, 'destroy'])->name('destroy');
+        Route::post('/{offer}/duplicate', [SharedOffersController::class, 'duplicate'])->name('duplicate');
+        Route::post('/generate-ai', [SharedOffersController::class, 'generateAI'])->name('generate-ai');
+        Route::post('/{offer}/variations', [SharedOffersController::class, 'generateVariations'])->name('variations');
+        Route::post('/guarantee', [SharedOffersController::class, 'generateGuarantee'])->name('guarantee');
+        Route::post('/value-score', [SharedOffersController::class, 'calculateValueScore'])->name('value-score');
+    });
+
+    // Offer Automation for SalesHead
+    Route::prefix('offer-automation')->name('offer-automation.')->group(function () {
+        Route::get('/', [OfferAutomationController::class, 'index'])->name('index');
+        Route::get('/create', [OfferAutomationController::class, 'create'])->name('create');
+        Route::post('/', [OfferAutomationController::class, 'store'])->name('store');
+        Route::get('/{id}', [OfferAutomationController::class, 'show'])->name('show');
+        Route::get('/analytics/{offerId}', [OfferAutomationController::class, 'analytics'])->name('analytics');
+        Route::post('/{id}/resend', [OfferAutomationController::class, 'resend'])->name('resend');
+        Route::post('/{id}/convert', [OfferAutomationController::class, 'markConverted'])->name('convert');
+        Route::post('/{id}/cancel', [OfferAutomationController::class, 'cancel'])->name('cancel');
+        Route::post('/quick-send', [OfferAutomationController::class, 'quickSend'])->name('quick-send');
+        Route::get('/suggest/{leadId}', [OfferAutomationController::class, 'suggestOffer'])->name('suggest');
     });
 
     Route::prefix('competitors')->name('competitors.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
-        Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
-        Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
+        Route::get('/', [App\Http\Controllers\SalesHead\CompetitorController::class, 'index'])->name('index');
+        Route::get('/dashboard', [App\Http\Controllers\SalesHead\CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{competitor}', [App\Http\Controllers\SalesHead\CompetitorController::class, 'show'])->name('show');
+    });
+
+    // Competitor Insights - Tavsiyalar va Sotuv Skriptlari
+    Route::prefix('competitor-insights')->name('competitor-insights.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'index'])->name('index');
+        Route::post('/generate', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'generate'])->name('generate');
+        Route::get('/sales-scripts', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'salesScripts'])->name('sales-scripts');
+        Route::post('/{insight}/read', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'markRead'])->name('read');
+        Route::post('/{insight}/complete', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'markCompleted'])->name('complete');
+        Route::post('/{insight}/dismiss', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'dismiss'])->name('dismiss');
+        Route::get('/api/list', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiList'])->name('api.list');
+        Route::get('/api/summary', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiSummary'])->name('api.summary');
     });
 });
 
@@ -1604,6 +1696,18 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'swotIndex'])->name('index');
         Route::post('/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateBusinessSwot'])->name('generate');
         Route::put('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveBusinessSwot'])->name('save');
+    });
+
+    // Competitor Insights - AI Tavsiyalar (Shared Controller)
+    Route::prefix('competitor-insights')->name('competitor-insights.')->group(function () {
+        Route::get('/', [SharedCompetitorInsightsController::class, 'index'])->name('index');
+        Route::post('/generate', [SharedCompetitorInsightsController::class, 'generate'])->name('generate');
+        Route::get('/sales-scripts', [SharedCompetitorInsightsController::class, 'salesScripts'])->name('sales-scripts');
+        Route::post('/{insight}/read', [SharedCompetitorInsightsController::class, 'markRead'])->name('read');
+        Route::post('/{insight}/complete', [SharedCompetitorInsightsController::class, 'markCompleted'])->name('complete');
+        Route::post('/{insight}/dismiss', [SharedCompetitorInsightsController::class, 'dismiss'])->name('dismiss');
+        Route::get('/api/list', [SharedCompetitorInsightsController::class, 'apiList'])->name('api.list');
+        Route::get('/api/summary', [SharedCompetitorInsightsController::class, 'apiSummary'])->name('api.summary');
     });
 
     // Takliflar (Offers) - Full features with AI - Using Shared Controller

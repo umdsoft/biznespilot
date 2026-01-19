@@ -30,6 +30,10 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    pipelineStages: {
+        type: Array,
+        default: () => [],
+    },
 });
 </script>
 
@@ -42,6 +46,7 @@ defineProps({
             :operators="operators"
             :lazy-load="lazyLoad"
             :can-assign-leads="false"
+            :pipeline-stages="pipelineStages"
             panel-type="operator"
         />
     </OperatorLayout>

@@ -118,6 +118,9 @@ class Business extends Model
                 $business->industry_detected_at = now();
                 $business->saveQuietly(); // Save without triggering events again
             }
+
+            // Create default pipeline stages for new business
+            PipelineStage::createDefaultStages($business->id);
         });
 
         static::updating(function ($business) {

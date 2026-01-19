@@ -40,7 +40,7 @@ class DreamBuyerController extends Controller
         if (str_contains($prefix, 'operator')) {
             return 'operator';
         }
-        if (str_contains($prefix, 'saleshead')) {
+        if (str_contains($prefix, 'sales-head') || str_contains($prefix, 'saleshead')) {
             return 'saleshead';
         }
 
@@ -58,7 +58,7 @@ class DreamBuyerController extends Controller
             'marketing' => 'marketing.dream-buyer',
             'finance' => 'finance.dream-buyer',
             'operator' => 'operator.dream-buyer',
-            'saleshead' => 'saleshead.dream-buyer',
+            'saleshead' => 'sales-head.dream-buyer',
             default => 'business.dream-buyer',
         };
     }

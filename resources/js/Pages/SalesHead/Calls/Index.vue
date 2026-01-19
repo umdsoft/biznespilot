@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import {
     PhoneIcon,
@@ -9,6 +9,10 @@ import {
     PhoneXMarkIcon,
     MagnifyingGlassIcon,
     ClockIcon,
+    CheckCircleIcon,
+    XCircleIcon,
+    UserGroupIcon,
+    ChartBarIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -22,14 +26,45 @@ const props = defineProps({
             total: 0,
             incoming: 0,
             outgoing: 0,
+            answered: 0,
             missed: 0,
             avg_duration: 0,
+            total_duration: 0,
+            answer_rate: 0,
+        }),
+    },
+    dailyBreakdown: {
+        type: Object,
+        default: () => ({}),
+    },
+    operatorStats: {
+        type: Array,
+        default: () => [],
+    },
+    period: {
+        type: String,
+        default: 'daily',
+    },
+    dateInfo: {
+        type: Object,
+        default: () => ({
+            current_month: '',
+            current_day: 1,
+            days_in_month: 31,
+            selected_day: 1,
         }),
     },
 });
 
+const periods = [
+    { key: 'daily', label: 'Kunlik' },
+    { key: 'weekly', label: 'Haftalik' },
+    { key: 'monthly', label: 'Oylik' },
+];
+
 const searchQuery = ref('');
 const typeFilter = ref('');
+const selectedDay = ref(props.dateInfo?.selected_day || props.dateInfo?.current_day || 1);
 
 const filteredCalls = computed(() => {
     let result = props.calls;
@@ -43,11 +78,34 @@ const filteredCalls = computed(() => {
     return result;
 });
 
+const handlePeriodChange = (periodKey) => {
+    router.get('/sales-head/calls', { period: periodKey }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
+const handleDayChange = (day) => {
+    selectedDay.value = day;
+    router.get('/sales-head/calls', { period: 'daily', day: day }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
 const formatDuration = (seconds) => {
     if (!seconds) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+const formatTotalDuration = (seconds) => {
+    if (!seconds) return '0:00:00';
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 const formatDate = (date) => {
@@ -78,6 +136,27 @@ const getCallLabel = (type) => {
     const labels = { incoming: 'Kiruvchi', outgoing: 'Chiquvchi', missed: "O'tkazib yuborilgan" };
     return labels[type] || type;
 };
+
+const getDayButtonClass = (day) => {
+    const isToday = day === props.dateInfo?.current_day;
+    const isSelected = day === selectedDay.value;
+    const isFuture = day > props.dateInfo?.current_day;
+    const hasCalls = props.dailyBreakdown[day]?.total > 0;
+
+    if (isFuture) {
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed';
+    }
+    if (isSelected) {
+        return 'bg-blue-600 text-white border-blue-600';
+    }
+    if (hasCalls) {
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900/50';
+    }
+    if (isToday) {
+        return 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700';
+    }
+    return 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700';
+};
 </script>
 
 <template>
@@ -86,32 +165,209 @@ const getCallLabel = (type) => {
 
         <div class="space-y-6">
             <!-- Header -->
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Qo'ng'iroqlar</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Barcha qo'ng'iroqlar tarixi</p>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Qo'ng'iroqlar Analitikasi</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Kunlik va operatorlar kesimida tahlil</p>
+                </div>
+                <div class="flex gap-2">
+                    <button
+                        v-for="p in periods"
+                        :key="p.key"
+                        @click="handlePeriodChange(p.key)"
+                        :class="[
+                            'px-4 py-2 rounded-lg font-medium transition-all',
+                            period === p.key
+                                ? 'bg-blue-600 text-white shadow-md'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ]"
+                    >
+                        {{ p.label }}
+                    </button>
+                </div>
             </div>
 
-            <!-- Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jami</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        <PhoneIcon class="w-5 h-5 text-gray-500" />
+                    </div>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Kiruvchi</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        <PhoneArrowDownLeftIcon class="w-5 h-5 text-green-500" />
+                    </div>
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.incoming }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Kiruvchi</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Chiquvchi</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        <PhoneArrowUpRightIcon class="w-5 h-5 text-blue-500" />
+                    </div>
                     <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.outgoing }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Chiquvchi</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">O'tkazib yuborilgan</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        <CheckCircleIcon class="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ stats.answered }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Javob berilgan</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <XCircleIcon class="w-5 h-5 text-red-500" />
+                    </div>
                     <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.missed }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">O'tkazib yuborilgan</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">O'rtacha davomiylik</p>
-                    <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatDuration(stats.avg_duration) }}</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        <ChartBarIcon class="w-5 h-5 text-purple-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats.answer_rate }}%</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Javob %</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <ClockIcon class="w-5 h-5 text-orange-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ formatDuration(stats.avg_duration) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">O'rtacha</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <ClockIcon class="w-5 h-5 text-teal-500" />
+                    </div>
+                    <p class="text-2xl font-bold text-teal-600 dark:text-teal-400">{{ formatTotalDuration(stats.total_duration) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami vaqt</p>
+                </div>
+            </div>
+
+            <!-- Daily View with Day Selector -->
+            <div v-if="period === 'daily'" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Kunlik Monitoring</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ dateInfo.current_month }}</span>
+                    </div>
+                </div>
+
+                <!-- Day buttons -->
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            v-for="day in dateInfo.days_in_month"
+                            :key="day"
+                            @click="handleDayChange(day)"
+                            class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all border"
+                            :class="getDayButtonClass(day)"
+                            :disabled="day > dateInfo.current_day"
+                        >
+                            {{ day }}
+                            <span
+                                v-if="dailyBreakdown[day]?.total > 0 && day !== selectedDay"
+                                class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center"
+                            >
+                                {{ dailyBreakdown[day].total > 9 ? '9+' : dailyBreakdown[day].total }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selected day stats -->
+                <div v-if="dailyBreakdown[selectedDay]" class="px-6 py-4 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
+                        <div>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ dailyBreakdown[selectedDay].total }}</p>
+                            <p class="text-xs text-gray-500">Jami</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold text-green-600">{{ dailyBreakdown[selectedDay].incoming }}</p>
+                            <p class="text-xs text-gray-500">Kiruvchi</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold text-blue-600">{{ dailyBreakdown[selectedDay].outgoing }}</p>
+                            <p class="text-xs text-gray-500">Chiquvchi</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold text-emerald-600">{{ dailyBreakdown[selectedDay].answered }}</p>
+                            <p class="text-xs text-gray-500">Javob</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold text-red-600">{{ dailyBreakdown[selectedDay].missed }}</p>
+                            <p class="text-xs text-gray-500">O'tkazilgan</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-bold text-orange-600">{{ formatDuration(dailyBreakdown[selectedDay].avg_duration) }}</p>
+                            <p class="text-xs text-gray-500">O'rtacha</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operator Performance -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <UserGroupIcon class="w-5 h-5 text-blue-600" />
+                        Operatorlar Samaradorligi
+                    </h3>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-700/50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Operator</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jami</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Kiruvchi</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Chiquvchi</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Javob</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">O'tkazilgan</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Javob %</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">O'rtacha</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jami vaqt</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr v-for="op in operatorStats" :key="op.id" class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 font-medium text-sm">
+                                            {{ op.avatar }}
+                                        </div>
+                                        <span class="ml-3 font-medium text-gray-900 dark:text-white">{{ op.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 text-center font-bold text-gray-900 dark:text-white">{{ op.total_calls }}</td>
+                                <td class="px-4 py-4 text-center text-green-600 dark:text-green-400">{{ op.incoming }}</td>
+                                <td class="px-4 py-4 text-center text-blue-600 dark:text-blue-400">{{ op.outgoing }}</td>
+                                <td class="px-4 py-4 text-center text-emerald-600 dark:text-emerald-400">{{ op.answered }}</td>
+                                <td class="px-4 py-4 text-center text-red-600 dark:text-red-400">{{ op.missed }}</td>
+                                <td class="px-4 py-4 text-center">
+                                    <span :class="[
+                                        'px-2 py-1 rounded-full text-xs font-medium',
+                                        op.answer_rate >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                        op.answer_rate >= 60 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                    ]">
+                                        {{ op.answer_rate }}%
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 text-center text-orange-600 dark:text-orange-400">{{ formatDuration(op.avg_duration) }}</td>
+                                <td class="px-4 py-4 text-right text-gray-700 dark:text-gray-300">{{ formatTotalDuration(op.total_duration) }}</td>
+                            </tr>
+                            <tr v-if="operatorStats.length === 0">
+                                <td colspan="9" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    Operator ma'lumotlari topilmadi
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -139,10 +395,14 @@ const getCallLabel = (type) => {
 
             <!-- Calls List -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Qo'ng'iroqlar Tarixi</h3>
+                </div>
+
                 <div v-if="filteredCalls.length === 0" class="p-12 text-center">
                     <PhoneIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Qo'ng'iroq topilmadi</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Hali qo'ng'iroqlar tarixi yo'q</p>
+                    <p class="text-gray-500 dark:text-gray-400">Tanlangan davr uchun qo'ng'iroqlar yo'q</p>
                 </div>
 
                 <div v-else class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -167,7 +427,7 @@ const getCallLabel = (type) => {
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(call.created_at) }}</p>
                             </div>
-                            <div v-if="call.operator" class="text-sm text-gray-600 dark:text-gray-400">
+                            <div v-if="call.operator" class="text-sm text-gray-600 dark:text-gray-400 min-w-[100px] text-right">
                                 {{ call.operator.name }}
                             </div>
                         </div>

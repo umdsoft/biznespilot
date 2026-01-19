@@ -36,6 +36,7 @@ import {
     ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline';
 import { ChatBubbleBottomCenterTextIcon, ChatBubbleOvalLeftIcon } from '@heroicons/vue/24/solid';
+import { formatFullCurrency } from '@/utils/formatting';
 
 const props = defineProps({
     lead: {
@@ -457,7 +458,7 @@ const formatBirthDate = (date) => {
 // Format currency
 const formatCurrency = (amount) => {
     if (!amount) return "Belgilanmagan";
-    return new Intl.NumberFormat('uz-UZ').format(amount) + " so'm";
+    return formatFullCurrency(amount);
 };
 
 // Save lead

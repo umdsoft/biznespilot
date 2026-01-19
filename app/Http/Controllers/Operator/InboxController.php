@@ -48,7 +48,8 @@ class InboxController extends Controller
             $stats = ['total' => 0, 'unread' => ['total' => 0]];
         }
 
-        if ($request->wantsJson() || $request->ajax()) {
+        // Return JSON for AJAX polling requests (but not for Inertia requests)
+        if (! $request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
             return response()->json([
                 'conversations' => $conversations->values()->toArray(),
                 'stats' => $stats,

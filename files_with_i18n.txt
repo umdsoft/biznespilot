@@ -1,0 +1,13 @@
+d:\biznespilot\resources\js\Pages/Business/Custdev/Index.vue
+d:\biznespilot\resources\js\Pages/Business/Dashboard.vue
+d:\biznespilot\resources\js\Pages/Business/Inbox/Index.vue
+d:\biznespilot\resources\js\Pages/Business/LeadForms/Index.vue
+d:\biznespilot\resources\js\Pages/Business/Marketing/Content.vue
+d:\biznespilot\resources\js\Pages/Business/Marketing/Index.vue
+d:\biznespilot\resources\js\Pages/Business/Reports/Index.vue
+d:\biznespilot\resources\js\Pages/Business/Sales/Index.vue
+d:\biznespilot\resources\js\Pages/Business/Tasks/Index.vue
+d:\biznespilot\resources\js\Pages/Business/Todos/Index.vue
+d:\biznespilot\resources\js\Pages/Shared/CompetitorInsights/Index.vue
+d:\biznespilot\resources\js\Pages/Shared/CompetitorInsights/SalesScripts.vue
+d:\biznespilot\resources\js\Pages/Shared/Competitors/Index.vue

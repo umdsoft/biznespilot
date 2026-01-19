@@ -3,11 +3,11 @@
         <!-- Strengths -->
         <SwotCard
             type="strengths"
-            title="Kuchli Tomonlar"
-            :subtitle="isBusiness ? 'Sizning afzalliklaringiz' : 'Raqobatchining kuchli tomonlari'"
+            :title="t('swot.grid.strengths_title')"
+            :subtitle="isBusiness ? t('swot.grid.strengths_business') : t('swot.grid.strengths_competitor')"
             :items="localSwot.strengths"
             color="green"
-            :placeholder="isBusiness ? 'Masalan: Sifatli mahsulot, Tajribali jamoa...' : 'Masalan: Kuchli brend, Keng mijozlar bazasi...'"
+            :placeholder="isBusiness ? t('swot.grid.strengths_placeholder_business') : t('swot.grid.strengths_placeholder_competitor')"
             :current-business-id="currentBusinessId"
             @add="addItem('strengths', $event)"
             @remove="removeItem('strengths', $event)"
@@ -17,11 +17,11 @@
         <!-- Weaknesses -->
         <SwotCard
             type="weaknesses"
-            title="Zaif Tomonlar"
-            :subtitle="isBusiness ? 'Yaxshilash kerak bo\'lgan joylar' : 'Raqobatchining zaif tomonlari'"
+            :title="t('swot.grid.weaknesses_title')"
+            :subtitle="isBusiness ? t('swot.grid.weaknesses_business') : t('swot.grid.weaknesses_competitor')"
             :items="localSwot.weaknesses"
             color="red"
-            :placeholder="isBusiness ? 'Masalan: Marketing byudjeti kam, Onlayn mavjudlik past...' : 'Masalan: Narxlari yuqori, Xizmat sifati past...'"
+            :placeholder="isBusiness ? t('swot.grid.weaknesses_placeholder_business') : t('swot.grid.weaknesses_placeholder_competitor')"
             :current-business-id="currentBusinessId"
             @add="addItem('weaknesses', $event)"
             @remove="removeItem('weaknesses', $event)"
@@ -31,11 +31,11 @@
         <!-- Opportunities -->
         <SwotCard
             type="opportunities"
-            title="Imkoniyatlar"
-            :subtitle="isBusiness ? 'O\'sish imkoniyatlari' : 'Raqobatchidan o\'rganish'"
+            :title="t('swot.grid.opportunities_title')"
+            :subtitle="isBusiness ? t('swot.grid.opportunities_business') : t('swot.grid.opportunities_competitor')"
             :items="localSwot.opportunities"
             color="blue"
-            :placeholder="isBusiness ? 'Masalan: Yangi bozorlar, Onlayn savdo...' : 'Masalan: Ularning marketing usullari, Mahsulot liniyasi...'"
+            :placeholder="isBusiness ? t('swot.grid.opportunities_placeholder_business') : t('swot.grid.opportunities_placeholder_competitor')"
             :current-business-id="currentBusinessId"
             @add="addItem('opportunities', $event)"
             @remove="removeItem('opportunities', $event)"
@@ -45,11 +45,11 @@
         <!-- Threats -->
         <SwotCard
             type="threats"
-            title="Tahdidlar"
-            :subtitle="isBusiness ? 'Ehtiyot bo\'lish kerak' : 'Raqobatchidan keladigan xavf'"
+            :title="t('swot.grid.threats_title')"
+            :subtitle="isBusiness ? t('swot.grid.threats_business') : t('swot.grid.threats_competitor')"
             :items="localSwot.threats"
             color="orange"
-            :placeholder="isBusiness ? 'Masalan: Yangi raqobatchilar, Narx urushi...' : 'Masalan: Kuchli reklama, Tajribali jamoa...'"
+            :placeholder="isBusiness ? t('swot.grid.threats_placeholder_business') : t('swot.grid.threats_placeholder_competitor')"
             :current-business-id="currentBusinessId"
             @add="addItem('threats', $event)"
             @remove="removeItem('threats', $event)"
@@ -59,8 +59,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import SwotCard from './SwotCard.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     swot: {

@@ -30,7 +30,7 @@ class InboxController extends Controller
 
         if (! $currentBusiness) {
             // If no business in session, show empty inbox
-            if ($request->wantsJson() || $request->ajax()) {
+            if (! $request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
                 return response()->json([
                     'conversations' => [],
                     'stats' => ['total' => 0, 'unread' => ['total' => 0]],
@@ -60,8 +60,8 @@ class InboxController extends Controller
             $stats = ['total' => 0, 'unread' => ['total' => 0]];
         }
 
-        // Return JSON for AJAX polling requests
-        if ($request->wantsJson() || $request->ajax()) {
+        // Return JSON for AJAX polling requests (but not for Inertia requests)
+        if (! $request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
             return response()->json([
                 'conversations' => $conversations->values()->toArray(),
                 'stats' => $stats,

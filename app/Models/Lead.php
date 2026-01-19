@@ -6,6 +6,7 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -482,5 +483,64 @@ class Lead extends Model
     public function scopeUnassigned($query)
     {
         return $query->whereNull('assigned_to');
+    }
+
+    /**
+     * Get the offer assignments for this lead.
+     */
+    public function offerAssignments(): HasMany
+    {
+        return $this->hasMany(OfferLeadAssignment::class);
+    }
+
+    /**
+     * Get offers assigned to this lead.
+     */
+    public function offers(): BelongsToMany
+    {
+        return $this->belongsToMany(Offer::class, 'offer_lead_assignments')
+            ->withPivot([
+                'status',
+                'channel',
+                'sent_at',
+                'viewed_at',
+                'converted_at',
+                'view_count',
+                'click_count',
+                'tracking_code',
+            ])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get telegram user for this lead.
+     */
+    public function telegramUser(): HasOne
+    {
+        return $this->hasOne(TelegramUser::class);
+    }
+
+    /**
+     * Check if lead has telegram.
+     */
+    public function hasTelegram(): bool
+    {
+        return $this->telegramUser()->exists();
+    }
+
+    /**
+     * Get active offers for this lead.
+     */
+    public function getActiveOffers()
+    {
+        return $this->offerAssignments()->active()->with('offer')->get();
+    }
+
+    /**
+     * Get last offer sent to this lead.
+     */
+    public function getLastOffer(): ?OfferLeadAssignment
+    {
+        return $this->offerAssignments()->latest('sent_at')->first();
     }
 }

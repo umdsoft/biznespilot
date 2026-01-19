@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import {
     ChartBarIcon,
@@ -9,6 +9,8 @@ import {
     CurrencyDollarIcon,
     UsersIcon,
     FunnelIcon,
+    ArrowDownTrayIcon,
+    DocumentTextIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -30,6 +32,7 @@ const props = defineProps({
 });
 
 const selectedPeriod = ref(props.period);
+const showExportMenu = ref(false);
 
 const formatCurrency = (amount) => {
     if (!amount) return '0 so\'m';
@@ -38,6 +41,19 @@ const formatCurrency = (amount) => {
 
 const formatPercent = (value) => {
     return (value || 0).toFixed(1) + '%';
+};
+
+const handlePeriodChange = (period) => {
+    selectedPeriod.value = period;
+    router.get('/sales-head/analytics', { period }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
+const exportReport = (format) => {
+    showExportMenu.value = false;
+    window.location.href = `/sales-head/analytics/export?period=${selectedPeriod.value}&format=${format}`;
 };
 </script>
 
@@ -65,6 +81,35 @@ const formatPercent = (value) => {
                     >
                         Daromad
                     </Link>
+                    <!-- Export Dropdown -->
+                    <div class="relative">
+                        <button
+                            @click="showExportMenu = !showExportMenu"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                            <ArrowDownTrayIcon class="w-5 h-5" />
+                            Yuklab olish
+                        </button>
+                        <div
+                            v-if="showExportMenu"
+                            class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+                        >
+                            <button
+                                @click="exportReport('pdf')"
+                                class="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <DocumentTextIcon class="w-5 h-5 text-red-500" />
+                                PDF formatda
+                            </button>
+                            <button
+                                @click="exportReport('excel')"
+                                class="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <DocumentTextIcon class="w-5 h-5 text-green-500" />
+                                Excel formatda
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -73,7 +118,7 @@ const formatPercent = (value) => {
                 <button
                     v-for="p in ['week', 'month', 'quarter', 'year']"
                     :key="p"
-                    @click="selectedPeriod = p"
+                    @click="handlePeriodChange(p)"
                     :class="[
                         'px-4 py-2 rounded-lg font-medium transition-colors',
                         selectedPeriod === p

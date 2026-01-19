@@ -1,16 +1,16 @@
 <template>
-  <BusinessLayout title="Yangi Biznes">
+  <BusinessLayout :title="t('business_create.title')">
     <div class="max-w-3xl mx-auto">
       <div class="mb-6">
         <Link :href="route('business.business.index')" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Orqaga
+          {{ t('business_create.back') }}
         </Link>
-        <h2 class="text-2xl font-bold text-gray-900">Yangi Biznes Yaratish</h2>
+        <h2 class="text-2xl font-bold text-gray-900">{{ t('business_create.heading') }}</h2>
         <p class="mt-1 text-sm text-gray-600">
-          Biznes ma'lumotlarini to'ldiring
+          {{ t('business_create.description') }}
         </p>
       </div>
 
@@ -18,33 +18,33 @@
         <form @submit.prevent="submit" class="space-y-6">
           <!-- Asosiy Ma'lumotlar -->
           <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Asosiy Ma'lumotlar</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('business_create.basic_info') }}</h3>
             <div class="space-y-4">
               <Input
                 v-model="form.name"
-                label="Biznes nomi"
-                placeholder="Mening biznesim"
+                :label="t('business_create.name')"
+                :placeholder="t('business_create.name_placeholder')"
                 :error="form.errors.name"
                 required
               />
 
               <Input
                 v-model="form.industry"
-                label="Soha"
-                placeholder="Masalan: Restoran, Elektron savdo"
+                :label="t('business_create.industry')"
+                :placeholder="t('business_create.industry_placeholder')"
                 :error="form.errors.industry"
                 required
               />
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Tavsif (ixtiyoriy)
+                  {{ t('business_create.desc_label') }}
                 </label>
                 <textarea
                   v-model="form.description"
                   rows="3"
                   class="w-full rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Biznesingiz haqida qisqacha..."
+                  :placeholder="t('business_create.desc_placeholder')"
                 />
                 <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
                   {{ form.errors.description }}
@@ -55,29 +55,29 @@
 
           <!-- Aloqa Ma'lumotlari -->
           <div class="pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Aloqa Ma'lumotlari</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('business_create.contact_info') }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 v-model="form.phone"
-                label="Telefon (ixtiyoriy)"
+                :label="t('business_create.phone')"
                 type="tel"
-                placeholder="+998901234567"
+                :placeholder="t('business_create.phone_placeholder')"
                 :error="form.errors.phone"
               />
 
               <Input
                 v-model="form.email"
-                label="Email (ixtiyoriy)"
+                :label="t('business_create.email')"
                 type="email"
-                placeholder="info@example.uz"
+                :placeholder="t('business_create.email_placeholder')"
                 :error="form.errors.email"
               />
 
               <Input
                 v-model="form.website"
-                label="Veb-sayt (ixtiyoriy)"
+                :label="t('business_create.website')"
                 type="url"
-                placeholder="https://example.uz"
+                :placeholder="t('business_create.website_placeholder')"
                 :error="form.errors.website"
                 class="md:col-span-2"
               />
@@ -86,27 +86,27 @@
 
           <!-- Manzil -->
           <div class="pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Manzil</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('business_create.address_section') }}</h3>
             <div class="space-y-4">
               <Input
                 v-model="form.address"
-                label="Ko'cha manzili (ixtiyoriy)"
-                placeholder="Amir Temur ko'chasi, 107"
+                :label="t('business_create.address')"
+                :placeholder="t('business_create.address_placeholder')"
                 :error="form.errors.address"
               />
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   v-model="form.city"
-                  label="Shahar (ixtiyoriy)"
-                  placeholder="Toshkent"
+                  :label="t('business_create.city')"
+                  :placeholder="t('business_create.city_placeholder')"
                   :error="form.errors.city"
                 />
 
                 <Input
                   v-model="form.country"
-                  label="Mamlakat (ixtiyoriy)"
-                  placeholder="O'zbekiston"
+                  :label="t('business_create.country')"
+                  :placeholder="t('business_create.country_placeholder')"
                   :error="form.errors.country"
                 />
               </div>
@@ -119,14 +119,14 @@
               :href="route('business.business.index')"
               class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
             >
-              Bekor qilish
+              {{ t('common.cancel') }}
             </Link>
             <Button
               type="submit"
               variant="primary"
               :loading="form.processing"
             >
-              Biznes Yaratish
+              {{ t('business_create.submit') }}
             </Button>
           </div>
         </form>
@@ -141,6 +141,9 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
 import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const form = useForm({
   name: '',

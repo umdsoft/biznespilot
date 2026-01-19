@@ -21,8 +21,7 @@ class OfferComponent extends Model
         'name',
         'description',
         'value',
-        'order',
-        'is_highlighted',
+        'sort_order',
     ];
 
     /**
@@ -32,14 +31,30 @@ class OfferComponent extends Model
      */
     protected $casts = [
         'value' => 'decimal:2',
-        'is_highlighted' => 'boolean',
+        'sort_order' => 'integer',
     ];
 
     /**
-     * Get the offer that owns the component.
+     * Get the offer that owns this component.
      */
     public function offer(): BelongsTo
     {
         return $this->belongsTo(Offer::class);
+    }
+
+    /**
+     * Alias for sort_order to maintain compatibility
+     */
+    public function getOrderAttribute(): int
+    {
+        return $this->sort_order ?? 0;
+    }
+
+    /**
+     * Check if component is highlighted (based on type)
+     */
+    public function getIsHighlightedAttribute(): bool
+    {
+        return in_array($this->type, ['bonus', 'guarantee', 'main']);
     }
 }
