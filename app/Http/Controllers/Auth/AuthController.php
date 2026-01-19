@@ -22,10 +22,18 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
+        \Log::info('=== LOGIN ATTEMPT ===', [
+            'login' => $request->login,
+            'wantsJson' => $request->wantsJson(),
+            'ip' => $request->ip(),
+        ]);
+
         $loginField = str_starts_with($request->login, '+') ? 'phone' : 'login';
 
         // Find user
         $user = User::where($loginField, $request->login)->first();
+
+        \Log::info('User found', ['user_id' => $user?->id, 'user_name' => $user?->name]);
 
         // Check if account is locked
         if ($user && $user->locked_until && now()->lt($user->locked_until)) {
@@ -46,6 +54,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $authenticatedUser = Auth::user();
+            \Log::info('Auth::attempt SUCCESS', ['user_id' => $authenticatedUser->id]);
 
             // Check if user has 2FA enabled
             if ($authenticatedUser->two_factor_enabled) {
@@ -77,11 +86,14 @@ class AuthController extends Controller
 
             // Get redirect URL based on user role/department
             $redirectUrl = $this->getRedirectUrl($authenticatedUser);
+            \Log::info('Login redirect URL', ['url' => $redirectUrl, 'wantsJson' => $request->wantsJson()]);
 
             if ($request->wantsJson()) {
+                \Log::info('Returning JSON response with redirect');
                 return response()->json(['redirect' => $redirectUrl]);
             }
 
+            \Log::info('Returning redirect response');
             return redirect()->intended($redirectUrl);
         }
 
