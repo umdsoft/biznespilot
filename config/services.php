@@ -79,4 +79,10 @@ return [
         'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
     ],
 
+    'analytics' => [
+        'ga4_id' => env('GA4_MEASUREMENT_ID'),
+        'yandex_id' => env('YANDEX_METRIKA_ID'),
+        'meta_pixel_id' => env('META_PIXEL_ID'),
+    ],
+
 ];

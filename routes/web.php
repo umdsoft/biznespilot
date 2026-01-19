@@ -95,8 +95,16 @@ Route::prefix('health')->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+
+    // Registration - can be disabled via REGISTRATION_ENABLED=false
+    if (env('REGISTRATION_ENABLED', true)) {
+        Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+        Route::post('/register', [AuthController::class, 'register']);
+    } else {
+        // Redirect to waitlist when registration is disabled
+        Route::get('/register', fn () => \Inertia\Inertia::render('Auth/ComingSoon'))->name('register');
+        Route::post('/register', fn () => redirect()->route('register'));
+    }
 });
 
 // Public team invitation routes
@@ -821,6 +829,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/youtube/connect', [SettingsController::class, 'connectYoutube'])->name('youtube.connect');
         Route::post('/youtube/disconnect', [SettingsController::class, 'disconnectYoutube'])->name('youtube.disconnect');
         Route::get('/youtube/callback', [SettingsController::class, 'youtubeCallback'])->name('youtube.callback');
+
+        // Analytics Settings (GA4, Yandex Metrika, Facebook Pixel)
+        Route::get('/analytics', [App\Http\Controllers\AnalyticsSettingsController::class, 'index'])->name('analytics');
+        Route::post('/analytics', [App\Http\Controllers\AnalyticsSettingsController::class, 'update'])->name('analytics.update');
 
         // Pipeline Stages (Voronka bosqichlari)
         Route::prefix('pipeline-stages')->name('pipeline-stages.')->group(function () {

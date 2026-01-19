@@ -1,12 +1,20 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
+import { useTrackingScripts, trackFormSubmit } from '@/composables/useTrackingScripts';
 
 const props = defineProps({
     survey: Object,
     questions: Array,
     responseId: String,
+    trackingScripts: {
+        type: Object,
+        default: () => ({})
+    },
 });
+
+// Initialize tracking scripts
+useTrackingScripts(props.trackingScripts);
 
 const currentStep = ref(props.survey.collect_contact ? 0 : 1);
 const totalSteps = computed(() => props.questions.length + (props.survey.collect_contact ? 1 : 0));

@@ -38,6 +38,9 @@ class PublicSurveyController extends Controller
             ]);
         }
 
+        // Get analytics tracking settings
+        $trackingScripts = $this->getTrackingScripts($survey->business);
+
         return Inertia::render('Public/Survey', [
             'survey' => [
                 'id' => $survey->id,
@@ -61,6 +64,7 @@ class PublicSurveyController extends Controller
                     'order' => $q->order,
                 ];
             }),
+            'trackingScripts' => $trackingScripts,
         ]);
     }
 
@@ -226,5 +230,35 @@ class PublicSurveyController extends Controller
                 'theme_color' => $survey->theme_color,
             ] : null,
         ]);
+    }
+
+    /**
+     * Get tracking scripts for business
+     */
+    private function getTrackingScripts($business): array
+    {
+        if (!$business) {
+            return [];
+        }
+
+        $settings = $business->settings ?? [];
+        $scripts = [];
+
+        // Google Analytics 4
+        if (!empty($settings['ga4_enabled']) && !empty($settings['ga4_measurement_id'])) {
+            $scripts['ga4'] = $settings['ga4_measurement_id'];
+        }
+
+        // Yandex Metrika
+        if (!empty($settings['yandex_metrika_enabled']) && !empty($settings['yandex_metrika_id'])) {
+            $scripts['yandex'] = $settings['yandex_metrika_id'];
+        }
+
+        // Facebook Pixel
+        if (!empty($settings['facebook_pixel_enabled']) && !empty($settings['facebook_pixel_id'])) {
+            $scripts['facebook'] = $settings['facebook_pixel_id'];
+        }
+
+        return $scripts;
     }
 }

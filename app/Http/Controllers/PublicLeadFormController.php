@@ -19,6 +19,7 @@ class PublicLeadFormController extends Controller
     {
         $leadForm = LeadForm::where('slug', $slug)
             ->where('is_active', true)
+            ->with('business:id,name,settings')
             ->firstOrFail();
 
         // Record view (only for non-embed and non-preview)
@@ -27,6 +28,9 @@ class PublicLeadFormController extends Controller
         }
 
         $isEmbed = $request->boolean('embed');
+
+        // Get analytics tracking settings
+        $trackingScripts = $this->getTrackingScripts($leadForm->business);
 
         return Inertia::render('Public/LeadForm', [
             'leadForm' => [
@@ -41,6 +45,7 @@ class PublicLeadFormController extends Controller
             ],
             'isEmbed' => $isEmbed,
             'slug' => $slug,
+            'trackingScripts' => $trackingScripts,
         ]);
     }
 
@@ -291,5 +296,35 @@ class PublicLeadFormController extends Controller
             'lead_id' => $lead->id,
             'submission_id' => $submission->id,
         ]);
+    }
+
+    /**
+     * Get tracking scripts for business
+     */
+    private function getTrackingScripts($business): array
+    {
+        if (!$business) {
+            return [];
+        }
+
+        $settings = $business->settings ?? [];
+        $scripts = [];
+
+        // Google Analytics 4
+        if (!empty($settings['ga4_enabled']) && !empty($settings['ga4_measurement_id'])) {
+            $scripts['ga4'] = $settings['ga4_measurement_id'];
+        }
+
+        // Yandex Metrika
+        if (!empty($settings['yandex_metrika_enabled']) && !empty($settings['yandex_metrika_id'])) {
+            $scripts['yandex'] = $settings['yandex_metrika_id'];
+        }
+
+        // Facebook Pixel
+        if (!empty($settings['facebook_pixel_enabled']) && !empty($settings['facebook_pixel_id'])) {
+            $scripts['facebook'] = $settings['facebook_pixel_id'];
+        }
+
+        return $scripts;
     }
 }

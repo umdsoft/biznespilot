@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useTrackingScripts, trackFormSubmit } from '@/composables/useTrackingScripts';
 
 const { t } = useI18n();
 
@@ -9,7 +10,14 @@ const props = defineProps({
     leadForm: Object,
     isEmbed: Boolean,
     slug: String,
+    trackingScripts: {
+        type: Object,
+        default: () => ({})
+    },
 });
+
+// Initialize tracking scripts
+useTrackingScripts(props.trackingScripts);
 
 const formData = ref({});
 const isSubmitting = ref(false);
@@ -99,6 +107,9 @@ const submitForm = async () => {
         if (result.success) {
             submitResult.value = result;
             isSubmitted.value = true;
+
+            // Track form submission for analytics
+            trackFormSubmit('lead_form', props.leadForm.title || props.slug);
 
             // Handle redirect if specified
             if (result.redirect_url) {

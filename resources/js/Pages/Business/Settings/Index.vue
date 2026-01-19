@@ -964,38 +964,32 @@
 
                   <!-- Google Analytics -->
                   <a
-                    href="#"
-                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
+                    :href="route('business.settings.analytics')"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-orange-200 dark:border-orange-500/30 rounded-xl p-3 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10"
                   >
-                    <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
-                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center mb-2 shadow-lg">
+                      <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">GA4</h3>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">GA4</h3>
                       <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Sayt analytics</p>
                     </div>
                   </a>
 
                   <!-- Yandex Metrika -->
                   <a
-                    href="#"
-                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
+                    :href="route('business.settings.analytics')"
+                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-red-200 dark:border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
                   >
-                    <div class="absolute top-1.5 right-1.5">
-                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
-                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-[#FC3F1D] rounded-xl flex items-center justify-center mb-2 shadow-lg">
+                      <div class="w-12 h-12 bg-[#FC3F1D] rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
                           <path d="M14.5 5H12.2C9.6 5 8 6.8 8 9.1C8 10.9 8.9 12.2 10.5 13L8 19H10.5L12.8 13.4V19H15V5H14.5ZM12.8 11.5L11.5 10.8C10.6 10.4 10.2 9.8 10.2 9C10.2 7.9 10.9 7.2 12.1 7.2H12.8V11.5Z" fill="white"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Metrika</h3>
+                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Metrika</h3>
                       <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Yandex</p>
                     </div>
                   </a>
