@@ -1515,6 +1515,9 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/api/list', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiList'])->name('api.list');
         Route::get('/api/summary', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiSummary'])->name('api.summary');
     });
+
+    // Sotuv Skriptlari Arsenal
+    Route::get('/sales-script', [App\Http\Controllers\Shared\SalesScriptArsenalController::class, 'salesHeadIndex'])->name('sales-script');
 });
 
 // ==============================================
@@ -2176,4 +2179,7 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
         Route::get('/', [SharedOffersController::class, 'index'])->name('index');
         Route::get('/{offer}', [SharedOffersController::class, 'show'])->name('show');
     });
+
+    // Sotuv Skriptlari Arsenal
+    Route::get('/sales-script', [App\Http\Controllers\Shared\SalesScriptArsenalController::class, 'operatorIndex'])->name('sales-script');
 });

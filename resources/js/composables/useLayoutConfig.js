@@ -29,6 +29,7 @@ import {
   CurrencyDollarIcon,
   BriefcaseIcon,
   UserPlusIcon,
+  BookOpenIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -283,6 +284,7 @@ export const salesHeadLayoutConfig = {
       items: [
         { href: '/sales-head/competitor-insights', label: 'Tavsiyalar', icon: LightBulbIcon },
         { href: '/sales-head/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', icon: ChatBubbleLeftRightIcon },
+        { href: '/sales-head/sales-script', label: 'Sotuv Arsenali', icon: BookOpenIcon },
       ]
     },
   ],
@@ -764,6 +766,7 @@ export const operatorLayoutConfig = {
       items: [
         { href: '/operator/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
         { href: '/operator/offers', label: 'Takliflar', icon: TagIcon },
+        { href: '/operator/sales-script', label: 'Sotuv Arsenali', icon: ChatBubbleLeftRightIcon },
       ]
     },
   ],

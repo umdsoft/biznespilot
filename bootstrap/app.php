@@ -72,17 +72,9 @@ return Application::configure(basePath: dirname(__DIR__))
             SetBusinessContext::class,
         ]);
 
-        // Exclude public survey and lead form routes from CSRF verification
+        // CSRF verification completely disabled
         $middleware->validateCsrfTokens(except: [
-            's/*',
-            'f/*',
-            'api/lead-forms/*',
-            'webhooks/*',
-            'login',
-            'register',
-            'welcome/*',
-            'new-business',
-            'sanctum/csrf-cookie',
+            '*',
         ]);
 
         // Enable throttle middleware for API
