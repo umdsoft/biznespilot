@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Stylized B with pilot arrow - monochrome for Safari -->
+  <g fill="#000000">
+    <path d="M144 96h144c53 0 96 35 96 88 0 35-20 62-52 76 40 14 68 48 68 92 0 61-51 104-112 104H144V96zm72 136h64c28 0 48-18 48-44s-20-44-48-44h-64v88zm0 144h80c36 0 60-22 60-56s-24-56-60-56h-80v112z"/>
+    <path d="M368 96l48 48-48 48V96z"/>
+  </g>
+</svg>

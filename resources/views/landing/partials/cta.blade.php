@@ -105,11 +105,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Bottom wave -->
-    <div class="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full" preserveAspectRatio="none">
-            <path d="M0 30 Q360 60 720 30 T1440 40 V60 H0 Z" fill="#111827"/>
-        </svg>
-    </div>
 </section>

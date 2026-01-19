@@ -62,6 +62,54 @@ class LandingController extends Controller
     }
 
     /**
+     * Show the privacy policy page
+     */
+    public function privacy(Request $request)
+    {
+        $locale = $this->getCurrentLocale($request);
+        App::setLocale($locale);
+        $translations = $this->getTranslations($locale);
+
+        return view('pages.privacy', [
+            'locale' => $locale,
+            'translations' => $translations,
+            'locales' => $this->getLocaleOptions(),
+        ]);
+    }
+
+    /**
+     * Show the terms of service page
+     */
+    public function terms(Request $request)
+    {
+        $locale = $this->getCurrentLocale($request);
+        App::setLocale($locale);
+        $translations = $this->getTranslations($locale);
+
+        return view('pages.terms', [
+            'locale' => $locale,
+            'translations' => $translations,
+            'locales' => $this->getLocaleOptions(),
+        ]);
+    }
+
+    /**
+     * Show the about us page
+     */
+    public function about(Request $request)
+    {
+        $locale = $this->getCurrentLocale($request);
+        App::setLocale($locale);
+        $translations = $this->getTranslations($locale);
+
+        return view('pages.about', [
+            'locale' => $locale,
+            'translations' => $translations,
+            'locales' => $this->getLocaleOptions(),
+        ]);
+    }
+
+    /**
      * Get current locale from cookie or default
      */
     protected function getCurrentLocale(Request $request): string

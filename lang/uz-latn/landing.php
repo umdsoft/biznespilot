@@ -3,7 +3,7 @@
 return [
     // Meta
     'meta_title' => 'BiznesPilot - Biznesingiz 60% Samaraliroq Ishlaydi | Marketing, Sotuv, Moliya',
-    'meta_description' => "5 xil dasturdan voz keching. Marketing, Sotuv, Moliya - hammasi bir joyda. 500+ O'zbekiston bizneslari ishonadi. 14 kun bepul sinab ko'ring.",
+    'meta_description' => "5 xil dasturdan voz keching. Marketing, Sotuv, Moliya - hammasi bir joyda. O'zbekiston tadbirkorlari uchun #1 platforma. 14 kun bepul sinab ko'ring.",
 
     // Navigation
     'nav' => [
@@ -24,13 +24,13 @@ return [
         'subtitle' => "Excel, Telegram, 5 xil dastur... Barchasi o'tmishda qoldi. Marketing, Sotuv, Moliya — bitta tugma bilan boshqaring. AI yordamchingiz esa 24/7 ishlaydi.",
         'cta_primary' => '14 kun BEPUL sinash →',
         'cta_secondary' => '2 daqiqalik demo',
-        'trusted_by' => "500+ biznes allaqachon o'tdi:",
+        'trusted_by' => "Biznesingizni yangi bosqichga olib chiqing:",
         'stats' => [
-            'businesses' => '500+ biznes',
-            'leads' => '$2M+ tranzaksiya',
+            'businesses' => 'Barcha modullar',
+            'leads' => 'AI avtomatlashtirish',
             'growth' => '60% vaqt tejash',
         ],
-        'social_proof' => "⭐ 4.9/5 reyting • 500+ biznes • O'zbekistonda ishlab chiqilgan",
+        'social_proof' => "⭐ O'zbekistonda ishlab chiqilgan • 24/7 AI yordamchi • Mahalliy qo'llab-quvvatlash",
     ],
 
     // Problem Section (NEW)
@@ -99,7 +99,7 @@ return [
                 'stat' => 'Onlayn nazorat',
             ],
             [
-                'title' => '👥 Jamoa Boshqaruvi',
+                'title' => '👥 HR Boshqaruvi',
                 'description' => 'Vazifalar, KPI, xodimlar — hammasi shaffof. Kim nima qilayotgani aniq.',
                 'icon' => 'team',
                 'stat' => '2x samaradorlik',
@@ -204,10 +204,10 @@ return [
             ],
         ],
         'stats_summary' => [
-            ['value' => '500+', 'label' => 'Faol bizneslar'],
+            ['value' => '6+', 'label' => 'Kuchli modullar'],
             ['value' => '60%', 'label' => "O'rtacha vaqt tejash"],
-            ['value' => '$2M+', 'label' => 'Qayta ishlangan tranzaksiya'],
-            ['value' => '4.9/5', 'label' => 'Mijozlar reytingi'],
+            ['value' => '24/7', 'label' => 'AI yordamchi'],
+            ['value' => '10 daq', 'label' => "O'rnatish vaqti"],
         ],
     ],
 
@@ -252,19 +252,19 @@ return [
         'title' => 'Bugun boshlang — 14 kun BEPUL',
         'subtitle' => "Kredit karta kerak emas. Majburiyat yo'q. Risk yo'q.",
         'button' => 'Hoziroq bepul boshlash →',
-        'note' => "⏰ 500+ biznes allaqachon foydalanmoqda. Siz ham qo'shiling!",
+        'note' => "⏰ Raqobatchilardan bir qadam oldinda bo'ling!",
         'features' => [
             "✓ 14 kun to'liq versiya",
             '✓ Barcha modullar ochiq',
             '✓ Cheksiz foydalanuvchilar',
             "✓ Bepul yordam va o'rnatish",
         ],
-        'urgency' => "🔥 Bu oy oxirigacha ro'yxatdan o'tganlar uchun +30 kun bonus!",
+        'urgency' => "🔥 Bugun boshlang — biznesingizni ertaga o'zgartiring!",
     ],
 
     // Footer
     'footer' => [
-        'description' => "O'zbekiston bizneslari uchun #1 boshqaruv platformasi. 500+ kompaniya ishonadi.",
+        'description' => "O'zbekiston bizneslari uchun #1 boshqaruv platformasi. Marketing, Sotuv, Moliya — hammasi bir joyda.",
         'product' => [
             'title' => 'Mahsulot',
             'features' => 'Imkoniyatlar',

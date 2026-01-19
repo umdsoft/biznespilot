@@ -135,11 +135,244 @@
                 'dashboard' => 'text-cyan-600',
                 'team' => 'text-pink-600',
             ];
+
+            // Feature modal content - Professional marketing descriptions
+            $featureDetails = [
+                'chart' => [
+                    'uz' => [
+                        'title' => 'Marketing Avtomatlashtirish',
+                        'subtitle' => 'Mijozlar o\'zi keladi — siz faqat sotasiz',
+                        'description' => "Instagram, Facebook, Telegram va boshqa tarmoqlardan kelgan barcha so'rovlarni bitta joyda ko'ring. Qaysi reklama ishlayotganini, qaysi biri pulni behuda sarflayotganini tizim o'zi aniqlaydi va sizga aytadi.",
+                        'benefits' => [
+                            'Barcha reklamalar bitta ekranda ko\'rinadi',
+                            'Qaysi reklama yaxshi ishlayotganini ko\'rsatadi',
+                            'Qiziqish bildirgan mijozlarni avtomatik ajratadi',
+                            'SMS va email avtomatik yuboriladi',
+                            'Har bir so\'mga qancha mijoz kelganini ko\'rsatadi',
+                            'Ikki xil reklamani solishtirib ko\'rish imkoni',
+                        ],
+                        'stats' => [
+                            ['value' => '3x', 'label' => 'Ko\'proq mijoz'],
+                            ['value' => '40%', 'label' => 'Kam xarajat'],
+                            ['value' => '24/7', 'label' => 'Tinmay ishlaydi'],
+                        ],
+                    ],
+                    'ru' => [
+                        'title' => 'Автоматизация маркетинга',
+                        'subtitle' => 'Клиенты приходят сами — вы только продаёте',
+                        'description' => 'Все заявки из Instagram, Facebook, Telegram и других сетей видны в одном месте. Система сама определяет какая реклама работает, а какая тратит деньги впустую, и сообщает вам.',
+                        'benefits' => [
+                            'Вся реклама видна на одном экране',
+                            'Показывает какая реклама работает лучше',
+                            'Автоматически выделяет заинтересованных клиентов',
+                            'SMS и email отправляются автоматически',
+                            'Показывает сколько клиентов пришло на каждый сум',
+                            'Можно сравнить два варианта рекламы',
+                        ],
+                        'stats' => [
+                            ['value' => '3x', 'label' => 'Больше клиентов'],
+                            ['value' => '40%', 'label' => 'Меньше затрат'],
+                            ['value' => '24/7', 'label' => 'Работает постоянно'],
+                        ],
+                    ],
+                ],
+                'users' => [
+                    'uz' => [
+                        'title' => 'Sotuv va Mijozlar Bazasi',
+                        'subtitle' => 'Har bir mijoz nazoratda — hech kim unutilmaydi',
+                        'description' => "Har bir mijoz bilan qachon gaplashganingiz, nima kelishganingiz, keyingi qadamingiz — hammasi yozilgan. Sotuvchilaringiz kim bilan ishlayotganini, qaysi bosqichda turganini ko'rasiz. Tizim o'zi eslatadi: \"Bugun Ahmadga qo'ng'iroq qilish kerak\".",
+                        'benefits' => [
+                            'Barcha mijozlar va ularning holati ko\'rinadi',
+                            'Qachon qo\'ng\'iroq qilish kerakligini eslatadi',
+                            'Mijoz bilan barcha yozishmalar saqlanadi',
+                            'Har bir sotuvchi qancha sotganini ko\'rsatadi',
+                            'Keyingi oyda qancha sotuv bo\'lishini bashorat qiladi',
+                            'WhatsApp va Telegram xabarlari ham shu yerda',
+                        ],
+                        'stats' => [
+                            ['value' => '40%', 'label' => 'Ko\'proq sotuv'],
+                            ['value' => '0', 'label' => 'Unutilgan mijoz'],
+                            ['value' => '2x', 'label' => 'Tezroq sotish'],
+                        ],
+                    ],
+                    'ru' => [
+                        'title' => 'Продажи и База клиентов',
+                        'subtitle' => 'Каждый клиент под контролем — никто не забыт',
+                        'description' => 'Когда вы говорили с клиентом, о чём договорились, какой следующий шаг — всё записано. Видите с кем работают ваши продавцы и на каком этапе. Система сама напоминает: "Сегодня нужно позвонить Ахмаду".',
+                        'benefits' => [
+                            'Все клиенты и их статус видны',
+                            'Напоминает когда нужно позвонить',
+                            'Вся переписка с клиентом сохраняется',
+                            'Показывает сколько продал каждый продавец',
+                            'Прогнозирует продажи на следующий месяц',
+                            'Сообщения WhatsApp и Telegram тоже здесь',
+                        ],
+                        'stats' => [
+                            ['value' => '40%', 'label' => 'Больше продаж'],
+                            ['value' => '0', 'label' => 'Забытых клиентов'],
+                            ['value' => '2x', 'label' => 'Быстрее продажи'],
+                        ],
+                    ],
+                ],
+                'bot' => [
+                    'uz' => [
+                        'title' => 'Moliya Boshqaruvi',
+                        'subtitle' => 'Pul qaerda — aniq ko\'rinadi',
+                        'description' => "Biznesingizga qancha pul kirdi, qancha chiqdi, kimdan pul olish kerak, kimga qarzdorsiz — hammasi bitta joyda. Buxgalteringiz uchun tayyor hisobotlar. Oy oxirida bosh og'rig'i yo'q.",
+                        'benefits' => [
+                            'Kirim va chiqim avtomatik yoziladi',
+                            'Kimdan pul olish kerak — ro\'yxati tayyor',
+                            'Kimga qarzingiz bor — ko\'rinadi',
+                            'Hisob-faktura bir tugma bilan yaratiladi',
+                            'Click va Payme to\'lovlari avtomatik kiritiladi',
+                            'Keyingi oyda qancha pul bo\'lishini ko\'rsatadi',
+                        ],
+                        'stats' => [
+                            ['value' => '0', 'label' => 'Xatolik'],
+                            ['value' => '80%', 'label' => 'Kam vaqt'],
+                            ['value' => '100%', 'label' => 'Aniq hisobot'],
+                        ],
+                    ],
+                    'ru' => [
+                        'title' => 'Управление финансами',
+                        'subtitle' => 'Где деньги — чётко видно',
+                        'description' => 'Сколько денег пришло, сколько ушло, кто должен вам, кому должны вы — всё в одном месте. Готовые отчёты для бухгалтера. В конце месяца никакой головной боли.',
+                        'benefits' => [
+                            'Доходы и расходы записываются автоматически',
+                            'Список кто должен вам — готов',
+                            'Видно кому вы должны',
+                            'Счёт создаётся одной кнопкой',
+                            'Платежи Click и Payme заносятся автоматически',
+                            'Показывает сколько денег будет в следующем месяце',
+                        ],
+                        'stats' => [
+                            ['value' => '0', 'label' => 'Ошибок'],
+                            ['value' => '80%', 'label' => 'Меньше времени'],
+                            ['value' => '100%', 'label' => 'Точный отчёт'],
+                        ],
+                    ],
+                ],
+                'calendar' => [
+                    'uz' => [
+                        'title' => 'AI Yordamchi',
+                        'subtitle' => 'Oddiy ishlarni tizim qiladi — siz muhim narsalar bilan shug\'ullaning',
+                        'description' => "Sun'iy intellekt sizning yordamchingiz. U nima o'zgarganini, qayerda muammo borligini topadi va sizga aytadi. Oddiy, takroriy ishlarni o'zi qiladi. Siz esa muhim qarorlarga e'tibor bering.",
+                        'benefits' => [
+                            'Muhim narsalarni o\'zi eslatadi',
+                            'Muammolarni erta aniqlaydi va xabar beradi',
+                            'Sotuv qachon oshishi yoki tushishini aytadi',
+                            'Hisobotlarni o\'zi tayyorlaydi',
+                            'Mijozlarga avtomatik javob beradi',
+                            'Kechayu kunduz, dam olishsiz ishlaydi',
+                        ],
+                        'stats' => [
+                            ['value' => '60%', 'label' => 'Vaqt tejaladi'],
+                            ['value' => '24/7', 'label' => 'Doim ishlaydi'],
+                            ['value' => '3x', 'label' => 'Tez natija'],
+                        ],
+                    ],
+                    'ru' => [
+                        'title' => 'AI Помощник',
+                        'subtitle' => 'Рутину делает система — вы занимаетесь важным',
+                        'description' => 'Искусственный интеллект — ваш помощник. Он находит что изменилось, где проблема и сообщает вам. Простые повторяющиеся задачи делает сам. А вы фокусируйтесь на важных решениях.',
+                        'benefits' => [
+                            'Сам напоминает о важном',
+                            'Рано находит проблемы и сообщает',
+                            'Говорит когда продажи вырастут или упадут',
+                            'Сам готовит отчёты',
+                            'Автоматически отвечает клиентам',
+                            'Работает днём и ночью, без отдыха',
+                        ],
+                        'stats' => [
+                            ['value' => '60%', 'label' => 'Экономия времени'],
+                            ['value' => '24/7', 'label' => 'Всегда работает'],
+                            ['value' => '3x', 'label' => 'Быстрый результат'],
+                        ],
+                    ],
+                ],
+                'dashboard' => [
+                    'uz' => [
+                        'title' => 'Asosiy Ekran',
+                        'subtitle' => 'Biznes holati bitta qarashda — tez qaror qabul qiling',
+                        'description' => "Sotuv qancha, pul qancha, jamoa nima qilayotgani — hammasi bitta ekranda. Ma'lumotlar doimiy yangilanib turadi. Uyda bo'ling, yo'lda bo'ling — telefondan ham ko'ra olasiz.",
+                        'benefits' => [
+                            'Barcha muhim raqamlar bir joyda',
+                            'Ma\'lumotlar har doim yangi',
+                            'Telefonda ham ishlaydi',
+                            'O\'zingizga kerakli ko\'rsatkichlarni tanlaysiz',
+                            'Muammo bo\'lsa darhol xabar beradi',
+                            'Hisobotni yuklab olish yoki ulashish mumkin',
+                        ],
+                        'stats' => [
+                            ['value' => 'Jonli', 'label' => 'Ma\'lumot'],
+                            ['value' => '360°', 'label' => 'To\'liq ko\'rinish'],
+                            ['value' => '1', 'label' => 'Ekranda hammasi'],
+                        ],
+                    ],
+                    'ru' => [
+                        'title' => 'Главный экран',
+                        'subtitle' => 'Состояние бизнеса одним взглядом — принимайте решения быстро',
+                        'description' => 'Сколько продаж, сколько денег, что делает команда — всё на одном экране. Данные постоянно обновляются. Дома или в дороге — смотрите с телефона.',
+                        'benefits' => [
+                            'Все важные цифры в одном месте',
+                            'Данные всегда свежие',
+                            'Работает на телефоне',
+                            'Выбираете нужные вам показатели',
+                            'Сразу сообщает если проблема',
+                            'Отчёт можно скачать или поделиться',
+                        ],
+                        'stats' => [
+                            ['value' => 'Живые', 'label' => 'Данные'],
+                            ['value' => '360°', 'label' => 'Полный обзор'],
+                            ['value' => '1', 'label' => 'Экран для всего'],
+                        ],
+                    ],
+                ],
+                'team' => [
+                    'uz' => [
+                        'title' => 'Jamoa va HR Boshqaruvi',
+                        'subtitle' => 'Kim nima qilayotgani aniq — jamoa tartibda',
+                        'description' => "Xodimlaringiz qanday ishlayotganini kuzating: vazifalar, ish vaqti, natijalar. Yangi xodim qabul qilish, ta'tillar, ish haqi — HR bo'limining barcha ishlari ham shu yerda. Har bir xodim o'z vazifasini, muddatini ko'radi.",
+                        'benefits' => [
+                            'Har bir xodimga vazifa berish va kuzatish',
+                            'Kim qancha ishladi — vaqt hisobi',
+                            'Yangi xodim qabul qilish jarayoni',
+                            'Ta\'til va kasallik varaqalari hisobi',
+                            'Ish haqi hisoblash avtomatlashtirilgan',
+                            'Xodimlar reytingi va mukofotlash tizimi',
+                        ],
+                        'stats' => [
+                            ['value' => '2x', 'label' => 'Samaradorlik'],
+                            ['value' => '100%', 'label' => 'Shaffoflik'],
+                            ['value' => '0', 'label' => 'Yo\'qolgan vazifa'],
+                        ],
+                    ],
+                    'ru' => [
+                        'title' => 'Управление командой и HR',
+                        'subtitle' => 'Ясно кто что делает — команда в порядке',
+                        'description' => 'Следите как работают сотрудники: задачи, рабочее время, результаты. Приём новых сотрудников, отпуска, зарплата — все HR задачи тоже здесь. Каждый сотрудник видит свои задачи и сроки.',
+                        'benefits' => [
+                            'Назначать задачи и следить за каждым сотрудником',
+                            'Сколько кто работал — учёт времени',
+                            'Процесс приёма новых сотрудников',
+                            'Учёт отпусков и больничных',
+                            'Расчёт зарплаты автоматизирован',
+                            'Рейтинг сотрудников и система поощрений',
+                        ],
+                        'stats' => [
+                            ['value' => '2x', 'label' => 'Эффективность'],
+                            ['value' => '100%', 'label' => 'Прозрачность'],
+                            ['value' => '0', 'label' => 'Потерянных задач'],
+                        ],
+                    ],
+                ],
+            ];
             @endphp
 
             @foreach($translations['features']['items'] as $index => $feature)
                 <div class="animate-on-scroll group" style="animation-delay: {{ $index * 0.1 }}s;">
-                    <div class="relative h-full p-8 bg-white rounded-3xl border border-gray-100 hover:border-gray-200 transition-all duration-500 hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-2">
+                    <div class="relative h-full p-8 bg-white rounded-3xl border border-gray-100 hover:border-gray-200 transition-all duration-500 hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-2 cursor-pointer"
+                         onclick="openFeatureModal('{{ $feature['icon'] }}')">
                         <!-- Gradient background on hover -->
                         <div class="absolute inset-0 bg-gradient-to-br {{ $lightBgColors[$feature['icon']] ?? 'from-blue-50 to-indigo-50' }} rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
@@ -179,4 +412,143 @@
             @endforeach
         </div>
     </div>
+
+    <!-- Feature Modals -->
+    @foreach(['chart', 'users', 'bot', 'calendar', 'dashboard', 'team'] as $featureKey)
+    @php
+        $modalData = $featureDetails[$featureKey][$locale === 'ru' ? 'ru' : 'uz'];
+        $gradientClass = $bgColors[$featureKey];
+        $textColorClass = $textColors[$featureKey];
+    @endphp
+    <div id="modal-{{ $featureKey }}" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFeatureModal('{{ $featureKey }}')"></div>
+
+        <!-- Modal Content -->
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-3xl transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all">
+                <!-- Close button -->
+                <button onclick="closeFeatureModal('{{ $featureKey }}')" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+
+                <!-- Header with gradient -->
+                <div class="bg-gradient-to-r {{ $gradientClass }} p-8 text-white">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <div class="w-10 h-10 text-white">
+                                {!! $featureIcons[$featureKey] !!}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">{{ $modalData['title'] }}</h3>
+                            <p class="text-white/80">{{ $modalData['subtitle'] }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="p-8">
+                    <p class="text-gray-600 text-lg mb-8 leading-relaxed">
+                        {{ $modalData['description'] }}
+                    </p>
+
+                    <!-- Benefits -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-bold text-gray-900 mb-4">
+                            {{ $locale === 'ru' ? 'Что вы получаете:' : 'Nimalarni olasiz:' }}
+                        </h4>
+                        <div class="grid sm:grid-cols-2 gap-3">
+                            @foreach($modalData['benefits'] as $benefit)
+                            <div class="flex items-start gap-3">
+                                <svg class="w-5 h-5 {{ $textColorClass }} flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-gray-700">{{ $benefit }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        @foreach($modalData['stats'] as $stat)
+                        <div class="text-center p-4 bg-gray-50 rounded-2xl">
+                            <div class="text-2xl font-bold {{ $textColorClass }}">{{ $stat['value'] }}</div>
+                            <div class="text-sm text-gray-600">{{ $stat['label'] }}</div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="{{ route('register') }}" class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r {{ $gradientClass }} text-white font-semibold rounded-xl hover:opacity-90 transition-opacity">
+                            {{ $locale === 'ru' ? 'Попробовать бесплатно' : 'Bepul sinab ko\'rish' }}
+                            <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </a>
+                        <button onclick="closeFeatureModal('{{ $featureKey }}')" class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
+                            {{ $locale === 'ru' ? 'Закрыть' : 'Yopish' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
 </section>
+
+<!-- Modal JavaScript -->
+<script>
+function openFeatureModal(featureKey) {
+    const modal = document.getElementById('modal-' + featureKey);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        // Animate in
+        setTimeout(() => {
+            modal.querySelector('.relative.w-full').classList.add('animate-modal-in');
+        }, 10);
+    }
+}
+
+function closeFeatureModal(featureKey) {
+    const modal = document.getElementById('modal-' + featureKey);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('[id^="modal-"]').forEach(modal => {
+            if (!modal.classList.contains('hidden')) {
+                const featureKey = modal.id.replace('modal-', '');
+                closeFeatureModal(featureKey);
+            }
+        });
+    }
+});
+</script>
+
+<style>
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.animate-modal-in {
+    animation: modalIn 0.3s ease-out forwards;
+}
+</style>

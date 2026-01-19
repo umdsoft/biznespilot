@@ -265,6 +265,23 @@ const stats = [
                     <a href="/login" class="text-blue-400 hover:text-blue-300 font-medium">Kirish</a>
                 </p>
             </div>
+
+            <!-- Footer -->
+            <footer class="border-t border-white/10 mt-12 pt-8">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="text-white font-semibold">BiznesPilot AI</span>
+                    </div>
+                    <p class="text-gray-500 text-sm">
+                        &copy; {{ new Date().getFullYear() }} BiznesPilot. Barcha huquqlar himoyalangan.
+                    </p>
+                </div>
+            </footer>
         </div>
     </div>
 </template>

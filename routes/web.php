@@ -77,9 +77,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
 
-// Privacy Policy & Terms (Public - Meta App Review uchun kerak)
-Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy-policy');
-Route::get('/terms', fn () => view('privacy-policy'))->name('terms'); // Vaqtincha bir xil sahifa
+// Privacy Policy, Terms & About (Public)
+Route::get('/privacy-policy', [LandingController::class, 'privacy'])->name('privacy-policy');
+Route::get('/terms', [LandingController::class, 'terms'])->name('terms');
+Route::get('/about', [LandingController::class, 'about'])->name('about');
 
 // ==============================================
 // Health Check Routes (No Authentication)

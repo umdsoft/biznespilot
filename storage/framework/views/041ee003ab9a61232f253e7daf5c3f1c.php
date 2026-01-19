@@ -1,8 +1,5 @@
 <!-- Footer -->
 <footer class="relative bg-gray-900 text-gray-400 overflow-hidden">
-    <!-- Decorative top border -->
-    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500"></div>
-
     <!-- Background decorations -->
     <div class="absolute inset-0 overflow-hidden">
         <!-- Grid pattern -->
@@ -127,7 +124,7 @@
                 </h4>
                 <ul class="space-y-4">
                     <li>
-                        <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('about')); ?>" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -136,7 +133,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('about')); ?>#contact" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -145,7 +142,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="https://t.me/biznespilot" target="_blank" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -165,7 +162,7 @@
                 </h4>
                 <ul class="space-y-4">
                     <li>
-                        <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('privacy-policy')); ?>" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-violet-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -174,7 +171,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('terms')); ?>" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-violet-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>

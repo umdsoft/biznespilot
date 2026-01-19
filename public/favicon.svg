@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <!-- Stylized B with pilot arrow -->
+  <g fill="#ffffff">
+    <!-- Main B shape -->
+    <path d="M144 96h144c53 0 96 35 96 88 0 35-20 62-52 76 40 14 68 48 68 92 0 61-51 104-112 104H144V96zm72 136h64c28 0 48-18 48-44s-20-44-48-44h-64v88zm0 144h80c36 0 60-22 60-56s-24-56-60-56h-80v112z"/>
+    <!-- Pilot arrow accent -->
+    <path d="M368 96l48 48-48 48V96z" fill="#fbbf24"/>
+  </g>
+</svg>
