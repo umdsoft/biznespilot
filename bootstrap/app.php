@@ -80,6 +80,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/*',
             'login',
             'register',
+            'welcome/*',
+            'new-business',
             'sanctum/csrf-cookie',
         ]);
 
