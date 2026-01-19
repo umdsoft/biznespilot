@@ -38,8 +38,8 @@ class SecurityHeaders
                 $response->headers->set('Content-Security-Policy', implode('; ', [
                     "default-src 'self'",
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.tailwindcss.com",
-                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com",
-                    "font-src 'self' https://fonts.gstatic.com",
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.tailwindcss.com",
+                    "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net",
                     "img-src 'self' data: https: blob:",
                     "connect-src 'self' https://api.anthropic.com https://graph.facebook.com https://api.telegram.org wss:",
                     "frame-ancestors 'self'",
