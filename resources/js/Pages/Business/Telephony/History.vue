@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, watch } from 'vue';
+import { useI18n } from '@/i18n';
 import {
     MagnifyingGlassIcon,
     ArrowLeftIcon,
@@ -19,6 +20,8 @@ const props = defineProps({
         default: () => ({ status: null, direction: null, search: '' }),
     },
 });
+
+const { t } = useI18n();
 
 const search = ref(props.filters.search || '');
 const status = ref(props.filters.status || 'all');

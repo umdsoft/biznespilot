@@ -1,5 +1,5 @@
 <template>
-  <BusinessLayout title="Lead Tahrirlash">
+  <BusinessLayout :title="t('sales.edit_lead')">
     <!-- Sticky Header -->
     <div class="sticky top-0 z-40 -mx-4 -mt-4 sm:-mx-6 lg:-mx-8">
       <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-4">
@@ -18,12 +18,12 @@
               </div>
               <div>
                 <h1 class="text-xl font-bold text-gray-900 dark:text-white">
-                  {{ form.name || 'Lead Tahrirlash' }}
+                  {{ form.name || t('sales.edit_lead') }}
                 </h1>
                 <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
                   <span v-if="form.company">{{ form.company }}</span>
                   <span v-if="form.company && lead.created_at">•</span>
-                  <span>Yaratilgan: {{ lead.created_at }}</span>
+                  <span>{{ t('sales.created') }}: {{ lead.created_at }}</span>
                 </div>
               </div>
             </div>
@@ -35,7 +35,7 @@
               type="button"
               @click="showDeleteModal = true"
               class="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              title="O'chirish"
+              :title="t('common.delete')"
             >
               <TrashIcon class="w-5 h-5" />
             </button>
@@ -43,7 +43,7 @@
               :href="`/sales/${lead.id}`"
               class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors"
             >
-              Bekor qilish
+              {{ t('common.cancel') }}
             </Link>
             <button
               type="button"
@@ -56,7 +56,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Saqlash
+              {{ t('common.save') }}
             </button>
           </div>
         </div>
@@ -65,7 +65,7 @@
 
     <!-- Pipeline Progress -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mt-6">
-      <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Pipeline Bosqichi</h3>
+      <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">{{ t('sales.pipeline_stage') }}</h3>
       <div class="flex items-center">
         <button
           v-for="(stage, index) in pipelineStages"
@@ -101,7 +101,7 @@
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <UserIcon class="w-5 h-5 text-gray-400" />
-              <h3 class="font-semibold text-gray-900 dark:text-white">Kontakt Ma'lumotlari</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('sales.contact_info') }}</h3>
             </div>
           </div>
 
@@ -109,7 +109,7 @@
             <!-- Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Ism Familiya <span class="text-red-500">*</span>
+                {{ t('sales.full_name') }} <span class="text-red-500">*</span>
               </label>
               <div class="relative">
                 <UserIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -129,7 +129,7 @@
               <!-- Email -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email
+                  {{ t('forms.email') }}
                 </label>
                 <div class="relative">
                   <EnvelopeIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -147,7 +147,7 @@
               <!-- Phone -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Telefon
+                  {{ t('forms.phone') }}
                 </label>
                 <div class="relative">
                   <PhoneIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -168,7 +168,7 @@
             <!-- Company -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Kompaniya
+                {{ t('sales.company') }}
               </label>
               <div class="relative">
                 <BuildingOfficeIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -190,7 +190,7 @@
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <ChatBubbleLeftRightIcon class="w-5 h-5 text-gray-400" />
-              <h3 class="font-semibold text-gray-900 dark:text-white">Izohlar va Eslatmalar</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('sales.notes_and_reminders') }}</h3>
             </div>
           </div>
 
@@ -198,11 +198,11 @@
             <textarea
               v-model="form.notes"
               rows="5"
-              placeholder="Lead haqida muhim ma'lumotlar, muzokara natijalari, keyingi qadamlar..."
+              :placeholder="t('sales.notes_edit_placeholder')"
               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
             ></textarea>
             <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Bu yerda mijoz bilan aloqa tarixi, muhim kelishuvlar va keyingi qadamlarni yozib qo'yishingiz mumkin.
+              {{ t('sales.notes_help_text') }}
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center space-x-2">
               <ChartBarIcon class="w-5 h-5 text-gray-400" />
-              <h3 class="font-semibold text-gray-900 dark:text-white">Lead Bahosi</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('sales.lead_score') }}</h3>
             </div>
           </div>
 
@@ -279,7 +279,7 @@
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center space-x-2">
               <CurrencyDollarIcon class="w-5 h-5 text-gray-400" />
-              <h3 class="font-semibold text-gray-900 dark:text-white">Bitim Qiymati</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('sales.deal_value') }}</h3>
             </div>
           </div>
 
@@ -298,7 +298,7 @@
               />
             </div>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Taxminiy bitim summasi
+              {{ t('sales.estimated_deal_amount') }}
             </p>
           </div>
         </div>
@@ -308,7 +308,7 @@
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center space-x-2">
               <GlobeAltIcon class="w-5 h-5 text-gray-400" />
-              <h3 class="font-semibold text-gray-900 dark:text-white">Lead Manbasi</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('sales.lead_source') }}</h3>
             </div>
           </div>
 
@@ -357,8 +357,8 @@
                   <QuestionMarkCircleIcon class="w-5 h-5" />
                 </div>
                 <div class="flex-1 text-left">
-                  <p class="font-medium text-gray-900 dark:text-white">Noma'lum</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Manba ko'rsatilmagan</p>
+                  <p class="font-medium text-gray-900 dark:text-white">{{ t('sales.unknown') }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('sales.source_not_specified') }}</p>
                 </div>
                 <CheckCircleIcon
                   v-if="!form.source_id"
@@ -401,10 +401,10 @@
                     <ExclamationTriangleIcon class="w-8 h-8 text-red-600 dark:text-red-400" />
                   </div>
                   <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Leadni o'chirish
+                    {{ t('sales.delete_lead') }}
                   </h3>
                   <p class="text-gray-500 dark:text-gray-400 mb-6">
-                    "{{ lead.name }}" leadini o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.
+                    {{ t('sales.delete_lead_confirm', { name: lead.name }) }}
                   </p>
                   <div class="flex space-x-3">
                     <button
@@ -412,7 +412,7 @@
                       @click="showDeleteModal = false"
                       class="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                     >
-                      Bekor qilish
+                      {{ t('common.cancel') }}
                     </button>
                     <button
                       type="button"
@@ -420,7 +420,7 @@
                       :disabled="isDeleting"
                       class="flex-1 px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                     >
-                      <span v-if="!isDeleting">O'chirish</span>
+                      <span v-if="!isDeleting">{{ t('common.delete') }}</span>
                       <span v-else class="flex items-center justify-center">
                         <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -444,6 +444,7 @@ import { ref, computed } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
 import { vMaska } from 'maska/vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -464,6 +465,8 @@ import {
   ShareIcon,
   NewspaperIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
   lead: {
@@ -491,15 +494,15 @@ const form = useForm({
   notes: props.lead.notes || '',
 });
 
-const pipelineStages = [
-  { value: 'new', label: 'Yangi', color: 'bg-blue-500' },
-  { value: 'contacted', label: 'Bog\'lanildi', color: 'bg-indigo-500' },
-  { value: 'qualified', label: 'Qualified', color: 'bg-purple-500' },
-  { value: 'proposal', label: 'Taklif', color: 'bg-orange-500' },
-  { value: 'negotiation', label: 'Muzokara', color: 'bg-yellow-500' },
-  { value: 'won', label: 'Yutildi', color: 'bg-green-500' },
-  { value: 'lost', label: 'Yo\'qoldi', color: 'bg-red-500' },
-];
+const pipelineStages = computed(() => [
+  { value: 'new', label: t('sales.status_new'), color: 'bg-blue-500' },
+  { value: 'contacted', label: t('sales.status_contacted'), color: 'bg-indigo-500' },
+  { value: 'qualified', label: t('sales.status_qualified'), color: 'bg-purple-500' },
+  { value: 'proposal', label: t('sales.status_proposal'), color: 'bg-orange-500' },
+  { value: 'negotiation', label: t('sales.status_negotiation'), color: 'bg-yellow-500' },
+  { value: 'won', label: t('sales.status_won'), color: 'bg-green-500' },
+  { value: 'lost', label: t('sales.status_lost'), color: 'bg-red-500' },
+]);
 
 const stageOrder = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
 
@@ -528,10 +531,10 @@ const scoreTextColor = computed(() => {
 });
 
 const scoreLabel = computed(() => {
-  if (form.score >= 75) return 'A\'lo';
-  if (form.score >= 50) return 'Yaxshi';
-  if (form.score >= 25) return 'O\'rtacha';
-  return 'Past';
+  if (form.score >= 75) return t('sales.score_excellent');
+  if (form.score >= 50) return t('sales.score_good');
+  if (form.score >= 25) return t('sales.score_average');
+  return t('sales.score_low');
 });
 
 const getInitials = (name) => {

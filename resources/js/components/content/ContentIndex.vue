@@ -3,9 +3,9 @@
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Kontent Reja</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('content.index.title') }}</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Ijtimoiy tarmoqlar uchun kontentlarni rejalashtiring va boshqaring
+                    {{ t('content.index.subtitle') }}
                 </p>
             </div>
             <button
@@ -15,7 +15,7 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Kontent Qo'shish
+                {{ t('content.index.add_content') }}
             </button>
         </div>
 
@@ -30,31 +30,31 @@
                 </svg>
             </div>
             <div class="flex-1">
-                <h4 class="text-sm font-semibold text-red-800 dark:text-red-300">Muddati o'tgan kontentlar mavjud!</h4>
+                <h4 class="text-sm font-semibold text-red-800 dark:text-red-300">{{ t('content.index.overdue_alert') }}</h4>
                 <p class="text-xs text-red-600 dark:text-red-400 mt-0.5">
-                    {{ overdueCount }} ta kontent rejalashtirilgan vaqtda nashr qilinmagan. Iltimos, ularni ko'rib chiqing.
+                    {{ t('content.index.overdue_description', { count: overdueCount }) }}
                 </p>
             </div>
             <button
                 @click="activeStatus = 'overdue'"
                 class="flex-shrink-0 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors"
             >
-                Ko'rish
+                {{ t('common.view') }}
             </button>
         </div>
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Jami</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('content.stats.total') }}</p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ posts.length }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Qoralama</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('content.status.draft') }}</p>
                 <p class="text-2xl font-bold text-gray-600 dark:text-gray-300">{{ draftCount }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-amber-600 dark:text-amber-400">Rejalashtirilgan</p>
+                <p class="text-xs font-medium text-amber-600 dark:text-amber-400">{{ t('content.status.scheduled') }}</p>
                 <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ scheduledCount }}</p>
             </div>
             <div
@@ -65,7 +65,7 @@
                 @click="activeStatus = 'overdue'"
             >
                 <div class="flex items-center gap-1.5">
-                    <p class="text-xs font-medium text-red-600 dark:text-red-400">Muddati o'tgan</p>
+                    <p class="text-xs font-medium text-red-600 dark:text-red-400">{{ t('content.status.overdue') }}</p>
                     <svg v-if="overdueCount > 0" class="w-3.5 h-3.5 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                     </svg>
@@ -73,15 +73,15 @@
                 <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ overdueCount }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Nashr qilingan</p>
+                <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">{{ t('content.status.published') }}</p>
                 <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ publishedCount }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-blue-600 dark:text-blue-400">Ta'limiy</p>
+                <p class="text-xs font-medium text-blue-600 dark:text-blue-400">{{ t('content.type.educational') }}</p>
                 <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ getContentTypeCount('educational') }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-pink-600 dark:text-pink-400">Ko'ngil ochar</p>
+                <p class="text-xs font-medium text-pink-600 dark:text-pink-400">{{ t('content.type.entertaining') }}</p>
                 <p class="text-2xl font-bold text-pink-600 dark:text-pink-400">{{ getContentTypeCount('entertaining') }}</p>
             </div>
         </div>
@@ -157,7 +157,7 @@
                     @click="viewMode = 'table'"
                     class="p-2 rounded-md transition-all"
                     :class="viewMode === 'table' ? 'bg-white dark:bg-gray-600 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
-                    title="Jadval ko'rinishi"
+                    :title="t('content.view.table')"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -167,7 +167,7 @@
                     @click="viewMode = 'calendar'"
                     class="p-2 rounded-md transition-all"
                     :class="viewMode === 'calendar' ? 'bg-white dark:bg-gray-600 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
-                    title="Kalendar ko'rinishi"
+                    :title="t('content.view.calendar')"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -189,13 +189,13 @@
                             v-if="getMonthScheduledCount > 0"
                             class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
                         >
-                            {{ getMonthScheduledCount }} rejalashtirilgan
+                            {{ getMonthScheduledCount }} {{ t('content.calendar.scheduled_count') }}
                         </span>
                         <span
                             v-if="getMonthPublishedCount > 0"
                             class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
                         >
-                            {{ getMonthPublishedCount }} nashr qilingan
+                            {{ getMonthPublishedCount }} {{ t('content.calendar.published_count') }}
                         </span>
                     </div>
                 </div>
@@ -212,7 +212,7 @@
                         @click="goToToday"
                         class="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
-                        Bugun
+                        {{ t('content.calendar.today') }}
                     </button>
                     <button
                         @click="nextMonth"
@@ -298,7 +298,7 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ formatSelectedDate }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ selectedDayPosts.length }} ta kontent</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('content.calendar.content_count', { count: selectedDayPosts.length }) }}</p>
                         </div>
                     </div>
                     <button @click="selectedDay = null" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
@@ -338,12 +338,12 @@
             <!-- Selected Day Empty State -->
             <div v-if="selectedDay && selectedDayPosts.length === 0" class="p-4">
                 <div class="text-center py-8 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Bu kun uchun kontent yo'q</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">{{ t('content.calendar.no_content_for_day') }}</p>
                     <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Kontent qo'shish
+                        {{ t('content.index.add_content') }}
                     </button>
                 </div>
             </div>
@@ -355,14 +355,14 @@
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Kontent</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Platforma</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Turi</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Format</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Holat</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Sana/Vaqt</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Statistika</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Amallar</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.content') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.platform') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.type') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.format') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.status') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.datetime') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.statistics') }}</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{ t('content.table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -429,12 +429,12 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex items-center justify-end space-x-1">
-                                    <button @click="viewPost(post)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors" title="Ko'rish">
+                                    <button @click="viewPost(post)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors" :title="t('common.view')">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                     </button>
-                                    <button v-if="post.status !== 'published'" @click="deletePost(post.id)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="O'chirish">
+                                    <button v-if="post.status !== 'published'" @click="deletePost(post.id)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" :title="t('common.delete')">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -453,13 +453,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Kontent topilmadi</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-center">Tanlangan filtrlarga mos kontent mavjud emas</p>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{{ t('content.empty.title') }}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-center">{{ t('content.empty.description') }}</p>
                 <button @click="openCreateModal" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Kontent Qo'shish
+                    {{ t('content.index.add_content') }}
                 </button>
             </div>
         </div>
@@ -472,9 +472,9 @@
                         <span class="text-white font-bold text-lg">80/20</span>
                     </div>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">Kontent Qoidasi</h3>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">{{ t('content.tips.rule_title') }}</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            80% foydali va qiziqarli kontent (ta'limiy, ilhomlantiruvchi, ko'ngil ochuvchi), 20% reklama va sotish kontenti
+                            {{ t('content.tips.rule_description') }}
                         </p>
                     </div>
                 </div>
@@ -485,9 +485,9 @@
                         <span class="text-white font-bold text-xl">o</span>
                     </div>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">Kontent Aralashmasi</h3>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">{{ t('content.tips.mix_title') }}</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Ta'limiy, ko'ngil ochuvchi, ilhomlantiruvchi va reklama kontentlarini muvozanatda saqlang
+                            {{ t('content.tips.mix_description') }}
                         </p>
                     </div>
                 </div>
@@ -502,7 +502,7 @@
                 <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="closeCreateModal"></div>
                 <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden transform transition-all">
                     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Yangi Kontent Yaratish</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('content.modal.create_title') }}</h3>
                         <button @click="closeCreateModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -512,20 +512,20 @@
                     <form @submit.prevent="submitPost" class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
                         <!-- Title -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Sarlavha</label>
-                            <input v-model="postForm.title" type="text" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Kontent sarlavhasi" />
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.title') }}</label>
+                            <input v-model="postForm.title" type="text" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.title_placeholder')" />
                         </div>
 
                         <!-- Content -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kontent Matni</label>
-                            <textarea v-model="postForm.content" rows="4" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" placeholder="Post matni..."></textarea>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.content_text') }}</label>
+                            <textarea v-model="postForm.content" rows="4" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" :placeholder="t('content.form.content_placeholder')"></textarea>
                         </div>
 
                         <!-- Platforms -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Platformalar</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Bir nechta platformaga joylash uchun bir nechtasini tanlang</p>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.platforms') }}</label>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ t('content.form.platforms_hint') }}</p>
                             <div class="flex flex-wrap gap-2">
                                 <button
                                     v-for="platform in availablePlatforms"
@@ -545,39 +545,39 @@
 
                         <!-- Content Type -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kontent Turi</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.content_type') }}</label>
                             <select v-model="postForm.content_type" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                <option value="">Tanlang</option>
-                                <option value="educational">Ta'limiy - Foydali ma'lumot va maslahatlar</option>
-                                <option value="entertaining">Ko'ngil ochuvchi - Qiziqarli va kulgili kontent</option>
-                                <option value="inspirational">Ilhomlantiruvchi - Motivatsion kontent</option>
-                                <option value="promotional">Reklama - Mahsulot va xizmatlar</option>
-                                <option value="behind_scenes">Sahna ortidan - Ish jarayoni va jamoa</option>
+                                <option value="">{{ t('common.select') }}</option>
+                                <option value="educational">{{ t('content.type.educational_full') }}</option>
+                                <option value="entertaining">{{ t('content.type.entertaining_full') }}</option>
+                                <option value="inspirational">{{ t('content.type.inspirational_full') }}</option>
+                                <option value="promotional">{{ t('content.type.promotional_full') }}</option>
+                                <option value="behind_scenes">{{ t('content.type.behind_scenes_full') }}</option>
                             </select>
                         </div>
 
                         <!-- Format and Status -->
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Format</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.format') }}</label>
                                 <select v-model="postForm.format" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                    <option value="">Tanlang</option>
-                                    <option value="short_video">Qisqa Video</option>
-                                    <option value="long_video">Uzun Video</option>
-                                    <option value="carousel">Karusel</option>
-                                    <option value="single_image">Bitta Rasm</option>
-                                    <option value="story">Story</option>
-                                    <option value="text_post">Matn Post</option>
-                                    <option value="live">Jonli efir</option>
-                                    <option value="poll">So'rovnoma</option>
+                                    <option value="">{{ t('common.select') }}</option>
+                                    <option value="short_video">{{ t('content.format.short_video') }}</option>
+                                    <option value="long_video">{{ t('content.format.long_video') }}</option>
+                                    <option value="carousel">{{ t('content.format.carousel') }}</option>
+                                    <option value="single_image">{{ t('content.format.single_image') }}</option>
+                                    <option value="story">{{ t('content.format.story') }}</option>
+                                    <option value="text_post">{{ t('content.format.text_post') }}</option>
+                                    <option value="live">{{ t('content.format.live') }}</option>
+                                    <option value="poll">{{ t('content.format.poll') }}</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Holat</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.status') }}</label>
                                 <select v-model="postForm.status" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                    <option value="draft">Qoralama</option>
-                                    <option value="scheduled">Rejalashtirilgan</option>
-                                    <option value="published">Nashr qilingan</option>
+                                    <option value="draft">{{ t('content.status.draft') }}</option>
+                                    <option value="scheduled">{{ t('content.status.scheduled') }}</option>
+                                    <option value="published">{{ t('content.status.published') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -585,29 +585,29 @@
                         <!-- Scheduled Date & Time -->
                         <div v-if="postForm.status === 'scheduled'" class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Sana</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.date') }}</label>
                                 <input v-model="postForm.scheduled_date" type="date" :min="minDate" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Soat</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.time') }}</label>
                                 <input v-model="postForm.scheduled_time" type="time" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
                             </div>
                         </div>
 
                         <!-- Hashtags -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hashtaglar</label>
-                            <input v-model="hashtagInput" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="#biznes, #marketing, #tips (vergul bilan ajrating)" />
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.hashtags') }}</label>
+                            <input v-model="hashtagInput" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.hashtags_placeholder')" />
                         </div>
 
                         <!-- Actions -->
                         <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <button type="button" @click="closeCreateModal" class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors">
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button type="submit" :disabled="isSubmitting" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all disabled:opacity-50">
-                                <span v-if="isSubmitting">Saqlanmoqda...</span>
-                                <span v-else>Saqlash</span>
+                                <span v-if="isSubmitting">{{ t('common.saving') }}...</span>
+                                <span v-else>{{ t('common.save') }}</span>
                             </button>
                         </div>
                     </form>
@@ -651,11 +651,14 @@
 <script setup>
 import { ref, computed, h } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n'
 
 const props = defineProps({
     posts: { type: Array, default: () => [] },
     panelType: { type: String, default: 'business', validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v) }
 })
+
+const { t } = useI18n()
 
 // Panel config - universal for all 5 panels
 const getRoutePrefix = () => props.panelType;
@@ -686,8 +689,16 @@ const calendarMonth = ref(new Date().getMonth())
 const calendarYear = ref(new Date().getFullYear())
 const selectedDay = ref(null)
 
-const weekDays = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak']
-const monthNames = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
+const weekDays = computed(() => [
+    t('content.calendar.mon'), t('content.calendar.tue'), t('content.calendar.wed'),
+    t('content.calendar.thu'), t('content.calendar.fri'), t('content.calendar.sat'), t('content.calendar.sun')
+])
+const monthNames = computed(() => [
+    t('content.calendar.january'), t('content.calendar.february'), t('content.calendar.march'),
+    t('content.calendar.april'), t('content.calendar.may'), t('content.calendar.june'),
+    t('content.calendar.july'), t('content.calendar.august'), t('content.calendar.september'),
+    t('content.calendar.october'), t('content.calendar.november'), t('content.calendar.december')
+])
 
 const formatDateLocal = (date) => {
     const year = date.getFullYear()
@@ -696,7 +707,7 @@ const formatDateLocal = (date) => {
     return `${year}-${month}-${day}`
 }
 
-const calendarMonthName = computed(() => monthNames[calendarMonth.value])
+const calendarMonthName = computed(() => monthNames.value[calendarMonth.value])
 
 const calendarDays = computed(() => {
     const year = calendarYear.value
@@ -744,12 +755,18 @@ const getOverdueCountForDay = (dateStr) => getPostsForDay(dateStr).filter(post =
 const dayHasOverduePosts = (dateStr) => getOverdueCountForDay(dateStr) > 0
 const selectDay = (day) => { selectedDay.value = selectedDay.value?.fullDate === day.fullDate ? null : day }
 const selectedDayPosts = computed(() => selectedDay.value ? getPostsForDay(selectedDay.value.fullDate) : [])
-const formatSelectedDate = computed(() => { if (!selectedDay.value) return ''; const [year, month, dayNum] = selectedDay.value.fullDate.split('-'); return `${parseInt(dayNum)} ${monthNames[parseInt(month) - 1]} ${year}` })
+const formatSelectedDate = computed(() => { if (!selectedDay.value) return ''; const [year, month, dayNum] = selectedDay.value.fullDate.split('-'); return `${parseInt(dayNum)} ${monthNames.value[parseInt(month) - 1]} ${year}` })
 
 const postForm = ref({ title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [] })
 const minDate = computed(() => new Date().toISOString().split('T')[0])
 
-const statusTabs = [{ label: 'Barchasi', value: 'all' }, { label: 'Qoralama', value: 'draft' }, { label: 'Rejalashtirilgan', value: 'scheduled' }, { label: 'Nashr qilingan', value: 'published' }, { label: "Muddati o'tgan", value: 'overdue' }]
+const statusTabs = computed(() => [
+    { label: t('content.filter.all'), value: 'all' },
+    { label: t('content.status.draft'), value: 'draft' },
+    { label: t('content.status.scheduled'), value: 'scheduled' },
+    { label: t('content.status.published'), value: 'published' },
+    { label: t('content.status.overdue'), value: 'overdue' }
+])
 
 // Platform Icons
 const InstagramIcon = { render() { return h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [h('path', { d: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z' })]) } }
@@ -759,14 +776,14 @@ const YouTubeIcon = { render() { return h('svg', { viewBox: '0 0 24 24', fill: '
 const YouTubeShortsIcon = { render() { return h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [h('path', { d: 'M17.77 10.32c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.42.93 2.67 2.22 3.25.03.01 1.2.5 1.2.5L6 14.93c-1.83.97-2.53 3.24-1.56 5.07.97 1.83 3.24 2.53 5.07 1.56l8.5-4.5c1.29-.68 2.06-2.04 1.99-3.49-.07-1.42-.94-2.68-2.23-3.25zM10 14.65v-5.3L15 12l-5 2.65z' })]) } }
 const DefaultPlatformIcon = { render() { return h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [h('circle', { cx: '12', cy: '12', r: '10' })]) } }
 
-const platformFilters = [
-    { label: 'Barchasi', value: 'all', activeClass: 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800' },
+const platformFilters = computed(() => [
+    { label: t('content.filter.all'), value: 'all', activeClass: 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800' },
     { label: 'Instagram', value: 'Instagram', icon: InstagramIcon, activeClass: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' },
     { label: 'Telegram', value: 'Telegram', icon: TelegramIcon, activeClass: 'bg-sky-600 text-white' },
     { label: 'Facebook', value: 'Facebook', icon: FacebookIcon, activeClass: 'bg-blue-600 text-white' },
     { label: 'YouTube', value: 'YouTube', icon: YouTubeIcon, activeClass: 'bg-red-600 text-white' },
     { label: 'Shorts', value: 'YouTube Shorts', icon: YouTubeShortsIcon, activeClass: 'bg-red-500 text-white' }
-]
+])
 
 const availablePlatforms = [
     { value: 'Instagram', label: 'Instagram', icon: InstagramIcon, iconClass: 'text-pink-600 dark:text-pink-400', selectedClass: 'bg-gradient-to-r from-purple-600 to-pink-600 border-transparent' },
@@ -776,13 +793,13 @@ const availablePlatforms = [
     { value: 'YouTube Shorts', label: 'YouTube Shorts', icon: YouTubeShortsIcon, iconClass: 'text-red-500 dark:text-red-400', selectedClass: 'bg-red-500 border-transparent' }
 ]
 
-const contentTypeFilters = [
-    { label: 'Barchasi', value: 'all', activeClass: 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800' },
-    { label: "Ta'limiy", value: 'educational', activeClass: 'bg-blue-600 text-white' },
-    { label: "Ko'ngil ochar", value: 'entertaining', activeClass: 'bg-pink-600 text-white' },
-    { label: 'Ilhomlantiruvchi', value: 'inspirational', activeClass: 'bg-amber-600 text-white' },
-    { label: 'Reklama', value: 'promotional', activeClass: 'bg-emerald-600 text-white' }
-]
+const contentTypeFilters = computed(() => [
+    { label: t('content.filter.all'), value: 'all', activeClass: 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800' },
+    { label: t('content.type.educational'), value: 'educational', activeClass: 'bg-blue-600 text-white' },
+    { label: t('content.type.entertaining'), value: 'entertaining', activeClass: 'bg-pink-600 text-white' },
+    { label: t('content.type.inspirational'), value: 'inspirational', activeClass: 'bg-amber-600 text-white' },
+    { label: t('content.type.promotional'), value: 'promotional', activeClass: 'bg-emerald-600 text-white' }
+])
 
 const isPostOverdue = (post) => { if (post.status !== 'scheduled' || !post.scheduled_at) return false; const now = new Date(); let scheduledDate = post.scheduled_at.includes('T') ? new Date(post.scheduled_at) : new Date(post.scheduled_at.replace(' ', 'T')); return scheduledDate < now }
 
@@ -809,13 +826,43 @@ const getPlatformIcon = (platform) => ({ 'Instagram': InstagramIcon, 'Telegram':
 const getPlatformBgClass = (platform) => ({ 'Instagram': 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40', 'Telegram': 'bg-sky-100 dark:bg-sky-900/40', 'Facebook': 'bg-blue-100 dark:bg-blue-900/40', 'YouTube': 'bg-red-100 dark:bg-red-900/40', 'YouTube Shorts': 'bg-red-50 dark:bg-red-900/30' }[platform] || 'bg-gray-100 dark:bg-gray-700')
 const getPlatformIconClass = (platform) => ({ 'Instagram': 'text-pink-600 dark:text-pink-400', 'Telegram': 'text-sky-600 dark:text-sky-400', 'Facebook': 'text-blue-600 dark:text-blue-400', 'YouTube': 'text-red-600 dark:text-red-400', 'YouTube Shorts': 'text-red-500 dark:text-red-400' }[platform] || 'text-gray-600 dark:text-gray-400')
 
-const getContentTypeLabel = (type) => ({ educational: "Ta'limiy", entertaining: "Ko'ngil ochuvchi", inspirational: 'Ilhomlantiruvchi', promotional: 'Reklama', behind_scenes: 'Sahna ortidan', ugc: 'Foydalanuvchi kontenti' }[type] || type || '-')
+const getContentTypeLabel = (type) => {
+    const labels = {
+        educational: t('content.type.educational'),
+        entertaining: t('content.type.entertaining'),
+        inspirational: t('content.type.inspirational'),
+        promotional: t('content.type.promotional'),
+        behind_scenes: t('content.type.behind_scenes'),
+        ugc: t('content.type.ugc')
+    }
+    return labels[type] || type || '-'
+}
 const getContentTypeBadgeClass = (type) => ({ educational: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', entertaining: 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300', inspirational: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', promotional: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', behind_scenes: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300', ugc: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' }[type] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300')
 const getContentTypeDotClass = (type) => ({ educational: 'bg-blue-500', entertaining: 'bg-pink-500', inspirational: 'bg-amber-500', promotional: 'bg-emerald-500', behind_scenes: 'bg-purple-500', ugc: 'bg-orange-500' }[type] || 'bg-gray-500')
 
-const getFormatLabel = (format) => ({ short_video: 'Qisqa Video', long_video: 'Uzun Video', carousel: 'Karusel', single_image: 'Rasm', story: 'Story', text_post: 'Matn', live: 'Jonli efir', poll: "So'rovnoma" }[format] || format || '-')
+const getFormatLabel = (format) => {
+    const labels = {
+        short_video: t('content.format.short_video'),
+        long_video: t('content.format.long_video'),
+        carousel: t('content.format.carousel'),
+        single_image: t('content.format.single_image'),
+        story: t('content.format.story'),
+        text_post: t('content.format.text_post'),
+        live: t('content.format.live'),
+        poll: t('content.format.poll')
+    }
+    return labels[format] || format || '-'
+}
 
-const getStatusLabel = (status, post = null) => { if (post && isPostOverdue(post)) return "Muddati o'tgan"; return { draft: 'Qoralama', scheduled: 'Rejalashtirilgan', published: 'Nashr qilingan' }[status] || status }
+const getStatusLabel = (status, post = null) => {
+    if (post && isPostOverdue(post)) return t('content.status.overdue')
+    const labels = {
+        draft: t('content.status.draft'),
+        scheduled: t('content.status.scheduled'),
+        published: t('content.status.published')
+    }
+    return labels[status] || status
+}
 const getStatusBadgeClass = (status, post = null) => { if (post && isPostOverdue(post)) return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'; return { draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300', scheduled: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' }[status] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }
 const getStatusDotClass = (status, post = null) => { if (post && isPostOverdue(post)) return 'bg-red-500'; return { draft: 'bg-gray-400', scheduled: 'bg-amber-500', published: 'bg-emerald-500' }[status] || 'bg-gray-400' }
 
@@ -830,7 +877,7 @@ const viewPost = (post) => { viewingPost.value = post; showViewModal.value = tru
 const closeViewModal = () => { showViewModal.value = false; viewingPost.value = null }
 
 const submitPost = () => {
-    if (postForm.value.platforms.length === 0) { alert('Kamida bitta platformani tanlang!'); return }
+    if (postForm.value.platforms.length === 0) { alert(t('content.alert.select_platform')); return }
     isSubmitting.value = true
     if (hashtagInput.value) postForm.value.hashtags = hashtagInput.value.split(',').map(t => t.trim()).filter(t => t)
     if (postForm.value.status === 'scheduled' && postForm.value.scheduled_date && postForm.value.scheduled_time) postForm.value.scheduled_at = `${postForm.value.scheduled_date} ${postForm.value.scheduled_time}`
@@ -839,6 +886,6 @@ const submitPost = () => {
     router.post(route(panelConfig.value.storeRoute), formData, { preserveScroll: true, onSuccess: () => { closeCreateModal(); isSubmitting.value = false }, onError: () => { isSubmitting.value = false } })
 }
 
-const deletePost = (id) => { if (confirm("Kontentni o'chirishni xohlaysizmi?")) router.delete(route(panelConfig.value.destroyRoute, id), { preserveScroll: true }) }
+const deletePost = (id) => { if (confirm(t('content.confirm.delete'))) router.delete(route(panelConfig.value.destroyRoute, id), { preserveScroll: true }) }
 const togglePlatform = (platform) => { const index = postForm.value.platforms.indexOf(platform); if (index === -1) postForm.value.platforms.push(platform); else postForm.value.platforms.splice(index, 1) }
 </script>

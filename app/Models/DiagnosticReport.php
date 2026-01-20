@@ -59,7 +59,7 @@ class DiagnosticReport extends Model
     // Relationships
     public function diagnostic(): BelongsTo
     {
-        return $this->belongsTo(AIDiagnostic::class, 'diagnostic_id');
+        return $this->belongsTo(AiDiagnostic::class, 'diagnostic_id');
     }
 
     // Helpers

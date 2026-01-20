@@ -2,6 +2,9 @@
 import HRLayout from '@/layouts/HRLayout.vue';
 import HRDashboard from '@/components/Dashboard/HRDashboard.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     stats: Object,
@@ -13,8 +16,8 @@ defineProps({
 </script>
 
 <template>
-    <HRLayout title="Bosh sahifa">
-        <Head title="Kadrlar bo'limi - Bosh sahifa" />
+    <HRLayout :title="t('hr.dashboard')">
+        <Head :title="t('hr.dashboard')" />
         <HRDashboard
             :stats="stats"
             :recent-activities="recentActivities"

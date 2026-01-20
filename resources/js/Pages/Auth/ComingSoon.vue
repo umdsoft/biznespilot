@@ -1,6 +1,9 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 // Countdown to January 25, 2026
 const targetDate = new Date('2026-01-25T00:00:00+05:00');
@@ -44,48 +47,48 @@ onUnmounted(() => {
 
 const padZero = (num) => String(num).padStart(2, '0');
 
-const features = [
+const features = computed(() => [
     {
         icon: '📞',
-        title: 'AI Qo\'ng\'iroq Tahlili',
-        desc: 'Sun\'iy intellekt barcha qo\'ng\'iroqlarni tahlil qiladi va sizga tayyor hisobot beradi'
+        title: t('auth.coming_soon.feature_ai_calls'),
+        desc: t('auth.coming_soon.feature_ai_calls_desc')
     },
     {
         icon: '🤖',
-        title: 'AI Marketing Yordamchi',
-        desc: 'Sun\'iy intellekt sizning shaxsiy marketologingiz bo\'ladi'
+        title: t('auth.coming_soon.feature_ai_marketing'),
+        desc: t('auth.coming_soon.feature_ai_marketing_desc')
     },
     {
         icon: '📊',
-        title: 'CustDev & Tadqiqot',
-        desc: 'Mijozlaringizni chuqur o\'rganing va to\'g\'ri qarorlar qabul qiling'
+        title: t('auth.coming_soon.feature_custdev'),
+        desc: t('auth.coming_soon.feature_custdev_desc')
     },
     {
         icon: '🎯',
-        title: 'Raqobatchi Tahlili',
-        desc: 'Raqobatchilaringizni real vaqtda kuzating va ustunlik qo\'lga kiriting'
+        title: t('auth.coming_soon.feature_competitor'),
+        desc: t('auth.coming_soon.feature_competitor_desc')
     },
     {
         icon: '📈',
-        title: 'Sotuv & CRM',
-        desc: 'Barcha lidlarni bir joyda boshqaring va sotuvni oshiring'
+        title: t('auth.coming_soon.feature_sales'),
+        desc: t('auth.coming_soon.feature_sales_desc')
     },
     {
         icon: '💬',
-        title: 'Yagona Inbox',
-        desc: 'Instagram, Telegram, WhatsApp - barcha xabarlar bitta joyda'
+        title: t('auth.coming_soon.feature_inbox'),
+        desc: t('auth.coming_soon.feature_inbox_desc')
     }
-];
+]);
 
-const stats = [
-    { value: '10x', label: 'Tezroq marketing' },
-    { value: '100%', label: 'Avtomatlashgan' },
-    { value: '24/7', label: 'AI yordamchi' }
-];
+const stats = computed(() => [
+    { value: '10x', label: t('auth.coming_soon.stat_faster') },
+    { value: '100%', label: t('auth.coming_soon.stat_automated') },
+    { value: '24/7', label: t('auth.coming_soon.stat_ai_helper') }
+]);
 </script>
 
 <template>
-    <Head title="Tez kunda - BiznesPilot" />
+    <Head :title="t('auth.coming_soon.page_title')" />
 
     <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
         <div class="max-w-5xl mx-auto px-4 py-12">
@@ -97,31 +100,31 @@ const stats = [
                     </svg>
                 </div>
                 <h1 class="text-4xl sm:text-5xl font-bold text-white mb-3">BiznesPilot</h1>
-                <p class="text-xl text-blue-300">O'zbekistonning #1 AI Biznes Platformasi</p>
+                <p class="text-xl text-blue-300">{{ t('auth.coming_soon.tagline') }}</p>
             </div>
 
             <!-- Countdown -->
             <div class="text-center mb-12">
-                <p class="text-gray-400 text-sm mb-4 uppercase tracking-wider">Platformaning ochilishigacha</p>
+                <p class="text-gray-400 text-sm mb-4 uppercase tracking-wider">{{ t('auth.coming_soon.countdown_label') }}</p>
                 <div class="flex items-center justify-center gap-3 sm:gap-4">
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-5 min-w-[75px] sm:min-w-[90px]">
                         <div class="text-3xl sm:text-5xl font-bold text-white">{{ padZero(countdown.days) }}</div>
-                        <div class="text-xs text-gray-400 mt-1">KUN</div>
+                        <div class="text-xs text-gray-400 mt-1">{{ t('auth.coming_soon.days') }}</div>
                     </div>
                     <div class="text-2xl text-blue-400 font-bold">:</div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-5 min-w-[75px] sm:min-w-[90px]">
                         <div class="text-3xl sm:text-5xl font-bold text-white">{{ padZero(countdown.hours) }}</div>
-                        <div class="text-xs text-gray-400 mt-1">SOAT</div>
+                        <div class="text-xs text-gray-400 mt-1">{{ t('auth.coming_soon.hours') }}</div>
                     </div>
                     <div class="text-2xl text-blue-400 font-bold">:</div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-5 min-w-[75px] sm:min-w-[90px]">
                         <div class="text-3xl sm:text-5xl font-bold text-white">{{ padZero(countdown.minutes) }}</div>
-                        <div class="text-xs text-gray-400 mt-1">DAQIQA</div>
+                        <div class="text-xs text-gray-400 mt-1">{{ t('auth.coming_soon.minutes') }}</div>
                     </div>
                     <div class="text-2xl text-blue-400 font-bold">:</div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-5 min-w-[75px] sm:min-w-[90px]">
                         <div class="text-3xl sm:text-5xl font-bold text-white">{{ padZero(countdown.seconds) }}</div>
-                        <div class="text-xs text-gray-400 mt-1">SONIYA</div>
+                        <div class="text-xs text-gray-400 mt-1">{{ t('auth.coming_soon.seconds') }}</div>
                     </div>
                 </div>
             </div>
@@ -133,16 +136,13 @@ const stats = [
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        25-yanvar 2026 kuni ochiladi
+                        {{ t('auth.coming_soon.launch_date') }}
                     </span>
 
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">
-                        Biznesingizni <span class="text-blue-400">AI kuchi</span> bilan boshqaring
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4" v-html="t('auth.coming_soon.hero_title')">
                     </h2>
 
-                    <p class="text-gray-300 text-lg leading-relaxed">
-                        Marketing, sotuv va mijozlar bilan ishlash - barchasi <strong class="text-white">bitta platformada</strong>.
-                        Sun'iy intellekt sizning 24/7 ishlaydigan shaxsiy yordamchingiz bo'ladi.
+                    <p class="text-gray-300 text-lg leading-relaxed" v-html="t('auth.coming_soon.hero_desc')">
                     </p>
                 </div>
 
@@ -180,24 +180,24 @@ const stats = [
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-red-300">Muammolar</h3>
+                        <h3 class="text-lg font-bold text-red-300">{{ t('auth.coming_soon.problems') }}</h3>
                     </div>
                     <ul class="space-y-3 text-gray-300 text-sm">
                         <li class="flex items-start gap-2">
                             <span class="text-red-400 mt-0.5">•</span>
-                            Marketing uchun vaqt yo'q, boshqa ishlar ko'p
+                            {{ t('auth.coming_soon.problem_1') }}
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-red-400 mt-0.5">•</span>
-                            Qo'ng'iroqlarni tinglash va tahlil qilishga vaqt yo'q
+                            {{ t('auth.coming_soon.problem_2') }}
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-red-400 mt-0.5">•</span>
-                            Mijozlar nimani xohlashini bilmaysiz
+                            {{ t('auth.coming_soon.problem_3') }}
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-red-400 mt-0.5">•</span>
-                            Raqobatchilar nima qilayotganini kuzatib bo'lmaydi
+                            {{ t('auth.coming_soon.problem_4') }}
                         </li>
                     </ul>
                 </div>
@@ -210,24 +210,24 @@ const stats = [
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-green-300">BiznesPilot yechimi</h3>
+                        <h3 class="text-lg font-bold text-green-300">{{ t('auth.coming_soon.solution') }}</h3>
                     </div>
                     <ul class="space-y-3 text-gray-300 text-sm">
                         <li class="flex items-start gap-2">
                             <span class="text-green-400 mt-0.5">✓</span>
-                            AI 24/7 marketing strategiyangizni yaratadi
+                            {{ t('auth.coming_soon.solution_1') }}
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-green-400 mt-0.5">✓</span>
-                            AI <strong class="text-white">barcha qo'ng'iroqlarni</strong> tahlil qiladi
+                            <span v-html="t('auth.coming_soon.solution_2')"></span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-green-400 mt-0.5">✓</span>
-                            CustDev so'rovnomalar bilan mijozni o'rganasiz
+                            {{ t('auth.coming_soon.solution_3') }}
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-green-400 mt-0.5">✓</span>
-                            Raqobatchilar avtomatik kuzatiladi
+                            {{ t('auth.coming_soon.solution_4') }}
                         </li>
                     </ul>
                 </div>
@@ -235,7 +235,7 @@ const stats = [
 
             <!-- CTA -->
             <div class="text-center">
-                <p class="text-gray-400 mb-4">Bizni ijtimoiy tarmoqlarda kuzating</p>
+                <p class="text-gray-400 mb-4">{{ t('auth.coming_soon.follow_us') }}</p>
                 <div class="flex items-center justify-center gap-4">
                     <a
                         href="https://instagram.com/biznespilot.uz"
@@ -261,8 +261,8 @@ const stats = [
 
                 <!-- Login link -->
                 <p class="text-gray-500 mt-8 text-sm">
-                    Allaqachon hisobingiz bormi?
-                    <a href="/login" class="text-blue-400 hover:text-blue-300 font-medium">Kirish</a>
+                    {{ t('auth.have_account') }}
+                    <a href="/login" class="text-blue-400 hover:text-blue-300 font-medium">{{ t('auth.login_link') }}</a>
                 </p>
             </div>
 
@@ -278,7 +278,7 @@ const stats = [
                         <span class="text-white font-semibold">BiznesPilot AI</span>
                     </div>
                     <p class="text-gray-500 text-sm">
-                        &copy; {{ new Date().getFullYear() }} BiznesPilot. Barcha huquqlar himoyalangan.
+                        &copy; {{ new Date().getFullYear() }} BiznesPilot. {{ t('auth.copyright') }}
                     </p>
                 </div>
             </footer>

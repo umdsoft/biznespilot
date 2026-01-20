@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import AIChannelPage from '@/components/ai-analysis/AIChannelPage.vue';
-import { h } from 'vue';
+import { h, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     channel: Object,
@@ -18,29 +21,29 @@ const InstagramIcon = {
     }
 };
 
-const platformConfig = {
-    title: 'Instagram Tahlili',
-    subtitle: 'Instagram akkauntingiz statistikasi',
+const platformConfig = computed(() => ({
+    title: t('nav.instagram_analysis'),
+    subtitle: t('marketing.instagram_stats'),
     headerGradient: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500',
     icon: InstagramIcon,
     emptyIconBg: 'bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-orange-900/30',
     emptyIconColor: 'text-pink-600 dark:text-pink-400',
-    connectTitle: 'Instagram Ulang',
-    connectDescription: 'Instagram akkauntingizni ulang va batafsil tahlillarni ko\'ring.',
+    connectTitle: t('marketing.connect_instagram'),
+    connectDescription: t('marketing.connect_instagram_desc'),
     connectButtonClass: 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700',
-    connectButtonText: 'Instagram Ulash',
+    connectButtonText: t('marketing.connect_instagram_btn'),
     metricsConfig: [
         { key: 'followers_count', label: 'Followers', icon: '👥', iconColor: 'text-pink-600' },
         { key: 'following_count', label: 'Following', icon: '➡️', iconColor: 'text-purple-600' },
-        { key: 'media_count', label: 'Postlar', icon: '📷', iconColor: 'text-orange-600' },
+        { key: 'media_count', label: t('marketing.posts'), icon: '📷', iconColor: 'text-orange-600' },
         { key: 'engagement_rate', label: 'Engagement', icon: '📈', iconColor: 'text-green-600', suffix: '%' },
     ],
-};
+}));
 </script>
 
 <template>
-    <MarketingLayout title="Instagram Tahlili">
-        <Head title="Instagram Tahlili" />
+    <MarketingLayout :title="t('nav.instagram_analysis')">
+        <Head :title="t('nav.instagram_analysis')" />
         <AIChannelPage
             :channel="channel"
             :metrics="metrics"

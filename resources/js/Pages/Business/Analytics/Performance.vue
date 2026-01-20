@@ -2,6 +2,9 @@
 import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import {
     TrophyIcon,
     UserGroupIcon,
@@ -101,11 +104,11 @@ const exportToPDF = async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } else {
-            alert('PDF yaratishda xatolik');
+            alert(t('common.error'));
         }
     } catch (error) {
         console.error('Export error:', error);
-        alert('Export xatolik');
+        alert(t('common.error'));
     } finally {
         exportingPDF.value = false;
     }
@@ -138,11 +141,11 @@ const exportToExcel = async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } else {
-            alert('Excel yaratishda xatolik');
+            alert(t('common.error'));
         }
     } catch (error) {
         console.error('Export error:', error);
-        alert('Export xatolik');
+        alert(t('common.error'));
     } finally {
         exportingExcel.value = false;
     }
@@ -150,8 +153,8 @@ const exportToExcel = async () => {
 </script>
 
 <template>
-    <BusinessLayout title="Performance Reports">
-        <Head title="Performance Reports" />
+    <BusinessLayout :title="t('analytics.performance_reports')">
+        <Head :title="t('analytics.performance_reports')" />
 
         <div class="py-12">
             <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,10 +163,10 @@ const exportToExcel = async () => {
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                             <TrophyIcon class="w-10 h-10 text-yellow-600 dark:text-yellow-400" />
-                            Performance Reports
+                            {{ t('analytics.performance_reports') }}
                         </h1>
                         <p class="mt-2 text-gray-600 dark:text-gray-400">
-                            Ideal Mijoz, Offer va Source tahlili
+                            {{ t('analytics.performance_desc') }}
                         </p>
                     </div>
 
@@ -190,7 +193,7 @@ const exportToExcel = async () => {
                     <div class="flex flex-wrap items-end gap-4">
                         <div class="flex-1 min-w-[200px]">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Boshlanish sanasi
+                                {{ t('reports.filter.start_date') }}
                             </label>
                             <input
                                 v-model="dateFrom"
@@ -200,7 +203,7 @@ const exportToExcel = async () => {
                         </div>
                         <div class="flex-1 min-w-[200px]">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Tugash sanasi
+                                {{ t('reports.filter.end_date') }}
                             </label>
                             <input
                                 v-model="dateTo"
@@ -212,13 +215,13 @@ const exportToExcel = async () => {
                             @click="applyFilters"
                             class="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors"
                         >
-                            Qo'llash
+                            {{ t('common.filter') }}
                         </button>
                         <button
                             @click="clearFilters"
                             class="px-6 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
                         >
-                            Tozalash
+                            {{ t('reports.filter.reset') }}
                         </button>
                     </div>
                 </div>
@@ -238,7 +241,7 @@ const exportToExcel = async () => {
                             >
                                 <div class="flex items-center justify-center gap-2">
                                     <UserGroupIcon class="w-5 h-5" />
-                                    <span>Ideal Mijozlar</span>
+                                    <span>{{ t('dashboard.ideal_customers') }}</span>
                                 </div>
                             </button>
                             <button
@@ -334,7 +337,7 @@ const exportToExcel = async () => {
                         </div>
                         <div v-else class="text-center py-12">
                             <UserGroupIcon class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-                            <p class="mt-4 text-gray-500 dark:text-gray-400">Ma'lumot yo'q</p>
+                            <p class="mt-4 text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
                         </div>
                     </div>
 
@@ -401,7 +404,7 @@ const exportToExcel = async () => {
                         </div>
                         <div v-else class="text-center py-12">
                             <GiftIcon class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-                            <p class="mt-4 text-gray-500 dark:text-gray-400">Ma'lumot yo'q</p>
+                            <p class="mt-4 text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
                         </div>
                     </div>
 
@@ -476,7 +479,7 @@ const exportToExcel = async () => {
                         </div>
                         <div v-else class="text-center py-12">
                             <SignalIcon class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-                            <p class="mt-4 text-gray-500 dark:text-gray-400">Ma'lumot yo'q</p>
+                            <p class="mt-4 text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
                         </div>
                     </div>
                 </div>

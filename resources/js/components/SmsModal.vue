@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from '@/i18n';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -103,7 +106,7 @@ const applyTemplate = (template) => {
 // Send SMS
 const sendSms = async () => {
     if (!message.value.trim()) {
-        error.value = 'Xabar matnini kiriting';
+        error.value = t('components.sms.enter_message');
         return;
     }
 
@@ -120,7 +123,7 @@ const sendSms = async () => {
             template_id: selectedTemplate.value,
         });
 
-        success.value = `SMS muvaffaqiyatli yuborildi! (${response.data.parts_count} qism)`;
+        success.value = t('components.sms.success', { parts: response.data.parts_count });
         message.value = '';
         selectedTemplate.value = null;
         emit('sent');
@@ -137,7 +140,7 @@ const sendSms = async () => {
 
         // Handle 419 CSRF error
         if (isCsrfError(err)) {
-            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            error.value = t('common.session_expired');
             await refreshCsrfToken();
             return;
         }
@@ -145,7 +148,7 @@ const sendSms = async () => {
         if (err.response?.data?.error) {
             error.value = err.response.data.error;
         } else {
-            error.value = 'Tarmoq xatosi. Qaytadan urinib ko\'ring.';
+            error.value = t('common.network_error_retry');
         }
     } finally {
         isSending.value = false;
@@ -184,10 +187,10 @@ const getStatusColor = (status) => {
 
 const getStatusLabel = (status) => {
     const labels = {
-        pending: 'Kutilmoqda',
-        sent: 'Yuborildi',
-        delivered: 'Yetkazildi',
-        failed: 'Xatolik',
+        pending: t('components.sms.status_pending'),
+        sent: t('components.sms.status_sent'),
+        delivered: t('components.sms.status_delivered'),
+        failed: t('components.sms.status_failed'),
     };
     return labels[status] || status;
 };
@@ -211,7 +214,7 @@ const getStatusLabel = (status) => {
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-semibold text-white">SMS Yuborish</h3>
+                                <h3 class="text-lg font-semibold text-white">{{ t('components.sms.title') }}</h3>
                                 <p class="text-sm text-slate-400">{{ lead.name }} - {{ lead.phone }}</p>
                             </div>
                         </div>
@@ -228,7 +231,7 @@ const getStatusLabel = (status) => {
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <p class="mt-2 text-slate-400">Yuklanmoqda...</p>
+                        <p class="mt-2 text-slate-400">{{ t('common.loading') }}</p>
                     </div>
 
                     <div v-else>
@@ -241,7 +244,7 @@ const getStatusLabel = (status) => {
                                     !showHistory ? 'bg-teal-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                 ]"
                             >
-                                Yangi SMS
+                                {{ t('components.sms.new_sms') }}
                             </button>
                             <button
                                 @click="showHistory = true"
@@ -250,7 +253,7 @@ const getStatusLabel = (status) => {
                                     showHistory ? 'bg-teal-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                 ]"
                             >
-                                Tarix ({{ smsHistory.length }})
+                                {{ t('components.sms.history') }} ({{ smsHistory.length }})
                             </button>
                         </div>
 
@@ -273,7 +276,7 @@ const getStatusLabel = (status) => {
 
                             <!-- Templates -->
                             <div v-if="templates.length > 0" class="mb-4">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Shablon tanlash</label>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('components.sms.select_template') }}</label>
                                 <div class="flex flex-wrap gap-2">
                                     <button
                                         v-for="template in templates"
@@ -293,19 +296,19 @@ const getStatusLabel = (status) => {
 
                             <!-- Message Input -->
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Xabar matni</label>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('components.sms.message_text') }}</label>
                                 <textarea
                                     v-model="message"
                                     rows="4"
-                                    placeholder="SMS xabarini yozing..."
+                                    :placeholder="t('components.sms.write_message')"
                                     class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 resize-none"
                                 ></textarea>
                                 <div class="flex justify-between mt-1 text-xs">
                                     <span :class="smsInfo.isUnicode ? 'text-yellow-400' : 'text-slate-500'">
-                                        {{ smsInfo.isUnicode ? 'Unicode (kirill)' : 'Latin' }}
+                                        {{ smsInfo.isUnicode ? t('components.sms.unicode') : t('components.sms.latin') }}
                                     </span>
                                     <span class="text-slate-500">
-                                        {{ smsInfo.chars }} belgi | {{ smsInfo.parts }} qism
+                                        {{ smsInfo.chars }} {{ t('components.sms.chars') }} | {{ smsInfo.parts }} {{ t('components.sms.parts') }}
                                     </span>
                                 </div>
                             </div>
@@ -316,7 +319,7 @@ const getStatusLabel = (status) => {
                                     @click="close"
                                     class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors"
                                 >
-                                    Bekor qilish
+                                    {{ t('common.cancel') }}
                                 </button>
                                 <button
                                     @click="sendSms"
@@ -328,9 +331,9 @@ const getStatusLabel = (status) => {
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Yuborilmoqda...
+                                        {{ t('components.sms.sending') }}
                                     </span>
-                                    <span v-else>Yuborish</span>
+                                    <span v-else>{{ t('components.sms.send') }}</span>
                                 </button>
                             </div>
                         </div>
@@ -341,7 +344,7 @@ const getStatusLabel = (status) => {
                                 <svg class="w-12 h-12 text-slate-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                                 </svg>
-                                <p class="text-slate-400">Hali SMS yuborilmagan</p>
+                                <p class="text-slate-400">{{ t('components.sms.no_sms_sent') }}</p>
                             </div>
 
                             <div v-else class="space-y-3 max-h-80 overflow-y-auto">

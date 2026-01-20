@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     CurrencyDollarIcon,
     CheckCircleIcon,
@@ -9,6 +10,8 @@ import {
     EyeIcon,
     MagnifyingGlassIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     deals: {
@@ -61,20 +64,20 @@ const getStatusColor = (status) => {
 };
 
 const getStatusLabel = (status) => {
-    const labels = { won: 'Yutildi', lost: "Yo'qotildi", pending: 'Kutilmoqda' };
+    const labels = { won: t('saleshead.deal_won'), lost: t('saleshead.deal_lost'), pending: t('tasks.pending') };
     return labels[status] || status;
 };
 </script>
 
 <template>
-    <SalesHeadLayout title="Bitimlar">
-        <Head title="Bitimlar" />
+    <SalesHeadLayout :title="t('sales.deals')">
+        <Head :title="t('sales.deals')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Bitimlar</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Yopilgan va faol bitimlar ro'yxati</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('sales.deals') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.deals_subtitle') }}</p>
             </div>
 
             <!-- Stats -->
@@ -85,7 +88,7 @@ const getStatusLabel = (status) => {
                             <CurrencyDollarIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Jami bitimlar</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.total_deals') }}</p>
                             <p class="text-xl font-bold text-gray-900 dark:text-white">{{ stats.total }}</p>
                         </div>
                     </div>
@@ -96,7 +99,7 @@ const getStatusLabel = (status) => {
                             <CheckCircleIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Yutilgan</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.deal_won') }}</p>
                             <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ stats.won }}</p>
                         </div>
                     </div>
@@ -107,7 +110,7 @@ const getStatusLabel = (status) => {
                             <ClockIcon class="w-6 h-6 text-red-600 dark:text-red-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Yo'qotilgan</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.deal_lost') }}</p>
                             <p class="text-xl font-bold text-red-600 dark:text-red-400">{{ stats.lost }}</p>
                         </div>
                     </div>
@@ -118,7 +121,7 @@ const getStatusLabel = (status) => {
                             <CurrencyDollarIcon class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Jami summa</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('common.total') }} {{ t('saleshead.amount') }}</p>
                             <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(stats.total_value) }}</p>
                         </div>
                     </div>
@@ -132,7 +135,7 @@ const getStatusLabel = (status) => {
                     <input
                         v-model="searchQuery"
                         type="text"
-                        placeholder="Bitim qidirish..."
+                        :placeholder="t('saleshead.search_deal')"
                         class="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                     />
                 </div>
@@ -140,10 +143,10 @@ const getStatusLabel = (status) => {
                     v-model="statusFilter"
                     class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                 >
-                    <option value="">Barcha statuslar</option>
-                    <option value="won">Yutilgan</option>
-                    <option value="lost">Yo'qotilgan</option>
-                    <option value="pending">Kutilmoqda</option>
+                    <option value="">{{ t('saleshead.all_statuses') }}</option>
+                    <option value="won">{{ t('saleshead.deal_won') }}</option>
+                    <option value="lost">{{ t('saleshead.deal_lost') }}</option>
+                    <option value="pending">{{ t('tasks.pending') }}</option>
                 </select>
             </div>
 
@@ -151,19 +154,19 @@ const getStatusLabel = (status) => {
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div v-if="filteredDeals.length === 0" class="p-12 text-center">
                     <CurrencyDollarIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Bitim topilmadi</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Hali bitimlar yo'q</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('saleshead.deal_not_found') }}</h3>
+                    <p class="text-gray-500 dark:text-gray-400">{{ t('saleshead.no_deals_yet') }}</p>
                 </div>
 
                 <table v-else class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-900/50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Bitim</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{{ t('saleshead.deal') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Lead</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Summa</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sana</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Amallar</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{{ t('saleshead.amount') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{{ t('common.status') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{{ t('common.date') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">

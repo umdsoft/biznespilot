@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     CalendarIcon,
     ClockIcon,
@@ -12,6 +13,8 @@ import {
     FunnelIcon,
     BanknotesIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     requests: { type: Array, default: () => [] },
@@ -66,15 +69,15 @@ const getStatusBgClass = (status) => {
 </script>
 
 <template>
-    <HRLayout title="Ta'til">
-        <Head title="Ta'til Boshqaruvi" />
+    <HRLayout :title="t('hr.leave')">
+        <Head :title="t('hr.leave_management')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ta'til Boshqaruvi</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Ta'til so'rovlari va balanslar</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.leave_management') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.leave_subtitle') }}</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <Link
@@ -82,14 +85,14 @@ const getStatusBgClass = (status) => {
                         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                         <CalendarIcon class="w-5 h-5 inline mr-2" />
-                        Kalendar
+                        {{ t('hr.leave_calendar') }}
                     </Link>
                     <button
                         @click="showRequestModal = true"
                         class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        Ta'til So'rash
+                        {{ t('hr.request_leave') }}
                     </button>
                 </div>
             </div>

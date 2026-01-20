@@ -6,7 +6,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
             </div>
-            <p class="text-gray-500 dark:text-gray-400">Jamoa a'zolari yo'q</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('dashboard.team.no_members') }}</p>
         </div>
         <div
             v-for="(member, index) in displayMembers"
@@ -42,8 +42,8 @@
             <div class="flex-1 min-w-0">
                 <p class="font-medium text-gray-900 dark:text-white truncate">{{ member.name }}</p>
                 <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-500 dark:text-gray-400">{{ member.leads_handled || member.leads_count || 0 }} lead</span>
-                    <span class="text-gray-500 dark:text-gray-400">{{ member.leads_won || member.won_count || 0 }} yutildi</span>
+                    <span class="text-gray-500 dark:text-gray-400">{{ member.leads_handled || member.leads_count || 0 }} {{ t('dashboard.team.lead') }}</span>
+                    <span class="text-gray-500 dark:text-gray-400">{{ member.leads_won || member.won_count || 0 }} {{ t('dashboard.team.won') }}</span>
                     <span :class="[
                         'font-medium',
                         (member.conversion_rate || 0) >= 30 ? 'text-emerald-600 dark:text-emerald-400' :
@@ -58,7 +58,7 @@
             <!-- Revenue -->
             <div class="text-right flex-shrink-0">
                 <p class="font-bold text-gray-900 dark:text-white">{{ formatCurrency(member.revenue || 0) }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">daromad</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dashboard.team.revenue') }}</p>
             </div>
         </div>
     </div>
@@ -66,6 +66,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     members: {

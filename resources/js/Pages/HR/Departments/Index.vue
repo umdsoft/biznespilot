@@ -1,18 +1,21 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import { BuildingOfficeIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 </script>
 
 <template>
-    <HRLayout title="Bo'limlar">
-        <Head title="Bo'limlar" />
+    <HRLayout :title="t('hr.departments')">
+        <Head :title="t('hr.departments')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Bo'limlar</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Kompaniya tuzilmasi</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.departments') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.department_structure') }}</p>
             </div>
 
             <!-- Departments Overview -->
@@ -32,7 +35,7 @@ import { BuildingOfficeIcon } from '@heroicons/vue/24/outline';
                         Lead boshqaruvi, sotuv jarayonlari, mijozlar bilan ishlash
                     </p>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500 dark:text-gray-400">Xodimlar:</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ t('hr.employees') }}:</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-100">-</span>
                     </div>
                 </div>
@@ -52,7 +55,7 @@ import { BuildingOfficeIcon } from '@heroicons/vue/24/outline';
                         Xodimlar boshqaruvi, davomat, ta'til, samaradorlik nazorati
                     </p>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500 dark:text-gray-400">Xodimlar:</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ t('hr.employees') }}:</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-100">-</span>
                     </div>
                 </div>
@@ -72,7 +75,7 @@ import { BuildingOfficeIcon } from '@heroicons/vue/24/outline';
                         Kampaniyalar, ijtimoiy tarmoqlar, reklama, brendlash
                     </p>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500 dark:text-gray-400">Xodimlar:</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ t('hr.employees') }}:</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-100">-</span>
                     </div>
                 </div>
@@ -92,7 +95,7 @@ import { BuildingOfficeIcon } from '@heroicons/vue/24/outline';
                         Byudjet, hisobotlar, moliyaviy tahlil, to'lovlar
                     </p>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500 dark:text-gray-400">Xodimlar:</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ t('hr.employees') }}:</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-100">-</span>
                     </div>
                 </div>
@@ -100,7 +103,7 @@ import { BuildingOfficeIcon } from '@heroicons/vue/24/outline';
 
             <!-- Note -->
             <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-                <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">Bo'limlar haqida</h4>
+                <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">{{ t('hr.departments') }} haqida</h4>
                 <p class="text-sm text-blue-800 dark:text-blue-300">
                     Bo'limlar - bu kompaniya ichidagi tashkiliy tuzilma bo'lib, xodimlarni vazifalariga ko'ra guruhlaydi.
                     Har bir xodim bitta bo'limga tegishli bo'ladi va o'z bo'limiga mos keladigan funksiyalarga kirish huquqiga ega bo'ladi.

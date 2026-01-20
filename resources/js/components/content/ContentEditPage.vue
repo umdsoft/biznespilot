@@ -6,33 +6,33 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Orqaga
+                {{ t('common.back') }}
             </button>
         </div>
 
         <!-- Edit Form -->
         <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Kontentni Tahrirlash</h1>
+                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('content.edit.title') }}</h1>
             </div>
 
             <form @submit.prevent="submitForm" class="p-6 space-y-5">
                 <!-- Title -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Sarlavha</label>
-                    <input v-model="form.title" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Kontent sarlavhasi" required />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.title') }}</label>
+                    <input v-model="form.title" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.title_placeholder')" required />
                 </div>
 
                 <!-- Content -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kontent Matni</label>
-                    <textarea v-model="form.content" rows="5" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" placeholder="Post matni..." required></textarea>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.content_text') }}</label>
+                    <textarea v-model="form.content" rows="5" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" :placeholder="t('content.form.content_placeholder')" required></textarea>
                 </div>
 
                 <!-- Platforms -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Platformalar</label>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Bir nechta platformaga joylash uchun bir nechtasini tanlang</p>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.platforms') }}</label>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ t('content.form.platforms_hint') }}</p>
                     <div class="flex flex-wrap gap-2">
                         <label v-for="platform in availablePlatforms" :key="platform.value" class="relative flex items-center px-3 py-2 rounded-xl border cursor-pointer transition-all" :class="form.platforms.includes(platform.value) ? platform.selectedClass : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'">
                             <input type="checkbox" :value="platform.value" v-model="form.platforms" class="sr-only" />
@@ -48,73 +48,73 @@
                 <!-- Content Type & Format -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kontent Turi</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.content_type') }}</label>
                         <select v-model="form.content_type" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" required>
-                            <option value="">Tanlang</option>
-                            <option value="educational">Ta'limiy</option>
-                            <option value="entertaining">Ko'ngil ochuvchi</option>
-                            <option value="inspirational">Ilhomlantiruvchi</option>
-                            <option value="promotional">Reklama</option>
-                            <option value="behind_scenes">Sahna ortidan</option>
-                            <option value="ugc">Foydalanuvchi kontenti</option>
+                            <option value="">{{ t('common.select') }}</option>
+                            <option value="educational">{{ t('content.type.educational') }}</option>
+                            <option value="entertaining">{{ t('content.type.entertaining') }}</option>
+                            <option value="inspirational">{{ t('content.type.inspirational') }}</option>
+                            <option value="promotional">{{ t('content.type.promotional') }}</option>
+                            <option value="behind_scenes">{{ t('content.type.behind_scenes') }}</option>
+                            <option value="ugc">{{ t('content.type.ugc') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Format</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.format') }}</label>
                         <select v-model="form.format" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" required>
-                            <option value="">Tanlang</option>
-                            <option value="short_video">Qisqa Video</option>
-                            <option value="long_video">Uzun Video</option>
-                            <option value="carousel">Karusel</option>
-                            <option value="single_image">Bitta Rasm</option>
-                            <option value="story">Story</option>
-                            <option value="text_post">Matn Post</option>
-                            <option value="live">Jonli efir</option>
-                            <option value="poll">So'rovnoma</option>
+                            <option value="">{{ t('common.select') }}</option>
+                            <option value="short_video">{{ t('content.format.short_video') }}</option>
+                            <option value="long_video">{{ t('content.format.long_video') }}</option>
+                            <option value="carousel">{{ t('content.format.carousel') }}</option>
+                            <option value="single_image">{{ t('content.format.single_image') }}</option>
+                            <option value="story">{{ t('content.format.story') }}</option>
+                            <option value="text_post">{{ t('content.format.text_post') }}</option>
+                            <option value="live">{{ t('content.format.live') }}</option>
+                            <option value="poll">{{ t('content.format.poll') }}</option>
                         </select>
                     </div>
                 </div>
 
                 <!-- Status -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Holat</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.status') }}</label>
                     <select v-model="form.status" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                        <option value="draft">Qoralama</option>
-                        <option value="scheduled">Rejalashtirilgan</option>
-                        <option value="published">Nashr qilingan</option>
+                        <option value="draft">{{ t('content.status.draft') }}</option>
+                        <option value="scheduled">{{ t('content.status.scheduled') }}</option>
+                        <option value="published">{{ t('content.status.published') }}</option>
                     </select>
                 </div>
 
                 <!-- Scheduled Date & Time -->
                 <div v-if="form.status === 'scheduled'" class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Sana</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.date') }}</label>
                         <input v-model="form.scheduled_date" type="date" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" required />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Soat</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.time') }}</label>
                         <input v-model="form.scheduled_time" type="time" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" required />
                     </div>
                 </div>
 
                 <!-- Hashtags -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hashtaglar</label>
-                    <input v-model="hashtagInput" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="#biznes, #marketing (vergul bilan ajrating)" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.hashtags') }}</label>
+                    <input v-model="hashtagInput" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.hashtags_placeholder')" />
                 </div>
 
                 <!-- External URL -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Post Havolasi (ixtiyoriy)</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.external_url') }}</label>
                     <input v-model="form.external_url" type="url" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="https://instagram.com/p/..." />
                 </div>
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <button type="button" @click="goBack" class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors">Bekor qilish</button>
+                    <button type="button" @click="goBack" class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors">{{ t('common.cancel') }}</button>
                     <button type="submit" :disabled="isSubmitting" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all disabled:opacity-50">
-                        <span v-if="isSubmitting">Saqlanmoqda...</span>
-                        <span v-else>Saqlash</span>
+                        <span v-if="isSubmitting">{{ t('common.saving') }}...</span>
+                        <span v-else>{{ t('common.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -125,11 +125,14 @@
 <script setup>
 import { ref, onMounted, computed, h } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n'
 
 const props = defineProps({
     post: { type: Object, required: true },
     panelType: { type: String, default: 'business', validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v) }
 })
+
+const { t } = useI18n()
 
 // Universal panel config for all 5 panels
 const panelConfig = computed(() => {
@@ -184,7 +187,7 @@ onMounted(() => {
 const goBack = () => router.get(`${panelConfig.value.baseUrl}/${props.post.id}`)
 
 const submitForm = () => {
-    if (form.value.platforms.length === 0) { alert('Kamida bitta platformani tanlang!'); return }
+    if (form.value.platforms.length === 0) { alert(t('content.alert.select_platform')); return }
     isSubmitting.value = true
     if (hashtagInput.value) form.value.hashtags = hashtagInput.value.split(',').map(t => t.trim()).filter(t => t)
     if (form.value.status === 'scheduled' && form.value.scheduled_date && form.value.scheduled_time) form.value.scheduled_at = `${form.value.scheduled_date} ${form.value.scheduled_time}`

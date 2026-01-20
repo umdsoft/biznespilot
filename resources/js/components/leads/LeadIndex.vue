@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
 import {
     PlusIcon,
     UsersIcon,
@@ -40,6 +41,8 @@ import {
     getAvatarColor,
 } from '@/utils/formatting';
 import { getCallStatusLabel, getCallStatusColor } from '@/composables/useLabels';
+
+const { t } = useI18n();
 
 const props = defineProps({
     panelType: {
@@ -338,16 +341,16 @@ const colorMapping = {
 };
 
 // Default pipeline stages (fallback if no dynamic stages provided)
-const defaultPipelineStages = [
-    { value: 'new', label: 'Yangi', color: 'blue' },
-    { value: 'contacted', label: 'Bog\'lanildi', color: 'indigo' },
-    { value: 'callback', label: 'Keyinroq bog\'lanish qilamiz', color: 'purple' },
-    { value: 'considering', label: 'O\'ylab ko\'radi', color: 'orange' },
-    { value: 'meeting_scheduled', label: 'Uchrashuv belgilandi', color: 'yellow' },
-    { value: 'meeting_attended', label: 'Uchrashuvga keldi', color: 'teal' },
-    { value: 'won', label: 'Sotuv', color: 'green', is_won: true },
-    { value: 'lost', label: 'Sifatsiz lid', color: 'red', is_lost: true },
-];
+const defaultPipelineStages = computed(() => [
+    { value: 'new', label: t('leads.pipeline.new'), color: 'blue' },
+    { value: 'contacted', label: t('leads.pipeline.contacted'), color: 'indigo' },
+    { value: 'callback', label: t('leads.pipeline.callback'), color: 'purple' },
+    { value: 'considering', label: t('leads.pipeline.considering'), color: 'orange' },
+    { value: 'meeting_scheduled', label: t('leads.pipeline.meeting_scheduled'), color: 'yellow' },
+    { value: 'meeting_attended', label: t('leads.pipeline.meeting_attended'), color: 'teal' },
+    { value: 'won', label: t('leads.pipeline.won'), color: 'green', is_won: true },
+    { value: 'lost', label: t('leads.pipeline.lost'), color: 'red', is_lost: true },
+]);
 
 // Dynamic pipeline stages - use props if available, otherwise use defaults
 const pipelineStages = computed(() => {
@@ -361,7 +364,7 @@ const pipelineStages = computed(() => {
             is_system: stage.is_system,
             ...colorMapping[stage.color] || colorMapping.gray,
         }))
-        : defaultPipelineStages.map(stage => ({
+        : defaultPipelineStages.value.map(stage => ({
             ...stage,
             ...colorMapping[stage.color] || colorMapping.gray,
         }));
@@ -730,7 +733,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <Head :title="panelType === 'saleshead' ? 'Leadlar' : 'Sotuv Pipeline'" />
+    <Head :title="panelType === 'saleshead' ? t('leads.index.title') : t('leads.index.sales_pipeline')" />
 
     <div class="h-full flex flex-col -m-4 sm:-m-6 lg:-m-8">
         <!-- Header -->
@@ -740,13 +743,13 @@ onUnmounted(() => {
                 <div class="flex items-center gap-6">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                            {{ panelType === 'saleshead' ? 'Leadlar' : 'Sotuv Pipeline' }}
+                            {{ panelType === 'saleshead' ? t('leads.index.title') : t('leads.index.sales_pipeline') }}
                         </h1>
                         <p v-if="isLoading" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                             <span class="inline-block w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
                         </p>
                         <p v-else class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                            {{ stats?.total_leads || 0 }} ta lead &bull; {{ formatFullCurrency(stats?.pipeline_value) }} pipeline
+                            {{ stats?.total_leads || 0 }} {{ t('leads.index.lead_count') }} &bull; {{ formatFullCurrency(stats?.pipeline_value) }} pipeline
                         </p>
                     </div>
 
@@ -754,15 +757,15 @@ onUnmounted(() => {
                     <div v-if="!isLoading" class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
                         <div class="text-center">
                             <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats?.won_deals || 0 }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Yutilgan</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.stats.won') }}</p>
                         </div>
                         <div class="text-center">
                             <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats?.new_leads || 0 }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Yangi</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.pipeline.new') }}</p>
                         </div>
                         <div class="text-center">
                             <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats?.qualified_leads || 0 }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Qualified</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.stats.qualified') }}</p>
                         </div>
                     </div>
                     <div v-else class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
@@ -781,7 +784,7 @@ onUnmounted(() => {
                         <input
                             v-model="searchQuery"
                             type="text"
-                            placeholder="Qidirish..."
+                            :placeholder="t('leads.index.search')"
                             :class="[
                                 'w-48 lg:w-64 pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:border-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400',
                                 themeColors.ring
@@ -797,7 +800,7 @@ onUnmounted(() => {
                             themeColors.ring
                         ]"
                     >
-                        <option value="">Barcha manbalar</option>
+                        <option value="">{{ t('leads.index.all_sources') }}</option>
                         <option v-for="channel in channels" :key="channel.id" :value="channel.id">
                             {{ channel.name }}
                         </option>
@@ -811,8 +814,8 @@ onUnmounted(() => {
                             themeColors.ring
                         ]"
                     >
-                        <option value="">Barcha operatorlar</option>
-                        <option value="unassigned">Tayinlanmagan</option>
+                        <option value="">{{ t('leads.index.all_operators') }}</option>
+                        <option value="unassigned">{{ t('leads.index.unassigned') }}</option>
                         <option v-for="op in operatorsList" :key="op.id" :value="op.id">
                             {{ op.name }}
                         </option>
@@ -828,7 +831,7 @@ onUnmounted(() => {
                                     ? `bg-white dark:bg-gray-600 shadow-sm ${themeColors.activeView}`
                                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                             ]"
-                            title="Kanban ko'rinishi"
+                            :title="t('leads.index.kanban_view')"
                         >
                             <Squares2X2Icon class="w-5 h-5" />
                         </button>
@@ -840,7 +843,7 @@ onUnmounted(() => {
                                     ? `bg-white dark:bg-gray-600 shadow-sm ${themeColors.activeView}`
                                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                             ]"
-                            title="Ro'yxat ko'rinishi"
+                            :title="t('leads.index.list_view')"
                         >
                             <ListBulletIcon class="w-5 h-5" />
                         </button>
@@ -851,10 +854,10 @@ onUnmounted(() => {
                         v-if="pipelineStagesUrl"
                         :href="pipelineStagesUrl"
                         class="inline-flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                        title="Voronka bosqichlarini sozlash"
+                        :title="t('leads.index.pipeline_settings_title')"
                     >
                         <Cog6ToothIcon class="w-5 h-5" />
-                        <span class="hidden lg:inline">Voronka Sozlamalari</span>
+                        <span class="hidden lg:inline">{{ t('leads.index.pipeline_settings') }}</span>
                     </Link>
 
                     <!-- Add Lead Button -->
@@ -867,7 +870,7 @@ onUnmounted(() => {
                         ]"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        <span class="hidden sm:inline">Lead Qo'shish</span>
+                        <span class="hidden sm:inline">{{ t('leads.index.add_lead') }}</span>
                     </Link>
                 </div>
             </div>
@@ -1007,14 +1010,14 @@ onUnmounted(() => {
                                                     class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                 >
                                                     <EyeIcon class="w-4 h-4" />
-                                                    Ko'rish
+                                                    {{ t('leads.actions.view') }}
                                                 </Link>
                                                 <Link
                                                     :href="getRouteUrl('edit', lead.id)"
                                                     class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                 >
                                                     <PencilIcon class="w-4 h-4" />
-                                                    Tahrirlash
+                                                    {{ t('leads.actions.edit') }}
                                                 </Link>
                                                 <button
                                                     v-if="lead.status !== 'won' && lead.status !== 'lost'"
@@ -1022,7 +1025,7 @@ onUnmounted(() => {
                                                     class="w-full flex items-center gap-2 px-3 py-2 text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                                                 >
                                                     <XMarkIcon class="w-4 h-4" />
-                                                    Yo'qotilgan
+                                                    {{ t('leads.actions.lost') }}
                                                 </button>
                                             </div>
                                         </Transition>
@@ -1070,7 +1073,7 @@ onUnmounted(() => {
                                                 </span>
                                             </span>
                                         </template>
-                                        {{ lead.source?.name || 'Manba ko\'rsatilmagan' }}
+                                        {{ lead.source?.name || t('leads.index.no_source') }}
                                     </div>
                                 </div>
                             </div>
@@ -1086,7 +1089,7 @@ onUnmounted(() => {
                                 ]"
                             >
                                 <UsersIcon class="w-8 h-8 text-gray-300 dark:text-gray-600 mb-2" />
-                                <p class="text-xs text-gray-400 dark:text-gray-500 text-center">Lead yo'q</p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500 text-center">{{ t('leads.index.no_leads') }}</p>
                             </div>
                         </div>
                     </div>
@@ -1102,13 +1105,13 @@ onUnmounted(() => {
                     <thead class="bg-gray-50 dark:bg-gray-900/50">
                         <tr>
                             <th class="px-4 py-3 w-12"></th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Lead</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Kontakt</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Holat</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Qiymat</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Manba</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Operator</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Amallar</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.lead') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.contact') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.status') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.value') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.source') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.operator') }}</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -1139,8 +1142,8 @@ onUnmounted(() => {
                 <div :class="['mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6', themeColors.emptyBg]">
                     <UsersIcon :class="['w-10 h-10', themeColors.emptyIcon]" />
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Hali Lead yo'q</h3>
-                <p class="text-gray-500 dark:text-gray-400 mb-6">Birinchi leadingizni qo'shing</p>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ t('leads.index.no_leads_yet') }}</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-6">{{ t('leads.index.add_first_lead') }}</p>
                 <Link
                     :href="getRouteUrl('create')"
                     :class="[
@@ -1149,7 +1152,7 @@ onUnmounted(() => {
                     ]"
                 >
                     <PlusIcon class="w-5 h-5" />
-                    Lead Qo'shish
+                    {{ t('leads.index.add_lead') }}
                 </Link>
             </div>
 
@@ -1171,13 +1174,13 @@ onUnmounted(() => {
                                     <CheckIcon v-if="selectedLeads.length === filteredLeads.length && filteredLeads.length > 0" class="w-3 h-3" />
                                 </button>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Lead</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Kontakt</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Holat</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Qiymat</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Manba</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Operator</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Amallar</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.lead') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.contact') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.status') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.value') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.source') }}</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.operator') }}</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('leads.table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -1266,14 +1269,14 @@ onUnmounted(() => {
                                     <Link
                                         :href="getRouteUrl('show', lead.id)"
                                         :class="[`p-2 text-gray-400 rounded-lg transition-colors`, themeColors.hoverText]"
-                                        title="Ko'rish"
+                                        :title="t('leads.actions.view')"
                                     >
                                         <EyeIcon class="w-4 h-4" />
                                     </Link>
                                     <Link
                                         :href="getRouteUrl('edit', lead.id)"
                                         class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                        title="Tahrirlash"
+                                        :title="t('leads.actions.edit')"
                                     >
                                         <PencilIcon class="w-4 h-4" />
                                     </Link>
@@ -1281,7 +1284,7 @@ onUnmounted(() => {
                                         v-if="lead.status !== 'won' && lead.status !== 'lost'"
                                         @click="openLostReasonModal(lead)"
                                         class="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                        title="Yo'qotilgan deb belgilash"
+                                        :title="t('leads.actions.mark_lost')"
                                     >
                                         <XMarkIcon class="w-4 h-4" />
                                     </button>
@@ -1310,7 +1313,7 @@ onUnmounted(() => {
                         <div :class="['w-10 h-10 rounded-xl flex items-center justify-center', panelType === 'saleshead' ? 'bg-emerald-500' : 'bg-blue-500']">
                             <span class="text-white font-bold">{{ selectedLeads.length }}</span>
                         </div>
-                        <span class="text-white font-medium">ta lead tanlandi</span>
+                        <span class="text-white font-medium">{{ t('leads.bulk.selected') }}</span>
                     </div>
 
                     <div class="h-8 w-px bg-slate-600"></div>
@@ -1319,7 +1322,7 @@ onUnmounted(() => {
                         <!-- Bulk SMS Button -->
                         <button
                             @click="handleBulkSmsClick"
-                            :title="!smsConnected ? 'SMS sozlamalarini sozlash uchun bosing' : 'Tanlangan leadlarga SMS yuborish'"
+                            :title="!smsConnected ? t('leads.bulk.sms_setup_hint') : t('leads.bulk.sms_send_hint')"
                             :class="[
                                 'inline-flex items-center gap-2 px-4 py-2 font-medium rounded-xl transition-all',
                                 smsConnected
@@ -1330,20 +1333,20 @@ onUnmounted(() => {
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                             </svg>
-                            {{ smsConnected ? 'SMS yuborish' : 'SMS sozlash' }}
+                            {{ smsConnected ? t('leads.bulk.send_sms') : t('leads.bulk.setup_sms') }}
                         </button>
 
                         <!-- Bulk Assign Button -->
                         <button
                             v-if="canAssignLeads"
                             @click="handleBulkAssignClick"
-                            title="Tanlangan leadlarni operatorga tayinlash"
+                            :title="t('leads.bulk.assign_hint')"
                             class="inline-flex items-center gap-2 px-4 py-2 font-medium rounded-xl transition-all bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700"
                         >
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                             </svg>
-                            Operatorga tayinlash
+                            {{ t('leads.bulk.assign_to_operator') }}
                         </button>
 
                         <!-- Select All / Clear -->
@@ -1351,7 +1354,7 @@ onUnmounted(() => {
                             @click="selectAllLeads"
                             class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors"
                         >
-                            {{ selectedLeads.length === filteredLeads.length ? 'Tanlovni bekor qilish' : 'Barchasini tanlash' }}
+                            {{ selectedLeads.length === filteredLeads.length ? t('leads.bulk.clear_selection') : t('leads.bulk.select_all') }}
                         </button>
 
                         <!-- Close -->

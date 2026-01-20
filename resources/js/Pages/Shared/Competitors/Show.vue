@@ -1,12 +1,15 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     competitor: { type: Object, required: true },
@@ -72,10 +75,10 @@ const hasSwotData = computed(() => {
 // Tahdid darajasi badge
 const getThreatBadge = (level) => {
     const badges = {
-        low: { text: 'Past', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-        medium: { text: "O'rta", class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-        high: { text: 'Yuqori', class: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-        critical: { text: 'Kritik', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+        low: { text: t('competitors.threat_low'), class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+        medium: { text: t('competitors.threat_medium'), class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+        high: { text: t('competitors.threat_high'), class: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+        critical: { text: t('competitors.threat_critical'), class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
     };
     return badges[level] || badges.medium;
 };
@@ -83,9 +86,9 @@ const getThreatBadge = (level) => {
 // Status badge
 const getStatusBadge = (status) => {
     const badges = {
-        active: { text: 'Faol', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-        inactive: { text: 'Nofaol', class: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
-        archived: { text: 'Arxiv', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+        active: { text: t('common.active'), class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+        inactive: { text: t('common.inactive'), class: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
+        archived: { text: t('common.archived'), class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
     };
     return badges[status] || badges.inactive;
 };
@@ -117,7 +120,7 @@ const generateSwot = async () => {
 </script>
 
 <template>
-    <component :is="layoutComponent" :title="competitor.name + ' - SWOT Tahlil'">
+    <component :is="layoutComponent" :title="competitor.name + ' - ' + t('swot.title')">
         <div class="p-6 space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -184,7 +187,7 @@ const generateSwot = async () => {
                             <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            {{ generating ? 'Tahlil qilinmoqda...' : 'SWOT Yaratish' }}
+                            {{ generating ? t('common.loading') : t('swot.generate') }}
                         </button>
                     </div>
                 </div>
@@ -198,7 +201,7 @@ const generateSwot = async () => {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 class="font-semibold text-green-700 dark:text-green-400">Kuchli Tomonlari</h3>
+                            <h3 class="font-semibold text-green-700 dark:text-green-400">{{ t('swot.strengths') }}</h3>
                         </div>
                         <ul v-if="swotData.strengths?.length" class="space-y-2">
                             <li v-for="(item, index) in swotData.strengths" :key="index" class="flex items-start gap-2">
@@ -206,7 +209,7 @@ const generateSwot = async () => {
                                 <span class="text-sm text-gray-700 dark:text-gray-300">{{ item }}</span>
                             </li>
                         </ul>
-                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">Ma'lumot kiritilmagan</p>
+                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">{{ t('common.no_data') }}</p>
                     </div>
 
                     <!-- Zaif tomonlar (Weaknesses) -->
@@ -217,7 +220,7 @@ const generateSwot = async () => {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </div>
-                            <h3 class="font-semibold text-red-700 dark:text-red-400">Zaif Tomonlari</h3>
+                            <h3 class="font-semibold text-red-700 dark:text-red-400">{{ t('swot.weaknesses') }}</h3>
                         </div>
                         <ul v-if="swotData.weaknesses?.length" class="space-y-2">
                             <li v-for="(item, index) in swotData.weaknesses" :key="index" class="flex items-start gap-2">
@@ -225,7 +228,7 @@ const generateSwot = async () => {
                                 <span class="text-sm text-gray-700 dark:text-gray-300">{{ item }}</span>
                             </li>
                         </ul>
-                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">Ma'lumot kiritilmagan</p>
+                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">{{ t('common.no_data') }}</p>
                     </div>
 
                     <!-- Imkoniyatlar (Opportunities) -->
@@ -236,7 +239,7 @@ const generateSwot = async () => {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
                             </div>
-                            <h3 class="font-semibold text-blue-700 dark:text-blue-400">Imkoniyatlar</h3>
+                            <h3 class="font-semibold text-blue-700 dark:text-blue-400">{{ t('swot.opportunities') }}</h3>
                         </div>
                         <ul v-if="swotData.opportunities?.length" class="space-y-2">
                             <li v-for="(item, index) in swotData.opportunities" :key="index" class="flex items-start gap-2">
@@ -244,7 +247,7 @@ const generateSwot = async () => {
                                 <span class="text-sm text-gray-700 dark:text-gray-300">{{ item }}</span>
                             </li>
                         </ul>
-                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">Ma'lumot kiritilmagan</p>
+                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">{{ t('common.no_data') }}</p>
                     </div>
 
                     <!-- Tahdidlar (Threats) -->
@@ -255,7 +258,7 @@ const generateSwot = async () => {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
                                 </svg>
                             </div>
-                            <h3 class="font-semibold text-orange-700 dark:text-orange-400">Tahdidlar</h3>
+                            <h3 class="font-semibold text-orange-700 dark:text-orange-400">{{ t('swot.threats') }}</h3>
                         </div>
                         <ul v-if="swotData.threats?.length" class="space-y-2">
                             <li v-for="(item, index) in swotData.threats" :key="index" class="flex items-start gap-2">
@@ -263,7 +266,7 @@ const generateSwot = async () => {
                                 <span class="text-sm text-gray-700 dark:text-gray-300">{{ item }}</span>
                             </li>
                         </ul>
-                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">Ma'lumot kiritilmagan</p>
+                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">{{ t('common.no_data') }}</p>
                     </div>
                 </div>
 
@@ -274,9 +277,9 @@ const generateSwot = async () => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">SWOT Tahlili Mavjud Emas</h3>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{{ t('swot.no_analysis') }}</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        {{ isReadOnly ? 'Bu raqobatchi uchun hali SWOT tahlili kiritilmagan.' : 'SWOT tahlilini yarating yoki qo\'lda kiriting.' }}
+                        {{ isReadOnly ? t('swot.no_analysis_readonly') : t('swot.no_analysis_desc') }}
                     </p>
                 </div>
             </div>
@@ -285,7 +288,7 @@ const generateSwot = async () => {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Asosiy Ma'lumotlar -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Asosiy Ma'lumotlar</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('competitors.basic_info') }}</h3>
                     <div class="space-y-4">
                         <div v-if="competitor.description" class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,7 +345,7 @@ const generateSwot = async () => {
 
                 <!-- Ijtimoiy tarmoqlar va Metrikalar -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Ijtimoiy Tarmoqlar</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('competitors.social_networks') }}</h3>
                     <div class="space-y-4">
                         <div v-if="competitor.instagram_handle" class="flex items-center justify-between p-3 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl">
                             <div class="flex items-center gap-3">
@@ -402,7 +405,7 @@ const generateSwot = async () => {
                             <svg class="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                             </svg>
-                            <p class="text-sm text-gray-400 dark:text-gray-500">Ijtimoiy tarmoqlar qo'shilmagan</p>
+                            <p class="text-sm text-gray-400 dark:text-gray-500">{{ t('competitors.no_social_networks') }}</p>
                         </div>
                     </div>
                 </div>

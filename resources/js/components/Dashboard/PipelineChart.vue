@@ -9,7 +9,7 @@
                     ]"></div>
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ stage.label }}</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ stage.count }} ta</span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ stage.count }} {{ t('dashboard.pipeline.count_unit') }}</span>
             </div>
             <div class="h-10 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden relative">
                 <div
@@ -34,15 +34,15 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
-            <p class="text-gray-500 dark:text-gray-400">Ma'lumot yo'q</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('dashboard.pipeline.no_data') }}</p>
         </div>
 
         <!-- Total Summary -->
         <div v-if="safeStages.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Jami</span>
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.pipeline.total') }}</span>
                 <div class="text-right">
-                    <span class="text-lg font-bold text-gray-900 dark:text-white">{{ totalCount }} ta lead</span>
+                    <span class="text-lg font-bold text-gray-900 dark:text-white">{{ totalCount }} {{ t('dashboard.pipeline.leads_count') }}</span>
                     <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">{{ formatCurrency(totalValue) }}</span>
                 </div>
             </div>
@@ -52,6 +52,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stages: {

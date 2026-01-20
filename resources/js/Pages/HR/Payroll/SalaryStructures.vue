@@ -1,8 +1,11 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import { ref } from 'vue';
 import { CurrencyDollarIcon, PlusIcon, CheckCircleIcon, XCircleIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     structures: { type: Array, default: () => [] },
@@ -67,22 +70,22 @@ const formatCurrency = (amount) => {
 </script>
 
 <template>
-    <HRLayout title="Maosh Tuzilmalari">
-        <Head title="Maosh Tuzilmalari" />
+    <HRLayout :title="t('hr.salary_structures')">
+        <Head :title="t('hr.salary_structures')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Maosh Tuzilmalari</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Xodimlar uchun maosh parametrlari</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.salary_structures') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.salary_structures_subtitle') }}</p>
                 </div>
                 <button
                     @click="showCreateModal = true"
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                 >
                     <PlusIcon class="w-5 h-5" />
-                    Maosh Qo'shish
+                    {{ t('hr.add_salary') }}
                 </button>
             </div>
 

@@ -4,6 +4,9 @@ import { Head } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import InstagramFlowBuilder from '@/components/instagram/InstagramFlowBuilder.vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     business: Object,

@@ -28,7 +28,7 @@
                         {{ typeLabel }}
                     </span>
                     <span v-if="insight.priority === 'high'" class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                        Muhim
+                        {{ t('dashboard.insight.important') }}
                     </span>
                 </div>
                 <h3 class="font-semibold text-gray-900">{{ insight.title }}</h3>
@@ -51,6 +51,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     insight: {
@@ -101,10 +104,10 @@ const typeClass = computed(() => {
 const typeLabel = computed(() => {
     const type = props.insight.type;
     const labels = {
-        growth: 'O\'sish',
-        decline: 'Pasayish',
-        opportunity: 'Imkoniyat',
-        info: 'Ma\'lumot',
+        growth: t('dashboard.insight.type_growth'),
+        decline: t('dashboard.insight.type_decline'),
+        opportunity: t('dashboard.insight.type_opportunity'),
+        info: t('dashboard.insight.type_info'),
     };
     return labels[type] || type;
 });

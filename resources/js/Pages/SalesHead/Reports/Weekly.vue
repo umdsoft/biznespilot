@@ -1,12 +1,15 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatFullCurrency } from '@/utils/formatting';
 import {
     ArrowLeftIcon,
     ArrowDownTrayIcon,
     ChartBarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     weekData: {
@@ -35,8 +38,8 @@ const maxRevenue = Math.max(...props.dailyBreakdown.map(d => d.revenue));
 </script>
 
 <template>
-    <SalesHeadLayout title="Haftalik Hisobot">
-        <Head title="Haftalik Hisobot" />
+    <SalesHeadLayout :title="t('reports.weekly_report')">
+        <Head :title="t('reports.weekly_report')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -49,32 +52,32 @@ const maxRevenue = Math.max(...props.dailyBreakdown.map(d => d.revenue));
                         <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </Link>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Haftalik Hisobot</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Shu haftaning natijalari</p>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('reports.weekly_report') }}</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('reports.this_week_results') }}</p>
                     </div>
                 </div>
                 <button class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors">
                     <ArrowDownTrayIcon class="w-5 h-5" />
-                    Yuklab olish
+                    {{ t('common.download') }}
                 </button>
             </div>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jami qo'ng'iroqlar</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('calls.total_calls') }}</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ weekData.total_calls }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Yopilgan bitimlar</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('reports.closed_deals') }}</p>
                     <p class="text-2xl font-bold text-emerald-600 mt-1">{{ weekData.successful_deals }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jami daromad</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.total_revenue') }}</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ formatFullCurrency(weekData.total_revenue) }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Konversiya</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.conversion') }}</p>
                     <p class="text-2xl font-bold text-blue-600 mt-1">{{ weekData.conversion_rate }}%</p>
                 </div>
             </div>
@@ -82,7 +85,7 @@ const maxRevenue = Math.max(...props.dailyBreakdown.map(d => d.revenue));
             <!-- Daily Breakdown -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Kunlar bo'yicha</h2>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ t('reports.by_days') }}</h2>
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
@@ -100,7 +103,7 @@ const maxRevenue = Math.max(...props.dailyBreakdown.map(d => d.revenue));
                                     <span class="text-xs text-white font-medium">{{ formatFullCurrency(day.revenue) }}</span>
                                 </div>
                             </div>
-                            <span class="text-sm text-gray-500 dark:text-gray-400 w-20 text-right">{{ day.deals }} bitim</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 w-20 text-right">{{ day.deals }} {{ t('saleshead.deal') }}</span>
                         </div>
                     </div>
                 </div>

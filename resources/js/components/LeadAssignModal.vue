@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from '@/i18n';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
@@ -7,6 +8,8 @@ import {
     UserIcon,
     CheckCircleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -30,16 +33,16 @@ const isLoading = ref(false);
 const isLoadingOperators = ref(false);
 const error = ref('');
 
-// Status labels
-const statusLabels = {
-    new: 'Yangi',
-    contacted: 'Bog\'lanildi',
-    qualified: 'Malakali',
-    proposal: 'Taklif',
-    negotiation: 'Muzokara',
-    won: 'Yutildi',
-    lost: 'Yo\'qotildi',
-};
+// Status labels - computed for i18n
+const statusLabels = computed(() => ({
+    new: t('sales.status_new'),
+    contacted: t('sales.status_contacted'),
+    qualified: t('sales.status_qualified'),
+    proposal: t('sales.status_proposal'),
+    negotiation: t('sales.status_negotiation'),
+    won: t('sales.status_won'),
+    lost: t('sales.status_lost'),
+}));
 
 // Status colors
 const statusColors = {
@@ -108,14 +111,14 @@ const submit = async () => {
             emit('assigned', response.data.lead);
             emit('close');
         } else {
-            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || t('common.error_occurred');
         }
     } catch (err) {
         console.error('Failed to assign lead:', err);
 
         // Handle 419 CSRF error
         if (isCsrfError(err)) {
-            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            error.value = t('common.session_expired');
             await refreshCsrfToken();
             return;
         }
@@ -125,7 +128,7 @@ const submit = async () => {
         } else if (err.response?.data?.message) {
             error.value = err.response.data.message;
         } else {
-            error.value = 'Tarmoq xatosi';
+            error.value = t('common.network_error');
         }
     } finally {
         isLoading.value = false;
@@ -175,7 +178,7 @@ const close = () => {
                                     <UserPlusIcon class="w-5 h-5 text-white" />
                                 </div>
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Leadni operatorga tayinlash
+                                    {{ t('components.lead_assign.title') }}
                                 </h3>
                             </div>
                             <button @click="close" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
@@ -210,7 +213,7 @@ const close = () => {
                             <!-- Operator Selection -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                    Operatorni tanlang
+                                    {{ t('components.bulk_assign.select_operator') }}
                                 </label>
 
                                 <!-- Loading state -->
@@ -222,10 +225,10 @@ const close = () => {
                                 <div v-else-if="operators.length === 0" class="text-center py-8">
                                     <UserIcon class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
                                     <p class="text-gray-500 dark:text-gray-400">
-                                        Sotuv operatorlari topilmadi
+                                        {{ t('components.bulk_assign.no_operators') }}
                                     </p>
                                     <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                                        Avval Sozlamalar > Jamoa bo'limidan operator qo'shing
+                                        {{ t('components.bulk_assign.add_operator_hint') }}
                                     </p>
                                 </div>
 
@@ -245,8 +248,8 @@ const close = () => {
                                             <XMarkIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                         </div>
                                         <div class="flex-1">
-                                            <span class="font-medium text-gray-700 dark:text-gray-300">Tayinlanmagan</span>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Operatorsiz qoldirish</p>
+                                            <span class="font-medium text-gray-700 dark:text-gray-300">{{ t('components.bulk_assign.unassigned') }}</span>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('components.bulk_assign.leave_without_operator') }}</p>
                                         </div>
                                         <CheckCircleIcon v-if="selectedOperator === null" class="w-5 h-5 text-orange-500" />
                                     </button>
@@ -287,7 +290,7 @@ const close = () => {
                                     class="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
                                 />
                                 <label for="reassign-tasks" class="text-sm text-gray-700 dark:text-gray-300">
-                                    Mavjud vazifalarni ham operatorga tayinlash
+                                    {{ t('components.bulk_assign.reassign_tasks') }}
                                 </label>
                             </div>
 
@@ -301,7 +304,7 @@ const close = () => {
                                 @click="close"
                                 class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-xl transition-colors"
                             >
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button
                                 @click="submit"
@@ -313,7 +316,7 @@ const close = () => {
                                         : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                                 ]"
                             >
-                                {{ isLoading ? 'Saqlanmoqda...' : 'Tayinlash' }}
+                                {{ isLoading ? t('common.saving') : t('components.lead_assign.assign') }}
                             </button>
                         </div>
                     </div>

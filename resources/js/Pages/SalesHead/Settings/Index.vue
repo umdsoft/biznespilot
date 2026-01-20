@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     Cog6ToothIcon,
     BellIcon,
@@ -9,6 +10,8 @@ import {
     MoonIcon,
     GlobeAltIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     settings: {
@@ -53,27 +56,27 @@ const saveSettings = () => {
 </script>
 
 <template>
-    <SalesHeadLayout title="Sozlamalar">
-        <Head title="Sozlamalar" />
+    <SalesHeadLayout :title="t('settings.title')">
+        <Head :title="t('settings.title')" />
 
         <div class="max-w-4xl mx-auto space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sozlamalar</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Panel sozlamalarini boshqaring</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('settings.title') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('settings.manage_panel_settings') }}</p>
             </div>
 
             <!-- Theme Settings -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <SunIcon class="w-5 h-5" />
-                    Ko'rinish
+                    {{ t('settings.appearance') }}
                 </h3>
 
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="font-medium text-gray-900 dark:text-white">Qorong'i rejim</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Tungi ko'rinishga o'tish</p>
+                        <p class="font-medium text-gray-900 dark:text-white">{{ t('settings.dark_mode') }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('settings.switch_to_night_mode') }}</p>
                     </div>
                     <button
                         @click="toggleDarkMode"
@@ -96,14 +99,14 @@ const saveSettings = () => {
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <BellIcon class="w-5 h-5" />
-                    Bildirishnomalar
+                    {{ t('settings.notifications') }}
                 </h3>
 
                 <div class="space-y-4">
                     <div class="flex items-center justify-between py-2">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Yangi lead</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Yangi lead kelganda xabar berish</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ t('settings.new_lead') }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('settings.new_lead_notification') }}</p>
                         </div>
                         <button
                             @click="form.notifications.new_lead = !form.notifications.new_lead"
@@ -123,8 +126,8 @@ const saveSettings = () => {
 
                     <div class="flex items-center justify-between py-2">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Vazifa eslatmasi</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Vazifa muddati yaqinlashganda eslatish</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ t('settings.task_reminder') }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('settings.task_reminder_desc') }}</p>
                         </div>
                         <button
                             @click="form.notifications.task_reminder = !form.notifications.task_reminder"
@@ -144,8 +147,8 @@ const saveSettings = () => {
 
                     <div class="flex items-center justify-between py-2">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Bitim yopildi</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Bitim yutilganda yoki yo'qotilganda xabar berish</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ t('settings.deal_closed') }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('settings.deal_closed_desc') }}</p>
                         </div>
                         <button
                             @click="form.notifications.deal_closed = !form.notifications.deal_closed"
@@ -165,8 +168,8 @@ const saveSettings = () => {
 
                     <div class="flex items-center justify-between py-2">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Jamoa yangiliklari</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Jamoa faoliyati haqida xabar berish</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ t('settings.team_updates') }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('settings.team_updates_desc') }}</p>
                         </div>
                         <button
                             @click="form.notifications.team_updates = !form.notifications.team_updates"
@@ -190,7 +193,7 @@ const saveSettings = () => {
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <GlobeAltIcon class="w-5 h-5" />
-                    Til
+                    {{ t('settings.language') }}
                 </h3>
 
                 <div class="max-w-xs">
@@ -212,7 +215,7 @@ const saveSettings = () => {
                     :disabled="form.processing"
                     class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
-                    {{ form.processing ? 'Saqlanmoqda...' : 'Sozlamalarni saqlash' }}
+                    {{ form.processing ? t('common.saving') : t('settings.save_settings') }}
                 </button>
             </div>
         </div>

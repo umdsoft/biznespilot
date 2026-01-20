@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     UsersIcon,
     UserIcon,
@@ -11,6 +12,8 @@ import {
     EyeIcon,
     MagnifyingGlassIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     members: {
@@ -48,14 +51,14 @@ const getPerformanceColor = (performance) => {
 </script>
 
 <template>
-    <SalesHeadLayout title="Operatorlar">
-        <Head title="Operatorlar" />
+    <SalesHeadLayout :title="t('saleshead.operators')">
+        <Head :title="t('saleshead.operators')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Operatorlar</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Sotuv jamoasi a'zolari</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('saleshead.operators') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.team_members') }}</p>
             </div>
 
             <!-- Stats -->
@@ -66,7 +69,7 @@ const getPerformanceColor = (performance) => {
                             <UsersIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Jami operatorlar</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.total_operators') }}</p>
                             <p class="text-xl font-bold text-gray-900 dark:text-white">{{ stats.total }}</p>
                         </div>
                     </div>
@@ -77,7 +80,7 @@ const getPerformanceColor = (performance) => {
                             <UserIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Faol</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.active') }}</p>
                             <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ stats.active }}</p>
                         </div>
                     </div>
@@ -88,7 +91,7 @@ const getPerformanceColor = (performance) => {
                             <ChartBarIcon class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Top Performer</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.top_performer') }}</p>
                             <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ stats.top_performer || '-' }}</p>
                         </div>
                     </div>
@@ -101,7 +104,7 @@ const getPerformanceColor = (performance) => {
                 <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Operator qidirish..."
+                    :placeholder="t('saleshead.search_operator')"
                     class="w-full max-w-md pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                 />
             </div>
@@ -109,8 +112,8 @@ const getPerformanceColor = (performance) => {
             <!-- Team Grid -->
             <div v-if="filteredMembers.length === 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
                 <UsersIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Operator topilmadi</h3>
-                <p class="text-gray-500 dark:text-gray-400">Jamoangizda hali operatorlar yo'q</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('saleshead.operator_not_found') }}</h3>
+                <p class="text-gray-500 dark:text-gray-400">{{ t('saleshead.no_operators_yet') }}</p>
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -148,15 +151,15 @@ const getPerformanceColor = (performance) => {
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-2 text-center">
                         <div>
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ member.leads_count || 0 }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Leadlar</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('sales.leads') }}</p>
                         </div>
                         <div>
                             <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ member.won_count || 0 }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Yutilgan</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('saleshead.deal_won') }}</p>
                         </div>
                         <div>
                             <p :class="['text-lg font-bold', getPerformanceColor(member.performance || 0)]">{{ member.performance || 0 }}%</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Samaradorlik</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('saleshead.efficiency') }}</p>
                         </div>
                     </div>
                 </div>

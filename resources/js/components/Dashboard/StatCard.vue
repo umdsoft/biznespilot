@@ -47,7 +47,7 @@
                                 </svg>
                                 {{ Math.abs(change) }}%
                             </span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ changeLabel }}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ changeLabel || t('dashboard.stat.vs_last_month') }}</span>
                         </div>
                         <p v-else-if="subtitle" class="text-sm text-gray-500 dark:text-gray-400">
                             {{ subtitle }}
@@ -85,6 +85,9 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     title: {
@@ -105,7 +108,7 @@ const props = defineProps({
     },
     changeLabel: {
         type: String,
-        default: 'vs o\'tgan oy',
+        default: '',
     },
     icon: {
         type: [Object, Function],
@@ -137,7 +140,7 @@ const formattedValue = computed(() => {
     if (typeof props.value === 'string') return props.value;
 
     if (props.format === 'currency') {
-        return new Intl.NumberFormat('uz-UZ').format(props.value) + ' so\'m';
+        return new Intl.NumberFormat('uz-UZ').format(props.value) + ` ${t('common.currency')}`;
     }
     if (props.format === 'percent') {
         return props.value + '%';

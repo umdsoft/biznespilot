@@ -174,7 +174,7 @@ export const businessLayoutConfig = {
         { href: '/business/analytics', label: 'Analitika', labelKey: 'nav.analytics', icon: ChartBarIcon },
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
         { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },
-        { href: '/business/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', labelKey: 'nav.sales_scripts', icon: ChatBubbleLeftRightIcon },
+        { href: '/business/sales-script', label: 'Sotuv Skriptlari', labelKey: 'nav.sales_scripts', icon: ChatBubbleLeftRightIcon },
       ]
     },
     {

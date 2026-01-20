@@ -1,7 +1,10 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useI18n } from '@/i18n';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: Boolean,
@@ -32,28 +35,28 @@ const form = ref({
 const loading = ref(false);
 const errors = ref({});
 
-// Constants
-const frequencies = {
-    daily: 'Har kuni',
-    weekly: 'Har hafta',
-    monthly: 'Har oy',
-    yearly: 'Har yil',
-};
+// Constants - now using computed to support reactivity with i18n
+const frequencies = computed(() => ({
+    daily: t('todos.recurrence.daily'),
+    weekly: t('todos.recurrence.weekly'),
+    monthly: t('todos.recurrence.monthly'),
+    yearly: t('todos.recurrence.yearly'),
+}));
 
-const daysOfWeek = [
-    { value: 1, label: 'Du' },
-    { value: 2, label: 'Se' },
-    { value: 3, label: 'Cho' },
-    { value: 4, label: 'Pa' },
-    { value: 5, label: 'Ju' },
-    { value: 6, label: 'Sha' },
-    { value: 7, label: 'Ya' },
-];
+const daysOfWeek = computed(() => [
+    { value: 1, label: t('todos.recurrence.day_mon') },
+    { value: 2, label: t('todos.recurrence.day_tue') },
+    { value: 3, label: t('todos.recurrence.day_wed') },
+    { value: 4, label: t('todos.recurrence.day_thu') },
+    { value: 5, label: t('todos.recurrence.day_fri') },
+    { value: 6, label: t('todos.recurrence.day_sat') },
+    { value: 7, label: t('todos.recurrence.day_sun') },
+]);
 
-const generationModes = {
-    on_time: "O'z vaqtida",
-    advance: 'Oldindan (7 kun)',
-};
+const generationModes = computed(() => ({
+    on_time: t('todos.recurrence.on_time'),
+    advance: t('todos.recurrence.advance'),
+}));
 
 // Get today's date - defined before resetForm and watch
 const getTodayDate = () => {
@@ -135,14 +138,14 @@ const submit = async () => {
             emit('close');
             resetForm();
         } else {
-            errors.value = response.data.errors || { general: response.data.error || 'Xatolik yuz berdi' };
+            errors.value = response.data.errors || { general: response.data.error || t('common.error') };
         }
     } catch (error) {
         console.error('Failed to save recurrence:', error);
 
         // Handle 419 CSRF error
         if (isCsrfError(error)) {
-            errors.value = { general: 'Sessiya muddati tugadi. Qayta urinib ko\'ring.' };
+            errors.value = { general: t('todos.recurrence.session_expired') };
             await refreshCsrfToken();
             return;
         }
@@ -152,7 +155,7 @@ const submit = async () => {
         } else if (error.response?.data?.error) {
             errors.value = { general: error.response.data.error };
         } else {
-            errors.value = { general: 'Tarmoq xatosi' };
+            errors.value = { general: t('todos.recurrence.network_error') };
         }
     } finally {
         loading.value = false;
@@ -162,7 +165,7 @@ const submit = async () => {
 // Delete recurrence
 const deleteRecurrence = async () => {
     if (!props.todo?.recurrence) return;
-    if (!confirm('Takrorlanishni o\'chirmoqchimisiz?')) return;
+    if (!confirm(t('todos.recurrence.delete_confirm'))) return;
 
     try {
         // Refresh CSRF token before request
@@ -181,7 +184,7 @@ const deleteRecurrence = async () => {
 
         // Handle 419 CSRF error
         if (isCsrfError(error)) {
-            errors.value = { general: 'Sessiya muddati tugadi. Qayta urinib ko\'ring.' };
+            errors.value = { general: t('todos.recurrence.session_expired') };
             await refreshCsrfToken();
         }
     }
@@ -195,15 +198,15 @@ const close = () => {
 
 // Computed
 const hasRecurrence = computed(() => !!props.todo?.recurrence);
-const modalTitle = computed(() => hasRecurrence.value ? 'Takrorlanishni tahrirlash' : 'Takrorlash sozlamalari');
+const modalTitle = computed(() => hasRecurrence.value ? t('todos.recurrence.edit_title') : t('todos.recurrence.title'));
 
 // Interval label
 const intervalLabel = computed(() => {
     const labels = {
-        daily: 'kun',
-        weekly: 'hafta',
-        monthly: 'oy',
-        yearly: 'yil',
+        daily: t('todos.recurrence.interval_day'),
+        weekly: t('todos.recurrence.interval_week'),
+        monthly: t('todos.recurrence.interval_month'),
+        yearly: t('todos.recurrence.interval_year'),
     };
     return labels[form.value.frequency] || '';
 });
@@ -258,7 +261,7 @@ const intervalLabel = computed(() => {
                                 <!-- Frequency -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Chastota
+                                        {{ t('todos.recurrence.frequency') }}
                                     </label>
                                     <div class="grid grid-cols-4 gap-2">
                                         <button
@@ -281,7 +284,7 @@ const intervalLabel = computed(() => {
                                 <!-- Interval -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Har necha {{ intervalLabel }}da
+                                        {{ t('todos.recurrence.every') }} {{ intervalLabel }}
                                     </label>
                                     <input
                                         v-model.number="form.interval"
@@ -295,7 +298,7 @@ const intervalLabel = computed(() => {
                                 <!-- Days of week (for weekly) -->
                                 <div v-if="form.frequency === 'weekly'">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Kunlar
+                                        {{ t('todos.recurrence.days') }}
                                     </label>
                                     <div class="flex gap-2">
                                         <button
@@ -318,7 +321,7 @@ const intervalLabel = computed(() => {
                                 <!-- Day of month (for monthly) -->
                                 <div v-if="form.frequency === 'monthly'">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Oyning kuni
+                                        {{ t('todos.recurrence.day_of_month') }}
                                     </label>
                                     <input
                                         v-model.number="form.day_of_month"
@@ -326,14 +329,14 @@ const intervalLabel = computed(() => {
                                         min="1"
                                         max="31"
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Masalan: 15"
+                                        :placeholder="t('todos.recurrence.day_of_month_placeholder')"
                                     />
                                 </div>
 
                                 <!-- Start date -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Boshlanish sanasi
+                                        {{ t('todos.recurrence.start_date') }}
                                     </label>
                                     <input
                                         v-model="form.start_date"
@@ -346,7 +349,7 @@ const intervalLabel = computed(() => {
                                 <!-- End date -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Tugash sanasi (ixtiyoriy)
+                                        {{ t('todos.recurrence.end_date') }}
                                     </label>
                                     <input
                                         v-model="form.end_date"
@@ -358,7 +361,7 @@ const intervalLabel = computed(() => {
                                 <!-- Generation mode -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Yaratish vaqti
+                                        {{ t('todos.recurrence.generation_time') }}
                                     </label>
                                     <div class="space-y-2">
                                         <label
@@ -387,7 +390,7 @@ const intervalLabel = computed(() => {
                                         @click="deleteRecurrence"
                                         class="text-sm text-red-600 hover:text-red-700 font-medium"
                                     >
-                                        O'chirish
+                                        {{ t('common.delete') }}
                                     </button>
                                 </div>
                                 <div class="flex items-center gap-3">
@@ -396,14 +399,14 @@ const intervalLabel = computed(() => {
                                         @click="close"
                                         class="px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                     >
-                                        Bekor qilish
+                                        {{ t('common.cancel') }}
                                     </button>
                                     <button
                                         @click="submit"
                                         :disabled="loading"
                                         class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
                                     >
-                                        {{ loading ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                        {{ loading ? t('common.saving') + '...' : t('common.save') }}
                                     </button>
                                 </div>
                             </div>

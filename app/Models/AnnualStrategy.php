@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class AnnualStrategy extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     protected $fillable = [
         'uuid',
@@ -74,17 +78,6 @@ class AnnualStrategy extends Model
         'completed' => 'Tugallangan',
         'archived' => 'Arxivlangan',
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->uuid)) {
-                $model->uuid = (string) Str::uuid();
-            }
-        });
-    }
 
     // Relationships
     public function diagnostic(): BelongsTo

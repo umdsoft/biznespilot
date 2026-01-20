@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import AIChannelPage from '@/components/ai-analysis/AIChannelPage.vue';
-import { h } from 'vue';
+import { h, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     channel: Object,
@@ -18,36 +21,36 @@ const GoogleIcon = {
     }
 };
 
-const platformConfig = {
-    title: 'Google Ads',
-    subtitle: 'Google reklama kampaniyalaringiz tahlili',
+const platformConfig = computed(() => ({
+    title: t('nav.google_ads'),
+    subtitle: t('marketing.google_ads_stats'),
     headerGradient: 'bg-gradient-to-br from-yellow-400 via-red-500 to-blue-600',
     icon: GoogleIcon,
     emptyIconBg: 'bg-gradient-to-br from-yellow-100 via-red-100 to-blue-100 dark:from-yellow-900/30 dark:via-red-900/30 dark:to-blue-900/30',
     emptyIconColor: 'text-blue-600 dark:text-blue-400',
-    connectTitle: 'Google Ads Ulang',
-    connectDescription: 'Google Ads akkauntingizni ulang va reklama kampaniyalaringizni tahlil qiling.',
+    connectTitle: t('marketing.connect_google_ads'),
+    connectDescription: t('marketing.connect_google_ads_desc'),
     connectButtonClass: 'bg-blue-600 hover:bg-blue-700',
-    connectButtonText: 'Google Ads Ulash',
+    connectButtonText: t('marketing.connect_google_ads_btn'),
     metricsConfig: [
-        { key: 'spend', label: 'Xarajat', icon: '💰', iconColor: 'text-red-600', prefix: '$' },
-        { key: 'clicks', label: 'Kliklar', icon: '👆', iconColor: 'text-blue-600' },
-        { key: 'impressions', label: 'Ko\'rishlar', icon: '👁️', iconColor: 'text-green-600' },
-        { key: 'conversions', label: 'Konversiya', icon: '🎯', iconColor: 'text-yellow-600' },
+        { key: 'spend', label: t('marketing.spend'), icon: '💰', iconColor: 'text-red-600', prefix: '$' },
+        { key: 'clicks', label: t('marketing.clicks'), icon: '👆', iconColor: 'text-blue-600' },
+        { key: 'impressions', label: t('marketing.views'), icon: '👁️', iconColor: 'text-green-600' },
+        { key: 'conversions', label: t('marketing.conversions'), icon: '🎯', iconColor: 'text-yellow-600' },
     ],
-    tableTitle: 'Kampaniya Statistikasi',
+    tableTitle: t('marketing.campaign_stats'),
     tableColumns: [
-        { key: 'metric_date', label: 'Sana' },
-        { key: 'spend', label: 'Xarajat', prefix: '$' },
-        { key: 'clicks', label: 'Kliklar' },
+        { key: 'metric_date', label: t('common.date') },
+        { key: 'spend', label: t('marketing.spend'), prefix: '$' },
+        { key: 'clicks', label: t('marketing.clicks') },
         { key: 'ctr', label: 'CTR', suffix: '%' },
     ],
-};
+}));
 </script>
 
 <template>
-    <MarketingLayout title="Google Ads">
-        <Head title="Google Ads" />
+    <MarketingLayout :title="t('nav.google_ads')">
+        <Head :title="t('nav.google_ads')" />
         <AIChannelPage
             :channel="channel"
             :metrics="metrics"

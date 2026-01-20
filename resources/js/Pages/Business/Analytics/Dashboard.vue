@@ -2,6 +2,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import {
     ChartBarIcon,
     ArrowTrendingUpIcon,
@@ -144,8 +147,8 @@ const clearFilters = () => {
 </script>
 
 <template>
-    <BusinessLayout title="Sales Analytics">
-        <Head title="Analytics Dashboard" />
+    <BusinessLayout :title="t('analytics.sales_analytics')">
+        <Head :title="t('analytics.dashboard')" />
 
         <div class="py-12 px-4 sm:px-6 lg:px-8">
             <!-- Header -->
@@ -153,10 +156,10 @@ const clearFilters = () => {
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                             <ChartBarIcon class="w-10 h-10 text-blue-600 dark:text-blue-400" />
-                            Sales Analytics
+                            {{ t('analytics.sales_analytics') }}
                         </h1>
                         <p class="mt-2 text-gray-600 dark:text-gray-400">
-                            Sotuv va konversiya ko'rsatkichlarini kuzatish
+                            {{ t('analytics.track_sales_conversion') }}
                         </p>
                     </div>
 
@@ -167,14 +170,14 @@ const clearFilters = () => {
                             class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors gap-2"
                         >
                             <FunnelIcon class="w-4 h-4" />
-                            Funnel
+                            {{ t('analytics.funnel') }}
                         </Link>
                         <Link
                             :href="route('business.analytics.performance')"
                             class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors gap-2"
                         >
                             <TrophyIcon class="w-4 h-4" />
-                            Performance
+                            {{ t('analytics.performance') }}
                         </Link>
                     </div>
                 </div>
@@ -184,7 +187,7 @@ const clearFilters = () => {
                     <div class="flex flex-wrap items-end gap-4">
                         <div class="flex-1 min-w-[200px]">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Boshlanish sanasi
+                                {{ t('reports.filter.start_date') }}
                             </label>
                             <input
                                 v-model="dateFrom"
@@ -194,7 +197,7 @@ const clearFilters = () => {
                         </div>
                         <div class="flex-1 min-w-[200px]">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Tugash sanasi
+                                {{ t('reports.filter.end_date') }}
                             </label>
                             <input
                                 v-model="dateTo"
@@ -206,13 +209,13 @@ const clearFilters = () => {
                             @click="applyFilters"
                             class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                         >
-                            Qo'llash
+                            {{ t('common.filter') }}
                         </button>
                         <button
                             @click="clearFilters"
                             class="px-6 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
                         >
-                            Tozalash
+                            {{ t('reports.filter.reset') }}
                         </button>
                     </div>
                 </div>
@@ -228,10 +231,10 @@ const clearFilters = () => {
                                 :class="['w-6 h-6', metrics.revenue_growth > 0 ? 'text-green-200' : 'text-red-200']"
                             />
                         </div>
-                        <p class="text-sm font-medium opacity-90 mb-1">Total Revenue</p>
+                        <p class="text-sm font-medium opacity-90 mb-1">{{ t('analytics.total_revenue') }}</p>
                         <p class="text-3xl font-bold mb-1">{{ formatPrice(metrics.total_revenue || 0) }}</p>
                         <p class="text-xs opacity-80">
-                            {{ metrics.revenue_growth > 0 ? '+' : '' }}{{ formatPercent(metrics.revenue_growth) }}% vs oldingi davr
+                            {{ metrics.revenue_growth > 0 ? '+' : '' }}{{ formatPercent(metrics.revenue_growth) }}% {{ t('analytics.vs_previous_period') }}
                         </p>
                     </div>
 
@@ -239,12 +242,12 @@ const clearFilters = () => {
                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
                         <div class="flex items-center justify-between mb-2">
                             <UserGroupIcon class="w-8 h-8 opacity-80" />
-                            <span class="text-sm font-medium opacity-90">{{ metrics.new_leads || 0 }} yangi</span>
+                            <span class="text-sm font-medium opacity-90">{{ metrics.new_leads || 0 }} {{ t('analytics.new') }}</span>
                         </div>
-                        <p class="text-sm font-medium opacity-90 mb-1">Total Leads</p>
+                        <p class="text-sm font-medium opacity-90 mb-1">{{ t('dashboard.total_leads') }}</p>
                         <p class="text-3xl font-bold mb-1">{{ metrics.total_leads || 0 }}</p>
                         <p class="text-xs opacity-80">
-                            {{ metrics.active_pipeline_deals || 0 }} active pipeline
+                            {{ metrics.active_pipeline_deals || 0 }} {{ t('analytics.active_pipeline') }}
                         </p>
                     </div>
 
@@ -256,10 +259,10 @@ const clearFilters = () => {
                                 {{ formatPercent(metrics.conversion_rate) }}% CR
                             </span>
                         </div>
-                        <p class="text-sm font-medium opacity-90 mb-1">Won Deals</p>
+                        <p class="text-sm font-medium opacity-90 mb-1">{{ t('analytics.won_deals') }}</p>
                         <p class="text-3xl font-bold mb-1">{{ metrics.won_deals || 0 }}</p>
                         <p class="text-xs opacity-80">
-                            O'rtacha: {{ formatPrice(metrics.avg_deal_size || 0) }}
+                            {{ t('analytics.average') }}: {{ formatPrice(metrics.avg_deal_size || 0) }}
                         </p>
                     </div>
 
@@ -269,10 +272,10 @@ const clearFilters = () => {
                             <FunnelIcon class="w-8 h-8 opacity-80" />
                             <CalendarIcon class="w-6 h-6 opacity-80" />
                         </div>
-                        <p class="text-sm font-medium opacity-90 mb-1">Pipeline Value</p>
+                        <p class="text-sm font-medium opacity-90 mb-1">{{ t('analytics.pipeline_value') }}</p>
                         <p class="text-3xl font-bold mb-1">{{ formatPrice(metrics.pipeline_value || 0) }}</p>
                         <p class="text-xs opacity-80">
-                            Potensial daromad
+                            {{ t('analytics.potential_revenue') }}
                         </p>
                     </div>
                 </div>
@@ -282,12 +285,12 @@ const clearFilters = () => {
                     <!-- Revenue Trends Chart -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Revenue Trends</h3>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('analytics.revenue_trends') }}</h3>
                             <Link
                                 :href="route('business.analytics.revenue')"
                                 class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                             >
-                                Batafsil →
+                                {{ t('common.view') }} →
                             </Link>
                         </div>
                         <div class="h-64">
@@ -298,8 +301,8 @@ const clearFilters = () => {
                     <!-- Deals Won Chart -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Deals Won</h3>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">So'nggi 30 kun</span>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('analytics.deals_won') }}</h3>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.last_30_days') }}</span>
                         </div>
                         <div class="h-64">
                             <canvas id="dealsChart"></canvas>
@@ -311,13 +314,13 @@ const clearFilters = () => {
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
                     <div class="flex items-center gap-3 mb-6">
                         <TrophyIcon class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Top Performers</h3>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('analytics.top_performers') }}</h3>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Top Ideal Mijoz -->
                         <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOP IDEAL MIJOZ</p>
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{{ t('analytics.top_ideal_customer') }}</p>
                             <div v-if="top_performers.top_dream_buyer">
                                 <p class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ top_performers.top_dream_buyer.dream_buyer_name }}</p>
                                 <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -331,12 +334,12 @@ const clearFilters = () => {
                                     </p>
                                 </div>
                             </div>
-                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">Ma'lumot yo'q</p>
+                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">{{ t('reports.no_data') }}</p>
                         </div>
 
                         <!-- Top Offer -->
                         <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOP OFFER</p>
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{{ t('analytics.top_offer') }}</p>
                             <div v-if="top_performers.top_offer">
                                 <p class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ top_performers.top_offer.offer_name }}</p>
                                 <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -350,12 +353,12 @@ const clearFilters = () => {
                                     </p>
                                 </div>
                             </div>
-                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">Ma'lumot yo'q</p>
+                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">{{ t('reports.no_data') }}</p>
                         </div>
 
                         <!-- Top Source -->
                         <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOP SOURCE</p>
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{{ t('analytics.top_source') }}</p>
                             <div v-if="top_performers.top_source">
                                 <p class="font-bold text-gray-900 dark:text-gray-100 mb-2">{{ top_performers.top_source.source_name }}</p>
                                 <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -369,7 +372,7 @@ const clearFilters = () => {
                                     </p>
                                 </div>
                             </div>
-                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">Ma'lumot yo'q</p>
+                            <p v-else class="text-sm text-gray-400 dark:text-gray-500">{{ t('reports.no_data') }}</p>
                         </div>
                     </div>
                 </div>
@@ -379,13 +382,13 @@ const clearFilters = () => {
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
                             <FunnelIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Conversion Funnel Overview</h3>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('analytics.conversion_funnel_overview') }}</h3>
                         </div>
                         <Link
                             :href="route('business.analytics.funnel')"
                             class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                         >
-                            Batafsil ko'rish →
+                            {{ t('common.view') }} →
                         </Link>
                     </div>
 

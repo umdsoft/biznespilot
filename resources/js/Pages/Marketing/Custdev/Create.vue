@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     dreamBuyers: Array,
@@ -245,8 +248,8 @@ const submit = () => {
 </script>
 
 <template>
-    <MarketingLayout :title="isEdit ? 'So\'rovnomani Tahrirlash' : 'Yangi So\'rovnoma'">
-        <Head :title="isEdit ? 'Tahrirlash - ' + survey?.title : 'Yangi CustDev So\'rovnoma'" />
+    <MarketingLayout :title="isEdit ? t('custdev.edit_survey') : t('custdev.new_survey')">
+        <Head :title="isEdit ? `${t('common.edit')} - ${survey?.title}` : t('custdev.new_survey')" />
 
         <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
             <!-- Hero Header -->

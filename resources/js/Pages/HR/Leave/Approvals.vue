@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     ClockIcon,
     CheckCircleIcon,
@@ -11,6 +12,8 @@ import {
     CalendarIcon,
     DocumentTextIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     requests: { type: Array, default: () => [] },
@@ -69,16 +72,16 @@ const rejectRequest = () => {
 </script>
 
 <template>
-    <HRLayout title="Ta'til Tasdiqlash">
-        <Head title="Ta'til Tasdiqlash" />
+    <HRLayout :title="t('hr.leave_approvals')">
+        <Head :title="t('hr.leave_approvals')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ta'til Tasdiqlash</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.leave_approvals') }}</h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Kutilayotgan ta'til so'rovlari ({{ requests.length }})
+                        {{ t('hr.leave_requests') }} ({{ requests.length }})
                     </p>
                 </div>
             </div>

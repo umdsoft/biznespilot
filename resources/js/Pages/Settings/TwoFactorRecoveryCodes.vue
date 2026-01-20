@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     recoveryCodes: Array,
@@ -45,10 +48,10 @@ const printCodes = () => {
                     <div class="p-6">
                         <div class="mb-6">
                             <h2 class="text-2xl font-bold text-gray-900">
-                                Recovery Codes
+                                {{ t('two_factor.recovery_codes') }}
                             </h2>
                             <p class="mt-1 text-sm text-gray-600">
-                                Bu codelarni xavfsiz joyda saqlang
+                                {{ t('two_factor.save_codes') }}
                             </p>
                         </div>
 
@@ -78,14 +81,14 @@ const printCodes = () => {
                                 </div>
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-yellow-800">
-                                        Muhim eslatma
+                                        {{ t('two_factor.important_note') }}
                                     </h3>
                                     <div class="mt-2 text-sm text-yellow-700">
                                         <ul class="list-disc pl-5 space-y-1">
-                                            <li>Har bir recovery code faqat bir marta ishlatilishi mumkin</li>
-                                            <li>Authenticator ilovasiga kirish imkoniyatingiz bo'lmasa, bu codelardan foydalaning</li>
-                                            <li>Bu codelarni xavfsiz joyda saqlang (password manager, shifrlangan fayl)</li>
-                                            <li>Boshqa odamlar bilan bo'lishmang</li>
+                                            <li>{{ t('two_factor.note1') }}</li>
+                                            <li>{{ t('two_factor.note2') }}</li>
+                                            <li>{{ t('two_factor.note3') }}</li>
+                                            <li>{{ t('two_factor.note4') }}</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -114,8 +117,8 @@ const printCodes = () => {
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
-                                <span v-if="!copied">Nusxa olish</span>
-                                <span v-else class="text-green-600">Nusxa olindi!</span>
+                                <span v-if="!copied">{{ t('common.copy') }}</span>
+                                <span v-else class="text-green-600">{{ t('common.copied') }}</span>
                             </button>
 
                             <button
@@ -125,7 +128,7 @@ const printCodes = () => {
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                Yuklab olish
+                                {{ t('common.download') }}
                             </button>
 
                             <button
@@ -135,7 +138,7 @@ const printCodes = () => {
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                 </svg>
-                                Chop etish
+                                {{ t('common.print') }}
                             </button>
                         </div>
 
@@ -148,7 +151,7 @@ const printCodes = () => {
                                 <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
-                                2FA sozlamalariga qaytish
+                                {{ t('two_factor.back_to_settings') }}
                             </a>
                         </div>
                     </div>

@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold">
-            {{ hasExistingData ? 'Bugungi ma\'lumotlarni tahrirlash' : 'Bugungi ma\'lumotlarni kiritish' }}
+            {{ hasExistingData ? t('kpi.edit_todays_data') : t('kpi.enter_todays_data') }}
           </h3>
           <p class="text-sm text-blue-100">{{ formattedToday }}</p>
         </div>
@@ -17,7 +17,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Tahrirlash rejimi
+            {{ t('kpi.edit_mode') }}
           </span>
           <span
             v-else
@@ -26,7 +26,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            Yangi kiritish
+            {{ t('kpi.new_entry') }}
           </span>
         </div>
       </div>
@@ -45,12 +45,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </span>
-            Lidlar
+            {{ t('kpi.leads') }}
           </h4>
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Digital (Instagram, Facebook, Google)
+              {{ t('kpi.digital_sources') }}
             </label>
             <input
               type="number"
@@ -63,7 +63,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Offline (Flayer, ko'cha reklama)
+              {{ t('kpi.offline_sources') }}
             </label>
             <input
               type="number"
@@ -76,7 +76,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Tavsiya (Referral)
+              {{ t('kpi.referral_sources') }}
             </label>
             <input
               type="number"
@@ -89,7 +89,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Organik (Walk-in, qidiruvdan)
+              {{ t('kpi.organic_sources') }}
             </label>
             <input
               type="number"
@@ -103,7 +103,7 @@
           <!-- Total Leads -->
           <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Jami lidlar:</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('kpi.total_leads') }}:</span>
               <span class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ totalLeads }}</span>
             </div>
           </div>
@@ -117,12 +117,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </span>
-            Xarajatlar
+            {{ t('kpi.expenses') }}
           </h4>
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Digital reklama (so'm)
+              {{ t('kpi.digital_ads') }}
             </label>
             <input
               type="text"
@@ -136,7 +136,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Offline reklama (so'm)
+              {{ t('kpi.offline_ads') }}
             </label>
             <input
               type="text"
@@ -151,11 +151,11 @@
           <!-- Total Spend -->
           <div class="pt-2 border-t border-gray-200 dark:border-gray-600 mt-auto">
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Jami xarajat:</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('kpi.total_expense') }}:</span>
               <span class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ formatMoney(totalSpend) }}</span>
             </div>
             <div class="flex justify-between items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <span>CPL (1 lidga):</span>
+              <span>{{ t('kpi.cpl_per_lead') }}:</span>
               <span>{{ formatMoney(cpl) }}</span>
             </div>
           </div>
@@ -169,12 +169,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </span>
-            Sotuvlar
+            {{ t('kpi.sales') }}
           </h4>
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Yangi mijozlar soni
+              {{ t('kpi.new_customers_count') }}
             </label>
             <input
               type="number"
@@ -187,7 +187,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Takroriy mijozlar soni
+              {{ t('kpi.repeat_customers_count') }}
             </label>
             <input
               type="number"
@@ -201,11 +201,11 @@
           <!-- Total Sales -->
           <div class="pt-2 border-t border-gray-200 dark:border-gray-600 mt-auto">
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Jami sotuvlar:</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('kpi.total_sales') }}:</span>
               <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ totalSales }}</span>
             </div>
             <div class="flex justify-between items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <span>Konversiya:</span>
+              <span>{{ t('kpi.conversion') }}:</span>
               <span>{{ conversionRate }}%</span>
             </div>
           </div>
@@ -219,12 +219,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </span>
-            Daromad
+            {{ t('kpi.revenue') }}
           </h4>
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Yangi mijozlardan (so'm)
+              {{ t('kpi.from_new_customers') }}
             </label>
             <input
               type="text"
@@ -238,7 +238,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Takroriy mijozlardan (so'm)
+              {{ t('kpi.from_repeat_customers') }}
             </label>
             <input
               type="text"
@@ -253,11 +253,11 @@
           <!-- Total Revenue -->
           <div class="pt-2 border-t border-gray-200 dark:border-gray-600 mt-auto">
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Jami daromad:</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('kpi.total_revenue') }}:</span>
               <span class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ formatMoney(totalRevenue) }}</span>
             </div>
             <div class="flex justify-between items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <span>O'rtacha chek:</span>
+              <span>{{ t('kpi.avg_check') }}:</span>
               <span>{{ formatMoney(avgCheck) }}</span>
             </div>
           </div>
@@ -267,13 +267,13 @@
       <!-- Notes -->
       <div class="mt-6">
         <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-          Izoh (ixtiyoriy)
+          {{ t('kpi.notes_optional') }}
         </label>
         <textarea
           v-model="form.notes"
           rows="2"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Bugungi natijalar haqida izoh..."
+          :placeholder="t('kpi.notes_placeholder')"
         ></textarea>
       </div>
 
@@ -281,15 +281,15 @@
       <div class="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Jami lidlar</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.total_leads') }}</p>
             <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ totalLeads }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Jami sotuvlar</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.total_sales') }}</p>
             <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ totalSales }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Konversiya</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.conversion') }}</p>
             <p class="text-xl font-bold" :class="conversionRate >= 10 ? 'text-green-600' : 'text-yellow-600'">{{ conversionRate }}%</p>
           </div>
           <div>
@@ -305,7 +305,7 @@
           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          Bu sana uchun ma'lumot mavjud. Yangilash amalga oshiriladi.
+          {{ t('kpi.data_exists_will_update') }}
         </div>
         <div class="flex gap-3 ml-auto">
           <button
@@ -313,7 +313,7 @@
             @click="resetForm"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            Tozalash
+            {{ t('kpi.clear') }}
           </button>
           <button
             type="submit"
@@ -324,7 +324,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ isSubmitting ? 'Saqlanmoqda...' : 'Saqlash' }}
+            {{ isSubmitting ? t('common.saving') : t('common.save') }}
           </button>
         </div>
       </div>
@@ -335,6 +335,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   businessId: {

@@ -2,6 +2,9 @@
 import { Head } from '@inertiajs/vue3'
 import BusinessLayout from '@/layouts/BusinessLayout.vue'
 import TelegramTriggersIndex from '@/components/telegram/TelegramTriggersIndex.vue'
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
   bot: Object,

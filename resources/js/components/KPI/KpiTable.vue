@@ -21,19 +21,19 @@
           <thead class="bg-gray-50">
             <tr>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                KPI
+                {{ t('kpi.kpi') }}
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Hozirgi
+                {{ t('kpi.current') }}
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Maqsad
+                {{ t('kpi.target') }}
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Holat
+                {{ t('kpi.status') }}
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Trend
+                {{ t('kpi.trend') }}
               </th>
             </tr>
           </thead>
@@ -105,6 +105,9 @@
 
 <script setup>
 import Sparkline from './Sparkline.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
   title: {

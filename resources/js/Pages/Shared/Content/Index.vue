@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
@@ -7,6 +8,8 @@ import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import ContentIndex from '@/components/content/ContentIndex.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     posts: { type: Array, default: () => [] },
@@ -32,7 +35,7 @@ const layoutComponent = computed(() => {
 </script>
 
 <template>
-    <component :is="layoutComponent" title="Kontent kalendar">
+    <component :is="layoutComponent" :title="t('content.title')">
         <ContentIndex
             :posts="posts"
             :stats="stats"

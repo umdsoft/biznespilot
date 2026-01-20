@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
@@ -20,6 +21,8 @@ import {
     FunnelIcon,
     ArrowPathIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     overview: Object,
@@ -52,12 +55,12 @@ const getRoutePrefix = () => props.panelType;
 const selectedPeriod = ref(props.period || '30');
 const isLoading = ref(false);
 
-const periods = [
-    { value: '7', label: '7 kun' },
-    { value: '30', label: '30 kun' },
-    { value: '90', label: '90 kun' },
-    { value: '365', label: '1 yil' },
-];
+const periods = computed(() => [
+    { value: '7', label: t('analytics.7_days') },
+    { value: '30', label: t('analytics.30_days') },
+    { value: '90', label: t('analytics.90_days') },
+    { value: '365', label: t('analytics.1_year') },
+]);
 
 const changePeriod = (period) => {
     selectedPeriod.value = period;
@@ -123,38 +126,38 @@ const getStatusColor = (status) => {
 
 const overviewStats = computed(() => [
     {
-        label: 'Umumiy Reach',
+        label: t('analytics.total_reach'),
         value: formatNumber(props.overview?.total_reach),
         icon: EyeIcon,
         color: 'bg-blue-500',
         growth: props.overview?.reach_growth,
     },
     {
-        label: 'Ko\'rishlar',
+        label: t('content.views'),
         value: formatNumber(props.overview?.total_views),
         icon: EyeIcon,
         color: 'bg-purple-500',
     },
     {
-        label: 'Engagement',
+        label: t('analytics.engagement'),
         value: formatNumber(props.overview?.total_engagement),
         icon: HeartIcon,
         color: 'bg-pink-500',
     },
     {
-        label: 'Engagement Rate',
+        label: t('analytics.engagement_rate'),
         value: (props.overview?.engagement_rate || 0) + '%',
         icon: ChartBarIcon,
         color: 'bg-green-500',
     },
     {
-        label: 'Nashr qilingan',
+        label: t('analytics.published'),
         value: props.overview?.content_published || 0,
         icon: DocumentTextIcon,
         color: 'bg-indigo-500',
     },
     {
-        label: 'Yangi Lidlar',
+        label: t('analytics.new_leads'),
         value: props.overview?.leads_generated || 0,
         icon: UserGroupIcon,
         color: 'bg-orange-500',
@@ -170,14 +173,14 @@ const hasData = computed(() => {
 </script>
 
 <template>
-    <component :is="layoutComponent" title="Analitika">
+    <component :is="layoutComponent" :title="t('analytics.title')">
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Marketing Analitikasi</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('analytics.marketing_analytics') }}</h1>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Kontent va kampaniyalar samaradorligini kuzating
+                        {{ t('analytics.track_performance') }}
                     </p>
                 </div>
 
@@ -221,9 +224,9 @@ const hasData = computed(() => {
                     <div class="w-16 h-16 mx-auto bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4">
                         <ChartBarIcon class="w-8 h-8 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Ma'lumotlar topilmadi</h3>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('analytics.no_data') }}</h3>
                     <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                        Tanlangan davr uchun analitik ma'lumotlar mavjud emas. Kontent yarating va nashr qiling.
+                        {{ t('analytics.no_data_desc') }}
                     </p>
                 </div>
 
@@ -277,7 +280,7 @@ const hasData = computed(() => {
                                 </div>
                                 <div>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatNumber(overview?.comments) }}</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Izohlar</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.comments') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -288,7 +291,7 @@ const hasData = computed(() => {
                                 </div>
                                 <div>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatNumber(overview?.shares) }}</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Ulashishlar</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('content.shares') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -299,11 +302,11 @@ const hasData = computed(() => {
                         <!-- Channel Performance -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Kanal samaradorligi</h3>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('analytics.channel_performance') }}</h3>
                             </div>
                             <div class="p-6">
                                 <div v-if="channels?.length === 0" class="text-center py-8">
-                                    <p class="text-gray-500 dark:text-gray-400">Ma'lumotlar mavjud emas</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('analytics.no_channel_data') }}</p>
                                 </div>
                                 <div v-else class="space-y-4">
                                     <div
@@ -332,11 +335,11 @@ const hasData = computed(() => {
                         <!-- Top Content -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Eng yaxshi kontentlar</h3>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('analytics.top_content') }}</h3>
                             </div>
                             <div class="p-6">
                                 <div v-if="topContent?.length === 0" class="text-center py-8">
-                                    <p class="text-gray-500 dark:text-gray-400">Nashr qilingan kontent yo'q</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('analytics.no_published_content') }}</p>
                                 </div>
                                 <div v-else class="space-y-4">
                                     <div
@@ -376,26 +379,26 @@ const hasData = computed(() => {
                     <!-- Campaign Performance -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Kampaniya samaradorligi</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('analytics.campaign_performance') }}</h3>
                         </div>
 
                         <!-- Summary Stats -->
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 p-6 border-b border-gray-200 dark:border-gray-700">
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ campaignPerformance?.summary?.total_campaigns || 0 }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Kampaniyalar</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('analytics.campaigns') }}</p>
                             </div>
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatCurrency(campaignPerformance?.summary?.total_spent || 0) }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Sarflangan (so'm)</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('analytics.spent') }}</p>
                             </div>
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ campaignPerformance?.summary?.total_leads || 0 }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Lidlar</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('analytics.leads') }}</p>
                             </div>
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatCurrency(campaignPerformance?.summary?.avg_cost_per_lead || 0) }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Har bir lid (so'm)</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('analytics.cost_per_lead') }}</p>
                             </div>
                             <div class="text-center">
                                 <p :class="[
@@ -404,23 +407,23 @@ const hasData = computed(() => {
                                 ]">
                                     {{ campaignPerformance?.summary?.avg_roi || 0 }}%
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">O'rtacha ROI</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('analytics.avg_roi') }}</p>
                             </div>
                         </div>
 
                         <!-- Campaign List -->
                         <div class="p-6">
                             <div v-if="!campaignPerformance?.campaigns?.length" class="text-center py-8">
-                                <p class="text-gray-500 dark:text-gray-400">Hozircha kampaniyalar yo'q</p>
+                                <p class="text-gray-500 dark:text-gray-400">{{ t('analytics.no_campaigns') }}</p>
                             </div>
                             <div v-else class="overflow-x-auto">
                                 <table class="w-full">
                                     <thead>
                                         <tr class="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            <th class="pb-3">Kampaniya</th>
-                                            <th class="pb-3">Status</th>
-                                            <th class="pb-3 text-right">Sarflangan</th>
-                                            <th class="pb-3 text-right">Lidlar</th>
+                                            <th class="pb-3">{{ t('analytics.campaign') }}</th>
+                                            <th class="pb-3">{{ t('analytics.status') }}</th>
+                                            <th class="pb-3 text-right">{{ t('analytics.spent') }}</th>
+                                            <th class="pb-3 text-right">{{ t('analytics.leads') }}</th>
                                             <th class="pb-3 text-right">ROI</th>
                                         </tr>
                                     </thead>
@@ -460,7 +463,7 @@ const hasData = computed(() => {
                     <!-- Lead Sources -->
                     <div v-if="leadSources?.length > 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Lid manbalari</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('analytics.lead_sources') }}</h3>
                         </div>
                         <div class="p-6">
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">

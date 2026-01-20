@@ -4,7 +4,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ko'rsatkich
+                        {{ t('kpi.indicator') }}
                     </th>
                     <th
                         v-for="day in weekDays"
@@ -14,7 +14,7 @@
                         {{ day }}
                     </th>
                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Jami
+                        {{ t('kpi.total') }}
                     </th>
                 </tr>
             </thead>
@@ -41,12 +41,16 @@
             </tbody>
         </table>
         <div v-if="data.length === 0" class="text-center py-8 text-gray-500">
-            Ma'lumot yo'q
+            {{ t('kpi.no_data') }}
         </div>
     </div>
 </template>
 
 <script setup>
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 defineProps({
     data: {
         type: Array,

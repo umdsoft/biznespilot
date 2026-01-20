@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     businessId: String,
@@ -20,13 +23,13 @@ const form = ref({
     language_targets: [],
 });
 
-const channelTypes = [
-    { value: 'SEARCH', label: 'Qidiruv (Search)', description: 'Google qidiruv natijalarida reklama' },
-    { value: 'DISPLAY', label: 'Display', description: 'Veb-saytlar va ilovalar tarmog\'ida' },
-    { value: 'VIDEO', label: 'Video (YouTube)', description: 'YouTube va video platformalarida' },
-    { value: 'SHOPPING', label: 'Shopping', description: 'Mahsulot reklama (e-commerce)' },
-    { value: 'PERFORMANCE_MAX', label: 'Performance Max', description: 'Avtomatik barcha kanallarda' },
-];
+const channelTypes = computed(() => [
+    { value: 'SEARCH', label: t('googleads.type_search'), description: t('googleads.type_search_desc') },
+    { value: 'DISPLAY', label: t('googleads.type_display'), description: t('googleads.type_display_desc') },
+    { value: 'VIDEO', label: t('googleads.type_video'), description: t('googleads.type_video_desc') },
+    { value: 'SHOPPING', label: t('googleads.type_shopping'), description: t('googleads.type_shopping_desc') },
+    { value: 'PERFORMANCE_MAX', label: t('googleads.type_performance_max'), description: t('googleads.type_performance_max_desc') },
+]);
 
 const isValid = computed(() => {
     return form.value.name.trim() !== '' && form.value.daily_budget !== '';
@@ -52,13 +55,13 @@ const submit = async () => {
         if (response.data.success) {
             emit('created', response.data.campaign);
         } else {
-            errors.value = response.data.errors || { general: 'Xatolik yuz berdi' };
+            errors.value = response.data.errors || { general: t('common.error') };
         }
     } catch (error) {
         if (error.response?.data?.errors) {
             errors.value = error.response.data.errors;
         } else {
-            errors.value = { general: error.message || 'Xatolik yuz berdi' };
+            errors.value = { general: error.message || t('common.error') };
         }
     } finally {
         loading.value = false;
@@ -76,7 +79,7 @@ const submit = async () => {
             <div class="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
                 <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Yangi kampaniya yaratish</h2>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ t('googleads.create_new_campaign') }}</h2>
                     <button
                         @click="$emit('close')"
                         class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -97,12 +100,12 @@ const submit = async () => {
                     <!-- Campaign Name -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Kampaniya nomi *
+                            {{ t('googleads.campaign_name') }} *
                         </label>
                         <input
                             v-model="form.name"
                             type="text"
-                            placeholder="Masalan: Yangi yil aksiyasi"
+                            :placeholder="t('googleads.campaign_name_placeholder')"
                             class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
                             :class="{ 'border-red-500': errors.name }"
                         >
@@ -112,7 +115,7 @@ const submit = async () => {
                     <!-- Channel Type -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Kampaniya turi *
+                            {{ t('googleads.campaign_type') }} *
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <button
@@ -134,7 +137,7 @@ const submit = async () => {
                     <!-- Daily Budget -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Kunlik byudjet (so'm) *
+                            {{ t('googleads.daily_budget') }} *
                         </label>
                         <div class="relative">
                             <input
@@ -146,11 +149,11 @@ const submit = async () => {
                                 class="w-full pl-4 pr-16 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
                                 :class="{ 'border-red-500': errors.daily_budget }"
                             >
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">so'm</span>
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">{{ t('common.currency') }}</span>
                         </div>
                         <p v-if="errors.daily_budget" class="mt-1 text-sm text-red-500">{{ errors.daily_budget[0] }}</p>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Minimal: 1,000 so'm. Tavsiya: 50,000+ so'm
+                            {{ t('googleads.budget_hint') }}
                         </p>
                     </div>
 
@@ -158,7 +161,7 @@ const submit = async () => {
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Boshlanish sanasi
+                                {{ t('googleads.start_date') }}
                             </label>
                             <input
                                 v-model="form.start_date"
@@ -168,7 +171,7 @@ const submit = async () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Tugash sanasi
+                                {{ t('googleads.end_date') }}
                             </label>
                             <input
                                 v-model="form.end_date"
@@ -185,9 +188,9 @@ const submit = async () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div>
-                                <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">Ma'lumot</p>
+                                <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">{{ t('googleads.info') }}</p>
                                 <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                                    Kampaniya "Pauza" holatida yaratiladi. Faollashtirish uchun keyinroq yoqishingiz mumkin.
+                                    {{ t('googleads.paused_note') }}
                                 </p>
                             </div>
                         </div>
@@ -201,7 +204,7 @@ const submit = async () => {
                         @click="$emit('close')"
                         class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
                     >
-                        Bekor qilish
+                        {{ t('common.cancel') }}
                     </button>
                     <button
                         @click="submit"
@@ -212,7 +215,7 @@ const submit = async () => {
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        {{ loading ? 'Yaratilmoqda...' : 'Yaratish' }}
+                        {{ loading ? t('googleads.creating') : t('common.create') }}
                     </button>
                 </div>
             </div>

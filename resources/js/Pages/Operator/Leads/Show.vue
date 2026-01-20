@@ -1,6 +1,9 @@
 <script setup>
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import LeadShow from '@/components/leads/LeadShow.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     lead: {

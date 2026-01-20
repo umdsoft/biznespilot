@@ -1,12 +1,12 @@
 <template>
-    <BusinessLayout title="Kanal Tahlili">
+    <BusinessLayout :title="t('analytics.channel_analysis')">
         <div class="py-12">
             <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Kanal Tahlili</h2>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ t('analytics.channel_analysis') }}</h2>
                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        Barcha messaging kanallar bo'yicha batafsil statistika
+                        {{ t('analytics.channel_analysis_desc') }}
                     </p>
                 </div>
 
@@ -15,7 +15,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Channel Selector -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kanal</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('analytics.channel') }}</label>
                             <select
                                 v-model="currentChannel"
                                 @change="updateChannel"
@@ -30,7 +30,7 @@
 
                         <!-- Date Range -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Boshlanish</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('reports.filter.start_date') }}</label>
                             <input
                                 v-model="startDate"
                                 @change="updateDateRange"
@@ -40,7 +40,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tugash</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('reports.filter.end_date') }}</label>
                             <input
                                 v-model="endDate"
                                 @change="updateDateRange"
@@ -55,7 +55,7 @@
                             @click="compareChannels"
                             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                         >
-                            Kanallarni Taqqoslash
+                            {{ t('analytics.compare_channels') }}
                         </button>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Jami Suhbatlar</p>
+                                <p class="text-sm opacity-90">{{ t('analytics.total_conversations') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ analytics.overview?.total_conversations || 0 }}</p>
                             </div>
                             <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
@@ -80,7 +80,7 @@
                     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-md p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Jami Xabarlar</p>
+                                <p class="text-sm opacity-90">{{ t('analytics.total_messages') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ analytics.overview?.total_messages || 0 }}</p>
                             </div>
                             <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
@@ -95,7 +95,7 @@
                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-md p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Noyob Mijozlar</p>
+                                <p class="text-sm opacity-90">{{ t('analytics.unique_customers') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ analytics.overview?.unique_customers || 0 }}</p>
                             </div>
                             <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
@@ -109,7 +109,7 @@
                     <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-md p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">O'rtacha Javob Vaqti</p>
+                                <p class="text-sm opacity-90">{{ t('analytics.avg_response_time') }}</p>
                                 <p class="text-3xl font-bold mt-2">
                                     {{ analytics.response_metrics?.avg_response_time_minutes?.toFixed(1) || 0 }}<span class="text-lg">min</span>
                                 </p>
@@ -127,7 +127,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <!-- Message Volume -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Xabarlar Hajmi</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('analytics.message_volume') }}</h3>
                         <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
                             <div class="text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,28 +145,28 @@
 
                     <!-- Engagement Metrics -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Engagement Metrikalari</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('analytics.engagement_metrics') }}</h3>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">Faol Suhbatlar</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('analytics.active_conversations') }}</span>
                                 <span class="text-lg font-bold text-green-600 dark:text-green-400">
                                     {{ analytics.engagement_metrics?.active_conversations || 0 }}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">Yopilgan Suhbatlar</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('analytics.closed_conversations') }}</span>
                                 <span class="text-lg font-bold text-gray-600 dark:text-gray-300">
                                     {{ analytics.engagement_metrics?.closed_conversations || 0 }}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">O'rtacha Davomiylik</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('analytics.avg_duration') }}</span>
                                 <span class="text-lg font-bold text-purple-600 dark:text-purple-400">
                                     {{ analytics.engagement_metrics?.avg_conversation_duration_minutes?.toFixed(1) || 0 }} min
                                 </span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">Qaytib Kelganlar</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('analytics.returning_customers') }}</span>
                                 <span class="text-lg font-bold text-blue-600 dark:text-blue-400">
                                     {{ analytics.engagement_metrics?.returning_customers || 0 }}
                                 </span>
@@ -179,13 +179,13 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <!-- Conversion Funnel -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Konversiya Voronkasi</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('analytics.conversion_funnel') }}</h3>
                         <div class="space-y-3">
                             <div class="text-center mb-4">
                                 <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">
                                     {{ analytics.conversion_metrics?.conversion_rate || 0 }}%
                                 </div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Konversiya Darajasi</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">{{ t('analytics.conversion_rate') }}</div>
                             </div>
 
                             <div v-if="analytics.conversion_metrics?.stages_distribution" class="space-y-2">
@@ -203,7 +203,7 @@
 
                     <!-- Hourly Distribution -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Soatlik Taqsimot</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('analytics.hourly_distribution') }}</h3>
                         <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
                             <div class="text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,22 +222,22 @@
 
                 <!-- Response Metrics -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Javob Metrikalari</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('analytics.response_metrics') }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl">
-                            <div class="text-sm text-blue-700 dark:text-blue-300 mb-2">O'rtacha Javob Vaqti</div>
+                            <div class="text-sm text-blue-700 dark:text-blue-300 mb-2">{{ t('analytics.avg_response_time') }}</div>
                             <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                                 {{ analytics.response_metrics?.avg_response_time_seconds?.toFixed(1) || 0 }}s
                             </div>
                         </div>
                         <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-xl">
-                            <div class="text-sm text-green-700 dark:text-green-300 mb-2">Javob Darajasi</div>
+                            <div class="text-sm text-green-700 dark:text-green-300 mb-2">{{ t('analytics.response_rate') }}</div>
                             <div class="text-3xl font-bold text-green-600 dark:text-green-400">
                                 {{ analytics.response_metrics?.response_rate?.toFixed(1) || 0 }}%
                             </div>
                         </div>
                         <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl">
-                            <div class="text-sm text-purple-700 dark:text-purple-300 mb-2">O'rtacha Xabarlar</div>
+                            <div class="text-sm text-purple-700 dark:text-purple-300 mb-2">{{ t('analytics.avg_messages') }}</div>
                             <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">
                                 {{ analytics.overview?.avg_messages_per_conversation?.toFixed(1) || 0 }}
                             </div>
@@ -249,7 +249,7 @@
                 <div v-if="showComparison" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Kanallar Taqqoslash</h3>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ t('analytics.channels_comparison') }}</h3>
                             <button @click="showComparison = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -261,10 +261,10 @@
                                 <table class="min-w-full">
                                     <thead>
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Kanal</th>
-                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">Suhbatlar</th>
-                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">Xabarlar</th>
-                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">Konversiya %</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">{{ t('analytics.channel') }}</th>
+                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">{{ t('analytics.conversations') }}</th>
+                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">{{ t('analytics.messages') }}</th>
+                                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">{{ t('analytics.conversion_percent') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -303,6 +303,9 @@ import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import BusinessLayout from '@/layouts/BusinessLayout.vue'
 import axios from 'axios'
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     analytics: Object,
@@ -345,7 +348,7 @@ const compareChannels = async () => {
             showComparison.value = true
         }
     } catch (error) {
-        alert('Kanallarni taqqoslashda xatolik yuz berdi')
+        alert(t('common.error'))
     }
 }
 

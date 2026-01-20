@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     UserCircleIcon,
     PhoneIcon,
@@ -9,6 +10,8 @@ import {
     BriefcaseIcon,
     ArrowLeftIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     applications: { type: Array, default: () => [] },
@@ -30,8 +33,8 @@ const getStatusColor = (color) => {
 </script>
 
 <template>
-    <HRLayout title="Arizalar">
-        <Head title="Arizalar - Recruiting" />
+    <HRLayout :title="t('hr.applications')">
+        <Head :title="t('hr.applications')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -42,11 +45,11 @@ const getStatusColor = (color) => {
                         class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-2 transition-colors"
                     >
                         <ArrowLeftIcon class="w-5 h-5" />
-                        <span>Vakansiyalarga qaytish</span>
+                        <span>{{ t('hr.back_to_vacancies') }}</span>
                     </Link>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Arizalar</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.applications') }}</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Ishga ariza qilgan nomzodlar
+                        {{ t('hr.applications_subtitle') }}
                     </p>
                 </div>
             </div>
@@ -74,7 +77,7 @@ const getStatusColor = (color) => {
                                             {{ app.job_posting_title }}
                                         </span>
                                         <span v-if="app.years_of_experience" class="flex items-center gap-1">
-                                            {{ app.years_of_experience }} yil tajriba
+                                            {{ app.years_of_experience }} {{ t('hr.years_experience') }}
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -103,7 +106,7 @@ const getStatusColor = (color) => {
                                             {{ app.status_label }}
                                         </span>
                                         <span v-if="app.rating" class="text-sm text-gray-600 dark:text-gray-400">
-                                            ⭐ {{ app.rating }}/5
+                                            {{ app.rating }}/5
                                         </span>
                                         <span class="text-xs text-gray-500 dark:text-gray-500">
                                             {{ app.applied_at }}
@@ -117,7 +120,7 @@ const getStatusColor = (color) => {
                 <div v-else class="p-12 text-center">
                     <UserCircleIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <p class="text-gray-500 dark:text-gray-400">
-                        Arizalar mavjud emas
+                        {{ t('hr.no_applications') }}
                     </p>
                 </div>
             </div>

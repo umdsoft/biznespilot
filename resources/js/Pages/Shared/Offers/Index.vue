@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
@@ -8,6 +9,8 @@ import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import OffersIndex from '@/components/offers/OffersIndex.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     offers: { type: Array, default: () => [] },
@@ -32,8 +35,8 @@ const layoutComponent = computed(() => {
 </script>
 
 <template>
-    <component :is="layoutComponent" title="Irresistible Offers">
-        <Head title="Offers" />
+    <component :is="layoutComponent" :title="t('offers.title')">
+        <Head :title="t('offers.title')" />
         <OffersIndex
             :offers="offers"
             :stats="stats"

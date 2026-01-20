@@ -23,12 +23,10 @@
             <h1 class="ml-3 text-2xl font-bold">BiznesPilot AI</h1>
           </div>
           <h2 class="text-3xl font-bold leading-tight mb-3">
-            Biznesingizni
-            <span class="text-emerald-200">yangi bosqichga</span>
-            olib chiqing
+            {{ t('auth.grow_business') }}
           </h2>
           <p class="text-lg text-emerald-100 leading-relaxed">
-            AI-powered marketing va sotuvni boshqarish platformasi
+            {{ t('auth.platform_desc') }}
           </p>
         </div>
 
@@ -41,8 +39,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold">Bepul boshlang</h3>
-              <p class="text-emerald-100 text-sm">14 kunlik bepul sinov davri</p>
+              <h3 class="font-semibold">{{ t('auth.free_start') }}</h3>
+              <p class="text-emerald-100 text-sm">{{ t('auth.free_trial') }}</p>
             </div>
           </div>
 
@@ -53,8 +51,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold">AI tahlil va tavsiyalar</h3>
-              <p class="text-emerald-100 text-sm">Biznesingiz uchun maxsus strategiyalar</p>
+              <h3 class="font-semibold">{{ t('auth.ai_advice') }}</h3>
+              <p class="text-emerald-100 text-sm">{{ t('auth.ai_advice_desc') }}</p>
             </div>
           </div>
 
@@ -65,8 +63,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold">24/7 qo'llab-quvvatlash</h3>
-              <p class="text-emerald-100 text-sm">Mutaxassislar har doim yordam berishga tayyor</p>
+              <h3 class="font-semibold">{{ t('auth.support_247') }}</h3>
+              <p class="text-emerald-100 text-sm">{{ t('auth.support_desc') }}</p>
             </div>
           </div>
         </div>
@@ -94,9 +92,9 @@
         <!-- Register Card -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
           <div class="mb-5">
-            <h2 class="text-xl font-bold text-gray-900 mb-1">Ro'yxatdan o'tish</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-1">{{ t('auth.register_title') }}</h2>
             <p class="text-sm text-gray-600">
-              Bepul akkaunt yarating va biznesingizni o'stiring
+              {{ t('auth.register_desc') }}
             </p>
           </div>
 
@@ -116,13 +114,13 @@
             <!-- Name Field -->
             <div>
               <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-                To'liq ism <span class="text-red-500">*</span>
+                {{ t('auth.full_name') }} <span class="text-red-500">*</span>
               </label>
               <input
                 id="name"
                 v-model="form.name"
                 type="text"
-                placeholder="Ism Familiya"
+                :placeholder="t('auth.full_name_placeholder')"
                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
                 :class="{ 'border-red-300 focus:ring-red-500': form.errors.name }"
                 required
@@ -132,13 +130,13 @@
             <!-- Login Field -->
             <div>
               <label for="login" class="block text-sm font-medium text-gray-700 mb-1">
-                Login <span class="text-red-500">*</span>
+                {{ t('auth.login') }} <span class="text-red-500">*</span>
               </label>
               <input
                 id="login"
                 v-model="form.login"
                 type="text"
-                placeholder="username"
+                :placeholder="t('auth.login_username')"
                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
                 :class="{ 'border-red-300 focus:ring-red-500': form.errors.login }"
                 required
@@ -150,7 +148,7 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                  {{ t('auth.email') }}
                 </label>
                 <input
                   id="email"
@@ -164,7 +162,7 @@
               </div>
               <div>
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-                  Telefon
+                  {{ t('auth.phone') }}
                 </label>
                 <input
                   id="phone"
@@ -182,13 +180,13 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-                  Parol <span class="text-red-500">*</span>
+                  {{ t('auth.password') }} <span class="text-red-500">*</span>
                 </label>
                 <input
                   id="password"
                   v-model="form.password"
                   type="password"
-                  placeholder="Kamida 8 belgi"
+                  :placeholder="t('auth.password_min')"
                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
                   :class="{ 'border-red-300 focus:ring-red-500': form.errors.password }"
                   required
@@ -197,13 +195,13 @@
               </div>
               <div>
                 <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
-                  Tasdiqlash <span class="text-red-500">*</span>
+                  {{ t('auth.password_confirm') }} <span class="text-red-500">*</span>
                 </label>
                 <input
                   id="password_confirmation"
                   v-model="form.password_confirmation"
                   type="password"
-                  placeholder="Qayta kiriting"
+                  :placeholder="t('auth.password_reenter')"
                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400 text-sm"
                   :class="{ 'border-red-300 focus:ring-red-500': form.errors.password_confirmation }"
                   required
@@ -221,11 +219,10 @@
                 class="mt-0.5 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
               />
               <label for="terms" class="ml-2 text-xs text-gray-600">
-                Men
-                <button type="button" @click="showTermsModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">Foydalanish shartlari</button>
-                va
-                <button type="button" @click="showPrivacyModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">Maxfiylik siyosati</button>ga
-                roziman
+                {{ t('auth.terms_agree') }}
+                <button type="button" @click="showTermsModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">{{ t('auth.terms_link') }}</button>
+                {{ t('auth.and') }}
+                <button type="button" @click="showPrivacyModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">{{ t('auth.privacy_link') }}</button>{{ t('auth.agree_suffix') }}
               </label>
             </div>
 
@@ -239,14 +236,14 @@
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
-                Ro'yxatdan o'tish
+                {{ t('auth.register_button') }}
               </span>
               <span v-else class="flex items-center justify-center">
                 <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Yuklanmoqda...
+                {{ t('auth.loading') }}
               </span>
             </button>
           </form>
@@ -254,9 +251,9 @@
           <!-- Divider -->
           <div class="mt-4 pt-4 border-t border-gray-200">
             <p class="text-center text-sm text-gray-600">
-              Akkauntingiz bormi?
+              {{ t('auth.have_account') }}
               <Link href="/login" class="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
-                Tizimga kirish
+                {{ t('auth.login_link') }}
               </Link>
             </p>
           </div>
@@ -264,7 +261,7 @@
 
         <!-- Footer -->
         <p class="mt-4 text-center text-xs text-gray-500">
-          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. Barcha huquqlar himoyalangan.
+          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. {{ t('auth.copyright') }}
         </p>
       </div>
     </div>
@@ -281,6 +278,9 @@ import { useForm, Link } from '@inertiajs/vue3';
 import TermsOfServiceModal from '@/components/Legal/TermsOfServiceModal.vue';
 import PrivacyPolicyModal from '@/components/Legal/PrivacyPolicyModal.vue';
 import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const form = useForm({
   name: '',

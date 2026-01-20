@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const code = ref('')
 const useRecovery = ref(false)
@@ -41,14 +44,14 @@ const toggleRecovery = () => {
                     </svg>
                 </div>
                 <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">
-                    Ikki faktorli autentifikatsiya
+                    {{ t('auth.two_factor.title') }}
                 </h2>
                 <p class="mt-2 text-center text-sm text-gray-600">
                     <span v-if="!useRecovery">
-                        Authenticator ilovasidan 6 raqamli kodni kiriting
+                        {{ t('auth.two_factor.enter_code') }}
                     </span>
                     <span v-else>
-                        Recovery kodni kiriting
+                        {{ t('auth.two_factor.enter_recovery') }}
                     </span>
                 </p>
             </div>
@@ -57,7 +60,7 @@ const toggleRecovery = () => {
                 <div class="rounded-md shadow-sm">
                     <div>
                         <label for="code" class="sr-only">
-                            {{ useRecovery ? 'Recovery kod' : 'Autentifikatsiya kodi' }}
+                            {{ useRecovery ? t('auth.two_factor.recovery_code') : t('auth.two_factor.auth_code') }}
                         </label>
                         <input
                             id="code"
@@ -83,13 +86,13 @@ const toggleRecovery = () => {
                         :disabled="form.processing"
                         class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span v-if="!form.processing">Tasdiqlash</span>
+                        <span v-if="!form.processing">{{ t('auth.two_factor.verify') }}</span>
                         <span v-else class="flex items-center">
                             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Tekshirilmoqda...
+                            {{ t('auth.two_factor.verifying') }}
                         </span>
                     </button>
                 </div>
@@ -100,8 +103,8 @@ const toggleRecovery = () => {
                         @click="toggleRecovery"
                         class="text-sm text-indigo-600 hover:text-indigo-500"
                     >
-                        <span v-if="!useRecovery">Recovery kod ishlatish</span>
-                        <span v-else>Autentifikatsiya kodi ishlatish</span>
+                        <span v-if="!useRecovery">{{ t('auth.two_factor.use_recovery') }}</span>
+                        <span v-else>{{ t('auth.two_factor.use_auth_code') }}</span>
                     </button>
                 </div>
 
@@ -110,7 +113,7 @@ const toggleRecovery = () => {
                         :href="route('login')"
                         class="text-sm text-gray-600 hover:text-gray-900"
                     >
-                        ← Login sahifasiga qaytish
+                        {{ t('auth.two_factor.back_to_login') }}
                     </a>
                 </div>
             </form>

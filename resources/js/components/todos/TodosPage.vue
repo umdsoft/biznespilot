@@ -1,6 +1,9 @@
 <script setup>
 import TodosIndex from '@/components/todos/TodosIndex.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     todos: { type: Object, default: () => ({ overdue: [], today: [], tomorrow: [], this_week: [], later: [] }) },
@@ -22,7 +25,7 @@ defineProps({
 
 <template>
     <div>
-        <Head title="Vazifalar" />
+        <Head :title="t('todos.title')" />
         <TodosIndex
             :todos="todos"
             :stats="stats"

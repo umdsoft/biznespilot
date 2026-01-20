@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
 import SmsModal from '@/components/SmsModal.vue';
 import PaymentModal from '@/components/PaymentModal.vue';
 import CallWidget from '@/components/CallWidget.vue';
@@ -37,6 +38,8 @@ import {
 } from '@heroicons/vue/24/outline';
 import { ChatBubbleBottomCenterTextIcon, ChatBubbleOvalLeftIcon } from '@heroicons/vue/24/solid';
 import { formatFullCurrency } from '@/utils/formatting';
+
+const { t } = useI18n();
 
 const props = defineProps({
     lead: {
@@ -414,50 +417,50 @@ const checkSmsStatus = async () => {
 };
 
 // Status configuration
-const statusConfig = {
-    new: { label: 'Yangi', color: 'bg-blue-500', bgLight: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', icon: SparklesIcon },
-    contacted: { label: "Bog'lanildi", color: 'bg-indigo-500', bgLight: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400', icon: PhoneIcon },
-    callback: { label: "Keyinroq bog'lanish qilamiz", color: 'bg-purple-500', bgLight: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', icon: ClockIcon },
-    considering: { label: "O'ylab ko'radi", color: 'bg-orange-500', bgLight: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400', icon: DocumentTextIcon },
-    meeting_scheduled: { label: 'Uchrashuv belgilandi', color: 'bg-yellow-500', bgLight: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400', icon: CalendarIcon },
-    meeting_attended: { label: 'Uchrashuvga keldi', color: 'bg-teal-500', bgLight: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400', icon: ChatBubbleLeftRightIcon },
-    won: { label: 'Sotuv', color: 'bg-green-500', bgLight: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: CheckCircleIcon },
-    lost: { label: 'Sifatsiz lid', color: 'bg-red-500', bgLight: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', icon: XCircleIcon },
-};
+const statusConfig = computed(() => ({
+    new: { label: t('leads.pipeline.new'), color: 'bg-blue-500', bgLight: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', icon: SparklesIcon },
+    contacted: { label: t('leads.pipeline.contacted'), color: 'bg-indigo-500', bgLight: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400', icon: PhoneIcon },
+    callback: { label: t('leads.pipeline.callback'), color: 'bg-purple-500', bgLight: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', icon: ClockIcon },
+    considering: { label: t('leads.pipeline.considering'), color: 'bg-orange-500', bgLight: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400', icon: DocumentTextIcon },
+    meeting_scheduled: { label: t('leads.pipeline.meeting_scheduled'), color: 'bg-yellow-500', bgLight: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400', icon: CalendarIcon },
+    meeting_attended: { label: t('leads.pipeline.meeting_attended'), color: 'bg-teal-500', bgLight: 'bg-teal-50 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400', icon: ChatBubbleLeftRightIcon },
+    won: { label: t('leads.pipeline.won'), color: 'bg-green-500', bgLight: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', icon: CheckCircleIcon },
+    lost: { label: t('leads.pipeline.lost'), color: 'bg-red-500', bgLight: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', icon: XCircleIcon },
+}));
 
 const pipelineStages = ['new', 'contacted', 'callback', 'considering', 'meeting_scheduled', 'meeting_attended', 'won'];
 
-const currentStatus = computed(() => statusConfig[props.lead.status] || statusConfig.new);
+const currentStatus = computed(() => statusConfig.value[props.lead.status] || statusConfig.value.new);
 const currentStageIndex = computed(() => pipelineStages.indexOf(props.lead.status));
 
 // Get region label
 const getRegionLabel = (key) => {
-    return props.regions[key] || key || 'Belgilanmagan';
+    return props.regions[key] || key || t('leads.show.not_specified');
 };
 
 // Get district label
 const getDistrictLabel = (regionKey, districtKey) => {
-    if (!regionKey || !districtKey) return districtKey || 'Belgilanmagan';
+    if (!regionKey || !districtKey) return districtKey || t('leads.show.not_specified');
     return props.districts[regionKey]?.[districtKey] || districtKey;
 };
 
 // Get gender label
 const getGenderLabel = (gender) => {
-    if (gender === 'male') return 'Erkak';
-    if (gender === 'female') return 'Ayol';
-    return 'Belgilanmagan';
+    if (gender === 'male') return t('leads.show.gender_male');
+    if (gender === 'female') return t('leads.show.gender_female');
+    return t('leads.show.not_specified');
 };
 
 // Format birth date for display
 const formatBirthDate = (date) => {
-    if (!date) return 'Belgilanmagan';
+    if (!date) return t('leads.show.not_specified');
     const d = new Date(date);
     return d.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 // Format currency
 const formatCurrency = (amount) => {
-    if (!amount) return "Belgilanmagan";
+    if (!amount) return t('leads.show.not_specified');
     return formatFullCurrency(amount);
 };
 
@@ -707,10 +710,10 @@ const closeCallWidget = () => {
 // Tabs configuration
 const tabs = computed(() => {
     const baseTabs = [
-        { id: 'activity', label: 'Amaliyotlar', icon: ClockIcon },
-        { id: 'info', label: 'Ma\'lumotlar', icon: UserIcon },
-        { id: 'calls', label: 'Qo\'ng\'iroqlar', icon: PhoneIcon },
-        { id: 'tasks', label: 'Vazifalar', icon: CheckCircleIcon },
+        { id: 'activity', label: t('leads.show.tab_activity'), icon: ClockIcon },
+        { id: 'info', label: t('leads.show.tab_info'), icon: UserIcon },
+        { id: 'calls', label: t('leads.show.tab_calls'), icon: PhoneIcon },
+        { id: 'tasks', label: t('leads.show.tab_tasks'), icon: CheckCircleIcon },
     ];
     return baseTabs;
 });
@@ -798,7 +801,7 @@ onUnmounted(() => {
                             v-if="lead.phone"
                             @click="openCallWidget"
                             class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                            title="Qo'ng'iroq qilish"
+                            :title="t('leads.show.call')"
                         >
                             <PhoneIcon class="w-5 h-5" />
                         </button>
@@ -813,7 +816,7 @@ onUnmounted(() => {
                         <button
                             @click="showDeleteModal = true"
                             class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="O'chirish"
+                            :title="t('leads.show.delete')"
                         >
                             <TrashIcon class="w-5 h-5" />
                         </button>
@@ -871,7 +874,7 @@ onUnmounted(() => {
                                         <PhoneIcon class="w-5 h-5 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div class="min-w-0 flex-1 text-left">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Telefon</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.show.phone') }}</p>
                                         <p class="text-sm font-medium text-gray-900 dark:text-white">{{ lead.phone }}</p>
                                     </div>
                                     <PhoneArrowUpRightIcon class="w-5 h-5 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -896,7 +899,7 @@ onUnmounted(() => {
 
                         <!-- Operator Assignment -->
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Operator</h3>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">{{ t('leads.show.operator') }}</h3>
 
                             <!-- SalesHead: Dropdown inline -->
                             <div v-if="panelType === 'saleshead'" class="relative assign-dropdown">
@@ -909,7 +912,7 @@ onUnmounted(() => {
                                             {{ lead.assigned_to.name?.charAt(0)?.toUpperCase() }}
                                         </span>
                                         <div class="min-w-0 flex-1 text-left">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Tayinlangan</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.show.assigned') }}</p>
                                             <p class="text-sm font-medium text-gray-900 dark:text-white">{{ lead.assigned_to.name }}</p>
                                         </div>
                                     </template>
@@ -918,8 +921,8 @@ onUnmounted(() => {
                                             <UserPlusIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                         </span>
                                         <div class="min-w-0 flex-1 text-left">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Operator</p>
-                                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Tayinlanmagan</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.show.operator') }}</p>
+                                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('leads.show.not_assigned') }}</p>
                                         </div>
                                     </template>
                                     <ArrowPathIcon v-if="isAssigning" class="w-5 h-5 text-gray-400 animate-spin" />
@@ -945,7 +948,7 @@ onUnmounted(() => {
                                             <span class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
                                                 <XMarkIcon class="w-4 h-4" />
                                             </span>
-                                            Tayinlovni olib tashlash
+                                            {{ t('leads.show.remove_assignment') }}
                                         </button>
                                         <button
                                             v-for="operator in operators"
@@ -965,7 +968,7 @@ onUnmounted(() => {
 
                             <!-- Business: Modal based assignment -->
                             <div v-else class="flex items-center justify-between">
-                                <span class="text-sm text-gray-500 dark:text-gray-400">Operator</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('leads.show.operator') }}</span>
                                 <button
                                     v-if="canAssignLeads"
                                     @click="openAssignModal"
@@ -979,7 +982,7 @@ onUnmounted(() => {
                                         {{ lead.assigned_to.name }}
                                     </template>
                                     <template v-else>
-                                        Tayinlanmagan
+                                        {{ t('leads.show.not_assigned') }}
                                     </template>
                                 </button>
                                 <span
@@ -994,7 +997,7 @@ onUnmounted(() => {
                                         {{ lead.assigned_to.name }}
                                     </template>
                                     <template v-else>
-                                        Tayinlanmagan
+                                        {{ t('leads.show.not_assigned') }}
                                     </template>
                                 </span>
                             </div>
@@ -1002,22 +1005,22 @@ onUnmounted(() => {
 
                         <!-- Deal Info (Business panel) -->
                         <div v-if="panelType === 'business'" class="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Bitim ma'lumotlari</h3>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">{{ t('leads.show.deal_info') }}</h3>
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">Taxminiy qiymat</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('leads.show.estimated_value') }}</span>
                                     <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ formatCurrency(lead.estimated_value) }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">Manba</span>
-                                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ lead.source?.name || 'Belgilanmagan' }}</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('leads.show.source') }}</span>
+                                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ lead.source?.name || t('leads.show.not_specified') }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Quick Actions -->
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Tezkor harakatlar</h3>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">{{ t('leads.show.quick_actions') }}</h3>
                             <div class="grid grid-cols-2 gap-2">
                                 <a
                                     v-if="lead.phone"
@@ -1055,21 +1058,21 @@ onUnmounted(() => {
                                     class="flex flex-col items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-xl transition-colors"
                                 >
                                     <PhoneArrowUpRightIcon class="w-6 h-6" />
-                                    <span class="text-xs font-medium">Qo'ng'iroq</span>
+                                    <span class="text-xs font-medium">{{ t('leads.show.call') }}</span>
                                 </button>
                                 <button
                                     @click="openTaskModal()"
                                     class="flex flex-col items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-xl transition-colors"
                                 >
                                     <BellIcon class="w-6 h-6" />
-                                    <span class="text-xs font-medium">Vazifa</span>
+                                    <span class="text-xs font-medium">{{ t('leads.show.task') }}</span>
                                 </button>
                                 <button
                                     @click="showPaymentModal = true"
                                     class="flex flex-col items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl transition-colors"
                                 >
                                     <CurrencyDollarIcon class="w-6 h-6" />
-                                    <span class="text-xs font-medium">To'lov</span>
+                                    <span class="text-xs font-medium">{{ t('leads.show.payment') }}</span>
                                 </button>
                                 <button
                                     v-if="canAssignLeads && panelType === 'business'"
@@ -1077,21 +1080,21 @@ onUnmounted(() => {
                                     class="flex flex-col items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-xl transition-colors"
                                 >
                                     <UserPlusIcon class="w-6 h-6" />
-                                    <span class="text-xs font-medium">Tayinlash</span>
+                                    <span class="text-xs font-medium">{{ t('leads.show.assign') }}</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Timeline -->
                         <div class="p-6">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Vaqt chizig'i</h3>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">{{ t('leads.show.timeline') }}</h3>
                             <div class="space-y-4">
                                 <div class="flex gap-3">
                                     <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
                                         <CalendarIcon class="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Yaratilgan</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ t('leads.show.created') }}</p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ lead.created_at }}</p>
                                     </div>
                                 </div>
@@ -1100,7 +1103,7 @@ onUnmounted(() => {
                                         <PhoneIcon class="w-4 h-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Oxirgi aloqa</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ t('leads.show.last_contact') }}</p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ lead.last_contacted_at }}</p>
                                     </div>
                                 </div>
@@ -1146,7 +1149,7 @@ onUnmounted(() => {
                                                     type="text"
                                                     @focus="isAddingNote = true"
                                                     :class="['w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 cursor-text', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
-                                                    placeholder="Izoh, eslatma yoki faoliyat qo'shing..."
+                                                    :placeholder="t('leads.show.add_note_placeholder')"
                                                 />
                                             </div>
                                             <div v-else>
@@ -1154,7 +1157,7 @@ onUnmounted(() => {
                                                     v-model="newNote"
                                                     rows="3"
                                                     :class="['w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 resize-none', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
-                                                    placeholder="Izoh, eslatma yoki faoliyat qo'shing..."
+                                                    :placeholder="t('leads.show.add_note_placeholder')"
                                                     autofocus
                                                 ></textarea>
                                                 <div class="flex items-center justify-between mt-3">
@@ -1162,7 +1165,7 @@ onUnmounted(() => {
                                                         <button
                                                             @click="openTaskModal()"
                                                             :class="['p-2 text-gray-400 rounded-lg transition-colors', `hover:${themeColors.text} hover:${themeColors.bgLight}`]"
-                                                            title="Vazifa qo'shish"
+                                                            :title="t('leads.show.add_task')"
                                                         >
                                                             <BellIcon class="w-5 h-5" />
                                                         </button>
@@ -1170,7 +1173,7 @@ onUnmounted(() => {
                                                             v-if="lead.phone"
                                                             @click="showSmsModal = true"
                                                             class="p-2 text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
-                                                            title="SMS yuborish"
+                                                            :title="t('leads.show.send_sms')"
                                                         >
                                                             <ChatBubbleBottomCenterTextIcon class="w-5 h-5" />
                                                         </button>
@@ -1181,7 +1184,7 @@ onUnmounted(() => {
                                                             :disabled="isSubmittingNote"
                                                             class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
                                                         >
-                                                            Bekor qilish
+                                                            {{ t('common.cancel') }}
                                                         </button>
                                                         <button
                                                             @click="addNote"
@@ -1189,7 +1192,7 @@ onUnmounted(() => {
                                                             :class="['px-4 py-2 text-white font-medium rounded-lg transition-colors flex items-center gap-2', themeColors.bg, themeColors.bgDisabled, 'disabled:cursor-not-allowed']"
                                                         >
                                                             <span v-if="isSubmittingNote" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                                            {{ isSubmittingNote ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                                            {{ isSubmittingNote ? t('common.saving') : t('common.save') }}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1201,7 +1204,7 @@ onUnmounted(() => {
                                 <!-- Loading State -->
                                 <div v-if="activitiesLoading" class="text-center py-12">
                                     <div :class="['w-8 h-8 border-4 border-t-transparent rounded-full animate-spin mx-auto', themeColors.spinner]"></div>
-                                    <p class="text-gray-500 dark:text-gray-400 mt-4">Yuklanmoqda...</p>
+                                    <p class="text-gray-500 dark:text-gray-400 mt-4">{{ t('common.loading') }}</p>
                                 </div>
 
                                 <!-- Activity Timeline -->
@@ -1236,8 +1239,8 @@ onUnmounted(() => {
                                 <!-- Empty State if no activity -->
                                 <div v-else class="text-center py-12">
                                     <ClockIcon class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Faoliyat tarixi yo'q</h3>
-                                    <p class="text-gray-500 dark:text-gray-400">Bu lead bilan bog'liq faoliyatlar bu yerda ko'rsatiladi</p>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ t('leads.show.no_activity') }}</h3>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('leads.show.no_activity_desc') }}</p>
                                 </div>
                             </div>
 
@@ -1248,11 +1251,11 @@ onUnmounted(() => {
                                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                                         <h3 :class="['text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2']">
                                             <UserIcon :class="['w-5 h-5', themeColors.text]" />
-                                            Shaxsiy ma'lumotlar
+                                            {{ t('leads.show.personal_info') }}
                                         </h3>
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To'liq ism *</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.full_name') }} *</label>
                                                 <input
                                                     v-model="editForm.name"
                                                     type="text"
@@ -1260,7 +1263,7 @@ onUnmounted(() => {
                                                 />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefon raqami</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.phone_number') }}</label>
                                                 <input
                                                     v-model="editForm.phone"
                                                     type="text"
@@ -1270,14 +1273,14 @@ onUnmounted(() => {
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center justify-between">
-                                                    <span>Qo'shimcha telefon</span>
+                                                    <span>{{ t('leads.show.additional_phone') }}</span>
                                                     <button
                                                         v-if="!showPhone2"
                                                         @click="showPhone2 = true"
                                                         type="button"
                                                         :class="['text-xs font-medium', themeColors.text]"
                                                     >
-                                                        + Qo'shish
+                                                        + {{ t('common.add') }}
                                                     </button>
                                                 </label>
                                                 <div v-if="showPhone2" class="flex gap-2">
@@ -1295,7 +1298,7 @@ onUnmounted(() => {
                                                         <XMarkIcon class="w-5 h-5" />
                                                     </button>
                                                 </div>
-                                                <p v-else class="text-sm text-gray-400 dark:text-gray-500 mt-1">Yo'q</p>
+                                                <p v-else class="text-sm text-gray-400 dark:text-gray-500 mt-1">{{ t('common.none') }}</p>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
@@ -1307,16 +1310,16 @@ onUnmounted(() => {
                                                 />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kompaniya</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.company') }}</label>
                                                 <input
                                                     v-model="editForm.company"
                                                     type="text"
-                                                    placeholder="Kompaniya nomi"
+                                                    :placeholder="t('leads.show.company_placeholder')"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tug'ilgan sanasi</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.birth_date') }}</label>
                                                 <input
                                                     v-model="editForm.birth_date"
                                                     type="date"
@@ -1324,14 +1327,14 @@ onUnmounted(() => {
                                                 />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jinsi</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.gender') }}</label>
                                                 <select
                                                     v-model="editForm.gender"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 >
-                                                    <option value="">Tanlang</option>
-                                                    <option value="male">Erkak</option>
-                                                    <option value="female">Ayol</option>
+                                                    <option value="">{{ t('common.select') }}</option>
+                                                    <option value="male">{{ t('leads.show.gender_male') }}</option>
+                                                    <option value="female">{{ t('leads.show.gender_female') }}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1341,45 +1344,45 @@ onUnmounted(() => {
                                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                                         <h3 :class="['text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2']">
                                             <MapPinIcon :class="['w-5 h-5', themeColors.text]" />
-                                            Manzil ma'lumotlari
+                                            {{ t('leads.show.address_info') }}
                                         </h3>
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Viloyat</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.region') }}</label>
                                                 <select
                                                     v-model="editForm.region"
                                                     @change="onRegionChange"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 >
-                                                    <option value="">Tanlang</option>
+                                                    <option value="">{{ t('common.select') }}</option>
                                                     <option v-for="(label, key) in regions" :key="key" :value="key">{{ label }}</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tuman/Shahar</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.district') }}</label>
                                                 <select
                                                     v-if="editForm.region && Object.keys(availableDistricts).length > 0"
                                                     v-model="editForm.district"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 >
-                                                    <option value="">Tanlang</option>
+                                                    <option value="">{{ t('common.select') }}</option>
                                                     <option v-for="(label, key) in availableDistricts" :key="key" :value="key">{{ label }}</option>
                                                 </select>
                                                 <input
                                                     v-else
                                                     v-model="editForm.district"
                                                     type="text"
-                                                    placeholder="Avval viloyatni tanlang"
+                                                    :placeholder="t('leads.show.select_region_first')"
                                                     :disabled="!editForm.region"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 />
                                             </div>
                                             <div class="col-span-2">
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To'liq manzil</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.full_address') }}</label>
                                                 <input
                                                     v-model="editForm.address"
                                                     type="text"
-                                                    placeholder="Ko'cha, uy, xonadon"
+                                                    :placeholder="t('leads.show.address_placeholder')"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 />
                                             </div>
@@ -1390,25 +1393,25 @@ onUnmounted(() => {
                                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                                         <h3 :class="['text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2']">
                                             <DocumentTextIcon :class="['w-5 h-5', themeColors.text]" />
-                                            Qo'shimcha ma'lumotlar
+                                            {{ t('leads.show.additional_info') }}
                                         </h3>
                                         <div class="space-y-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lead manbasi</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.lead_source') }}</label>
                                                 <select
                                                     v-model="editForm.source_id"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 >
-                                                    <option value="">Tanlang</option>
+                                                    <option value="">{{ t('common.select') }}</option>
                                                     <option v-for="source in sources" :key="source.id" :value="source.id">{{ source.name }}</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Izohlar</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('leads.show.notes') }}</label>
                                                 <textarea
                                                     v-model="editForm.notes"
                                                     rows="4"
-                                                    placeholder="Lead haqida qo'shimcha ma'lumotlar..."
+                                                    :placeholder="t('leads.show.notes_placeholder')"
                                                     :class="['w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white resize-none', themeColors.ring, 'focus:ring-2 focus:border-transparent']"
                                                 ></textarea>
                                             </div>
@@ -1424,7 +1427,7 @@ onUnmounted(() => {
                                         >
                                             <span v-if="isSaving" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                             <CheckCircleIcon v-else class="w-5 h-5" />
-                                            {{ isSaving ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                            {{ isSaving ? t('common.saving') : t('common.save') }}
                                         </button>
                                     </div>
                                 </div>
@@ -1446,7 +1449,7 @@ onUnmounted(() => {
                                                 </div>
                                                 <div>
                                                     <p class="text-xl font-bold text-gray-900 dark:text-white">{{ callStats.total_calls }}</p>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.show.total') }}</p>
                                                 </div>
                                             </div>
 
@@ -1461,7 +1464,7 @@ onUnmounted(() => {
                                                 </div>
                                                 <div>
                                                     <p class="text-xl font-bold text-gray-900 dark:text-white">{{ callStats.answer_rate }}<span class="text-sm text-gray-400">%</span></p>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400">Javob</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.show.answered') }}</p>
                                                 </div>
                                             </div>
 
@@ -1476,7 +1479,7 @@ onUnmounted(() => {
                                                 </div>
                                                 <div>
                                                     <p class="text-xl font-bold text-gray-900 dark:text-white">{{ callStats.total_duration_formatted || '0:00' }}</p>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400">Davomiylik</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.show.duration') }}</p>
                                                 </div>
                                             </div>
 
@@ -1512,7 +1515,7 @@ onUnmounted(() => {
                                             <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                             </svg>
-                                            {{ syncingCalls ? 'Sinxronlanmoqda...' : 'Sinxronlash' }}
+                                            {{ syncingCalls ? t('leads.show.syncing') : t('leads.show.sync') }}
                                         </button>
                                     </div>
                                 </div>
@@ -1520,7 +1523,7 @@ onUnmounted(() => {
                                 <!-- Loading -->
                                 <div v-if="callsLoading" class="text-center py-12">
                                     <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                                    <p class="text-gray-500 dark:text-gray-400 mt-4 text-sm">Qo'ng'iroqlar yuklanmoqda...</p>
+                                    <p class="text-gray-500 dark:text-gray-400 mt-4 text-sm">{{ t('leads.show.loading_calls') }}</p>
                                 </div>
 
                                 <!-- Calls List -->
@@ -1576,7 +1579,7 @@ onUnmounted(() => {
                                                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                                                             : 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
                                                     ]">
-                                                        {{ call.direction === 'inbound' ? 'Kiruvchi' : 'Chiquvchi' }}
+                                                        {{ call.direction === 'inbound' ? t('leads.show.inbound') : t('leads.show.outbound') }}
                                                     </span>
 
                                                     <!-- Status Badge -->
@@ -1596,10 +1599,10 @@ onUnmounted(() => {
                                                         <svg v-else-if="call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                         </svg>
-                                                        {{ call.status === 'completed' || call.status === 'answered' ? 'Javob berildi' :
-                                                           call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled' ? 'Javob berilmadi' :
-                                                           call.status === 'busy' ? 'Band' :
-                                                           call.status === 'ringing' ? 'Jiringlamoqda' : call.status }}
+                                                        {{ call.status === 'completed' || call.status === 'answered' ? t('leads.show.call_answered') :
+                                                           call.status === 'missed' || call.status === 'no_answer' || call.status === 'failed' || call.status === 'cancelled' ? t('leads.show.call_missed') :
+                                                           call.status === 'busy' ? t('leads.show.call_busy') :
+                                                           call.status === 'ringing' ? t('leads.show.call_ringing') : call.status }}
                                                     </span>
 
                                                     <!-- Quick Status Toggle (icon only) -->
@@ -1612,7 +1615,7 @@ onUnmounted(() => {
                                                                 ? 'text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                                                                 : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
                                                         ]"
-                                                        :title="call.status === 'completed' || call.status === 'answered' ? 'Javob berilmadi deb belgilash' : 'Javob berildi deb belgilash'"
+                                                        :title="call.status === 'completed' || call.status === 'answered' ? t('leads.show.mark_missed') : t('leads.show.mark_answered')"
                                                     >
                                                         <svg v-if="updatingCallId === call.id" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1670,14 +1673,14 @@ onUnmounted(() => {
                                                     <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
                                                     </svg>
-                                                    {{ loadingRecordingId === call.id ? 'Yuklanmoqda...' : playingCallId === call.id ? 'Stop' : 'Yozuv' }}
+                                                    {{ loadingRecordingId === call.id ? t('common.loading') : playingCallId === call.id ? t('common.stop') : t('leads.show.recording') }}
                                                 </button>
 
                                                 <!-- Call Back Button - Smaller -->
                                                 <button
                                                     @click="showCallWidget = true"
                                                     class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                                    title="Qayta qo'ng'iroq"
+                                                    :title="t('leads.show.callback')"
                                                 >
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -1695,8 +1698,8 @@ onUnmounted(() => {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                         </svg>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Qo'ng'iroqlar yo'q</h3>
-                                    <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto text-sm">Bu mijoz bilan hali qo'ng'iroq amalga oshirilmagan</p>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ t('leads.show.no_calls') }}</h3>
+                                    <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto text-sm">{{ t('leads.show.no_calls_desc') }}</p>
                                     <div class="flex items-center justify-center gap-3">
                                         <button
                                             @click="syncCalls"
@@ -1710,7 +1713,7 @@ onUnmounted(() => {
                                             <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                             </svg>
-                                            Sinxronlash
+                                            {{ t('leads.show.sync') }}
                                         </button>
                                         <button
                                             @click="showCallWidget = true"
@@ -1719,7 +1722,7 @@ onUnmounted(() => {
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                             </svg>
-                                            Qo'ng'iroq qilish
+                                            {{ t('leads.show.make_call') }}
                                         </button>
                                     </div>
                                 </div>
@@ -1730,7 +1733,7 @@ onUnmounted(() => {
                                 <!-- Loading -->
                                 <div v-if="tasksLoading" class="text-center py-12">
                                     <div :class="['w-8 h-8 border-4 border-t-transparent rounded-full animate-spin mx-auto', themeColors.spinner]"></div>
-                                    <p class="text-gray-500 dark:text-gray-400 mt-4">Yuklanmoqda...</p>
+                                    <p class="text-gray-500 dark:text-gray-400 mt-4">{{ t('common.loading') }}</p>
                                 </div>
 
                                 <!-- Kanban Board - 4 Columns -->
@@ -1741,7 +1744,7 @@ onUnmounted(() => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                                                    <span class="font-semibold text-red-700 dark:text-red-400">Muddati o'tgan</span>
+                                                    <span class="font-semibold text-red-700 dark:text-red-400">{{ t('leads.show.tasks_overdue') }}</span>
                                                 </div>
                                                 <span class="text-xs font-bold px-2 py-0.5 bg-red-200 dark:bg-red-800/50 text-red-700 dark:text-red-300 rounded-full">
                                                     {{ tasks.overdue?.length || 0 }}
@@ -1766,7 +1769,7 @@ onUnmounted(() => {
                                                 <h4 class="font-medium text-gray-900 dark:text-white text-sm mb-1">{{ task.title }}</h4>
                                                 <p class="text-xs text-red-500 dark:text-red-400 mb-2">{{ task.due_date_full?.split(' ')[0] }}</p>
                                                 <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">{{ t('leads.show.task_done') }}</button>
                                                     <div class="flex gap-1">
                                                         <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
                                                         <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
@@ -1775,7 +1778,7 @@ onUnmounted(() => {
                                             </div>
                                             <div v-if="!tasks.overdue?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
                                                 <CheckCircleIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                <p class="text-xs">Yo'q</p>
+                                                <p class="text-xs">{{ t('common.none') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1786,7 +1789,7 @@ onUnmounted(() => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                                                    <span class="font-semibold text-blue-700 dark:text-blue-400">Bugun</span>
+                                                    <span class="font-semibold text-blue-700 dark:text-blue-400">{{ t('leads.show.tasks_today') }}</span>
                                                 </div>
                                                 <span class="text-xs font-bold px-2 py-0.5 bg-blue-200 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-full">
                                                     {{ tasks.today?.length || 0 }}
@@ -1816,7 +1819,7 @@ onUnmounted(() => {
                                                     ]">{{ task.priority_label }}</span>
                                                 </div>
                                                 <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">{{ t('leads.show.task_done') }}</button>
                                                     <div class="flex gap-1">
                                                         <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
                                                         <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
@@ -1825,13 +1828,13 @@ onUnmounted(() => {
                                             </div>
                                             <div v-if="!tasks.today?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
                                                 <CalendarIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                <p class="text-xs">Yo'q</p>
+                                                <p class="text-xs">{{ t('common.none') }}</p>
                                             </div>
                                         </div>
                                         <div class="p-2 border-t border-blue-200 dark:border-blue-800/30">
                                             <button @click="openTaskModal()" class="w-full py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center justify-center gap-1">
                                                 <PlusIcon class="w-4 h-4" />
-                                                Vazifa qo'shish
+                                                {{ t('leads.show.add_task_btn') }}
                                             </button>
                                         </div>
                                     </div>
@@ -1842,7 +1845,7 @@ onUnmounted(() => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <div class="w-3 h-3 rounded-full bg-indigo-500"></div>
-                                                    <span class="font-semibold text-indigo-700 dark:text-indigo-400">Ertaga</span>
+                                                    <span class="font-semibold text-indigo-700 dark:text-indigo-400">{{ t('leads.show.tasks_tomorrow') }}</span>
                                                 </div>
                                                 <span class="text-xs font-bold px-2 py-0.5 bg-indigo-200 dark:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 rounded-full">
                                                     {{ tasks.tomorrow?.length || 0 }}
@@ -1872,7 +1875,7 @@ onUnmounted(() => {
                                                     ]">{{ task.priority_label }}</span>
                                                 </div>
                                                 <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">{{ t('leads.show.task_done') }}</button>
                                                     <div class="flex gap-1">
                                                         <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
                                                         <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
@@ -1881,7 +1884,7 @@ onUnmounted(() => {
                                             </div>
                                             <div v-if="!tasks.tomorrow?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
                                                 <CalendarIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                <p class="text-xs">Yo'q</p>
+                                                <p class="text-xs">{{ t('common.none') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1892,7 +1895,7 @@ onUnmounted(() => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <div class="w-3 h-3 rounded-full bg-purple-500"></div>
-                                                    <span class="font-semibold text-purple-700 dark:text-purple-400">Shu hafta</span>
+                                                    <span class="font-semibold text-purple-700 dark:text-purple-400">{{ t('leads.show.tasks_this_week') }}</span>
                                                 </div>
                                                 <span class="text-xs font-bold px-2 py-0.5 bg-purple-200 dark:bg-purple-800/50 text-purple-700 dark:text-purple-300 rounded-full">
                                                     {{ tasks.this_week?.length || 0 }}
@@ -1917,7 +1920,7 @@ onUnmounted(() => {
                                                 <h4 class="font-medium text-gray-900 dark:text-white text-sm mb-1">{{ task.title }}</h4>
                                                 <p class="text-xs text-purple-500 dark:text-purple-400 mb-2">{{ task.due_date_full?.split(' ')[0] }}</p>
                                                 <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">Bajarildi</button>
+                                                    <button @click="completeTask(task)" class="text-xs text-green-600 hover:text-green-700 font-medium">{{ t('leads.show.task_done') }}</button>
                                                     <div class="flex gap-1">
                                                         <button @click="openTaskModal(task)" class="p-1 text-gray-400 hover:text-blue-600"><PencilSquareIcon class="w-4 h-4" /></button>
                                                         <button @click="deleteTask(task)" class="p-1 text-gray-400 hover:text-red-600"><TrashIcon class="w-4 h-4" /></button>
@@ -1926,7 +1929,7 @@ onUnmounted(() => {
                                             </div>
                                             <div v-if="!tasks.this_week?.length" class="text-center py-8 text-gray-400 dark:text-gray-500">
                                                 <CalendarIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                <p class="text-xs">Yo'q</p>
+                                                <p class="text-xs">{{ t('common.none') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1963,16 +1966,16 @@ onUnmounted(() => {
                                 <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <TrashIcon class="w-8 h-8 text-red-600 dark:text-red-400" />
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Leadni o'chirish</h3>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ t('leads.show.delete_lead') }}</h3>
                                 <p class="text-gray-500 dark:text-gray-400 mb-6">
-                                    "{{ lead.name }}" leadini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.
+                                    {{ t('leads.show.delete_confirm', { name: lead.name }) }}
                                 </p>
                                 <div class="flex gap-3">
                                     <button @click="showDeleteModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors">
-                                        Bekor qilish
+                                        {{ t('common.cancel') }}
                                     </button>
                                     <button @click="deleteLead" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors">
-                                        O'chirish
+                                        {{ t('common.delete') }}
                                     </button>
                                 </div>
                             </div>

@@ -1,13 +1,13 @@
 <template>
-    <AdminLayout title="Admin Bosh Sahifa">
+    <AdminLayout :title="t('admin.dashboard.title')">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8 flex items-center justify-between">
                     <div>
-                        <h2 class="text-3xl font-bold text-gray-900">Admin Paneli</h2>
+                        <h2 class="text-3xl font-bold text-gray-900">{{ t('admin.dashboard.panel') }}</h2>
                         <p class="mt-2 text-sm text-gray-600">
-                            Platform statistikasi va boshqaruv
+                            {{ t('admin.dashboard.subtitle') }}
                         </p>
                     </div>
                     <button
@@ -17,7 +17,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Tizim Holati
+                        {{ t('admin.dashboard.system_health') }}
                     </button>
                 </div>
 
@@ -26,7 +26,7 @@
                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Jami Foydalanuvchilar</p>
+                                <p class="text-sm opacity-90">{{ t('admin.dashboard.total_users') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ stats.total_users }}</p>
                             </div>
                             <div class="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center">
@@ -40,9 +40,9 @@
                     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Jami Bizneslar</p>
+                                <p class="text-sm opacity-90">{{ t('admin.dashboard.total_businesses') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ stats.total_businesses }}</p>
-                                <p class="text-xs mt-1 opacity-80">{{ stats.active_businesses }} faol</p>
+                                <p class="text-xs mt-1 opacity-80">{{ stats.active_businesses }} {{ t('admin.common.active') }}</p>
                             </div>
                             <div class="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center">
                                 <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -55,7 +55,7 @@
                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Jami Mijozlar</p>
+                                <p class="text-sm opacity-90">{{ t('admin.dashboard.total_customers') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ stats.total_customers }}</p>
                             </div>
                             <div class="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center">
@@ -69,9 +69,9 @@
                     <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-90">Faol Kampaniyalar</p>
+                                <p class="text-sm opacity-90">{{ t('admin.dashboard.active_campaigns') }}</p>
                                 <p class="text-3xl font-bold mt-2">{{ stats.active_campaigns }}</p>
-                                <p class="text-xs mt-1 opacity-80">/ {{ stats.total_campaigns }} jami</p>
+                                <p class="text-xs mt-1 opacity-80">/ {{ stats.total_campaigns }} {{ t('admin.common.total') }}</p>
                             </div>
                             <div class="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center">
                                 <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -86,7 +86,7 @@
                     <!-- Recent Businesses -->
                     <div class="bg-white rounded-xl shadow-md overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">So'nggi Bizneslar</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ t('admin.dashboard.recent_businesses') }}</h3>
                         </div>
                         <div class="p-6">
                             <div class="space-y-4">
@@ -97,7 +97,7 @@
                                 >
                                     <div class="flex-1">
                                         <h4 class="font-semibold text-gray-900">{{ business.name }}</h4>
-                                        <p class="text-sm text-gray-600">Egasi: {{ business.owner }}</p>
+                                        <p class="text-sm text-gray-600">{{ t('admin.dashboard.owner') }}: {{ business.owner }}</p>
                                         <p class="text-xs text-gray-500 mt-1">{{ business.created_at }}</p>
                                     </div>
                                     <span
@@ -117,7 +117,7 @@
                     <!-- Recent Users -->
                     <div class="bg-white rounded-xl shadow-md overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">So'nggi Foydalanuvchilar</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ t('admin.dashboard.recent_users') }}</h3>
                         </div>
                         <div class="p-6">
                             <div class="space-y-4">
@@ -145,15 +145,15 @@
                 <!-- Top Performing Businesses -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
                     <div class="p-6 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Eng faol Bizneslar</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ t('admin.dashboard.top_businesses') }}</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Biznes Nomi</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Suhbatlar</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ t('admin.dashboard.business_name') }}</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{{ t('admin.dashboard.conversations') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -175,7 +175,7 @@
 
                 <!-- Monthly Growth Charts (Placeholder) -->
                 <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Oylik O'sish</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">{{ t('admin.dashboard.monthly_growth') }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div v-for="(data, key) in monthlyGrowth" :key="key" class="border border-gray-200 rounded-lg p-4">
                             <h4 class="font-semibold text-gray-700 mb-4 capitalize">{{ key }}</h4>
@@ -193,7 +193,7 @@
                 <div v-if="showHealthModal" @click="showHealthModal = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div @click.stop class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-xl font-bold text-gray-900">Tizim Holati</h3>
+                            <h3 class="text-xl font-bold text-gray-900">{{ t('admin.dashboard.system_health') }}</h3>
                             <button @click="showHealthModal = false" class="text-gray-500 hover:text-gray-700">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -209,7 +209,7 @@
                                 'bg-red-100': systemHealth.overall.status === 'unhealthy'
                             }">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-semibold">Umumiy Holat</span>
+                                    <span class="font-semibold">{{ t('admin.dashboard.overall_status') }}</span>
                                     <span class="text-lg font-bold">{{ systemHealth.overall.percentage }}%</span>
                                 </div>
                             </div>
@@ -243,6 +243,9 @@
 import { ref } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import axios from 'axios'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     stats: Object,
@@ -261,7 +264,7 @@ const checkSystemHealth = async () => {
         systemHealth.value = response.data
         showHealthModal.value = true
     } catch (error) {
-        alert('Tizim holatini tekshirishda xatolik yuz berdi')
+        alert(t('admin.dashboard.system_health_error'))
     }
 }
 </script>

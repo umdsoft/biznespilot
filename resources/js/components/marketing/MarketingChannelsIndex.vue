@@ -7,11 +7,11 @@
           <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Marketing
+          {{ t('nav.marketing') }}
         </Link>
-        <h2 class="text-2xl font-bold text-gray-900">Marketing Kanallari</h2>
+        <h2 class="text-2xl font-bold text-gray-900">{{ t('marketing.marketing_channels') }}</h2>
         <p class="mt-1 text-sm text-gray-600">
-          Barcha marketing kanallaringizni boshqaring
+          {{ t('marketing.manage_all_channels') }}
         </p>
       </div>
       <button
@@ -21,7 +21,7 @@
         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Kanal Qo'shish
+        {{ t('marketing.add_channel') }}
       </button>
     </div>
 
@@ -51,15 +51,15 @@
 
         <div class="space-y-2 mb-4">
           <div v-if="channel.followers_count" class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">Kuzatuvchilar:</span>
+            <span class="text-gray-600">{{ t('marketing.followers') }}:</span>
             <span class="font-medium text-gray-900">{{ formatNumber(channel.followers_count) }}</span>
           </div>
           <div v-if="channel.monthly_reach" class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">Oylik qamrov:</span>
+            <span class="text-gray-600">{{ t('marketing.monthly_reach') }}:</span>
             <span class="font-medium text-gray-900">{{ formatNumber(channel.monthly_reach) }}</span>
           </div>
           <div v-if="channel.engagement_rate" class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">Engagement:</span>
+            <span class="text-gray-600">{{ t('marketing.engagement') }}:</span>
             <span class="font-medium text-gray-900">{{ channel.engagement_rate }}%</span>
           </div>
         </div>
@@ -70,7 +70,7 @@
             target="_blank"
             class="text-sm text-primary-600 hover:text-primary-700 inline-flex items-center"
           >
-            Kanalga o'tish
+            {{ t('marketing.go_to_channel') }}
             <svg class="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -83,7 +83,7 @@
             <button
               @click="openEditModal(channel)"
               class="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-              title="Tahrirlash"
+              :title="t('common.edit')"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -92,7 +92,7 @@
             <button
               @click="confirmDelete(channel)"
               class="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-              title="O'chirish"
+              :title="t('common.delete')"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -110,8 +110,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Hech qanday kanal mavjud emas</h3>
-      <p class="text-gray-600 mb-6">Birinchi marketing kanalingizni qo'shing</p>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">{{ t('marketing.no_channels') }}</h3>
+      <p class="text-gray-600 mb-6">{{ t('marketing.add_first_channel') }}</p>
       <button
         @click="openCreateModal"
         class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
@@ -119,7 +119,7 @@
         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Kanal Qo'shish
+        {{ t('marketing.add_channel') }}
       </button>
     </div>
 
@@ -127,14 +127,14 @@
     <Modal v-model="showModal" @close="closeModal">
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          {{ isEditing ? 'Kanalni Tahrirlash' : 'Yangi Kanal Qo\'shish' }}
+          {{ isEditing ? t('marketing.edit_channel') : t('marketing.add_new_channel') }}
         </h3>
 
         <form @submit.prevent="submit" class="space-y-4">
           <Input
             v-model="form.name"
-            label="Kanal nomi"
-            placeholder="Instagram Asosiy Sahifa"
+            :label="t('marketing.channel_name')"
+            :placeholder="t('marketing.channel_name_placeholder')"
             :error="form.errors.name"
             required
           />
@@ -142,19 +142,19 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Turi *
+                {{ t('marketing.channel_type') }} *
               </label>
               <select
                 v-model="form.type"
                 class="w-full rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500"
                 required
               >
-                <option value="">Tanlang</option>
-                <option value="social_media">Ijtimoiy Tarmoq</option>
+                <option value="">{{ t('common.select') }}</option>
+                <option value="social_media">{{ t('marketing.channel_type_social') }}</option>
                 <option value="email">Email</option>
                 <option value="sms">SMS</option>
-                <option value="advertising">Reklama</option>
-                <option value="other">Boshqa</option>
+                <option value="advertising">{{ t('marketing.channel_type_advertising') }}</option>
+                <option value="other">{{ t('common.other') }}</option>
               </select>
               <p v-if="form.errors.type" class="mt-1 text-sm text-red-600">
                 {{ form.errors.type }}
@@ -163,7 +163,7 @@
 
             <Input
               v-model="form.platform"
-              label="Platforma"
+              :label="t('marketing.platform')"
               placeholder="Instagram, Facebook..."
               :error="form.errors.platform"
               required
@@ -179,16 +179,16 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              Holat *
+              {{ t('common.status') }} *
             </label>
             <select
               v-model="form.status"
               class="w-full rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500"
               required
             >
-              <option value="active">Faol</option>
-              <option value="inactive">Faol emas</option>
-              <option value="paused">To'xtatilgan</option>
+              <option value="active">{{ t('marketing.channel_status_active') }}</option>
+              <option value="inactive">{{ t('marketing.channel_status_inactive') }}</option>
+              <option value="paused">{{ t('marketing.channel_status_paused') }}</option>
             </select>
             <p v-if="form.errors.status" class="mt-1 text-sm text-red-600">
               {{ form.errors.status }}
@@ -198,7 +198,7 @@
           <div class="grid grid-cols-3 gap-4">
             <Input
               v-model.number="form.followers_count"
-              label="Kuzatuvchilar soni"
+              :label="t('marketing.followers_count')"
               type="number"
               placeholder="0"
               :error="form.errors.followers_count"
@@ -206,7 +206,7 @@
 
             <Input
               v-model.number="form.monthly_reach"
-              label="Oylik qamrov"
+              :label="t('marketing.monthly_reach')"
               type="number"
               placeholder="0"
               :error="form.errors.monthly_reach"
@@ -214,7 +214,7 @@
 
             <Input
               v-model.number="form.engagement_rate"
-              label="Engagement (%)"
+              :label="t('marketing.engagement') + ' (%)'"
               type="number"
               step="0.01"
               placeholder="0.00"
@@ -224,13 +224,13 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              Izohlar
+              {{ t('common.notes') }}
             </label>
             <textarea
               v-model="form.notes"
               rows="3"
               class="w-full rounded-lg border-gray-300 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Qo'shimcha izohlar..."
+              :placeholder="t('marketing.notes_placeholder')"
             ></textarea>
             <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">
               {{ form.errors.notes }}
@@ -244,14 +244,14 @@
               @click="closeModal"
               class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
             >
-              Bekor qilish
+              {{ t('common.cancel') }}
             </button>
             <Button
               type="submit"
               variant="primary"
               :loading="form.processing"
             >
-              {{ isEditing ? 'Saqlash' : 'Qo\'shish' }}
+              {{ isEditing ? t('common.save') : t('common.add') }}
             </Button>
           </div>
         </form>
@@ -263,10 +263,13 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import Card from '@/components/Card.vue';
 import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
 import Modal from '@/components/Modal.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
   panelType: {
@@ -355,7 +358,7 @@ const submit = () => {
 };
 
 const confirmDelete = (channel) => {
-  if (confirm(`Rostdan ham "${channel.name}" kanalini o'chirmoqchimisiz?`)) {
+  if (confirm(t('marketing.confirm_delete_channel', { name: channel.name }))) {
     router.delete(getApiPath(`/channels/${channel.id}`));
   }
 };
@@ -386,9 +389,9 @@ const getStatusClass = (status) => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    active: 'Faol',
-    inactive: 'Faol emas',
-    paused: 'To\'xtatilgan',
+    active: t('marketing.channel_status_active'),
+    inactive: t('marketing.channel_status_inactive'),
+    paused: t('marketing.channel_status_paused'),
   };
   return labels[status] || status;
 };

@@ -1,5 +1,5 @@
 <template>
-    <BusinessLayout title="Marketing Dashboard">
+    <BusinessLayout :title="t('marketing.dashboard')">
         <MarketingDashboard
             panel-type="business"
             :stats="stats"
@@ -13,6 +13,9 @@
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingDashboard from '@/components/marketing/MarketingDashboard.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     stats: Object,

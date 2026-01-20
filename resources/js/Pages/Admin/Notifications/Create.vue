@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="Yangi bildirishnoma">
+  <AdminLayout :title="t('admin.notifications.create.title')">
     <div class="max-w-4xl mx-auto">
       <!-- Header -->
       <div class="mb-6">
@@ -10,11 +10,11 @@
           <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Orqaga
+          {{ t('common.back') }}
         </Link>
-        <h1 class="text-2xl font-bold text-gray-900">Yangi bildirishnoma yuborish</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ t('admin.notifications.create.heading') }}</h1>
         <p class="mt-1 text-sm text-gray-500">
-          Foydalanuvchilarga shaxsiy yoki ommaviy bildirishnoma yuborish
+          {{ t('admin.notifications.create.subtitle') }}
         </p>
       </div>
 
@@ -22,7 +22,7 @@
       <form @submit.prevent="submit" class="space-y-6">
         <!-- Notification Type -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Bildirishnoma turi</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ t('admin.notifications.create.notification_type') }}</h2>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <button
               v-for="(type, key) in types"
@@ -49,37 +49,37 @@
 
         <!-- Content -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Matn</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ t('admin.notifications.create.content') }}</h2>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Sarlavha <span class="text-red-500">*</span>
+                {{ t('admin.notifications.create.title_field') }} <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.title"
                 type="text"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Bildirishnoma sarlavhasi"
+                :placeholder="t('admin.notifications.create.title_placeholder')"
                 required
               />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Xabar <span class="text-red-500">*</span>
+                {{ t('admin.notifications.create.message_field') }} <span class="text-red-500">*</span>
               </label>
               <textarea
                 v-model="form.message"
                 rows="4"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Bildirishnoma matni..."
+                :placeholder="t('admin.notifications.create.message_placeholder')"
                 required
               ></textarea>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Havola (ixtiyoriy)
+                {{ t('admin.notifications.create.action_url') }}
               </label>
               <input
                 v-model="form.action_url"
@@ -91,13 +91,13 @@
 
             <div v-if="form.action_url">
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Tugma matni
+                {{ t('admin.notifications.create.action_text') }}
               </label>
               <input
                 v-model="form.action_text"
                 type="text"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Ko'rish"
+                :placeholder="t('common.view')"
               />
             </div>
           </div>
@@ -105,7 +105,7 @@
 
         <!-- Recipients -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Qabul qiluvchilar</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ t('admin.notifications.create.recipients') }}</h2>
 
           <!-- Target Selection -->
           <div class="flex flex-wrap gap-3 mb-6">
@@ -133,7 +133,7 @@
               <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
-              Tanlangan bizneslar
+              {{ t('admin.notifications.create.selected_businesses') }}
             </button>
             <button
               type="button"
@@ -146,21 +146,21 @@
               <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              Tanlangan foydalanuvchilar
+              {{ t('admin.notifications.create.selected_users') }}
             </button>
           </div>
 
           <!-- Business Selection -->
           <div v-if="form.target === 'businesses'" class="space-y-3">
             <label class="block text-sm font-medium text-gray-700">
-              Bizneslarni tanlang
+              {{ t('admin.notifications.create.select_businesses') }}
             </label>
             <div class="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
               <div class="p-2">
                 <input
                   v-model="businessSearch"
                   type="text"
-                  placeholder="Qidirish..."
+                  :placeholder="t('common.search') + '...'"
                   class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
                 />
               </div>
@@ -181,21 +181,21 @@
               </div>
             </div>
             <p class="text-sm text-gray-500">
-              {{ form.business_ids.length }} ta biznes tanlandi
+              {{ form.business_ids.length }} {{ t('admin.notifications.create.businesses_selected') }}
             </p>
           </div>
 
           <!-- User Selection -->
           <div v-if="form.target === 'users'" class="space-y-3">
             <label class="block text-sm font-medium text-gray-700">
-              Foydalanuvchilarni tanlang
+              {{ t('admin.notifications.create.select_users') }}
             </label>
             <div class="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
               <div class="p-2">
                 <input
                   v-model="userSearch"
                   type="text"
-                  placeholder="Qidirish..."
+                  :placeholder="t('common.search') + '...'"
                   class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
                 />
               </div>
@@ -219,7 +219,7 @@
               </div>
             </div>
             <p class="text-sm text-gray-500">
-              {{ form.user_ids.length }} ta foydalanuvchi tanlandi
+              {{ form.user_ids.length }} {{ t('admin.notifications.create.users_selected') }}
             </p>
           </div>
 
@@ -230,9 +230,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <p class="text-sm font-medium text-blue-900">Barcha faol bizneslarga yuboriladi</p>
+                <p class="text-sm font-medium text-blue-900">{{ t('admin.notifications.create.all_businesses_info') }}</p>
                 <p class="text-sm text-blue-700 mt-1">
-                  Bu bildirishnoma tizimdagi barcha faol bizneslarning barcha foydalanuvchilariga yuboriladi.
+                  {{ t('admin.notifications.create.all_businesses_desc') }}
                 </p>
               </div>
             </div>
@@ -241,7 +241,7 @@
 
         <!-- Preview -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Ko'rinish</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ t('admin.notifications.create.preview') }}</h2>
           <div class="bg-gray-50 rounded-lg p-4">
             <div class="flex items-start space-x-3">
               <div
@@ -254,7 +254,7 @@
               </div>
               <div class="flex-1">
                 <p class="text-sm font-medium text-gray-900">
-                  {{ form.title || 'Bildirishnoma sarlavhasi' }}
+                  {{ form.title || t('admin.notifications.create.title_placeholder') }}
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                   {{ form.message || 'Bildirishnoma matni bu yerda ko\'rsatiladi...' }}
@@ -271,15 +271,15 @@
             href="/dashboard/notifications"
             class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Bekor qilish
+            {{ t('common.cancel') }}
           </Link>
           <button
             type="submit"
             :disabled="submitting || !canSubmit"
             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="submitting">Yuborilmoqda...</span>
-            <span v-else>Yuborish</span>
+            <span v-if="submitting">{{ t('admin.notifications.create.sending') }}</span>
+            <span v-else>{{ t('admin.notifications.create.send') }}</span>
           </button>
         </div>
       </form>
@@ -292,6 +292,9 @@ import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   users: Array,

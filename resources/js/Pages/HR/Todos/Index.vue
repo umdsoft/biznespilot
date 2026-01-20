@@ -1,7 +1,10 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import TodosIndex from '@/components/todos/TodosIndex.vue';
+
+const { t } = useI18n();
 
 defineProps({
     todos: { type: Object, default: () => ({}) },
@@ -17,14 +20,14 @@ defineProps({
 </script>
 
 <template>
-    <HRLayout title="Todo List">
-        <Head title="Todo List" />
+    <HRLayout :title="t('hr.todos')">
+        <Head :title="t('hr.todos')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Todo List</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Kunlik vazifalar va eslatkichlar</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.todos') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.todos_subtitle') }}</p>
             </div>
 
             <!-- Todos Component -->

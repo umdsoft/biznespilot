@@ -2,6 +2,9 @@
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import FinanceDashboard from '@/components/Dashboard/FinanceDashboard.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     stats: Object,
@@ -12,8 +15,8 @@ defineProps({
 </script>
 
 <template>
-    <FinanceLayout title="Bosh sahifa">
-        <Head title="Moliya bo'limi - Bosh sahifa" />
+    <FinanceLayout :title="t('finance.dashboard')">
+        <Head :title="t('finance.dashboard_page_title')" />
         <FinanceDashboard
             :stats="stats"
             :recent-transactions="recentTransactions"

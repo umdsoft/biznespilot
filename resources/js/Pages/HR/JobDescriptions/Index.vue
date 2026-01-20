@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     BriefcaseIcon,
     PlusIcon,
@@ -12,6 +13,8 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     jobDescriptions: { type: Array, default: () => [] },
@@ -204,16 +207,16 @@ const toggleJobStatus = async (jobId) => {
 </script>
 
 <template>
-    <HRLayout title="Lavozim Majburiyatlari">
-        <Head title="Lavozim Majburiyatlari" />
+    <HRLayout :title="t('hr.job_descriptions')">
+        <Head :title="t('hr.job_descriptions')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Lavozim Majburiyatlari</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.job_descriptions') }}</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Kompaniya lavozim majburiyatlarini boshqaring
+                        {{ t('hr.job_descriptions_subtitle') }}
                     </p>
                 </div>
                 <button
@@ -221,7 +224,7 @@ const toggleJobStatus = async (jobId) => {
                     class="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                     <PlusIcon class="w-5 h-5" />
-                    Lavozim qo'shish
+                    {{ t('hr.add_job_description') }}
                 </button>
             </div>
 

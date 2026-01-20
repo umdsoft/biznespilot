@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Chart, registerables } from 'chart.js';
+import { useI18n } from '@/i18n';
 import {
     ArrowLeftIcon,
     ChartBarIcon,
@@ -9,6 +10,8 @@ import {
     HandThumbUpIcon,
     ArrowTrendingUpIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -150,11 +153,11 @@ onUnmounted(() => {
 
 // Period options for filter
 const periodOptions = [
-    { value: 7, label: '7 kun' },
-    { value: 14, label: '14 kun' },
-    { value: 30, label: '30 kun' },
-    { value: 60, label: '60 kun' },
-    { value: 90, label: '90 kun' },
+    { value: 7, label: t('marketing.days_7') },
+    { value: 14, label: t('marketing.days_14') },
+    { value: 30, label: t('marketing.days_30') },
+    { value: 60, label: t('marketing.days_60') },
+    { value: 90, label: t('marketing.days_90') },
 ];
 
 const changePeriod = (days) => {
@@ -174,7 +177,7 @@ const changePeriod = (days) => {
                     class="inline-flex items-center text-gray-600 hover:text-gray-900"
                 >
                     <ArrowLeftIcon class="w-5 h-5 mr-2" />
-                    Orqaga
+                    {{ t('common.back') }}
                 </Link>
                 <div>
                     <div class="flex items-center space-x-3">
@@ -211,7 +214,7 @@ const changePeriod = (days) => {
 
             <!-- Period Filter -->
             <div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-600">Davr:</span>
+                <span class="text-sm text-gray-600">{{ t('marketing.period') }}:</span>
                 <select
                     @change="(e) => changePeriod(e.target.value)"
                     :value="period"
@@ -236,7 +239,7 @@ const changePeriod = (days) => {
                             </div>
                             <div class="ml-4 flex-1">
                                 <p class="text-sm font-medium text-gray-500 truncate">
-                                    {{ channel.type === 'google_ads' ? 'Total Impressions' : 'Total Reach' }}
+                                    {{ channel.type === 'google_ads' ? t('marketing.total_impressions') : t('marketing.total_reach') }}
                                 </p>
                                 <p class="text-2xl font-bold text-gray-900">
                                     {{ formatNumber(summary.total_reach || summary.total_impressions || 0) }}
@@ -255,7 +258,7 @@ const changePeriod = (days) => {
                             </div>
                             <div class="ml-4 flex-1">
                                 <p class="text-sm font-medium text-gray-500 truncate">
-                                    {{ channel.type === 'google_ads' ? 'Total Clicks' : 'Total Engagement' }}
+                                    {{ channel.type === 'google_ads' ? t('marketing.total_clicks') : t('marketing.total_engagement') }}
                                 </p>
                                 <p class="text-2xl font-bold text-gray-900">
                                     {{ formatNumber(summary.total_engagement || summary.total_clicks || 0) }}
@@ -274,7 +277,7 @@ const changePeriod = (days) => {
                             </div>
                             <div class="ml-4 flex-1">
                                 <p class="text-sm font-medium text-gray-500 truncate">
-                                    {{ channel.type === 'google_ads' ? 'Avg CTR' : 'Avg Engagement' }}
+                                    {{ channel.type === 'google_ads' ? t('marketing.avg_ctr') : t('marketing.avg_engagement') }}
                                 </p>
                                 <p class="text-2xl font-bold text-gray-900">
                                     {{ formatPercentage(summary.avg_engagement_rate || summary.avg_ctr || 0) }}%
@@ -298,7 +301,7 @@ const changePeriod = (days) => {
                             </div>
                             <div class="ml-4 flex-1">
                                 <p class="text-sm font-medium text-gray-500 truncate">
-                                    {{ channel.type === 'google_ads' ? 'Avg ROAS' : 'Growth' }}
+                                    {{ channel.type === 'google_ads' ? t('marketing.avg_roas') : t('marketing.growth') }}
                                 </p>
                                 <p class="text-2xl font-bold text-gray-900">
                                     <span v-if="channel.type === 'google_ads'">
@@ -318,14 +321,14 @@ const changePeriod = (days) => {
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        Performance Grafigi ({{ period }} kun)
+                        {{ t('marketing.performance_chart') }} ({{ period }} {{ t('marketing.days') }})
                     </h3>
                     <div v-if="chartData.labels.length > 0" style="height: 400px;">
                         <canvas ref="chartCanvas"></canvas>
                     </div>
                     <div v-else class="text-center py-12 text-gray-500">
                         <ChartBarIcon class="mx-auto h-12 w-12 text-gray-400 mb-2" />
-                        <p>Bu davr uchun ma'lumotlar yo'q</p>
+                        <p>{{ t('marketing.no_data_for_period') }}</p>
                     </div>
                 </div>
             </div>
@@ -334,19 +337,19 @@ const changePeriod = (days) => {
             <div v-if="channel.type === 'google_ads' && summary.total_cost" class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        Xarajat va Konversiya
+                        {{ t('marketing.cost_and_conversion') }}
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="border-l-4 border-red-500 pl-4">
-                            <p class="text-sm text-gray-600">Jami Xarajat</p>
+                            <p class="text-sm text-gray-600">{{ t('marketing.total_cost') }}</p>
                             <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(summary.total_cost) }}</p>
                         </div>
                         <div class="border-l-4 border-green-500 pl-4">
-                            <p class="text-sm text-gray-600">Jami Konversiyalar</p>
+                            <p class="text-sm text-gray-600">{{ t('marketing.total_conversions') }}</p>
                             <p class="text-2xl font-bold text-gray-900">{{ formatNumber(summary.total_conversions || 0) }}</p>
                         </div>
                         <div class="border-l-4 border-blue-500 pl-4">
-                            <p class="text-sm text-gray-600">Avg CPA</p>
+                            <p class="text-sm text-gray-600">{{ t('marketing.avg_cpa') }}</p>
                             <p class="text-2xl font-bold text-gray-900">
                                 {{ summary.total_conversions > 0 ? formatCurrency(summary.total_cost / summary.total_conversions * 100) : '0' }}
                             </p>
@@ -359,35 +362,35 @@ const changePeriod = (days) => {
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        Oxirgi Ma'lumotlar
+                        {{ t('marketing.recent_data') }}
                     </h3>
                     <div v-if="metrics.length > 0" class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Sana
+                                        {{ t('common.date') }}
                                     </th>
                                     <th v-if="channel.type === 'instagram'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Followers
+                                        {{ t('marketing.followers') }}
                                     </th>
                                     <th v-if="channel.type === 'telegram'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Members
+                                        {{ t('marketing.members') }}
                                     </th>
                                     <th v-if="channel.type === 'facebook'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Page Followers
+                                        {{ t('marketing.page_followers') }}
                                     </th>
                                     <th v-if="channel.type === 'google_ads'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Impressions
+                                        {{ t('marketing.impressions') }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ channel.type === 'google_ads' ? 'Clicks' : 'Reach' }}
+                                        {{ channel.type === 'google_ads' ? t('marketing.clicks') : t('marketing.reach') }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ channel.type === 'google_ads' ? 'Conversions' : 'Engagement' }}
+                                        {{ channel.type === 'google_ads' ? t('marketing.conversions') : t('marketing.engagement') }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ channel.type === 'google_ads' ? 'CTR %' : 'Eng. Rate %' }}
+                                        {{ channel.type === 'google_ads' ? t('marketing.ctr') + ' %' : t('marketing.engagement_rate') + ' %' }}
                                     </th>
                                 </tr>
                             </thead>
@@ -424,7 +427,7 @@ const changePeriod = (days) => {
                         </table>
                     </div>
                     <div v-else class="text-center py-8 text-gray-500">
-                        Ma'lumotlar yo'q
+                        {{ t('common.no_data') }}
                     </div>
                 </div>
             </div>

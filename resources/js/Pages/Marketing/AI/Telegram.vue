@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import AIChannelPage from '@/components/ai-analysis/AIChannelPage.vue';
-import { h } from 'vue';
+import { h, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     channel: Object,
@@ -18,28 +21,28 @@ const TelegramIcon = {
     }
 };
 
-const platformConfig = {
-    title: 'Telegram Funnel',
-    subtitle: 'Telegram kanal va botlaringiz tahlili',
+const platformConfig = computed(() => ({
+    title: t('nav.telegram_funnel'),
+    subtitle: t('marketing.telegram_stats'),
     headerGradient: 'bg-gradient-to-br from-sky-400 to-blue-600',
     icon: TelegramIcon,
     emptyIconBg: 'bg-sky-100 dark:bg-sky-900/30',
     emptyIconColor: 'text-sky-600 dark:text-sky-400',
-    connectTitle: 'Telegram Ulang',
-    connectDescription: 'Telegram kanal yoki botingizni ulang va batafsil tahlillarni ko\'ring.',
+    connectTitle: t('marketing.connect_telegram'),
+    connectDescription: t('marketing.connect_telegram_desc'),
     connectButtonClass: 'bg-sky-600 hover:bg-sky-700',
-    connectButtonText: 'Telegram Ulash',
+    connectButtonText: t('marketing.connect_telegram_btn'),
     metricsConfig: [
-        { key: 'subscribers', label: 'A\'zolar', icon: '👥', iconColor: 'text-sky-600' },
-        { key: 'views', label: 'Ko\'rishlar', icon: '👁️', iconColor: 'text-blue-600' },
-        { key: 'growth', label: 'O\'sish', icon: '📈', iconColor: 'text-green-600', prefix: '+', suffix: '%' },
+        { key: 'subscribers', label: t('marketing.members'), icon: '👥', iconColor: 'text-sky-600' },
+        { key: 'views', label: t('marketing.views'), icon: '👁️', iconColor: 'text-blue-600' },
+        { key: 'growth', label: t('marketing.growth'), icon: '📈', iconColor: 'text-green-600', prefix: '+', suffix: '%' },
     ],
-};
+}));
 </script>
 
 <template>
-    <MarketingLayout title="Telegram Funnel">
-        <Head title="Telegram Funnel" />
+    <MarketingLayout :title="t('nav.telegram_funnel')">
+        <Head :title="t('nav.telegram_funnel')" />
         <AIChannelPage
             :channel="channel"
             :metrics="metrics"

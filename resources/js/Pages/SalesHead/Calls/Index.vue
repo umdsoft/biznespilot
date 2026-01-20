@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     PhoneIcon,
     PhoneArrowUpRightIcon,
@@ -14,6 +15,8 @@ import {
     UserGroupIcon,
     ChartBarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     calls: {
@@ -57,9 +60,9 @@ const props = defineProps({
 });
 
 const periods = [
-    { key: 'daily', label: 'Kunlik' },
-    { key: 'weekly', label: 'Haftalik' },
-    { key: 'monthly', label: 'Oylik' },
+    { key: 'daily', label: t('common.daily') },
+    { key: 'weekly', label: t('common.weekly') },
+    { key: 'monthly', label: t('common.monthly') },
 ];
 
 const searchQuery = ref('');
@@ -133,7 +136,7 @@ const getCallColor = (type) => {
 };
 
 const getCallLabel = (type) => {
-    const labels = { incoming: 'Kiruvchi', outgoing: 'Chiquvchi', missed: "O'tkazib yuborilgan" };
+    const labels = { incoming: t('calls.incoming'), outgoing: t('calls.outgoing'), missed: t('calls.missed') };
     return labels[type] || type;
 };
 
@@ -160,15 +163,15 @@ const getDayButtonClass = (day) => {
 </script>
 
 <template>
-    <SalesHeadLayout title="Qo'ng'iroqlar">
-        <Head title="Qo'ng'iroqlar" />
+    <SalesHeadLayout :title="t('nav.calls')">
+        <Head :title="t('nav.calls')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Qo'ng'iroqlar Analitikasi</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Kunlik va operatorlar kesimida tahlil</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('calls.analytics') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('calls.analytics_subtitle') }}</p>
                 </div>
                 <div class="flex gap-2">
                     <button
@@ -194,56 +197,56 @@ const getDayButtonClass = (day) => {
                         <PhoneIcon class="w-5 h-5 text-gray-500" />
                     </div>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('common.total') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <PhoneArrowDownLeftIcon class="w-5 h-5 text-green-500" />
                     </div>
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.incoming }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Kiruvchi</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('calls.incoming') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <PhoneArrowUpRightIcon class="w-5 h-5 text-blue-500" />
                     </div>
                     <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.outgoing }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Chiquvchi</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('calls.outgoing') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <CheckCircleIcon class="w-5 h-5 text-emerald-500" />
                     </div>
                     <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ stats.answered }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Javob berilgan</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('calls.answered') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <XCircleIcon class="w-5 h-5 text-red-500" />
                     </div>
                     <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.missed }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">O'tkazib yuborilgan</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('calls.missed') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <ChartBarIcon class="w-5 h-5 text-purple-500" />
                     </div>
                     <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats.answer_rate }}%</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Javob %</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('calls.answer_rate') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <ClockIcon class="w-5 h-5 text-orange-500" />
                     </div>
                     <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ formatDuration(stats.avg_duration) }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">O'rtacha</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('common.average') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <ClockIcon class="w-5 h-5 text-teal-500" />
                     </div>
                     <p class="text-2xl font-bold text-teal-600 dark:text-teal-400">{{ formatTotalDuration(stats.total_duration) }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Jami vaqt</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('calls.total_time') }}</p>
                 </div>
             </div>
 
@@ -251,7 +254,7 @@ const getDayButtonClass = (day) => {
             <div v-if="period === 'daily'" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Kunlik Monitoring</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('common.daily') }} {{ t('saleshead.monitoring') }}</h3>
                         <span class="text-sm text-gray-500 dark:text-gray-400">{{ dateInfo.current_month }}</span>
                     </div>
                 </div>
@@ -283,27 +286,27 @@ const getDayButtonClass = (day) => {
                     <div class="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
                         <div>
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ dailyBreakdown[selectedDay].total }}</p>
-                            <p class="text-xs text-gray-500">Jami</p>
+                            <p class="text-xs text-gray-500">{{ t('common.total') }}</p>
                         </div>
                         <div>
                             <p class="text-lg font-bold text-green-600">{{ dailyBreakdown[selectedDay].incoming }}</p>
-                            <p class="text-xs text-gray-500">Kiruvchi</p>
+                            <p class="text-xs text-gray-500">{{ t('calls.incoming') }}</p>
                         </div>
                         <div>
                             <p class="text-lg font-bold text-blue-600">{{ dailyBreakdown[selectedDay].outgoing }}</p>
-                            <p class="text-xs text-gray-500">Chiquvchi</p>
+                            <p class="text-xs text-gray-500">{{ t('calls.outgoing') }}</p>
                         </div>
                         <div>
                             <p class="text-lg font-bold text-emerald-600">{{ dailyBreakdown[selectedDay].answered }}</p>
-                            <p class="text-xs text-gray-500">Javob</p>
+                            <p class="text-xs text-gray-500">{{ t('calls.answered') }}</p>
                         </div>
                         <div>
                             <p class="text-lg font-bold text-red-600">{{ dailyBreakdown[selectedDay].missed }}</p>
-                            <p class="text-xs text-gray-500">O'tkazilgan</p>
+                            <p class="text-xs text-gray-500">{{ t('calls.missed') }}</p>
                         </div>
                         <div>
                             <p class="text-lg font-bold text-orange-600">{{ formatDuration(dailyBreakdown[selectedDay].avg_duration) }}</p>
-                            <p class="text-xs text-gray-500">O'rtacha</p>
+                            <p class="text-xs text-gray-500">{{ t('common.average') }}</p>
                         </div>
                     </div>
                 </div>
@@ -314,7 +317,7 @@ const getDayButtonClass = (day) => {
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <UserGroupIcon class="w-5 h-5 text-blue-600" />
-                        Operatorlar Samaradorligi
+                        {{ t('saleshead.operator_efficiency') }}
                     </h3>
                 </div>
 
@@ -322,15 +325,15 @@ const getDayButtonClass = (day) => {
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Operator</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jami</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Kiruvchi</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Chiquvchi</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Javob</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">O'tkazilgan</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Javob %</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">O'rtacha</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jami vaqt</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('saleshead.operator') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.total') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('calls.incoming') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('calls.outgoing') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('calls.answered') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('calls.missed') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('calls.answer_rate') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.average') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('calls.total_time') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -363,7 +366,7 @@ const getDayButtonClass = (day) => {
                             </tr>
                             <tr v-if="operatorStats.length === 0">
                                 <td colspan="9" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                    Operator ma'lumotlari topilmadi
+                                    {{ t('saleshead.no_operator_data') }}
                                 </td>
                             </tr>
                         </tbody>
@@ -378,7 +381,7 @@ const getDayButtonClass = (day) => {
                     <input
                         v-model="searchQuery"
                         type="text"
-                        placeholder="Qidirish..."
+                        :placeholder="t('common.search')"
                         class="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                     />
                 </div>
@@ -386,23 +389,23 @@ const getDayButtonClass = (day) => {
                     v-model="typeFilter"
                     class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
                 >
-                    <option value="">Barcha turlar</option>
-                    <option value="incoming">Kiruvchi</option>
-                    <option value="outgoing">Chiquvchi</option>
-                    <option value="missed">O'tkazib yuborilgan</option>
+                    <option value="">{{ t('calls.all_types') }}</option>
+                    <option value="incoming">{{ t('calls.incoming') }}</option>
+                    <option value="outgoing">{{ t('calls.outgoing') }}</option>
+                    <option value="missed">{{ t('calls.missed') }}</option>
                 </select>
             </div>
 
             <!-- Calls List -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Qo'ng'iroqlar Tarixi</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('calls.history') }}</h3>
                 </div>
 
                 <div v-if="filteredCalls.length === 0" class="p-12 text-center">
                     <PhoneIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Qo'ng'iroq topilmadi</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Tanlangan davr uchun qo'ng'iroqlar yo'q</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('calls.no_calls_found') }}</h3>
+                    <p class="text-gray-500 dark:text-gray-400">{{ t('calls.no_calls_for_period') }}</p>
                 </div>
 
                 <div v-else class="divide-y divide-gray-200 dark:divide-gray-700">

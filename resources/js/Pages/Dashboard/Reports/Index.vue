@@ -1,9 +1,9 @@
 <template>
-    <AppLayout title="Hisobotlar">
+    <AppLayout :title="t('generated_reports.title')">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                    Hisobotlar
+                    {{ t('generated_reports.title') }}
                 </h2>
                 <div class="flex items-center space-x-3">
                     <Link
@@ -11,7 +11,7 @@
                         class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                         <ClockIcon class="w-4 h-4 mr-2" />
-                        Jadval
+                        {{ t('generated_reports.schedule') }}
                     </Link>
                     <div class="relative" ref="generateDropdownRef">
                         <button
@@ -19,7 +19,7 @@
                             class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                         >
                             <PlusIcon class="w-4 h-4 mr-2" />
-                            Yangi hisobot
+                            {{ t('generated_reports.new_report') }}
                             <ChevronDownIcon class="w-4 h-4 ml-2" />
                         </button>
 
@@ -31,25 +31,25 @@
                                 @click="generateReport('daily')"
                                 class="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
-                                Kunlik xulosa
+                                {{ t('generated_reports.type.daily') }}
                             </button>
                             <button
                                 @click="generateReport('weekly')"
                                 class="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
-                                Haftalik hisobot
+                                {{ t('generated_reports.type.weekly') }}
                             </button>
                             <button
                                 @click="generateReport('monthly')"
                                 class="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
-                                Oylik hisobot
+                                {{ t('generated_reports.type.monthly') }}
                             </button>
                             <button
                                 @click="generateReport('quarterly')"
                                 class="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
-                                Choraklik tahlil
+                                {{ t('generated_reports.type.quarterly') }}
                             </button>
                         </div>
                     </div>
@@ -65,19 +65,19 @@
                         <thead class="bg-gray-50 dark:bg-gray-900">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Hisobot
+                                    {{ t('generated_reports.table.report') }}
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Turi
+                                    {{ t('generated_reports.table.type') }}
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Davr
+                                    {{ t('generated_reports.table.period') }}
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Yaratilgan
+                                    {{ t('generated_reports.table.created') }}
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Amallar
+                                    {{ t('generated_reports.table.actions') }}
                                 </th>
                             </tr>
                         </thead>
@@ -121,7 +121,7 @@
                                         <Link
                                             :href="`/business/generated-reports/${report.id}`"
                                             class="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                                            title="Ko'rish"
+                                            :title="t('generated_reports.view')"
                                         >
                                             <EyeIcon class="w-5 h-5" />
                                         </Link>
@@ -129,7 +129,7 @@
                                             v-if="report.pdf_path"
                                             :href="`/business/generated-reports/${report.id}/download`"
                                             class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400"
-                                            title="Yuklab olish"
+                                            :title="t('generated_reports.download')"
                                         >
                                             <ArrowDownTrayIcon class="w-5 h-5" />
                                         </a>
@@ -140,12 +140,12 @@
                             <tr v-if="reports.data.length === 0">
                                 <td colspan="5" class="px-6 py-12 text-center">
                                     <DocumentChartBarIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                                    <p class="text-gray-500 dark:text-gray-400">Hisobotlar topilmadi</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('generated_reports.empty') }}</p>
                                     <button
                                         @click="showGenerateMenu = true"
                                         class="mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium"
                                     >
-                                        Yangi hisobot yaratish
+                                        {{ t('generated_reports.create_new') }}
                                     </button>
                                 </td>
                             </tr>
@@ -177,6 +177,9 @@ import {
 } from '@heroicons/vue/24/outline';
 import { format } from 'date-fns';
 import { uz } from 'date-fns/locale';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 interface Props {
     reports: {
@@ -207,13 +210,8 @@ function generateReport(type: string) {
 }
 
 function getTypeLabel(type: string): string {
-    const labels: Record<string, string> = {
-        daily_brief: 'Kunlik',
-        weekly_summary: 'Haftalik',
-        monthly_report: 'Oylik',
-        quarterly_review: 'Choraklik',
-    };
-    return labels[type] || type;
+    const typeKey = `generated_reports.type_label.${type}`;
+    return t(typeKey) || type;
 }
 
 function getTypeBadgeClass(type: string): string {

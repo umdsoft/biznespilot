@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from '@/i18n';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
@@ -13,6 +14,8 @@ import {
     ArrowPathIcon,
     CheckCircleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -57,31 +60,31 @@ const form = ref({
 const isLoading = ref(false);
 const error = ref('');
 
-// Task types with icons
-const taskTypes = [
-    { value: 'call', label: 'Qo\'ng\'iroq', icon: PhoneIcon, color: 'text-green-500' },
-    { value: 'meeting', label: 'Uchrashuv', icon: UserIcon, color: 'text-blue-500' },
-    { value: 'email', label: 'Email', icon: EnvelopeIcon, color: 'text-purple-500' },
-    { value: 'task', label: 'Vazifa', icon: CheckCircleIcon, color: 'text-orange-500' },
-    { value: 'follow_up', label: 'Qayta aloqa', icon: ArrowPathIcon, color: 'text-indigo-500' },
-    { value: 'other', label: 'Boshqa', icon: ChatBubbleLeftRightIcon, color: 'text-gray-500' },
-];
+// Task types with icons - computed for i18n
+const taskTypes = computed(() => [
+    { value: 'call', label: t('components.task.type_call'), icon: PhoneIcon, color: 'text-green-500' },
+    { value: 'meeting', label: t('components.task.type_meeting'), icon: UserIcon, color: 'text-blue-500' },
+    { value: 'email', label: t('components.task.type_email'), icon: EnvelopeIcon, color: 'text-purple-500' },
+    { value: 'task', label: t('components.task.type_task'), icon: CheckCircleIcon, color: 'text-orange-500' },
+    { value: 'follow_up', label: t('components.task.type_follow_up'), icon: ArrowPathIcon, color: 'text-indigo-500' },
+    { value: 'other', label: t('components.task.type_other'), icon: ChatBubbleLeftRightIcon, color: 'text-gray-500' },
+]);
 
-// Priority levels
-const priorities = [
-    { value: 'low', label: 'Past', color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
-    { value: 'medium', label: 'O\'rtacha', color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
-    { value: 'high', label: 'Yuqori', color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' },
-    { value: 'urgent', label: 'Shoshilinch', color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
-];
+// Priority levels - computed for i18n
+const priorities = computed(() => [
+    { value: 'low', label: t('components.task.priority_low'), color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
+    { value: 'medium', label: t('components.task.priority_medium'), color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
+    { value: 'high', label: t('components.task.priority_high'), color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' },
+    { value: 'urgent', label: t('components.task.priority_urgent'), color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
+]);
 
-// Quick date options
-const quickDates = [
-    { label: 'Bugun', days: 0 },
-    { label: 'Ertaga', days: 1 },
-    { label: '3 kun', days: 3 },
-    { label: 'Hafta', days: 7 },
-];
+// Quick date options - computed for i18n
+const quickDates = computed(() => [
+    { label: t('components.task.today'), days: 0 },
+    { label: t('components.task.tomorrow'), days: 1 },
+    { label: t('components.task.in_3_days'), days: 3 },
+    { label: t('components.task.in_week'), days: 7 },
+]);
 
 // Set quick date
 const setQuickDate = (days) => {
@@ -159,14 +162,14 @@ const submit = async () => {
             emit('saved', response.data.task);
             emit('close');
         } else {
-            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || t('common.error_occurred');
         }
     } catch (err) {
         console.error('Failed to save task:', err);
 
         // Handle 419 CSRF error
         if (isCsrfError(err)) {
-            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            error.value = t('common.session_expired');
             await refreshCsrfToken();
             return;
         }
@@ -176,7 +179,7 @@ const submit = async () => {
         } else if (err.response?.data?.message) {
             error.value = err.response.data.message;
         } else {
-            error.value = 'Tarmoq xatosi';
+            error.value = t('common.network_error');
         }
     } finally {
         isLoading.value = false;
@@ -216,7 +219,7 @@ const close = () => {
                         <!-- Header -->
                         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                {{ task ? 'Vazifani tahrirlash' : 'Yangi vazifa' }}
+                                {{ task ? t('components.task.edit_title') : t('components.task.new_title') }}
                             </h3>
                             <button @click="close" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                                 <XMarkIcon class="w-5 h-5" />
@@ -238,12 +241,12 @@ const close = () => {
 
                             <!-- Lead selection (if no lead attached and leads provided) -->
                             <div v-if="!lead && leads.length > 0">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lead (ixtiyoriy)</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('components.task.lead_optional') }}</label>
                                 <select
                                     v-model="form.lead_id"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
-                                    <option :value="null">Lead tanlamang</option>
+                                    <option :value="null">{{ t('components.task.no_lead') }}</option>
                                     <option v-for="l in leads" :key="l.id" :value="l.id">
                                         {{ l.name }} - {{ l.phone }}
                                     </option>
@@ -252,7 +255,7 @@ const close = () => {
 
                             <!-- Task Type -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vazifa turi</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('components.task.task_type') }}</label>
                                 <div class="grid grid-cols-3 gap-2">
                                     <button
                                         v-for="type in taskTypes"
@@ -273,18 +276,18 @@ const close = () => {
 
                             <!-- Title -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sarlavha</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('components.task.title_label') }}</label>
                                 <input
                                     v-model="form.title"
                                     type="text"
-                                    placeholder="Masalan: Telefon qilish, Uchrashuv..."
+                                    :placeholder="t('components.task.title_placeholder')"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
 
                             <!-- Due Date -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Muddat</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('components.task.due_date') }}</label>
                                 <div class="flex gap-2 mb-2">
                                     <button
                                         v-for="quick in quickDates"
@@ -315,7 +318,7 @@ const close = () => {
 
                             <!-- Priority -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Muhimlik</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('components.task.priority') }}</label>
                                 <div class="flex gap-2">
                                     <button
                                         v-for="p in priorities"
@@ -335,11 +338,11 @@ const close = () => {
 
                             <!-- Description -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Izoh (ixtiyoriy)</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('components.task.description_optional') }}</label>
                                 <textarea
                                     v-model="form.description"
                                     rows="2"
-                                    placeholder="Qo'shimcha ma'lumot..."
+                                    :placeholder="t('components.task.description_placeholder')"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                                 ></textarea>
                             </div>
@@ -354,7 +357,7 @@ const close = () => {
                                 @click="close"
                                 class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-xl transition-colors"
                             >
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button
                                 @click="submit"
@@ -366,7 +369,7 @@ const close = () => {
                                         : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                                 ]"
                             >
-                                {{ isLoading ? 'Saqlanmoqda...' : (task ? 'Saqlash' : 'Yaratish') }}
+                                {{ isLoading ? t('common.saving') : (task ? t('common.save') : t('common.create')) }}
                             </button>
                         </div>
                     </div>

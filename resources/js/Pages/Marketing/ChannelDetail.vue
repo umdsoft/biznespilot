@@ -1,5 +1,5 @@
 <template>
-    <MarketingLayout :title="`${channel.name} - Analytics`">
+    <MarketingLayout :title="`${channel.name} - ${t('marketing.analytics')}`">
         <MarketingChannelDetail
             panel-type="marketing"
             :channel="channel"
@@ -14,6 +14,9 @@
 <script setup>
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import MarketingChannelDetail from '@/components/marketing/MarketingChannelDetail.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     channel: {

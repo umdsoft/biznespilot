@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     ClockIcon,
     MapPinIcon,
@@ -10,6 +11,8 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     settings: { type: Object, required: true },
@@ -62,21 +65,21 @@ const resetToDefaults = () => {
 </script>
 
 <template>
-    <HRLayout title="Davomat sozlamalari">
-        <Head title="Davomat sozlamalari" />
+    <HRLayout :title="t('hr.attendance_settings')">
+        <Head :title="t('hr.attendance_settings')" />
 
         <div class="max-w-4xl mx-auto space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Davomat Sozlamalari</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Biznes uchun davomat qoidalarini sozlang</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.attendance_settings_title') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.attendance_settings_desc') }}</p>
                 </div>
                 <button
                     @click="resetToDefaults"
                     class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                    Standart qiymatlar
+                    {{ t('hr.default_values') }}
                 </button>
             </div>
 

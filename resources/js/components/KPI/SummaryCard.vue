@@ -34,7 +34,7 @@
     <!-- Value -->
     <div class="mb-4">
       <div class="text-3xl font-bold text-gray-900 mb-1">{{ value }}</div>
-      <div class="text-sm text-gray-500">Maqsad: {{ target }}</div>
+      <div class="text-sm text-gray-500">{{ t('kpi.target') }}: {{ target }}</div>
     </div>
 
     <!-- Progress Bar -->
@@ -66,6 +66,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   icon: {

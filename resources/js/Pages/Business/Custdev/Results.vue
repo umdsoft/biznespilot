@@ -3,6 +3,9 @@ import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { Doughnut, Bar, Line } from 'vue-chartjs';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import {
     Chart as ChartJS,
     ArcElement,

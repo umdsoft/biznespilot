@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import { Doughnut, Bar, Line } from 'vue-chartjs';
 import {
     Chart as ChartJS,
@@ -500,8 +503,8 @@ const copyLink = () => {
 </script>
 
 <template>
-    <MarketingLayout title="So'rovnoma Natijalari">
-        <Head :title="`Natijalar - ${survey.title}`" />
+    <MarketingLayout :title="t('custdev.survey_results')">
+        <Head :title="`${t('custdev.results')} - ${survey.title}`" />
 
         <div class="p-6 space-y-6">
             <!-- Header -->

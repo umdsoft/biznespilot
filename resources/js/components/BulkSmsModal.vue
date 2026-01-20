@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -81,12 +84,12 @@ const applyTemplate = (template) => {
 // Send bulk SMS
 const sendBulkSms = async () => {
     if (!message.value.trim()) {
-        error.value = 'Xabar matnini kiriting';
+        error.value = t('components.sms.enter_message');
         return;
     }
 
     if (leadsWithPhone.value.length === 0) {
-        error.value = 'Telefon raqamli lidlar topilmadi';
+        error.value = t('components.sms.no_leads_with_phone');
         return;
     }
 
@@ -122,10 +125,10 @@ const sendBulkSms = async () => {
                 }, 3000);
             }
         } else {
-            error.value = data.error || 'SMS yuborishda xatolik yuz berdi';
+            error.value = data.error || t('components.sms.send_error');
         }
     } catch (err) {
-        error.value = 'Tarmoq xatosi. Qaytadan urinib ko\'ring.';
+        error.value = t('common.network_error_retry');
         console.error('Bulk SMS send error:', err);
     } finally {
         isSending.value = false;
@@ -169,8 +172,8 @@ watch(() => props.show, async (newVal) => {
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-xl font-semibold text-white">Ommaviy SMS Yuborish</h3>
-                                <p class="text-sm text-slate-400">{{ leadsWithPhone.length }} ta lidga SMS yuborish</p>
+                                <h3 class="text-xl font-semibold text-white">{{ t('components.bulk_sms.title') }}</h3>
+                                <p class="text-sm text-slate-400">{{ t('components.bulk_sms.subtitle', { count: leadsWithPhone.length }) }}</p>
                             </div>
                         </div>
                         <button @click="close" class="text-slate-400 hover:text-white">
@@ -186,7 +189,7 @@ watch(() => props.show, async (newVal) => {
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <p class="mt-2 text-slate-400">Yuklanmoqda...</p>
+                        <p class="mt-2 text-slate-400">{{ t('common.loading') }}</p>
                     </div>
 
                     <div v-else>
@@ -210,20 +213,20 @@ watch(() => props.show, async (newVal) => {
                                 <div class="grid grid-cols-3 gap-4 text-center">
                                     <div class="bg-slate-700/50 rounded-lg p-3">
                                         <p class="text-2xl font-bold text-white">{{ result.total }}</p>
-                                        <p class="text-xs text-slate-400">Jami</p>
+                                        <p class="text-xs text-slate-400">{{ t('common.total') }}</p>
                                     </div>
                                     <div class="bg-slate-700/50 rounded-lg p-3">
                                         <p class="text-2xl font-bold text-green-400">{{ result.sent }}</p>
-                                        <p class="text-xs text-slate-400">Yuborildi</p>
+                                        <p class="text-xs text-slate-400">{{ t('components.sms.sent') }}</p>
                                     </div>
                                     <div class="bg-slate-700/50 rounded-lg p-3">
                                         <p class="text-2xl font-bold text-red-400">{{ result.failed }}</p>
-                                        <p class="text-xs text-slate-400">Xatolik</p>
+                                        <p class="text-xs text-slate-400">{{ t('common.error') }}</p>
                                     </div>
                                 </div>
                                 <!-- Errors list -->
                                 <div v-if="result.errors && result.errors.length > 0" class="mt-4">
-                                    <p class="text-sm font-medium text-slate-300 mb-2">Xatoliklar:</p>
+                                    <p class="text-sm font-medium text-slate-300 mb-2">{{ t('components.sms.errors') }}:</p>
                                     <div class="max-h-32 overflow-y-auto space-y-1">
                                         <div v-for="err in result.errors" :key="err.lead_id" class="text-xs text-red-400 bg-red-500/10 rounded px-2 py-1">
                                             {{ err.name }}: {{ err.error }}
@@ -233,7 +236,7 @@ watch(() => props.show, async (newVal) => {
                             </div>
                             <div class="mt-4 flex justify-end">
                                 <button @click="close" class="px-6 py-2 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors">
-                                    Yopish
+                                    {{ t('common.close') }}
                                 </button>
                             </div>
                         </div>
@@ -247,10 +250,10 @@ watch(() => props.show, async (newVal) => {
                                     </svg>
                                     <div>
                                         <p class="text-sm text-yellow-400">
-                                            {{ leadsWithoutPhone.length }} ta lidda telefon raqami yo'q
+                                            {{ t('components.bulk_sms.leads_without_phone', { count: leadsWithoutPhone.length }) }}
                                         </p>
                                         <p class="text-xs text-yellow-400/70 mt-1">
-                                            Faqat telefon raqamli {{ leadsWithPhone.length }} ta lidga SMS yuboriladi
+                                            {{ t('components.bulk_sms.only_leads_with_phone', { count: leadsWithPhone.length }) }}
                                         </p>
                                     </div>
                                 </div>
@@ -266,7 +269,7 @@ watch(() => props.show, async (newVal) => {
 
                             <!-- Recipients preview -->
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Qabul qiluvchilar ({{ leadsWithPhone.length }})</label>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('components.bulk_sms.recipients') }} ({{ leadsWithPhone.length }})</label>
                                 <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-3 bg-slate-700/30 rounded-xl">
                                     <span
                                         v-for="lead in leadsWithPhone.slice(0, 20)"
@@ -276,14 +279,14 @@ watch(() => props.show, async (newVal) => {
                                         {{ lead.name }}
                                     </span>
                                     <span v-if="leadsWithPhone.length > 20" class="inline-flex items-center px-2 py-1 bg-slate-600 rounded-lg text-xs text-slate-400">
-                                        +{{ leadsWithPhone.length - 20 }} ta
+                                        +{{ leadsWithPhone.length - 20 }}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Templates -->
                             <div v-if="templates.length > 0" class="mb-4">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Shablon tanlash</label>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('components.sms.select_template') }}</label>
                                 <div class="flex flex-wrap gap-2">
                                     <button
                                         v-for="template in templates"
@@ -303,31 +306,31 @@ watch(() => props.show, async (newVal) => {
 
                             <!-- Message Input -->
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Xabar matni</label>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">{{ t('components.sms.message_text') }}</label>
                                 <textarea
                                     v-model="message"
                                     rows="4"
-                                    placeholder="SMS xabarini yozing... ({name}, {phone}, {company}, {email} o'zgaruvchilarini ishlatishingiz mumkin)"
+                                    :placeholder="t('components.sms.message_placeholder')"
                                     class="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 resize-none"
                                 ></textarea>
                                 <div class="flex justify-between mt-2 text-xs">
                                     <div class="flex items-center gap-3">
                                         <span :class="smsInfo.isUnicode ? 'text-yellow-400' : 'text-slate-500'">
-                                            {{ smsInfo.isUnicode ? 'Unicode (kirill)' : 'Latin' }}
+                                            {{ smsInfo.isUnicode ? t('components.sms.unicode') : t('components.sms.latin') }}
                                         </span>
                                         <span class="text-slate-500">
-                                            {{ smsInfo.chars }} belgi | {{ smsInfo.parts }} qism
+                                            {{ smsInfo.chars }} {{ t('components.sms.chars') }} | {{ smsInfo.parts }} {{ t('components.sms.parts') }}
                                         </span>
                                     </div>
                                     <span class="text-teal-400 font-medium">
-                                        Jami: ~{{ totalSms }} SMS
+                                        {{ t('common.total') }}: ~{{ totalSms }} SMS
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Placeholders info -->
                             <div class="mb-6 p-3 bg-slate-700/30 rounded-xl">
-                                <p class="text-xs text-slate-400 mb-2">O'zgaruvchilar:</p>
+                                <p class="text-xs text-slate-400 mb-2">{{ t('components.sms.variables') }}:</p>
                                 <div class="flex flex-wrap gap-2">
                                     <code class="px-2 py-0.5 bg-slate-600 rounded text-teal-400 text-xs">{name}</code>
                                     <code class="px-2 py-0.5 bg-slate-600 rounded text-teal-400 text-xs">{phone}</code>
@@ -342,7 +345,7 @@ watch(() => props.show, async (newVal) => {
                                     @click="close"
                                     class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors"
                                 >
-                                    Bekor qilish
+                                    {{ t('common.cancel') }}
                                 </button>
                                 <button
                                     @click="sendBulkSms"
@@ -354,9 +357,9 @@ watch(() => props.show, async (newVal) => {
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Yuborilmoqda...
+                                        {{ t('components.sms.sending') }}
                                     </span>
-                                    <span v-else>{{ leadsWithPhone.length }} ta lidga SMS yuborish</span>
+                                    <span v-else>{{ t('components.bulk_sms.send_to_leads', { count: leadsWithPhone.length }) }}</span>
                                 </button>
                             </div>
                         </div>

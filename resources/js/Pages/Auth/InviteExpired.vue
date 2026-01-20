@@ -11,7 +11,7 @@
         </div>
 
         <!-- Content -->
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Taklif muddati o'tgan</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ t('auth.invite.expired_title') }}</h1>
         <p class="text-gray-600 mb-6">{{ message }}</p>
 
         <!-- Actions -->
@@ -20,26 +20,30 @@
             :href="route('login')"
             class="block w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
           >
-            Tizimga kirish
+            {{ t('auth.login_link') }}
           </a>
           <a
             :href="route('register')"
             class="block w-full py-3 px-4 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Ro'yxatdan o'tish
+            {{ t('auth.register_link') }}
           </a>
         </div>
       </div>
 
       <!-- Footer -->
       <p class="mt-8 text-center text-xs text-gray-500">
-        &copy; {{ new Date().getFullYear() }} BiznesPilot. Barcha huquqlar himoyalangan.
+        &copy; {{ new Date().getFullYear() }} BiznesPilot. {{ t('auth.copyright') }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 defineProps({
   message: String,
 });

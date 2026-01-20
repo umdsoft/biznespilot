@@ -1,5 +1,5 @@
 <template>
-  <BaseLayout :title="title" :config="layoutConfig">
+  <BaseLayout :title="title || t('layout.home')" :config="layoutConfig">
     <template #navigation>
       <template v-for="(section, sectionIndex) in layoutConfig.navigation" :key="sectionIndex">
         <!-- Section Divider -->
@@ -65,12 +65,15 @@ import { usePage } from '@inertiajs/vue3';
 import BaseLayout from './BaseLayout.vue';
 import NavLink from '@/components/NavLink.vue';
 import { businessLayoutConfig } from '@/composables/useLayoutConfig';
+import { useI18n } from '@/i18n';
 import axios from 'axios';
+
+const { t } = useI18n();
 
 defineProps({
   title: {
     type: String,
-    default: 'Bosh sahifa',
+    default: '',
   },
 });
 

@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed, h, watch } from 'vue';
+import { useI18n } from '@/i18n';
 import {
     PlusIcon,
     MagnifyingGlassIcon,
@@ -44,6 +45,8 @@ const getRouteName = (name) => {
     return prefix + name;
 };
 
+const { t } = useI18n();
+
 const searchQuery = ref(props.filters?.search || '');
 const statusFilter = ref(props.filters?.status || '');
 const typeFilter = ref(props.filters?.type || '');
@@ -56,11 +59,11 @@ const scheduledCampaigns = computed(() => props.campaigns.filter(c => c.status =
 const totalSentMessages = computed(() => props.campaigns.reduce((sum, c) => sum + (c.sent_count || 0), 0));
 
 const filterOptions = computed(() => [
-    { value: 'all', label: 'Barchasi', count: props.campaigns.length },
-    { value: 'running', label: 'Faol', count: activeCampaigns.value },
-    { value: 'scheduled', label: 'Rejalashtirilgan', count: scheduledCampaigns.value },
-    { value: 'draft', label: 'Qoralama', count: props.campaigns.filter(c => c.status === 'draft').length },
-    { value: 'completed', label: 'Yakunlangan', count: props.campaigns.filter(c => c.status === 'completed').length }
+    { value: 'all', label: t('common.all'), count: props.campaigns.length },
+    { value: 'running', label: t('marketing.status_active'), count: activeCampaigns.value },
+    { value: 'scheduled', label: t('marketing.status_scheduled'), count: scheduledCampaigns.value },
+    { value: 'draft', label: t('marketing.status_draft'), count: props.campaigns.filter(c => c.status === 'draft').length },
+    { value: 'completed', label: t('marketing.status_completed'), count: props.campaigns.filter(c => c.status === 'completed').length }
 ]);
 
 const filteredCampaigns = computed(() => {
@@ -84,8 +87,8 @@ const hasActiveFilters = computed(() => {
 
 // Format helpers
 const formatCurrency = (value) => {
-    if (!value) return '0 so\'m';
-    return new Intl.NumberFormat('uz-UZ').format(value) + ' so\'m';
+    if (!value) return '0 ' + t('common.currency');
+    return new Intl.NumberFormat('uz-UZ').format(value) + ' ' + t('common.currency');
 };
 
 const formatDate = (dateString) => {
@@ -109,13 +112,13 @@ const getStatusClass = (status) => {
 
 const getStatusLabel = (status) => {
     const labels = {
-        active: 'Faol',
-        running: 'Faol',
-        completed: 'Tugallangan',
-        paused: 'To\'xtatilgan',
-        draft: 'Qoralama',
-        scheduled: 'Rejalashtirilgan',
-        failed: 'Xatolik'
+        active: t('marketing.status_active'),
+        running: t('marketing.status_active'),
+        completed: t('marketing.status_completed'),
+        paused: t('marketing.status_paused'),
+        draft: t('marketing.status_draft'),
+        scheduled: t('marketing.status_scheduled'),
+        failed: t('marketing.status_failed')
     };
     return labels[status] || status;
 };
@@ -134,11 +137,11 @@ const getStatusIcon = (status) => {
 
 const getTypeName = (type) => {
     const names = {
-        broadcast: 'Ommaviy',
-        drip: 'Drip',
-        trigger: 'Trigger',
-        promotion: 'Aksiya',
-        branding: 'Brending'
+        broadcast: t('marketing.type_broadcast'),
+        drip: t('marketing.type_drip'),
+        trigger: t('marketing.type_trigger'),
+        promotion: t('marketing.campaign_type_promotion'),
+        branding: t('marketing.campaign_type_branding')
     };
     return names[type] || type;
 };
@@ -161,7 +164,7 @@ const getChannelName = (channel) => {
         facebook: 'Facebook',
         email: 'Email',
         sms: 'SMS',
-        all: 'Barcha kanallar'
+        all: t('marketing.all_channels')
     };
     return names[channel] || channel;
 };
@@ -203,7 +206,7 @@ const budgetProgress = (campaign) => {
 
 // Actions
 const launchCampaign = (campaignId) => {
-    if (confirm('Kampaniyani ishga tushirishni xohlaysizmi?')) {
+    if (confirm(t('marketing.confirm_launch_campaign'))) {
         router.post(getHref(`/campaigns/${campaignId}/launch`), {}, {
             preserveScroll: true
         });
@@ -211,7 +214,7 @@ const launchCampaign = (campaignId) => {
 };
 
 const pauseCampaign = (campaignId) => {
-    if (confirm('Kampaniyani to\'xtatishni xohlaysizmi?')) {
+    if (confirm(t('marketing.confirm_pause_campaign'))) {
         router.post(getHref(`/campaigns/${campaignId}/pause`), {}, {
             preserveScroll: true
         });
@@ -219,7 +222,7 @@ const pauseCampaign = (campaignId) => {
 };
 
 const deleteCampaign = (campaignId) => {
-    if (confirm('Kampaniyani o\'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo\'lmaydi.')) {
+    if (confirm(t('marketing.confirm_delete_campaign'))) {
         router.delete(getHref(`/campaigns/${campaignId}`), {
             preserveScroll: true
         });
@@ -233,15 +236,15 @@ const clearFilters = () => {
 </script>
 
 <template>
-    <Head title="Marketing Kampaniyalari" />
+    <Head :title="t('marketing.campaigns')" />
 
     <div class="space-y-6">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Marketing Kampaniyalari</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('marketing.campaigns') }}</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Barcha kanallar bo'ylab marketing kampaniyalarini boshqaring
+                    {{ t('marketing.campaigns_description') }}
                 </p>
             </div>
             <Link
@@ -249,7 +252,7 @@ const clearFilters = () => {
                 class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200"
             >
                 <PlusIcon class="w-5 h-5 mr-2" />
-                Yangi Kampaniya
+                {{ t('marketing.new_campaign') }}
             </Link>
         </div>
 
@@ -259,7 +262,7 @@ const clearFilters = () => {
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Jami Kampaniyalar</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('marketing.total_campaigns') }}</p>
                         <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ campaigns.length }}</p>
                     </div>
                     <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 rounded-xl flex items-center justify-center">
@@ -272,7 +275,7 @@ const clearFilters = () => {
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Faol Kampaniyalar</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('marketing.active_campaigns') }}</p>
                         <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                             {{ activeCampaigns }}
                         </p>
@@ -283,7 +286,7 @@ const clearFilters = () => {
                 </div>
                 <div class="mt-3 flex items-center text-xs text-emerald-600 dark:text-emerald-400">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
-                    Hozir ishlayapti
+                    {{ t('marketing.currently_running') }}
                 </div>
             </div>
 
@@ -291,7 +294,7 @@ const clearFilters = () => {
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Yuborilgan Xabarlar</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('marketing.sent_messages') }}</p>
                         <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-1">
                             {{ totalSentMessages }}
                         </p>
@@ -308,7 +311,7 @@ const clearFilters = () => {
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Rejalashtirilgan</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('marketing.status_scheduled') }}</p>
                         <p class="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-1">
                             {{ scheduledCampaigns }}
                         </p>
@@ -330,7 +333,7 @@ const clearFilters = () => {
                 <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Kampaniya qidirish..."
+                    :placeholder="t('marketing.search_campaign')"
                     class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
             </div>
@@ -368,12 +371,12 @@ const clearFilters = () => {
                     <MegaphoneIcon class="w-10 h-10 text-purple-600 dark:text-purple-400" />
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                    {{ hasActiveFilters ? 'Natija topilmadi' : 'Kampaniya yo\'q' }}
+                    {{ hasActiveFilters ? t('marketing.no_results') : t('marketing.no_campaigns') }}
                 </h3>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
                     {{ hasActiveFilters
-                        ? 'Filtrlarni o\'zgartirib ko\'ring'
-                        : 'Marketing kampaniyalari orqali mijozlaringizga xabarlar yuboring va ularni jalb qiling.'
+                        ? t('marketing.try_changing_filters')
+                        : t('marketing.no_campaigns_desc')
                     }}
                 </p>
                 <div class="mt-6">
@@ -383,14 +386,14 @@ const clearFilters = () => {
                         class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors mr-3"
                     >
                         <XMarkIcon class="w-5 h-5 mr-2" />
-                        Filtrlarni tozalash
+                        {{ t('marketing.clear_filters') }}
                     </button>
                     <Link
                         :href="getHref('/campaigns/create')"
                         class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200"
                     >
                         <PlusIcon class="w-5 h-5 mr-2" />
-                        Birinchi Kampaniyani Yarating
+                        {{ t('marketing.create_first_campaign') }}
                     </Link>
                 </div>
             </div>
@@ -440,7 +443,7 @@ const clearFilters = () => {
                             <!-- Progress Bar -->
                             <div v-if="campaign.sent_count || campaign.budget" class="mt-3 flex items-center gap-6">
                                 <div v-if="campaign.sent_count" class="flex items-center gap-2">
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">Yuborildi:</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('marketing.sent') }}:</span>
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ campaign.sent_count || 0 }}</span>
                                     <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                                         {{ getSuccessRate(campaign) }}%
@@ -448,7 +451,7 @@ const clearFilters = () => {
                                 </div>
                                 <div v-if="campaign.budget > 0" class="flex-1 max-w-[200px]">
                                     <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                        <span>Byudjet</span>
+                                        <span>{{ t('marketing.budget') }}</span>
                                         <span>{{ budgetProgress(campaign) }}%</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -467,7 +470,7 @@ const clearFilters = () => {
                                 v-if="campaign.status === 'draft' || campaign.status === 'scheduled'"
                                 @click.prevent="launchCampaign(campaign.id)"
                                 class="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
-                                title="Ishga tushirish"
+                                :title="t('marketing.launch')"
                             >
                                 <PlayIcon class="w-5 h-5" />
                             </button>
@@ -475,21 +478,21 @@ const clearFilters = () => {
                                 v-if="campaign.status === 'running' || campaign.status === 'active'"
                                 @click.prevent="pauseCampaign(campaign.id)"
                                 class="p-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
-                                title="To'xtatish"
+                                :title="t('marketing.pause')"
                             >
                                 <PauseIcon class="w-5 h-5" />
                             </button>
                             <Link
                                 :href="getHref(`/campaigns/${campaign.id}`)"
                                 class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                title="Ko'rish"
+                                :title="t('common.view')"
                             >
                                 <ArrowRightIcon class="w-5 h-5" />
                             </Link>
                             <button
                                 @click.prevent="deleteCampaign(campaign.id)"
                                 class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                title="O'chirish"
+                                :title="t('common.delete')"
                             >
                                 <XMarkIcon class="w-5 h-5" />
                             </button>
@@ -508,19 +511,19 @@ const clearFilters = () => {
                     </svg>
                 </div>
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Kampaniya turlari haqida</h4>
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ t('marketing.about_campaign_types') }}</h4>
                     <ul class="mt-2 space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
                         <li class="flex items-center">
                             <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                            <strong class="text-gray-700 dark:text-gray-300">Ommaviy:</strong>&nbsp;Bir vaqtda ko'p mijozlarga xabar yuborish
+                            <strong class="text-gray-700 dark:text-gray-300">{{ t('marketing.type_broadcast') }}:</strong>&nbsp;{{ t('marketing.type_broadcast_desc') }}
                         </li>
                         <li class="flex items-center">
                             <span class="w-1.5 h-1.5 bg-purple-500 rounded-full mr-2"></span>
-                            <strong class="text-gray-700 dark:text-gray-300">Drip:</strong>&nbsp;Ketma-ket avtomatik xabarlar zanjiri
+                            <strong class="text-gray-700 dark:text-gray-300">{{ t('marketing.type_drip') }}:</strong>&nbsp;{{ t('marketing.type_drip_desc') }}
                         </li>
                         <li class="flex items-center">
                             <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2"></span>
-                            <strong class="text-gray-700 dark:text-gray-300">Trigger:</strong>&nbsp;Ma'lum hodisalarga javob sifatida yuboriladi
+                            <strong class="text-gray-700 dark:text-gray-300">{{ t('marketing.type_trigger') }}:</strong>&nbsp;{{ t('marketing.type_trigger_desc') }}
                         </li>
                     </ul>
                 </div>

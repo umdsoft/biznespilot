@@ -1,5 +1,8 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     leadForm: Object,
@@ -10,7 +13,7 @@ const themeColor = props.leadForm?.theme_color || '#6366f1';
 
 <template>
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Head title="Rahmat!" />
+        <Head :title="t('public_form.thank_you')" />
 
         <div class="max-w-md w-full">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
@@ -31,9 +34,9 @@ const themeColor = props.leadForm?.theme_color || '#6366f1';
                         </svg>
                     </div>
 
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Rahmat!</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ t('public_form.thank_you') }}</h2>
                     <p class="text-gray-600 dark:text-gray-400">
-                        {{ leadForm?.success_message || 'Ma\'lumotlaringiz muvaffaqiyatli qabul qilindi!' }}
+                        {{ leadForm?.success_message || t('public_form.success_message') }}
                     </p>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 <template>
-    <BusinessLayout title="Bildirishnomalar">
+    <BusinessLayout :title="t('notifications.title')">
         <div class="space-y-6">
             <!-- Hero Header -->
             <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-6 md:p-8">
@@ -15,8 +15,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl md:text-3xl font-bold text-white">Bildirishnomalar</h1>
-                            <p class="mt-1 text-blue-100 text-sm md:text-base">Tizimdagi barcha xabarlar va yangilanishlar</p>
+                            <h1 class="text-2xl md:text-3xl font-bold text-white">{{ t('notifications.title') }}</h1>
+                            <p class="mt-1 text-blue-100 text-sm md:text-base">{{ t('notifications.subtitle') }}</p>
                         </div>
                     </div>
 
@@ -28,7 +28,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        Barchasini o'qilgan deb belgilash
+                        {{ t('notifications.mark_all_read') }}
                     </button>
                 </div>
 
@@ -43,7 +43,7 @@
                             </div>
                             <div>
                                 <p class="text-2xl font-bold text-white">{{ stats.total }}</p>
-                                <p class="text-xs text-blue-200">Jami</p>
+                                <p class="text-xs text-blue-200">{{ t('notifications.stats.total') }}</p>
                             </div>
                         </div>
                     </div>
@@ -57,7 +57,7 @@
                             </div>
                             <div>
                                 <p class="text-2xl font-bold text-white">{{ stats.unread }}</p>
-                                <p class="text-xs text-blue-200">O'qilmagan</p>
+                                <p class="text-xs text-blue-200">{{ t('notifications.stats.unread') }}</p>
                             </div>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
                             </div>
                             <div>
                                 <p class="text-2xl font-bold text-white">{{ stats.total - stats.unread }}</p>
-                                <p class="text-xs text-blue-200">O'qilgan</p>
+                                <p class="text-xs text-blue-200">{{ t('notifications.stats.read') }}</p>
                             </div>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                             </div>
                             <div>
                                 <p class="text-2xl font-bold text-white">{{ todayCount }}</p>
-                                <p class="text-xs text-blue-200">Bugun</p>
+                                <p class="text-xs text-blue-200">{{ t('notifications.stats.today') }}</p>
                             </div>
                         </div>
                     </div>
@@ -99,7 +99,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                         </svg>
-                        <span class="font-medium">Filter:</span>
+                        <span class="font-medium">{{ t('notifications.filter') }}:</span>
                     </div>
 
                     <select
@@ -107,14 +107,14 @@
                         @change="applyFilters"
                         class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
-                        <option value="all">Barcha turlar</option>
-                        <option value="alert">Ogohlantirish</option>
-                        <option value="insight">Tavsiya</option>
-                        <option value="report">Hisobot</option>
-                        <option value="system">Tizim</option>
-                        <option value="celebration">Muvaffaqiyat</option>
-                        <option value="update">Yangilanish</option>
-                        <option value="announcement">E'lon</option>
+                        <option value="all">{{ t('notifications.filter.all_types') }}</option>
+                        <option value="alert">{{ t('notifications.filter.alert') }}</option>
+                        <option value="insight">{{ t('notifications.filter.insight') }}</option>
+                        <option value="report">{{ t('notifications.filter.report') }}</option>
+                        <option value="system">{{ t('notifications.filter.system') }}</option>
+                        <option value="celebration">{{ t('notifications.filter.celebration') }}</option>
+                        <option value="update">{{ t('notifications.filter.update') }}</option>
+                        <option value="announcement">{{ t('notifications.filter.announcement') }}</option>
                     </select>
 
                     <select
@@ -122,9 +122,9 @@
                         @change="applyFilters"
                         class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
-                        <option value="all">Barcha statuslar</option>
-                        <option value="unread">O'qilmagan</option>
-                        <option value="read">O'qilgan</option>
+                        <option value="all">{{ t('notifications.filter.all_statuses') }}</option>
+                        <option value="unread">{{ t('notifications.filter.unread') }}</option>
+                        <option value="read">{{ t('notifications.filter.read') }}</option>
                     </select>
 
                     <div v-if="localFilters.type !== 'all' || localFilters.status !== 'all'" class="ml-auto">
@@ -135,7 +135,7 @@
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            <span>Tozalash</span>
+                            <span>{{ t('notifications.filter.clear') }}</span>
                         </button>
                     </div>
                 </div>
@@ -183,7 +183,7 @@
                                         {{ getTypeLabel(notification.type) }}
                                     </span>
                                     <span v-if="!notification.is_read" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                                        Yangi
+                                        {{ t('notifications.new') }}
                                     </span>
                                 </div>
 
@@ -203,7 +203,7 @@
                                     </div>
 
                                     <div v-if="notification.action_url" class="flex items-center text-xs text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span>Ko'rish</span>
+                                        <span>{{ t('notifications.view') }}</span>
                                         <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                         </svg>
@@ -216,7 +216,7 @@
                                 <button
                                     @click.stop="deleteNotification(notification.id)"
                                     class="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-                                    title="O'chirish"
+                                    :title="t('notifications.delete')"
                                 >
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -241,9 +241,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Bildirishnomalar topilmadi</h3>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ t('notifications.empty') }}</h3>
                         <p class="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                            Hozircha sizga kelgan bildirishnomalar yo'q. Yangi xabarlar bu yerda paydo bo'ladi.
+                            {{ t('notifications.empty_desc') }}
                         </p>
 
                         <div v-if="localFilters.type !== 'all' || localFilters.status !== 'all'" class="mt-6">
@@ -254,7 +254,7 @@
                                 <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                Filterni tozalash
+                                {{ t('notifications.clear_filter') }}
                             </button>
                         </div>
                     </div>
@@ -265,8 +265,7 @@
             <div v-if="notifications.last_page > 1" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 px-5 py-4">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                        <span class="font-medium text-gray-700 dark:text-gray-300">{{ notifications.total }}</span> ta natijadan
-                        <span class="font-medium text-gray-700 dark:text-gray-300">{{ notifications.from }}-{{ notifications.to }}</span> ko'rsatilmoqda
+                        {{ t('notifications.pagination.showing', { total: notifications.total, from: notifications.from, to: notifications.to }) }}
                     </p>
                     <div class="flex items-center space-x-2">
                         <button
@@ -282,7 +281,7 @@
                             <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
-                            Oldingi
+                            {{ t('notifications.pagination.previous') }}
                         </button>
 
                         <div class="hidden sm:flex items-center space-x-1">
@@ -301,7 +300,7 @@
                                     : 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed'
                             ]"
                         >
-                            Keyingi
+                            {{ t('notifications.pagination.next') }}
                             <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
@@ -318,6 +317,9 @@ import { reactive, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     notifications: Object,
@@ -388,7 +390,7 @@ async function handleNotificationClick(notification) {
 }
 
 async function deleteNotification(id) {
-    if (!confirm('Bu bildirishnomani o\'chirishni xohlaysizmi?')) return;
+    if (!confirm(t('notifications.delete_confirm'))) return;
 
     try {
         await axios.delete(`/business/notifications/${id}`);
@@ -406,11 +408,11 @@ function formatTime(dateString) {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Hozirgina';
-    if (diffMins < 60) return `${diffMins} daqiqa oldin`;
-    if (diffHours < 24) return `${diffHours} soat oldin`;
-    if (diffDays === 1) return 'Kecha';
-    if (diffDays < 7) return `${diffDays} kun oldin`;
+    if (diffMins < 1) return t('notifications.time.just_now');
+    if (diffMins < 60) return t('notifications.time.minutes_ago', { count: diffMins });
+    if (diffHours < 24) return t('notifications.time.hours_ago', { count: diffHours });
+    if (diffDays === 1) return t('notifications.time.yesterday');
+    if (diffDays < 7) return t('notifications.time.days_ago', { count: diffDays });
 
     return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' });
 }
@@ -455,16 +457,8 @@ function getTypeIconColor(type) {
 }
 
 function getTypeLabel(type) {
-    const labels = {
-        alert: 'Ogohlantirish',
-        insight: 'Tavsiya',
-        report: 'Hisobot',
-        system: 'Tizim',
-        celebration: 'Muvaffaqiyat',
-        update: 'Yangilanish',
-        announcement: 'E\'lon',
-    };
-    return labels[type] || type;
+    const typeKey = `notifications.type.${type}`;
+    return t(typeKey) || type;
 }
 
 function getTypeBadgeClass(type) {

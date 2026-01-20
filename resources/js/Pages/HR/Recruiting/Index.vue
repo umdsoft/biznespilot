@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     BriefcaseIcon,
     PlusIcon,
@@ -10,6 +11,8 @@ import {
     MapPinIcon,
     CalendarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     jobPostings: { type: Array, default: () => [] },
@@ -80,26 +83,26 @@ const addJobPosting = async () => {
             };
             reloadPage();
         } else {
-            alert(data.error || 'Xatolik yuz berdi');
+            alert(data.error || t('hr.error_occurred'));
         }
     } catch (error) {
         console.error('Error adding job posting:', error);
-        alert('Xatolik yuz berdi');
+        alert(t('hr.error_occurred'));
     }
 };
 </script>
 
 <template>
-    <HRLayout title="Ishga Qabul">
-        <Head title="Ishga Qabul (Recruiting)" />
+    <HRLayout :title="t('hr.recruiting')">
+        <Head :title="t('hr.recruiting')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ishga Qabul</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.recruiting') }}</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Vakansiyalarni boshqaring va arizalarni ko'rib chiqing
+                        {{ t('hr.recruiting_subtitle') }}
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -108,14 +111,14 @@ const addJobPosting = async () => {
                         class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         <UserGroupIcon class="w-5 h-5" />
-                        Arizalar
+                        {{ t('hr.applications') }}
                     </Link>
                     <button
                         @click="showAddModal = true"
                         class="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        Vakansiya qo'shish
+                        {{ t('hr.add_job_posting') }}
                     </button>
                 </div>
             </div>
@@ -153,14 +156,14 @@ const addJobPosting = async () => {
                                 <div class="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
                                     <span class="flex items-center gap-1">
                                         <UserGroupIcon class="w-4 h-4" />
-                                        {{ job.openings }} o'rin
+                                        {{ job.openings }} {{ t('hr.vacancy') }}
                                     </span>
                                     <span class="flex items-center gap-1">
                                         <CalendarIcon class="w-4 h-4" />
                                         {{ job.posted_date }}
                                     </span>
                                     <span class="font-semibold text-purple-600 dark:text-purple-400">
-                                        {{ job.applications_count }} ariza
+                                        {{ job.applications_count }} {{ t('hr.application') }}
                                     </span>
                                 </div>
                                 <div class="mt-3">
@@ -180,7 +183,7 @@ const addJobPosting = async () => {
                 <div v-else class="p-12 text-center">
                     <BriefcaseIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <p class="text-gray-500 dark:text-gray-400">
-                        Vakansiyalar mavjud emas
+                        {{ t('hr.no_vacancies') }}
                     </p>
                 </div>
             </div>
@@ -195,33 +198,33 @@ const addJobPosting = async () => {
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        Yangi Vakansiya Qo'shish
+                        {{ t('hr.add_job_posting') }}
                     </h3>
                 </div>
                 <form @submit.prevent="addJobPosting" class="p-6 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Lavozim nomi <span class="text-red-500">*</span>
+                                {{ t('hr.job_title') }} <span class="text-red-500">*</span>
                             </label>
                             <input
                                 v-model="addForm.title"
                                 type="text"
                                 required
                                 class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                placeholder="Masalan: Senior Developer"
+                                :placeholder="`${t('hr.example')}: Senior Developer`"
                             />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Bo'lim <span class="text-red-500">*</span>
+                                {{ t('hr.department') }} <span class="text-red-500">*</span>
                             </label>
                             <select
                                 v-model="addForm.department"
                                 required
                                 class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             >
-                                <option value="">Bo'lim tanlang</option>
+                                <option value="">{{ t('hr.select') }}</option>
                                 <option v-for="(label, code) in departments" :key="code" :value="code">
                                     {{ label }}
                                 </option>
@@ -229,7 +232,7 @@ const addJobPosting = async () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Ish turi <span class="text-red-500">*</span>
+                                {{ t('hr.employment_type') }} <span class="text-red-500">*</span>
                             </label>
                             <select
                                 v-model="addForm.employment_type"
@@ -243,7 +246,7 @@ const addJobPosting = async () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Joylashuv
+                                {{ t('hr.location') }}
                             </label>
                             <input
                                 v-model="addForm.location"
@@ -254,7 +257,7 @@ const addJobPosting = async () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                O'rinlar soni <span class="text-red-500">*</span>
+                                {{ t('hr.openings') }} <span class="text-red-500">*</span>
                             </label>
                             <input
                                 v-model="addForm.openings"
@@ -266,7 +269,7 @@ const addJobPosting = async () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Yopilish sanasi
+                                {{ t('hr.closing_date') }}
                             </label>
                             <input
                                 v-model="addForm.closing_date"
@@ -276,7 +279,7 @@ const addJobPosting = async () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Minimum maosh (UZS)
+                                {{ t('hr.min_salary') }} (UZS)
                             </label>
                             <input
                                 v-model="addForm.salary_min"
@@ -288,7 +291,7 @@ const addJobPosting = async () => {
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Tavsif
+                            {{ t('hr.job_description') }}
                         </label>
                         <textarea
                             v-model="addForm.description"
@@ -300,7 +303,7 @@ const addJobPosting = async () => {
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Talablar
+                            {{ t('hr.requirements') }}
                         </label>
                         <textarea
                             v-model="addForm.requirements"
@@ -316,13 +319,13 @@ const addJobPosting = async () => {
                             @click="showAddModal = false"
                             class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                         >
-                            Bekor qilish
+                            {{ t('hr.cancel') }}
                         </button>
                         <button
                             type="submit"
                             class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                         >
-                            Saqlash
+                            {{ t('hr.save') }}
                         </button>
                     </div>
                 </form>

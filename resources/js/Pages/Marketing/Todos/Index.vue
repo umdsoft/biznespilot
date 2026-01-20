@@ -1,6 +1,9 @@
 <script setup>
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import TodosPage from '@/components/todos/TodosPage.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     todos: Object,
@@ -16,7 +19,7 @@ defineProps({
 </script>
 
 <template>
-    <MarketingLayout title="Vazifalar">
+    <MarketingLayout :title="t('tasks.title')">
         <TodosPage
             :todos="todos"
             :stats="stats"

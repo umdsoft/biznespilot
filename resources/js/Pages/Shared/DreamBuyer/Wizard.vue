@@ -1,5 +1,5 @@
 <template>
-    <component :is="layoutComponent" :title="isEdit ? 'Tahrirlash' : 'Yangi Ideal Mijoz'">
+    <component :is="layoutComponent" :title="isEdit ? t('dream_buyer.edit') : t('dream_buyer.new_profile')">
         <div class="min-h-screen py-6 px-4 sm:px-6 lg:px-8">
             <div class="max-w-4xl mx-auto">
                 <!-- Back Link -->
@@ -10,7 +10,7 @@
                     <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Orqaga qaytish
+                    {{ t('common.back') }}
                 </button>
 
                 <!-- Header -->
@@ -22,10 +22,10 @@
                     </div>
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            {{ isEdit ? 'Ideal Mijozni Tahrirlash' : 'Yangi Ideal Mijoz Yaratish' }}
+                            {{ isEdit ? t('dream_buyer.edit') : t('dream_buyer.create_title') }}
                         </h1>
                         <p class="text-gray-500 dark:text-gray-400 mt-1">
-                            "Sell Like Crazy" metodologiyasi asosida 9 ta savolga javob bering
+                            {{ t('dream_buyer.create_desc') }}
                         </p>
                     </div>
                 </div>
@@ -401,7 +401,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
-                            Oldingi
+                            {{ t('common.previous') }}
                         </button>
                         <div v-else></div>
 
@@ -411,7 +411,7 @@
                                 @click="goBack"
                                 class="px-5 py-3 text-gray-500 dark:text-gray-400 font-medium hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                             >
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
 
                             <button
@@ -421,7 +421,7 @@
                                 :disabled="!isCurrentStepValid"
                                 class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-purple-600"
                             >
-                                Keyingi
+                                {{ t('common.next') }}
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                 </svg>
@@ -440,7 +440,7 @@
                                 <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
-                                {{ form.processing ? 'Saqlanmoqda...' : (isEdit ? 'Saqlash' : 'Yaratish') }}
+                                {{ form.processing ? t('common.loading') : (isEdit ? t('common.save') : t('dream_buyer.create_button')) }}
                             </button>
                         </div>
                     </div>
@@ -453,12 +453,15 @@
 <script setup>
 import { ref, computed, h, onMounted } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     dreamBuyer: {

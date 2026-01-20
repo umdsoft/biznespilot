@@ -1,8 +1,11 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatFullCurrency, formatPercent, getInitials, getAvatarColor } from '@/utils/formatting';
 import { ArrowLeftIcon, PhoneIcon, CurrencyDollarIcon, CheckCircleIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     employee: {
@@ -32,8 +35,8 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
 </script>
 
 <template>
-    <SalesHeadLayout title="Individual Samaradorlik">
-        <Head title="Individual Samaradorlik" />
+    <SalesHeadLayout :title="t('saleshead.individual_performance')">
+        <Head :title="t('saleshead.individual_performance')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -45,8 +48,8 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
                     <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Individual Samaradorlik</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Xodim bo'yicha batafsil tahlil</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('saleshead.individual_performance') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.employee_detailed_analysis') }}</p>
                 </div>
             </div>
 
@@ -64,7 +67,7 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
                     </div>
                     <div class="ml-auto text-right">
                         <p class="text-4xl font-bold">{{ employee.performance }}%</p>
-                        <p class="text-emerald-100">Samaradorlik</p>
+                        <p class="text-emerald-100">{{ t('saleshead.performance') }}</p>
                     </div>
                 </div>
             </div>
@@ -78,7 +81,7 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
                         </div>
                     </div>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ employee.calls }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Qo'ng'iroqlar</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('calls.calls') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-3 mb-3">
@@ -87,7 +90,7 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
                         </div>
                     </div>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ employee.deals }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Bitimlar</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('sales.deals') }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-3 mb-3">
@@ -96,14 +99,14 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
                         </div>
                     </div>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatFullCurrency(employee.revenue) }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Daromad</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.revenue') }}</p>
                 </div>
             </div>
 
             <!-- Target Progress -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-semibold text-gray-900 dark:text-white">Maqsad bajarilishi</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('saleshead.target_completion') }}</h3>
                     <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatFullCurrency(employee.target) }}</span>
                 </div>
                 <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -112,7 +115,7 @@ const targetProgress = (props.employee.revenue / props.employee.target) * 100;
                         :style="{ width: `${Math.min(targetProgress, 100)}%` }"
                     ></div>
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ formatPercent(targetProgress) }} bajarildi</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ formatPercent(targetProgress) }} {{ t('analytics.completed') }}</p>
             </div>
         </div>
     </SalesHeadLayout>

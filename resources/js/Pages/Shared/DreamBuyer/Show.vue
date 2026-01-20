@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
@@ -8,6 +9,8 @@ import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import { SparklesIcon, DocumentTextIcon, MegaphoneIcon, StarIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     dreamBuyer: { type: Object, required: true },
@@ -144,7 +147,7 @@ const copyLink = () => {
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
-                Barcha Ideal Mijozlar
+                {{ t('dream_buyer.all_profiles') }}
             </Link>
 
             <!-- Header Card -->
@@ -162,7 +165,7 @@ const copyLink = () => {
                             <div class="flex items-center gap-2 mt-2">
                                 <span v-if="dreamBuyer.is_primary" class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-semibold">
                                     <StarIcon class="w-3 h-3" />
-                                    Asosiy
+                                    {{ t('dream_buyer.primary') }}
                                 </span>
                             </div>
                         </div>
@@ -175,7 +178,7 @@ const copyLink = () => {
                             class="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-medium rounded-xl transition-all"
                         >
                             <StarIcon class="w-4 h-4" />
-                            Asosiy qilish
+                            {{ t('dream_buyer.set_primary') }}
                         </button>
                         <Link
                             :href="getRoute('dream-buyer.edit', dreamBuyer.id)"
@@ -184,7 +187,7 @@ const copyLink = () => {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
-                            Tahrirlash
+                            {{ t('dream_buyer.edit') }}
                         </Link>
                         <button
                             @click="showDeleteModal = true"
@@ -205,16 +208,16 @@ const copyLink = () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                             <div>
-                                <p class="font-medium">CustDev So'rovnomasi</p>
+                                <p class="font-medium">{{ t('dream_buyer.custdev_survey') }}</p>
                                 <code class="text-sm text-indigo-200">/s/{{ dreamBuyer.survey.slug }}</code>
                             </div>
                         </div>
                         <div class="flex gap-2">
                             <button @click="copyLink" class="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm">
-                                Linkni nusxalash
+                                {{ t('dream_buyer.copy_link') }}
                             </button>
                             <Link :href="getRoute('custdev.results', { custdev: dreamBuyer.survey.id })" class="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm">
-                                Natijalar
+                                {{ t('dream_buyer.results') }}
                             </Link>
                         </div>
                     </div>
@@ -227,7 +230,7 @@ const copyLink = () => {
                     <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center">
                         <SparklesIcon class="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">AI Yordamchi</h2>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ t('dream_buyer.ai_helper') }}</h2>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <button
@@ -236,15 +239,15 @@ const copyLink = () => {
                         class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all disabled:opacity-50"
                     >
                         <DocumentTextIcon class="w-5 h-5" />
-                        <span v-if="generatingContentIdeas">Generatsiya...</span>
-                        <span v-else>Kontent g'oyalari</span>
+                        <span v-if="generatingContentIdeas">{{ t('dream_buyer.generating') }}</span>
+                        <span v-else>{{ t('dream_buyer.content_ideas') }}</span>
                     </button>
                     <button
                         @click="showAdCopyModal = true"
                         class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all"
                     >
                         <MegaphoneIcon class="w-5 h-5" />
-                        Reklama matni yaratish
+                        {{ t('dream_buyer.create_ad_copy') }}
                     </button>
                 </div>
             </div>
@@ -253,7 +256,7 @@ const copyLink = () => {
             <div v-if="contentIdeas.length > 0" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <DocumentTextIcon class="w-5 h-5 text-purple-600" />
-                    Kontent G'oyalari
+                    {{ t('dream_buyer.content_ideas') }}
                 </h3>
                 <div class="space-y-3">
                     <div v-for="(idea, index) in contentIdeas" :key="index" class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
@@ -266,15 +269,15 @@ const copyLink = () => {
             <div v-if="adCopy" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <MegaphoneIcon class="w-5 h-5 text-indigo-600" />
-                    Reklama Matni
+                    {{ t('dream_buyer.ad_copy') }}
                 </h3>
                 <div class="space-y-4">
                     <div v-if="adCopy.headline" class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-                        <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium mb-1">Sarlavha</p>
+                        <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium mb-1">{{ t('dream_buyer.headline') }}</p>
                         <p class="text-lg font-bold text-gray-900 dark:text-white">{{ adCopy.headline }}</p>
                     </div>
                     <div v-if="adCopy.body" class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                        <p class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">Asosiy matn</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">{{ t('dream_buyer.main_text') }}</p>
                         <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{{ adCopy.body }}</p>
                     </div>
                     <div v-if="adCopy.cta" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
@@ -290,7 +293,7 @@ const copyLink = () => {
                 <div v-if="whereSpendTime.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-blue-500 to-cyan-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">📱</span> Qayerda Vaqt O'tkazadi
+                            <span class="text-xl">📱</span> {{ t('dream_buyer.where_spend_time_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -306,7 +309,7 @@ const copyLink = () => {
                 <div v-if="infoSources.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">🔍</span> Ma'lumot Manbalari
+                            <span class="text-xl">🔍</span> {{ t('dream_buyer.info_sources_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -322,7 +325,7 @@ const copyLink = () => {
                 <div v-if="frustrations.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-red-500 to-rose-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">😤</span> Muammolar
+                            <span class="text-xl">😤</span> {{ t('dream_buyer.frustrations_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -339,7 +342,7 @@ const copyLink = () => {
                 <div v-if="dreams.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">✨</span> Orzular
+                            <span class="text-xl">✨</span> {{ t('dream_buyer.dreams_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -360,7 +363,7 @@ const copyLink = () => {
                 <div v-if="fears.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">😰</span> Qo'rquvlar
+                            <span class="text-xl">😰</span> {{ t('dream_buyer.fears_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -377,7 +380,7 @@ const copyLink = () => {
                 <div v-if="communicationPreferences.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-purple-500 to-pink-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">💬</span> Aloqa Usullari
+                            <span class="text-xl">💬</span> {{ t('dream_buyer.communication_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -393,7 +396,7 @@ const copyLink = () => {
                 <div v-if="dailyRoutine.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-cyan-500 to-teal-600 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">🌅</span> Kundalik Hayot
+                            <span class="text-xl">🌅</span> {{ t('dream_buyer.daily_routine_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -409,7 +412,7 @@ const copyLink = () => {
                 <div v-if="happinessTriggers.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-gradient-to-r from-yellow-500 to-amber-500 px-5 py-4">
                         <h2 class="font-bold text-white flex items-center gap-2">
-                            <span class="text-xl">😊</span> Baxt Keltiruvchilar
+                            <span class="text-xl">😊</span> {{ t('dream_buyer.happiness_title') }}
                         </h2>
                     </div>
                     <div class="p-5">
@@ -431,15 +434,15 @@ const copyLink = () => {
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-1">Profil to'ldirilmagan</h3>
+                        <h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-1">{{ t('dream_buyer.profile_incomplete') }}</h3>
                         <p class="text-amber-700 dark:text-amber-400 text-sm mb-3">
-                            Ideal Mijoz profilini to'ldiring - bu sizga marketing va savdoda katta yordam beradi.
+                            {{ t('dream_buyer.profile_incomplete_desc') }}
                         </p>
                         <Link
                             :href="getRoute('dream-buyer.edit', dreamBuyer.id)"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition-colors"
                         >
-                            Profilni to'ldirish
+                            {{ t('dream_buyer.fill_profile') }}
                         </Link>
                     </div>
                 </div>
@@ -450,30 +453,30 @@ const copyLink = () => {
         <Teleport to="body">
             <div v-if="showAdCopyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Reklama matni yaratish</h3>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ t('dream_buyer.create_ad_copy') }}</h3>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Mahsulot/Xizmat nomi
+                                {{ t('dream_buyer.product_name') }}
                             </label>
                             <input
                                 v-model="adCopyProduct"
                                 type="text"
-                                placeholder="Masalan: Online kurs, Konsultatsiya..."
+                                :placeholder="t('dream_buyer.product_placeholder')"
                                 class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
                         <div class="flex gap-3 justify-end">
                             <button @click="showAdCopyModal = false" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all">
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button
                                 @click="generateAdCopy"
                                 :disabled="generatingAdCopy || !adCopyProduct.trim()"
                                 class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all disabled:opacity-50"
                             >
-                                <span v-if="generatingAdCopy">Generatsiya...</span>
-                                <span v-else>Yaratish</span>
+                                <span v-if="generatingAdCopy">{{ t('dream_buyer.generating') }}</span>
+                                <span v-else>{{ t('dream_buyer.create') }}</span>
                             </button>
                         </div>
                     </div>
@@ -494,19 +497,19 @@ const copyLink = () => {
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">O'chirishni tasdiqlash</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Bu amalni qaytarib bo'lmaydi</p>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ t('dream_buyer.delete_confirm_title') }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dream_buyer.delete_warning') }}</p>
                             </div>
                         </div>
                         <p class="text-gray-700 dark:text-gray-300 mb-6">
-                            <strong class="text-gray-900 dark:text-gray-100">{{ dreamBuyer.name }}</strong> nomli profilni o'chirishni xohlaysizmi?
+                            {{ t('dream_buyer.delete_confirm', { name: dreamBuyer.name }) }}
                         </p>
                         <div class="flex gap-3">
                             <button @click="showDeleteModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors">
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button @click="deleteBuyer" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors">
-                                O'chirish
+                                {{ t('common.delete') }}
                             </button>
                         </div>
                     </div>

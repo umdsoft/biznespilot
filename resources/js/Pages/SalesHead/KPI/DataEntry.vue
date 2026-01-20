@@ -1,5 +1,5 @@
 <template>
-  <SalesHeadLayout title="Kunlik Ma'lumotlar">
+  <SalesHeadLayout :title="t('kpi.daily_data')">
     <div class="max-w-3xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
@@ -7,13 +7,13 @@
           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          KPI sahifasiga qaytish
+          {{ t('kpi.back_to_kpi') }}
         </a>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Kunlik Ma'lumotlarni Kiritish
+          {{ t('kpi.enter_daily_data') }}
         </h2>
         <p class="mt-1 text-gray-600 dark:text-gray-400">
-          Sotuv ko'rsatkichlarini kunlik ravishda kiriting
+          {{ t('kpi.enter_sales_indicators_daily') }}
         </p>
       </div>
 
@@ -21,7 +21,7 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <div class="flex items-center justify-between">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sana</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.date') }}</label>
             <input
               v-model="selectedDate"
               type="date"
@@ -46,11 +46,11 @@
             <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Lidlar
+            {{ t('sales.leads') }}
           </h3>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Jami kelgan lidlar soni
+              {{ t('kpi.total_incoming_leads') }}
             </label>
             <input
               v-model.number="form.leads_total"
@@ -68,12 +68,12 @@
             <svg class="w-5 h-5 text-teal-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            Sotuvlar
+            {{ t('kpi.sales') }}
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Yangi sotuvlar (dona)
+                {{ t('kpi.new_sales') }}
               </label>
               <input
                 v-model.number="form.sales_new"
@@ -85,7 +85,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Qayta sotuvlar (dona)
+                {{ t('kpi.repeat_sales') }}
               </label>
               <input
                 v-model.number="form.sales_repeat"
@@ -104,12 +104,12 @@
             <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Daromad
+            {{ t('saleshead.revenue') }}
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Yangi sotuvlardan daromad (so'm)
+                {{ t('kpi.new_sales_revenue') }}
               </label>
               <input
                 v-model.number="form.revenue_new"
@@ -122,7 +122,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Qayta sotuvlardan daromad (so'm)
+                {{ t('kpi.repeat_sales_revenue') }}
               </label>
               <input
                 v-model.number="form.revenue_repeat"
@@ -138,22 +138,22 @@
 
         <!-- Summary -->
         <div v-if="totalSales > 0 || totalRevenue > 0" class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 p-6">
-          <h3 class="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-4">Hisoblangan ko'rsatkichlar</h3>
+          <h3 class="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-4">{{ t('kpi.calculated_indicators') }}</h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p class="text-sm text-emerald-700 dark:text-emerald-300">Jami sotuvlar</p>
+              <p class="text-sm text-emerald-700 dark:text-emerald-300">{{ t('kpi.total_sales') }}</p>
               <p class="text-xl font-bold text-emerald-900 dark:text-emerald-100">{{ totalSales }}</p>
             </div>
             <div>
-              <p class="text-sm text-emerald-700 dark:text-emerald-300">Jami daromad</p>
+              <p class="text-sm text-emerald-700 dark:text-emerald-300">{{ t('analytics.total_revenue') }}</p>
               <p class="text-xl font-bold text-emerald-900 dark:text-emerald-100">{{ formatCurrency(totalRevenue) }}</p>
             </div>
             <div>
-              <p class="text-sm text-emerald-700 dark:text-emerald-300">O'rtacha chek</p>
+              <p class="text-sm text-emerald-700 dark:text-emerald-300">{{ t('kpi.avg_check') }}</p>
               <p class="text-xl font-bold text-emerald-900 dark:text-emerald-100">{{ formatCurrency(avgCheck) }}</p>
             </div>
             <div>
-              <p class="text-sm text-emerald-700 dark:text-emerald-300">Konversiya</p>
+              <p class="text-sm text-emerald-700 dark:text-emerald-300">{{ t('saleshead.conversion') }}</p>
               <p class="text-xl font-bold text-emerald-900 dark:text-emerald-100">{{ conversionRate }}%</p>
             </div>
           </div>
@@ -165,13 +165,13 @@
             href="/sales-head/kpi"
             class="px-6 py-3 rounded-lg font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
           >
-            Bekor qilish
+            {{ t('common.cancel') }}
           </a>
           <button
             type="submit"
             class="px-6 py-3 rounded-lg font-medium bg-emerald-600 text-white hover:bg-emerald-700"
           >
-            Saqlash
+            {{ t('common.save') }}
           </button>
         </div>
       </form>
@@ -183,6 +183,9 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   date: String,

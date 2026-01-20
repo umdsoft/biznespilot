@@ -2,6 +2,9 @@
 import { Head } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import { Line, Doughnut, Bar } from 'vue-chartjs';
 import {
     Chart as ChartJS,
@@ -129,15 +132,15 @@ const chartOptions = {
 </script>
 
 <template>
-    <Head title="Chatbot Dashboard" />
+    <Head :title="t('chatbot.dashboard')" />
 
-    <BusinessLayout>
+    <BusinessLayout :title="t('chatbot.analytics')">
         <div class="py-12">
             <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">Chatbot Analytics</h1>
-                    <p class="mt-2 text-gray-600">Mijozlar bilan suhbatlarning to'liq tahlili</p>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ t('chatbot.analytics') }}</h1>
+                    <p class="mt-2 text-gray-600">{{ t('chatbot.analytics_desc') }}</p>
                 </div>
 
                 <!-- Summary Cards -->
@@ -153,7 +156,7 @@ const chartOptions = {
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Faol suhbatlar
+                                        {{ t('chatbot.active_conversations') }}
                                     </dt>
                                     <dd class="text-2xl font-semibold text-gray-900">
                                         {{ stats.active_conversations }}
@@ -174,7 +177,7 @@ const chartOptions = {
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Bugun
+                                        {{ t('common.today') }}
                                     </dt>
                                     <dd class="text-2xl font-semibold text-gray-900">
                                         {{ stats.today.conversations }}
@@ -195,7 +198,7 @@ const chartOptions = {
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Bu oy
+                                        {{ t('common.this_month') }}
                                     </dt>
                                     <dd class="text-2xl font-semibold text-gray-900">
                                         {{ stats.month.conversations }}
@@ -216,7 +219,7 @@ const chartOptions = {
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Konversiya
+                                        {{ t('dashboard.conversion') }}
                                     </dt>
                                     <dd class="text-2xl font-semibold text-gray-900">
                                         {{ stats.month.conversion_rate }}%
@@ -231,7 +234,7 @@ const chartOptions = {
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <!-- Daily Activity Chart -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">30 kunlik faollik</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t('chatbot.daily_activity_30') }}</h3>
                         <div style="height: 300px;">
                             <Line :data="dailyChartData" :options="chartOptions" />
                         </div>
@@ -239,7 +242,7 @@ const chartOptions = {
 
                     <!-- Funnel Chart -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Sotuv voronkasi</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t('chatbot.sales_funnel') }}</h3>
                         <div style="height: 300px;">
                             <Bar :data="funnelChartData" :options="chartOptions" />
                         </div>
@@ -250,7 +253,7 @@ const chartOptions = {
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Channel Distribution -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Kanallar bo'yicha</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t('chatbot.by_channels') }}</h3>
                         <div style="height: 300px;">
                             <Doughnut :data="channelChartData" :options="chartOptions" />
                         </div>
@@ -258,12 +261,12 @@ const chartOptions = {
 
                     <!-- Intent Distribution -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Intent tahlili</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t('chatbot.intent_analysis') }}</h3>
                         <div v-if="intentChartData" style="height: 300px;">
                             <Doughnut :data="intentChartData" :options="chartOptions" />
                         </div>
                         <div v-else class="flex items-center justify-center h-64 text-gray-500">
-                            Ma'lumot yo'q
+                            {{ t('reports.no_data') }}
                         </div>
                     </div>
                 </div>

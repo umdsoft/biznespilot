@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import {
     PhoneIcon,
@@ -13,6 +14,9 @@ import DashboardCard from './DashboardCard.vue';
 import LeadsList from './LeadsList.vue';
 import TasksList from './TasksList.vue';
 import QuickActions from './QuickActions.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -27,21 +31,21 @@ const props = defineProps({
 });
 
 const formatTime = (minutes) => {
-    if (!minutes) return '0 daqiqa';
-    if (minutes < 60) return `${minutes} daqiqa`;
-    return `${Math.floor(minutes / 60)} soat ${minutes % 60} daqiqa`;
+    if (!minutes) return `0 ${t('dashboard.time.minutes')}`;
+    if (minutes < 60) return `${minutes} ${t('dashboard.time.minutes')}`;
+    return `${Math.floor(minutes / 60)} ${t('dashboard.time.hours')} ${minutes % 60} ${t('dashboard.time.minutes')}`;
 };
 
 const getBasePath = () => {
     return props.panelType === 'operator' ? '/operator' : '/business';
 };
 
-const quickActions = [
-    { href: `${getBasePath()}/leads`, icon: UserGroupIcon, label: 'Leadlar', color: 'blue' },
+const quickActions = computed(() => [
+    { href: `${getBasePath()}/leads`, icon: UserGroupIcon, label: t('dashboard.operator.leads'), color: 'blue' },
     { href: `${getBasePath()}/inbox`, icon: ChatBubbleLeftRightIcon, label: 'Inbox', color: 'green' },
     { href: `${getBasePath()}/kpi`, icon: ArrowTrendingUpIcon, label: 'KPI', color: 'purple' },
-    { href: `${getBasePath()}/tasks`, icon: CheckCircleIcon, label: 'Vazifalar', color: 'orange' },
-];
+    { href: `${getBasePath()}/tasks`, icon: CheckCircleIcon, label: t('dashboard.operator.tasks'), color: 'orange' },
+]);
 </script>
 
 <template>
@@ -49,31 +53,31 @@ const quickActions = [
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
-                title="Tayinlangan leadlar"
+                :title="t('dashboard.operator.assigned_leads')"
                 :value="stats?.total_leads || 0"
-                :badge="`${stats?.new_leads || 0} yangi`"
+                :badge="`${stats?.new_leads || 0} ${t('dashboard.operator.new')}`"
                 badge-color="blue"
                 :icon="UserGroupIcon"
                 icon-bg-color="blue"
             />
             <StatCard
-                title="Bugungi qo'ng'iroqlar"
+                :title="t('dashboard.operator.today_calls')"
                 :value="stats?.calls_today || 0"
-                :badge="`${stats?.successful_calls || 0} muvaffaqiyatli`"
+                :badge="`${stats?.successful_calls || 0} ${t('dashboard.operator.successful')}`"
                 badge-color="green"
                 :icon="PhoneIcon"
                 icon-bg-color="green"
             />
             <StatCard
-                title="Konversiya darajasi"
+                :title="t('dashboard.operator.conversion_rate')"
                 :value="`${stats?.conversion_rate || 0}%`"
-                :badge="`${stats?.qualified_leads || 0} kvalifikatsiya`"
+                :badge="`${stats?.qualified_leads || 0} ${t('dashboard.operator.qualified')}`"
                 badge-color="purple"
                 :icon="ArrowTrendingUpIcon"
                 icon-bg-color="purple"
             />
             <StatCard
-                title="O'rtacha javob vaqti"
+                :title="t('dashboard.operator.avg_response_time')"
                 :value="formatTime(stats?.avg_response_time || 0)"
                 :icon="ClockIcon"
                 icon-bg-color="orange"
@@ -83,7 +87,7 @@ const quickActions = [
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Leads -->
             <DashboardCard
-                title="So'nggi Leadlar"
+                :title="t('dashboard.operator.recent_leads')"
                 :link-href="`${getBasePath()}/leads`"
                 divided
                 no-padding
@@ -96,7 +100,7 @@ const quickActions = [
 
             <!-- Today's Tasks -->
             <DashboardCard
-                title="Bugungi Vazifalar"
+                :title="t('dashboard.operator.today_tasks')"
                 :link-href="`${getBasePath()}/tasks`"
                 divided
                 no-padding

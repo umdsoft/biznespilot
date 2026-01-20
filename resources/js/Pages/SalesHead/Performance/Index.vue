@@ -1,6 +1,7 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     ChartBarIcon,
     TrophyIcon,
@@ -8,6 +9,8 @@ import {
     ArrowTrendingDownIcon,
     UsersIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     performance: {
@@ -35,42 +38,42 @@ const getInitials = (name) => {
 </script>
 
 <template>
-    <SalesHeadLayout title="Samaradorlik">
-        <Head title="Samaradorlik" />
+    <SalesHeadLayout :title="t('saleshead.performance')">
+        <Head :title="t('saleshead.performance')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Samaradorlik</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Jamoa va individual samaradorlik ko'rsatkichlari</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('saleshead.performance') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.performance_indicators') }}</p>
             </div>
 
             <!-- Overall Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Jami Leadlar</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.total_leads') }}</p>
                         <ChartBarIcon class="w-5 h-5 text-blue-500" />
                     </div>
                     <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ performance.overall.leads }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Yutilgan</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.won') }}</p>
                         <TrophyIcon class="w-5 h-5 text-green-500" />
                     </div>
                     <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ performance.overall.won }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Yo'qotilgan</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.lost') }}</p>
                         <ArrowTrendingDownIcon class="w-5 h-5 text-red-500" />
                     </div>
                     <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ performance.overall.lost }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Konversiya</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.conversion') }}</p>
                         <component :is="performance.trend === 'up' ? ArrowTrendingUpIcon : ArrowTrendingDownIcon" :class="performance.trend === 'up' ? 'text-green-500' : 'text-red-500'" class="w-5 h-5" />
                     </div>
                     <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatPercent(performance.overall.conversion_rate) }}</p>
@@ -80,13 +83,13 @@ const getInitials = (name) => {
             <!-- Top Performers -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Top Performerlar</h2>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ t('saleshead.top_performers') }}</h2>
                     <TrophyIcon class="w-6 h-6 text-yellow-500" />
                 </div>
 
                 <div v-if="performance.top_performers.length === 0" class="text-center py-8">
                     <UsersIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p class="text-gray-500 dark:text-gray-400">Hali ma'lumotlar yo'q</p>
+                    <p class="text-gray-500 dark:text-gray-400">{{ t('common.no_data') }}</p>
                 </div>
 
                 <div v-else class="space-y-4">
@@ -106,11 +109,11 @@ const getInitials = (name) => {
                         </div>
                         <div class="flex-1">
                             <h3 class="font-medium text-gray-900 dark:text-white">{{ performer.name }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ performer.deals_won || 0 }} bitim yutildi</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ performer.deals_won || 0 }} {{ t('saleshead.deals_won') }}</p>
                         </div>
                         <div class="text-right">
                             <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ formatPercent(performer.conversion_rate) }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">konversiya</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('saleshead.conversion') }}</p>
                         </div>
                     </div>
                 </div>
@@ -118,9 +121,9 @@ const getInitials = (name) => {
 
             <!-- Period Stats -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Davriy Tahlil</h2>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ t('saleshead.period_analysis') }}</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-center py-12">
-                    Grafiklar tez orada qo'shiladi...
+                    {{ t('common.coming_soon') }}
                 </p>
             </div>
         </div>

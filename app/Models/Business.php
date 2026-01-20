@@ -540,7 +540,15 @@ class Business extends Model
      */
     public function aiDiagnostics(): HasMany
     {
-        return $this->hasMany(\App\Models\AiDiagnostic::class);
+        return $this->hasMany(AiDiagnostic::class);
+    }
+
+    /**
+     * Alias for backward compatibility
+     */
+    public function diagnostics(): HasMany
+    {
+        return $this->aiDiagnostics();
     }
 
     // ==================== KPI RELATIONSHIPS ====================

@@ -9,7 +9,7 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Orqaga
+                {{ t('common.back') }}
             </button>
             <div class="flex items-center space-x-2">
                 <button
@@ -20,7 +20,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    Tahrirlash
+                    {{ t('common.edit') }}
                 </button>
                 <button
                     v-if="post.status !== 'published'"
@@ -30,7 +30,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    O'chirish
+                    {{ t('common.delete') }}
                 </button>
             </div>
         </div>
@@ -56,15 +56,15 @@
                         </div>
                     </div>
                     <div class="text-right text-sm text-gray-500 dark:text-gray-400">
-                        <p>Yaratilgan: {{ post.created_at }}</p>
-                        <p v-if="post.updated_at !== post.created_at">Yangilangan: {{ post.updated_at }}</p>
+                        <p>{{ t('content.show.created') }}: {{ post.created_at }}</p>
+                        <p v-if="post.updated_at !== post.created_at">{{ t('content.show.updated') }}: {{ post.updated_at }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Platforms -->
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Platformalar</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ t('content.form.platforms') }}</p>
                 <div class="flex items-center flex-wrap gap-2">
                     <div v-for="platform in post.platforms" :key="platform" class="flex items-center px-3 py-1.5 rounded-lg" :class="getPlatformBgClass(platform)">
                         <component :is="getPlatformIcon(platform)" class="w-4 h-4" :class="getPlatformIconClass(platform)" />
@@ -75,7 +75,7 @@
 
             <!-- Content -->
             <div class="px-6 py-5">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Kontent Matni</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ t('content.form.content_text') }}</p>
                 <div class="prose dark:prose-invert max-w-none">
                     <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ post.content }}</p>
                 </div>
@@ -88,15 +88,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <div>
-                        <p v-if="post.scheduled_at_display" class="text-sm font-medium text-gray-900 dark:text-white">Rejalashtirilgan: {{ post.scheduled_at_display }}</p>
-                        <p v-if="post.published_at" class="text-sm font-medium text-emerald-600 dark:text-emerald-400">Nashr qilingan: {{ post.published_at }}</p>
+                        <p v-if="post.scheduled_at_display" class="text-sm font-medium text-gray-900 dark:text-white">{{ t('content.status.scheduled') }}: {{ post.scheduled_at_display }}</p>
+                        <p v-if="post.published_at" class="text-sm font-medium text-emerald-600 dark:text-emerald-400">{{ t('content.status.published') }}: {{ post.published_at }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Hashtags -->
             <div v-if="post.hashtags && post.hashtags.length > 0" class="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Hashtaglar</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ t('content.form.hashtags') }}</p>
                 <div class="flex flex-wrap gap-2">
                     <span v-for="tag in post.hashtags" :key="tag" class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
                         {{ tag.startsWith('#') ? tag : '#' + tag }}
@@ -106,23 +106,23 @@
 
             <!-- Statistics -->
             <div v-if="post.status === 'published' && hasStats" class="px-6 py-5 border-t border-gray-100 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Statistika</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{{ t('content.show.statistics') }}</p>
                 <div class="grid grid-cols-4 gap-4">
                     <div class="text-center p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                         <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatNumber(post.views) }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ko'rishlar</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('content.stats.views') }}</p>
                     </div>
                     <div class="text-center p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl">
                         <p class="text-2xl font-bold text-pink-600 dark:text-pink-400">{{ formatNumber(post.likes) }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Yoqtirishlar</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('content.stats.likes') }}</p>
                     </div>
                     <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                         <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(post.comments) }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Izohlar</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('content.stats.comments') }}</p>
                     </div>
                     <div class="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
                         <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatNumber(post.shares) }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ulashishlar</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('content.stats.shares') }}</p>
                     </div>
                 </div>
             </div>
@@ -133,11 +133,14 @@
 <script setup>
 import { computed, h } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n'
 
 const props = defineProps({
     post: { type: Object, required: true },
     panelType: { type: String, default: 'business', validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v) }
 })
+
+const { t } = useI18n()
 
 // Universal panel config for all 5 panels
 const panelConfig = computed(() => {
@@ -163,7 +166,7 @@ const hasStats = computed(() => props.post.views || props.post.likes || props.po
 
 const goBack = () => router.get(panelConfig.value.baseUrl)
 const editPost = () => router.get(`${panelConfig.value.baseUrl}/${props.post.id}/edit`)
-const deletePost = () => { if (confirm('Kontentni o\'chirishni xohlaysizmi?')) router.delete(`${panelConfig.value.baseUrl}/${props.post.id}`) }
+const deletePost = () => { if (confirm(t('content.confirm.delete'))) router.delete(`${panelConfig.value.baseUrl}/${props.post.id}`) }
 
 const formatNumber = (num) => { if (!num) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString() }
 
@@ -171,12 +174,41 @@ const getPlatformIcon = (platform) => ({ 'Instagram': InstagramIcon, 'Telegram':
 const getPlatformBgClass = (platform) => ({ 'Instagram': 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40', 'Telegram': 'bg-sky-100 dark:bg-sky-900/40', 'Facebook': 'bg-blue-100 dark:bg-blue-900/40', 'YouTube': 'bg-red-100 dark:bg-red-900/40', 'YouTube Shorts': 'bg-red-50 dark:bg-red-900/30' }[platform] || 'bg-gray-100 dark:bg-gray-700')
 const getPlatformIconClass = (platform) => ({ 'Instagram': 'text-pink-600 dark:text-pink-400', 'Telegram': 'text-sky-600 dark:text-sky-400', 'Facebook': 'text-blue-600 dark:text-blue-400', 'YouTube': 'text-red-600 dark:text-red-400', 'YouTube Shorts': 'text-red-500 dark:text-red-400' }[platform] || 'text-gray-600 dark:text-gray-400')
 
-const getStatusLabel = (status) => ({ draft: 'Qoralama', scheduled: 'Rejalashtirilgan', published: 'Nashr qilingan' }[status] || status)
+const getStatusLabel = (status) => {
+    const labels = {
+        draft: t('content.status.draft'),
+        scheduled: t('content.status.scheduled'),
+        published: t('content.status.published')
+    }
+    return labels[status] || status
+}
 const getStatusBadgeClass = (status) => ({ draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300', scheduled: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' }[status] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300')
 const getStatusDotClass = (status) => ({ draft: 'bg-gray-400', scheduled: 'bg-amber-500', published: 'bg-emerald-500' }[status] || 'bg-gray-400')
 
-const getContentTypeLabel = (type) => ({ educational: "Ta'limiy", entertaining: "Ko'ngil ochuvchi", inspirational: 'Ilhomlantiruvchi', promotional: 'Reklama', behind_scenes: 'Sahna ortidan', ugc: 'Foydalanuvchi kontenti' }[type] || type || '—')
+const getContentTypeLabel = (type) => {
+    const labels = {
+        educational: t('content.type.educational'),
+        entertaining: t('content.type.entertaining'),
+        inspirational: t('content.type.inspirational'),
+        promotional: t('content.type.promotional'),
+        behind_scenes: t('content.type.behind_scenes'),
+        ugc: t('content.type.ugc')
+    }
+    return labels[type] || type || '-'
+}
 const getContentTypeBadgeClass = (type) => ({ educational: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', entertaining: 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300', inspirational: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', promotional: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', behind_scenes: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300', ugc: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' }[type] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300')
 
-const getFormatLabel = (format) => ({ short_video: 'Qisqa Video', long_video: 'Uzun Video', carousel: 'Karusel', single_image: 'Rasm', story: 'Story', text_post: 'Matn', live: 'Jonli efir', poll: "So'rovnoma" }[format] || format || '—')
+const getFormatLabel = (format) => {
+    const labels = {
+        short_video: t('content.format.short_video'),
+        long_video: t('content.format.long_video'),
+        carousel: t('content.format.carousel'),
+        single_image: t('content.format.single_image'),
+        story: t('content.format.story'),
+        text_post: t('content.format.text_post'),
+        live: t('content.format.live'),
+        poll: t('content.format.poll')
+    }
+    return labels[format] || format || '-'
+}
 </script>

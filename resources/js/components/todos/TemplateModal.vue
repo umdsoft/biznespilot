@@ -1,6 +1,9 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useI18n } from '@/i18n';
 import { XMarkIcon, PlusIcon, TrashIcon, ChevronRightIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: Boolean,
@@ -139,11 +142,11 @@ const submit = async () => {
             emit('close');
             resetForm();
         } else {
-            errors.value = data.errors || { general: data.error || 'Xatolik yuz berdi' };
+            errors.value = data.errors || { general: data.error || t('common.error') };
         }
     } catch (error) {
         console.error('Failed to save template:', error);
-        errors.value = { general: 'Tarmoq xatosi' };
+        errors.value = { general: t('todos.template.network_error') };
     } finally {
         loading.value = false;
     }
@@ -157,7 +160,7 @@ const close = () => {
 
 // Computed
 const isEditing = computed(() => !!props.template);
-const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Yangi shablon');
+const modalTitle = computed(() => isEditing.value ? t('todos.template.edit_title') : t('todos.template.new_title'));
 </script>
 
 <template>
@@ -209,14 +212,14 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                 <!-- Name -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Shablon nomi *
+                                        {{ t('todos.template.name') }} *
                                     </label>
                                     <input
                                         v-model="form.name"
                                         type="text"
                                         required
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Masalan: Yangi xodim onboarding"
+                                        :placeholder="t('todos.template.name_placeholder')"
                                     />
                                     <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name[0] }}</p>
                                 </div>
@@ -224,20 +227,20 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                 <!-- Description -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Tavsif
+                                        {{ t('todos.template.description') }}
                                     </label>
                                     <textarea
                                         v-model="form.description"
                                         rows="2"
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Shablon haqida qisqacha..."
+                                        :placeholder="t('todos.template.description_placeholder')"
                                     ></textarea>
                                 </div>
 
                                 <!-- Category -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Kategoriya
+                                        {{ t('todos.template.category') }}
                                     </label>
                                     <div class="grid grid-cols-5 gap-2">
                                         <button
@@ -261,7 +264,7 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                 <!-- Items -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Vazifalar
+                                        {{ t('todos.template.tasks') }}
                                     </label>
                                     <div class="space-y-2 mb-3">
                                         <div
@@ -307,7 +310,7 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                                     type="text"
                                                     @keyup.enter="(e) => { addChildItem(index, e.target.value); e.target.value = ''; }"
                                                     class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
-                                                    placeholder="Sub-vazifa qo'shish (Enter)"
+                                                    :placeholder="t('todos.template.add_subtask')"
                                                 />
                                             </div>
                                         </div>
@@ -320,7 +323,7 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                             type="text"
                                             @keyup.enter="addItem"
                                             class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                                            placeholder="Yangi vazifa..."
+                                            :placeholder="t('todos.template.new_task')"
                                         />
                                         <button
                                             type="button"
@@ -340,14 +343,14 @@ const modalTitle = computed(() => isEditing.value ? 'Shablonni tahrirlash' : 'Ya
                                     @click="close"
                                     class="px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                 >
-                                    Bekor qilish
+                                    {{ t('common.cancel') }}
                                 </button>
                                 <button
                                     @click="submit"
                                     :disabled="loading"
                                     class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
                                 >
-                                    {{ loading ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                    {{ loading ? t('common.saving') + '...' : t('common.save') }}
                                 </button>
                             </div>
                         </div>

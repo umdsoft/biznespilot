@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from '@/i18n';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
@@ -8,6 +9,8 @@ import {
     LockClosedIcon,
     BriefcaseIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -90,10 +93,10 @@ const isValid = computed(() => {
 // Password validation
 const passwordError = computed(() => {
     if (form.value.password && form.value.password.length < 6) {
-        return 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak';
+        return t('components.invite.password_min');
     }
     if (form.value.password_confirmation && form.value.password !== form.value.password_confirmation) {
-        return 'Parollar mos kelmayapti';
+        return t('components.invite.passwords_not_match');
     }
     return '';
 });
@@ -121,14 +124,14 @@ const submit = async () => {
             emit('added', response.data.member);
             emit('close');
         } else {
-            error.value = response.data.error || response.data.message || 'Xatolik yuz berdi';
+            error.value = response.data.error || response.data.message || t('common.error_occurred');
         }
     } catch (err) {
         console.error('Failed to add member:', err);
 
         // Handle 419 CSRF error specifically
         if (isCsrfError(err)) {
-            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            error.value = t('common.session_expired');
             // Refresh token for next attempt
             await refreshCsrfToken();
             return;
@@ -141,9 +144,9 @@ const submit = async () => {
         } else if (err.response?.data?.errors) {
             // Laravel validation errors
             const errors = Object.values(err.response.data.errors).flat();
-            error.value = errors[0] || 'Validatsiya xatosi';
+            error.value = errors[0] || t('common.validation_error');
         } else {
-            error.value = 'Tarmoq xatosi';
+            error.value = t('common.network_error');
         }
     } finally {
         isLoading.value = false;
@@ -187,7 +190,7 @@ const close = () => {
                                     <UserIcon class="w-5 h-5 text-white" />
                                 </div>
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Yangi xodim qo'shish
+                                    {{ t('components.invite.title') }}
                                 </h3>
                             </div>
                             <button @click="close" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
@@ -202,13 +205,13 @@ const close = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <span class="flex items-center gap-2">
                                         <UserIcon class="w-4 h-4 text-blue-500" />
-                                        F.I.O
+                                        {{ t('components.invite.full_name') }}
                                     </span>
                                 </label>
                                 <input
                                     v-model="form.name"
                                     type="text"
-                                    placeholder="Hodimning to'liq ismi"
+                                    :placeholder="t('components.invite.full_name_placeholder')"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -218,7 +221,7 @@ const close = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <span class="flex items-center gap-2">
                                         <PhoneIcon class="w-4 h-4 text-blue-500" />
-                                        Telefon raqam (Login)
+                                        {{ t('components.invite.phone_login') }}
                                     </span>
                                 </label>
                                 <div class="relative">
@@ -231,7 +234,7 @@ const close = () => {
                                         class="w-full pl-8 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Hodim shu raqam bilan tizimga kiradi</p>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ t('components.invite.phone_hint') }}</p>
                             </div>
 
                             <!-- Password -->
@@ -239,14 +242,14 @@ const close = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <span class="flex items-center gap-2">
                                         <LockClosedIcon class="w-4 h-4 text-blue-500" />
-                                        Parol
+                                        {{ t('components.invite.password') }}
                                     </span>
                                 </label>
                                 <div class="relative">
                                     <input
                                         v-model="form.password"
                                         :type="showPassword ? 'text' : 'password'"
-                                        placeholder="Kamida 6 ta belgi"
+                                        :placeholder="t('components.invite.password_placeholder')"
                                         class="w-full px-4 py-2.5 pr-12 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                     <button
@@ -268,12 +271,12 @@ const close = () => {
                             <!-- Confirm Password -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Parolni tasdiqlang
+                                    {{ t('components.invite.confirm_password') }}
                                 </label>
                                 <input
                                     v-model="form.password_confirmation"
                                     :type="showPassword ? 'text' : 'password'"
-                                    placeholder="Parolni qayta kiriting"
+                                    :placeholder="t('components.invite.confirm_password_placeholder')"
                                     class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                                 <p v-if="passwordError" class="mt-1 text-xs text-red-500">{{ passwordError }}</p>
@@ -284,7 +287,7 @@ const close = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <span class="flex items-center gap-2">
                                         <BriefcaseIcon class="w-4 h-4 text-blue-500" />
-                                        Bo'lim
+                                        {{ t('components.invite.department') }}
                                     </span>
                                 </label>
                                 <div class="grid grid-cols-2 gap-2">
@@ -314,7 +317,7 @@ const close = () => {
                                 @click="close"
                                 class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-xl transition-colors"
                             >
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button
                                 @click="submit"
@@ -326,7 +329,7 @@ const close = () => {
                                         : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                                 ]"
                             >
-                                {{ isLoading ? 'Saqlanmoqda...' : 'Xodim qo\'shish' }}
+                                {{ isLoading ? t('common.saving') : t('components.invite.add_member') }}
                             </button>
                         </div>
                     </div>

@@ -37,6 +37,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     item: {
@@ -79,11 +82,11 @@ const statusBorderClass = computed(() => {
 const statusLabel = computed(() => {
     const status = props.item.status;
     const labels = {
-        published: 'Nashr qilindi',
-        scheduled: 'Rejalashtirilgan',
-        draft: 'Qoralama',
-        pending_review: 'Ko\'rib chiqilmoqda',
-        approved: 'Tasdiqlangan',
+        published: t('strategy.content_status.published'),
+        scheduled: t('strategy.content_status.scheduled'),
+        draft: t('strategy.content_status.draft'),
+        pending_review: t('strategy.content_status.pending_review'),
+        approved: t('strategy.content_status.approved'),
     };
     return labels[status] || status;
 });
@@ -91,12 +94,12 @@ const statusLabel = computed(() => {
 const contentTypeLabel = computed(() => {
     const type = props.item.content_type;
     const labels = {
-        post: 'Post',
-        story: 'Story',
-        reel: 'Reel',
-        video: 'Video',
-        carousel: 'Carousel',
-        article: 'Maqola',
+        post: t('strategy.content_type.post'),
+        story: t('strategy.content_type.story'),
+        reel: t('strategy.content_type.reel'),
+        video: t('strategy.content_type.video'),
+        carousel: t('strategy.content_type.carousel'),
+        article: t('strategy.content_type.article'),
     };
     return labels[type] || type;
 });

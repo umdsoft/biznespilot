@@ -2,6 +2,9 @@
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import OperatorKPI from '@/components/KPI/OperatorKPI.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     stats: Object,
@@ -12,8 +15,8 @@ defineProps({
 </script>
 
 <template>
-    <OperatorLayout title="KPI">
-        <Head title="Mening KPI" />
+    <OperatorLayout :title="t('nav.kpi')">
+        <Head :title="t('nav.kpi')" />
         <OperatorKPI
             :stats="stats"
             :daily-stats="dailyStats"

@@ -1,5 +1,5 @@
 <template>
-  <MarketingLayout title="Marketing Markazi">
+  <MarketingLayout :title="t('nav.marketing')">
     <MarketingHubIndex
       panel-type="marketing"
       :channels="channels"
@@ -13,6 +13,9 @@
 <script setup>
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import MarketingHubIndex from '@/components/marketing/MarketingHubIndex.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
   channels: {

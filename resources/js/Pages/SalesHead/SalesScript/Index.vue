@@ -2,6 +2,9 @@
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import SalesScriptArsenal from '@/components/Sales/SalesScriptArsenal.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     currentBusiness: Object,
@@ -9,8 +12,8 @@ defineProps({
 </script>
 
 <template>
-    <SalesHeadLayout title="Sotuv Skriptlari">
-        <Head title="Sotuv Skriptlari - Sotuv Rahbari" />
+    <SalesHeadLayout :title="t('nav.sales_scripts')">
+        <Head :title="t('nav.sales_scripts')" />
         <SalesScriptArsenal />
     </SalesHeadLayout>
 </template>

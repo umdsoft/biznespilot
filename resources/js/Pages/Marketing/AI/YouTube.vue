@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import AIChannelPage from '@/components/ai-analysis/AIChannelPage.vue';
-import { h } from 'vue';
+import { h, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     channel: Object,
@@ -18,29 +21,29 @@ const YouTubeIcon = {
     }
 };
 
-const platformConfig = {
-    title: 'YouTube Analitika',
-    subtitle: 'YouTube kanalingiz statistikasi',
+const platformConfig = computed(() => ({
+    title: t('nav.youtube_analytics'),
+    subtitle: t('marketing.youtube_stats'),
     headerGradient: 'bg-gradient-to-br from-red-500 to-red-700',
     icon: YouTubeIcon,
     emptyIconBg: 'bg-red-100 dark:bg-red-900/30',
     emptyIconColor: 'text-red-600 dark:text-red-400',
-    connectTitle: 'YouTube Ulang',
-    connectDescription: 'YouTube kanalingizni ulang va batafsil tahlillarni ko\'ring.',
+    connectTitle: t('marketing.connect_youtube'),
+    connectDescription: t('marketing.connect_youtube_desc'),
     connectButtonClass: 'bg-red-600 hover:bg-red-700',
-    connectButtonText: 'YouTube Ulash',
+    connectButtonText: t('marketing.connect_youtube_btn'),
     metricsConfig: [
-        { key: 'subscribers', label: 'Obunachilar', icon: '👥', iconColor: 'text-red-600' },
-        { key: 'video_count', label: 'Videolar', icon: '🎬', iconColor: 'text-orange-600' },
-        { key: 'total_views', label: 'Ko\'rishlar', icon: '👁️', iconColor: 'text-blue-600' },
-        { key: 'watch_hours', label: 'Soat', icon: '⏱️', iconColor: 'text-green-600' },
+        { key: 'subscribers', label: t('marketing.subscribers'), icon: '👥', iconColor: 'text-red-600' },
+        { key: 'video_count', label: t('marketing.videos'), icon: '🎬', iconColor: 'text-orange-600' },
+        { key: 'total_views', label: t('marketing.views'), icon: '👁️', iconColor: 'text-blue-600' },
+        { key: 'watch_hours', label: t('marketing.hours'), icon: '⏱️', iconColor: 'text-green-600' },
     ],
-};
+}));
 </script>
 
 <template>
-    <MarketingLayout title="YouTube Analitika">
-        <Head title="YouTube Analitika" />
+    <MarketingLayout :title="t('nav.youtube_analytics')">
+        <Head :title="t('nav.youtube_analytics')" />
         <AIChannelPage
             :channel="channel"
             :metrics="metrics"

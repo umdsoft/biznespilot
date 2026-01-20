@@ -3,7 +3,7 @@
     <!-- Team Size -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Jamoa hajmi
+        {{ t('onboarding.forms.team_size') }}
       </label>
       <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
         <label
@@ -31,7 +31,7 @@
     <!-- Business Stage -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes bosqichi
+        {{ t('onboarding.forms.business_stage') }}
       </label>
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <label
@@ -50,8 +50,8 @@
             :value="stage.value"
             class="sr-only"
           />
-          <span class="font-medium text-gray-900">{{ stage.label }}</span>
-          <span class="text-xs text-gray-500 text-center mt-1">{{ stage.description }}</span>
+          <span class="font-medium text-gray-900">{{ t(`onboarding.forms.stages.${stage.value}`) }}</span>
+          <span class="text-xs text-gray-500 text-center mt-1">{{ t(`onboarding.forms.stages.${stage.value}_desc`) }}</span>
         </label>
       </div>
       <p v-if="errors.business_stage" class="mt-1 text-sm text-red-500">{{ errors.business_stage }}</p>
@@ -61,14 +61,14 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Shahar
+          {{ t('onboarding.forms.city') }}
         </label>
         <select
           v-model="form.city"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           :class="{ 'border-red-500': errors.city }"
         >
-          <option value="">Shaharni tanlang</option>
+          <option value="">{{ t('onboarding.forms.select_city') }}</option>
           <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
         </select>
         <p v-if="errors.city" class="mt-1 text-sm text-red-500">{{ errors.city }}</p>
@@ -76,13 +76,13 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Davlat
+          {{ t('onboarding.forms.country') }}
         </label>
         <input
           v-model="form.country"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="O'zbekiston"
+          :placeholder="t('onboarding.forms.country_placeholder')"
         />
       </div>
     </div>
@@ -90,7 +90,7 @@
     <!-- Founding Date -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Tashkil etilgan sana
+        {{ t('onboarding.forms.founding_date') }}
       </label>
       <input
         v-model="form.founding_date"
@@ -103,7 +103,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Web-sayt
+          {{ t('onboarding.forms.website') }}
         </label>
         <input
           v-model="form.website"
@@ -115,7 +115,7 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Telefon
+          {{ t('onboarding.forms.phone') }}
         </label>
         <input
           v-model="form.phone"
@@ -128,7 +128,7 @@
 
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Email
+        {{ t('onboarding.forms.email') }}
       </label>
       <input
         v-model="form.email"
@@ -141,19 +141,19 @@
     <!-- Address -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Manzil
+        {{ t('onboarding.forms.address') }}
       </label>
       <textarea
         v-model="form.address"
         rows="2"
         class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        placeholder="To'liq manzil..."
+        :placeholder="t('onboarding.forms.address_placeholder')"
       ></textarea>
     </div>
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Barcha maydonlar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+      {{ t('onboarding.forms.optional_fields') }}
     </p>
 
     <!-- Submit -->
@@ -163,7 +163,7 @@
         @click="handleSkip"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -171,7 +171,7 @@
           @click="$emit('cancel')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           type="submit"
@@ -182,7 +182,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Saqlash
+          {{ t('common.save') }}
         </button>
       </div>
     </div>
@@ -193,6 +193,9 @@
 import { ref, reactive } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const store = useOnboardingStore();
 const toast = useToastStore();
@@ -231,11 +234,11 @@ const teamSizes = [
 ];
 
 const businessStages = [
-  { value: 'idea', label: 'G\'oya', description: 'Boshlash oldidan' },
-  { value: 'startup', label: 'Startup', description: 'Yangi boshlangan' },
-  { value: 'growth', label: 'O\'sish', description: 'Rivojlanayotgan' },
-  { value: 'established', label: 'Barqaror', description: 'O\'rnatilgan' },
-  { value: 'scaling', label: 'Kengayish', description: 'Masshtablash' }
+  { value: 'idea' },
+  { value: 'startup' },
+  { value: 'growth' },
+  { value: 'established' },
+  { value: 'scaling' }
 ];
 
 const cities = [
@@ -264,14 +267,14 @@ async function handleSubmit() {
 
   try {
     await store.updateBusinessDetails(form);
-    toast.success('Muvaffaqiyatli saqlandi', 'Biznes tafsilotlari yangilandi');
+    toast.success(t('common.success'), t('onboarding.forms.details_updated'));
     emit('submit');
   } catch (err) {
     if (err.response?.data?.errors) {
       Object.assign(errors, err.response.data.errors);
     }
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     loading.value = false;
   }

@@ -10,6 +10,9 @@ import {
     PaperAirplaneIcon,
     Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const page = usePage();
 const currentBusiness = page.props.currentBusiness || page.props.auth?.currentBusiness;

@@ -9,10 +9,10 @@
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        Orqaga
+        {{ t('common.back') }}
       </Link>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Yangi Bot Qo'shish</h1>
-      <p class="mt-2 text-gray-500 dark:text-gray-400">Telegram botingizni ulang va funnellarni sozlang</p>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ t('telegram.bot_create.title') }}</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">{{ t('telegram.bot_create.description') }}</p>
     </div>
 
     <!-- Steps -->
@@ -25,15 +25,15 @@
               <span class="text-blue-600 dark:text-blue-400 font-bold">1</span>
             </div>
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Bot Token Oling</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ t('telegram.bot_create.step1_title') }}</h3>
               <p class="text-gray-600 dark:text-gray-400 mb-4">
-                Telegram @BotFather dan yangi bot yarating yoki mavjud botingiz tokenini oling.
+                {{ t('telegram.bot_create.step1_description') }}
               </p>
               <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2 text-sm">
-                <p class="text-gray-700 dark:text-gray-300">1. Telegramda <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">@BotFather</code> ni oching</p>
-                <p class="text-gray-700 dark:text-gray-300">2. <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">/newbot</code> buyrug'ini yuboring</p>
-                <p class="text-gray-700 dark:text-gray-300">3. Bot nomini va username ni kiriting</p>
-                <p class="text-gray-700 dark:text-gray-300">4. Olingan tokenni pastdagi maydonga kiriting</p>
+                <p class="text-gray-700 dark:text-gray-300">{{ t('telegram.bot_create.step1_instruction1') }}</p>
+                <p class="text-gray-700 dark:text-gray-300">{{ t('telegram.bot_create.step1_instruction2') }}</p>
+                <p class="text-gray-700 dark:text-gray-300">{{ t('telegram.bot_create.step1_instruction3') }}</p>
+                <p class="text-gray-700 dark:text-gray-300">{{ t('telegram.bot_create.step1_instruction4') }}</p>
               </div>
             </div>
           </div>
@@ -48,12 +48,12 @@
               <span class="text-green-600 dark:text-green-400 font-bold">2</span>
             </div>
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Tokenni Kiriting</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ t('telegram.bot_create.step2_title') }}</h3>
               <p class="text-gray-600 dark:text-gray-400 mb-4">
-                BotFather dan olingan tokenni pastga kiriting.
+                {{ t('telegram.bot_create.step2_description') }}
               </p>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bot Token</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('telegram.bot_create.bot_token') }}</label>
                 <input
                   v-model="botToken"
                   type="text"
@@ -77,7 +77,7 @@
               </svg>
             </div>
             <div>
-              <p class="text-sm text-green-600 dark:text-green-400 font-medium mb-1">Bot topildi!</p>
+              <p class="text-sm text-green-600 dark:text-green-400 font-medium mb-1">{{ t('telegram.bot_create.bot_found') }}</p>
               <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ botInfo.first_name }}</h3>
               <p class="text-gray-600 dark:text-gray-400">@{{ botInfo.username }}</p>
             </div>
@@ -91,7 +91,7 @@
           :href="getRoute('telegram-funnels.index')"
           class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </Link>
         <button
           @click="verifyAndCreate"
@@ -102,7 +102,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          {{ isLoading ? 'Tekshirilmoqda...' : 'Botni Qo\'shish' }}
+          {{ isLoading ? t('telegram.bot_create.verifying') : t('telegram.bot_create.add_bot') }}
         </button>
       </div>
     </div>
@@ -113,6 +113,9 @@
 import { ref } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   panelType: {

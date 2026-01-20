@@ -25,7 +25,7 @@
             <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-gray-900 truncate">{{ alert.title }}</h3>
-                    <span v-if="alert.is_read" class="text-xs text-gray-400">O'qilgan</span>
+                    <span v-if="alert.is_read" class="text-xs text-gray-400">{{ t('dashboard.alert.read') }}</span>
                 </div>
                 <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ alert.message }}</p>
                 <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
@@ -39,6 +39,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     alert: {
@@ -91,10 +94,10 @@ const formatTime = (date) => {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'Hozir';
-    if (diffMins < 60) return `${diffMins} daqiqa oldin`;
-    if (diffHours < 24) return `${diffHours} soat oldin`;
-    if (diffDays < 7) return `${diffDays} kun oldin`;
+    if (diffMins < 1) return t('dashboard.time.now');
+    if (diffMins < 60) return t('dashboard.time.minutes_ago', { count: diffMins });
+    if (diffHours < 24) return t('dashboard.time.hours_ago', { count: diffHours });
+    if (diffDays < 7) return t('dashboard.time.days_ago', { count: diffDays });
     return d.toLocaleDateString('uz-UZ');
 };
 </script>

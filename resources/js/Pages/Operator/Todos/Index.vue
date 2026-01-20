@@ -1,6 +1,9 @@
 <script setup>
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import TodosPage from '@/components/todos/TodosPage.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     todos: Object,
@@ -16,7 +19,7 @@ defineProps({
 </script>
 
 <template>
-    <OperatorLayout title="Todo List">
+    <OperatorLayout :title="t('nav.daily_tasks')">
         <TodosPage
             :todos="todos"
             :stats="stats"

@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import {
     CurrencyDollarIcon,
     ChartBarIcon,
@@ -80,11 +83,11 @@ const exportPDF = async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } else {
-            alert('PDF yaratishda xatolik');
+            alert(t('common.error'));
         }
     } catch (error) {
         console.error('Export error:', error);
-        alert('Export xatolik');
+        alert(t('common.error'));
     } finally {
         exportingPDF.value = false;
     }
@@ -115,11 +118,11 @@ const exportExcel = async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } else {
-            alert('Excel yaratishda xatolik');
+            alert(t('common.error'));
         }
     } catch (error) {
         console.error('Export error:', error);
-        alert('Export xatolik');
+        alert(t('common.error'));
     } finally {
         exportingExcel.value = false;
     }
@@ -192,8 +195,8 @@ const chartOptions = {
 </script>
 
 <template>
-    <BusinessLayout title="Revenue Analytics">
-        <Head title="Revenue Analytics" />
+    <BusinessLayout :title="t('analytics.revenue_analytics')">
+        <Head :title="t('analytics.revenue_analytics')" />
 
         <div class="py-12">
             <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,10 +205,10 @@ const chartOptions = {
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                             <CurrencyDollarIcon class="w-10 h-10 text-green-600 dark:text-green-400" />
-                            Revenue Analytics
+                            {{ t('analytics.revenue_analytics') }}
                         </h1>
                         <p class="mt-2 text-gray-600 dark:text-gray-400">
-                            Revenue trends va forecasting
+                            {{ t('analytics.revenue_desc') }}
                         </p>
                     </div>
 
@@ -223,7 +226,7 @@ const chartOptions = {
                             class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-lg transition-colors gap-2"
                         >
                             <ArrowDownTrayIcon class="w-4 h-4" />
-                            {{ exportingPDF ? 'Yuklanmoqda...' : 'PDF' }}
+                            {{ exportingPDF ? t('common.loading') : 'PDF' }}
                         </button>
                         <button
                             @click="exportExcel"
@@ -231,7 +234,7 @@ const chartOptions = {
                             class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium rounded-lg transition-colors gap-2"
                         >
                             <ArrowDownTrayIcon class="w-4 h-4" />
-                            {{ exportingExcel ? 'Yuklanmoqda...' : 'Excel' }}
+                            {{ exportingExcel ? t('common.loading') : 'Excel' }}
                         </button>
                     </div>
                 </div>
@@ -240,7 +243,7 @@ const chartOptions = {
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
                     <div class="flex items-center gap-2">
                         <CalendarIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-4">Davr:</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-4">{{ t('analytics.period') }}:</span>
                         <div class="flex gap-2">
                             <button
                                 @click="changePeriod('daily')"
@@ -251,7 +254,7 @@ const chartOptions = {
                                     'px-4 py-2 rounded-lg font-medium transition-colors'
                                 ]"
                             >
-                                Kunlik
+                                {{ t('analytics.daily') }}
                             </button>
                             <button
                                 @click="changePeriod('weekly')"
@@ -262,7 +265,7 @@ const chartOptions = {
                                     'px-4 py-2 rounded-lg font-medium transition-colors'
                                 ]"
                             >
-                                Haftalik
+                                {{ t('analytics.weekly') }}
                             </button>
                             <button
                                 @click="changePeriod('monthly')"
@@ -273,7 +276,7 @@ const chartOptions = {
                                     'px-4 py-2 rounded-lg font-medium transition-colors'
                                 ]"
                             >
-                                Oylik
+                                {{ t('analytics.monthly') }}
                             </button>
                         </div>
                     </div>
@@ -294,25 +297,25 @@ const chartOptions = {
                 <div v-if="forecast && forecast.forecast" class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl shadow-md p-6 mb-8">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
                         <SparklesIcon class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                        Revenue Forecast (Keyingi 30 kun)
+                        {{ t('analytics.revenue_forecast') }}
                     </h3>
 
                     <!-- Forecast Metrics -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">O'rtacha Kunlik</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ t('analytics.avg_daily') }}</p>
                             <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatPrice(forecast.summary.avg_daily_revenue) }}</p>
                         </div>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">So'nggi O'rtacha</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ t('analytics.recent_avg') }}</p>
                             <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatPrice(forecast.summary.recent_avg) }}</p>
                         </div>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">O'sish Sur'ati</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ t('analytics.growth_rate') }}</p>
                             <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ formatPercent(forecast.summary.growth_rate) }}%</p>
                         </div>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Prognoz Jami</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ t('analytics.forecast_total') }}</p>
                             <p class="text-xl font-bold text-indigo-600 dark:text-indigo-400">{{ formatPrice(forecast.summary.forecast_total) }}</p>
                         </div>
                     </div>
@@ -327,12 +330,12 @@ const chartOptions = {
 
                 <!-- Revenue Trends Table -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Revenue Details</h3>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">{{ t('analytics.revenue_details') }}</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Sana</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{{ t('common.date') }}</th>
                                     <th class="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Revenue</th>
                                     <th class="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Deals</th>
                                     <th class="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Avg Deal Size</th>

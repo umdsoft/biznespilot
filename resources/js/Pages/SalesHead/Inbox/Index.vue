@@ -2,6 +2,9 @@
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import InboxIndex from '@/components/inbox/InboxIndex.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     conversations: Array,
@@ -12,8 +15,8 @@ defineProps({
 </script>
 
 <template>
-    <SalesHeadLayout title="Yagona Inbox">
-        <Head title="Yagona Inbox" />
+    <SalesHeadLayout :title="t('nav.inbox')">
+        <Head :title="t('nav.inbox')" />
         <InboxIndex
             :conversations="conversations"
             :stats="stats"
