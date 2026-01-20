@@ -1,5 +1,5 @@
 <template>
-    <MarketingLayout title="Marketing Kampaniyalari">
+    <MarketingLayout :title="t('marketing.campaigns')">
         <MarketingCampaignsIndex
             panel-type="marketing"
             :campaigns="campaigns"
@@ -13,6 +13,9 @@
 <script setup>
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import MarketingCampaignsIndex from '@/components/marketing/MarketingCampaignsIndex.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     campaigns: {

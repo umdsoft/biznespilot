@@ -17,23 +17,11 @@ const availableLocales = computed(() => {
     return Object.values(locales).filter(l => l.code !== currentLocale.value);
 });
 
-// Labels based on current locale
+// Labels using i18n
 const labels = computed(() => {
-    const locale = currentLocale.value;
-    if (locale === 'ru') {
-        return {
-            currentLanguage: 'Текущий язык',
-            otherLanguages: 'Другие языки'
-        };
-    } else if (locale === 'uz-cyrl') {
-        return {
-            currentLanguage: 'Жорий тил',
-            otherLanguages: 'Бошқа тиллар'
-        };
-    }
     return {
-        currentLanguage: 'Joriy til',
-        otherLanguages: 'Boshqa tillar'
+        currentLanguage: t('language.current'),
+        otherLanguages: t('language.other')
     };
 });
 

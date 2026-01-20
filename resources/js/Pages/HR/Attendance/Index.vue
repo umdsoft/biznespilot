@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     ClockIcon,
     CalendarIcon,
@@ -13,6 +14,8 @@ import {
     Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
 import { format } from 'date-fns';
+
+const { t } = useI18n();
 
 const props = defineProps({
     records: { type: Array, default: () => [] },
@@ -132,15 +135,15 @@ const formatTime = (time) => {
 </script>
 
 <template>
-    <HRLayout title="Davomat">
-        <Head title="Davomat" />
+    <HRLayout :title="t('hr.attendance')">
+        <Head :title="t('hr.attendance')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Davomat Tizimi</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Xodimlarning davomat yozuvlarini boshqarish</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.attendance_tracking') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.attendance_subtitle') }}</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button
@@ -152,7 +155,7 @@ const formatTime = (time) => {
                                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         ]"
                     >
-                        Kunlik
+                        {{ t('hr.daily') }}
                     </button>
                     <button
                         @click="changeView('monthly')"
@@ -163,7 +166,7 @@ const formatTime = (time) => {
                                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         ]"
                     >
-                        Oylik
+                        {{ t('hr.monthly') }}
                     </button>
                 </div>
             </div>

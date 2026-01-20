@@ -6,26 +6,26 @@
                 :href="links[0].url"
                 class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-                Oldingi
+                {{ t('pagination.previous') }}
             </Link>
             <span
                 v-else
                 class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-300"
             >
-                Oldingi
+                {{ t('pagination.previous') }}
             </span>
             <Link
                 v-if="links[links.length - 1].url"
                 :href="links[links.length - 1].url"
                 class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-                Keyingi
+                {{ t('pagination.next') }}
             </Link>
             <span
                 v-else
                 class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-300"
             >
-                Keyingi
+                {{ t('pagination.next') }}
             </span>
         </div>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
@@ -34,9 +34,9 @@
                     <span class="font-medium">{{ from }}</span>
                     -
                     <span class="font-medium">{{ to }}</span>
-                    dan
+                    {{ t('pagination.from') }}
                     <span class="font-medium">{{ total }}</span>
-                    ta
+                    {{ t('pagination.items') }}
                 </p>
             </div>
             <div>
@@ -70,6 +70,9 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     links: {

@@ -4,6 +4,9 @@ import { Head, usePage } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
 import CampaignsTab from '@/components/Meta/CampaignsTab.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     business: Object,

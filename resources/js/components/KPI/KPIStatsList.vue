@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-3">
         <div v-if="stats.length === 0" class="text-center py-6 text-gray-500">
-            Statistika yo'q
+            {{ t('kpi.no_statistics') }}
         </div>
         <div
             v-for="(stat, index) in stats"
@@ -22,7 +22,7 @@
             <div class="text-right">
                 <p class="text-lg font-bold text-gray-900">{{ formatValue(stat.value, stat.format) }}</p>
                 <p v-if="stat.target" class="text-xs text-gray-500">
-                    Maqsad: {{ formatValue(stat.target, stat.format) }}
+                    {{ t('kpi.target') }}: {{ formatValue(stat.target, stat.format) }}
                 </p>
             </div>
         </div>
@@ -30,6 +30,10 @@
 </template>
 
 <script setup>
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 defineProps({
     stats: {
         type: Array,

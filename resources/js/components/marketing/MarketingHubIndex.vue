@@ -543,6 +543,9 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   panelType: {
@@ -575,8 +578,8 @@ const getHref = (path) => {
 };
 
 const formatCurrency = (amount) => {
-  if (!amount) return "0 so'm";
-  return new Intl.NumberFormat('uz-UZ').format(amount) + " so'm";
+  if (!amount) return "0 " + t('common.currency');
+  return new Intl.NumberFormat('uz-UZ').format(amount) + " " + t('common.currency');
 };
 
 const formatDate = (date) => {
@@ -607,9 +610,9 @@ const getPostStatusClass = (status) => {
 
 const getPostStatusLabel = (status) => {
   const labels = {
-    draft: 'Qoralama',
-    scheduled: 'Rejalashtirilgan',
-    published: 'Nashr qilingan',
+    draft: t('marketing.status_draft'),
+    scheduled: t('marketing.status_scheduled'),
+    published: t('marketing.status_published'),
   };
   return labels[status] || status;
 };

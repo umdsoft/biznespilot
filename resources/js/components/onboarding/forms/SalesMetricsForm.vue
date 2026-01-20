@@ -7,8 +7,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h3 class="text-xl font-bold text-gray-900 mb-2">Sotuv Ko'rsatkichlari</h3>
-      <p class="text-gray-600">Sotuv jarayoningiz haqida asosiy ma'lumotlar</p>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">{{ t('onboarding.sales.title') }}</h3>
+      <p class="text-gray-600">{{ t('onboarding.sales.description') }}</p>
     </div>
 
     <!-- Lead Volume -->
@@ -17,13 +17,13 @@
         <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
-        Lidlar (Potentsial Mijozlar)
+        {{ t('onboarding.sales.leads_title') }}
       </h4>
 
       <div class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-3">
-            Oyiga taxminan nechta lid (so'rov/ariza) keladi?
+            {{ t('onboarding.sales.monthly_leads_label') }}
           </label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div
@@ -38,7 +38,7 @@
               ]"
             >
               <span class="font-bold text-emerald-600 text-lg">{{ range.label }}</span>
-              <span class="text-xs text-gray-500">{{ range.description }}</span>
+              <span class="text-xs text-gray-500">{{ t(`onboarding.sales.volume.${range.value}`) }}</span>
             </div>
           </div>
         </div>
@@ -48,9 +48,9 @@
     <!-- Lead Sources -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Mijozlar qayerdan keladi?
+        {{ t('onboarding.sales.lead_sources_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Eng ko'p lid (so'rov) keladigan manbalarni tanlang</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.sales.lead_sources_hint') }}</p>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div
           v-for="source in leadSources"
@@ -74,8 +74,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">{{ source.label }}</span>
-            <span class="text-xs text-gray-500">{{ source.description }}</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t(`onboarding.sales.sources.${source.value}.label`) }}</span>
+            <span class="text-xs text-gray-500">{{ t(`onboarding.sales.sources.${source.value}.description`) }}</span>
           </div>
         </div>
       </div>
@@ -84,9 +84,9 @@
     <!-- Lead Quality -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Kelgan so'rovlar qanchalik sifatli?
+        {{ t('onboarding.sales.lead_quality_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Kelgan lidlardan qanchasi haqiqiy mijozga aylanadi?</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.sales.lead_quality_hint') }}</p>
       <div class="grid grid-cols-3 gap-3">
         <div
           v-for="quality in leadQualityOptions"
@@ -100,8 +100,8 @@
           ]"
         >
           <span class="text-2xl mb-1">{{ quality.emoji }}</span>
-          <span class="font-medium text-gray-900">{{ quality.label }}</span>
-          <span class="text-xs text-gray-500">{{ quality.description }}</span>
+          <span class="font-medium text-gray-900">{{ t(`onboarding.sales.quality.${quality.value}.label`) }}</span>
+          <span class="text-xs text-gray-500">{{ t(`onboarding.sales.quality.${quality.value}.description`) }}</span>
         </div>
       </div>
     </div>
@@ -112,13 +112,13 @@
         <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
-        Sotuv Natijalari
+        {{ t('onboarding.sales.results_title') }}
       </h4>
 
       <div class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-3">
-            Oyiga taxminan nechta sotuv amalga oshadi?
+            {{ t('onboarding.sales.monthly_sales_label') }}
           </label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div
@@ -133,7 +133,7 @@
               ]"
             >
               <span class="font-bold text-emerald-600 text-lg">{{ range.label }}</span>
-              <span class="text-xs text-gray-500">{{ range.description }}</span>
+              <span class="text-xs text-gray-500">{{ t(`onboarding.sales.sales_volume.${range.value}`) }}</span>
             </div>
           </div>
         </div>
@@ -141,31 +141,31 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              O'rtacha chek summasi (so'm)
+              {{ t('onboarding.sales.avg_deal_label') }}
             </label>
             <input
               v-model="form.avg_deal_size"
               type="text"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Masalan: 500,000"
+              :placeholder="t('onboarding.sales.avg_deal_placeholder')"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              O'rtacha sotuv davri
+              {{ t('onboarding.sales.sales_cycle_label') }}
             </label>
             <select
               v-model="form.sales_cycle"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="">Tanlang</option>
-              <option value="same_day">Bir kunda</option>
-              <option value="1_3_days">1-3 kun</option>
-              <option value="1_week">Bir hafta</option>
-              <option value="2_weeks">2 hafta</option>
-              <option value="1_month">Bir oy</option>
-              <option value="more_month">Bir oydan ko'p</option>
+              <option value="">{{ t('common.select') }}</option>
+              <option value="same_day">{{ t('onboarding.sales.cycle.same_day') }}</option>
+              <option value="1_3_days">{{ t('onboarding.sales.cycle.1_3_days') }}</option>
+              <option value="1_week">{{ t('onboarding.sales.cycle.1_week') }}</option>
+              <option value="2_weeks">{{ t('onboarding.sales.cycle.2_weeks') }}</option>
+              <option value="1_month">{{ t('onboarding.sales.cycle.1_month') }}</option>
+              <option value="more_month">{{ t('onboarding.sales.cycle.more_month') }}</option>
             </select>
           </div>
         </div>
@@ -175,7 +175,7 @@
     <!-- Sales Team -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-3">
-        Sotuv bilan kim shug'ullanadi?
+        {{ t('onboarding.sales.team_label') }}
       </label>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div
@@ -198,8 +198,8 @@
             <div v-if="form.sales_team_type === option.value" class="w-2 h-2 rounded-full bg-emerald-600"></div>
           </div>
           <div>
-            <span class="font-medium text-gray-900 text-sm">{{ option.label }}</span>
-            <p class="text-xs text-gray-500 mt-0.5">{{ option.description }}</p>
+            <span class="font-medium text-gray-900 text-sm">{{ t(`onboarding.sales.team.${option.value}.label`) }}</span>
+            <p class="text-xs text-gray-500 mt-0.5">{{ t(`onboarding.sales.team.${option.value}.description`) }}</p>
           </div>
         </div>
       </div>
@@ -208,9 +208,9 @@
     <!-- Sales Tools -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Mijozlar bilan qanday bog'lanasiz?
+        {{ t('onboarding.sales.tools_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Sotuv jarayonida foydalanadigan vositalarni tanlang</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.sales.tools_hint') }}</p>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div
           v-for="tool in salesTools"
@@ -234,8 +234,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">{{ tool.label }}</span>
-            <span class="text-xs text-gray-500">{{ tool.description }}</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t(`onboarding.sales.tools.${tool.value}.label`) }}</span>
+            <span class="text-xs text-gray-500">{{ t(`onboarding.sales.tools.${tool.value}.description`) }}</span>
           </div>
         </div>
       </div>
@@ -244,20 +244,20 @@
     <!-- Challenges -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Sotuvda eng katta muammo nima?
+        {{ t('onboarding.sales.challenges_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-2">Ixtiyoriy - nimani yaxshilashni xohlardingiz?</p>
+      <p class="text-sm text-gray-500 mb-2">{{ t('onboarding.sales.challenges_hint') }}</p>
       <textarea
         v-model="form.sales_challenges"
         rows="2"
         class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-        placeholder="Masalan: Mijoz ko'p, lekin sotuvga aylanmayapti..."
+        :placeholder="t('onboarding.sales.challenges_placeholder')"
       ></textarea>
     </div>
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Taxminiy raqamlar ham qabul qilinadi. Bu ma'lumotlar AI tahlil uchun muhim.
+      {{ t('onboarding.sales.info_text') }}
     </p>
 
     <!-- Action Buttons -->
@@ -267,7 +267,7 @@
         @click="$emit('skip')"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -275,7 +275,7 @@
           @click="$emit('cancel')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           @click="handleSubmit"
@@ -286,7 +286,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Saqlash
+          {{ t('common.save') }}
         </button>
       </div>
     </div>
@@ -297,7 +297,9 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
 
+const { t } = useI18n();
 const store = useOnboardingStore();
 const toast = useToastStore();
 const emit = defineEmits(['submit', 'cancel', 'skip']);
@@ -374,51 +376,51 @@ onMounted(async () => {
 });
 
 const leadVolumeRanges = [
-  { value: '0_10', label: '0-10', description: 'Kam' },
-  { value: '10_50', label: '10-50', description: 'O\'rtacha' },
-  { value: '50_200', label: '50-200', description: 'Ko\'p' },
-  { value: '200_plus', label: '200+', description: 'Juda ko\'p' }
+  { value: '0_10', label: '0-10' },
+  { value: '10_50', label: '10-50' },
+  { value: '50_200', label: '50-200' },
+  { value: '200_plus', label: '200+' }
 ];
 
 const salesVolumeRanges = [
-  { value: '0_10', label: '0-10', description: 'Kam' },
-  { value: '10_50', label: '10-50', description: 'O\'rtacha' },
-  { value: '50_100', label: '50-100', description: 'Ko\'p' },
-  { value: '100_plus', label: '100+', description: 'Juda ko\'p' }
+  { value: '0_10', label: '0-10' },
+  { value: '10_50', label: '10-50' },
+  { value: '50_100', label: '50-100' },
+  { value: '100_plus', label: '100+' }
 ];
 
 const leadSources = [
-  { value: 'instagram', label: 'Instagram', description: 'DM yoki kommentlar orqali' },
-  { value: 'telegram', label: 'Telegram', description: 'Bot yoki guruh orqali' },
-  { value: 'facebook', label: 'Facebook', description: 'Messenger yoki sahifadan' },
-  { value: 'website', label: 'Web-sayt', description: 'Forma to\'ldirish orqali' },
-  { value: 'referral', label: 'Tavsiya', description: 'Mijozlar tavsiyasi' },
-  { value: 'cold_calls', label: 'Telefon qo\'ng\'iroq', description: 'O\'zimiz qo\'ng\'iroq qilamiz' },
-  { value: 'ads', label: 'Reklama', description: 'Pullik reklamadan' },
-  { value: 'offline', label: 'Yuzma-yuz', description: 'Do\'kon, ofis, tadbirlar' },
-  { value: 'other', label: 'Boshqa', description: 'Boshqa manbalar' }
+  { value: 'instagram' },
+  { value: 'telegram' },
+  { value: 'facebook' },
+  { value: 'website' },
+  { value: 'referral' },
+  { value: 'cold_calls' },
+  { value: 'ads' },
+  { value: 'offline' },
+  { value: 'other' }
 ];
 
 const leadQualityOptions = [
-  { value: 'low', label: 'Past', emoji: '😕', description: 'Ko\'p lid, kam sotiladi' },
-  { value: 'medium', label: 'O\'rtacha', emoji: '🙂', description: 'Maqbul natija' },
-  { value: 'high', label: 'Yuqori', emoji: '😊', description: 'Sifatli lidlar' }
+  { value: 'low', emoji: '😕' },
+  { value: 'medium', emoji: '🙂' },
+  { value: 'high', emoji: '😊' }
 ];
 
 const salesTeamOptions = [
-  { value: 'owner_only', label: 'Faqat men o\'zim', description: 'Biznes egasi yolg\'iz sotadi' },
-  { value: 'small_team', label: '1-3 sotuvchi', description: 'Kichik sotuv jamoasi' },
-  { value: 'medium_team', label: '4-10 sotuvchi', description: 'O\'rtacha sotuv bo\'limi' },
-  { value: 'large_team', label: '10+ sotuvchi', description: 'Katta sotuv jamoasi' }
+  { value: 'owner_only' },
+  { value: 'small_team' },
+  { value: 'medium_team' },
+  { value: 'large_team' }
 ];
 
 const salesTools = [
-  { value: 'excel', label: 'Excel/Sheets', description: 'Jadvalda yozib boraman' },
-  { value: 'crm', label: 'CRM tizimi', description: 'AmoCRM, Bitrix24 va boshqa' },
-  { value: 'telegram_bot', label: 'Telegram bot', description: 'Avtomatik javob beradi' },
-  { value: 'whatsapp', label: 'WhatsApp', description: 'Yozishmalar orqali' },
-  { value: 'phone', label: 'Telefon', description: 'Qo\'ng\'iroq qilish' },
-  { value: 'none', label: 'Hech narsa', description: 'Hozircha ishlatmayman' }
+  { value: 'excel' },
+  { value: 'crm' },
+  { value: 'telegram_bot' },
+  { value: 'whatsapp' },
+  { value: 'phone' },
+  { value: 'none' }
 ];
 
 async function handleSubmit() {
@@ -426,12 +428,12 @@ async function handleSubmit() {
 
   try {
     await store.updateSalesMetrics(form);
-    toast.success('Muvaffaqiyatli saqlandi', 'Sotuv ko\'rsatkichlari yangilandi');
+    toast.success(t('common.success'), t('onboarding.sales.saved_message'));
     emit('submit');
   } catch (err) {
     console.error(err);
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     loading.value = false;
   }

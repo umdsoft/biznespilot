@@ -2,6 +2,10 @@
 import { ref, computed, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 import {
     BugAntIcon,
     LightBulbIcon,
@@ -118,7 +122,7 @@ const updateStatus = async (feedback, newStatus) => {
 
 // Delete feedback
 const deleteFeedback = async (feedback) => {
-    if (!confirm('Ushbu feedbackni o\'chirmoqchimisiz?')) return;
+    if (!confirm(t('admin.feedback.delete_confirm'))) return;
 
     try {
         const response = await fetch(route('admin.feedback.destroy', feedback.id), {
@@ -138,16 +142,16 @@ const deleteFeedback = async (feedback) => {
 </script>
 
 <template>
-    <AdminLayout title="Feedback Boshqaruvi">
-        <Head title="Feedback Boshqaruvi" />
+    <AdminLayout :title="t('admin.feedback.title')">
+        <Head :title="t('admin.feedback.title')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Feedback va Takliflar</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('admin.feedback.heading') }}</h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Foydalanuvchilardan kelgan xabarlar
+                        {{ t('admin.feedback.subtitle') }}
                     </p>
                 </div>
                 <Link
@@ -155,7 +159,7 @@ const deleteFeedback = async (feedback) => {
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
                 >
                     <ChartBarIcon class="w-5 h-5" />
-                    Analitika
+                    {{ t('admin.feedback.analytics') }}
                 </Link>
             </div>
 
@@ -168,7 +172,7 @@ const deleteFeedback = async (feedback) => {
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Jami</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.feedback.stats.total') }}</p>
                         </div>
                     </div>
                 </div>
@@ -179,7 +183,7 @@ const deleteFeedback = async (feedback) => {
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ stats.pending }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Kutilmoqda</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.feedback.stats.pending') }}</p>
                         </div>
                     </div>
                 </div>
@@ -190,7 +194,7 @@ const deleteFeedback = async (feedback) => {
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.in_progress }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Jarayonda</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.feedback.stats.in_progress') }}</p>
                         </div>
                     </div>
                 </div>
@@ -201,7 +205,7 @@ const deleteFeedback = async (feedback) => {
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.resolved }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Hal qilingan</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.feedback.stats.resolved') }}</p>
                         </div>
                     </div>
                 </div>
@@ -212,7 +216,7 @@ const deleteFeedback = async (feedback) => {
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.bugs }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Xatoliklar</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.feedback.stats.bugs') }}</p>
                         </div>
                     </div>
                 </div>
@@ -223,7 +227,7 @@ const deleteFeedback = async (feedback) => {
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ stats.urgent }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Shoshilinch</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.feedback.stats.urgent') }}</p>
                         </div>
                     </div>
                 </div>
@@ -238,7 +242,7 @@ const deleteFeedback = async (feedback) => {
                         <input
                             v-model="search"
                             type="text"
-                            placeholder="Qidirish..."
+                            :placeholder="t('common.search') + '...'"
                             class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white"
                         />
                     </div>
@@ -249,7 +253,7 @@ const deleteFeedback = async (feedback) => {
                             v-model="selectedType"
                             class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-sm"
                         >
-                            <option value="all">Barcha turlar</option>
+                            <option value="all">{{ t('admin.feedback.all_types') }}</option>
                             <option v-for="(label, value) in types" :key="value" :value="value">{{ label }}</option>
                         </select>
 
@@ -257,7 +261,7 @@ const deleteFeedback = async (feedback) => {
                             v-model="selectedStatus"
                             class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-sm"
                         >
-                            <option value="all">Barcha statuslar</option>
+                            <option value="all">{{ t('admin.feedback.all_statuses') }}</option>
                             <option v-for="(label, value) in statuses" :key="value" :value="value">{{ label }}</option>
                         </select>
 
@@ -265,7 +269,7 @@ const deleteFeedback = async (feedback) => {
                             v-model="selectedPriority"
                             class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-sm"
                         >
-                            <option value="all">Barcha muhimlik</option>
+                            <option value="all">{{ t('admin.feedback.all_priorities') }}</option>
                             <option v-for="(label, value) in priorities" :key="value" :value="value">{{ label }}</option>
                         </select>
                     </div>
@@ -278,13 +282,13 @@ const deleteFeedback = async (feedback) => {
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Turi</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Sarlavha</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Foydalanuvchi</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Muhimlik</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Sana</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Amallar</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.feedback.type') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.feedback.subject') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.feedback.user') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('common.status') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.feedback.priority') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('common.date') }}</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{{ t('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -312,7 +316,7 @@ const deleteFeedback = async (feedback) => {
                                         </p>
                                         <div v-if="feedback.attachments.length > 0" class="flex items-center gap-1 mt-1 text-xs text-gray-400">
                                             <PaperClipIcon class="w-3.5 h-3.5" />
-                                            {{ feedback.attachments.length }} fayl
+                                            {{ feedback.attachments.length }} {{ t('admin.feedback.files') }}
                                         </div>
                                     </div>
                                 </td>
@@ -364,8 +368,8 @@ const deleteFeedback = async (feedback) => {
                 <!-- Empty State -->
                 <div v-if="feedbacks.data.length === 0" class="text-center py-12">
                     <ChatBubbleOvalLeftEllipsisIcon class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Feedback topilmadi</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Hozircha hech qanday xabar yo'q</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('admin.feedback.not_found') }}</h3>
+                    <p class="text-gray-500 dark:text-gray-400">{{ t('admin.feedback.no_messages') }}</p>
                 </div>
 
                 <!-- Pagination -->
@@ -380,14 +384,14 @@ const deleteFeedback = async (feedback) => {
                                 :href="feedbacks.prev_page_url"
                                 class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
                             >
-                                Oldingi
+                                {{ t('common.previous') }}
                             </Link>
                             <Link
                                 v-if="feedbacks.next_page_url"
                                 :href="feedbacks.next_page_url"
                                 class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
                             >
-                                Keyingi
+                                {{ t('common.next') }}
                             </Link>
                         </div>
                     </div>

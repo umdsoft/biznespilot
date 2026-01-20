@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 const props = defineProps({
     title: { type: String, required: true },
     value: { type: [String, Number], required: true },
@@ -75,7 +79,7 @@ const getProgressColor = () => {
                     :style="{ width: getProgressPercentage() + '%' }"
                 ></div>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Maqsad: {{ target }}{{ suffix }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ t('kpi.target') }}: {{ target }}{{ suffix }}</p>
         </div>
     </div>
 </template>

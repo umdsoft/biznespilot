@@ -1,6 +1,8 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatFullCurrency, formatDate } from '@/utils/formatting';
 import {
     ArrowLeftIcon,
@@ -10,6 +12,8 @@ import {
     CurrencyDollarIcon,
     CheckCircleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stats: {
@@ -28,17 +32,17 @@ const props = defineProps({
     },
 });
 
-const statCards = [
-    { label: 'Jami qo\'ng\'iroqlar', value: props.stats.total_calls, icon: PhoneIcon, color: 'blue' },
-    { label: 'Muvaffaqiyatli', value: props.stats.successful_calls, icon: CheckCircleIcon, color: 'green' },
-    { label: 'Yangi lidlar', value: props.stats.new_leads, icon: UserGroupIcon, color: 'purple' },
-    { label: 'Yopilgan bitimlar', value: props.stats.closed_deals, icon: CurrencyDollarIcon, color: 'emerald' },
-];
+const statCards = computed(() => [
+    { label: t('calls.total_calls'), value: props.stats.total_calls, icon: PhoneIcon, color: 'blue' },
+    { label: t('calls.successful'), value: props.stats.successful_calls, icon: CheckCircleIcon, color: 'green' },
+    { label: t('reports.new_leads'), value: props.stats.new_leads, icon: UserGroupIcon, color: 'purple' },
+    { label: t('reports.closed_deals'), value: props.stats.closed_deals, icon: CurrencyDollarIcon, color: 'emerald' },
+]);
 </script>
 
 <template>
-    <SalesHeadLayout title="Kunlik Hisobot">
-        <Head title="Kunlik Hisobot" />
+    <SalesHeadLayout :title="t('reports.daily_report')">
+        <Head :title="t('reports.daily_report')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -51,13 +55,13 @@ const statCards = [
                         <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </Link>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Kunlik Hisobot</h1>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('reports.daily_report') }}</h1>
                         <p class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(new Date()) }}</p>
                     </div>
                 </div>
                 <button class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors">
                     <ArrowDownTrayIcon class="w-5 h-5" />
-                    Yuklab olish
+                    {{ t('common.download') }}
                 </button>
             </div>
 
@@ -97,15 +101,15 @@ const statCards = [
 
             <!-- Revenue -->
             <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-6 text-white">
-                <p class="text-emerald-100 text-sm">Bugungi daromad</p>
+                <p class="text-emerald-100 text-sm">{{ t('reports.today_revenue') }}</p>
                 <p class="text-3xl font-bold mt-1">{{ formatFullCurrency(stats.revenue) }}</p>
             </div>
 
             <!-- Empty state for activities -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
                 <PhoneIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Faoliyatlar</h3>
-                <p class="text-gray-500 dark:text-gray-400">Bugungi faoliyatlar ro'yxati bu yerda ko'rsatiladi</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('reports.activities') }}</h3>
+                <p class="text-gray-500 dark:text-gray-400">{{ t('reports.today_activities_list') }}</p>
             </div>
         </div>
     </SalesHeadLayout>

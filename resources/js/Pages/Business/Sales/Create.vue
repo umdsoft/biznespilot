@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useForm, Link, Head, usePage } from '@inertiajs/vue3';
 import { vMaska } from 'maska/vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     ArrowLeftIcon,
     UserPlusIcon,
@@ -19,6 +20,8 @@ import {
     ExclamationTriangleIcon,
     EyeIcon
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     channels: {
@@ -252,8 +255,8 @@ const getScoreBg = (score) => {
 </script>
 
 <template>
-    <BusinessLayout title="Yangi Lead">
-        <Head title="Yangi Lead Qo'shish" />
+    <BusinessLayout :title="t('sales.new_lead')">
+        <Head :title="t('sales.add_new_lead')" />
 
         <div class="p-6">
             <div class="max-w-4xl mx-auto">
@@ -264,7 +267,7 @@ const getScoreBg = (score) => {
                         class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-4"
                     >
                         <ArrowLeftIcon class="w-4 h-4" />
-                        Sotuv va Leadlarga qaytish
+                        {{ t('sales.back_to_sales') }}
                     </Link>
 
                     <div class="flex items-center gap-4">
@@ -272,9 +275,9 @@ const getScoreBg = (score) => {
                             <UserPlusIcon class="w-8 h-8 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Yangi Lead Qo'shish</h1>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('sales.add_new_lead') }}</h1>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Potensial mijoz ma'lumotlarini kiriting
+                                {{ t('sales.enter_potential_customer_info') }}
                             </p>
                         </div>
                     </div>
@@ -300,7 +303,7 @@ const getScoreBg = (score) => {
                                             {{ duplicateWarning.existing_lead.phone }}
                                         </p>
                                         <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                            Yaratilgan: {{ duplicateWarning.existing_lead.created_at }}
+                                            {{ t('sales.created') }}: {{ duplicateWarning.existing_lead.created_at }}
                                         </p>
                                     </div>
                                     <Link
@@ -308,7 +311,7 @@ const getScoreBg = (score) => {
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                                     >
                                         <EyeIcon class="w-4 h-4" />
-                                        Ko'rish
+                                        {{ t('common.view') }}
                                     </Link>
                                 </div>
                             </div>
@@ -318,13 +321,13 @@ const getScoreBg = (score) => {
                                     @click="handleForceCreate"
                                     class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
                                 >
-                                    Baribir yaratish
+                                    {{ t('sales.create_anyway') }}
                                 </button>
                                 <Link
                                     :href="route('business.sales.show', duplicateWarning.existing_lead.id)"
                                     class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
                                 >
-                                    Mavjud lidga o'tish
+                                    {{ t('sales.go_to_existing_lead') }}
                                 </Link>
                             </div>
                         </div>
@@ -339,7 +342,7 @@ const getScoreBg = (score) => {
                         </div>
                         <div class="flex-1">
                             <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200">
-                                Bu telefon raqami bilan lid(lar) mavjud
+                                {{ t('sales.leads_with_phone_exist') }}
                             </h3>
                             <div class="mt-2 space-y-2">
                                 <div
@@ -364,13 +367,13 @@ const getScoreBg = (score) => {
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                                         >
                                             <EyeIcon class="w-4 h-4" />
-                                            Ko'rish
+                                            {{ t('common.view') }}
                                         </Link>
                                     </div>
                                 </div>
                             </div>
                             <p class="mt-2 text-xs text-amber-700 dark:text-amber-400">
-                                Agar yangi lid yaratmoqchi bo'lsangiz, davom eting. Tizim dublikat sifatida belgilaydi.
+                                {{ t('sales.duplicate_warning_note') }}
                             </p>
                         </div>
                     </div>
@@ -384,7 +387,7 @@ const getScoreBg = (score) => {
                                 <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                     <UserIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Asosiy Ma'lumotlar</h2>
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ t('sales.basic_info') }}</h2>
                             </div>
                         </div>
 
@@ -393,7 +396,7 @@ const getScoreBg = (score) => {
                                 <!-- Name -->
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Ism Familiya <span class="text-red-500">*</span>
+                                        {{ t('sales.full_name') }} <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -427,7 +430,7 @@ const getScoreBg = (score) => {
                                 <!-- Email -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Email
+                                        {{ t('forms.email') }}
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -460,7 +463,7 @@ const getScoreBg = (score) => {
                                 <!-- Phone -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Telefon
+                                        {{ t('forms.phone') }}
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -496,7 +499,7 @@ const getScoreBg = (score) => {
                                 <!-- Company -->
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Kompaniya
+                                        {{ t('sales.company') }}
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -526,7 +529,7 @@ const getScoreBg = (score) => {
                                 <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                                     <ChartBarIcon class="w-5 h-5 text-purple-600 dark:text-purple-400" />
                                 </div>
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lead Ma'lumotlari</h2>
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ t('sales.lead_info') }}</h2>
                             </div>
                         </div>
 
@@ -535,7 +538,7 @@ const getScoreBg = (score) => {
                                 <!-- Status -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Holat <span class="text-red-500">*</span>
+                                        {{ t('common.status') }} <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <select
@@ -544,13 +547,13 @@ const getScoreBg = (score) => {
                                             class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
                                             :class="{ 'border-red-500 dark:border-red-500': form.errors.status }"
                                         >
-                                            <option value="new">Yangi</option>
-                                            <option value="contacted">Bog'lanildi</option>
-                                            <option value="qualified">Qualified</option>
-                                            <option value="proposal">Taklif</option>
-                                            <option value="negotiation">Muzokara</option>
-                                            <option value="won">Yutildi</option>
-                                            <option value="lost">Yo'qoldi</option>
+                                            <option value="new">{{ t('sales.status_new') }}</option>
+                                            <option value="contacted">{{ t('sales.status_contacted') }}</option>
+                                            <option value="qualified">{{ t('sales.status_qualified') }}</option>
+                                            <option value="proposal">{{ t('sales.status_proposal') }}</option>
+                                            <option value="negotiation">{{ t('sales.status_negotiation') }}</option>
+                                            <option value="won">{{ t('sales.status_won') }}</option>
+                                            <option value="lost">{{ t('sales.status_lost') }}</option>
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
                                             <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -566,7 +569,7 @@ const getScoreBg = (score) => {
                                 <!-- Source -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Manba
+                                        {{ t('sales.source') }}
                                     </label>
                                     <div class="relative">
                                         <select
@@ -574,7 +577,7 @@ const getScoreBg = (score) => {
                                             class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
                                             :class="{ 'border-red-500 dark:border-red-500': form.errors.source_id }"
                                         >
-                                            <option value="">Tanlang</option>
+                                            <option value="">{{ t('common.select') }}</option>
                                             <optgroup
                                                 v-for="(group, category) in groupedChannels"
                                                 :key="category"
@@ -603,13 +606,13 @@ const getScoreBg = (score) => {
                                 <!-- Score -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Lead Ball (0-100)
+                                        {{ t('sales.lead_score') }} (0-100)
                                     </label>
                                     <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
                                         <div class="flex items-center justify-between mb-3">
                                             <div class="flex items-center gap-2">
                                                 <SparklesIcon class="w-5 h-5 text-gray-400" />
-                                                <span class="text-sm text-gray-600 dark:text-gray-400">Lead sifati</span>
+                                                <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('sales.lead_quality') }}</span>
                                             </div>
                                             <span
                                                 class="text-2xl font-bold"
@@ -641,7 +644,7 @@ const getScoreBg = (score) => {
                                 <!-- Estimated Value -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Taxminiy qiymat (so'm)
+                                        {{ t('sales.estimated_value') }} ({{ t('common.currency') }})
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -657,7 +660,7 @@ const getScoreBg = (score) => {
                                             :class="{ 'border-red-500 dark:border-red-500': form.errors.estimated_value }"
                                         />
                                         <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-                                            <span class="text-sm text-gray-400 dark:text-gray-500">so'm</span>
+                                            <span class="text-sm text-gray-400 dark:text-gray-500">{{ t('common.currency') }}</span>
                                         </div>
                                     </div>
                                     <p v-if="form.errors.estimated_value" class="mt-1.5 text-sm text-red-600 dark:text-red-400">
@@ -675,20 +678,20 @@ const getScoreBg = (score) => {
                                 <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                     <DocumentTextIcon class="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Qo'shimcha Ma'lumotlar</h2>
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ t('sales.additional_info') }}</h2>
                             </div>
                         </div>
 
                         <div class="p-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Izohlar
+                                    {{ t('sales.notes') }}
                                 </label>
                                 <textarea
                                     v-model="form.notes"
                                     rows="5"
                                     maxlength="2000"
-                                    placeholder="Lead haqida qo'shimcha ma'lumotlar..."
+                                    :placeholder="t('sales.notes_placeholder')"
                                     class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
                                     :class="{ 'border-red-500 dark:border-red-500': form.errors.notes }"
                                 ></textarea>
@@ -711,7 +714,7 @@ const getScoreBg = (score) => {
                             :href="route('business.sales.index')"
                             class="px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
                         >
-                            Bekor qilish
+                            {{ t('common.cancel') }}
                         </Link>
                         <button
                             type="submit"
@@ -723,8 +726,8 @@ const getScoreBg = (score) => {
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            <span v-if="form.processing">Saqlanmoqda...</span>
-                            <span v-else>Lead Qo'shish</span>
+                            <span v-if="form.processing">{{ t('common.saving') }}...</span>
+                            <span v-else>{{ t('sales.add_lead') }}</span>
                         </button>
                     </div>
                 </form>

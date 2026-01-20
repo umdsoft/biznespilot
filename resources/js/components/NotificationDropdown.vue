@@ -4,7 +4,7 @@
     <button
       @click="toggleDropdown"
       class="relative flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-      title="Bildirishnomalar"
+      :title="t('notifications.title')"
     >
       <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -34,14 +34,14 @@
         <!-- Header -->
         <div class="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b border-gray-200 dark:border-gray-700">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Bildirishnomalar</h3>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ t('notifications.title') }}</h3>
             <div class="flex items-center space-x-2">
               <button
                 v-if="unreadCount > 0"
                 @click="markAllAsRead"
                 class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
               >
-                Barchasini o'qilgan deb belgilash
+                {{ t('notifications.mark_all_read') }}
               </button>
             </div>
           </div>
@@ -60,7 +60,7 @@
             <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Hozircha bildirishnoma yo'q</p>
+            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">{{ t('notifications.no_notifications') }}</p>
           </div>
 
           <div v-else>
@@ -110,7 +110,7 @@
             @click="isOpen = false"
             class="block w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
           >
-            Barcha bildirishnomalarni ko'rish
+            {{ t('notifications.view_all') }}
           </Link>
         </div>
       </div>
@@ -129,6 +129,9 @@
 import { ref, onMounted, onUnmounted, h } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const isOpen = ref(false);
 const loading = ref(false);
@@ -202,10 +205,10 @@ const formatTime = (dateString) => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Hozirgina';
-  if (diffMins < 60) return `${diffMins} daqiqa oldin`;
-  if (diffHours < 24) return `${diffHours} soat oldin`;
-  if (diffDays < 7) return `${diffDays} kun oldin`;
+  if (diffMins < 1) return t('notifications.just_now');
+  if (diffMins < 60) return t('notifications.minutes_ago').replace('{n}', diffMins);
+  if (diffHours < 24) return t('notifications.hours_ago').replace('{n}', diffHours);
+  if (diffDays < 7) return t('notifications.days_ago').replace('{n}', diffDays);
 
   return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' });
 };

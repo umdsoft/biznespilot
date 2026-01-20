@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from '@/i18n';
 import {
     XMarkIcon,
     CalendarIcon,
@@ -16,6 +17,8 @@ import {
     ChevronUpIcon,
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/vue/24/solid';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: Boolean,
@@ -106,7 +109,7 @@ const toggleComplete = () => {
 };
 
 const deleteTodo = () => {
-    if (confirm('Vazifani o\'chirmoqchimisiz?')) {
+    if (confirm(t('todos.detail.delete_confirm'))) {
         emit('delete', props.todo);
     }
 };
@@ -228,10 +231,10 @@ const toggleAssignee = (userId) => {
                                 <div class="flex items-center justify-between mb-3">
                                     <h3 class="font-semibold text-purple-800 dark:text-purple-300 flex items-center gap-2">
                                         <UserGroupIcon class="w-5 h-5" />
-                                        Jamoa progressi
+                                        {{ t('todos.detail.team_progress') }}
                                     </h3>
                                     <span class="text-sm font-bold text-purple-700 dark:text-purple-400">
-                                        {{ todo.completed_assignees_count }}/{{ todo.assignees_count }} bajarildi
+                                        {{ todo.completed_assignees_count }}/{{ todo.assignees_count }} {{ t('todos.detail.completed') }}
                                     </span>
                                 </div>
 
@@ -277,22 +280,22 @@ const toggleAssignee = (userId) => {
                                 <!-- Warning if not all completed -->
                                 <div v-if="!todo.is_team_completed && todo.assignees_count > 0" class="mt-3 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
                                     <ExclamationTriangleIcon class="w-4 h-4" />
-                                    Vazifa barcha a'zolar bajarmaguncha tugallanmaydi
+                                    {{ t('todos.detail.team_incomplete_warning') }}
                                 </div>
                             </div>
 
                             <!-- Description -->
                             <div class="mb-6">
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Tavsif</h3>
+                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ t('todos.detail.description') }}</h3>
                                 <textarea
                                     v-if="isEditing"
                                     v-model="editForm.description"
                                     rows="3"
                                     class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white resize-none"
-                                    placeholder="Vazifa tavsifini kiriting..."
+                                    :placeholder="t('todos.detail.description_placeholder')"
                                 ></textarea>
                                 <p v-else class="text-gray-700 dark:text-gray-300">
-                                    {{ todo.description || 'Tavsif yo\'q' }}
+                                    {{ todo.description || t('todos.detail.no_description') }}
                                 </p>
                             </div>
 
@@ -300,7 +303,7 @@ const toggleAssignee = (userId) => {
                             <div v-if="isEditing" class="grid grid-cols-2 gap-4 mb-6">
                                 <!-- Type -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Turi</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('todos.detail.type') }}</label>
                                     <select v-model="editForm.type" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
                                         <option v-for="(label, value) in types" :key="value" :value="value">{{ label }}</option>
                                     </select>
@@ -308,7 +311,7 @@ const toggleAssignee = (userId) => {
 
                                 <!-- Priority -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Muhimlik</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('todos.detail.priority') }}</label>
                                     <select v-model="editForm.priority" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
                                         <option v-for="(label, value) in priorities" :key="value" :value="value">{{ label }}</option>
                                     </select>
@@ -316,7 +319,7 @@ const toggleAssignee = (userId) => {
 
                                 <!-- Due date -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Muddat</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('todos.detail.due_date') }}</label>
                                     <input
                                         v-model="editForm.due_date"
                                         type="datetime-local"
@@ -326,16 +329,16 @@ const toggleAssignee = (userId) => {
 
                                 <!-- Assignee (for personal/process) -->
                                 <div v-if="editForm.type !== 'team'">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tayinlash</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('todos.detail.assign_to') }}</label>
                                     <select v-model="editForm.assigned_to" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
-                                        <option value="">Tanlang</option>
+                                        <option value="">{{ t('common.select') }}</option>
                                         <option v-for="member in teamMembers" :key="member.id" :value="member.id">{{ member.name }}</option>
                                     </select>
                                 </div>
 
                                 <!-- Team assignees (for team tasks) -->
                                 <div v-if="editForm.type === 'team'" class="col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jamoa a'zolari</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('todos.detail.team_members') }}</label>
                                     <div class="flex flex-wrap gap-2">
                                         <button
                                             v-for="member in teamMembers"
@@ -361,7 +364,7 @@ const toggleAssignee = (userId) => {
                                     class="flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 hover:text-gray-700 dark:hover:text-gray-200"
                                 >
                                     <component :is="showSubtasks ? ChevronUpIcon : ChevronDownIcon" class="w-4 h-4" />
-                                    Sub-vazifalar ({{ todo.completed_subtasks_count }}/{{ todo.subtasks_count }})
+                                    {{ t('todos.detail.subtasks') }} ({{ todo.completed_subtasks_count }}/{{ todo.subtasks_count }})
                                 </button>
 
                                 <div v-show="showSubtasks" class="space-y-2">
@@ -397,7 +400,7 @@ const toggleAssignee = (userId) => {
                                     <input
                                         v-model="newSubtask"
                                         type="text"
-                                        placeholder="Yangi sub-vazifa qo'shish..."
+                                        :placeholder="t('todos.detail.add_subtask_placeholder')"
                                         @keyup.enter="addSubtask"
                                         class="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-sm"
                                     />
@@ -414,7 +417,7 @@ const toggleAssignee = (userId) => {
                             <!-- Footer actions -->
                             <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                                    Yaratilgan: {{ todo.created_at }}
+                                    {{ t('todos.detail.created') }}: {{ todo.created_at }}
                                 </div>
 
                                 <div class="flex items-center gap-2">
@@ -423,14 +426,14 @@ const toggleAssignee = (userId) => {
                                             @click="cancelEditing"
                                             class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                                         >
-                                            Bekor qilish
+                                            {{ t('common.cancel') }}
                                         </button>
                                         <button
                                             @click="saveChanges"
                                             :disabled="saving"
                                             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                                         >
-                                            {{ saving ? 'Saqlanmoqda...' : 'Saqlash' }}
+                                            {{ saving ? t('common.saving') + '...' : t('common.save') }}
                                         </button>
                                     </template>
                                     <template v-else>
@@ -445,7 +448,7 @@ const toggleAssignee = (userId) => {
                                             class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors flex items-center gap-2"
                                         >
                                             <PencilSquareIcon class="w-4 h-4" />
-                                            Tahrirlash
+                                            {{ t('common.edit') }}
                                         </button>
                                     </template>
                                 </div>

@@ -3,9 +3,9 @@
     <!-- Revenue Range -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Oylik tushum qancha?
+        {{ t('onboarding.maturity.revenue_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Biznesingizning oylik umumiy tushumi (so'mda). Taxminiy bo'lsa ham bo'ladi.</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.maturity.revenue_hint') }}</p>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div
           v-for="range in revenueRanges"
@@ -18,8 +18,8 @@
               : 'border-gray-200 hover:border-gray-300'
           ]"
         >
-          <span class="text-sm font-medium text-gray-900">{{ range.label }}</span>
-          <span class="text-xs text-gray-500 mt-1">{{ range.description }}</span>
+          <span class="text-sm font-medium text-gray-900">{{ t(`onboarding.maturity.revenue.${range.value}`) }}</span>
+          <span class="text-xs text-gray-500 mt-1">{{ t(`onboarding.maturity.revenue.${range.value}_desc`) }}</span>
         </div>
       </div>
     </div>
@@ -27,9 +27,9 @@
     <!-- Main Challenges -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Hozir eng katta muammo nima?
+        {{ t('onboarding.maturity.challenges_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Biznesingizni rivojlantirishga to'sqinlik qilayotgan asosiy muammolarni tanlang</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.maturity.challenges_hint') }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div
           v-for="challenge in challenges"
@@ -53,8 +53,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">{{ challenge.label }}</span>
-            <span class="text-xs text-gray-500">{{ challenge.description }}</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t(`onboarding.maturity.challenge.${challenge.value}`) }}</span>
+            <span class="text-xs text-gray-500">{{ t(`onboarding.maturity.challenge.${challenge.value}_desc`) }}</span>
           </div>
         </div>
       </div>
@@ -62,8 +62,8 @@
 
     <!-- Infrastructure -->
     <div class="bg-gray-50 rounded-xl p-4">
-      <h4 class="font-medium text-gray-900 mb-2">Qanday vositalardan foydalanasiz?</h4>
-      <p class="text-sm text-gray-500 mb-4">Biznesingizda qaysi texnologiyalar mavjud?</p>
+      <h4 class="font-medium text-gray-900 mb-2">{{ t('onboarding.maturity.tools_title') }}</h4>
+      <p class="text-sm text-gray-500 mb-4">{{ t('onboarding.maturity.tools_hint') }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div
           @click="form.has_website = !form.has_website"
@@ -79,8 +79,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Web-sayt</span>
-            <span class="text-xs text-gray-500">Kompaniya yoki mahsulot haqida sayt bor</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.tool.website') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.tool.website_desc') }}</span>
           </div>
         </div>
         <div
@@ -97,8 +97,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Mijozlar bazasi (CRM)</span>
-            <span class="text-xs text-gray-500">AmoCRM, Bitrix24, Excel yoki boshqa tizimda mijozlar ro'yxati bor</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.tool.crm') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.tool.crm_desc') }}</span>
           </div>
         </div>
         <div
@@ -115,8 +115,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Statistika kuzatish</span>
-            <span class="text-xs text-gray-500">Sayt tashrifchilari, sotuvlar yoki reklama natijalari kuzatiladi</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.tool.analytics') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.tool.analytics_desc') }}</span>
           </div>
         </div>
         <div
@@ -133,8 +133,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Avtomatik xabarlar</span>
-            <span class="text-xs text-gray-500">Bot, avtomatik SMS yoki email yuborish tizimi mavjud</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.tool.automation') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.tool.automation_desc') }}</span>
           </div>
         </div>
       </div>
@@ -142,8 +142,8 @@
 
     <!-- Processes -->
     <div class="bg-gray-50 rounded-xl p-4">
-      <h4 class="font-medium text-gray-900 mb-2">Biznesingizda qanday tartiblar mavjud?</h4>
-      <p class="text-sm text-gray-500 mb-4">Qaysi ishlarda aniq qoidalar va ketma-ketlik bor?</p>
+      <h4 class="font-medium text-gray-900 mb-2">{{ t('onboarding.maturity.processes_title') }}</h4>
+      <p class="text-sm text-gray-500 mb-4">{{ t('onboarding.maturity.processes_hint') }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div
           @click="form.has_documented_processes = !form.has_documented_processes"
@@ -159,8 +159,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Yozma ko'rsatmalar</span>
-            <span class="text-xs text-gray-500">Xodimlar uchun ishni qanday bajarish bo'yicha yozilgan qoidalar bor</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.process.documented') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.process.documented_desc') }}</span>
           </div>
         </div>
         <div
@@ -177,8 +177,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Sotuv tartibi</span>
-            <span class="text-xs text-gray-500">Mijoz bilan birinchi aloqadan sotuvgacha aniq bosqichlar bor</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.process.sales') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.process.sales_desc') }}</span>
           </div>
         </div>
         <div
@@ -195,8 +195,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Mijozga xizmat ko'rsatish</span>
-            <span class="text-xs text-gray-500">Shikoyat va savollarga javob berish tartibi mavjud</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.process.support') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.process.support_desc') }}</span>
           </div>
         </div>
         <div
@@ -213,8 +213,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Reklama va targ'ibot</span>
-            <span class="text-xs text-gray-500">Kontent chiqarish, reklama berish uchun reja va tartib bor</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.process.marketing') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.process.marketing_desc') }}</span>
           </div>
         </div>
       </div>
@@ -223,9 +223,9 @@
     <!-- Marketing Channels -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Qayerda reklama qilasiz?
+        {{ t('onboarding.maturity.channels_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Hozirda foydalanayotgan kanallarni tanlang</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.maturity.channels_hint') }}</p>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div
           v-for="channel in marketingChannels"
@@ -238,16 +238,16 @@
               : 'border-gray-200 hover:border-gray-300'
           ]"
         >
-          <span class="text-sm font-medium text-gray-900">{{ channel.label }}</span>
-          <span class="text-xs text-gray-500 mt-1">{{ channel.description }}</span>
+          <span class="text-sm font-medium text-gray-900">{{ t(`onboarding.maturity.channel.${channel.value}`) }}</span>
+          <span class="text-xs text-gray-500 mt-1">{{ t(`onboarding.maturity.channel.${channel.value}_desc`) }}</span>
         </div>
       </div>
     </div>
 
     <!-- Marketing Settings -->
     <div class="bg-gray-50 rounded-xl p-4">
-      <h4 class="font-medium text-gray-900 mb-2">Marketing holati</h4>
-      <p class="text-sm text-gray-500 mb-4">Reklama va targ'ibot ishlaringiz haqida</p>
+      <h4 class="font-medium text-gray-900 mb-2">{{ t('onboarding.maturity.marketing_status_title') }}</h4>
+      <p class="text-sm text-gray-500 mb-4">{{ t('onboarding.maturity.marketing_status_hint') }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div
           @click="form.has_marketing_budget = !form.has_marketing_budget"
@@ -263,8 +263,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Reklama byudjeti</span>
-            <span class="text-xs text-gray-500">Oylik reklama uchun ajratilgan mablag' bor</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.marketing.budget') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.marketing.budget_desc') }}</span>
           </div>
         </div>
         <div
@@ -281,8 +281,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Natijalar kuzatiladi</span>
-            <span class="text-xs text-gray-500">Qancha pul sarflangan, qancha mijoz kelgani hisoblanadi</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.marketing.tracking') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.marketing.tracking_desc') }}</span>
           </div>
         </div>
         <div
@@ -299,8 +299,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">Marketolog bor</span>
-            <span class="text-xs text-gray-500">Alohida odam yoki bo'lim reklama bilan shug'ullanadi</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t('onboarding.maturity.marketing.dedicated') }}</span>
+            <span class="text-xs text-gray-500">{{ t('onboarding.maturity.marketing.dedicated_desc') }}</span>
           </div>
         </div>
       </div>
@@ -309,9 +309,9 @@
     <!-- Primary Goals -->
     <div>
       <label class="block text-sm font-medium text-gray-900 mb-1">
-        Nimaga erishmoqchisiz?
+        {{ t('onboarding.maturity.goals_label') }}
       </label>
-      <p class="text-sm text-gray-500 mb-3">Yaqin kelajakdagi asosiy maqsadlaringizni tanlang</p>
+      <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.maturity.goals_hint') }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div
           v-for="goal in primaryGoals"
@@ -335,8 +335,8 @@
             </svg>
           </div>
           <div>
-            <span class="text-sm font-medium text-gray-900 block">{{ goal.label }}</span>
-            <span class="text-xs text-gray-500">{{ goal.description }}</span>
+            <span class="text-sm font-medium text-gray-900 block">{{ t(`onboarding.maturity.goal.${goal.value}`) }}</span>
+            <span class="text-xs text-gray-500">{{ t(`onboarding.maturity.goal.${goal.value}_desc`) }}</span>
           </div>
         </div>
       </div>
@@ -344,7 +344,7 @@
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Barcha maydonlar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+      {{ t('onboarding.forms.optional_fields') }}
     </p>
 
     <!-- Submit -->
@@ -354,7 +354,7 @@
         @click="handleSkip"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -362,7 +362,7 @@
           @click="$emit('cancel')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           type="submit"
@@ -373,7 +373,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Saqlash
+          {{ t('common.save') }}
         </button>
       </div>
     </div>
@@ -384,6 +384,9 @@
 import { ref, reactive, watch } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const store = useOnboardingStore();
 const toast = useToastStore();
@@ -470,49 +473,49 @@ function toggleGoal(value) {
 }
 
 const revenueRanges = [
-  { value: 'none', label: 'Hali yo\'q', description: 'Endigina boshladim' },
-  { value: 'under_5m', label: '5 mln gacha', description: 'Boshlang\'ich' },
-  { value: '5m_20m', label: '5-20 mln', description: 'Kichik biznes' },
-  { value: '20m_50m', label: '20-50 mln', description: 'O\'sish bosqichi' },
-  { value: '50m_100m', label: '50-100 mln', description: 'O\'rtacha biznes' },
-  { value: '100m_500m', label: '100-500 mln', description: 'Barqaror biznes' },
-  { value: '500m_1b', label: '500 mln - 1 mlrd', description: 'Yirik biznes' },
-  { value: 'over_1b', label: '1 mlrd+', description: 'Katta kompaniya' }
+  { value: 'none' },
+  { value: 'under_5m' },
+  { value: '5m_20m' },
+  { value: '20m_50m' },
+  { value: '50m_100m' },
+  { value: '100m_500m' },
+  { value: '500m_1b' },
+  { value: 'over_1b' }
 ];
 
 const challenges = [
-  { value: 'customer_acquisition', label: 'Yangi mijoz topish', description: 'Yangi mijozlar kam keladi, ko\'proq mijoz kerak' },
-  { value: 'lead_generation', label: 'Lid yig\'ish', description: 'So\'rovlar kam, qiziquvchilar yetarli emas' },
-  { value: 'sales_conversion', label: 'Sotuvni yopish', description: 'Mijoz bor, lekin sotib olmaydi' },
-  { value: 'customer_retention', label: 'Mijozni ushlab qolish', description: 'Mijozlar bir marta olib ketadi, qaytmaydi' },
-  { value: 'brand_awareness', label: 'Tanilish', description: 'Biznesni kam odam biladi, tanilishimiz past' },
-  { value: 'competition', label: 'Raqobat', description: 'Raqobatchilar ko\'p, ulardan ajralib turish qiyin' },
-  { value: 'pricing', label: 'Narx belgilash', description: 'Qanday narx qo\'yishni bilmayman' },
-  { value: 'team_scaling', label: 'Xodim topish', description: 'Yaxshi ishchi topish qiyin, jamoa o\'sishi kerak' },
-  { value: 'cash_flow', label: 'Pul aylanmasi', description: 'Pul yetishmaydi, oqim beqaror' },
-  { value: 'technology', label: 'Texnologiya', description: 'Zamonaviy vositalarni joriy qilish kerak' }
+  { value: 'customer_acquisition' },
+  { value: 'lead_generation' },
+  { value: 'sales_conversion' },
+  { value: 'customer_retention' },
+  { value: 'brand_awareness' },
+  { value: 'competition' },
+  { value: 'pricing' },
+  { value: 'team_scaling' },
+  { value: 'cash_flow' },
+  { value: 'technology' }
 ];
 
 const marketingChannels = [
-  { value: 'instagram', label: 'Instagram', description: 'Rasm va videolar orqali' },
-  { value: 'telegram', label: 'Telegram', description: 'Kanal yoki guruh' },
-  { value: 'facebook', label: 'Facebook', description: 'Sahifa va reklamalar' },
-  { value: 'google_ads', label: 'Google Ads', description: 'Qidiruv reklamalari' },
-  { value: 'seo', label: 'SEO', description: 'Google\'da chiqish' },
-  { value: 'email', label: 'Email', description: 'Pochta orqali xabarlar' },
-  { value: 'sms', label: 'SMS', description: 'Telefonga xabar' },
-  { value: 'content', label: 'Kontent', description: 'Foydali maqolalar' },
-  { value: 'referral', label: 'Tavsiya', description: 'Mijozlar orqali' },
-  { value: 'offline', label: 'Oflayn', description: 'Banner, buklet' }
+  { value: 'instagram' },
+  { value: 'telegram' },
+  { value: 'facebook' },
+  { value: 'google_ads' },
+  { value: 'seo' },
+  { value: 'email' },
+  { value: 'sms' },
+  { value: 'content' },
+  { value: 'referral' },
+  { value: 'offline' }
 ];
 
 const primaryGoals = [
-  { value: 'increase_revenue', label: 'Daromadni oshirish', description: 'Ko\'proq sotuv va pul ishlash' },
-  { value: 'expand_market', label: 'Bozorni kengaytirish', description: 'Yangi hududlar yoki mijoz guruhlariga chiqish' },
-  { value: 'improve_brand', label: 'Brendni rivojlantirish', description: 'Tanilish va ishonchni oshirish' },
-  { value: 'optimize_costs', label: 'Xarajatlarni kamaytirish', description: 'Kam sarf qilib, ko\'proq natija olish' },
-  { value: 'automate_processes', label: 'Ishlarni avtomatlashtirish', description: 'Qo\'lda qilinadigan ishlarni kamaytirish' },
-  { value: 'improve_customer_experience', label: 'Mijoz xizmatini yaxshilash', description: 'Mijozlar mamnunligini oshirish' }
+  { value: 'increase_revenue' },
+  { value: 'expand_market' },
+  { value: 'improve_brand' },
+  { value: 'optimize_costs' },
+  { value: 'automate_processes' },
+  { value: 'improve_customer_experience' }
 ];
 
 function initializeForm() {
@@ -546,12 +549,12 @@ async function handleSubmit() {
 
   try {
     await store.updateMaturityAssessment(form);
-    toast.success('Muvaffaqiyatli saqlandi', 'Biznes holati ma\'lumotlari yangilandi');
+    toast.success(t('common.success'), t('onboarding.maturity.saved'));
     emit('submit');
   } catch (err) {
     console.error(err);
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     loading.value = false;
   }

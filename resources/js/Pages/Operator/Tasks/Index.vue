@@ -2,6 +2,9 @@
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import TasksIndex from '@/components/tasks/TasksIndex.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     tasks: {
@@ -32,8 +35,8 @@ defineProps({
 </script>
 
 <template>
-    <OperatorLayout title="Vazifalar">
-        <Head title="Mening Vazifalarim" />
+    <OperatorLayout :title="t('tasks.title')">
+        <Head :title="t('tasks.my_tasks')" />
         <TasksIndex
             :tasks="tasks"
             :stats="stats"

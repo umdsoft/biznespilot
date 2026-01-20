@@ -2,6 +2,9 @@
 import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     eskizAccount: Object,

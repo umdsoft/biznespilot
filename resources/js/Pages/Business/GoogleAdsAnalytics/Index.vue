@@ -4,6 +4,9 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import CampaignsTab from '@/components/GoogleAds/CampaignsTab.vue';
 import CreateCampaignModal from '@/components/GoogleAds/CreateCampaignModal.vue';
 import { ref, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     currentBusiness: Object,
@@ -87,9 +90,9 @@ const getPriorityText = (priority) => {
 </script>
 
 <template>
-    <Head title="Google Ads Analitika" />
+    <Head :title="t('google_ads.analytics')" />
 
-    <BusinessLayout title="Google Ads Analitika">
+    <BusinessLayout :title="t('google_ads.analytics')">
         <div class="space-y-6">
             <!-- Not Connected State -->
             <div v-if="!integration" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 text-center">
@@ -98,9 +101,9 @@ const getPriorityText = (priority) => {
                         <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Google Ads ulanmagan</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ t('google_ads.not_connected') }}</h2>
                 <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                    Google Ads hisobingizni ulang va reklama kampaniyalaringiz samaradorligini kuzating.
+                    {{ t('google_ads.connect_message') }}
                 </p>
                 <Link
                     :href="route('business.settings.google-ads')"
@@ -109,7 +112,7 @@ const getPriorityText = (priority) => {
                     <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
-                    Google Ads ulash
+                    {{ t('google_ads.connect') }}
                 </Link>
             </div>
 
@@ -122,7 +125,7 @@ const getPriorityText = (priority) => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
-                            <h4 class="text-yellow-400 font-semibold mb-2">API xatoliklari:</h4>
+                            <h4 class="text-yellow-400 font-semibold mb-2">{{ t('google_ads.api_errors') }}:</h4>
                             <ul class="text-yellow-300 text-sm space-y-1">
                                 <li v-for="(error, index) in apiErrors" :key="index">{{ error }}</li>
                             </ul>
@@ -152,7 +155,7 @@ const getPriorityText = (priority) => {
                             :href="route('business.settings.google-ads')"
                             class="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-colors"
                         >
-                            Sozlamalar
+                            {{ t('common.settings') }}
                         </Link>
                     </div>
                 </div>
@@ -196,7 +199,7 @@ const getPriorityText = (priority) => {
                         <svg class="w-6 h-6 mr-2 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
-                        Tavsiyalar va harakatlar
+                        {{ t('google_ads.recommendations') }}
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div
@@ -234,7 +237,7 @@ const getPriorityText = (priority) => {
 
                                 <!-- Actions -->
                                 <div v-if="rec.actions && rec.actions.length > 0" class="mt-auto">
-                                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Qilish kerak:</p>
+                                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">{{ t('google_ads.actions_needed') }}:</p>
                                     <ul class="space-y-2">
                                         <li v-for="(action, i) in rec.actions" :key="i" class="flex items-start text-sm">
                                             <span
@@ -265,14 +268,14 @@ const getPriorityText = (priority) => {
                                 class="px-6 py-4 text-sm font-medium border-b-2 transition-colors"
                                 :class="activeTab === 'overview' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
                             >
-                                Umumiy ko'rinish
+                                {{ t('google_ads.overview') }}
                             </button>
                             <button
                                 @click="activeTab = 'campaigns'"
                                 class="px-6 py-4 text-sm font-medium border-b-2 transition-colors"
                                 :class="activeTab === 'campaigns' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
                             >
-                                Kampaniyalar
+                                {{ t('google_ads.campaigns') }}
                             </button>
                         </nav>
                     </div>
@@ -281,7 +284,7 @@ const getPriorityText = (priority) => {
                     <div v-if="activeTab === 'overview'" class="p-6">
                         <!-- 28-Day Stats -->
                         <div v-if="analyticsData">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Oxirgi 28 kun statistikasi</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ t('google_ads.last_28_days') }}</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl flex items-center justify-between">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Ko'rishlar</p>
@@ -315,7 +318,7 @@ const getPriorityText = (priority) => {
                             <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
-                            <p class="text-gray-500 dark:text-gray-400">Ma'lumotlar yuklanmadi</p>
+                            <p class="text-gray-500 dark:text-gray-400">{{ t('reports.no_data') }}</p>
                         </div>
                     </div>
 
@@ -349,7 +352,7 @@ const getPriorityText = (priority) => {
                         <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
                         </svg>
-                        Google Ads ga o'tish
+                        {{ t('google_ads.go_to_ads') }}
                     </a>
                 </div>
             </template>

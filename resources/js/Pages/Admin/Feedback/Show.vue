@@ -2,6 +2,10 @@
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 import {
     ArrowLeftIcon,
     BugAntIcon,
@@ -146,7 +150,7 @@ const addNote = async () => {
 
 // Delete feedback
 const deleteFeedback = async () => {
-    if (!confirm('Ushbu feedbackni o\'chirmoqchimisiz?')) return;
+    if (!confirm(t('admin.feedback.delete_confirm'))) return;
 
     try {
         const response = await fetch(route('admin.feedback.destroy', props.feedback.id), {
@@ -166,7 +170,7 @@ const deleteFeedback = async () => {
 </script>
 
 <template>
-    <AdminLayout title="Feedback Tafsilotlari">
+    <AdminLayout :title="t('admin.feedback.details')">
         <Head :title="`Feedback: ${feedback.title}`" />
 
         <div class="max-w-5xl mx-auto space-y-6">
@@ -176,7 +180,7 @@ const deleteFeedback = async () => {
                 class="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
                 <ArrowLeftIcon class="w-5 h-5" />
-                Orqaga
+                {{ t('common.back') }}
             </Link>
 
             <!-- Main content -->
@@ -206,7 +210,7 @@ const deleteFeedback = async () => {
                     <div v-if="feedback.attachments.length > 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                         <h3 class="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <PaperClipIcon class="w-5 h-5" />
-                            Biriktirilgan fayllar ({{ feedback.attachments.length }})
+                            {{ t('admin.feedback.attached_files') }} ({{ feedback.attachments.length }})
                         </h3>
                         <div class="grid grid-cols-2 gap-4">
                             <div
@@ -229,7 +233,7 @@ const deleteFeedback = async () => {
                                         target="_blank"
                                         class="text-sm text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block"
                                     >
-                                        Ko'rish
+                                        {{ t('common.view') }}
                                     </a>
                                 </div>
                             </div>
@@ -239,14 +243,14 @@ const deleteFeedback = async () => {
                     <!-- Admin Notes -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-semibold text-gray-900 dark:text-white">Admin izohlari</h3>
+                            <h3 class="font-semibold text-gray-900 dark:text-white">{{ t('admin.feedback.admin_notes') }}</h3>
                             <button
                                 v-if="!isAddingNote"
                                 @click="isAddingNote = true"
                                 class="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                             >
                                 <PlusIcon class="w-4 h-4" />
-                                Izoh qo'shish
+                                {{ t('admin.feedback.add_note') }}
                             </button>
                         </div>
 
@@ -255,7 +259,7 @@ const deleteFeedback = async () => {
                             <textarea
                                 v-model="newNote"
                                 rows="3"
-                                placeholder="Izoh yozing..."
+                                :placeholder="t('admin.feedback.write_note')"
                                 class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-sm resize-none"
                             ></textarea>
                             <div class="flex justify-end gap-2 mt-2">
@@ -263,14 +267,14 @@ const deleteFeedback = async () => {
                                     @click="isAddingNote = false; newNote = ''"
                                     class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm"
                                 >
-                                    Bekor qilish
+                                    {{ t('common.cancel') }}
                                 </button>
                                 <button
                                     @click="addNote"
                                     :disabled="!newNote.trim() || isSaving"
                                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"
                                 >
-                                    Saqlash
+                                    {{ t('common.save') }}
                                 </button>
                             </div>
                         </div>
@@ -279,7 +283,7 @@ const deleteFeedback = async () => {
                         <div v-if="feedback.admin_notes" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                             <pre class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-sans">{{ feedback.admin_notes }}</pre>
                         </div>
-                        <p v-else class="text-gray-500 dark:text-gray-400 text-sm">Hozircha izoh yo'q</p>
+                        <p v-else class="text-gray-500 dark:text-gray-400 text-sm">{{ t('admin.feedback.no_notes') }}</p>
                     </div>
                 </div>
 
@@ -288,7 +292,7 @@ const deleteFeedback = async () => {
                     <!-- Status & Priority -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('common.status') }}</label>
                             <select
                                 v-model="selectedStatus"
                                 @change="updateStatus"
@@ -299,7 +303,7 @@ const deleteFeedback = async () => {
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Muhimlik</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('admin.feedback.priority') }}</label>
                             <select
                                 v-model="selectedPriority"
                                 @change="updatePriority"
@@ -312,7 +316,7 @@ const deleteFeedback = async () => {
 
                     <!-- User Info -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Foydalanuvchi</h3>
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">{{ t('admin.feedback.user') }}</h3>
                         <div class="space-y-3">
                             <div v-if="feedback.user" class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
@@ -327,7 +331,7 @@ const deleteFeedback = async () => {
                             <div v-if="feedback.business" class="flex items-start gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                                 <BuildingOfficeIcon class="w-5 h-5 text-gray-400 mt-0.5" />
                                 <div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Biznes</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('admin.feedback.business') }}</p>
                                     <p class="font-medium text-gray-900 dark:text-white">{{ feedback.business.name }}</p>
                                 </div>
                             </div>
@@ -336,12 +340,12 @@ const deleteFeedback = async () => {
 
                     <!-- Technical Info -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Texnik ma'lumot</h3>
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">{{ t('admin.feedback.technical_info') }}</h3>
                         <div class="space-y-3 text-sm">
                             <div v-if="feedback.page_url" class="flex items-start gap-3">
                                 <GlobeAltIcon class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                                 <div class="min-w-0">
-                                    <p class="text-gray-500 dark:text-gray-400">Sahifa URL</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('admin.feedback.page_url') }}</p>
                                     <a :href="feedback.page_url" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline break-all">
                                         {{ feedback.page_url }}
                                     </a>
@@ -351,7 +355,7 @@ const deleteFeedback = async () => {
                             <div v-if="feedback.browser_info" class="flex items-start gap-3">
                                 <ComputerDesktopIcon class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                                 <div class="min-w-0">
-                                    <p class="text-gray-500 dark:text-gray-400">Brauzer</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('admin.feedback.browser') }}</p>
                                     <p class="text-gray-700 dark:text-gray-300 break-all text-xs">{{ feedback.browser_info }}</p>
                                 </div>
                             </div>
@@ -359,7 +363,7 @@ const deleteFeedback = async () => {
                             <div class="flex items-start gap-3">
                                 <CalendarIcon class="w-5 h-5 text-gray-400 mt-0.5" />
                                 <div>
-                                    <p class="text-gray-500 dark:text-gray-400">Yaratilgan</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('admin.feedback.created') }}</p>
                                     <p class="text-gray-700 dark:text-gray-300">{{ feedback.created_at }}</p>
                                 </div>
                             </div>
@@ -367,9 +371,9 @@ const deleteFeedback = async () => {
                             <div v-if="feedback.resolved_at" class="flex items-start gap-3">
                                 <CheckCircleIcon class="w-5 h-5 text-green-500 mt-0.5" />
                                 <div>
-                                    <p class="text-gray-500 dark:text-gray-400">Hal qilingan</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ t('admin.feedback.resolved') }}</p>
                                     <p class="text-gray-700 dark:text-gray-300">{{ feedback.resolved_at }}</p>
-                                    <p v-if="feedback.resolved_by" class="text-xs text-gray-500">{{ feedback.resolved_by.name }} tomonidan</p>
+                                    <p v-if="feedback.resolved_by" class="text-xs text-gray-500">{{ t('admin.feedback.by') }} {{ feedback.resolved_by.name }}</p>
                                 </div>
                             </div>
                         </div>
@@ -381,7 +385,7 @@ const deleteFeedback = async () => {
                         class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-colors"
                     >
                         <TrashIcon class="w-5 h-5" />
-                        O'chirish
+                        {{ t('common.delete') }}
                     </button>
                 </div>
             </div>

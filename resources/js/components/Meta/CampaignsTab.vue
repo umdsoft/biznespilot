@@ -3,6 +3,9 @@ import { ref, computed, watch, onUnmounted, onMounted } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import AdCreatorWizard from './AdCreatorWizard.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     businessId: String,
@@ -78,15 +81,15 @@ const filterOptions = ref({
 });
 
 // Sort options
-const sortOptions = [
-    { value: 'created_time', label: "Yaratilgan sana (yangi → eski)" },
-    { value: 'total_spend', label: "Sarflangan (ko'p → kam)" },
-    { value: 'total_impressions', label: "Ko'rishlar" },
-    { value: 'total_clicks', label: 'Kliklar' },
-    { value: 'avg_ctr', label: 'CTR' },
-    { value: 'avg_cpc', label: 'CPC' },
-    { value: 'name', label: 'Nomi (A-Z)' }
-];
+const sortOptions = computed(() => [
+    { value: 'created_time', label: t('meta.sort_created_time') },
+    { value: 'total_spend', label: t('meta.sort_spend') },
+    { value: 'total_impressions', label: t('meta.sort_impressions') },
+    { value: 'total_clicks', label: t('meta.sort_clicks') },
+    { value: 'avg_ctr', label: t('meta.sort_ctr') },
+    { value: 'avg_cpc', label: t('meta.sort_cpc') },
+    { value: 'name', label: t('meta.sort_name') }
+]);
 
 // Format helpers
 const formatNumber = (num) => new Intl.NumberFormat('uz-UZ').format(Number(num) || 0);
@@ -103,36 +106,36 @@ const formatDate = (dateString) => {
 
 const formatStatus = (status) => {
     const statuses = {
-        'ACTIVE': 'Faol',
-        'PAUSED': 'Pauza',
-        'DELETED': "O'chirilgan",
-        'ARCHIVED': 'Arxivlangan',
-        'IN_PROCESS': 'Jarayonda',
-        'WITH_ISSUES': 'Muammoli',
-        'CAMPAIGN_PAUSED': 'Kampaniya pauzada',
-        'ADSET_PAUSED': 'AdSet pauzada',
-        'PENDING_REVIEW': "Ko'rib chiqilmoqda",
-        'DISAPPROVED': 'Rad etilgan'
+        'ACTIVE': t('meta.status_active'),
+        'PAUSED': t('meta.status_paused'),
+        'DELETED': t('meta.status_deleted'),
+        'ARCHIVED': t('meta.status_archived'),
+        'IN_PROCESS': t('meta.status_in_process'),
+        'WITH_ISSUES': t('meta.status_with_issues'),
+        'CAMPAIGN_PAUSED': t('meta.status_campaign_paused'),
+        'ADSET_PAUSED': t('meta.status_adset_paused'),
+        'PENDING_REVIEW': t('meta.status_pending_review'),
+        'DISAPPROVED': t('meta.status_disapproved')
     };
     return statuses[status] || status;
 };
 
 const formatObjective = (objective) => {
     const objectives = {
-        'OUTCOME_AWARENESS': 'Xabardorlik',
-        'OUTCOME_ENGAGEMENT': 'Engagement',
-        'OUTCOME_LEADS': 'Lidlar',
-        'OUTCOME_SALES': 'Sotuvlar',
-        'OUTCOME_TRAFFIC': 'Trafik',
-        'OUTCOME_APP_PROMOTION': 'App Promotion',
-        'LINK_CLICKS': 'Link Clicks',
-        'POST_ENGAGEMENT': 'Post Engagement',
-        'PAGE_LIKES': 'Page Likes',
-        'CONVERSIONS': 'Konversiyalar',
-        'MESSAGES': 'Xabarlar',
-        'VIDEO_VIEWS': 'Video Views'
+        'OUTCOME_AWARENESS': t('meta.objective_awareness'),
+        'OUTCOME_ENGAGEMENT': t('meta.objective_engagement'),
+        'OUTCOME_LEADS': t('meta.objective_leads'),
+        'OUTCOME_SALES': t('meta.objective_sales'),
+        'OUTCOME_TRAFFIC': t('meta.objective_traffic'),
+        'OUTCOME_APP_PROMOTION': t('meta.objective_app_promotion'),
+        'LINK_CLICKS': t('meta.objective_link_clicks'),
+        'POST_ENGAGEMENT': t('meta.objective_post_engagement'),
+        'PAGE_LIKES': t('meta.objective_page_likes'),
+        'CONVERSIONS': t('meta.objective_conversions'),
+        'MESSAGES': t('meta.objective_messages'),
+        'VIDEO_VIEWS': t('meta.objective_video_views')
     };
-    return objectives[objective] || objective || "Noma'lum";
+    return objectives[objective] || objective || t('meta.unknown');
 };
 
 const getStatusColor = (status) => {
@@ -190,22 +193,22 @@ const getResultValue = (campaign) => {
 const getResultLabel = (campaign) => {
     const objective = campaign.objective;
     const labels = {
-        'OUTCOME_LEADS': 'Lid',
-        'LEAD_GENERATION': 'Lid',
-        'OUTCOME_SALES': 'Sotish',
-        'CONVERSIONS': 'Konversiya',
-        'PRODUCT_CATALOG_SALES': 'Sotish',
-        'OUTCOME_TRAFFIC': 'Klik',
-        'LINK_CLICKS': 'Klik',
-        'OUTCOME_ENGAGEMENT': 'Engagement',
-        'POST_ENGAGEMENT': 'Engagement',
-        'PAGE_LIKES': 'Like',
-        'OUTCOME_AWARENESS': 'Qamrov',
-        'OUTCOME_APP_PROMOTION': 'Install',
-        'MESSAGES': 'Xabar',
-        'VIDEO_VIEWS': 'Ko\'rish',
+        'OUTCOME_LEADS': t('meta.result_lead'),
+        'LEAD_GENERATION': t('meta.result_lead'),
+        'OUTCOME_SALES': t('meta.result_sale'),
+        'CONVERSIONS': t('meta.result_conversion'),
+        'PRODUCT_CATALOG_SALES': t('meta.result_sale'),
+        'OUTCOME_TRAFFIC': t('meta.result_click'),
+        'LINK_CLICKS': t('meta.result_click'),
+        'OUTCOME_ENGAGEMENT': t('meta.result_engagement'),
+        'POST_ENGAGEMENT': t('meta.result_engagement'),
+        'PAGE_LIKES': t('meta.result_like'),
+        'OUTCOME_AWARENESS': t('meta.result_reach'),
+        'OUTCOME_APP_PROMOTION': t('meta.result_install'),
+        'MESSAGES': t('meta.result_message'),
+        'VIDEO_VIEWS': t('meta.result_view'),
     };
-    return labels[objective] || 'Natija';
+    return labels[objective] || t('meta.result');
 };
 
 // Get cost per result
@@ -242,7 +245,7 @@ const toggleCampaignStatus = async (campaign, event) => {
     event.stopPropagation();
 
     if (!canManage.value) {
-        emit('error', 'Reklama boshqarish uchun ruxsat yo\'q. Meta-ni qayta ulang.');
+        emit('error', t('meta.no_manage_permission'));
         return;
     }
 
@@ -272,11 +275,11 @@ const toggleCampaignStatus = async (campaign, event) => {
                 summary.value.active_campaigns--;
             }
         } else {
-            emit('error', response.data.message || 'Status yangilashda xatolik');
+            emit('error', response.data.message || t('meta.status_update_error'));
         }
     } catch (error) {
         console.error('Error toggling campaign status:', error);
-        emit('error', error.response?.data?.message || 'Status yangilashda xatolik');
+        emit('error', error.response?.data?.message || t('meta.status_update_error'));
     } finally {
         togglingCampaigns.value.delete(campaignId);
     }
@@ -298,7 +301,7 @@ const isToggling = (campaign) => {
 // Open create campaign modal
 const openCreateModal = async () => {
     if (!canManage.value) {
-        emit('error', 'Kampaniya yaratish uchun ruxsat yo\'q. Meta-ni qayta ulang.');
+        emit('error', t('meta.no_create_permission'));
         return;
     }
 
@@ -316,11 +319,11 @@ const openCreateModal = async () => {
             };
             showCreateModal.value = true;
         } else {
-            emit('error', response.data.message || 'Ma\'lumotlarni yuklashda xatolik');
+            emit('error', response.data.message || t('meta.load_data_error'));
         }
     } catch (error) {
         console.error('Error loading creation options:', error);
-        emit('error', error.response?.data?.message || 'Ma\'lumotlarni yuklashda xatolik');
+        emit('error', error.response?.data?.message || t('meta.load_data_error'));
     }
 };
 
@@ -338,7 +341,7 @@ const closeCreateModal = () => {
 // Create campaign
 const createCampaign = async () => {
     if (!newCampaign.value.name || !newCampaign.value.objective) {
-        emit('error', 'Kampaniya nomi va maqsadini kiriting');
+        emit('error', t('meta.enter_name_objective'));
         return;
     }
 
@@ -366,17 +369,17 @@ const createCampaign = async () => {
             closeCreateModal();
             // Reload campaigns
             await loadCampaigns(1);
-            emit('sync-completed', { message: 'Kampaniya muvaffaqiyatli yaratildi' });
+            emit('sync-completed', { message: t('meta.campaign_created_success') });
         } else {
             console.error('Campaign creation failed:', response.data);
-            emit('error', response.data.message || 'Kampaniya yaratishda xatolik');
+            emit('error', response.data.message || t('meta.campaign_create_error'));
         }
     } catch (error) {
         console.error('Error creating campaign:', error);
         const errorMessage = error.response?.data?.message
             || error.response?.data?.error
             || error.message
-            || 'Kampaniya yaratishda xatolik';
+            || t('meta.campaign_create_error');
         emit('error', errorMessage);
     } finally {
         creatingCampaign.value = false;
@@ -386,7 +389,7 @@ const createCampaign = async () => {
 // Handle wizard completion
 const handleWizardCreated = async (data) => {
     showWizard.value = false;
-    emit('sync-completed', { message: 'Reklama muvaffaqiyatli yaratildi!' });
+    emit('sync-completed', { message: t('meta.ad_created_success') });
     // Reload campaigns to show the new one
     await loadCampaigns(1);
 };
@@ -433,10 +436,10 @@ const loadCampaigns = async (page = 1) => {
             summary.value = response.data.summary;
             pagination.value = response.data.pagination;
         } else {
-            emit('error', response.data.message || "Ma'lumotlarni yuklashda xatolik");
+            emit('error', response.data.message || t('meta.load_data_error'));
         }
     } catch (error) {
-        emit('error', error.response?.data?.message || "Ma'lumotlarni yuklashda xatolik");
+        emit('error', error.response?.data?.message || t('meta.load_data_error'));
     } finally {
         loading.value = false;
     }
@@ -475,7 +478,7 @@ const syncCampaigns = async () => {
         }
     } catch (error) {
         console.error('Error syncing campaigns:', error);
-        emit('error', error.response?.data?.message || 'Sinxronlashda xatolik');
+        emit('error', error.response?.data?.message || t('meta.sync_error'));
     } finally {
         syncing.value = false;
     }
@@ -571,32 +574,32 @@ onUnmounted(() => {
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jami</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.total') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ summary.total_campaigns }}</p>
-                <p class="text-xs text-green-600 dark:text-green-400">{{ summary.active_campaigns }} faol</p>
+                <p class="text-xs text-green-600 dark:text-green-400">{{ summary.active_campaigns }} {{ t('meta.active') }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Sarflangan</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.spent') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatCurrency(summary.total_spend, currency) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ko'rishlar</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.impressions') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatNumber(summary.total_impressions) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Qamrov</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.reach') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatNumber(summary.total_reach) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Kliklar</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.clicks') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatNumber(summary.total_clicks) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">CTR</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.ctr') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatPercent(summary.avg_ctr) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">CPC</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('meta.cpc') }}</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatCurrency(summary.avg_cpc, currency) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-2">
@@ -605,7 +608,7 @@ onUnmounted(() => {
                     <svg :class="{ 'animate-spin': syncing }" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    {{ syncing ? 'Sync...' : 'Sync' }}
+                    {{ syncing ? t('meta.syncing') : t('meta.sync') }}
                 </button>
                 <!-- Full Ad Creator Page Link -->
                 <Link v-if="canManage" href="/business/meta-campaigns/create"
@@ -613,7 +616,7 @@ onUnmounted(() => {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Reklama yaratish
+                    {{ t('meta.create_ad') }}
                 </Link>
             </div>
         </div>
@@ -625,7 +628,7 @@ onUnmounted(() => {
                 <div class="flex-shrink-0">
                     <select v-model="filters.status"
                         class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <option value="">Barcha statuslar</option>
+                        <option value="">{{ t('meta.all_statuses') }}</option>
                         <option v-for="status in filterOptions.statuses" :key="status.value" :value="status.value">
                             {{ status.label }}
                         </option>
@@ -636,7 +639,7 @@ onUnmounted(() => {
                 <div class="flex-shrink-0">
                     <select v-model="filters.objective"
                         class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <option value="">Barcha maqsadlar</option>
+                        <option value="">{{ t('meta.all_objectives') }}</option>
                         <option v-for="obj in filterOptions.objectives" :key="obj.value" :value="obj.value">
                             {{ obj.label }}
                         </option>
@@ -670,14 +673,14 @@ onUnmounted(() => {
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input type="text" v-model="filters.search" placeholder="Kampaniya nomini qidirish..."
+                        <input type="text" v-model="filters.search" :placeholder="t('meta.search_campaign')"
                             class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400">
                     </div>
                 </div>
 
                 <!-- Reset -->
                 <button @click="resetFilters" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-medium">
-                    Tozalash
+                    {{ t('meta.clear') }}
                 </button>
             </div>
         </div>
@@ -698,16 +701,16 @@ onUnmounted(() => {
                     <thead class="bg-gray-50 dark:bg-gray-900">
                         <tr>
                             <th v-if="canManage" class="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">On/Off</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kampaniya</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Maqsad</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sarflangan</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ko'rishlar</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kliklar</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">CTR</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">CPC</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Natija</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Yaratilgan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.campaign') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('common.status') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.objective') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.spent') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.impressions') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.clicks') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.ctr') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.cpc') }}</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.result') }}</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('meta.created') }}</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"></th>
                         </tr>
                     </thead>
@@ -809,14 +812,14 @@ onUnmounted(() => {
                 <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                <p class="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">Kampaniyalar topilmadi</p>
-                <p class="text-sm">Filterlarni o'zgartirib ko'ring yoki Sync tugmasini bosing</p>
+                <p class="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">{{ t('meta.no_campaigns_found') }}</p>
+                <p class="text-sm">{{ t('meta.try_changing_filters') }}</p>
             </div>
 
             <!-- Pagination -->
             <div v-if="campaigns.length > 0" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                    Ko'rsatilmoqda: {{ pagination.from }}-{{ pagination.to }} / {{ pagination.total }} ta
+                    {{ t('meta.showing') }}: {{ pagination.from }}-{{ pagination.to }} / {{ pagination.total }}
                 </div>
                 <div class="flex items-center gap-1">
                     <!-- Previous -->
@@ -863,7 +866,7 @@ onUnmounted(() => {
             <div class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl z-10">
                 <!-- Header -->
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 z-10">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Yangi kampaniya yaratish</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('meta.create_new_campaign') }}</h3>
                     <button @click="closeCreateModal" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -875,14 +878,14 @@ onUnmounted(() => {
                 <div class="px-6 py-4 space-y-6">
                     <!-- Campaign Name -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kampaniya nomi</label>
-                        <input v-model="newCampaign.name" type="text" placeholder="Masalan: Yangi yil aksiyasi"
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('meta.campaign_name') }}</label>
+                        <input v-model="newCampaign.name" type="text" :placeholder="t('meta.campaign_name_placeholder')"
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     </div>
 
                     <!-- Objective Selection -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Kampaniya maqsadi</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{{ t('meta.campaign_objective') }}</label>
                         <div class="grid grid-cols-2 gap-3">
                             <button v-for="objective in creationOptions.objectives" :key="objective.value"
                                 @click="newCampaign.objective = objective.value"
@@ -914,26 +917,26 @@ onUnmounted(() => {
 
                     <!-- Budget -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kunlik byudjet (ixtiyoriy)</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('meta.daily_budget_optional') }}</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
                             <input v-model="newCampaign.daily_budget" type="number" step="0.01" min="1" placeholder="0.00"
                                 class="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         </div>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Byudjet bo'sh qoldirilsa, AdSet darajasida belgilanadi</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ t('meta.budget_hint') }}</p>
                     </div>
 
                     <!-- Status -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Boshlang'ich status</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('meta.initial_status') }}</label>
                         <div class="flex gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" v-model="newCampaign.status" value="PAUSED" class="text-blue-600 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">Pauza (xavfsiz)</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('meta.paused_safe') }}</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" v-model="newCampaign.status" value="ACTIVE" class="text-blue-600 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">Faol</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('meta.status_active') }}</span>
                             </label>
                         </div>
                     </div>
@@ -943,7 +946,7 @@ onUnmounted(() => {
                 <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex items-center justify-end gap-3 sticky bottom-0">
                     <button @click="closeCreateModal"
                         class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">
-                        Bekor qilish
+                        {{ t('common.cancel') }}
                     </button>
                     <button @click="createCampaign" :disabled="creatingCampaign || !newCampaign.name || !newCampaign.objective"
                         class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium">
@@ -951,7 +954,7 @@ onUnmounted(() => {
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
-                        {{ creatingCampaign ? 'Yaratilmoqda...' : 'Yaratish' }}
+                        {{ creatingCampaign ? t('meta.creating') : t('common.create') }}
                     </button>
                 </div>
             </div>

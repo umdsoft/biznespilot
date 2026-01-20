@@ -1,13 +1,13 @@
 <template>
-    <AdminLayout title="Bizneslar Boshqaruvi">
+    <AdminLayout :title="t('admin.businesses.title')">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8 flex items-center justify-between">
                     <div>
-                        <h2 class="text-3xl font-bold text-gray-900">Bizneslar Boshqaruvi</h2>
+                        <h2 class="text-3xl font-bold text-gray-900">{{ t('admin.businesses.title') }}</h2>
                         <p class="mt-2 text-sm text-gray-600">
-                            Platformadagi barcha bizneslarni ko'ring va boshqaring
+                            {{ t('admin.businesses.subtitle') }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -18,7 +18,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            Export
+                            {{ t('admin.common.export') }}
                         </button>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Jami Bizneslar</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.businesses.total_businesses') }}</p>
                                 <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
                             </div>
                             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -42,7 +42,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Faol Bizneslar</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.businesses.active_businesses') }}</p>
                                 <p class="text-2xl font-bold text-green-600">{{ stats.active }}</p>
                             </div>
                             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -56,7 +56,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Nofaol Bizneslar</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.businesses.inactive_businesses') }}</p>
                                 <p class="text-2xl font-bold text-orange-600">{{ stats.inactive }}</p>
                             </div>
                             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -70,7 +70,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Shu Oy Yangi</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.businesses.new_this_month') }}</p>
                                 <p class="text-2xl font-bold text-purple-600">{{ stats.this_month }}</p>
                             </div>
                             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -87,13 +87,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <!-- Search -->
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Qidirish</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('common.search') }}</label>
                             <div class="relative">
                                 <input
                                     v-model="filters.search"
                                     @input="applyFilters"
                                     type="text"
-                                    placeholder="Biznes nomi yoki owner qidirish..."
+                                    :placeholder="t('admin.businesses.search_placeholder')"
                                     class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,30 +104,30 @@
 
                         <!-- Status Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('common.status') }}</label>
                             <select
                                 v-model="filters.status"
                                 @change="applyFilters"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value="">Barchasi</option>
-                                <option value="active">Faol</option>
-                                <option value="inactive">Nofaol</option>
+                                <option value="">{{ t('admin.common.all') }}</option>
+                                <option value="active">{{ t('admin.common.active') }}</option>
+                                <option value="inactive">{{ t('admin.common.inactive') }}</option>
                             </select>
                         </div>
 
                         <!-- Sort By -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tartiblash</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('admin.common.sort') }}</label>
                             <select
                                 v-model="filters.sort"
                                 @change="applyFilters"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value="newest">Eng yangi</option>
-                                <option value="oldest">Eng eski</option>
-                                <option value="name">Nom bo'yicha</option>
-                                <option value="customers">Mijozlar soni</option>
+                                <option value="newest">{{ t('admin.common.newest') }}</option>
+                                <option value="oldest">{{ t('admin.common.oldest') }}</option>
+                                <option value="name">{{ t('admin.common.by_name') }}</option>
+                                <option value="customers">{{ t('admin.businesses.by_customers') }}</option>
                             </select>
                         </div>
                     </div>
@@ -140,25 +140,25 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Biznes
+                                        {{ t('admin.businesses.business') }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Owner
+                                        {{ t('admin.businesses.owner') }}
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Mijozlar
+                                        {{ t('admin.businesses.customers') }}
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Kampaniyalar
+                                        {{ t('admin.businesses.campaigns') }}
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
+                                        {{ t('common.status') }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Yaratilgan
+                                        {{ t('admin.common.created') }}
                                     </th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Harakatlar
+                                        {{ t('common.actions') }}
                                     </th>
                                 </tr>
                             </thead>
@@ -197,7 +197,7 @@
                                                 'bg-gray-100 text-gray-800': business.status === 'inactive'
                                             }"
                                         >
-                                            {{ business.status === 'active' ? 'Faol' : 'Nofaol' }}
+                                            {{ business.status === 'active' ? t('admin.common.active') : t('admin.common.inactive') }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -208,7 +208,7 @@
                                             <button
                                                 @click="viewBusiness(business.id)"
                                                 class="text-blue-600 hover:text-blue-900"
-                                                title="Ko'rish"
+                                                :title="t('common.view')"
                                             >
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -219,7 +219,7 @@
                                                 @click="toggleStatus(business)"
                                                 class="hover:text-yellow-900"
                                                 :class="business.status === 'active' ? 'text-orange-600' : 'text-green-600'"
-                                                :title="business.status === 'active' ? 'O\'chirish' : 'Yoqish'"
+                                                :title="business.status === 'active' ? t('admin.businesses.deactivate') : t('admin.businesses.activate')"
                                             >
                                                 <svg v-if="business.status === 'active'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -232,7 +232,7 @@
                                             <button
                                                 @click="confirmDelete(business)"
                                                 class="text-red-600 hover:text-red-900"
-                                                title="O'chirish"
+                                                :title="t('common.delete')"
                                             >
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -248,7 +248,7 @@
                     <!-- Pagination -->
                     <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
                         <div class="text-sm text-gray-700">
-                            Ko'rsatilmoqda <span class="font-medium">{{ filteredBusinesses.length }}</span> dan <span class="font-medium">{{ businesses.length }}</span> ta natija
+                            {{ t('admin.common.showing') }} <span class="font-medium">{{ filteredBusinesses.length }}</span> {{ t('admin.common.of') }} <span class="font-medium">{{ businesses.length }}</span> {{ t('admin.common.results') }}
                         </div>
                     </div>
                 </div>
@@ -257,7 +257,7 @@
                 <div v-if="showDeleteModal" @click="showDeleteModal = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div @click.stop class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-xl font-bold text-gray-900">Biznesni O'chirish</h3>
+                            <h3 class="text-xl font-bold text-gray-900">{{ t('admin.businesses.delete_business') }}</h3>
                             <button @click="showDeleteModal = false" class="text-gray-500 hover:text-gray-700">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -272,10 +272,10 @@
                                 </svg>
                             </div>
                             <p class="text-center text-gray-700">
-                                Haqiqatan ham <strong>{{ businessToDelete?.name }}</strong> biznesni o'chirmoqchimisiz?
+                                {{ t('admin.businesses.delete_confirm') }} <strong>{{ businessToDelete?.name }}</strong>?
                             </p>
                             <p class="text-center text-sm text-red-600 mt-2">
-                                Bu amal qaytarilmaydi va barcha ma'lumotlar o'chiriladi!
+                                {{ t('admin.businesses.delete_warning') }}
                             </p>
                         </div>
 
@@ -284,13 +284,13 @@
                                 @click="showDeleteModal = false"
                                 class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
                             >
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button
                                 @click="deleteBusiness"
                                 class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                             >
-                                O'chirish
+                                {{ t('common.delete') }}
                             </button>
                         </div>
                     </div>
@@ -304,6 +304,9 @@
 import { ref, computed } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     businesses: Array,
@@ -396,6 +399,6 @@ const deleteBusiness = () => {
 
 const exportData = () => {
     // Export functionality
-    alert('Export funksiyasi tez orada qo\'shiladi')
+    alert(t('admin.common.export_coming_soon'))
 }
 </script>

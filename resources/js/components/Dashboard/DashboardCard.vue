@@ -30,7 +30,7 @@
                     :href="linkHref"
                     class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
                 >
-                    {{ linkText }}
+                    {{ linkText || t('dashboard.view_details') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -57,6 +57,9 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     title: {
@@ -81,7 +84,7 @@ const props = defineProps({
     },
     linkText: {
         type: String,
-        default: 'Batafsil',
+        default: '',
     },
 });
 

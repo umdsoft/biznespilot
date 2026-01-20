@@ -29,6 +29,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     task: {
@@ -57,9 +60,9 @@ const priorityClass = computed(() => {
 const priorityLabel = computed(() => {
     const priority = props.task.priority;
     const labels = {
-        high: 'Yuqori',
-        medium: 'O\'rta',
-        low: 'Past',
+        high: t('strategy.priority.high'),
+        medium: t('strategy.priority.medium'),
+        low: t('strategy.priority.low'),
     };
     return labels[priority] || priority;
 });

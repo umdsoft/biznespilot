@@ -1,6 +1,9 @@
 <script setup>
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import LeadShow from '@/components/leads/LeadShow.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     lead: {

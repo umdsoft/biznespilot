@@ -3,13 +3,13 @@
     <!-- Row 1: Business Name -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1.5">
-        Biznes nomi
+        {{ t('onboarding.forms.business_name') }}
       </label>
       <input
         v-model="form.name"
         type="text"
         class="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-        placeholder="Masalan: TechnoMarket"
+        :placeholder="t('onboarding.forms.business_name_placeholder')"
         :class="{ 'border-red-500': errors.name }"
       />
       <p v-if="errors.name" class="mt-1 text-xs text-red-500">{{ errors.name }}</p>
@@ -18,20 +18,20 @@
     <!-- Row 2: Category -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1.5">
-        Biznes kategoriyasi
+        {{ t('onboarding.forms.business_category') }}
       </label>
       <select
         v-model="form.category"
         class="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
         :class="{ 'border-red-500': errors.category }"
       >
-        <option value="">Kategoriyani tanlang</option>
+        <option value="">{{ t('onboarding.forms.select_category') }}</option>
         <option
           v-for="cat in businessCategories"
           :key="cat.value"
           :value="cat.value"
         >
-          {{ cat.label }}
+          {{ t(`onboarding.forms.categories.${cat.value}`) }}
         </option>
       </select>
       <p v-if="errors.category" class="mt-1 text-xs text-red-500">{{ errors.category }}</p>
@@ -40,20 +40,20 @@
     <!-- Row 3: Description -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1.5">
-        Qisqacha tavsif
+        {{ t('onboarding.forms.short_description') }}
       </label>
       <textarea
         v-model="form.description"
         rows="2"
         class="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
-        placeholder="Biznesingiz nima bilan shug'ullanadi?"
+        :placeholder="t('onboarding.forms.description_placeholder')"
       ></textarea>
     </div>
 
     <!-- Row 4: Business Type -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes turi
+        {{ t('onboarding.forms.business_type') }}
       </label>
       <div class="grid grid-cols-4 gap-2">
         <label
@@ -67,8 +67,8 @@
           ]"
         >
           <input type="radio" v-model="form.business_type" :value="type.value" class="sr-only" />
-          <span class="text-sm font-semibold text-gray-900">{{ type.label }}</span>
-          <span class="text-xs text-gray-500">{{ type.description }}</span>
+          <span class="text-sm font-semibold text-gray-900">{{ t(`onboarding.forms.types.${type.value}`) }}</span>
+          <span class="text-xs text-gray-500">{{ t(`onboarding.forms.types.${type.value}_desc`) }}</span>
         </label>
       </div>
       <p v-if="errors.business_type" class="mt-1 text-xs text-red-500">{{ errors.business_type }}</p>
@@ -77,7 +77,7 @@
     <!-- Row 5: Business Model -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
-        Biznes modeli
+        {{ t('onboarding.forms.business_model') }}
       </label>
       <div class="grid grid-cols-5 gap-2">
         <label
@@ -91,8 +91,8 @@
           ]"
         >
           <input type="radio" v-model="form.business_model" :value="model.value" class="sr-only" />
-          <span class="text-sm font-semibold text-gray-900">{{ model.label }}</span>
-          <span class="text-xs text-gray-500">{{ model.description }}</span>
+          <span class="text-sm font-semibold text-gray-900">{{ t(`onboarding.forms.models.${model.value}`) }}</span>
+          <span class="text-xs text-gray-500">{{ t(`onboarding.forms.models.${model.value}_desc`) }}</span>
         </label>
       </div>
       <p v-if="errors.business_model" class="mt-1 text-xs text-red-500">{{ errors.business_model }}</p>
@@ -100,7 +100,7 @@
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Barcha maydonlar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+      {{ t('onboarding.forms.optional_fields') }}
     </p>
 
     <!-- Submit -->
@@ -110,7 +110,7 @@
         @click="handleSkip"
         class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -118,7 +118,7 @@
           @click="$emit('cancel')"
           class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           type="submit"
@@ -129,7 +129,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Saqlash
+          {{ t('common.save') }}
         </button>
       </div>
     </div>
@@ -140,6 +140,9 @@
 import { ref, reactive, watch } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const store = useOnboardingStore();
 const toast = useToastStore();
@@ -156,50 +159,50 @@ const emit = defineEmits(['submit', 'cancel', 'skip']);
 const loading = ref(false);
 const errors = reactive({});
 
-// Biznes kategoriyalari - CreateBusiness.vue bilan bir xil
+// Business categories - values only, labels from i18n
 const businessCategories = [
-  { value: 'retail', label: 'Chakana savdo (Do\'konlar, supermarketlar)' },
-  { value: 'wholesale', label: 'Ulgurji savdo' },
-  { value: 'ecommerce', label: 'Onlayn savdo (E-commerce)' },
-  { value: 'food_service', label: 'Oziq-ovqat xizmati (Restoranlar, kafelar)' },
-  { value: 'manufacturing', label: 'Ishlab chiqarish' },
-  { value: 'construction', label: 'Qurilish va ta\'mirlash' },
-  { value: 'it_services', label: 'IT xizmatlari va dasturlash' },
-  { value: 'education', label: 'Ta\'lim va o\'quv markazlari' },
-  { value: 'healthcare', label: 'Sog\'liqni saqlash va tibbiyot' },
-  { value: 'beauty_wellness', label: 'Go\'zallik va salomatlik (Salonlar, SPA)' },
-  { value: 'real_estate', label: 'Ko\'chmas mulk' },
-  { value: 'transportation', label: 'Transport va logistika' },
-  { value: 'agriculture', label: 'Qishloq xo\'jaligi' },
-  { value: 'tourism', label: 'Turizm va mehmonxonalar' },
-  { value: 'finance', label: 'Moliya va sug\'urta' },
-  { value: 'consulting', label: 'Konsalting va biznes xizmatlari' },
-  { value: 'marketing_agency', label: 'Marketing va reklama agentligi' },
-  { value: 'media', label: 'Media va ko\'ngilochar sanoat' },
-  { value: 'fitness', label: 'Sport va fitness' },
-  { value: 'automotive', label: 'Avtomobil xizmatlari' },
-  { value: 'textile', label: 'To\'qimachilik va kiyim-kechak' },
-  { value: 'furniture', label: 'Mebel ishlab chiqarish va savdosi' },
-  { value: 'electronics', label: 'Elektronika va texnika' },
-  { value: 'cleaning', label: 'Tozalash xizmatlari' },
-  { value: 'event_services', label: 'Tadbirlar va to\'yxonalar' },
-  { value: 'legal', label: 'Yuridik xizmatlar' },
-  { value: 'other', label: 'Boshqa' },
+  { value: 'retail' },
+  { value: 'wholesale' },
+  { value: 'ecommerce' },
+  { value: 'food_service' },
+  { value: 'manufacturing' },
+  { value: 'construction' },
+  { value: 'it_services' },
+  { value: 'education' },
+  { value: 'healthcare' },
+  { value: 'beauty_wellness' },
+  { value: 'real_estate' },
+  { value: 'transportation' },
+  { value: 'agriculture' },
+  { value: 'tourism' },
+  { value: 'finance' },
+  { value: 'consulting' },
+  { value: 'marketing_agency' },
+  { value: 'media' },
+  { value: 'fitness' },
+  { value: 'automotive' },
+  { value: 'textile' },
+  { value: 'furniture' },
+  { value: 'electronics' },
+  { value: 'cleaning' },
+  { value: 'event_services' },
+  { value: 'legal' },
+  { value: 'other' },
 ];
 
 const businessTypes = [
-  { value: 'b2b', label: 'B2B', description: 'Biznesga' },
-  { value: 'b2c', label: 'B2C', description: 'Mijozga' },
-  { value: 'b2b2c', label: 'B2B2C', description: 'Ikkalasiga' },
-  { value: 'd2c', label: 'D2C', description: 'To\'g\'ri' }
+  { value: 'b2b' },
+  { value: 'b2c' },
+  { value: 'b2b2c' },
+  { value: 'd2c' }
 ];
 
 const businessModels = [
-  { value: 'product', label: 'Mahsulot', description: 'Tovar' },
-  { value: 'service', label: 'Xizmat', description: 'Xizmat' },
-  { value: 'marketplace', label: 'Marketplace', description: 'Platforma' },
-  { value: 'subscription', label: 'Obuna', description: 'Oylik' },
-  { value: 'hybrid', label: 'Aralash', description: 'Ko\'p' }
+  { value: 'product' },
+  { value: 'service' },
+  { value: 'marketplace' },
+  { value: 'subscription' },
+  { value: 'hybrid' }
 ];
 
 const form = reactive({
@@ -235,14 +238,14 @@ async function handleSubmit() {
 
   try {
     await store.updateBusinessBasic(form);
-    toast.success('Muvaffaqiyatli saqlandi', 'Biznes ma\'lumotlari yangilandi');
+    toast.success(t('common.success'), t('onboarding.forms.business_updated'));
     emit('submit');
   } catch (err) {
     if (err.response?.data?.errors) {
       Object.assign(errors, err.response.data.errors);
     }
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     loading.value = false;
   }

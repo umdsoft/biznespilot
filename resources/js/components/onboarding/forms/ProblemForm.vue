@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">Biznes Muammolari</h3>
-        <p class="text-sm text-gray-500">Biznesingiz duch kelayotgan asosiy muammolarni kiriting</p>
+        <h3 class="text-lg font-semibold text-gray-900">{{ t('onboarding.problems.title') }}</h3>
+        <p class="text-sm text-gray-500">{{ t('onboarding.problems.description') }}</p>
       </div>
       <button
         @click="showAddForm = true"
@@ -14,85 +14,85 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Muammo qo'shish
+        {{ t('onboarding.problems.add_problem') }}
       </button>
     </div>
 
     <!-- Add/Edit Form -->
     <div v-if="showAddForm || editingProblem" class="bg-gray-50 rounded-xl p-6 space-y-4">
       <h4 class="font-medium text-gray-900">
-        {{ editingProblem ? 'Muammoni tahrirlash' : 'Yangi muammo' }}
+        {{ editingProblem ? t('onboarding.problems.edit_problem') : t('onboarding.problems.new_problem') }}
       </h4>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Muammo nomi *
+          {{ t('onboarding.problems.name_label') }} *
         </label>
         <input
           v-model="form.title"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Masalan: Mijozlarni jalb qilish qiyin"
+          :placeholder="t('onboarding.problems.name_placeholder')"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Batafsil tavsif
+          {{ t('onboarding.problems.description_label') }}
         </label>
         <textarea
           v-model="form.description"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Muammo haqida batafsil yozing..."
+          :placeholder="t('onboarding.problems.description_placeholder')"
         ></textarea>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Muhimlik darajasi
+            {{ t('onboarding.problems.impact_label') }}
           </label>
           <select
             v-model="form.impact_level"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="low">Past</option>
-            <option value="medium">O'rta</option>
-            <option value="high">Yuqori</option>
-            <option value="critical">Juda muhim</option>
+            <option value="low">{{ t('onboarding.problems.impact.low') }}</option>
+            <option value="medium">{{ t('onboarding.problems.impact.medium') }}</option>
+            <option value="high">{{ t('onboarding.problems.impact.high') }}</option>
+            <option value="critical">{{ t('onboarding.problems.impact.critical') }}</option>
           </select>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Kategoriya
+            {{ t('onboarding.problems.category_label') }}
           </label>
           <select
             v-model="form.category"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="marketing">Marketing</option>
-            <option value="sales">Sotuvlar</option>
-            <option value="operations">Operatsiyalar</option>
-            <option value="finance">Moliya</option>
-            <option value="hr">Kadrlar</option>
-            <option value="technology">Texnologiya</option>
-            <option value="product">Mahsulot</option>
-            <option value="customer_service">Mijozlarga xizmat</option>
+            <option value="marketing">{{ t('onboarding.problems.category.marketing') }}</option>
+            <option value="sales">{{ t('onboarding.problems.category.sales') }}</option>
+            <option value="operations">{{ t('onboarding.problems.category.operations') }}</option>
+            <option value="finance">{{ t('onboarding.problems.category.finance') }}</option>
+            <option value="hr">{{ t('onboarding.problems.category.hr') }}</option>
+            <option value="technology">{{ t('onboarding.problems.category.technology') }}</option>
+            <option value="product">{{ t('onboarding.problems.category.product') }}</option>
+            <option value="customer_service">{{ t('onboarding.problems.category.customer_service') }}</option>
           </select>
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Kutilayotgan natija
+          {{ t('onboarding.problems.desired_outcome_label') }}
         </label>
         <textarea
           v-model="form.desired_outcome"
           rows="2"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Bu muammoni hal qilsangiz qanday natija kutasiz?"
+          :placeholder="t('onboarding.problems.desired_outcome_placeholder')"
         ></textarea>
       </div>
 
@@ -102,7 +102,7 @@
           @click="cancelForm"
           class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           @click="saveProblem"
@@ -113,7 +113,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          {{ editingProblem ? 'Saqlash' : 'Qo\'shish' }}
+          {{ editingProblem ? t('common.save') : t('common.add') }}
         </button>
       </div>
     </div>
@@ -135,17 +135,17 @@
                   severityColors[problem.impact_level] || 'bg-gray-100 text-gray-600'
                 ]"
               >
-                {{ severityLabels[problem.impact_level] || problem.impact_level }}
+                {{ t(`onboarding.problems.impact.${problem.impact_level}`) }}
               </span>
               <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-600">
-                {{ categoryLabels[problem.category] || problem.category }}
+                {{ t(`onboarding.problems.category.${problem.category}`) }}
               </span>
             </div>
             <p v-if="problem.description" class="text-sm text-gray-600 mb-2">
               {{ problem.description }}
             </p>
             <p v-if="problem.desired_outcome" class="text-xs text-gray-500">
-              <span class="font-medium">Kutilayotgan natija:</span> {{ problem.desired_outcome }}
+              <span class="font-medium">{{ t('onboarding.problems.desired_outcome_display') }}:</span> {{ problem.desired_outcome }}
             </p>
           </div>
           <div class="flex items-center gap-2 ml-4">
@@ -175,19 +175,19 @@
       <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <h4 class="text-lg font-medium text-gray-900 mb-2">Hali muammo qo'shilmagan</h4>
-      <p class="text-gray-500 mb-4">Biznesingiz duch kelayotgan muammolarni qo'shing</p>
+      <h4 class="text-lg font-medium text-gray-900 mb-2">{{ t('onboarding.problems.empty_title') }}</h4>
+      <p class="text-gray-500 mb-4">{{ t('onboarding.problems.empty_description') }}</p>
       <button
         @click="showAddForm = true"
         class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
       >
-        Birinchi muammoni qo'shish
+        {{ t('onboarding.problems.add_first') }}
       </button>
     </div>
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Muammolarni aniqlash - muvaffaqiyat sari birinchi qadam
+      {{ t('onboarding.problems.info_text') }}
     </p>
 
     <!-- Action Buttons -->
@@ -197,7 +197,7 @@
         @click="$emit('skip')"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -205,13 +205,13 @@
           @click="$emit('cancel')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           @click="$emit('submit')"
           class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
         >
-          Davom etish
+          {{ t('common.continue') }}
         </button>
       </div>
     </div>
@@ -222,7 +222,9 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
 
+const { t } = useI18n();
 const store = useOnboardingStore();
 const toast = useToastStore();
 
@@ -246,24 +248,6 @@ const severityColors = {
   medium: 'bg-yellow-100 text-yellow-600',
   high: 'bg-orange-100 text-orange-600',
   critical: 'bg-red-100 text-red-600'
-};
-
-const severityLabels = {
-  low: 'Past',
-  medium: 'O\'rta',
-  high: 'Yuqori',
-  critical: 'Juda muhim'
-};
-
-const categoryLabels = {
-  marketing: 'Marketing',
-  sales: 'Sotuvlar',
-  operations: 'Operatsiyalar',
-  finance: 'Moliya',
-  hr: 'Kadrlar',
-  technology: 'Texnologiya',
-  product: 'Mahsulot',
-  customer_service: 'Mijozlarga xizmat'
 };
 
 onMounted(async () => {
@@ -311,33 +295,33 @@ async function saveProblem() {
   try {
     if (editingProblem.value) {
       await store.updateProblem(editingProblem.value.id, { ...form });
-      toast.success('Muvaffaqiyatli saqlandi', 'Muammo yangilandi');
+      toast.success(t('common.success'), t('onboarding.problems.updated_message'));
     } else {
       await store.storeProblem({ ...form });
-      toast.success('Muvaffaqiyatli qo\'shildi', 'Yangi muammo qo\'shildi');
+      toast.success(t('common.success'), t('onboarding.problems.added_message'));
     }
 
     await loadProblems();
     cancelForm();
   } catch (err) {
     console.error('Failed to save problem:', err);
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     saving.value = false;
   }
 }
 
 async function deleteProblem(id) {
-  if (!confirm('Rostdan ham bu muammoni o\'chirmoqchimisiz?')) return;
+  if (!confirm(t('onboarding.problems.delete_confirm'))) return;
 
   try {
     await store.deleteProblem(id);
     await loadProblems();
-    toast.success('O\'chirildi', 'Muammo muvaffaqiyatli o\'chirildi');
+    toast.success(t('common.deleted'), t('onboarding.problems.deleted_message'));
   } catch (err) {
     console.error('Failed to delete problem:', err);
-    toast.error('Xatolik', 'Muammoni o\'chirishda xatolik yuz berdi');
+    toast.error(t('common.error'), t('onboarding.problems.delete_error'));
   }
 }
 </script>

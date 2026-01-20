@@ -2,6 +2,9 @@
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import SalesHeadDashboard from '@/components/Dashboard/SalesHeadDashboard.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     teamMembers: { type: Array, default: () => [] },
@@ -15,8 +18,8 @@ defineProps({
 </script>
 
 <template>
-    <SalesHeadLayout title="Bosh sahifa">
-        <Head title="Sotuv bo'limi - Bosh sahifa" />
+    <SalesHeadLayout :title="t('nav.dashboard')">
+        <Head :title="t('saleshead.dashboard_title')" />
         <SalesHeadDashboard
             :team-members="teamMembers"
             :lead-stats="leadStats"

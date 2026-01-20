@@ -1,8 +1,11 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatPercent } from '@/utils/formatting';
 import { ArrowLeftIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     conversionData: {
@@ -33,8 +36,8 @@ const maxCount = Math.max(...props.conversionData.by_stage.map(s => s.count));
 </script>
 
 <template>
-    <SalesHeadLayout title="Konversiya Tahlili">
-        <Head title="Konversiya Tahlili" />
+    <SalesHeadLayout :title="t('analytics.conversion_analysis')">
+        <Head :title="t('analytics.conversion_analysis')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -46,8 +49,8 @@ const maxCount = Math.max(...props.conversionData.by_stage.map(s => s.count));
                     <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Konversiya Tahlili</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Bosqichlar bo'yicha konversiya</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('analytics.conversion_analysis') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.stage_conversion') }}</p>
                 </div>
             </div>
 
@@ -55,7 +58,7 @@ const maxCount = Math.max(...props.conversionData.by_stage.map(s => s.count));
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-blue-100">Umumiy konversiya</p>
+                        <p class="text-blue-100">{{ t('analytics.overall_conversion') }}</p>
                         <p class="text-4xl font-bold mt-1">{{ conversionData.overall }}%</p>
                     </div>
                     <div class="flex items-center gap-2" :class="conversionData.trend >= 0 ? 'text-green-300' : 'text-red-300'">
@@ -67,7 +70,7 @@ const maxCount = Math.max(...props.conversionData.by_stage.map(s => s.count));
 
             <!-- Funnel -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">Sotuv voronkasi</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">{{ t('analytics.sales_funnel') }}</h3>
                 <div class="space-y-4">
                     <div
                         v-for="(stage, index) in conversionData.by_stage"
@@ -90,7 +93,7 @@ const maxCount = Math.max(...props.conversionData.by_stage.map(s => s.count));
 
             <!-- Monthly Trend -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">Oylik trend</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">{{ t('analytics.monthly_trend') }}</h3>
                 <div class="grid grid-cols-3 gap-4">
                     <div
                         v-for="month in monthlyConversion"

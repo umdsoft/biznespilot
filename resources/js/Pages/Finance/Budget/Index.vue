@@ -10,6 +10,9 @@ import {
     PlusIcon,
 } from '@heroicons/vue/24/outline';
 import { formatFullCurrency, formatPercent } from '@/utils/formatting';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     budgets: {
@@ -46,13 +49,13 @@ const getStatusColor = (status) => {
 const getStatusLabel = (status) => {
     switch (status) {
         case 'on_track':
-            return 'Normada';
+            return t('finance.budget_on_track');
         case 'warning':
-            return 'Ogohlantirish';
+            return t('finance.budget_warning');
         case 'over_budget':
-            return "Oshib ketgan";
+            return t('finance.budget_over');
         default:
-            return "Noma'lum";
+            return t('finance.budget_unknown');
     }
 };
 
@@ -64,22 +67,22 @@ const getProgressBarColor = (percentage) => {
 </script>
 
 <template>
-    <FinanceLayout title="Byudjet">
-        <Head title="Byudjet boshqaruvi" />
+    <FinanceLayout :title="t('finance.budget')">
+        <Head :title="t('finance.budget_management')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Byudjet boshqaruvi</h1>
-                    <p class="mt-1 text-gray-500 dark:text-gray-400">Kategoriyalar bo'yicha byudjet holati</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('finance.budget_management') }}</h1>
+                    <p class="mt-1 text-gray-500 dark:text-gray-400">{{ t('finance.budget_desc') }}</p>
                 </div>
                 <a
                     href="/finance/budget/create"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                     <PlusIcon class="w-5 h-5" />
-                    Yangi byudjet
+                    {{ t('finance.new_budget') }}
                 </a>
             </div>
 
@@ -91,7 +94,7 @@ const getProgressBarColor = (percentage) => {
                             <CurrencyDollarIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Jami ajratilgan</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.total_allocated') }}</p>
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatFullCurrency(summary.total_allocated) }}</p>
                         </div>
                     </div>
@@ -103,7 +106,7 @@ const getProgressBarColor = (percentage) => {
                             <ChartBarIcon class="w-5 h-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Sarflangan</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.spent') }}</p>
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatFullCurrency(summary.total_spent) }}</p>
                         </div>
                     </div>
@@ -115,7 +118,7 @@ const getProgressBarColor = (percentage) => {
                             <CheckCircleIcon class="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Qolgan</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.remaining') }}</p>
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatFullCurrency(summary.total_remaining) }}</p>
                         </div>
                     </div>
@@ -127,7 +130,7 @@ const getProgressBarColor = (percentage) => {
                             <ChartBarIcon class="w-5 h-5 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Umumiy foiz</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.overall_percent') }}</p>
                             <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatPercent(summary.overall_percentage) }}</p>
                         </div>
                     </div>
@@ -138,15 +141,15 @@ const getProgressBarColor = (percentage) => {
             <div class="flex gap-4 flex-wrap">
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm">
                     <CheckCircleIcon class="w-4 h-4" />
-                    {{ summary.on_track_count }} normada
+                    {{ summary.on_track_count }} {{ t('finance.budget_on_track') }}
                 </div>
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">
                     <ExclamationTriangleIcon class="w-4 h-4" />
-                    {{ summary.warning_count }} ogohlantirish
+                    {{ summary.warning_count }} {{ t('finance.budget_warning') }}
                 </div>
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-sm">
                     <ExclamationTriangleIcon class="w-4 h-4" />
-                    {{ summary.over_budget_count }} oshib ketgan
+                    {{ summary.over_budget_count }} {{ t('finance.budget_over') }}
                 </div>
             </div>
 
@@ -156,12 +159,12 @@ const getProgressBarColor = (percentage) => {
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kategoriya</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ajratilgan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sarflangan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Qolgan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Progress</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Holat</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('finance.category') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('finance.allocated') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('finance.spent') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('finance.remaining') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('finance.progress') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('common.status') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -202,14 +205,14 @@ const getProgressBarColor = (percentage) => {
 
                 <div v-if="budgets.length === 0" class="p-12 text-center">
                     <CurrencyDollarIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Byudjetlar yo'q</h3>
-                    <p class="text-gray-500 dark:text-gray-400 mb-4">Hozircha hech qanday byudjet yaratilmagan</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ t('finance.no_budgets') }}</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-4">{{ t('finance.no_budgets_desc') }}</p>
                     <a
                         href="/finance/budget/create"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        Byudjet yaratish
+                        {{ t('finance.create_budget') }}
                     </a>
                 </div>
             </div>

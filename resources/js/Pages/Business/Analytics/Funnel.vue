@@ -2,6 +2,9 @@
 import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import {
     FunnelIcon,
     ArrowRightIcon,
@@ -90,8 +93,8 @@ const clearFilters = () => {
 </script>
 
 <template>
-    <BusinessLayout title="Conversion Funnel">
-        <Head title="Conversion Funnel" />
+    <BusinessLayout :title="t('analytics.conversion_funnel')">
+        <Head :title="t('analytics.conversion_funnel')" />
 
         <div class="py-12">
             <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,10 +103,10 @@ const clearFilters = () => {
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                             <FunnelIcon class="w-10 h-10 text-purple-600 dark:text-purple-400" />
-                            Conversion Funnel
+                            {{ t('analytics.conversion_funnel') }}
                         </h1>
                         <p class="mt-2 text-gray-600 dark:text-gray-400">
-                            Har bir bosqichda konversiya tahlili
+                            {{ t('analytics.funnel_analysis_desc') }}
                         </p>
                     </div>
 
@@ -121,7 +124,7 @@ const clearFilters = () => {
                     <div class="flex flex-wrap items-end gap-4">
                         <div class="flex-1 min-w-[200px]">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Boshlanish sanasi
+                                {{ t('reports.filter.start_date') }}
                             </label>
                             <input
                                 v-model="dateFrom"
@@ -131,7 +134,7 @@ const clearFilters = () => {
                         </div>
                         <div class="flex-1 min-w-[200px]">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Tugash sanasi
+                                {{ t('reports.filter.end_date') }}
                             </label>
                             <input
                                 v-model="dateTo"
@@ -143,13 +146,13 @@ const clearFilters = () => {
                             @click="applyFilters"
                             class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
                         >
-                            Qo'llash
+                            {{ t('common.filter') }}
                         </button>
                         <button
                             @click="clearFilters"
                             class="px-6 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
                         >
-                            Tozalash
+                            {{ t('reports.filter.reset') }}
                         </button>
                     </div>
                 </div>
@@ -207,7 +210,7 @@ const clearFilters = () => {
 
                 <!-- Visual Funnel -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 mb-8">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">Funnel Visualization</h3>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">{{ t('analytics.funnel_visualization') }}</h3>
 
                     <div class="space-y-4">
                         <div
@@ -261,7 +264,7 @@ const clearFilters = () => {
 
                 <!-- Stage Details -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">Stage-by-Stage Analysis</h3>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">{{ t('analytics.stage_analysis') }}</h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div
@@ -298,12 +301,12 @@ const clearFilters = () => {
 
                 <!-- Conversion Rates Breakdown -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">Conversion Insights</h3>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">{{ t('analytics.conversion_insights') }}</h3>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Overall Stats -->
                         <div>
-                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Overall Performance</h4>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ t('analytics.overall_performance') }}</h4>
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                     <span class="text-gray-700 dark:text-gray-300">Total Leads</span>
@@ -322,7 +325,7 @@ const clearFilters = () => {
 
                         <!-- Time to Close -->
                         <div>
-                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Time to Close</h4>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ t('analytics.time_to_close') }}</h4>
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                     <span class="text-gray-700 dark:text-gray-300">Average Days</span>

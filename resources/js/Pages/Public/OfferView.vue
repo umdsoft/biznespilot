@@ -16,6 +16,9 @@ import {
     XMarkIcon,
 } from '@heroicons/vue/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/vue/24/solid';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     assignment: Object,
@@ -48,10 +51,10 @@ const formatTimeRemaining = computed(() => {
     const seconds = Math.floor((timeRemaining.value % (1000 * 60)) / 1000);
 
     if (days > 0) {
-        return `${days} kun ${hours} soat`;
+        return t('public_offer.time_days_hours', { days, hours });
     }
     if (hours > 0) {
-        return `${hours} soat ${minutes} daqiqa`;
+        return t('public_offer.time_hours_minutes', { hours, minutes });
     }
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 });
@@ -130,7 +133,7 @@ const submitReject = async () => {
     try {
         await axios.post(route('offers.public.reject', props.assignment.tracking_code), { reason: rejectReason.value });
         showRejectModal.value = false;
-        successMessage.value = 'Fikringiz uchun rahmat.';
+        successMessage.value = t('public_offer.feedback_thanks');
     } catch (error) {
         console.error('Reject submission failed:', error);
     } finally {
@@ -138,12 +141,12 @@ const submitReject = async () => {
     }
 };
 
-const guaranteeLabels = {
-    unconditional: '100% Pul Qaytarish Kafolati',
-    conditional: 'Shartli Kafolat',
-    performance: 'Natija Kafolati',
-    hybrid: 'Aralash Kafolat',
-};
+const guaranteeLabels = computed(() => ({
+    unconditional: t('public_offer.guarantee_unconditional'),
+    conditional: t('public_offer.guarantee_conditional'),
+    performance: t('public_offer.guarantee_performance'),
+    hybrid: t('public_offer.guarantee_hybrid'),
+}));
 </script>
 
 <template>
@@ -159,7 +162,7 @@ const guaranteeLabels = {
         <!-- Header -->
         <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white">
             <div class="max-w-4xl mx-auto px-4 py-8 text-center">
-                <p v-if="lead.name" class="text-purple-200 mb-2">Salom, {{ lead.name }}!</p>
+                <p v-if="lead.name" class="text-purple-200 mb-2">{{ t('public_offer.greeting', { name: lead.name }) }}</p>
                 <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <GiftIcon class="w-8 h-8" />
                 </div>
@@ -174,7 +177,7 @@ const guaranteeLabels = {
         <div v-if="formatTimeRemaining" class="bg-gradient-to-r from-red-500 to-orange-500 text-white py-3">
             <div class="max-w-4xl mx-auto px-4 flex items-center justify-center gap-3">
                 <ClockIcon class="w-5 h-5 animate-pulse" />
-                <span class="font-semibold">Taklif muddati:</span>
+                <span class="font-semibold">{{ t('public_offer.offer_deadline') }}</span>
                 <span class="text-xl font-bold">{{ formatTimeRemaining }}</span>
             </div>
         </div>
@@ -187,7 +190,7 @@ const guaranteeLabels = {
                         <SparklesIcon class="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900 mb-2">Sizga Nima Beradi?</h2>
+                        <h2 class="text-xl font-bold text-gray-900 mb-2">{{ t('public_offer.value_proposition_title') }}</h2>
                         <p class="text-gray-600 text-lg">{{ offer.value_proposition }}</p>
                     </div>
                 </div>
@@ -198,25 +201,25 @@ const guaranteeLabels = {
                 <div class="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <p class="text-sm text-green-700 font-medium mb-1">Maxsus Narx</p>
+                            <p class="text-sm text-green-700 font-medium mb-1">{{ t('public_offer.special_price') }}</p>
                             <div class="flex items-baseline gap-3">
                                 <span v-if="hasDiscount" class="text-2xl text-gray-400 line-through">
-                                    {{ formatPrice(assignment.offered_price || offer.pricing) }} so'm
+                                    {{ formatPrice(assignment.offered_price || offer.pricing) }} {{ t('common.currency') }}
                                 </span>
                                 <span class="text-4xl font-black text-green-700">
-                                    {{ formatPrice(finalPrice) }} so'm
+                                    {{ formatPrice(finalPrice) }} {{ t('common.currency') }}
                                 </span>
                             </div>
                             <p v-if="hasDiscount" class="text-green-600 font-semibold mt-1">
-                                {{ formatPrice(assignment.discount_amount) }} so'm chegirma!
+                                {{ t('public_offer.discount_amount', { amount: formatPrice(assignment.discount_amount) }) }}
                             </p>
                         </div>
 
                         <div v-if="offer.total_value && offer.total_value > finalPrice" class="text-right">
-                            <p class="text-sm text-gray-500">Jami qiymat</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ formatPrice(offer.total_value) }} so'm</p>
+                            <p class="text-sm text-gray-500">{{ t('public_offer.total_value') }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ formatPrice(offer.total_value) }} {{ t('common.currency') }}</p>
                             <p class="text-green-600 font-semibold">
-                                {{ Math.round((offer.total_value / finalPrice - 1) * 100) }}% ko'proq qiymat!
+                                {{ t('public_offer.more_value', { percent: Math.round((offer.total_value / finalPrice - 1) * 100) }) }}
                             </p>
                         </div>
                     </div>
@@ -226,7 +229,7 @@ const guaranteeLabels = {
                 <div v-if="offer.components?.length > 0" class="p-6">
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <GiftIcon class="w-6 h-6 text-amber-500" />
-                        Bonuslar
+                        {{ t('public_offer.bonuses') }}
                     </h3>
                     <div class="space-y-3">
                         <div
@@ -241,7 +244,7 @@ const guaranteeLabels = {
                                 <div class="flex items-center justify-between">
                                     <h4 class="font-bold text-gray-900">{{ component.name }}</h4>
                                     <span v-if="component.value" class="text-green-600 font-semibold">
-                                        {{ formatPrice(component.value) }} so'm
+                                        {{ formatPrice(component.value) }} {{ t('common.currency') }}
                                     </span>
                                 </div>
                                 <p v-if="component.description" class="text-gray-600 text-sm mt-1">
@@ -268,7 +271,7 @@ const guaranteeLabels = {
                         </p>
                         <div v-if="offer.guarantee_period_days" class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg">
                             <ClockIcon class="w-5 h-5" />
-                            <span class="font-semibold">{{ offer.guarantee_period_days }} kun kafolat</span>
+                            <span class="font-semibold">{{ t('public_offer.guarantee_days', { days: offer.guarantee_period_days }) }}</span>
                         </div>
                     </div>
                 </div>
@@ -279,14 +282,14 @@ const guaranteeLabels = {
                 <div v-if="offer.scarcity" class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
                     <div class="flex items-center gap-3 text-blue-700 font-semibold mb-2">
                         <ClockIcon class="w-5 h-5" />
-                        Cheklov
+                        {{ t('public_offer.scarcity') }}
                     </div>
                     <p class="text-gray-700">{{ offer.scarcity }}</p>
                 </div>
                 <div v-if="offer.urgency" class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                     <div class="flex items-center gap-3 text-red-700 font-semibold mb-2">
                         <FireIcon class="w-5 h-5" />
-                        Shoshiling!
+                        {{ t('public_offer.urgency') }}
                     </div>
                     <p class="text-gray-700">{{ offer.urgency }}</p>
                 </div>
@@ -299,7 +302,7 @@ const guaranteeLabels = {
                         <TrophyIcon class="w-8 h-8 text-yellow-600" />
                         <span class="text-3xl font-black text-yellow-800">{{ offer.value_score }}</span>
                     </div>
-                    <p class="text-yellow-700 font-medium">Qiymat Bali</p>
+                    <p class="text-yellow-700 font-medium">{{ t('public_offer.value_score') }}</p>
                 </div>
             </div>
 
@@ -312,7 +315,7 @@ const guaranteeLabels = {
                         class="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50"
                     >
                         <CheckCircleIcon class="w-6 h-6" />
-                        Qiziqaman!
+                        {{ t('public_offer.interested') }}
                     </button>
 
                     <button
@@ -320,7 +323,7 @@ const guaranteeLabels = {
                         class="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg"
                     >
                         <PhoneIcon class="w-6 h-6" />
-                        Menga Qo'ng'iroq Qiling
+                        {{ t('public_offer.call_me') }}
                     </button>
                 </div>
 
@@ -328,7 +331,7 @@ const guaranteeLabels = {
                     @click="showRejectModal = true"
                     class="w-full mt-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                    Yo'q, kerak emas
+                    {{ t('public_offer.not_interested') }}
                 </button>
             </div>
 
@@ -346,7 +349,7 @@ const guaranteeLabels = {
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showCallbackModal = false"></div>
                     <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold text-gray-900">Qayta Qo'ng'iroq</h3>
+                            <h3 class="text-xl font-bold text-gray-900">{{ t('public_offer.callback_title') }}</h3>
                             <button @click="showCallbackModal = false" class="text-gray-400 hover:text-gray-600">
                                 <XMarkIcon class="w-6 h-6" />
                             </button>
@@ -354,7 +357,7 @@ const guaranteeLabels = {
 
                         <form @submit.prevent="submitCallback" class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Telefon Raqam *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('public_offer.phone_number') }} *</label>
                                 <input
                                     v-model="callbackForm.phone"
                                     type="tel"
@@ -364,23 +367,23 @@ const guaranteeLabels = {
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Qulay Vaqt</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('public_offer.preferred_time') }}</label>
                                 <select
                                     v-model="callbackForm.preferred_time"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 >
-                                    <option value="">Istalgan vaqt</option>
-                                    <option value="morning">Ertalab (9:00 - 12:00)</option>
-                                    <option value="afternoon">Tushdan keyin (12:00 - 17:00)</option>
-                                    <option value="evening">Kechqurun (17:00 - 20:00)</option>
+                                    <option value="">{{ t('public_offer.time_any') }}</option>
+                                    <option value="morning">{{ t('public_offer.time_morning') }}</option>
+                                    <option value="afternoon">{{ t('public_offer.time_afternoon') }}</option>
+                                    <option value="evening">{{ t('public_offer.time_evening') }}</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Xabar</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('public_offer.message') }}</label>
                                 <textarea
                                     v-model="callbackForm.message"
                                     rows="2"
-                                    placeholder="Qo'shimcha savol yoki izoh..."
+                                    :placeholder="t('public_offer.message_placeholder')"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 ></textarea>
                             </div>
@@ -389,7 +392,7 @@ const guaranteeLabels = {
                                 :disabled="isSubmitting"
                                 class="w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all disabled:opacity-50"
                             >
-                                {{ isSubmitting ? 'Yuborilmoqda...' : 'Yuborish' }}
+                                {{ isSubmitting ? t('public_form.submitting') : t('public_form.submit') }}
                             </button>
                         </form>
                     </div>
@@ -404,31 +407,31 @@ const guaranteeLabels = {
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showRejectModal = false"></div>
                     <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold text-gray-900">Fikringizni Bildiring</h3>
+                            <h3 class="text-xl font-bold text-gray-900">{{ t('public_offer.feedback_title') }}</h3>
                             <button @click="showRejectModal = false" class="text-gray-400 hover:text-gray-600">
                                 <XMarkIcon class="w-6 h-6" />
                             </button>
                         </div>
 
                         <form @submit.prevent="submitReject" class="space-y-4">
-                            <p class="text-gray-600">Nima uchun bu taklif sizga mos kelmadi?</p>
+                            <p class="text-gray-600">{{ t('public_offer.feedback_question') }}</p>
                             <select
                                 v-model="rejectReason"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             >
-                                <option value="">Sabab tanlang</option>
-                                <option value="price">Narx qimmat</option>
-                                <option value="no_need">Hozir kerak emas</option>
-                                <option value="no_budget">Byudjet yo'q</option>
-                                <option value="competitor">Boshqa variantni tanladim</option>
-                                <option value="other">Boshqa sabab</option>
+                                <option value="">{{ t('public_offer.select_reason') }}</option>
+                                <option value="price">{{ t('public_offer.reason_price') }}</option>
+                                <option value="no_need">{{ t('public_offer.reason_no_need') }}</option>
+                                <option value="no_budget">{{ t('public_offer.reason_no_budget') }}</option>
+                                <option value="competitor">{{ t('public_offer.reason_competitor') }}</option>
+                                <option value="other">{{ t('public_offer.reason_other') }}</option>
                             </select>
                             <button
                                 type="submit"
                                 :disabled="isSubmitting"
                                 class="w-full py-3 bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all disabled:opacity-50"
                             >
-                                {{ isSubmitting ? 'Yuborilmoqda...' : 'Yuborish' }}
+                                {{ isSubmitting ? t('public_form.submitting') : t('public_form.submit') }}
                             </button>
                         </form>
                     </div>

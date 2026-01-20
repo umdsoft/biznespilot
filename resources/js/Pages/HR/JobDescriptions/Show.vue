@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     BriefcaseIcon,
     BuildingOfficeIcon,
@@ -13,6 +14,8 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     jobDescription: { type: Object, required: true },
@@ -29,8 +32,8 @@ const parseList = (text) => {
 </script>
 
 <template>
-    <HRLayout title="Lavozim Tafsilotlari">
-        <Head :title="`${jobDescription.title} - Lavozim Tafsilotlari`" />
+    <HRLayout :title="t('hr.job_descriptions')">
+        <Head :title="`${jobDescription.title} - ${t('hr.job_descriptions')}`" />
 
         <div class="space-y-6">
             <!-- Back Button -->

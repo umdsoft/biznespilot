@@ -6,10 +6,10 @@
                 <p v-if="goal.description" class="text-sm text-gray-500 mt-1">{{ goal.description }}</p>
                 <div class="flex items-center gap-4 mt-2 text-sm">
                     <span v-if="goal.target_value" class="text-gray-600">
-                        Maqsad: {{ formatNumber(goal.target_value) }}
+                        {{ t('strategy.goal.target') }}: {{ formatNumber(goal.target_value) }}
                     </span>
                     <span v-if="goal.current_value !== undefined" class="text-gray-600">
-                        Hozirgi: {{ formatNumber(goal.current_value) }}
+                        {{ t('strategy.goal.current') }}: {{ formatNumber(goal.current_value) }}
                     </span>
                 </div>
             </div>
@@ -34,6 +34,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     goal: {
@@ -60,10 +63,10 @@ const statusClass = computed(() => {
 const statusLabel = computed(() => {
     const status = props.goal.status;
     const labels = {
-        completed: 'Bajarildi',
-        in_progress: 'Jarayonda',
-        pending: 'Kutilmoqda',
-        delayed: 'Kechikkan',
+        completed: t('strategy.goal_status.completed'),
+        in_progress: t('strategy.goal_status.in_progress'),
+        pending: t('strategy.goal_status.pending'),
+        delayed: t('strategy.goal_status.delayed'),
     };
     return labels[status] || status;
 });

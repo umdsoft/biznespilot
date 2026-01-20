@@ -6,7 +6,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
             </div>
-            <p class="text-gray-500 dark:text-gray-400">Leadlar yo'q</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('dashboard.leads.no_leads') }}</p>
         </div>
         <div
             v-for="(lead, index) in displayLeads"
@@ -50,6 +50,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     leads: {
@@ -102,13 +105,13 @@ const statusColor = (status) => {
 
 const statusLabel = (status) => {
     const labels = {
-        new: 'Yangi',
-        contacted: 'Bog\'lanildi',
-        qualified: 'Malakali',
-        proposal: 'Taklif',
-        negotiation: 'Muzokara',
-        won: 'Yutildi',
-        lost: 'Yo\'qotildi',
+        new: t('dashboard.leads.status_new'),
+        contacted: t('dashboard.leads.status_contacted'),
+        qualified: t('dashboard.leads.status_qualified'),
+        proposal: t('dashboard.leads.status_proposal'),
+        negotiation: t('dashboard.leads.status_negotiation'),
+        won: t('dashboard.leads.status_won'),
+        lost: t('dashboard.leads.status_lost'),
     };
     return labels[status] || status;
 };

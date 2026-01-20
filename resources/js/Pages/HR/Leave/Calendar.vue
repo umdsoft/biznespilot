@@ -3,11 +3,14 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     ChevronLeftIcon,
     ChevronRightIcon,
     CalendarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     requests: { type: Array, default: () => [] },
@@ -135,15 +138,15 @@ const leavesByUser = computed(() => {
 </script>
 
 <template>
-    <HRLayout title="Ta'til Kalendari">
-        <Head title="Ta'til Kalendari" />
+    <HRLayout :title="t('hr.leave_calendar')">
+        <Head :title="t('hr.leave_calendar')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ta'til Kalendari</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jamoa a'zolarining ta'tillari</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.leave_calendar') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.team_members') }} {{ t('hr.leave').toLowerCase() }}</p>
                 </div>
 
                 <!-- Month Navigation -->

@@ -1,8 +1,11 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatFullCurrency, formatPercent, getInitials, getAvatarColor } from '@/utils/formatting';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     teamStats: {
@@ -26,8 +29,8 @@ const props = defineProps({
 </script>
 
 <template>
-    <SalesHeadLayout title="Jamoa Samaradorligi">
-        <Head title="Jamoa Samaradorligi" />
+    <SalesHeadLayout :title="t('saleshead.team_performance')">
+        <Head :title="t('saleshead.team_performance')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -39,27 +42,27 @@ const props = defineProps({
                     <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Jamoa Samaradorligi</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Umumiy jamoa ko'rsatkichlari</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('saleshead.team_performance') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.team_overall_stats') }}</p>
                 </div>
             </div>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jami xodimlar</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.total_employees') }}</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ teamStats.total_members }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">O'rtacha samaradorlik</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.avg_performance') }}</p>
                     <p class="text-2xl font-bold text-emerald-600 mt-1">{{ teamStats.avg_performance }}%</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jami daromad</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.total_revenue') }}</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ formatFullCurrency(teamStats.total_revenue) }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Maqsad bajarilishi</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.target_completion') }}</p>
                     <p class="text-2xl font-bold text-blue-600 mt-1">{{ teamStats.target_completion }}%</p>
                 </div>
             </div>
@@ -67,7 +70,7 @@ const props = defineProps({
             <!-- Members List -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Xodimlar</h2>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ t('saleshead.employees') }}</h2>
                 </div>
                 <div class="divide-y divide-gray-200 dark:divide-gray-700">
                     <div

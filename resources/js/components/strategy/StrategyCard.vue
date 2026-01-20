@@ -71,6 +71,9 @@ import {
   ClipboardDocumentListIcon,
   DocumentTextIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   title: {
@@ -141,10 +144,10 @@ const iconColorClass = computed(() => {
 
 const statusLabel = computed(() => {
   const labels = {
-    draft: 'Qoralama',
-    active: 'Faol',
-    completed: 'Tugallangan',
-    archived: 'Arxivlangan',
+    draft: t('strategy.status.draft'),
+    active: t('strategy.status.active'),
+    completed: t('strategy.status.completed'),
+    archived: t('strategy.status.archived'),
   };
   return labels[props.status] || props.status;
 });

@@ -1,16 +1,16 @@
 <template>
   <div>
     <div class="text-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Parolni tiklash</h2>
+      <h2 class="text-2xl font-bold text-gray-900">{{ t('auth.reset_password') }}</h2>
       <p class="mt-2 text-sm text-gray-600">
-        Email manzilingizni kiriting va biz sizga parolni tiklash uchun havola yuboramiz
+        {{ t('auth.reset_desc') }}
       </p>
     </div>
 
     <form v-if="!success" @submit.prevent="handleSubmit" class="space-y-4">
       <Input
         v-model="form.email"
-        label="Email"
+        :label="t('auth.email')"
         type="email"
         placeholder="email@example.com"
         :error="errors.email"
@@ -23,7 +23,7 @@
         :loading="loading"
         full-width
       >
-        Tiklash havolasini yuborish
+        {{ t('auth.send_reset_link') }}
       </Button>
 
       <div class="text-center">
@@ -31,7 +31,7 @@
           to="/auth/login"
           class="text-sm text-primary-600 hover:text-primary-500"
         >
-          Tizimga qaytish
+          {{ t('auth.back_to_login') }}
         </router-link>
       </div>
     </form>
@@ -42,7 +42,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <p class="text-sm text-green-800">
-          Parolni tiklash havolasi emailingizga yuborildi. Iltimos, pochta qutingizni tekshiring.
+          {{ t('auth.reset_success') }}
         </p>
       </div>
 
@@ -50,7 +50,7 @@
         to="/auth/login"
         class="text-sm text-primary-600 hover:text-primary-500"
       >
-        Tizimga qaytish
+        {{ t('auth.back_to_login') }}
       </router-link>
     </div>
 
@@ -64,6 +64,9 @@
 import { ref } from 'vue';
 import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const form = ref({
   email: '',
@@ -93,7 +96,7 @@ async function handleSubmit() {
     if (error.errors) {
       errors.value.email = error.errors.email?.[0] || '';
     } else {
-      generalError.value = error.message || 'Xatolik yuz berdi. Qayta urinib ko\'ring';
+      generalError.value = error.message || t('auth.error_occurred');
     }
   } finally {
     loading.value = false;

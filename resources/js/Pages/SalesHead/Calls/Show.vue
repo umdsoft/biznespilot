@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatDateTime, formatDuration, getInitials, getAvatarColor } from '@/utils/formatting';
 import {
     ArrowLeftIcon,
@@ -9,6 +10,8 @@ import {
     ClockIcon,
     UserIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     call: {
@@ -43,22 +46,22 @@ const getStatusColor = (status) => {
 
 const getStatusLabel = (status) => {
     const labels = {
-        completed: 'Tugallandi',
-        missed: "O'tkazib yuborildi",
-        busy: 'Band',
-        no_answer: 'Javob yo\'q',
+        completed: t('calls.completed'),
+        missed: t('calls.missed'),
+        busy: t('calls.busy'),
+        no_answer: t('calls.no_answer'),
     };
     return labels[status] || status;
 };
 
 const getDirectionLabel = (direction) => {
-    return direction === 'incoming' ? 'Kiruvchi' : 'Chiquvchi';
+    return direction === 'incoming' ? t('calls.incoming') : t('calls.outgoing');
 };
 </script>
 
 <template>
-    <SalesHeadLayout title="Qo'ng'iroq Tafsilotlari">
-        <Head title="Qo'ng'iroq Tafsilotlari" />
+    <SalesHeadLayout :title="t('calls.call_details')">
+        <Head :title="t('calls.call_details')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -70,7 +73,7 @@ const getDirectionLabel = (direction) => {
                     <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Qo'ng'iroq Tafsilotlari</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('calls.call_details') }}</h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400">{{ call.phone }}</p>
                 </div>
             </div>
@@ -84,7 +87,7 @@ const getDirectionLabel = (direction) => {
                         </div>
                         <div>
                             <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ call.phone }}</h2>
-                            <p class="text-gray-500 dark:text-gray-400">{{ getDirectionLabel(call.direction) }} qo'ng'iroq</p>
+                            <p class="text-gray-500 dark:text-gray-400">{{ getDirectionLabel(call.direction) }} {{ t('calls.call') }}</p>
                         </div>
                     </div>
                     <span class="px-3 py-1 rounded-full text-sm font-medium" :class="getStatusColor(call.status)">
@@ -96,20 +99,20 @@ const getDirectionLabel = (direction) => {
                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                         <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                             <ClockIcon class="w-4 h-4" />
-                            <span class="text-sm">Davomiyligi</span>
+                            <span class="text-sm">{{ t('calls.duration') }}</span>
                         </div>
                         <p class="font-semibold text-gray-900 dark:text-white">{{ formatDuration(call.duration) }}</p>
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                         <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                             <UserIcon class="w-4 h-4" />
-                            <span class="text-sm">Operator</span>
+                            <span class="text-sm">{{ t('saleshead.operator') }}</span>
                         </div>
                         <p class="font-semibold text-gray-900 dark:text-white">{{ call.caller_name }}</p>
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 col-span-2">
                         <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                            <span class="text-sm">Vaqti</span>
+                            <span class="text-sm">{{ t('common.time') }}</span>
                         </div>
                         <p class="font-semibold text-gray-900 dark:text-white">{{ formatDateTime(call.started_at) }}</p>
                     </div>
@@ -118,7 +121,7 @@ const getDirectionLabel = (direction) => {
 
             <!-- Recording -->
             <div v-if="call.recording_url" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Yozuv</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">{{ t('calls.recording') }}</h3>
                 <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                     <button class="w-12 h-12 bg-emerald-600 hover:bg-emerald-700 rounded-full flex items-center justify-center text-white transition-colors">
                         <PlayIcon class="w-6 h-6" />
@@ -132,14 +135,14 @@ const getDirectionLabel = (direction) => {
 
             <!-- Notes -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Izohlar</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">{{ t('common.notes') }}</h3>
                 <p v-if="call.notes" class="text-gray-700 dark:text-gray-300">{{ call.notes }}</p>
-                <p v-else class="text-gray-500 dark:text-gray-400 italic">Izoh yo'q</p>
+                <p v-else class="text-gray-500 dark:text-gray-400 italic">{{ t('common.no_notes') }}</p>
             </div>
 
             <!-- Related Lead -->
             <div v-if="lead" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Bog'langan lid</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">{{ t('calls.related_lead') }}</h3>
                 <Link
                     :href="`/leads/${lead.id}`"
                     class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

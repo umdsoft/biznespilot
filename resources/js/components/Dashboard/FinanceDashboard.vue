@@ -2,6 +2,9 @@
 import { CurrencyDollarIcon, DocumentTextIcon, CreditCardIcon, ArrowTrendingUpIcon } from '@heroicons/vue/24/outline';
 import StatCard from './StatCard.vue';
 import DashboardCard from './DashboardCard.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -16,8 +19,8 @@ const props = defineProps({
 });
 
 const formatCurrency = (v) => {
-    if (!v) return "0 so'm";
-    return new Intl.NumberFormat('uz-UZ').format(v) + " so'm";
+    if (!v) return `0 ${t('common.currency')}`;
+    return new Intl.NumberFormat('uz-UZ').format(v) + ` ${t('common.currency')}`;
 };
 
 const getBasePath = () => {
@@ -30,7 +33,7 @@ const getBasePath = () => {
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
-                title="Bu oy daromad"
+                :title="t('dashboard.finance.this_month_revenue')"
                 :value="formatCurrency(stats?.revenue?.this_month)"
                 :badge="`+${stats?.revenue?.growth || 0}%`"
                 badge-color="green"
@@ -38,7 +41,7 @@ const getBasePath = () => {
                 icon-bg-color="green"
             />
             <StatCard
-                title="Bu oy xarajat"
+                :title="t('dashboard.finance.this_month_expenses')"
                 :value="formatCurrency(stats?.expenses?.this_month)"
                 :badge="`+${stats?.expenses?.growth || 0}%`"
                 badge-color="red"
@@ -46,17 +49,17 @@ const getBasePath = () => {
                 icon-bg-color="red"
             />
             <StatCard
-                title="Sof foyda"
+                :title="t('dashboard.finance.net_profit')"
                 :value="formatCurrency(stats?.profit?.this_month)"
-                :badge="`${stats?.profit?.margin || 0}% marja`"
+                :badge="`${stats?.profit?.margin || 0}% ${t('dashboard.finance.margin')}`"
                 badge-color="blue"
                 :icon="CurrencyDollarIcon"
                 icon-bg-color="blue"
             />
             <StatCard
-                title="Kutilayotgan faktura"
+                :title="t('dashboard.finance.pending_invoices')"
                 :value="stats?.invoices?.pending || 0"
-                :badge="`${stats?.invoices?.overdue || 0} kechikkan`"
+                :badge="`${stats?.invoices?.overdue || 0} ${t('dashboard.finance.overdue')}`"
                 badge-color="orange"
                 :icon="DocumentTextIcon"
                 icon-bg-color="orange"
@@ -66,7 +69,7 @@ const getBasePath = () => {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Transactions -->
             <DashboardCard
-                title="So'nggi Tranzaksiyalar"
+                :title="t('dashboard.finance.recent_transactions')"
                 :link-href="`${getBasePath()}/transactions`"
                 divided
                 no-padding
@@ -92,13 +95,13 @@ const getBasePath = () => {
                     </div>
                 </template>
                 <div v-else class="p-8 text-center text-gray-500 dark:text-gray-400">
-                    Tranzaksiyalar mavjud emas
+                    {{ t('dashboard.finance.no_transactions') }}
                 </div>
             </DashboardCard>
 
             <!-- Pending Invoices -->
             <DashboardCard
-                title="Kutilayotgan Fakturalar"
+                :title="t('dashboard.finance.pending_invoices_title')"
                 :link-href="`${getBasePath()}/invoices`"
                 divided
                 no-padding
@@ -122,14 +125,14 @@ const getBasePath = () => {
                                         : 'text-yellow-600 dark:text-yellow-400'"
                                     class="text-xs"
                                 >
-                                    {{ inv.status === 'overdue' ? 'Kechikkan' : 'Kutilmoqda' }}
+                                    {{ inv.status === 'overdue' ? t('dashboard.finance.overdue') : t('dashboard.finance.pending') }}
                                 </span>
                             </div>
                         </div>
                     </div>
                 </template>
                 <div v-else class="p-8 text-center text-gray-500 dark:text-gray-400">
-                    Kutilayotgan faktura yo'q
+                    {{ t('dashboard.finance.no_pending_invoices') }}
                 </div>
             </DashboardCard>
         </div>

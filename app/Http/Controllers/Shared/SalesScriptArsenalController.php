@@ -52,4 +52,19 @@ class SalesScriptArsenalController extends Controller
             ] : null,
         ]);
     }
+
+    /**
+     * Display the sales script arsenal for business panel
+     */
+    public function businessIndex(Request $request)
+    {
+        $business = $this->getCurrentBusiness();
+
+        return Inertia::render('Business/SalesScript/Index', [
+            'currentBusiness' => $business ? [
+                'id' => $business->id,
+                'name' => $business->name,
+            ] : null,
+        ]);
+    }
 }

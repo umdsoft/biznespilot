@@ -6,8 +6,8 @@
         {{ initials }}
       </div>
       <div>
-        <h3 class="text-xl font-bold text-gray-900">Ideal Mijoz Profili</h3>
-        <p class="text-gray-600">Ideal mijozingiz kim ekanligini aniqlang</p>
+        <h3 class="text-xl font-bold text-gray-900">{{ t('dream_buyer.form.title') }}</h3>
+        <p class="text-gray-600">{{ t('dream_buyer.form.subtitle') }}</p>
       </div>
     </div>
 
@@ -15,25 +15,25 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Ism (persona nomi)
+          {{ t('dream_buyer.form.persona_name') }}
         </label>
         <input
           v-model="form.name"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Masalan: Startup Sardor"
+          :placeholder="t('dream_buyer.form.persona_name_placeholder')"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Yosh oralig'i
+          {{ t('dream_buyer.form.age_range') }}
         </label>
         <select
           v-model="form.age_range"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         >
-          <option value="">Tanlang</option>
+          <option value="">{{ t('common.select') }}</option>
           <option value="18-24">18-24</option>
           <option value="25-34">25-34</option>
           <option value="35-44">35-44</option>
@@ -44,57 +44,57 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Jins
+          {{ t('dream_buyer.form.gender') }}
         </label>
         <div class="flex gap-4">
           <label class="flex items-center gap-2">
             <input type="radio" v-model="form.gender" value="male" class="text-indigo-600" />
-            <span>Erkak</span>
+            <span>{{ t('dream_buyer.form.gender_male') }}</span>
           </label>
           <label class="flex items-center gap-2">
             <input type="radio" v-model="form.gender" value="female" class="text-indigo-600" />
-            <span>Ayol</span>
+            <span>{{ t('dream_buyer.form.gender_female') }}</span>
           </label>
           <label class="flex items-center gap-2">
             <input type="radio" v-model="form.gender" value="all" class="text-indigo-600" />
-            <span>Hammasi</span>
+            <span>{{ t('dream_buyer.form.gender_all') }}</span>
           </label>
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Joylashuv
+          {{ t('dream_buyer.form.location') }}
         </label>
         <input
           v-model="form.location"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Masalan: Toshkent, O'zbekiston"
+          :placeholder="t('dream_buyer.form.location_placeholder')"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Daromad darajasi
+          {{ t('dream_buyer.form.income_level') }}
         </label>
         <input
           v-model="form.income_level"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Masalan: O'rta-yuqori"
+          :placeholder="t('dream_buyer.form.income_level_placeholder')"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Kasb
+          {{ t('dream_buyer.form.occupation') }}
         </label>
         <input
           v-model="form.occupation"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Masalan: Tadbirkor, Marketing menejeri"
+          :placeholder="t('dream_buyer.form.occupation_placeholder')"
         />
       </div>
     </div>
@@ -107,133 +107,133 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </span>
-        9 ta muhim savol (Sabri Suby metodi)
+        {{ t('dream_buyer.form.questions_title') }}
       </h4>
-      <p class="text-sm text-gray-500">Bu savollar ideal mijozingizni chuqur tushunishga yordam beradi</p>
+      <p class="text-sm text-gray-500">{{ t('dream_buyer.form.questions_subtitle') }}</p>
 
       <!-- Question 1 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          1. Ular qayerda vaqt o'tkazishadi?
+          {{ t('dream_buyer.form.q1_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Onlayn va oflayn - qaysi platformalar, joylar, tadbirlar?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q1_hint') }}</p>
         <textarea
           v-model="form.where_spend_time"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Instagram, Telegram, kafelar, biznes tadbirlar..."
+          :placeholder="t('dream_buyer.form.q1_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 2 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          2. Ular ma'lumot olish uchun qayerga murojaat qilishadi?
+          {{ t('dream_buyer.form.q2_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Bloglar, YouTube kanallar, podkastlar, kitoblar?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q2_hint') }}</p>
         <textarea
           v-model="form.info_sources"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="YouTube, Telegram kanallar, kitoblar..."
+          :placeholder="t('dream_buyer.form.q2_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 3 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          3. Ularning eng katta qiyinchiliklari nima?
+          {{ t('dream_buyer.form.q3_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Kundalik hayotda nima ularni bezovta qiladi?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q3_hint') }}</p>
         <textarea
           v-model="form.frustrations"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Vaqt yetishmasligi, tushunmovchilik, texnologiyadan qo'rqish..."
+          :placeholder="t('dream_buyer.form.q3_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 4 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          4. Ularning orzulari nima?
+          {{ t('dream_buyer.form.q4_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Ular nima haqida orzu qilishadi, qanday kelajak istashadi?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q4_hint') }}</p>
         <textarea
           v-model="form.dreams"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Muvaffaqiyatli biznes, erkinlik, tan olinish..."
+          :placeholder="t('dream_buyer.form.q4_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 5 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          5. Ularning eng katta qo'rquvlari nima?
+          {{ t('dream_buyer.form.q5_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Nimadan qo'rqishadi, nimani yo'qotishdan xavotir olishadi?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q5_hint') }}</p>
         <textarea
           v-model="form.fears"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Muvaffaqiyatsizlik, pul yo'qotish, tanqid..."
+          :placeholder="t('dream_buyer.form.q5_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 6 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          6. Ular qanday muloqot usulini afzal ko'rishadi?
+          {{ t('dream_buyer.form.q6_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Telegram, telefon qo'ng'irog'i, email, yuzma-yuz?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q6_hint') }}</p>
         <textarea
           v-model="form.communication_preferences"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Telegram orqali tez javob, qisqa xabarlar..."
+          :placeholder="t('dream_buyer.form.q6_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 7 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          7. Ular qanday til uslubini ishlatishadi?
+          {{ t('dream_buyer.form.q7_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Rasmiy yoki norasmiy? Qanday so'zlar ishlatishadi?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q7_hint') }}</p>
         <textarea
           v-model="form.language_style"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Norasmiy, do'stona, emoji ishlatadi..."
+          :placeholder="t('dream_buyer.form.q7_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 8 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          8. Ularning kundalik tartibi qanday?
+          {{ t('dream_buyer.form.q8_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Ertalab nima qilishadi? Qachon bo'sh?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q8_hint') }}</p>
         <textarea
           v-model="form.daily_routine"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Ertalab sport, kunduzi ish, kechqurun oila..."
+          :placeholder="t('dream_buyer.form.q8_placeholder')"
         ></textarea>
       </div>
 
       <!-- Question 9 -->
       <div class="p-4 bg-gray-50 rounded-xl">
         <label class="block text-sm font-medium text-gray-900 mb-2">
-          9. Nima ularni baxtli qiladi?
+          {{ t('dream_buyer.form.q9_title') }}
         </label>
-        <p class="text-xs text-gray-500 mb-2">Qanday voqealar, yutuqlar ularni xursand qiladi?</p>
+        <p class="text-xs text-gray-500 mb-2">{{ t('dream_buyer.form.q9_hint') }}</p>
         <textarea
           v-model="form.happiness_triggers"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Mijoz minnatchiligi, maqsadga erishish, yangi o'rganish..."
+          :placeholder="t('dream_buyer.form.q9_placeholder')"
         ></textarea>
       </div>
     </div>
@@ -241,7 +241,7 @@
     <!-- Progress indicator -->
     <div class="p-4 bg-indigo-50 rounded-xl">
       <div class="flex justify-between text-sm mb-2">
-        <span class="font-medium text-indigo-900">Savollar to'ldirildi</span>
+        <span class="font-medium text-indigo-900">{{ t('dream_buyer.form.questions_filled') }}</span>
         <span class="font-bold text-indigo-600">{{ answeredCount }}/9</span>
       </div>
       <div class="h-2 bg-indigo-200 rounded-full overflow-hidden">
@@ -254,7 +254,7 @@
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Barcha savollar ixtiyoriy. Keyinroq to'ldirishingiz mumkin.
+      {{ t('onboarding.forms.optional_fields') }}
     </p>
 
     <!-- Submit -->
@@ -264,7 +264,7 @@
         @click="handleSkip"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -272,7 +272,7 @@
           @click="$emit('cancel')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           type="submit"
@@ -283,7 +283,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Saqlash
+          {{ t('common.save') }}
         </button>
       </div>
     </div>
@@ -294,6 +294,9 @@
 import { ref, reactive, computed } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const store = useOnboardingStore();
 const toast = useToastStore();
@@ -352,12 +355,12 @@ async function handleSubmit() {
 
   try {
     await store.updateDreamBuyer(form);
-    toast.success('Muvaffaqiyatli saqlandi', 'Ideal mijoz profili yangilandi');
+    toast.success(t('common.success'), t('dream_buyer.form.profile_updated'));
     emit('submit');
   } catch (err) {
     console.error(err);
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     loading.value = false;
   }

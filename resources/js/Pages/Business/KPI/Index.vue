@@ -1,14 +1,14 @@
 <template>
-  <BusinessLayout title="KPI">
+  <BusinessLayout :title="t('kpi.title')">
     <!-- Header - Only show full header when NOT in empty state -->
     <div v-if="!isEmptyState" class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            KPI Ko'rsatkichlari
+            {{ t('kpi.title') }}
           </h2>
           <p class="mt-2 text-gray-600 dark:text-gray-400">
-            Biznesingizning asosiy ko'rsatkichlari va ularning bajarilishi
+            {{ t('kpi.description') }}
           </p>
           <!-- Action Buttons -->
           <div class="mt-3 flex flex-wrap gap-2">
@@ -953,6 +953,9 @@ import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   kpis: {

@@ -1,13 +1,13 @@
 <template>
-    <AdminLayout title="Foydalanuvchilar Boshqaruvi">
+    <AdminLayout :title="t('admin.users.title')">
         <div class="py-6">
             <div class="max-w-7xl mx-auto">
                 <!-- Header -->
                 <div class="mb-8 flex items-center justify-between">
                     <div>
-                        <h2 class="text-3xl font-bold text-gray-900">Foydalanuvchilar Boshqaruvi</h2>
+                        <h2 class="text-3xl font-bold text-gray-900">{{ t('admin.users.title') }}</h2>
                         <p class="mt-2 text-sm text-gray-600">
-                            Platformadagi barcha foydalanuvchilarni ko'ring va boshqaring
+                            {{ t('admin.users.subtitle') }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -18,7 +18,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Yangi Foydalanuvchi
+                            {{ t('admin.users.new_user') }}
                         </button>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Jami Foydalanuvchilar</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.users.total_users') }}</p>
                                 <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
                             </div>
                             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -42,7 +42,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Adminlar</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.users.admins') }}</p>
                                 <p class="text-2xl font-bold text-red-600">{{ stats.admins }}</p>
                             </div>
                             <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -56,7 +56,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Biznes Egalari</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.users.business_owners') }}</p>
                                 <p class="text-2xl font-bold text-green-600">{{ stats.owners }}</p>
                             </div>
                             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -70,7 +70,7 @@
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">Shu Oy Yangi</p>
+                                <p class="text-sm text-gray-600">{{ t('admin.users.new_this_month') }}</p>
                                 <p class="text-2xl font-bold text-purple-600">{{ stats.this_month }}</p>
                             </div>
                             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -87,13 +87,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <!-- Search -->
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Qidirish</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('common.search') }}</label>
                             <div class="relative">
                                 <input
                                     v-model="filters.search"
                                     @input="applyFilters"
                                     type="text"
-                                    placeholder="Ism, email yoki login..."
+                                    :placeholder="t('admin.users.search_placeholder')"
                                     class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                 />
                                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,32 +104,32 @@
 
                         <!-- Role Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Rol</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('admin.users.role') }}</label>
                             <select
                                 v-model="filters.role"
                                 @change="applyFilters"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                             >
-                                <option value="">Barchasi</option>
-                                <option value="super_admin">Super Admin</option>
-                                <option value="admin">Admin</option>
-                                <option value="owner">Biznes Egasi</option>
-                                <option value="user">Foydalanuvchi</option>
+                                <option value="">{{ t('admin.common.all') }}</option>
+                                <option value="super_admin">{{ t('admin.users.roles.super_admin') }}</option>
+                                <option value="admin">{{ t('admin.users.roles.admin') }}</option>
+                                <option value="owner">{{ t('admin.users.roles.owner') }}</option>
+                                <option value="user">{{ t('admin.users.roles.user') }}</option>
                             </select>
                         </div>
 
                         <!-- Sort By -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tartiblash</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('admin.common.sort') }}</label>
                             <select
                                 v-model="filters.sort"
                                 @change="applyFilters"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                             >
-                                <option value="newest">Eng yangi</option>
-                                <option value="oldest">Eng eski</option>
-                                <option value="name">Nom bo'yicha</option>
-                                <option value="last_login">So'nggi kirish</option>
+                                <option value="newest">{{ t('admin.common.newest') }}</option>
+                                <option value="oldest">{{ t('admin.common.oldest') }}</option>
+                                <option value="name">{{ t('admin.common.by_name') }}</option>
+                                <option value="last_login">{{ t('admin.users.last_login') }}</option>
                             </select>
                         </div>
                     </div>
@@ -142,25 +142,25 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Foydalanuvchi
+                                        {{ t('admin.users.user') }}
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aloqa
+                                        {{ t('admin.users.contact') }}
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Rol
+                                        {{ t('admin.users.role') }}
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Bizneslar
+                                        {{ t('admin.users.businesses') }}
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         2FA
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        So'nggi Kirish
+                                        {{ t('admin.users.last_login') }}
                                     </th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Harakatlar
+                                        {{ t('common.actions') }}
                                     </th>
                                 </tr>
                             </thead>
@@ -207,14 +207,14 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ user.last_login_at || 'Hech qachon' }}
+                                        {{ user.last_login_at || t('admin.users.never') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end space-x-2">
                                             <button
                                                 @click="viewUser(user)"
                                                 class="text-blue-600 hover:text-blue-900"
-                                                title="Ko'rish"
+                                                :title="t('common.view')"
                                             >
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -224,7 +224,7 @@
                                             <button
                                                 @click="editUser(user)"
                                                 class="text-yellow-600 hover:text-yellow-900"
-                                                title="Tahrirlash"
+                                                :title="t('common.edit')"
                                             >
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -234,7 +234,7 @@
                                                 v-if="user.role !== 'super_admin'"
                                                 @click="confirmDelete(user)"
                                                 class="text-red-600 hover:text-red-900"
-                                                title="O'chirish"
+                                                :title="t('common.delete')"
                                             >
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -250,7 +250,7 @@
                     <!-- Pagination -->
                     <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
                         <div class="text-sm text-gray-700">
-                            Ko'rsatilmoqda <span class="font-medium">{{ filteredUsers.length }}</span> dan <span class="font-medium">{{ users.length }}</span> ta natija
+                            {{ t('admin.common.showing') }} <span class="font-medium">{{ filteredUsers.length }}</span> {{ t('admin.common.of') }} <span class="font-medium">{{ users.length }}</span> {{ t('admin.common.results') }}
                         </div>
                     </div>
                 </div>
@@ -259,7 +259,7 @@
                 <div v-if="showDeleteModal" @click="showDeleteModal = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div @click.stop class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-xl font-bold text-gray-900">Foydalanuvchini O'chirish</h3>
+                            <h3 class="text-xl font-bold text-gray-900">{{ t('admin.users.delete_user') }}</h3>
                             <button @click="showDeleteModal = false" class="text-gray-500 hover:text-gray-700">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -274,10 +274,10 @@
                                 </svg>
                             </div>
                             <p class="text-center text-gray-700">
-                                Haqiqatan ham <strong>{{ userToDelete?.name }}</strong> foydalanuvchini o'chirmoqchimisiz?
+                                {{ t('admin.users.delete_confirm') }} <strong>{{ userToDelete?.name }}</strong>?
                             </p>
                             <p class="text-center text-sm text-red-600 mt-2">
-                                Bu amal qaytarilmaydi!
+                                {{ t('admin.common.action_irreversible') }}
                             </p>
                         </div>
 
@@ -286,13 +286,13 @@
                                 @click="showDeleteModal = false"
                                 class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
                             >
-                                Bekor qilish
+                                {{ t('common.cancel') }}
                             </button>
                             <button
                                 @click="deleteUser"
                                 class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                             >
-                                O'chirish
+                                {{ t('common.delete') }}
                             </button>
                         </div>
                     </div>
@@ -306,6 +306,9 @@
 import { ref, computed } from 'vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     users: Array,
@@ -375,10 +378,10 @@ const getRoleBadgeClass = (role) => {
 
 const getRoleLabel = (role) => {
     const labels = {
-        super_admin: 'Super Admin',
-        admin: 'Admin',
-        owner: 'Biznes Egasi',
-        user: 'Foydalanuvchi',
+        super_admin: t('admin.users.roles.super_admin'),
+        admin: t('admin.users.roles.admin'),
+        owner: t('admin.users.roles.owner'),
+        user: t('admin.users.roles.user'),
     }
     return labels[role] || role
 }

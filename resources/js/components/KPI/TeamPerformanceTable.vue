@@ -4,19 +4,19 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Hodim
+                        {{ t('kpi.employee') }}
                     </th>
                     <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Leadlar
+                        {{ t('kpi.leads') }}
                     </th>
                     <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Yutilgan
+                        {{ t('kpi.won') }}
                     </th>
                     <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         CR%
                     </th>
                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Daromad
+                        {{ t('kpi.revenue') }}
                     </th>
                 </tr>
             </thead>
@@ -50,12 +50,16 @@
             </tbody>
         </table>
         <div v-if="members.length === 0" class="text-center py-8 text-gray-500">
-            Jamoa a'zolari yo'q
+            {{ t('kpi.no_team_members') }}
         </div>
     </div>
 </template>
 
 <script setup>
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
+
 defineProps({
     members: {
         type: Array,

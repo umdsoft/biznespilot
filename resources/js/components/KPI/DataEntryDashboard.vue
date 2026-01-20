@@ -6,7 +6,7 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Jami Lidlar</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('kpi.total_leads') }}</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ formatNumber(dashboard.totals?.leads || 0) }}</p>
             <div class="flex items-center mt-2">
               <span
@@ -15,7 +15,7 @@
               >
                 {{ dashboard.trends?.leads?.direction === 'up' ? '+' : '' }}{{ dashboard.trends?.leads?.percent || 0 }}%
               </span>
-              <span class="text-sm text-gray-500 dark:text-gray-400 ml-1">vs oldingi hafta</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400 ml-1">{{ t('kpi.vs_last_week') }}</span>
             </div>
           </div>
           <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
@@ -57,7 +57,7 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Jami Xarajat</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('kpi.total_expense') }}</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ formatMoney(dashboard.totals?.spend || 0) }}</p>
             <div class="flex items-center mt-2">
               <span class="text-sm text-gray-500 dark:text-gray-400">CPL: {{ formatMoney(dashboard.metrics?.cpl || 0) }}</span>
@@ -75,14 +75,14 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Jami Sotuvlar</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('kpi.total_sales') }}</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ formatNumber(dashboard.totals?.sales || 0) }}</p>
             <div class="flex items-center mt-2">
               <span
                 class="text-sm font-medium"
                 :class="(dashboard.metrics?.conversion_rate || 0) >= 10 ? 'text-green-600' : 'text-yellow-600'"
               >
-                Konversiya: {{ parseFloat(dashboard.metrics?.conversion_rate || 0).toFixed(1) }}%
+                {{ t('kpi.conversion') }}: {{ parseFloat(dashboard.metrics?.conversion_rate || 0).toFixed(1) }}%
               </span>
             </div>
           </div>
@@ -94,8 +94,8 @@
         </div>
         <!-- Sales breakdown -->
         <div class="mt-4 flex items-center justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Yangi: {{ dashboard.totals?.sales_new || 0 }}</span>
-          <span class="text-gray-500 dark:text-gray-400">Takroriy: {{ dashboard.totals?.sales_repeat || 0 }}</span>
+          <span class="text-gray-500 dark:text-gray-400">{{ t('kpi.new') }}: {{ dashboard.totals?.sales_new || 0 }}</span>
+          <span class="text-gray-500 dark:text-gray-400">{{ t('kpi.repeat') }}: {{ dashboard.totals?.sales_repeat || 0 }}</span>
         </div>
       </div>
 
@@ -103,10 +103,10 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Jami Daromad</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('kpi.total_revenue') }}</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ formatMoney(dashboard.totals?.revenue || 0) }}</p>
             <div class="flex items-center mt-2">
-              <span class="text-sm text-gray-500 dark:text-gray-400">O'rtacha chek: {{ formatMoney(dashboard.metrics?.avg_check || 0) }}</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.avg_check') }}: {{ formatMoney(dashboard.metrics?.avg_check || 0) }}</span>
             </div>
           </div>
           <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
@@ -122,7 +122,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Lead Sources by Category -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lid manbalari</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('kpi.lead_sources') }}</h3>
         <div class="space-y-4">
           <div v-for="(category, key) in categoryData" :key="key" class="flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -149,7 +149,7 @@
               </div>
               <div>
                 <p class="font-medium text-gray-900 dark:text-gray-100">{{ getCategoryName(key) }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ category.leads }} lid</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ category.leads }} {{ t('kpi.lead') }}</p>
               </div>
             </div>
             <div class="text-right">
@@ -162,7 +162,7 @@
 
       <!-- ROI & Performance -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Samaradorlik</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('kpi.efficiency') }}</h3>
         <div class="space-y-4">
           <!-- ROI -->
           <div>
@@ -187,7 +187,7 @@
           <!-- CAC -->
           <div>
             <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">CAC (Mijoz olish narxi)</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('kpi.cac') }}</span>
               <span class="font-bold text-gray-900 dark:text-gray-100">{{ formatMoney(dashboard.metrics?.cac || 0) }}</span>
             </div>
           </div>
@@ -195,7 +195,7 @@
           <!-- LTV/CAC Ratio -->
           <div v-if="dashboard.metrics?.ltv_cac_ratio">
             <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">LTV/CAC Nisbati</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('kpi.ltv_cac_ratio') }}</span>
               <span
                 class="font-bold"
                 :class="(dashboard.metrics?.ltv_cac_ratio || 0) >= 3 ? 'text-green-600' : 'text-yellow-600'"
@@ -219,24 +219,24 @@
     <!-- Recent Entries Table -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Oxirgi kiritilgan ma'lumotlar</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ t('kpi.recent_entries') }}</h3>
         <button
           @click="$emit('viewAll')"
           class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
-          Hammasini ko'rish
+          {{ t('kpi.view_all') }}
         </button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sana</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lidlar</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Xarajat</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sotuvlar</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Daromad</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Konversiya</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.date') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.leads') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.expense') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.sales') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.revenue') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.conversion') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -267,7 +267,7 @@
             </tr>
             <tr v-if="recentEntries.length === 0">
               <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                Hali ma'lumot kiritilmagan
+                {{ t('kpi.no_data_entered') }}
               </td>
             </tr>
           </tbody>
@@ -277,7 +277,7 @@
 
     <!-- Recommendations -->
     <div v-if="recommendations.length > 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tavsiyalar</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('kpi.recommendations') }}</h3>
       <div class="space-y-3">
         <div
           v-for="(rec, index) in recommendations"
@@ -309,6 +309,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   businessId: {
@@ -382,10 +385,10 @@ const getLeadPercent = (type) => {
 
 const getCategoryName = (key) => {
   const names = {
-    digital: 'Digital',
-    offline: 'Offline',
-    referral: 'Tavsiya',
-    organic: 'Organik'
+    digital: t('kpi.category_digital'),
+    offline: t('kpi.category_offline'),
+    referral: t('kpi.category_referral'),
+    organic: t('kpi.category_organic')
   };
   return names[key] || key;
 };

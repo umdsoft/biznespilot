@@ -998,6 +998,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/api/summary', [App\Http\Controllers\Shared\CompetitorInsightsController::class, 'apiSummary'])->name('api.summary');
     });
 
+    // Sotuv Skriptlari Arsenal
+    Route::get('/sales-script', [App\Http\Controllers\Shared\SalesScriptArsenalController::class, 'businessIndex'])->name('sales-script');
+
     // Target Analysis API routes
     Route::prefix('api/target-analysis')->name('api.target-analysis.')->group(function () {
         Route::get('/', [TargetAnalysisController::class, 'getAnalysisData'])->name('data');

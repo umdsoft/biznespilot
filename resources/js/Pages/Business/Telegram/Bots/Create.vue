@@ -2,11 +2,14 @@
 import { Head } from '@inertiajs/vue3'
 import BusinessLayout from '@/layouts/BusinessLayout.vue'
 import TelegramBotCreate from '@/components/telegram/TelegramBotCreate.vue'
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 </script>
 
 <template>
-  <BusinessLayout title="Yangi Bot Qo'shish">
-    <Head title="Yangi Bot Qo'shish" />
+  <BusinessLayout :title="t('telegram.add_bot')">
+    <Head :title="t('telegram.add_bot')" />
     <TelegramBotCreate panel-type="business" />
   </BusinessLayout>
 </template>

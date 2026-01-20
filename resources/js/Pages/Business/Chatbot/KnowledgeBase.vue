@@ -2,6 +2,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, watch } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     knowledge_base: Object,
@@ -74,7 +77,7 @@ const submit = () => {
 };
 
 const deleteKnowledge = (knowledge) => {
-    if (confirm('Bu ma\'lumotni o\'chirmoqchimisiz?')) {
+    if (confirm(t('common.confirm_delete'))) {
         router.delete(route('business.customer-bot.knowledge-base.destroy', knowledge.id));
     }
 };
@@ -92,22 +95,22 @@ const removeKeyword = (index) => {
 </script>
 
 <template>
-    <Head title="Bilim Bazasi" />
+    <Head :title="t('chatbot.knowledge_base')" />
 
-    <BusinessLayout>
+    <BusinessLayout :title="t('chatbot.knowledge_base')">
         <div class="py-12">
             <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Bilim Bazasi</h1>
-                        <p class="mt-2 text-gray-600">Tez-tez so'raladigan savollar va javoblar</p>
+                        <h1 class="text-3xl font-bold text-gray-900">{{ t('chatbot.knowledge_base') }}</h1>
+                        <p class="mt-2 text-gray-600">{{ t('chatbot.knowledge_base_desc') }}</p>
                     </div>
                     <button
                         @click="openModal()"
                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
-                        + Yangi Q&A
+                        + {{ t('chatbot.new_qa') }}
                     </button>
                 </div>
 
@@ -116,7 +119,7 @@ const removeKeyword = (index) => {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Search -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Qidirish</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.search') }}</label>
                             <input
                                 type="text"
                                 v-model="filters.search"
@@ -127,13 +130,13 @@ const removeKeyword = (index) => {
 
                         <!-- Category Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategoriya</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.category') }}</label>
                             <select
                                 v-model="filters.category"
                                 @change="applyFilters"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
-                                <option value="all">Barchasi</option>
+                                <option value="all">{{ t('common.all') }}</option>
                                 <option v-for="category in categories" :key="category" :value="category">
                                     {{ category }}
                                 </option>
@@ -210,7 +213,7 @@ const removeKeyword = (index) => {
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p class="mt-4">Hech qanday ma'lumot topilmadi</p>
+                            <p class="mt-4">{{ t('reports.no_data') }}</p>
                         </li>
                     </ul>
 
@@ -233,7 +236,7 @@ const removeKeyword = (index) => {
                                     class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                                     preserve-state
                                 >
-                                    Oldingi
+                                    {{ t('common.previous') }}
                                 </Link>
 
                                 <Link
@@ -242,7 +245,7 @@ const removeKeyword = (index) => {
                                     class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                                     preserve-state
                                 >
-                                    Keyingi
+                                    {{ t('common.next') }}
                                 </Link>
                             </div>
                         </div>
@@ -260,7 +263,7 @@ const removeKeyword = (index) => {
             <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">
-                        {{ editingKnowledge ? 'Tahrirlash' : 'Yangi Q&A' }}
+                        {{ editingKnowledge ? t('common.edit') : t('chatbot.new_qa') }}
                     </h2>
                     <button @click="closeModal" class="p-2 hover:bg-gray-100 rounded-md">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -381,15 +384,15 @@ const removeKeyword = (index) => {
                             @click="closeModal"
                             class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                         >
-                            Bekor qilish
+                            {{ t('common.cancel') }}
                         </button>
                         <button
                             type="submit"
                             :disabled="form.processing"
                             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                         >
-                            <span v-if="form.processing">Saqlanmoqda...</span>
-                            <span v-else>{{ editingKnowledge ? 'Yangilash' : 'Qo\'shish' }}</span>
+                            <span v-if="form.processing">{{ t('common.saving') }}</span>
+                            <span v-else>{{ editingKnowledge ? t('common.update') : t('common.add') }}</span>
                         </button>
                     </div>
                 </form>

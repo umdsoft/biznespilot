@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from '@/i18n';
 import {
     ChatBubbleLeftRightIcon,
     XMarkIcon,
@@ -12,6 +13,8 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     position: {
@@ -37,41 +40,41 @@ const form = ref({
 // File input ref
 const fileInput = ref(null);
 
-// Feedback types
-const feedbackTypes = [
+// Feedback types - computed to use translations
+const feedbackTypes = computed(() => [
     {
         value: 'bug',
-        label: 'Xatolik',
-        description: 'Tizimda xatolik topdingizmi?',
+        label: t('components.feedback.type_bug'),
+        description: t('components.feedback.type_bug_desc'),
         icon: BugAntIcon,
         color: 'red',
     },
     {
         value: 'suggestion',
-        label: 'Taklif',
-        description: 'Yangi g\'oya yoki takomillashtirishlar',
+        label: t('components.feedback.type_suggestion'),
+        description: t('components.feedback.type_suggestion_desc'),
         icon: LightBulbIcon,
         color: 'blue',
     },
     {
         value: 'question',
-        label: 'Savol',
-        description: 'Yordam kerakmi?',
+        label: t('components.feedback.type_question'),
+        description: t('components.feedback.type_question_desc'),
         icon: QuestionMarkCircleIcon,
         color: 'purple',
     },
     {
         value: 'other',
-        label: 'Boshqa',
-        description: 'Boshqa xabar',
+        label: t('components.feedback.type_other'),
+        description: t('components.feedback.type_other_desc'),
         icon: ChatBubbleOvalLeftEllipsisIcon,
         color: 'gray',
     },
-];
+]);
 
 // Computed
 const selectedTypeData = computed(() => {
-    return feedbackTypes.find(t => t.value === selectedType.value);
+    return feedbackTypes.value.find(ft => ft.value === selectedType.value);
 });
 
 const totalFileSize = computed(() => {
@@ -118,12 +121,12 @@ const handleFileSelect = (event) => {
 
     for (const file of files) {
         if (file.size > maxSize) {
-            errorMessage.value = `"${file.name}" hajmi 5 MB dan oshmasligi kerak`;
+            errorMessage.value = t('components.feedback.file_too_large', { name: file.name });
             continue;
         }
 
         if (form.value.attachments.length >= 5) {
-            errorMessage.value = 'Maksimum 5 ta fayl biriktirish mumkin';
+            errorMessage.value = t('components.feedback.max_files');
             break;
         }
 
@@ -185,11 +188,11 @@ const submitFeedback = async () => {
                 toggleWidget();
             }, 3000);
         } else {
-            errorMessage.value = data.message || 'Xatolik yuz berdi';
+            errorMessage.value = data.message || t('common.error_occurred');
         }
     } catch (error) {
         console.error('Failed to submit feedback:', error);
-        errorMessage.value = 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+        errorMessage.value = t('common.error_retry');
     } finally {
         isSubmitting.value = false;
     }
@@ -234,7 +237,7 @@ const getTypeColorClasses = (color, isSelected = false) => {
                 v-if="!isOpen"
                 class="absolute right-full mr-3 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
             >
-                Xabar yuborish
+                {{ t('components.feedback.send_message') }}
             </span>
         </button>
 
@@ -253,8 +256,8 @@ const getTypeColorClasses = (color, isSelected = false) => {
             >
                 <!-- Header -->
                 <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white">Xabar yuborish</h3>
-                    <p class="text-blue-100 text-sm">Taklif yoki xatolik haqida xabar bering</p>
+                    <h3 class="text-lg font-bold text-white">{{ t('components.feedback.title') }}</h3>
+                    <p class="text-blue-100 text-sm">{{ t('components.feedback.subtitle') }}</p>
                 </div>
 
                 <!-- Success State -->
@@ -262,13 +265,13 @@ const getTypeColorClasses = (color, isSelected = false) => {
                     <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircleIcon class="w-8 h-8 text-green-500" />
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Rahmat!</h4>
-                    <p class="text-gray-500 dark:text-gray-400">Xabaringiz muvaffaqiyatli yuborildi. Tez orada ko'rib chiqamiz.</p>
+                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ t('components.feedback.thanks') }}</h4>
+                    <p class="text-gray-500 dark:text-gray-400">{{ t('components.feedback.success_message') }}</p>
                 </div>
 
                 <!-- Type Selection -->
                 <div v-else-if="!showForm" class="p-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Xabar turini tanlang:</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ t('components.feedback.select_type') }}</p>
                     <div class="space-y-2">
                         <button
                             v-for="type in feedbackTypes"
@@ -323,22 +326,22 @@ const getTypeColorClasses = (color, isSelected = false) => {
                     <!-- Form fields -->
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sarlavha *</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('components.feedback.title_label') }} *</label>
                             <input
                                 v-model="form.title"
                                 type="text"
-                                placeholder="Qisqa sarlavha"
+                                :placeholder="t('components.feedback.title_placeholder')"
                                 maxlength="255"
                                 class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tavsif *</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('components.feedback.description_label') }} *</label>
                             <textarea
                                 v-model="form.description"
                                 rows="4"
-                                placeholder="Batafsil yozing..."
+                                :placeholder="t('components.feedback.description_placeholder')"
                                 maxlength="5000"
                                 class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             ></textarea>
@@ -348,8 +351,8 @@ const getTypeColorClasses = (color, isSelected = false) => {
                         <!-- Attachments -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Fayllar biriktirish
-                                <span class="font-normal text-gray-400">(max 5 ta, har biri 5 MB gacha)</span>
+                                {{ t('components.feedback.attach_files') }}
+                                <span class="font-normal text-gray-400">({{ t('components.feedback.file_limits') }})</span>
                             </label>
 
                             <!-- Attached files -->
@@ -380,7 +383,7 @@ const getTypeColorClasses = (color, isSelected = false) => {
                                 class="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
                             >
                                 <PaperClipIcon class="w-5 h-5" />
-                                Fayl tanlash
+                                {{ t('components.feedback.select_file') }}
                             </button>
                             <input
                                 ref="fileInput"
@@ -409,9 +412,9 @@ const getTypeColorClasses = (color, isSelected = false) => {
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" />
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
-                            Yuborilmoqda...
+                            {{ t('components.feedback.submitting') }}
                         </span>
-                        <span v-else>Yuborish</span>
+                        <span v-else>{{ t('components.feedback.submit') }}</span>
                     </button>
                 </div>
             </div>

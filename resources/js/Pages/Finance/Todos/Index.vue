@@ -1,6 +1,9 @@
 <script setup>
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import TodosPage from '@/components/todos/TodosPage.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     todos: Object,
@@ -16,7 +19,7 @@ defineProps({
 </script>
 
 <template>
-    <FinanceLayout title="Vazifalar">
+    <FinanceLayout :title="t('nav.tasks')">
         <TodosPage
             :todos="todos"
             :stats="stats"

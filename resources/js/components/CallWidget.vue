@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { PhoneArrowUpRightIcon } from '@heroicons/vue/24/solid';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -51,7 +54,7 @@ const closeWidget = () => {
             >
                 <!-- Header -->
                 <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 flex items-center justify-between">
-                    <span class="text-sm font-medium text-white">Qo'ng'iroq</span>
+                    <span class="text-sm font-medium text-white">{{ t('components.call.title') }}</span>
                     <button
                         @click="closeWidget"
                         class="p-1 text-slate-400 hover:text-white hover:bg-slate-600 rounded-lg transition-colors"
@@ -80,11 +83,11 @@ const closeWidget = () => {
                         class="w-full flex items-center justify-center gap-3 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-green-600/30"
                     >
                         <PhoneArrowUpRightIcon class="w-5 h-5" />
-                        Qo'ng'iroq qilish
+                        {{ t('components.call.make_call') }}
                     </a>
 
                     <p class="text-xs text-slate-500 text-center mt-3">
-                        MicroSIP dasturi ochiladi
+                        {{ t('components.call.microsip_opens') }}
                     </p>
 
                     <a
@@ -92,7 +95,7 @@ const closeWidget = () => {
                         target="_blank"
                         class="block text-center text-xs text-slate-500 hover:text-slate-400 underline mt-2"
                     >
-                        MicroSIP yuklab olish
+                        {{ t('components.call.download_microsip') }}
                     </a>
                 </div>
             </div>

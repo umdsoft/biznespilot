@@ -11,6 +11,9 @@ import {
     ExclamationTriangleIcon,
     UsersIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     kpiData: { type: Object, default: () => ({}) },
@@ -27,14 +30,14 @@ const emit = defineEmits(['period-change']);
 
 // Format currency
 const formatCurrency = (value) => {
-    if (!value) return '0 so\'m';
+    if (!value) return `0 ${t('common.currency')}`;
     if (value >= 1000000000) {
-        return (value / 1000000000).toFixed(1) + ' mlrd so\'m';
+        return (value / 1000000000).toFixed(1) + ` ${t('common.currency_mlrd')}`;
     }
     if (value >= 1000000) {
-        return (value / 1000000).toFixed(1) + ' mln so\'m';
+        return (value / 1000000).toFixed(1) + ` ${t('common.currency_mln')}`;
     }
-    return new Intl.NumberFormat('uz-UZ').format(value) + ' so\'m';
+    return new Intl.NumberFormat('uz-UZ').format(value) + ` ${t('common.currency')}`;
 };
 
 // Build KPI metrics from real data
@@ -43,7 +46,7 @@ const kpiMetrics = computed(() => {
     return [
         {
             key: 'sales',
-            label: 'Yopilgan sotuvlar',
+            label: t('kpi.closed_sales'),
             value: data.sales?.value ?? 0,
             target: data.sales?.target ?? 50,
             icon: CurrencyDollarIcon,
@@ -52,7 +55,7 @@ const kpiMetrics = computed(() => {
         },
         {
             key: 'conversion',
-            label: 'Konversiya',
+            label: t('kpi.conversion'),
             value: data.conversion?.value ?? 0,
             target: data.conversion?.target ?? 30,
             icon: ArrowTrendingUpIcon,
@@ -62,7 +65,7 @@ const kpiMetrics = computed(() => {
         },
         {
             key: 'revenue',
-            label: 'Daromad',
+            label: t('kpi.revenue'),
             value: data.revenue?.value ?? 0,
             target: data.revenue?.target ?? 10000000,
             icon: CurrencyDollarIcon,
@@ -72,7 +75,7 @@ const kpiMetrics = computed(() => {
         },
         {
             key: 'active_leads',
-            label: 'Faol lidlar',
+            label: t('kpi.active_leads'),
             value: data.active_leads?.value ?? 0,
             target: data.active_leads?.target ?? 100,
             icon: UsersIcon,
@@ -81,7 +84,7 @@ const kpiMetrics = computed(() => {
         },
         {
             key: 'completed_tasks',
-            label: 'Bajarilgan vazifalar',
+            label: t('kpi.completed_tasks'),
             value: data.completed_tasks?.value ?? 0,
             target: data.completed_tasks?.target ?? 50,
             icon: ClipboardDocumentCheckIcon,
@@ -90,7 +93,7 @@ const kpiMetrics = computed(() => {
         },
         {
             key: 'overdue_tasks',
-            label: 'Kechikkan vazifalar',
+            label: t('kpi.overdue_tasks'),
             value: data.overdue_tasks?.value ?? 0,
             target: data.overdue_tasks?.target ?? 0,
             icon: ExclamationTriangleIcon,
@@ -150,11 +153,11 @@ const formatTarget = (metric) => {
     return metric.target + (metric.suffix || '');
 };
 
-const periods = [
-    { key: 'daily', label: 'Kunlik' },
-    { key: 'weekly', label: 'Haftalik' },
-    { key: 'monthly', label: 'Oylik' },
-];
+const periods = computed(() => [
+    { key: 'daily', label: t('kpi.daily') },
+    { key: 'weekly', label: t('kpi.weekly') },
+    { key: 'monthly', label: t('kpi.monthly') },
+]);
 
 const handlePeriodChange = (periodKey) => {
     router.get('/sales-head/kpi', { period: periodKey }, {
@@ -171,10 +174,10 @@ const handlePeriodChange = (periodKey) => {
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                     <ChartBarIcon class="w-7 h-7 text-emerald-600" />
-                    KPI Ko'rsatkichlari
+                    {{ t('kpi.kpi_indicators') }}
                 </h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Sotuv bo'limi samaradorlik ko'rsatkichlari
+                    {{ t('kpi.sales_dept_performance') }}
                 </p>
             </div>
             <div class="flex gap-2">
@@ -243,7 +246,7 @@ const handlePeriodChange = (periodKey) => {
                         ></div>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
-                        {{ Math.round(getProgressPercentage(metric.value, metric.target, metric.isNegative)) }}% bajarildi
+                        {{ Math.round(getProgressPercentage(metric.value, metric.target, metric.isNegative)) }}% {{ t('kpi.completed') }}
                     </p>
                 </div>
             </div>
@@ -254,18 +257,18 @@ const handlePeriodChange = (periodKey) => {
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <UserGroupIcon class="w-5 h-5 text-emerald-600" />
-                    Jamoa samaradorligi
+                    {{ t('kpi.team_performance') }}
                 </h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hodim</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Leadlar</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Yutilgan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.employee') }}</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.leads') }}</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.won') }}</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">CR%</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Daromad</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.revenue') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -295,7 +298,7 @@ const handlePeriodChange = (periodKey) => {
                         </tr>
                         <tr v-if="teamPerformance.length === 0">
                             <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                Jamoa a'zolari topilmadi
+                                {{ t('kpi.team_members_not_found') }}
                             </td>
                         </tr>
                     </tbody>
@@ -311,11 +314,10 @@ const handlePeriodChange = (periodKey) => {
                 </div>
                 <div>
                     <h3 class="font-semibold text-emerald-900 dark:text-emerald-100">
-                        KPI Tizimi Rivojlanmoqda
+                        {{ t('kpi.system_developing') }}
                     </h3>
                     <p class="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
-                        Tez orada real vaqt rejimida KPI ko'rsatkichlarini kuzatish, maqsadlarni belgilash va
-                        jamoa samaradorligini tahlil qilish imkoniyatlari qo'shiladi.
+                        {{ t('kpi.system_developing_desc') }}
                     </p>
                 </div>
             </div>

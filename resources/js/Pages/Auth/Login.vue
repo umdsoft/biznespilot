@@ -19,7 +19,7 @@
             <h1 class="ml-4 text-3xl font-bold">BiznesPilot AI</h1>
           </div>
           <p class="text-xl text-blue-100 leading-relaxed">
-            O'zbekiston bizneslari uchun AI-powered marketing va sotuvni boshqarish platformasi
+            {{ t('auth.platform_desc') }}
           </p>
         </div>
 
@@ -32,8 +32,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-lg">AI Ideal Mijoz Tahlili</h3>
-              <p class="text-blue-100 text-sm">Ideal mijozingizni aniqlang va ular bilan gaplashing</p>
+              <h3 class="font-semibold text-lg">{{ t('auth.feature_ai_analysis') }}</h3>
+              <p class="text-blue-100 text-sm">{{ t('auth.feature_ai_analysis_desc') }}</p>
             </div>
           </div>
 
@@ -44,8 +44,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-lg">Marketing Avtomatizatsiya</h3>
-              <p class="text-blue-100 text-sm">WhatsApp, Instagram, Telegram orqali avtomatik marketing</p>
+              <h3 class="font-semibold text-lg">{{ t('auth.feature_marketing') }}</h3>
+              <p class="text-blue-100 text-sm">{{ t('auth.feature_marketing_desc') }}</p>
             </div>
           </div>
 
@@ -56,8 +56,8 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-semibold text-lg">Real-time Analytics</h3>
-              <p class="text-blue-100 text-sm">Sotuvlar, mijozlar va marketing tahlili bir joyda</p>
+              <h3 class="font-semibold text-lg">{{ t('auth.feature_analytics') }}</h3>
+              <p class="text-blue-100 text-sm">{{ t('auth.feature_analytics_desc') }}</p>
             </div>
           </div>
         </div>
@@ -71,15 +71,15 @@
         <div class="mt-6 grid grid-cols-3 gap-6 pt-6 border-t border-white/20">
           <div>
             <div class="text-3xl font-bold">50+</div>
-            <div class="text-blue-200 text-sm">Faol bizneslar</div>
+            <div class="text-blue-200 text-sm">{{ t('auth.stats_businesses') }}</div>
           </div>
           <div>
             <div class="text-3xl font-bold">1K+</div>
-            <div class="text-blue-200 text-sm">Mijozlar</div>
+            <div class="text-blue-200 text-sm">{{ t('auth.stats_customers') }}</div>
           </div>
           <div>
             <div class="text-3xl font-bold">98%</div>
-            <div class="text-blue-200 text-sm">Qoniqish</div>
+            <div class="text-blue-200 text-sm">{{ t('auth.stats_satisfaction') }}</div>
           </div>
         </div>
       </div>
@@ -101,9 +101,9 @@
         <!-- Login Card -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
           <div class="mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">Xush kelibsiz!</h2>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ t('auth.welcome') }}</h2>
             <p class="text-gray-600">
-              Akkauntingizga kirish uchun ma'lumotlaringizni kiriting
+              {{ t('auth.login_desc') }}
             </p>
           </div>
 
@@ -121,13 +121,13 @@
             <!-- Login Field -->
             <div>
               <label for="login" class="block text-sm font-semibold text-gray-700 mb-2">
-                Login yoki Telefon
+                {{ t('auth.login_or_phone') }}
               </label>
               <input
                 id="login"
                 v-model="form.login"
                 type="text"
-                placeholder="username yoki +998901234567"
+                :placeholder="t('auth.login_placeholder')"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                 :class="{ 'border-red-300 focus:ring-red-500': form.errors.login }"
                 required
@@ -138,7 +138,7 @@
             <!-- Password Field -->
             <div>
               <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                Parol
+                {{ t('auth.password') }}
               </label>
               <input
                 id="password"
@@ -160,10 +160,10 @@
                   type="checkbox"
                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
-                <span class="ml-2 text-sm text-gray-700">Eslab qolish</span>
+                <span class="ml-2 text-sm text-gray-700">{{ t('auth.remember_me') }}</span>
               </label>
               <!-- <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                Parolni unutdingizmi?
+                {{ t('auth.forgot_password') }}
               </a> -->
             </div>
 
@@ -177,14 +177,14 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-                Tizimga kirish
+                {{ t('auth.login_button') }}
               </span>
               <span v-else class="flex items-center justify-center">
                 <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Yuklanmoqda...
+                {{ t('auth.loading') }}
               </span>
             </button>
           </form>
@@ -192,9 +192,9 @@
           <!-- Divider -->
           <div class="mt-8 pt-6 border-t border-gray-200">
             <p class="text-center text-sm text-gray-600">
-              Akkauntingiz yo'qmi?
+              {{ t('auth.no_account') }}
               <Link href="/register" class="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-                Ro'yxatdan o'tish
+                {{ t('auth.register_link') }}
               </Link>
             </p>
           </div>
@@ -203,7 +203,7 @@
 
         <!-- Footer -->
         <p class="mt-8 text-center text-sm text-gray-500">
-          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. Barcha huquqlar himoyalangan.
+          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. {{ t('auth.copyright') }}
         </p>
       </div>
     </div>
@@ -215,6 +215,9 @@ import { onMounted, ref, reactive } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 // Use reactive form instead of Inertia useForm to have full control
 const form = reactive({
@@ -262,7 +265,7 @@ const handleLogin = async () => {
 
         if (isCsrfError(error)) {
             await refreshCsrfToken();
-            form.errors.login = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            form.errors.login = t('auth.session_expired');
         } else if (error.response?.status === 422) {
             const errors = error.response.data.errors || {};
             form.errors = {
@@ -272,7 +275,7 @@ const handleLogin = async () => {
         } else if (error.response?.data?.message) {
             form.errors.login = error.response.data.message;
         } else {
-            form.errors.login = 'Tizimga kirishda xatolik yuz berdi';
+            form.errors.login = t('auth.login_error');
         }
     } finally {
         form.processing = false;

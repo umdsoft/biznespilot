@@ -8,8 +8,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
         </svg>
       </div>
-      <h3 class="text-xl font-bold text-gray-900 mb-2">Marketing Ko'rsatkichlari</h3>
-      <p class="text-gray-600">Marketing faoliyatining asosiy metrikalarini kiriting</p>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">{{ t('onboarding.marketing.title') }}</h3>
+      <p class="text-gray-600">{{ t('onboarding.marketing.description') }}</p>
     </div>
 
     <!-- Loading -->
@@ -24,31 +24,31 @@
           <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          Marketing Byudjeti
+          {{ t('onboarding.marketing.budget_title') }}
         </h4>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Oylik marketing byudjeti (so'm)
+              {{ t('onboarding.marketing.monthly_budget_label') }}
             </label>
             <input
               v-model="form.monthly_budget"
               type="text"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Masalan: 5,000,000"
+              :placeholder="t('onboarding.marketing.monthly_budget_placeholder')"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Reklama xarajatlari (so'm/oy)
+              {{ t('onboarding.marketing.ad_spend_label') }}
             </label>
             <input
               v-model="form.ad_spend"
               type="text"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Masalan: 2,000,000"
+              :placeholder="t('onboarding.marketing.ad_spend_placeholder')"
             />
           </div>
         </div>
@@ -60,13 +60,13 @@
           <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
           </svg>
-          Web-sayt
+          {{ t('onboarding.marketing.website_title') }}
         </h4>
 
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-3">
-              Web-saytingiz bormi va undan qanday maqsadda foydalanasiz?
+              {{ t('onboarding.marketing.website_purpose_label') }}
             </label>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div
@@ -87,8 +87,8 @@
                   <div v-if="form.website_purpose === purpose.value" class="w-2 h-2 rounded-full bg-cyan-600"></div>
                 </div>
                 <div>
-                  <span class="font-medium text-gray-900 text-sm">{{ purpose.label }}</span>
-                  <p class="text-xs text-gray-500 mt-0.5">{{ purpose.description }}</p>
+                  <span class="font-medium text-gray-900 text-sm">{{ t(`onboarding.marketing.website_purpose.${purpose.value}.label`) }}</span>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ t(`onboarding.marketing.website_purpose.${purpose.value}.description`) }}</p>
                 </div>
               </div>
             </div>
@@ -98,20 +98,20 @@
           <div v-if="form.website_purpose && form.website_purpose !== 'no_website'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-cyan-100">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Oylik tashriflar soni
+                {{ t('onboarding.marketing.monthly_visits_label') }}
               </label>
               <input
                 v-model="form.monthly_visits"
                 type="number"
                 min="0"
                 class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                placeholder="Masalan: 5000"
+                :placeholder="t('onboarding.marketing.monthly_visits_placeholder')"
               />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Sayt konversiyasi (%)
+                {{ t('onboarding.marketing.website_conversion_label') }}
               </label>
               <input
                 v-model="form.website_conversion"
@@ -120,7 +120,7 @@
                 max="100"
                 step="0.1"
                 class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                placeholder="Masalan: 2.5"
+                :placeholder="t('onboarding.marketing.website_conversion_placeholder')"
               />
             </div>
           </div>
@@ -130,9 +130,9 @@
       <!-- Active Channels - CHECKBOX GROUP -->
       <div>
         <label class="block text-sm font-medium text-gray-900 mb-1">
-          Qayerda reklama qilasiz?
+          {{ t('onboarding.marketing.active_channels_label') }}
         </label>
-        <p class="text-sm text-gray-500 mb-3">Hozirda faol ishlatayotgan kanallarni tanlang</p>
+        <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.marketing.active_channels_hint') }}</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           <div
             v-for="channel in marketingChannels"
@@ -145,8 +145,8 @@
                 : 'border-gray-200 hover:border-gray-300'
             ]"
           >
-            <span class="text-sm font-medium text-gray-900">{{ channel.label }}</span>
-            <span class="text-xs text-gray-500 mt-1">{{ channel.description }}</span>
+            <span class="text-sm font-medium text-gray-900">{{ t(`onboarding.marketing.channels.${channel.value}.label`) }}</span>
+            <span class="text-xs text-gray-500 mt-1">{{ t(`onboarding.marketing.channels.${channel.value}.description`) }}</span>
           </div>
         </div>
       </div>
@@ -157,36 +157,36 @@
           <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          Kanal ko'rsatkichlari
+          {{ t('onboarding.marketing.channel_performance_title') }}
         </h4>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Eng samarali kanal
+              {{ t('onboarding.marketing.best_channel_label') }}
             </label>
             <select
               v-model="form.best_channel"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             >
-              <option value="">Tanlang</option>
+              <option value="">{{ t('common.select') }}</option>
               <option v-for="channel in marketingChannels" :key="channel.value" :value="channel.value">
-                {{ channel.label }}
+                {{ t(`onboarding.marketing.channels.${channel.value}.label`) }}
               </option>
             </select>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Eng ko'p lid keluvchi kanal
+              {{ t('onboarding.marketing.top_lead_channel_label') }}
             </label>
             <select
               v-model="form.top_lead_channel"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             >
-              <option value="">Tanlang</option>
+              <option value="">{{ t('common.select') }}</option>
               <option v-for="channel in marketingChannels" :key="channel.value" :value="channel.value">
-                {{ channel.label }}
+                {{ t(`onboarding.marketing.channels.${channel.value}.label`) }}
               </option>
             </select>
           </div>
@@ -199,46 +199,46 @@
           <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
           </svg>
-          Ijtimoiy tarmoqlar
+          {{ t('onboarding.marketing.social_media_title') }}
         </h4>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Instagram obunachilar
+              {{ t('onboarding.marketing.instagram_followers_label') }}
             </label>
             <input
               v-model="form.instagram_followers"
               type="number"
               min="0"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Masalan: 5000"
+              :placeholder="t('onboarding.marketing.followers_placeholder')"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Telegram obunachilar
+              {{ t('onboarding.marketing.telegram_subscribers_label') }}
             </label>
             <input
               v-model="form.telegram_subscribers"
               type="number"
               min="0"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Masalan: 2000"
+              :placeholder="t('onboarding.marketing.subscribers_placeholder')"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Facebook kuzatuvchilar
+              {{ t('onboarding.marketing.facebook_followers_label') }}
             </label>
             <input
               v-model="form.facebook_followers"
               type="number"
               min="0"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Masalan: 1000"
+              :placeholder="t('onboarding.marketing.followers_placeholder')"
             />
           </div>
         </div>
@@ -250,13 +250,13 @@
           <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          Marketing Samaradorligi
+          {{ t('onboarding.marketing.effectiveness_title') }}
         </h4>
 
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-3">
-              Marketing xarajatlaringiz qanchalik samarali ekanini bilasizmi?
+              {{ t('onboarding.marketing.roi_tracking_label') }}
             </label>
             <div class="grid grid-cols-3 gap-2">
               <div
@@ -271,22 +271,22 @@
                 ]"
               >
                 <span class="text-2xl mb-1">{{ option.emoji }}</span>
-                <span class="font-medium text-gray-900 text-sm">{{ option.label }}</span>
-                <span class="text-xs text-gray-500">{{ option.description }}</span>
+                <span class="font-medium text-gray-900 text-sm">{{ t(`onboarding.marketing.roi_tracking.${option.value}.label`) }}</span>
+                <span class="text-xs text-gray-500">{{ t(`onboarding.marketing.roi_tracking.${option.value}.description`) }}</span>
               </div>
             </div>
           </div>
 
           <div v-if="form.roi_tracking_level === 'yes'" class="pt-4 border-t border-gray-200">
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Taxminiy Marketing ROI (%)
+              {{ t('onboarding.marketing.marketing_roi_label') }}
             </label>
             <input
               v-model="form.marketing_roi"
               type="number"
               step="0.1"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Masalan: 200"
+              :placeholder="t('onboarding.marketing.marketing_roi_placeholder')"
             />
           </div>
         </div>
@@ -295,9 +295,9 @@
       <!-- Content Marketing - CHECKBOX GROUP -->
       <div>
         <label class="block text-sm font-medium text-gray-900 mb-1">
-          Qanday kontent tayyorlaysiz?
+          {{ t('onboarding.marketing.content_label') }}
         </label>
-        <p class="text-sm text-gray-500 mb-3">Hozirda qilayotgan kontent ishlaringizni tanlang</p>
+        <p class="text-sm text-gray-500 mb-3">{{ t('onboarding.marketing.content_hint') }}</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div
             v-for="activity in contentActivities"
@@ -310,8 +310,8 @@
                 : 'border-gray-200 hover:border-gray-300'
             ]"
           >
-            <span class="text-sm font-medium text-gray-900">{{ activity.label }}</span>
-            <span class="text-xs text-gray-500 mt-1">{{ activity.description }}</span>
+            <span class="text-sm font-medium text-gray-900">{{ t(`onboarding.marketing.content_activities.${activity.value}.label`) }}</span>
+            <span class="text-xs text-gray-500 mt-1">{{ t(`onboarding.marketing.content_activities.${activity.value}.description`) }}</span>
           </div>
         </div>
       </div>
@@ -319,20 +319,20 @@
       <!-- Marketing Challenges -->
       <div>
         <label class="block text-sm font-medium text-gray-900 mb-1">
-          Marketingda eng katta muammo nima?
+          {{ t('onboarding.marketing.challenges_label') }}
         </label>
-        <p class="text-sm text-gray-500 mb-2">Ixtiyoriy - nimani yaxshilashni xohlardingiz?</p>
+        <p class="text-sm text-gray-500 mb-2">{{ t('onboarding.marketing.challenges_hint') }}</p>
         <textarea
           v-model="form.marketing_challenges"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-          placeholder="Masalan: Reklamaga pul sarflayman, lekin natija yo'q..."
+          :placeholder="t('onboarding.marketing.challenges_placeholder')"
         ></textarea>
       </div>
 
       <!-- Info text -->
       <p class="text-sm text-gray-500 text-center">
-        Bu ma'lumotlar AI tahlil uchun muhim. Taxminiy raqamlar ham qabul qilinadi.
+        {{ t('onboarding.marketing.info_text') }}
       </p>
 
       <!-- Action Buttons -->
@@ -342,7 +342,7 @@
           @click="$emit('skip')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          O'tkazib yuborish
+          {{ t('common.skip') }}
         </button>
         <div class="flex gap-3">
           <button
@@ -350,7 +350,7 @@
             @click="$emit('cancel')"
             class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
           >
-            Bekor qilish
+            {{ t('common.cancel') }}
           </button>
           <button
             @click="handleSubmit"
@@ -361,7 +361,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Saqlash
+            {{ t('common.save') }}
           </button>
         </div>
       </div>
@@ -373,7 +373,9 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
 
+const { t } = useI18n();
 const store = useOnboardingStore();
 const toast = useToastStore();
 const emit = defineEmits(['submit', 'cancel', 'skip']);
@@ -463,40 +465,40 @@ onMounted(async () => {
 });
 
 const websitePurposes = [
-  { value: 'lead_generation', label: 'Lid yig\'ish', description: 'Ariza/so\'rov qabul qilish' },
-  { value: 'ecommerce', label: 'Onlayn sotuv', description: 'To\'g\'ridan-to\'g\'ri sotish' },
-  { value: 'info_brand', label: 'Ma\'lumot/Brend', description: 'Kompaniya haqida ma\'lumot' },
-  { value: 'no_website', label: 'Sayt yo\'q', description: 'Hozircha web-sayt yo\'q' }
+  { value: 'lead_generation' },
+  { value: 'ecommerce' },
+  { value: 'info_brand' },
+  { value: 'no_website' }
 ];
 
 const roiTrackingOptions = [
-  { value: 'yes', label: 'Ha, bilaman', emoji: '📊', description: 'Aniq o\'lchayman' },
-  { value: 'partially', label: 'Qisman', emoji: '🤔', description: 'Taxminiy bilaman' },
-  { value: 'no', label: 'Yo\'q', emoji: '❓', description: 'Hali o\'lchamayman' }
+  { value: 'yes', emoji: '📊' },
+  { value: 'partially', emoji: '🤔' },
+  { value: 'no', emoji: '❓' }
 ];
 
 const marketingChannels = [
-  { value: 'instagram', label: 'Instagram', description: 'Rasm va video postlar' },
-  { value: 'telegram', label: 'Telegram', description: 'Kanal va guruhlar' },
-  { value: 'facebook', label: 'Facebook', description: 'Sahifa va reklamalar' },
-  { value: 'google_ads', label: 'Google Ads', description: 'Qidiruv reklamalari' },
-  { value: 'seo', label: 'SEO', description: 'Organik qidiruv' },
-  { value: 'email', label: 'Email', description: 'Pochta xabarlari' },
-  { value: 'sms', label: 'SMS', description: 'Telefon xabarlari' },
-  { value: 'content', label: 'Kontent', description: 'Foydali maqolalar' },
-  { value: 'influencer', label: 'Blogerlar', description: 'Influencer reklama' },
-  { value: 'offline', label: 'Oflayn', description: 'Banner, buklet' },
-  { value: 'youtube', label: 'YouTube', description: 'Video kontent' },
-  { value: 'tiktok', label: 'TikTok', description: 'Qisqa videolar' }
+  { value: 'instagram' },
+  { value: 'telegram' },
+  { value: 'facebook' },
+  { value: 'google_ads' },
+  { value: 'seo' },
+  { value: 'email' },
+  { value: 'sms' },
+  { value: 'content' },
+  { value: 'influencer' },
+  { value: 'offline' },
+  { value: 'youtube' },
+  { value: 'tiktok' }
 ];
 
 const contentActivities = [
-  { value: 'blog', label: 'Blog maqolalar', description: 'Sayt yoki kanalda maqolalar' },
-  { value: 'videos', label: 'Video', description: 'O\'quv yoki reklama videolar' },
-  { value: 'reels', label: 'Reels/Stories', description: 'Qisqa vertikal videolar' },
-  { value: 'podcast', label: 'Podcast', description: 'Audio dasturlar' },
-  { value: 'webinars', label: 'Vebinarlar', description: 'Onlayn taqdimotlar' },
-  { value: 'ebooks', label: 'E-kitoblar', description: 'PDF qo\'llanmalar' }
+  { value: 'blog' },
+  { value: 'videos' },
+  { value: 'reels' },
+  { value: 'podcast' },
+  { value: 'webinars' },
+  { value: 'ebooks' }
 ];
 
 async function handleSubmit() {
@@ -504,12 +506,12 @@ async function handleSubmit() {
 
   try {
     await store.updateMarketingMetrics({ ...form });
-    toast.success('Muvaffaqiyatli saqlandi', 'Marketing ko\'rsatkichlari yangilandi');
+    toast.success(t('common.success'), t('onboarding.marketing.saved_message'));
     emit('submit');
   } catch (err) {
     console.error(err);
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     loading.value = false;
   }

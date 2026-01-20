@@ -10,6 +10,9 @@ import {
     ClockIcon,
     CheckCircleIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     data: {
@@ -28,10 +31,10 @@ const props = defineProps({
 });
 
 const agingCategories = computed(() => [
-    { label: 'Joriy', amount: props.data.summary?.current || 0, color: 'green' },
-    { label: '1-30 kun', amount: props.data.summary?.overdue_1_30 || 0, color: 'yellow' },
-    { label: '31-60 kun', amount: props.data.summary?.overdue_31_60 || 0, color: 'orange' },
-    { label: '60+ kun', amount: props.data.summary?.overdue_60_plus || 0, color: 'red' },
+    { labelKey: 'finance.current', amount: props.data.summary?.current || 0, color: 'green' },
+    { labelKey: 'finance.days_1_30', amount: props.data.summary?.overdue_1_30 || 0, color: 'yellow' },
+    { labelKey: 'finance.days_31_60', amount: props.data.summary?.overdue_31_60 || 0, color: 'orange' },
+    { labelKey: 'finance.days_60_plus', amount: props.data.summary?.overdue_60_plus || 0, color: 'red' },
 ]);
 
 const getStatusColor = (daysOverdue) => {
@@ -48,14 +51,14 @@ const getStatusIcon = (daysOverdue) => {
 };
 
 const getStatusText = (daysOverdue) => {
-    if (daysOverdue === 0) return 'Joriy';
-    return `${daysOverdue} kun kechikkan`;
+    if (daysOverdue === 0) return t('finance.current');
+    return t('finance.days_overdue', { days: daysOverdue });
 };
 </script>
 
 <template>
-    <FinanceLayout title="Debitorlik Qarzi">
-        <Head title="Debitorlik Qarzi Hisoboti" />
+    <FinanceLayout :title="t('finance.accounts_receivable')">
+        <Head :title="t('finance.accounts_receivable_report')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -68,15 +71,15 @@ const getStatusText = (daysOverdue) => {
                         <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </Link>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Debitorlik Qarzi</h1>
-                        <p class="mt-1 text-gray-500 dark:text-gray-400">Mijozlardan olinadigan to'lovlar</p>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('finance.accounts_receivable') }}</h1>
+                        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ t('finance.accounts_receivable_desc') }}</p>
                     </div>
                 </div>
                 <button
                     class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                 >
                     <DocumentArrowDownIcon class="w-5 h-5" />
-                    Yuklab olish
+                    {{ t('finance.download') }}
                 </button>
             </div>
 
@@ -84,12 +87,12 @@ const getStatusText = (daysOverdue) => {
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <p class="text-blue-100">Jami Debitorlik Qarzi</p>
+                        <p class="text-blue-100">{{ t('finance.total_receivable') }}</p>
                         <p class="text-3xl font-bold mt-1">{{ formatFullCurrency(data.summary?.total) }}</p>
                     </div>
                     <div class="flex items-center gap-2 bg-white/20 rounded-lg px-4 py-2">
                         <ExclamationTriangleIcon class="w-5 h-5" />
-                        <span>{{ data.clients?.filter(c => c.days_overdue > 0).length || 0 }} ta kechikkan</span>
+                        <span>{{ data.clients?.filter(c => c.days_overdue > 0).length || 0 }} {{ t('finance.overdue_count') }}</span>
                     </div>
                 </div>
             </div>
@@ -111,7 +114,7 @@ const getStatusText = (daysOverdue) => {
                                 'bg-red-500': category.color === 'red',
                             }"
                         ></div>
-                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ category.label }}</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ t(category.labelKey) }}</span>
                     </div>
                     <p class="text-xl font-bold text-gray-900 dark:text-white">
                         {{ formatFullCurrency(category.amount) }}
@@ -125,16 +128,16 @@ const getStatusText = (daysOverdue) => {
             <!-- Clients Table -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Mijozlar Bo'yicha</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('finance.by_client') }}</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr class="text-left text-sm text-gray-500 dark:text-gray-400">
-                                <th class="px-6 py-3 font-medium">Mijoz</th>
-                                <th class="px-6 py-3 font-medium text-right">Summa</th>
-                                <th class="px-6 py-3 font-medium text-center">Holat</th>
-                                <th class="px-6 py-3 font-medium text-right">Amallar</th>
+                                <th class="px-6 py-3 font-medium">{{ t('finance.client') }}</th>
+                                <th class="px-6 py-3 font-medium text-right">{{ t('finance.amount') }}</th>
+                                <th class="px-6 py-3 font-medium text-center">{{ t('common.status') }}</th>
+                                <th class="px-6 py-3 font-medium text-right">{{ t('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -161,7 +164,7 @@ const getStatusText = (daysOverdue) => {
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <button class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm">
-                                        Eslatma yuborish
+                                        {{ t('finance.send_reminder') }}
                                     </button>
                                 </td>
                             </tr>

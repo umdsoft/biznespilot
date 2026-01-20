@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import {
     UsersIcon,
@@ -16,6 +16,9 @@ import {
 import StatCard from './StatCard.vue';
 import DashboardCard from './DashboardCard.vue';
 import QuickActions from './QuickActions.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -68,12 +71,12 @@ const checkOut = async () => {
     }
 };
 
-const quickActions = [
-    { href: '/hr/team', icon: UsersIcon, label: 'Xodimlar', color: 'blue' },
-    { href: '/hr/attendance', icon: ClockIcon, label: 'Davomat', color: 'purple' },
-    { href: '/hr/departments', icon: BuildingOfficeIcon, label: 'Bo\'limlar', color: 'green' },
-    { href: '/hr/invitations', icon: BellIcon, label: 'Taklifnomalar', color: 'orange' },
-];
+const quickActions = computed(() => [
+    { href: '/hr/team', icon: UsersIcon, label: t('dashboard.hr.employees'), color: 'blue' },
+    { href: '/hr/attendance', icon: ClockIcon, label: t('dashboard.hr.attendance'), color: 'purple' },
+    { href: '/hr/departments', icon: BuildingOfficeIcon, label: t('dashboard.hr.departments'), color: 'green' },
+    { href: '/hr/invitations', icon: BellIcon, label: t('dashboard.hr.invitations'), color: 'orange' },
+]);
 
 const getActivityColor = (type) => {
     const colors = {
@@ -104,10 +107,10 @@ const getPriorityColor = (priority) => {
             <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
             <div class="relative">
                 <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
-                    Xush kelibsiz, {{ currentBusiness?.name || 'HR Panel' }}! 🎉
+                    {{ t('dashboard.hr.welcome', { name: currentBusiness?.name || t('dashboard.hr.hr_panel') }) }}
                 </h1>
                 <p class="text-purple-100 text-lg">
-                    Bugun {{ new Date().toLocaleDateString('uz-UZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
+                    {{ t('dashboard.hr.today') }} {{ new Date().toLocaleDateString('uz-UZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
                 </p>
             </div>
         </div>
@@ -125,12 +128,12 @@ const getPriorityColor = (priority) => {
                             {{ stats?.total_employees || 0 }}
                         </span>
                         <span class="text-xs font-medium px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full mt-2">
-                            {{ stats?.active_employees || 0 }} faol
+                            {{ stats?.active_employees || 0 }} {{ t('dashboard.hr.active') }}
                         </span>
                     </div>
                 </div>
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Jami xodimlar</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Kompaniyadagi barcha xodimlar</p>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('dashboard.hr.total_employees') }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('dashboard.hr.all_company_employees') }}</p>
             </div>
 
             <!-- Kutilayotgan takliflar -->
@@ -143,8 +146,8 @@ const getPriorityColor = (priority) => {
                         {{ stats?.pending_invitations || 0 }}
                     </span>
                 </div>
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Kutilayotgan takliflar</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tasdiqlanmagan takliflar</p>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('dashboard.hr.pending_invitations') }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('dashboard.hr.unconfirmed_invitations') }}</p>
             </div>
 
             <!-- Sotuv bo'limi -->
@@ -158,12 +161,12 @@ const getPriorityColor = (priority) => {
                             {{ stats?.departments?.sales || 0 }}
                         </span>
                         <span class="text-xs font-medium px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full mt-2">
-                            xodim
+                            {{ t('dashboard.hr.employee') }}
                         </span>
                     </div>
                 </div>
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Sotuv bo'limi</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sotuv jamoasi a'zolari</p>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('dashboard.hr.sales_department') }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('dashboard.hr.sales_team_members') }}</p>
             </div>
 
             <!-- Boshqa bo'limlar -->
@@ -176,16 +179,16 @@ const getPriorityColor = (priority) => {
                         {{ (stats?.departments?.marketing || 0) + (stats?.departments?.finance || 0) + (stats?.departments?.hr || 0) }}
                     </span>
                 </div>
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Boshqa bo'limlar</h3>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('dashboard.hr.other_departments') }}</h3>
                 <div class="flex gap-2 mt-2 flex-wrap">
                     <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-lg">
-                        Marketing: {{ stats?.departments?.marketing || 0 }}
+                        {{ t('dashboard.hr.marketing') }}: {{ stats?.departments?.marketing || 0 }}
                     </span>
                     <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
-                        Moliya: {{ stats?.departments?.finance || 0 }}
+                        {{ t('dashboard.hr.finance') }}: {{ stats?.departments?.finance || 0 }}
                     </span>
                     <span class="text-xs px-2 py-1 bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400 rounded-lg">
-                        HR: {{ stats?.departments?.hr || 0 }}
+                        {{ t('dashboard.hr.hr') }}: {{ stats?.departments?.hr || 0 }}
                     </span>
                 </div>
             </div>
@@ -201,7 +204,7 @@ const getPriorityColor = (priority) => {
                             <ClockIcon class="w-6 h-6" />
                         </div>
                         <div>
-                            <p class="text-sm opacity-90">Bugun</p>
+                            <p class="text-sm opacity-90">{{ t('dashboard.hr.today') }}</p>
                             <p class="text-xl font-bold">{{ new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' }) }}</p>
                         </div>
                     </div>
@@ -216,12 +219,12 @@ const getPriorityColor = (priority) => {
                             <span class="text-lg font-bold">{{ todayAttendance.check_out || '--:--' }}</span>
                         </div>
                         <div v-if="todayAttendance.work_hours" class="flex items-center justify-between">
-                            <span class="text-sm opacity-90">Ish soatlari:</span>
-                            <span class="text-lg font-bold">{{ todayAttendance.work_hours }} soat</span>
+                            <span class="text-sm opacity-90">{{ t('dashboard.hr.work_hours') }}:</span>
+                            <span class="text-lg font-bold">{{ todayAttendance.work_hours }} {{ t('dashboard.hr.hours') }}</span>
                         </div>
                     </div>
                     <div v-else class="text-center py-4">
-                        <p class="text-sm opacity-90">Bugun hali check-in qilmagansiz</p>
+                        <p class="text-sm opacity-90">{{ t('dashboard.hr.no_check_in_today') }}</p>
                     </div>
                 </div>
 
@@ -234,7 +237,7 @@ const getPriorityColor = (priority) => {
                         class="flex items-center justify-center gap-2 px-6 py-4 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <CheckCircleIcon class="w-6 h-6" />
-                        <span v-if="checkingIn">Check-in qilyapman...</span>
+                        <span v-if="checkingIn">{{ t('dashboard.hr.checking_in') }}</span>
                         <span v-else>Check-in</span>
                     </button>
 
@@ -245,13 +248,13 @@ const getPriorityColor = (priority) => {
                         class="flex items-center justify-center gap-2 px-6 py-4 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <XCircleIcon class="w-6 h-6" />
-                        <span v-if="checkingOut">Check-out qilyapman...</span>
+                        <span v-if="checkingOut">{{ t('dashboard.hr.checking_out') }}</span>
                         <span v-else>Check-out</span>
                     </button>
 
                     <div v-else class="flex items-center justify-center gap-2 px-6 py-4 bg-white/20 rounded-xl">
                         <CheckCircleIcon class="w-6 h-6" />
-                        <span class="font-semibold">Bugun ishni tamomladingiz</span>
+                        <span class="font-semibold">{{ t('dashboard.hr.work_completed_today') }}</span>
                     </div>
 
                     <div v-if="todayAttendance" class="text-center">
@@ -264,7 +267,7 @@ const getPriorityColor = (priority) => {
                         :href="route('hr.attendance.index')"
                         class="text-center text-sm opacity-90 hover:opacity-100 transition-opacity underline"
                     >
-                        Batafsil ko'rish
+                        {{ t('dashboard.view_details') }}
                     </Link>
                 </div>
             </div>
@@ -277,8 +280,8 @@ const getPriorityColor = (priority) => {
                     <CalendarIcon class="w-6 h-6" />
                 </div>
                 <div>
-                    <p class="text-sm opacity-90">Mening Ta'tilim</p>
-                    <p class="text-xl font-bold">{{ new Date().getFullYear() }}-yil Balansi</p>
+                    <p class="text-sm opacity-90">{{ t('dashboard.hr.my_leave') }}</p>
+                    <p class="text-xl font-bold">{{ new Date().getFullYear() }}-{{ t('dashboard.hr.year_balance') }}</p>
                 </div>
             </div>
 
@@ -294,13 +297,13 @@ const getPriorityColor = (priority) => {
                     </div>
                     <p class="text-sm opacity-90">{{ balance.leave_type.name }}</p>
                     <p class="text-xs opacity-70 mt-1">
-                        {{ balance.used_days }}/{{ balance.total_days }} ishlatilgan
+                        {{ balance.used_days }}/{{ balance.total_days }} {{ t('dashboard.hr.used') }}
                     </p>
                 </div>
             </div>
 
             <div v-if="upcomingLeaves.length > 0" class="mt-6 pt-6 border-t border-white/20">
-                <p class="text-sm font-semibold mb-3 opacity-90">Kelayotgan Ta'tillar:</p>
+                <p class="text-sm font-semibold mb-3 opacity-90">{{ t('dashboard.hr.upcoming_leaves') }}:</p>
                 <div class="space-y-2">
                     <div
                         v-for="leave in upcomingLeaves"
@@ -311,7 +314,7 @@ const getPriorityColor = (priority) => {
                             <p class="text-sm font-medium">{{ leave.leave_type }}</p>
                             <p class="text-xs opacity-75">{{ leave.start_date }} - {{ leave.end_date }}</p>
                         </div>
-                        <span class="text-lg font-bold">{{ leave.total_days }} kun</span>
+                        <span class="text-lg font-bold">{{ leave.total_days }} {{ t('dashboard.hr.days') }}</span>
                     </div>
                 </div>
             </div>
@@ -321,7 +324,7 @@ const getPriorityColor = (priority) => {
                     :href="route('hr.leave.index')"
                     class="text-sm opacity-90 hover:opacity-100 transition-opacity underline"
                 >
-                    Batafsil ko'rish
+                    {{ t('dashboard.view_details') }}
                 </Link>
             </div>
         </div>
@@ -329,7 +332,7 @@ const getPriorityColor = (priority) => {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Activities -->
             <DashboardCard
-                title="So'nggi faoliyatlar"
+                :title="t('dashboard.hr.recent_activities')"
                 :link-href="'/hr/team'"
                 divided
                 no-padding
@@ -362,10 +365,10 @@ const getPriorityColor = (priority) => {
                                 ]"
                             >
                                 {{
-                                    activity.type === 'new_member' ? 'Yangi' :
-                                    activity.type === 'accepted' ? 'Qabul qilindi' :
-                                    activity.type === 'department_change' ? 'O\'zgardi' :
-                                    'Yuborildi'
+                                    activity.type === 'new_member' ? t('dashboard.hr.activity_new') :
+                                    activity.type === 'accepted' ? t('dashboard.hr.activity_accepted') :
+                                    activity.type === 'department_change' ? t('dashboard.hr.activity_changed') :
+                                    t('dashboard.hr.activity_sent')
                                 }}
                             </span>
                         </div>
@@ -374,14 +377,14 @@ const getPriorityColor = (priority) => {
                         v-if="!recentActivities?.length"
                         class="p-8 text-center text-gray-500 dark:text-gray-400"
                     >
-                        Faoliyatlar mavjud emas
+                        {{ t('dashboard.hr.no_activities') }}
                     </div>
                 </div>
             </DashboardCard>
 
             <!-- Pending Tasks -->
             <DashboardCard
-                title="Kutilayotgan vazifalar"
+                :title="t('dashboard.hr.pending_tasks')"
                 :link-href="'/hr/tasks'"
                 divided
                 no-padding
@@ -398,7 +401,7 @@ const getPriorityColor = (priority) => {
                                     {{ task.title }}
                                 </p>
                                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                    Muddat: {{ task.due_date }}
+                                    {{ t('dashboard.hr.deadline') }}: {{ task.due_date }}
                                 </p>
                             </div>
                             <span
@@ -407,7 +410,7 @@ const getPriorityColor = (priority) => {
                                     getPriorityColor(task.priority)
                                 ]"
                             >
-                                {{ task.priority === 'high' ? 'Yuqori' : task.priority === 'medium' ? 'O\'rta' : 'Past' }}
+                                {{ task.priority === 'high' ? t('priority.high') : task.priority === 'medium' ? t('priority.medium') : t('priority.low') }}
                             </span>
                         </div>
                     </div>
@@ -415,7 +418,7 @@ const getPriorityColor = (priority) => {
                         v-if="!pendingTasks?.length"
                         class="p-8 text-center text-gray-500 dark:text-gray-400"
                     >
-                        Vazifalar mavjud emas
+                        {{ t('dashboard.hr.no_tasks') }}
                     </div>
                 </div>
             </DashboardCard>

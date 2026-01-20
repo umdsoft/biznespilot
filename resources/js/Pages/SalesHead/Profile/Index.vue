@@ -2,12 +2,15 @@
 import { ref } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     UserCircleIcon,
     EnvelopeIcon,
     PhoneIcon,
     KeyIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const page = usePage();
 const user = page.props.auth?.user;
@@ -49,14 +52,14 @@ const getInitials = (name) => {
 </script>
 
 <template>
-    <SalesHeadLayout title="Profil">
-        <Head title="Profil" />
+    <SalesHeadLayout :title="t('nav.profile')">
+        <Head :title="t('nav.profile')" />
 
         <div class="max-w-4xl mx-auto space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Profil</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Shaxsiy ma'lumotlaringizni boshqaring</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('nav.profile') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('profile.manage_info') }}</p>
             </div>
 
             <!-- Profile Info Card -->
@@ -67,7 +70,7 @@ const getInitials = (name) => {
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ user?.name }}</h2>
-                        <p class="text-gray-500 dark:text-gray-400">Sotuv bo'limi rahbari</p>
+                        <p class="text-gray-500 dark:text-gray-400">{{ t('profile.sales_head') }}</p>
                     </div>
                 </div>
 
@@ -76,7 +79,7 @@ const getInitials = (name) => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 <UserCircleIcon class="w-4 h-4 inline mr-1" />
-                                Ism
+                                {{ t('profile.name') }}
                             </label>
                             <input
                                 v-model="form.name"
@@ -102,7 +105,7 @@ const getInitials = (name) => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 <PhoneIcon class="w-4 h-4 inline mr-1" />
-                                Telefon
+                                {{ t('profile.phone') }}
                             </label>
                             <input
                                 v-model="form.phone"
@@ -119,7 +122,7 @@ const getInitials = (name) => {
                             :disabled="form.processing"
                             class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                         >
-                            {{ form.processing ? 'Saqlanmoqda...' : 'Saqlash' }}
+                            {{ form.processing ? t('common.saving') : t('common.save') }}
                         </button>
                     </div>
                 </form>
@@ -129,14 +132,14 @@ const getInitials = (name) => {
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6">
                     <KeyIcon class="w-5 h-5 inline mr-2" />
-                    Parolni o'zgartirish
+                    {{ t('profile.change_password') }}
                 </h3>
 
                 <form @submit.prevent="updatePassword" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Joriy parol
+                                {{ t('profile.current_password') }}
                             </label>
                             <input
                                 v-model="passwordForm.current_password"
@@ -148,7 +151,7 @@ const getInitials = (name) => {
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Yangi parol
+                                {{ t('profile.new_password') }}
                             </label>
                             <input
                                 v-model="passwordForm.password"
@@ -160,7 +163,7 @@ const getInitials = (name) => {
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Parolni tasdiqlash
+                                {{ t('profile.confirm_password') }}
                             </label>
                             <input
                                 v-model="passwordForm.password_confirmation"
@@ -176,7 +179,7 @@ const getInitials = (name) => {
                             :disabled="passwordForm.processing"
                             class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                         >
-                            {{ passwordForm.processing ? 'Saqlanmoqda...' : 'Parolni yangilash' }}
+                            {{ passwordForm.processing ? t('common.saving') : t('profile.update_password') }}
                         </button>
                     </div>
                 </form>

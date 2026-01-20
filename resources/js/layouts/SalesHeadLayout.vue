@@ -1,5 +1,5 @@
 <template>
-  <BaseLayout :title="title" :config="layoutConfig" :quick-stats="formattedQuickStats">
+  <BaseLayout :title="title || t('layout.home')" :config="layoutConfig" :quick-stats="formattedQuickStats">
     <template #navigation>
       <template v-for="(section, sectionIndex) in layoutConfig.navigation" :key="sectionIndex">
         <!-- Section Divider -->
@@ -65,12 +65,15 @@ import { usePage } from '@inertiajs/vue3';
 import BaseLayout from './BaseLayout.vue';
 import NavLink from '@/components/NavLink.vue';
 import { salesHeadLayoutConfig } from '@/composables/useLayoutConfig';
+import { useI18n } from '@/i18n';
 import axios from 'axios';
+
+const { t } = useI18n();
 
 defineProps({
   title: {
     type: String,
-    default: 'Bosh sahifa',
+    default: '',
   },
 });
 
@@ -88,21 +91,21 @@ let statsPollingInterval = null;
 
 // Format currency
 const formatCurrency = (value) => {
-  if (!value) return '0 so\'m';
-  return new Intl.NumberFormat('uz-UZ').format(value) + ' so\'m';
+  if (!value) return '0 ' + t('common.currency');
+  return new Intl.NumberFormat('uz-UZ').format(value) + ' ' + t('common.currency');
 };
 
 // Quick stats for header
 const formattedQuickStats = computed(() => [
   {
-    label: 'Bugun',
-    value: `${todayStats.value.deals} bitim`,
+    label: t('layout.today'),
+    value: `${todayStats.value.deals} ${t('layout.deals')}`,
     bgClass: 'bg-emerald-50 dark:bg-emerald-900/30',
     labelClass: 'text-emerald-600 dark:text-emerald-400',
     valueClass: 'text-emerald-700 dark:text-emerald-300',
   },
   {
-    label: 'Summa',
+    label: t('layout.amount'),
     value: formatCurrency(todayStats.value.revenue),
     bgClass: 'bg-blue-50 dark:bg-blue-900/30',
     labelClass: 'text-blue-600 dark:text-blue-400',

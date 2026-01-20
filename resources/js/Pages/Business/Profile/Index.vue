@@ -1,10 +1,10 @@
 <template>
-  <BusinessLayout title="Bizneslar">
+  <BusinessLayout :title="t('profile.businesses')">
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900">Bizneslar</h2>
+        <h2 class="text-2xl font-bold text-gray-900">{{ t('profile.businesses') }}</h2>
         <p class="mt-1 text-sm text-gray-600">
-          Sizning barcha bizneslaringizni boshqaring
+          {{ t('profile.manage_businesses') }}
         </p>
       </div>
       <Link
@@ -14,7 +14,7 @@
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Yangi Biznes
+        {{ t('profile.new_business') }}
       </Link>
     </div>
 
@@ -100,6 +100,9 @@
 import { Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
   businesses: {
@@ -110,11 +113,11 @@ defineProps({
 
 const getRoleLabel = (role) => {
   const labels = {
-    owner: 'Egasi',
-    admin: 'Admin',
-    manager: 'Menejer',
-    member: 'A\'zo',
-    viewer: 'Ko\'ruvchi',
+    owner: t('profile.owner'),
+    admin: t('profile.admin'),
+    manager: t('profile.manager'),
+    member: t('profile.member'),
+    viewer: t('profile.viewer'),
   };
   return labels[role] || role;
 };

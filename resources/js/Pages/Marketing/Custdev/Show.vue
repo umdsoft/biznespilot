@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     survey: Object,

@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatFullCurrency, formatPercent, getInitials, getAvatarColor } from '@/utils/formatting';
 import {
     ArrowLeftIcon,
@@ -8,6 +9,8 @@ import {
     ArrowUpIcon,
     ArrowDownIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     teamMembers: {
@@ -25,8 +28,8 @@ const getProgress = (current, target) => Math.min((current / target) * 100, 100)
 </script>
 
 <template>
-    <SalesHeadLayout title="Jamoa Samaradorligi">
-        <Head title="Jamoa Samaradorligi" />
+    <SalesHeadLayout :title="t('saleshead.team_performance')">
+        <Head :title="t('saleshead.team_performance')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -38,8 +41,8 @@ const getProgress = (current, target) => Math.min((current / target) * 100, 100)
                     <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Jamoa Samaradorligi</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Xodimlar bo'yicha tahlil</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('saleshead.team_performance') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.employee_analysis') }}</p>
                 </div>
             </div>
 
@@ -50,9 +53,9 @@ const getProgress = (current, target) => Math.min((current / target) * 100, 100)
                         <TrophyIcon class="w-8 h-8" />
                     </div>
                     <div>
-                        <p class="text-amber-100 text-sm">Oyning eng yaxshi sotuvchisi</p>
+                        <p class="text-amber-100 text-sm">{{ t('saleshead.best_seller_of_month') }}</p>
                         <p class="text-2xl font-bold">{{ teamMembers[0]?.name || 'N/A' }}</p>
-                        <p class="text-amber-100">{{ formatFullCurrency(teamMembers[0]?.revenue || 0) }} daromad</p>
+                        <p class="text-amber-100">{{ formatFullCurrency(teamMembers[0]?.revenue || 0) }} {{ t('saleshead.revenue') }}</p>
                     </div>
                 </div>
             </div>
@@ -60,18 +63,18 @@ const getProgress = (current, target) => Math.min((current / target) * 100, 100)
             <!-- Team Performance Table -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Xodimlar reytingi</h2>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ t('saleshead.employee_rating') }}</h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr class="text-left text-sm text-gray-500 dark:text-gray-400">
                                 <th class="px-6 py-3 font-medium">#</th>
-                                <th class="px-6 py-3 font-medium">Xodim</th>
-                                <th class="px-6 py-3 font-medium text-center">Qo'ng'iroqlar</th>
-                                <th class="px-6 py-3 font-medium text-center">Bitimlar</th>
-                                <th class="px-6 py-3 font-medium text-right">Daromad</th>
-                                <th class="px-6 py-3 font-medium">Maqsad</th>
+                                <th class="px-6 py-3 font-medium">{{ t('saleshead.employee') }}</th>
+                                <th class="px-6 py-3 font-medium text-center">{{ t('nav.calls') }}</th>
+                                <th class="px-6 py-3 font-medium text-center">{{ t('sales.deals') }}</th>
+                                <th class="px-6 py-3 font-medium text-right">{{ t('saleshead.revenue') }}</th>
+                                <th class="px-6 py-3 font-medium">{{ t('saleshead.target') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">

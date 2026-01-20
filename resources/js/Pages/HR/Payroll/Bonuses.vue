@@ -1,8 +1,11 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import { ref } from 'vue';
 import { BanknotesIcon, PlusIcon, CheckCircleIcon, ClockIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     bonuses: { type: Array, default: () => [] },
@@ -50,22 +53,22 @@ const getTypeColor = (type) => {
 </script>
 
 <template>
-    <HRLayout title="Bonuslar">
-        <Head title="Bonuslar" />
+    <HRLayout :title="t('hr.bonuses')">
+        <Head :title="t('hr.bonuses')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Bonuslar</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Xodimlar uchun mukofotlar va bonuslar</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.bonuses') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.bonuses_subtitle') }}</p>
                 </div>
                 <button
                     @click="showCreateModal = true"
                     class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                 >
                     <PlusIcon class="w-5 h-5" />
-                    Bonus Qo'shish
+                    {{ t('hr.add_bonus') }}
                 </button>
             </div>
 

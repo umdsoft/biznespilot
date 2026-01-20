@@ -20,7 +20,7 @@
               as="button"
               class="text-sm text-gray-500 hover:text-gray-700"
             >
-              Chiqish
+              {{ t('common.logout') }}
             </Link>
           </div>
         </div>
@@ -39,19 +39,19 @@
           <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-sm font-medium mb-6 animate-pulse">
             <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-ping"></span>
             <span class="w-2 h-2 bg-green-500 rounded-full mr-2 absolute"></span>
-            Akkauntingiz tayyor!
+            {{ t('welcome.account_ready') }}
           </div>
 
           <h1 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Xush kelibsiz, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{{ $page.props.auth?.user?.name?.split(' ')[0] }}</span>!
+            {{ t('welcome.greeting') }}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{{ $page.props.auth?.user?.name?.split(' ')[0] }}</span>!
           </h1>
 
           <!-- Problem statement -->
           <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-200/50">
             <p class="text-lg text-gray-600 leading-relaxed">
-              <span class="font-semibold text-gray-800">Ko'pchilik tadbirkorlar</span> marketing, mijozlarni jalb qilish va sotuvlarni boshqarishda <span class="text-red-500 font-medium">qiyinchiliklarga</span> duch keladi.
+              <span class="font-semibold text-gray-800">{{ t('welcome.problem_statement_1') }}</span> {{ t('welcome.problem_statement_2') }} <span class="text-red-500 font-medium">{{ t('welcome.problem_statement_3') }}</span> {{ t('welcome.problem_statement_4') }}
               <br class="hidden md:block" />
-              BiznesPilot AI <span class="text-blue-600 font-semibold">barchasini avtomatlashtiradi</span> va sizga faqat <span class="text-emerald-600 font-semibold">o'sishga e'tibor berish</span> imkonini beradi.
+              BiznesPilot AI <span class="text-blue-600 font-semibold">{{ t('welcome.solution_1') }}</span> {{ t('welcome.solution_2') }} <span class="text-emerald-600 font-semibold">{{ t('welcome.solution_3') }}</span> {{ t('welcome.solution_4') }}
             </p>
           </div>
 
@@ -64,12 +64,12 @@
               <svg class="w-5 h-5 mr-2 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Biznesni yaratish
+              {{ t('welcome.create_business') }}
               <svg class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </Link>
-            <span class="text-sm text-gray-500">Atigi 2 daqiqada tayyor bo'ladi</span>
+            <span class="text-sm text-gray-500">{{ t('welcome.ready_in_2_min') }}</span>
           </div>
         </div>
 
@@ -79,19 +79,19 @@
             <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            <span class="text-sm text-gray-600">Kredit karta talab qilinmaydi</span>
+            <span class="text-sm text-gray-600">{{ t('welcome.no_credit_card') }}</span>
           </div>
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            <span class="text-sm text-gray-600">14 kunlik bepul sinov</span>
+            <span class="text-sm text-gray-600">{{ t('welcome.free_trial_14_days') }}</span>
           </div>
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            <span class="text-sm text-gray-600">Istalgan vaqtda bekor qilish</span>
+            <span class="text-sm text-gray-600">{{ t('welcome.cancel_anytime') }}</span>
           </div>
         </div>
       </div>
@@ -103,19 +103,19 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div class="text-center">
             <div class="text-3xl lg:text-4xl font-bold text-blue-600 mb-1">40%</div>
-            <div class="text-sm text-gray-600">O'rtacha sotuv o'sishi</div>
+            <div class="text-sm text-gray-600">{{ t('welcome.stats.sales_growth') }}</div>
           </div>
           <div class="text-center">
             <div class="text-3xl lg:text-4xl font-bold text-emerald-600 mb-1">10x</div>
-            <div class="text-sm text-gray-600">Marketing samaradorligi</div>
+            <div class="text-sm text-gray-600">{{ t('welcome.stats.marketing_efficiency') }}</div>
           </div>
           <div class="text-center">
             <div class="text-3xl lg:text-4xl font-bold text-purple-600 mb-1">24/7</div>
-            <div class="text-sm text-gray-600">AI chatbot xizmati</div>
+            <div class="text-sm text-gray-600">{{ t('welcome.stats.ai_chatbot') }}</div>
           </div>
           <div class="text-center">
             <div class="text-3xl lg:text-4xl font-bold text-amber-600 mb-1">50+</div>
-            <div class="text-sm text-gray-600">Mamnun bizneslar</div>
+            <div class="text-sm text-gray-600">{{ t('welcome.stats.happy_businesses') }}</div>
           </div>
         </div>
       </div>
@@ -125,8 +125,8 @@
     <section class="py-16 bg-gradient-to-b from-white to-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <span class="inline-block px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium mb-4">Tanish muammolar</span>
-          <h2 class="text-3xl font-bold text-gray-900 mb-4">Bu muammolar sizga tanishmi?</h2>
+          <span class="inline-block px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium mb-4">{{ t('welcome.familiar_problems') }}</span>
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ t('welcome.problems_familiar') }}</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
@@ -136,8 +136,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Vaqt yetishmaydi</h3>
-            <p class="text-gray-600 text-sm">Marketing, mijozlar bilan ishlash va sotuvlarni boshqarishga vaqt topolmayapsizmi?</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.pain_points.no_time.title') }}</h3>
+            <p class="text-gray-600 text-sm">{{ t('welcome.pain_points.no_time.desc') }}</p>
           </div>
 
           <div class="bg-white rounded-xl p-6 border border-red-100 hover:border-red-200 transition-colors">
@@ -146,8 +146,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Mijozlarni topolmayapsiz</h3>
-            <p class="text-gray-600 text-sm">Ideal mijozingiz kim ekanini bilmaysiz va ularni qanday jalb qilishni tushunmayapsizmi?</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.pain_points.no_customers.title') }}</h3>
+            <p class="text-gray-600 text-sm">{{ t('welcome.pain_points.no_customers.desc') }}</p>
           </div>
 
           <div class="bg-white rounded-xl p-6 border border-red-100 hover:border-red-200 transition-colors">
@@ -156,8 +156,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Natijalar ko'rinmaydi</h3>
-            <p class="text-gray-600 text-sm">Marketing xarajatlaringiz natija bermayapti va ROI ni o'lchashning iloji yo'qmi?</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.pain_points.no_results.title') }}</h3>
+            <p class="text-gray-600 text-sm">{{ t('welcome.pain_points.no_results.desc') }}</p>
           </div>
         </div>
 
@@ -167,7 +167,7 @@
             <svg class="w-8 h-8 text-blue-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
-            <span class="mt-2 text-blue-600 font-semibold">BiznesPilot AI bilan barchasi hal bo'ladi</span>
+            <span class="mt-2 text-blue-600 font-semibold">{{ t('welcome.solution_all') }}</span>
           </div>
         </div>
       </div>
@@ -177,9 +177,9 @@
     <section class="py-16 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mb-4">Qanday ishlaydi</span>
-          <h2 class="text-3xl font-bold text-gray-900 mb-4">4 oddiy qadamda muvaffaqiyatga erishing</h2>
-          <p class="text-lg text-gray-600">Hech qanday texnik bilim talab qilinmaydi</p>
+          <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mb-4">{{ t('welcome.how_it_works') }}</span>
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ t('welcome.steps_to_success') }}</h2>
+          <p class="text-lg text-gray-600">{{ t('welcome.no_tech_required') }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -193,15 +193,15 @@
                 </div>
                 <div class="ml-3 h-1 flex-1 bg-gradient-to-r from-blue-200 to-transparent rounded hidden lg:block"></div>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Biznesingizni kiriting</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.steps.step1.title') }}</h3>
               <p class="text-gray-600 text-sm mb-4">
-                Biznesingiz haqida asosiy ma'lumotlarni kiriting. AI sizning sohangizga mos strategiya tayyorlaydi.
+                {{ t('welcome.steps.step1.desc') }}
               </p>
               <div class="flex items-center text-blue-600 text-sm font-medium">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                2 daqiqa
+                {{ t('welcome.steps.step1.time') }}
               </div>
             </div>
           </div>
@@ -216,9 +216,9 @@
                 </div>
                 <div class="ml-3 h-1 flex-1 bg-gradient-to-r from-emerald-200 to-transparent rounded hidden lg:block"></div>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Platformalarni ulang</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.steps.step2.title') }}</h3>
               <p class="text-gray-600 text-sm mb-4">
-                Instagram, Telegram, WhatsApp - bir tugma bilan ulang. AI chatbot avtomatik ishlay boshlaydi.
+                {{ t('welcome.steps.step2.desc') }}
               </p>
               <div class="flex gap-2 mt-auto">
                 <span class="px-2 py-1 bg-pink-100 text-pink-600 rounded text-xs font-medium">Instagram</span>
@@ -237,9 +237,9 @@
                 </div>
                 <div class="ml-3 h-1 flex-1 bg-gradient-to-r from-purple-200 to-transparent rounded hidden lg:block"></div>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">AI tahlil qiladi</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.steps.step3.title') }}</h3>
               <p class="text-gray-600 text-sm mb-4">
-                Sun'iy intellekt biznesingizni tahlil qiladi, ideal mijozni aniqlaydi va strategiya taklif qiladi.
+                {{ t('welcome.steps.step3.desc') }}
               </p>
               <div class="flex items-center text-purple-600 text-sm font-medium">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,9 +259,9 @@
                   4
                 </div>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">O'sishni kuzating</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('welcome.steps.step4.title') }}</h3>
               <p class="text-gray-600 text-sm mb-4">
-                Real vaqtda barcha ko'rsatkichlarni kuzating, AI tavsiyalariga amal qiling va o'sishni his eting.
+                {{ t('welcome.steps.step4.desc') }}
               </p>
               <div class="flex items-center text-amber-600 text-sm font-medium">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,9 +279,9 @@
     <section class="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-sm font-medium mb-4">Nima olasiz</span>
-          <h2 class="text-3xl font-bold text-gray-900 mb-4">Biznesingizni o'stirish uchun hamma narsa</h2>
-          <p class="text-lg text-gray-600">Bitta platformada barcha kerakli vositalar</p>
+          <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-sm font-medium mb-4">{{ t('welcome.what_you_get') }}</span>
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ t('welcome.everything_for_growth') }}</h2>
+          <p class="text-lg text-gray-600">{{ t('welcome.all_tools_one_platform') }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -292,11 +292,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Ideal Mijoz Profili</h3>
-            <p class="text-gray-600 mb-4">AI sizning ideal mijozingizni topadi, ularning og'riqlarini aniqlaydi va qanday gaplashish kerakligini aytadi.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('welcome.features.ideal_customer.title') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('welcome.features.ideal_customer.desc') }}</p>
             <div class="flex items-center text-blue-600 font-medium text-sm">
-              <span class="mr-2">Natija:</span>
-              <span class="text-emerald-600">Konversiya 45% oshadi</span>
+              <span class="mr-2">{{ t('welcome.features.result') }}:</span>
+              <span class="text-emerald-600">{{ t('welcome.features.ideal_customer.result') }}</span>
             </div>
           </div>
 
@@ -307,11 +307,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">AI Chatbotlar</h3>
-            <p class="text-gray-600 mb-4">Instagram, Telegram, WhatsApp uchun aqlli chatbotlar. Mijozlarga 24/7 javob beradi, savdoni o'zi yopadi.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('welcome.features.ai_chatbots.title') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('welcome.features.ai_chatbots.desc') }}</p>
             <div class="flex items-center text-emerald-600 font-medium text-sm">
-              <span class="mr-2">Natija:</span>
-              <span class="text-emerald-600">24/7 sotuvlar</span>
+              <span class="mr-2">{{ t('welcome.features.result') }}:</span>
+              <span class="text-emerald-600">{{ t('welcome.features.ai_chatbots.result') }}</span>
             </div>
           </div>
 
@@ -323,11 +323,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Marketing Analytics</h3>
-            <p class="text-gray-600 mb-4">Barcha marketing kanallari bir joyda. Qaysi kanal ishlayotganini, ROI ni real vaqtda ko'ring.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('welcome.features.marketing_analytics.title') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('welcome.features.marketing_analytics.desc') }}</p>
             <div class="flex items-center text-purple-600 font-medium text-sm">
-              <span class="mr-2">Natija:</span>
-              <span class="text-emerald-600">Xarajatlar 30% kamayadi</span>
+              <span class="mr-2">{{ t('welcome.features.result') }}:</span>
+              <span class="text-emerald-600">{{ t('welcome.features.marketing_analytics.result') }}</span>
             </div>
           </div>
 
@@ -338,11 +338,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Marketing Rejalashtirish</h3>
-            <p class="text-gray-600 mb-4">Oylik, haftalik, kunlik marketing rejalar qulay tarzda tuziladi. Kontent kalendar va kampaniya boshqaruvi.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('welcome.features.marketing_planning.title') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('welcome.features.marketing_planning.desc') }}</p>
             <div class="flex items-center text-amber-600 font-medium text-sm">
-              <span class="mr-2">Natija:</span>
-              <span class="text-emerald-600">Vaqt 70% tejaladi</span>
+              <span class="mr-2">{{ t('welcome.features.result') }}:</span>
+              <span class="text-emerald-600">{{ t('welcome.features.marketing_planning.result') }}</span>
             </div>
           </div>
 
@@ -353,11 +353,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">CRM & Sotuvlar</h3>
-            <p class="text-gray-600 mb-4">Barcha mijozlar, leadlar, buyurtmalar bir joyda. Har bir mijozni kuzatib boring va yo'qotmang.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('welcome.features.crm_sales.title') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('welcome.features.crm_sales.desc') }}</p>
             <div class="flex items-center text-rose-600 font-medium text-sm">
-              <span class="mr-2">Natija:</span>
-              <span class="text-emerald-600">Mijoz qaytishi 60% oshadi</span>
+              <span class="mr-2">{{ t('welcome.features.result') }}:</span>
+              <span class="text-emerald-600">{{ t('welcome.features.crm_sales.result') }}</span>
             </div>
           </div>
 
@@ -368,11 +368,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Avtomatik Hisobotlar</h3>
-            <p class="text-gray-600 mb-4">Kunlik, haftalik hisobotlar avtomatik tayyorlanadi. PDF formatida yuklab olish yoki emailga yuborish.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('welcome.features.auto_reports.title') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('welcome.features.auto_reports.desc') }}</p>
             <div class="flex items-center text-indigo-600 font-medium text-sm">
-              <span class="mr-2">Natija:</span>
-              <span class="text-emerald-600">100% aniq ma'lumotlar</span>
+              <span class="mr-2">{{ t('welcome.features.result') }}:</span>
+              <span class="text-emerald-600">{{ t('welcome.features.auto_reports.result') }}</span>
             </div>
           </div>
         </div>
@@ -389,13 +389,13 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <span class="mr-1">✨</span>
-            Bitta platforma — cheksiz imkoniyat
+            {{ t('welcome.platform.badge') }}
           </div>
           <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Hammasi shu yerda. Boshqa hech narsa kerak emas.
+            {{ t('welcome.platform.title') }}
           </h2>
           <p class="text-xl text-gray-600">
-            6 ta modul. 1 ta narx. Cheksiz foydalanish.
+            {{ t('welcome.platform.subtitle') }}
           </p>
         </div>
 
@@ -405,7 +405,7 @@
           <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
             <!-- Badge -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold rounded-full shadow-lg">
-              3x ko'proq lead
+              {{ t('welcome.modules.marketing.badge') }}
             </div>
             <!-- Icon -->
             <div class="mt-6 mb-6">
@@ -419,10 +419,10 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
               <span class="mr-2">📈</span>
-              Marketing Automation
+              {{ t('welcome.modules.marketing.title') }}
             </h3>
             <p class="text-gray-600 leading-relaxed">
-              Leadlar avtomatik keladi. AI kampaniyalarni optimallashtiradi. Siz faqat natijani ko'rasiz.
+              {{ t('welcome.modules.marketing.desc') }}
             </p>
           </div>
 
@@ -430,7 +430,7 @@
           <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
             <!-- Badge -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold rounded-full shadow-lg">
-              40% ko'proq sotuv
+              {{ t('welcome.modules.sales.badge') }}
             </div>
             <!-- Icon -->
             <div class="mt-6 mb-6">
@@ -443,10 +443,10 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
               <span class="mr-2">💰</span>
-              Sotuv va CRM
+              {{ t('welcome.modules.sales.title') }}
             </h3>
             <p class="text-gray-600 leading-relaxed">
-              Har bir mijoz, har bir deal nazoratda. Sotuvchilar samaradorligi real-time'da.
+              {{ t('welcome.modules.sales.desc') }}
             </p>
           </div>
 
@@ -454,7 +454,7 @@
           <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
             <!-- Badge -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-semibold rounded-full shadow-lg">
-              0 xatolik
+              {{ t('welcome.modules.finance.badge') }}
             </div>
             <!-- Icon -->
             <div class="mt-6 mb-6">
@@ -470,10 +470,10 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
               <span class="mr-2">🧾</span>
-              Moliya Boshqaruvi
+              {{ t('welcome.modules.finance.title') }}
             </h3>
             <p class="text-gray-600 leading-relaxed">
-              Kirim-chiqim, fakturalar, to'lovlar — hammasi avtomatik. Buxgalterga tayyor hisobot.
+              {{ t('welcome.modules.finance.desc') }}
             </p>
           </div>
 
@@ -481,7 +481,7 @@
           <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
             <!-- Badge -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-violet-500 text-white text-sm font-semibold rounded-full shadow-lg">
-              60% vaqt tejash
+              {{ t('welcome.modules.time_saving.badge') }}
             </div>
             <!-- Icon -->
             <div class="mt-6 mb-6">
@@ -493,10 +493,10 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
               <span class="mr-2">⏱️</span>
-              Vaqt Tejash
+              {{ t('welcome.modules.time_saving.title') }}
             </h3>
             <p class="text-gray-600 leading-relaxed">
-              Kundalik rutinlarni AI avtomatlashtiradi. Strategik ishlarga ko'proq vaqt.
+              {{ t('welcome.modules.time_saving.desc') }}
             </p>
           </div>
 
@@ -504,7 +504,7 @@
           <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
             <!-- Badge -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-full shadow-lg">
-              Onlayn nazorat
+              {{ t('welcome.modules.online_control.badge') }}
             </div>
             <!-- Icon -->
             <div class="mt-6 mb-6">
@@ -517,10 +517,10 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
               <span class="mr-2">📊</span>
-              Onlayn Nazorat
+              {{ t('welcome.modules.online_control.title') }}
             </h3>
             <p class="text-gray-600 leading-relaxed">
-              Istalgan joydan, istalgan vaqtda biznesingizni nazorat qiling. Mobile-ready dashboard.
+              {{ t('welcome.modules.online_control.desc') }}
             </p>
           </div>
 
@@ -528,7 +528,7 @@
           <div class="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden">
             <!-- Badge -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold rounded-full shadow-lg">
-              2x samaradorlik
+              {{ t('welcome.modules.team.badge') }}
             </div>
             <!-- Icon -->
             <div class="mt-6 mb-6">
@@ -542,10 +542,10 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-3 flex items-center">
               <span class="mr-2">👥</span>
-              Jamoa Samaradorligi
+              {{ t('welcome.modules.team.title') }}
             </h3>
             <p class="text-gray-600 leading-relaxed">
-              Har bir xodim ishlari, natijalari, KPI'lari — barchasi shaffof va nazoratda.
+              {{ t('welcome.modules.team.desc') }}
             </p>
           </div>
         </div>
@@ -564,8 +564,8 @@
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center mb-12">
-          <span class="inline-block px-3 py-1 bg-white/20 text-white rounded-full text-sm font-medium mb-4">Mijozlar fikri</span>
-          <h2 class="text-3xl font-bold text-white mb-4">Bizneslar bizga ishonadi</h2>
+          <span class="inline-block px-3 py-1 bg-white/20 text-white rounded-full text-sm font-medium mb-4">{{ t('welcome.testimonials.badge') }}</span>
+          <h2 class="text-3xl font-bold text-white mb-4">{{ t('welcome.testimonials.title') }}</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -575,12 +575,12 @@
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
-            <p class="text-white/90 mb-4 italic">"BiznesPilot AI bizning sotuvlarimizni 3 oyda 40% ga oshirdi. AI chatbot endi 24/7 mijozlarga javob beradi."</p>
+            <p class="text-white/90 mb-4 italic">"{{ t('welcome.testimonials.review1.text') }}"</p>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">AK</div>
               <div>
-                <p class="text-white font-medium">Aziz Karimov</p>
-                <p class="text-white/60 text-sm">TechStart CEO</p>
+                <p class="text-white font-medium">{{ t('welcome.testimonials.review1.name') }}</p>
+                <p class="text-white/60 text-sm">{{ t('welcome.testimonials.review1.role') }}</p>
               </div>
             </div>
           </div>
@@ -591,12 +591,12 @@
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
-            <p class="text-white/90 mb-4 italic">"Marketing xarajatlarimiz kamaydi, lekin natija oshdi. ROI ni endi aniq ko'rib turamiz."</p>
+            <p class="text-white/90 mb-4 italic">"{{ t('welcome.testimonials.review2.text') }}"</p>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold">MR</div>
               <div>
-                <p class="text-white font-medium">Malika Rahimova</p>
-                <p class="text-white/60 text-sm">FashionUz asoschisi</p>
+                <p class="text-white font-medium">{{ t('welcome.testimonials.review2.name') }}</p>
+                <p class="text-white/60 text-sm">{{ t('welcome.testimonials.review2.role') }}</p>
               </div>
             </div>
           </div>
@@ -607,12 +607,12 @@
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
-            <p class="text-white/90 mb-4 italic">"Ideal Mijoz funksiyasi bizga to'g'ri auditoriyani topishda juda yordam berdi. Targetlash endi aniqroq."</p>
+            <p class="text-white/90 mb-4 italic">"{{ t('welcome.testimonials.review3.text') }}"</p>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">GK</div>
               <div>
-                <p class="text-white font-medium">Gulnora Karimova</p>
-                <p class="text-white/60 text-sm">TravelUz menejeri</p>
+                <p class="text-white font-medium">{{ t('welcome.testimonials.review3.name') }}</p>
+                <p class="text-white/60 text-sm">{{ t('welcome.testimonials.review3.role') }}</p>
               </div>
             </div>
           </div>
@@ -628,26 +628,26 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            14 kunlik bepul sinov
+            {{ t('welcome.free_trial_14_days') }}
           </div>
           <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Biznesingizni <span class="text-blue-600">hoziroq</span> o'stiring!
+            {{ t('welcome.cta.title_1') }} <span class="text-blue-600">{{ t('welcome.cta.title_highlight') }}</span> {{ t('welcome.cta.title_2') }}
           </h2>
           <p class="text-xl text-gray-600 mb-8">
-            Minglab tadbirkorlar allaqachon BiznesPilot AI bilan ishlayapti.
+            {{ t('welcome.cta.desc_1') }}
             <br class="hidden md:block" />
-            Siz ham qo'shiling va farqni his eting.
+            {{ t('welcome.cta.desc_2') }}
           </p>
           <Link
             href="/welcome/create-business"
             class="group inline-flex items-center px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transform transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl"
           >
-            Bepul boshlash
+            {{ t('welcome.cta.button') }}
             <svg class="w-5 h-5 ml-3 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Link>
-          <p class="mt-4 text-sm text-gray-500">Kredit karta talab qilinmaydi</p>
+          <p class="mt-4 text-sm text-gray-500">{{ t('welcome.no_credit_card') }}</p>
         </div>
       </div>
     </section>
@@ -666,29 +666,29 @@
               <span class="text-xl font-bold">BiznesPilot AI</span>
             </div>
             <p class="text-gray-400 text-sm max-w-md">
-              O'zbekiston bizneslari uchun AI-powered marketing va sotuvni boshqarish platformasi. Biznesingizni yangi darajaga olib chiqing.
+              {{ t('welcome.footer.desc') }}
             </p>
           </div>
           <div>
-            <h4 class="font-semibold mb-4">Mahsulot</h4>
+            <h4 class="font-semibold mb-4">{{ t('welcome.footer.product') }}</h4>
             <ul class="space-y-2 text-gray-400 text-sm">
-              <li>Ideal Mijoz</li>
-              <li>AI Chatbotlar</li>
+              <li>{{ t('nav.dream_buyer') }}</li>
+              <li>{{ t('welcome.features.ai_chatbots.title') }}</li>
               <li>CRM</li>
               <li>Analytics</li>
             </ul>
           </div>
           <div>
-            <h4 class="font-semibold mb-4">Bog'lanish</h4>
+            <h4 class="font-semibold mb-4">{{ t('welcome.footer.contact') }}</h4>
             <ul class="space-y-2 text-gray-400 text-sm">
               <li>support@biznespilot.uz</li>
               <li>+998 71 200 00 00</li>
-              <li>Toshkent, O'zbekiston</li>
+              <li>{{ t('welcome.footer.location') }}</li>
             </ul>
           </div>
         </div>
         <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. Barcha huquqlar himoyalangan.
+          &copy; {{ new Date().getFullYear() }} BiznesPilot AI. {{ t('welcome.footer.rights') }}
         </div>
       </div>
     </footer>
@@ -698,4 +698,7 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import FeaturesCarousel from '@/components/Landing/FeaturesCarousel.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 </script>

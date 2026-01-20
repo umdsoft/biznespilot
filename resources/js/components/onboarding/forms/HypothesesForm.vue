@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">Biznes Gipotezalari</h3>
-        <p class="text-sm text-gray-500">Sinab ko'rmoqchi bo'lgan g'oyalar va gipotezalarni kiriting</p>
+        <h3 class="text-lg font-semibold text-gray-900">{{ t('onboarding.hypotheses.title') }}</h3>
+        <p class="text-sm text-gray-500">{{ t('onboarding.hypotheses.description') }}</p>
       </div>
       <button
         @click="showAddForm = true"
@@ -14,101 +14,101 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Gipoteza qo'shish
+        {{ t('onboarding.hypotheses.add_hypothesis') }}
       </button>
     </div>
 
     <!-- Add/Edit Form -->
     <div v-if="showAddForm || editingHypothesis" class="bg-gray-50 rounded-xl p-6 space-y-4">
       <h4 class="font-medium text-gray-900">
-        {{ editingHypothesis ? 'Gipotezani tahrirlash' : 'Yangi gipoteza' }}
+        {{ editingHypothesis ? t('onboarding.hypotheses.edit_hypothesis') : t('onboarding.hypotheses.new_hypothesis') }}
       </h4>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Gipoteza nomi *
+          {{ t('onboarding.hypotheses.name_label') }} *
         </label>
         <input
           v-model="form.title"
           type="text"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Masalan: TikTok marketing samarali bo'ladi"
+          :placeholder="t('onboarding.hypotheses.name_placeholder')"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Batafsil tavsif
+          {{ t('onboarding.hypotheses.description_label') }}
         </label>
         <textarea
           v-model="form.description"
           rows="3"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Gipoteza haqida batafsil yozing..."
+          :placeholder="t('onboarding.hypotheses.description_placeholder')"
         ></textarea>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Kategoriya
+            {{ t('onboarding.hypotheses.category_label') }}
           </label>
           <select
             v-model="form.category"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="marketing">Marketing</option>
-            <option value="product">Mahsulot</option>
-            <option value="sales">Sotuvlar</option>
-            <option value="pricing">Narxlash</option>
-            <option value="customer">Mijozlar</option>
-            <option value="operations">Operatsiyalar</option>
-            <option value="other">Boshqa</option>
+            <option value="marketing">{{ t('onboarding.hypotheses.category.marketing') }}</option>
+            <option value="product">{{ t('onboarding.hypotheses.category.product') }}</option>
+            <option value="sales">{{ t('onboarding.hypotheses.category.sales') }}</option>
+            <option value="pricing">{{ t('onboarding.hypotheses.category.pricing') }}</option>
+            <option value="customer">{{ t('onboarding.hypotheses.category.customer') }}</option>
+            <option value="operations">{{ t('onboarding.hypotheses.category.operations') }}</option>
+            <option value="other">{{ t('onboarding.hypotheses.category.other') }}</option>
           </select>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Ustuvorlik
+            {{ t('onboarding.hypotheses.priority_label') }}
           </label>
           <select
             v-model="form.priority"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="low">Past</option>
-            <option value="medium">O'rta</option>
-            <option value="high">Yuqori</option>
+            <option value="low">{{ t('onboarding.hypotheses.priority.low') }}</option>
+            <option value="medium">{{ t('onboarding.hypotheses.priority.medium') }}</option>
+            <option value="high">{{ t('onboarding.hypotheses.priority.high') }}</option>
           </select>
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Kutilgan natija
+          {{ t('onboarding.hypotheses.expected_outcome_label') }}
         </label>
         <textarea
           v-model="form.expected_outcome"
           rows="2"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Agar gipoteza to'g'ri bo'lsa, qanday natija kutasiz?"
+          :placeholder="t('onboarding.hypotheses.expected_outcome_placeholder')"
         ></textarea>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Tekshirish usuli
+          {{ t('onboarding.hypotheses.validation_method_label') }}
         </label>
         <textarea
           v-model="form.validation_method"
           rows="2"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Bu gipotezani qanday tekshirish mumkin?"
+          :placeholder="t('onboarding.hypotheses.validation_method_placeholder')"
         ></textarea>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Holati
+          {{ t('onboarding.hypotheses.status_label') }}
         </label>
         <div class="flex flex-wrap gap-3">
           <label v-for="status in statusOptions" :key="status.value" class="flex items-center gap-2">
@@ -118,7 +118,7 @@
               :value="status.value"
               class="text-indigo-600"
             />
-            <span class="text-sm">{{ status.label }}</span>
+            <span class="text-sm">{{ t(`onboarding.hypotheses.status.${status.value}`) }}</span>
           </label>
         </div>
       </div>
@@ -129,7 +129,7 @@
           @click="cancelForm"
           class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           @click="saveHypothesis"
@@ -140,7 +140,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          {{ editingHypothesis ? 'Saqlash' : 'Qo\'shish' }}
+          {{ editingHypothesis ? t('common.save') : t('common.add') }}
         </button>
       </div>
     </div>
@@ -171,10 +171,10 @@
                   statusColors[hypothesis.status] || 'bg-gray-100 text-gray-600'
                 ]"
               >
-                {{ statusLabels[hypothesis.status] || hypothesis.status }}
+                {{ t(`onboarding.hypotheses.status.${hypothesis.status}`) }}
               </span>
               <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-600">
-                {{ categoryLabels[hypothesis.category] || hypothesis.category }}
+                {{ t(`onboarding.hypotheses.category.${hypothesis.category}`) }}
               </span>
               <span
                 :class="[
@@ -182,7 +182,7 @@
                   priorityColors[hypothesis.priority] || 'bg-gray-100 text-gray-600'
                 ]"
               >
-                {{ priorityLabels[hypothesis.priority] || hypothesis.priority }}
+                {{ t(`onboarding.hypotheses.priority.${hypothesis.priority}`) }}
               </span>
             </div>
 
@@ -191,11 +191,11 @@
             </p>
 
             <div v-if="hypothesis.expected_outcome" class="text-xs text-gray-500 mb-1">
-              <span class="font-medium">Kutilgan natija:</span> {{ hypothesis.expected_outcome }}
+              <span class="font-medium">{{ t('onboarding.hypotheses.expected_outcome_display') }}:</span> {{ hypothesis.expected_outcome }}
             </div>
 
             <div v-if="hypothesis.validation_method" class="text-xs text-gray-500">
-              <span class="font-medium">Tekshirish:</span> {{ hypothesis.validation_method }}
+              <span class="font-medium">{{ t('onboarding.hypotheses.validation_display') }}:</span> {{ hypothesis.validation_method }}
             </div>
           </div>
 
@@ -226,19 +226,19 @@
       <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
-      <h4 class="text-lg font-medium text-gray-900 mb-2">Hali gipoteza qo'shilmagan</h4>
-      <p class="text-gray-500 mb-4">Sinab ko'rmoqchi bo'lgan g'oyalaringizni qo'shing</p>
+      <h4 class="text-lg font-medium text-gray-900 mb-2">{{ t('onboarding.hypotheses.empty_title') }}</h4>
+      <p class="text-gray-500 mb-4">{{ t('onboarding.hypotheses.empty_description') }}</p>
       <button
         @click="showAddForm = true"
         class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
       >
-        Birinchi gipotezani qo'shish
+        {{ t('onboarding.hypotheses.add_first') }}
       </button>
     </div>
 
     <!-- Info text -->
     <p class="text-sm text-gray-500 text-center">
-      Gipotezalarni sinash - innovatsion o'sish uchun muhim qadam
+      {{ t('onboarding.hypotheses.info_text') }}
     </p>
 
     <!-- Action Buttons -->
@@ -248,7 +248,7 @@
         @click="$emit('skip')"
         class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
       >
-        O'tkazib yuborish
+        {{ t('common.skip') }}
       </button>
       <div class="flex gap-3">
         <button
@@ -256,13 +256,13 @@
           @click="$emit('cancel')"
           class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
-          Bekor qilish
+          {{ t('common.cancel') }}
         </button>
         <button
           @click="$emit('submit')"
           class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
         >
-          Davom etish
+          {{ t('common.continue') }}
         </button>
       </div>
     </div>
@@ -273,7 +273,9 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
+import { useI18n } from '@/i18n';
 
+const { t } = useI18n();
 const store = useOnboardingStore();
 const toast = useToastStore();
 
@@ -295,10 +297,10 @@ const form = reactive({
 });
 
 const statusOptions = [
-  { value: 'pending', label: 'Kutilmoqda' },
-  { value: 'testing', label: 'Sinovda' },
-  { value: 'validated', label: 'Tasdiqlangan' },
-  { value: 'invalidated', label: 'Rad etilgan' }
+  { value: 'pending' },
+  { value: 'testing' },
+  { value: 'validated' },
+  { value: 'invalidated' }
 ];
 
 const statusColors = {
@@ -315,33 +317,10 @@ const statusDotColors = {
   invalidated: 'bg-red-500'
 };
 
-const statusLabels = {
-  pending: 'Kutilmoqda',
-  testing: 'Sinovda',
-  validated: 'Tasdiqlangan',
-  invalidated: 'Rad etilgan'
-};
-
-const categoryLabels = {
-  marketing: 'Marketing',
-  product: 'Mahsulot',
-  sales: 'Sotuvlar',
-  pricing: 'Narxlash',
-  customer: 'Mijozlar',
-  operations: 'Operatsiyalar',
-  other: 'Boshqa'
-};
-
 const priorityColors = {
   low: 'bg-green-100 text-green-600',
   medium: 'bg-yellow-100 text-yellow-600',
   high: 'bg-orange-100 text-orange-600'
-};
-
-const priorityLabels = {
-  low: 'Past',
-  medium: 'O\'rta',
-  high: 'Yuqori'
 };
 
 onMounted(async () => {
@@ -393,33 +372,33 @@ async function saveHypothesis() {
   try {
     if (editingHypothesis.value) {
       await store.updateHypothesis(editingHypothesis.value.id, { ...form });
-      toast.success('Muvaffaqiyatli saqlandi', 'Gipoteza yangilandi');
+      toast.success(t('common.success'), t('onboarding.hypotheses.updated_message'));
     } else {
       await store.storeHypothesis({ ...form });
-      toast.success('Muvaffaqiyatli qo\'shildi', 'Yangi gipoteza qo\'shildi');
+      toast.success(t('common.success'), t('onboarding.hypotheses.added_message'));
     }
 
     await loadHypotheses();
     cancelForm();
   } catch (err) {
     console.error('Failed to save hypothesis:', err);
-    const errorMessage = err.response?.data?.message || 'Ma\'lumotlarni saqlashda xatolik yuz berdi';
-    toast.error('Xatolik', errorMessage);
+    const errorMessage = err.response?.data?.message || t('common.save_error');
+    toast.error(t('common.error'), errorMessage);
   } finally {
     saving.value = false;
   }
 }
 
 async function deleteHypothesis(id) {
-  if (!confirm('Rostdan ham bu gipotezani o\'chirmoqchimisiz?')) return;
+  if (!confirm(t('onboarding.hypotheses.delete_confirm'))) return;
 
   try {
     await store.deleteHypothesis(id);
     await loadHypotheses();
-    toast.success('O\'chirildi', 'Gipoteza muvaffaqiyatli o\'chirildi');
+    toast.success(t('common.deleted'), t('onboarding.hypotheses.deleted_message'));
   } catch (err) {
     console.error('Failed to delete hypothesis:', err);
-    toast.error('Xatolik', 'Gipotezani o\'chirishda xatolik yuz berdi');
+    toast.error(t('common.error'), t('onboarding.hypotheses.delete_error'));
   }
 }
 </script>

@@ -2,6 +2,9 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useTrackingScripts, trackFormSubmit } from '@/composables/useTrackingScripts';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     survey: Object,
@@ -31,22 +34,22 @@ const contactForm = ref({
     region: '',
 });
 
-const regions = [
-    'Toshkent shahri',
-    'Toshkent viloyati',
-    'Andijon viloyati',
-    'Buxoro viloyati',
-    'Farg\'ona viloyati',
-    'Jizzax viloyati',
-    'Xorazm viloyati',
-    'Namangan viloyati',
-    'Navoiy viloyati',
-    'Qashqadaryo viloyati',
-    'Qoraqalpog\'iston Respublikasi',
-    'Samarqand viloyati',
-    'Sirdaryo viloyati',
-    'Surxondaryo viloyati',
-];
+const regions = computed(() => [
+    t('regions.tashkent_city'),
+    t('regions.tashkent_region'),
+    t('regions.andijan'),
+    t('regions.bukhara'),
+    t('regions.fergana'),
+    t('regions.jizzakh'),
+    t('regions.khorezm'),
+    t('regions.namangan'),
+    t('regions.navoi'),
+    t('regions.kashkadarya'),
+    t('regions.karakalpakstan'),
+    t('regions.samarkand'),
+    t('regions.sirdarya'),
+    t('regions.surkhandarya'),
+]);
 
 const answers = ref({});
 
@@ -132,7 +135,7 @@ const startSurvey = async () => {
         });
 
         if (!response.ok) {
-            let errorMessage = 'Xatolik yuz berdi';
+            let errorMessage = t('public_survey.error');
             try {
                 const errorData = await response.json();
                 console.error('Server error:', response.status, errorData);
@@ -160,7 +163,7 @@ const startSurvey = async () => {
         }
     } catch (error) {
         console.error('Error starting survey:', error);
-        alert('Tarmoq xatosi yuz berdi. Iltimos qayta urinib ko\'ring.');
+        alert(t('public_survey.network_error'));
     } finally {
         isLoading.value = false;
     }
@@ -350,7 +353,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                     </div>
                                     <h2 class="text-3xl font-bold text-white mb-3">{{ survey.title }}</h2>
                                     <p class="text-slate-300 text-lg max-w-md mx-auto">
-                                        {{ survey.welcome_message || 'Sizning fikringiz biz uchun juda muhim!' }}
+                                        {{ survey.welcome_message || t('public_survey.welcome_message') }}
                                     </p>
                                 </div>
                             </div>
@@ -362,7 +365,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
-                                        Ismingiz
+                                        {{ t('public_survey.your_name') }}
                                         <span class="text-red-400">*</span>
                                     </label>
                                     <input
@@ -371,7 +374,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         class="w-full px-5 py-4 bg-slate-900/50 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-opacity-100 transition-all text-lg"
                                         :style="{ '--focus-color': themeColor }"
                                         :class="{ 'border-opacity-100': contactForm.name }"
-                                        placeholder="Ismingizni kiriting"
+                                        :placeholder="t('public_survey.enter_name')"
                                         @focus="$event.target.style.borderColor = themeColor"
                                         @blur="$event.target.style.borderColor = contactForm.name ? themeColor : ''"
                                     />
@@ -382,7 +385,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                         </svg>
-                                        Telefon raqamingiz
+                                        {{ t('public_survey.your_phone') }}
                                     </label>
                                     <input
                                         v-model="contactForm.phone"
@@ -400,7 +403,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
-                                        Hududingiz
+                                        {{ t('public_survey.your_region') }}
                                     </label>
                                     <select
                                         v-model="contactForm.region"
@@ -408,7 +411,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         @focus="$event.target.style.borderColor = themeColor"
                                         @blur="$event.target.style.borderColor = ''"
                                     >
-                                        <option value="" disabled class="bg-slate-800 text-slate-400">Hududingizni tanlang</option>
+                                        <option value="" disabled class="bg-slate-800 text-slate-400">{{ t('public_survey.select_region') }}</option>
                                         <option v-for="region in regions" :key="region" :value="region" class="bg-slate-800 text-white">
                                             {{ region }}
                                         </option>
@@ -422,7 +425,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                     :style="{ backgroundColor: themeColor, boxShadow: `0 10px 40px -10px ${themeColor}80` }"
                                 >
                                     <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                    <span>{{ isLoading ? 'Yuklanmoqda...' : 'Boshlash' }}</span>
+                                    <span>{{ isLoading ? t('common.loading') : t('public_survey.start') }}</span>
                                     <svg v-if="!isLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                     </svg>
@@ -445,9 +448,9 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2">
                                                 <span class="text-slate-400 text-sm font-medium">
-                                                    Savol {{ props.survey.collect_contact ? currentStep : currentStep + 1 }}
+                                                    {{ t('public_survey.question') }} {{ props.survey.collect_contact ? currentStep : currentStep + 1 }}
                                                 </span>
-                                                <span v-if="currentQuestion.is_required" class="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-medium rounded-full">Majburiy</span>
+                                                <span v-if="currentQuestion.is_required" class="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-medium rounded-full">{{ t('public_survey.required') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -465,7 +468,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         v-model="answers[currentQuestion.id]"
                                         type="text"
                                         class="w-full px-5 py-4 bg-slate-900/50 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none transition-all text-lg"
-                                        placeholder="Javobingizni yozing..."
+                                        :placeholder="t('public_survey.answer_placeholder')"
                                         @focus="$event.target.style.borderColor = themeColor"
                                         @blur="$event.target.style.borderColor = answers[currentQuestion.id] ? themeColor : ''"
                                     />
@@ -477,7 +480,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         v-model="answers[currentQuestion.id]"
                                         rows="5"
                                         class="w-full px-5 py-4 bg-slate-900/50 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none transition-all text-lg resize-none"
-                                        placeholder="Javobingizni batafsil yozing..."
+                                        :placeholder="t('public_survey.answer_detailed_placeholder')"
                                         @focus="$event.target.style.borderColor = themeColor"
                                         @blur="$event.target.style.borderColor = answers[currentQuestion.id] ? themeColor : ''"
                                     ></textarea>
@@ -540,7 +543,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            Bir nechta variant tanlashingiz mumkin
+                                            {{ t('public_survey.multiselect_hint') }}
                                         </span>
                                     </p>
                                 </div>
@@ -590,8 +593,8 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         </button>
                                     </div>
                                     <div class="flex justify-between mt-4 text-sm text-slate-500">
-                                        <span>Umuman yo'q</span>
-                                        <span>Juda ko'p</span>
+                                        <span>{{ t('public_survey.scale_not_at_all') }}</span>
+                                        <span>{{ t('public_survey.scale_very_much') }}</span>
                                     </div>
                                 </div>
 
@@ -607,7 +610,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        Orqaga
+                                        {{ t('common.back') }}
                                     </button>
 
                                     <button
@@ -617,7 +620,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         :style="{ backgroundColor: themeColor, boxShadow: `0 10px 40px -10px ${themeColor}80` }"
                                     >
                                         <span v-if="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                        <span>{{ currentStep === totalSteps - 1 ? 'Tugatish' : 'Keyingi' }}</span>
+                                        <span>{{ currentStep === totalSteps - 1 ? t('public_survey.finish') : t('common.next') }}</span>
                                         <svg v-if="!isLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                         </svg>
@@ -638,7 +641,7 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                         <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </span>
-                BiznesPilot AI bilan yaratilgan
+                {{ t('public_survey.powered_by') }}
             </p>
         </footer>
     </div>

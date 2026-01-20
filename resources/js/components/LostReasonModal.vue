@@ -1,9 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from '@/i18n';
 import {
     XMarkIcon,
     ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -18,17 +21,17 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'confirm']);
 
-const lostReasons = [
-    { key: 'price', label: 'Narx qimmat', icon: '💰' },
-    { key: 'competitor', label: 'Raqobatchini tanladi', icon: '🏃' },
-    { key: 'no_budget', label: 'Byudjet yo\'q', icon: '💸' },
-    { key: 'no_need', label: 'Ehtiyoj yo\'q', icon: '🚫' },
-    { key: 'no_response', label: 'Javob bermadi', icon: '📵' },
-    { key: 'wrong_contact', label: 'Noto\'g\'ri kontakt', icon: '❌' },
-    { key: 'low_quality', label: 'Sifatsiz lid', icon: '👎' },
-    { key: 'timing', label: 'Vaqt mos kelmadi', icon: '⏰' },
-    { key: 'other', label: 'Boshqa sabab', icon: '📝' },
-];
+const lostReasons = computed(() => [
+    { key: 'price', label: t('components.lost_reason.reason_price'), icon: '💰' },
+    { key: 'competitor', label: t('components.lost_reason.reason_competitor'), icon: '🏃' },
+    { key: 'no_budget', label: t('components.lost_reason.reason_no_budget'), icon: '💸' },
+    { key: 'no_need', label: t('components.lost_reason.reason_no_need'), icon: '🚫' },
+    { key: 'no_response', label: t('components.lost_reason.reason_no_response'), icon: '📵' },
+    { key: 'wrong_contact', label: t('components.lost_reason.reason_wrong_contact'), icon: '❌' },
+    { key: 'low_quality', label: t('components.lost_reason.reason_low_quality'), icon: '👎' },
+    { key: 'timing', label: t('components.lost_reason.reason_timing'), icon: '⏰' },
+    { key: 'other', label: t('components.lost_reason.reason_other'), icon: '📝' },
+]);
 
 const selectedReason = ref('');
 const details = ref('');
@@ -115,10 +118,10 @@ defineExpose({ resetForm });
                                     </div>
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                            Lidni yo'qotish
+                                            {{ t('components.lost_reason.title') }}
                                         </h3>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            Sababni tanlang
+                                            {{ t('components.lost_reason.select_reason') }}
                                         </p>
                                     </div>
                                 </div>
@@ -150,7 +153,7 @@ defineExpose({ resetForm });
                                 <!-- Reason Selection -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        Yo'qotish sababi *
+                                        {{ t('components.lost_reason.reason_label') }} *
                                     </label>
                                     <div class="grid grid-cols-1 gap-2">
                                         <label
@@ -193,12 +196,12 @@ defineExpose({ resetForm });
                                 <!-- Details -->
                                 <div class="mt-4">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Qo'shimcha izoh
+                                        {{ t('components.lost_reason.additional_notes') }}
                                     </label>
                                     <textarea
                                         v-model="details"
                                         rows="3"
-                                        placeholder="Batafsil ma'lumot kiriting..."
+                                        :placeholder="t('components.lost_reason.notes_placeholder')"
                                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                                     ></textarea>
                                 </div>
@@ -211,7 +214,7 @@ defineExpose({ resetForm });
                                     :disabled="isSubmitting"
                                     class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
                                 >
-                                    Bekor qilish
+                                    {{ t('common.cancel') }}
                                 </button>
                                 <button
                                     @click="handleConfirm"
@@ -228,9 +231,9 @@ defineExpose({ resetForm });
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Saqlanmoqda...
+                                        {{ t('common.saving') }}
                                     </span>
-                                    <span v-else>Yo'qotilgan deb belgilash</span>
+                                    <span v-else>{{ t('components.lost_reason.mark_as_lost') }}</span>
                                 </button>
                             </div>
                         </div>

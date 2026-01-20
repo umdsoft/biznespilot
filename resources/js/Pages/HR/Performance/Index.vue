@@ -1,8 +1,11 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import { ref, computed } from 'vue';
 import { ChartBarIcon, CheckCircleIcon, ClockIcon, PlusIcon, PencilIcon, StarIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     goals: { type: Array, default: () => [] },
@@ -89,14 +92,14 @@ const getProgressTextColor = (progress) => {
 </script>
 
 <template>
-    <HRLayout title="Samaradorlik">
-        <Head title="Samaradorlik" />
+    <HRLayout :title="t('hr.performance')">
+        <Head :title="t('hr.performance')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Samaradorlik Boshqaruvi</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">KPI, Maqsadlar va Baholash</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.performance_management') }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.performance_subtitle') }}</p>
             </div>
 
             <!-- Stats -->

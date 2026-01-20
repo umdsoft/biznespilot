@@ -2,6 +2,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, watch } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     conversations: Object,
@@ -61,22 +64,22 @@ const formatDate = (date) => {
 </script>
 
 <template>
-    <Head title="Suhbatlar" />
+    <Head :title="t('chatbot.conversations')" />
 
-    <BusinessLayout>
+    <BusinessLayout :title="t('chatbot.conversations')">
         <div class="py-12">
             <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div class="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Suhbatlar</h1>
-                        <p class="mt-2 text-gray-600">Mijozlar bilan barcha suhbatlar</p>
+                        <h1 class="text-3xl font-bold text-gray-900">{{ t('chatbot.conversations') }}</h1>
+                        <p class="mt-2 text-gray-600">{{ t('chatbot.all_conversations') }}</p>
                     </div>
                     <Link
                         :href="route('business.customer-bot.settings')"
                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
-                        Sozlamalar
+                        {{ t('common.settings') }}
                     </Link>
                 </div>
 
@@ -85,7 +88,7 @@ const formatDate = (date) => {
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <!-- Search -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Qidirish</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.search') }}</label>
                             <input
                                 type="text"
                                 v-model="filters.search"
@@ -96,28 +99,28 @@ const formatDate = (date) => {
 
                         <!-- Status Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Holat</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.status') }}</label>
                             <select
                                 v-model="filters.status"
                                 @change="applyFilters"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
-                                <option value="all">Barchasi</option>
-                                <option value="active">Faol</option>
-                                <option value="closed">Yopilgan</option>
-                                <option value="archived">Arxivlangan</option>
+                                <option value="all">{{ t('common.all') }}</option>
+                                <option value="active">{{ t('common.active') }}</option>
+                                <option value="closed">{{ t('chatbot.closed') }}</option>
+                                <option value="archived">{{ t('chatbot.archived') }}</option>
                             </select>
                         </div>
 
                         <!-- Channel Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Kanal</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('analytics.channel') }}</label>
                             <select
                                 v-model="filters.channel"
                                 @change="applyFilters"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
-                                <option value="all">Barchasi</option>
+                                <option value="all">{{ t('common.all') }}</option>
                                 <option value="telegram">Telegram</option>
                                 <option value="instagram">Instagram</option>
                                 <option value="facebook">Facebook</option>
@@ -126,13 +129,13 @@ const formatDate = (date) => {
 
                         <!-- Stage Filter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Bosqich</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('chatbot.stage') }}</label>
                             <select
                                 v-model="filters.stage"
                                 @change="applyFilters"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
-                                <option value="all">Barchasi</option>
+                                <option value="all">{{ t('common.all') }}</option>
                                 <option value="AWARENESS">Xabardorlik</option>
                                 <option value="INTEREST">Qiziqish</option>
                                 <option value="CONSIDERATION">Mulohaza</option>
@@ -210,7 +213,7 @@ const formatDate = (date) => {
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                             </svg>
-                            <p class="mt-4">Hech qanday suhbat topilmadi</p>
+                            <p class="mt-4">{{ t('chatbot.no_conversations') }}</p>
                         </li>
                     </ul>
 
@@ -233,7 +236,7 @@ const formatDate = (date) => {
                                     class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                                     preserve-state
                                 >
-                                    Oldingi
+                                    {{ t('common.previous') }}
                                 </Link>
 
                                 <Link
@@ -242,7 +245,7 @@ const formatDate = (date) => {
                                     class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                                     preserve-state
                                 >
-                                    Keyingi
+                                    {{ t('common.next') }}
                                 </Link>
                             </div>
                         </div>

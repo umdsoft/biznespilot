@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     secret: String,
@@ -38,10 +41,10 @@ const copySecret = () => {
                     <div class="p-6">
                         <div class="mb-6">
                             <h2 class="text-2xl font-bold text-gray-900">
-                                2FA ni sozlash
+                                {{ t('two_factor.setup_title') }}
                             </h2>
                             <p class="mt-1 text-sm text-gray-600">
-                                Quyidagi qadamlarni bajaring
+                                {{ t('two_factor.setup_subtitle') }}
                             </p>
                         </div>
 
@@ -56,10 +59,10 @@ const copySecret = () => {
                                     </div>
                                     <div class="ml-4 flex-1">
                                         <h3 class="text-lg font-medium text-gray-900">
-                                            Authenticator ilovasini o'rnating
+                                            {{ t('two_factor.setup_step1_title') }}
                                         </h3>
                                         <p class="mt-2 text-sm text-gray-600">
-                                            Google Authenticator, Authy yoki boshqa TOTP authenticator ilovasini telefoningizga o'rnating.
+                                            {{ t('two_factor.setup_step1_desc') }}
                                         </p>
                                         <div class="mt-3 flex space-x-4">
                                             <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500">
@@ -89,10 +92,10 @@ const copySecret = () => {
                                     </div>
                                     <div class="ml-4 flex-1">
                                         <h3 class="text-lg font-medium text-gray-900">
-                                            QR kodni skanerlang
+                                            {{ t('two_factor.setup_step2_title') }}
                                         </h3>
                                         <p class="mt-2 text-sm text-gray-600">
-                                            Authenticator ilovangizda "+" yoki "Add" tugmasini bosing va QR kodni skanerlang.
+                                            {{ t('two_factor.setup_step2_desc') }}
                                         </p>
 
                                         <div class="mt-4 bg-white p-4 rounded-lg border-2 border-gray-200 inline-block">
@@ -104,7 +107,7 @@ const copySecret = () => {
                                                 @click="showSecret = !showSecret"
                                                 class="text-sm text-indigo-600 hover:text-indigo-500"
                                             >
-                                                {{ showSecret ? 'Secret kodni yashirish' : 'QR kod ishlamasa, secret kodni ko\'ring' }}
+                                                {{ showSecret ? t('two_factor.hide_secret') : t('two_factor.show_secret') }}
                                             </button>
 
                                             <div v-if="showSecret" class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -136,16 +139,16 @@ const copySecret = () => {
                                     </div>
                                     <div class="ml-4 flex-1">
                                         <h3 class="text-lg font-medium text-gray-900">
-                                            Kodni tasdiqlang
+                                            {{ t('two_factor.setup_step3_title') }}
                                         </h3>
                                         <p class="mt-2 text-sm text-gray-600">
-                                            Authenticator ilovasidan 6 raqamli kodni kiriting.
+                                            {{ t('two_factor.setup_step3_desc') }}
                                         </p>
 
                                         <form @submit.prevent="submit" class="mt-4 max-w-xs">
                                             <div>
                                                 <label for="code" class="block text-sm font-medium text-gray-700">
-                                                    Autentifikatsiya kodi
+                                                    {{ t('two_factor.auth_code') }}
                                                 </label>
                                                 <input
                                                     id="code"
@@ -169,20 +172,20 @@ const copySecret = () => {
                                                     :disabled="form.processing || code.length !== 6"
                                                     class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <span v-if="!form.processing">2FA ni yoqish</span>
+                                                    <span v-if="!form.processing">{{ t('two_factor.enable') }}</span>
                                                     <span v-else class="flex items-center">
                                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                         </svg>
-                                                        Tekshirilmoqda...
+                                                        {{ t('two_factor.verifying') }}
                                                     </span>
                                                 </button>
                                                 <a
                                                     :href="route('business.settings.two-factor')"
                                                     class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                 >
-                                                    Bekor qilish
+                                                    {{ t('common.cancel') }}
                                                 </a>
                                             </div>
                                         </form>

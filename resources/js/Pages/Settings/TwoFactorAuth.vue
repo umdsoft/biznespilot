@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     twoFactorData: Object,
@@ -46,7 +49,7 @@ const regenerateRecoveryCodes = () => {
 </script>
 
 <template>
-    <BusinessLayout title="2FA Xavfsizlik">
+    <BusinessLayout :title="t('two_factor.title')">
         <div class="py-12">
             <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -54,10 +57,10 @@ const regenerateRecoveryCodes = () => {
                         <div class="flex items-center justify-between mb-6">
                             <div>
                                 <h2 class="text-2xl font-bold text-gray-900">
-                                    Ikki faktorli autentifikatsiya (2FA)
+                                    {{ t('two_factor.header') }}
                                 </h2>
                                 <p class="mt-1 text-sm text-gray-600">
-                                    Hisobingizni qo'shimcha xavfsizlik qatlami bilan himoyalang
+                                    {{ t('two_factor.subtitle') }}
                                 </p>
                             </div>
                         </div>
@@ -73,13 +76,11 @@ const regenerateRecoveryCodes = () => {
                                     </div>
                                     <div class="ml-3">
                                         <h3 class="text-sm font-medium text-blue-800">
-                                            2FA yoqilmagan
+                                            {{ t('two_factor.not_enabled') }}
                                         </h3>
                                         <div class="mt-2 text-sm text-blue-700">
                                             <p>
-                                                Ikki faktorli autentifikatsiya hisobingizga qo'shimcha himoya qo'shadi.
-                                                Login parol bilan bir qatorda, telefoningizdagi authenticator ilovasidan
-                                                6 raqamli kod talab qilinadi.
+                                                {{ t('two_factor.not_enabled_desc') }}
                                             </p>
                                         </div>
                                     </div>
@@ -87,7 +88,7 @@ const regenerateRecoveryCodes = () => {
                             </div>
 
                             <div class="space-y-4">
-                                <h3 class="text-lg font-medium text-gray-900">Qanday ishlaydi?</h3>
+                                <h3 class="text-lg font-medium text-gray-900">{{ t('two_factor.how_it_works') }}</h3>
                                 <div class="space-y-3">
                                     <div class="flex items-start">
                                         <div class="flex-shrink-0">
@@ -96,7 +97,7 @@ const regenerateRecoveryCodes = () => {
                                             </div>
                                         </div>
                                         <p class="ml-3 text-sm text-gray-600">
-                                            Google Authenticator yoki boshqa TOTP ilovasini o'rnating
+                                            {{ t('two_factor.step1') }}
                                         </p>
                                     </div>
                                     <div class="flex items-start">
@@ -106,7 +107,7 @@ const regenerateRecoveryCodes = () => {
                                             </div>
                                         </div>
                                         <p class="ml-3 text-sm text-gray-600">
-                                            QR kodni skanerlang va 6 raqamli kodni kiriting
+                                            {{ t('two_factor.step2') }}
                                         </p>
                                     </div>
                                     <div class="flex items-start">
@@ -116,7 +117,7 @@ const regenerateRecoveryCodes = () => {
                                             </div>
                                         </div>
                                         <p class="ml-3 text-sm text-gray-600">
-                                            Recovery codelarni xavfsiz joyda saqlang
+                                            {{ t('two_factor.step3') }}
                                         </p>
                                     </div>
                                     <div class="flex items-start">
@@ -126,7 +127,7 @@ const regenerateRecoveryCodes = () => {
                                             </div>
                                         </div>
                                         <p class="ml-3 text-sm text-gray-600">
-                                            Keyingi loginlarda parol bilan birga 2FA kod kiritasiz
+                                            {{ t('two_factor.step4') }}
                                         </p>
                                     </div>
                                 </div>
@@ -140,7 +141,7 @@ const regenerateRecoveryCodes = () => {
                                     <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
-                                    2FA ni yoqish
+                                    {{ t('two_factor.enable') }}
                                 </button>
                             </div>
                         </div>
@@ -156,12 +157,12 @@ const regenerateRecoveryCodes = () => {
                                     </div>
                                     <div class="ml-3 flex-1">
                                         <h3 class="text-sm font-medium text-green-800">
-                                            2FA faol
+                                            {{ t('two_factor.enabled') }}
                                         </h3>
                                         <div class="mt-2 text-sm text-green-700">
                                             <p>
-                                                Hisobingiz ikki faktorli autentifikatsiya bilan himoyalangan.
-                                                Yoqilgan sana: {{ new Date(twoFactorData.enabled_at).toLocaleDateString('uz-UZ') }}
+                                                {{ t('two_factor.enabled_desc') }}
+                                                {{ t('two_factor.enabled_date') }}: {{ new Date(twoFactorData.enabled_at).toLocaleDateString('uz-UZ') }}
                                             </p>
                                         </div>
                                     </div>
@@ -172,16 +173,16 @@ const regenerateRecoveryCodes = () => {
                                 <div class="p-4 sm:p-6">
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h3 class="text-base font-medium text-gray-900">Recovery Codes</h3>
+                                            <h3 class="text-base font-medium text-gray-900">{{ t('two_factor.recovery_codes') }}</h3>
                                             <p class="mt-1 text-sm text-gray-500">
-                                                {{ twoFactorData.recovery_codes_count }} ta recovery kod mavjud
+                                                {{ twoFactorData.recovery_codes_count }} {{ t('two_factor.codes_available') }}
                                             </p>
                                         </div>
                                         <button
                                             @click="viewRecoveryCodes"
                                             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                         >
-                                            Ko'rish
+                                            {{ t('common.view') }}
                                         </button>
                                     </div>
                                 </div>
@@ -189,16 +190,16 @@ const regenerateRecoveryCodes = () => {
                                 <div class="p-4 sm:p-6">
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h3 class="text-base font-medium text-gray-900">Yangi Recovery Codes</h3>
+                                            <h3 class="text-base font-medium text-gray-900">{{ t('two_factor.new_recovery_codes') }}</h3>
                                             <p class="mt-1 text-sm text-gray-500">
-                                                Eski codelar bekor qilinadi va yangisi yaratiladi
+                                                {{ t('two_factor.regenerate_desc') }}
                                             </p>
                                         </div>
                                         <button
                                             @click="showRegenerateModal = true"
                                             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                         >
-                                            Yangilash
+                                            {{ t('two_factor.regenerate') }}
                                         </button>
                                     </div>
                                 </div>
@@ -206,16 +207,16 @@ const regenerateRecoveryCodes = () => {
                                 <div class="p-4 sm:p-6">
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h3 class="text-base font-medium text-gray-900">2FA ni o'chirish</h3>
+                                            <h3 class="text-base font-medium text-gray-900">{{ t('two_factor.disable') }}</h3>
                                             <p class="mt-1 text-sm text-gray-500">
-                                                Hisobingizdan ikki faktorli autentifikatsiyani olib tashlash
+                                                {{ t('two_factor.disable_desc') }}
                                             </p>
                                         </div>
                                         <button
                                             @click="showDisableModal = true"
                                             class="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                         >
-                                            O'chirish
+                                            {{ t('common.delete') }}
                                         </button>
                                     </div>
                                 </div>

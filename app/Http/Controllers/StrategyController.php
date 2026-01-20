@@ -85,11 +85,14 @@ class StrategyController extends Controller
         // Get templates
         $templates = StrategyTemplate::active()->get()->groupBy('type');
 
-        // Get last diagnostic
-        $diagnostic = $business->diagnostics()
-            ->completed()
-            ->latest()
-            ->first();
+        // Get last diagnostic (safely check if relationship exists)
+        $diagnostic = null;
+        if (method_exists($business, 'aiDiagnostics')) {
+            $diagnostic = $business->aiDiagnostics()
+                ->where('status', 'completed')
+                ->latest()
+                ->first();
+        }
 
         // Get existing strategy if any
         $existingStrategy = AnnualStrategy::where('business_id', $business->id)

@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 import {
     ChartBarIcon,
     EyeIcon,
@@ -146,7 +149,7 @@ const hasData = computed(() => {
 </script>
 
 <template>
-    <MarketingLayout title="Analitika">
+    <MarketingLayout :title="t('marketing.analytics')">
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     BuildingOfficeIcon,
     PlusIcon,
@@ -9,6 +10,8 @@ import {
     BriefcaseIcon,
     ChartBarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     orgStructure: Object,
@@ -50,18 +53,18 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
 </script>
 
 <template>
-    <HRLayout title="Tashkiliy Tuzilma">
-        <Head title="Tashkiliy Tuzilma" />
+    <HRLayout :title="t('hr.org_structure')">
+        <Head :title="t('hr.org_structure')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                        Tashkiliy Tuzilma
+                        {{ t('hr.org_structure') }}
                     </h1>
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        Kompaniyangizning tashkiliy tuzilmasi, bo'limlar va lavozimlar
+                        {{ t('hr.org_structure_subtitle') }}
                     </p>
                 </div>
 
@@ -71,7 +74,7 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                     class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                     <PlusIcon class="w-5 h-5 mr-2" />
-                    Tashkiliy Tuzilma Yaratish
+                    {{ t('hr.create_org_structure') }}
                 </Link>
             </div>
 
@@ -81,17 +84,17 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                     <BuildingOfficeIcon class="w-8 h-8 text-purple-600 dark:text-purple-400" />
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Tashkiliy tuzilma topilmadi
+                    {{ t('hr.no_org_structure') }}
                 </h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                    Kompaniyangiz uchun tashkiliy tuzilma yarating. Biznes turingizga mos bo'lgan shablonlardan foydalanishingiz mumkin.
+                    {{ t('hr.org_structure_desc') }}
                 </p>
                 <Link
                     :href="route('hr.org-structure.create')"
                     class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                     <PlusIcon class="w-5 h-5 mr-2" />
-                    Boshlash
+                    {{ t('hr.start') }}
                 </Link>
             </div>
 
@@ -102,7 +105,7 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                     <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-purple-600 dark:text-purple-400">Jami lavozimlar</p>
+                                <p class="text-sm font-medium text-purple-600 dark:text-purple-400">{{ t('hr.total_positions') }}</p>
                                 <p class="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-2">
                                     {{ totalStats.total }}
                                 </p>
@@ -116,7 +119,7 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                     <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-green-600 dark:text-green-400">Band lavozimlar</p>
+                                <p class="text-sm font-medium text-green-600 dark:text-green-400">{{ t('hr.filled_positions') }}</p>
                                 <p class="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">
                                     {{ totalStats.filled }}
                                 </p>
@@ -130,7 +133,7 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                     <div class="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-6 border border-orange-200 dark:border-orange-700">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-orange-600 dark:text-orange-400">Bo'sh lavozimlar</p>
+                                <p class="text-sm font-medium text-orange-600 dark:text-orange-400">{{ t('hr.vacant_positions') }}</p>
                                 <p class="text-3xl font-bold text-orange-900 dark:text-orange-100 mt-2">
                                     {{ totalStats.vacant }}
                                 </p>
@@ -144,7 +147,7 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-blue-600 dark:text-blue-400">Bandlik darajasi</p>
+                                <p class="text-sm font-medium text-blue-600 dark:text-blue-400">{{ t('hr.fill_rate') }}</p>
                                 <p class="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">
                                     {{ overallFillRate }}%
                                 </p>
@@ -176,7 +179,7 @@ const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / t
                             :href="route('hr.org-structure.edit', orgStructure.id)"
                             class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                         >
-                            Tahrirlash
+                            {{ t('hr.edit') }}
                         </Link>
                     </div>
 

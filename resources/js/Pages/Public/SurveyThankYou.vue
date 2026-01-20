@@ -1,5 +1,8 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     survey: Object,
@@ -7,7 +10,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <Head :title="`Rahmat - ${survey.title}`" />
+    <Head :title="`${t('public_survey.thank_you_title')} - ${survey.title}`" />
 
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
         <div class="max-w-lg w-full">
@@ -32,14 +35,14 @@ const props = defineProps({
 
                 <!-- Thank You Message -->
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-                    Katta rahmat!
+                    {{ t('public_survey.thank_you_title') }}
                 </h1>
 
                 <p v-if="survey.thank_you_message" class="text-gray-600 dark:text-gray-400 mb-6">
                     {{ survey.thank_you_message }}
                 </p>
                 <p v-else class="text-gray-600 dark:text-gray-400 mb-6">
-                    Javoblaringiz uchun katta rahmat! Sizning fikringiz biz uchun juda qimmatli.
+                    {{ t('public_survey.thank_you_message') }}
                 </p>
 
                 <!-- Decorative Element -->
@@ -61,13 +64,13 @@ const props = defineProps({
 
                 <!-- Close Button -->
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                    Bu sahifani yopishingiz mumkin
+                    {{ t('public_survey.can_close_page') }}
                 </p>
             </div>
 
             <!-- Footer -->
             <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-                BiznesPilot AI bilan yaratilgan
+                {{ t('public_survey.powered_by') }}
             </p>
         </div>
     </div>

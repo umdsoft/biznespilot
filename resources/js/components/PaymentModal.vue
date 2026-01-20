@@ -264,6 +264,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from '@/i18n';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     XMarkIcon,
@@ -277,6 +278,8 @@ import {
     LinkIcon,
     PaperAirplaneIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     show: {
@@ -333,7 +336,7 @@ const loadProviders = async () => {
         }
     } catch (err) {
         console.error('Failed to load providers:', err);
-        error.value = 'Provayderlarni yuklashda xatolik';
+        error.value = t('components.payment.load_providers_error');
     } finally {
         loading.value = false;
     }
@@ -360,14 +363,14 @@ const createPaymentLink = async () => {
             step.value = 2;
             emit('created', response.data);
         } else {
-            error.value = response.data.error || 'To\'lov havolasini yaratishda xatolik';
+            error.value = response.data.error || t('components.payment.create_link_error');
         }
     } catch (err) {
         console.error('Failed to create payment link:', err);
 
         // Handle 419 CSRF error
         if (isCsrfError(err)) {
-            error.value = 'Sessiya muddati tugadi. Qayta urinib ko\'ring.';
+            error.value = t('common.session_expired');
             await refreshCsrfToken();
             return;
         }
@@ -375,7 +378,7 @@ const createPaymentLink = async () => {
         if (err.response?.data?.error) {
             error.value = err.response.data.error;
         } else {
-            error.value = 'Tarmoq xatosi yuz berdi';
+            error.value = t('common.network_error');
         }
     } finally {
         creating.value = false;

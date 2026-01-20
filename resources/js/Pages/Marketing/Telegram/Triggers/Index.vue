@@ -2,6 +2,9 @@
 import { Head } from '@inertiajs/vue3'
 import MarketingLayout from '@/layouts/MarketingLayout.vue'
 import TelegramTriggersIndex from '@/components/telegram/TelegramTriggersIndex.vue'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 defineProps({
   bot: Object,
@@ -17,8 +20,8 @@ defineProps({
 </script>
 
 <template>
-  <MarketingLayout :title="`Triggerlar - @${bot.username}`">
-    <Head :title="`Triggerlar - @${bot.username}`" />
+  <MarketingLayout :title="`${t('telegram.triggers')} - @${bot.username}`">
+    <Head :title="`${t('telegram.triggers')} - @${bot.username}`" />
     <TelegramTriggersIndex :bot="bot" :triggers="triggers" :funnels="funnels" panel-type="marketing" />
   </MarketingLayout>
 </template>

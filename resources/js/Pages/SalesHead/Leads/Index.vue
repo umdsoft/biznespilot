@@ -1,6 +1,9 @@
 <script setup>
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import LeadIndex from '@/components/leads/LeadIndex.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     leads: {
@@ -38,7 +41,7 @@ defineProps({
 </script>
 
 <template>
-    <SalesHeadLayout title="Leadlar">
+    <SalesHeadLayout :title="t('sales.leads')">
         <LeadIndex
             :leads="leads"
             :stats="stats"

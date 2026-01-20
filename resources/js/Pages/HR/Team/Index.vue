@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import {
     UsersIcon,
     PlusIcon,
@@ -10,6 +11,8 @@ import {
     TrashIcon,
     KeyIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     members: { type: Array, default: () => [] },
@@ -75,11 +78,11 @@ const addMember = async () => {
             };
             reloadPage();
         } else {
-            alert(data.error || 'Xatolik yuz berdi');
+            alert(data.error || t('hr.error_occurred'));
         }
     } catch (error) {
         console.error('Error adding member:', error);
-        alert('Xatolik yuz berdi');
+        alert(t('hr.error_occurred'));
     }
 };
 
@@ -114,11 +117,11 @@ const updateMember = async () => {
             selectedMember.value = null;
             reloadPage();
         } else {
-            alert(data.error || 'Xatolik yuz berdi');
+            alert(data.error || t('hr.error_occurred'));
         }
     } catch (error) {
         console.error('Error updating member:', error);
-        alert('Xatolik yuz berdi');
+        alert(t('hr.error_occurred'));
     }
 };
 
@@ -155,19 +158,19 @@ const resetPassword = async () => {
                 password: '',
                 password_confirmation: '',
             };
-            alert('Parol muvaffaqiyatli o\'zgartirildi');
+            alert(t('hr.password_changed'));
         } else {
-            alert(data.error || 'Xatolik yuz berdi');
+            alert(data.error || t('hr.error_occurred'));
         }
     } catch (error) {
         console.error('Error resetting password:', error);
-        alert('Xatolik yuz berdi');
+        alert(t('hr.error_occurred'));
     }
 };
 
 // Remove member
 const removeMember = async (member) => {
-    if (!confirm(`${member.name}ni jamoadan o'chirmoqchimisiz?`)) return;
+    if (!confirm(`${member.name}${t('hr.remove_confirm')}`)) return;
 
     try {
         const response = await fetch(route('hr.team.remove', member.id), {
@@ -182,50 +185,50 @@ const removeMember = async (member) => {
         if (data.success) {
             reloadPage();
         } else {
-            alert(data.error || 'Xatolik yuz berdi');
+            alert(data.error || t('hr.error_occurred'));
         }
     } catch (error) {
         console.error('Error removing member:', error);
-        alert('Xatolik yuz berdi');
+        alert(t('hr.error_occurred'));
     }
 };
 </script>
 
 <template>
-    <HRLayout title="Xodimlar">
-        <Head title="Xodimlar Boshqaruvi" />
+    <HRLayout :title="t('hr.employees')">
+        <Head :title="t('hr.employees')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Xodimlar</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jamoa a'zolarini boshqarish</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.employees') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.manage_team') }}</p>
                 </div>
                 <button
                     @click="showAddModal = true"
                     class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
                 >
                     <PlusIcon class="w-5 h-5" />
-                    Xodim Qo'shish
+                    {{ t('hr.add_employee') }}
                 </button>
             </div>
 
             <!-- Members List -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div v-if="loading" class="p-12 text-center text-gray-500 dark:text-gray-400">
-                    Yuklanmoqda...
+                    {{ t('hr.loading') }}
                 </div>
 
                 <div v-else-if="members.length > 0" class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">F.I.O</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Telefon</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Bo'lim</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Qo'shilgan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amallar</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('hr.full_name') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('hr.phone') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('hr.department') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('hr.joined_at') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('hr.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -241,7 +244,7 @@ const removeMember = async (member) => {
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ member.name }}</p>
-                                            <p v-if="member.is_owner" class="text-xs text-purple-600 dark:text-purple-400">Biznes egasi</p>
+                                            <p v-if="member.is_owner" class="text-xs text-purple-600 dark:text-purple-400">{{ t('hr.business_owner') }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -261,21 +264,21 @@ const removeMember = async (member) => {
                                         <button
                                             @click="openEditModal(member)"
                                             class="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
-                                            title="Tahrirlash"
+                                            :title="t('hr.edit')"
                                         >
                                             <PencilIcon class="w-5 h-5" />
                                         </button>
                                         <button
                                             @click="openPasswordModal(member)"
                                             class="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                                            title="Parolni o'zgartirish"
+                                            :title="t('hr.change_password')"
                                         >
                                             <KeyIcon class="w-5 h-5" />
                                         </button>
                                         <button
                                             @click="removeMember(member)"
                                             class="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                                            title="O'chirish"
+                                            :title="t('hr.delete')"
                                         >
                                             <TrashIcon class="w-5 h-5" />
                                         </button>
@@ -289,7 +292,7 @@ const removeMember = async (member) => {
 
                 <div v-else class="p-12 text-center text-gray-500 dark:text-gray-400">
                     <UsersIcon class="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Hali xodimlar yo'q</p>
+                    <p>{{ t('hr.no_employees') }}</p>
                 </div>
             </div>
         </div>
@@ -302,23 +305,23 @@ const removeMember = async (member) => {
         >
             <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Yangi Xodim Qo'shish</h3>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.new_employee') }}</h3>
                 </div>
 
                 <form @submit.prevent="addMember" class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">F.I.O *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.full_name') }} *</label>
                         <input
                             v-model="addForm.name"
                             type="text"
                             required
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Ism Familiya"
+                            :placeholder="t('hr.name_placeholder')"
                         />
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefon *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.phone') }} *</label>
                         <input
                             v-model="addForm.phone"
                             type="text"
@@ -330,37 +333,37 @@ const removeMember = async (member) => {
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bo'lim *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.department') }} *</label>
                         <select
                             v-model="addForm.department"
                             required
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
                         >
-                            <option value="">Tanlang</option>
+                            <option value="">{{ t('hr.select') }}</option>
                             <option v-for="(label, key) in departments" :key="key" :value="key">{{ label }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parol *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.password') }} *</label>
                         <input
                             v-model="addForm.password"
                             type="password"
                             required
                             minlength="6"
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Kamida 6 ta belgi"
+                            :placeholder="t('hr.password_placeholder')"
                         />
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parolni tasdiqlang *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.confirm_password') }} *</label>
                         <input
                             v-model="addForm.password_confirmation"
                             type="password"
                             required
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Parolni qayta kiriting"
+                            :placeholder="t('hr.reenter_password')"
                         />
                     </div>
 
@@ -370,13 +373,13 @@ const removeMember = async (member) => {
                             @click="showAddModal = false"
                             class="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
                         >
-                            Bekor qilish
+                            {{ t('hr.cancel') }}
                         </button>
                         <button
                             type="submit"
                             class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700"
                         >
-                            Qo'shish
+                            {{ t('hr.add') }}
                         </button>
                     </div>
                 </form>
@@ -391,17 +394,17 @@ const removeMember = async (member) => {
         >
             <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Xodimni Tahrirlash</h3>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.edit_employee') }}</h3>
                 </div>
 
                 <form @submit.prevent="updateMember" class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bo'lim</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.department') }}</label>
                         <select
                             v-model="editForm.department"
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
                         >
-                            <option value="">Tanlang</option>
+                            <option value="">{{ t('hr.select') }}</option>
                             <option v-for="(label, key) in departments" :key="key" :value="key">{{ label }}</option>
                         </select>
                     </div>
@@ -412,13 +415,13 @@ const removeMember = async (member) => {
                             @click="showEditModal = false"
                             class="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
                         >
-                            Bekor qilish
+                            {{ t('hr.cancel') }}
                         </button>
                         <button
                             type="submit"
                             class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700"
                         >
-                            Saqlash
+                            {{ t('hr.save') }}
                         </button>
                     </div>
                 </form>
@@ -433,30 +436,30 @@ const removeMember = async (member) => {
         >
             <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Parolni O'zgartirish</h3>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.change_password') }}</h3>
                 </div>
 
                 <form @submit.prevent="resetPassword" class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Yangi parol *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.new_password') }} *</label>
                         <input
                             v-model="passwordForm.password"
                             type="password"
                             required
                             minlength="6"
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Kamida 6 ta belgi"
+                            :placeholder="t('hr.password_placeholder')"
                         />
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parolni tasdiqlang *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('hr.confirm_password') }} *</label>
                         <input
                             v-model="passwordForm.password_confirmation"
                             type="password"
                             required
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Parolni qayta kiriting"
+                            :placeholder="t('hr.reenter_password')"
                         />
                     </div>
 
@@ -466,13 +469,13 @@ const removeMember = async (member) => {
                             @click="showPasswordModal = false"
                             class="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
                         >
-                            Bekor qilish
+                            {{ t('hr.cancel') }}
                         </button>
                         <button
                             type="submit"
                             class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700"
                         >
-                            O'zgartirish
+                            {{ t('hr.update') }}
                         </button>
                     </div>
                 </form>

@@ -1,5 +1,5 @@
 <template>
-    <MarketingLayout title="Yangi Kampaniya">
+    <MarketingLayout :title="t('marketing.new_campaign')">
         <MarketingCampaignCreate
             panel-type="marketing"
             :current-business="currentBusiness"
@@ -11,6 +11,9 @@
 <script setup>
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import MarketingCampaignCreate from '@/components/marketing/MarketingCampaignCreate.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     currentBusiness: Object,

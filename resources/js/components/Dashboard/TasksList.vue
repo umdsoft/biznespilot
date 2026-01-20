@@ -6,7 +6,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
             </div>
-            <p class="text-gray-500 dark:text-gray-400">Vazifalar yo'q</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('dashboard.tasks.no_tasks') }}</p>
         </div>
         <div
             v-for="task in displayTasks"
@@ -76,6 +76,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     tasks: {
@@ -124,9 +127,9 @@ const priorityColor = (priority) => {
 
 const priorityLabel = (priority) => {
     const labels = {
-        high: 'Yuqori',
-        medium: 'O\'rta',
-        low: 'Past',
+        high: t('priority.high'),
+        medium: t('priority.medium'),
+        low: t('priority.low'),
     };
     return labels[priority] || priority;
 };

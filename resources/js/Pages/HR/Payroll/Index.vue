@@ -1,7 +1,10 @@
 <script setup>
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import { CurrencyDollarIcon, UsersIcon, ClockIcon, BanknotesIcon, CalendarIcon, ChartBarIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     cycles: { type: Array, default: () => [] },
@@ -24,26 +27,26 @@ const getStatusClass = (status) => {
 </script>
 
 <template>
-    <HRLayout title="Ish Haqi">
-        <Head title="Ish Haqi" />
+    <HRLayout :title="t('hr.payroll')">
+        <Head :title="t('hr.payroll')" />
 
         <div class="space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Ish Haqi Boshqaruvi</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Oylik maosh va to'lovlar tizimi</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('hr.payroll_management') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('hr.payroll_subtitle') }}</p>
                 </div>
                 <div class="flex gap-3">
                     <Link :href="route('hr.payroll.salary-structures')"
                         class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
                         <Cog6ToothIcon class="w-5 h-5" />
-                        Maosh Tuzilmalari
+                        {{ t('hr.salary_structures') }}
                     </Link>
                     <Link :href="route('hr.payroll.bonuses')"
                         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
                         <BanknotesIcon class="w-5 h-5" />
-                        Bonuslar
+                        {{ t('hr.bonuses') }}
                     </Link>
                 </div>
             </div>

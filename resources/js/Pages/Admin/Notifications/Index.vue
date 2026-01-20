@@ -1,12 +1,12 @@
 <template>
-  <AdminLayout title="Bildirishnomalar">
+  <AdminLayout :title="t('admin.notifications.title')">
     <div class="space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Bildirishnomalar</h1>
+          <h1 class="text-2xl font-bold text-gray-900">{{ t('admin.notifications.title') }}</h1>
           <p class="mt-1 text-sm text-gray-500">
-            Foydalanuvchilarga yuborilgan barcha bildirishnomalar
+            {{ t('admin.notifications.subtitle') }}
           </p>
         </div>
         <Link
@@ -16,7 +16,7 @@
           <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          Yangi bildirishnoma
+          {{ t('admin.notifications.new_notification') }}
         </Link>
       </div>
 
@@ -24,27 +24,27 @@
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
-          <div class="text-sm text-gray-500">Jami</div>
+          <div class="text-sm text-gray-500">{{ t('admin.notifications.stats.total') }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div class="text-2xl font-bold text-blue-600">{{ stats.unread }}</div>
-          <div class="text-sm text-gray-500">O'qilmagan</div>
+          <div class="text-sm text-gray-500">{{ t('admin.notifications.stats.unread') }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div class="text-2xl font-bold text-green-600">{{ stats.read }}</div>
-          <div class="text-sm text-gray-500">O'qilgan</div>
+          <div class="text-sm text-gray-500">{{ t('admin.notifications.stats.read') }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div class="text-2xl font-bold text-purple-600">{{ stats.broadcast }}</div>
-          <div class="text-sm text-gray-500">Ommaviy</div>
+          <div class="text-sm text-gray-500">{{ t('admin.notifications.stats.broadcast') }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div class="text-2xl font-bold text-orange-600">{{ stats.personal }}</div>
-          <div class="text-sm text-gray-500">Shaxsiy</div>
+          <div class="text-sm text-gray-500">{{ t('admin.notifications.stats.personal') }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div class="text-2xl font-bold text-indigo-600">{{ stats.today }}</div>
-          <div class="text-sm text-gray-500">Bugun</div>
+          <div class="text-sm text-gray-500">{{ t('admin.notifications.stats.today') }}</div>
         </div>
       </div>
 
@@ -56,7 +56,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Qidirish..."
+              :placeholder="t('common.search') + '...'"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               @input="debouncedSearch"
             />
@@ -68,7 +68,7 @@
             @change="applyFilters"
             class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="all">Barcha turlar</option>
+            <option value="all">{{ t('admin.notifications.all_types') }}</option>
             <option v-for="(type, key) in types" :key="key" :value="key">
               {{ type.label }}
             </option>
@@ -80,9 +80,9 @@
             @change="applyFilters"
             class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="all">Barchasi</option>
-            <option value="broadcast">Ommaviy</option>
-            <option value="personal">Shaxsiy</option>
+            <option value="all">{{ t('admin.common.all') }}</option>
+            <option value="broadcast">{{ t('admin.notifications.stats.broadcast') }}</option>
+            <option value="personal">{{ t('admin.notifications.stats.personal') }}</option>
           </select>
         </div>
       </div>
@@ -94,22 +94,22 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bildirishnoma
+                  {{ t('admin.notifications.notification') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Turi
+                  {{ t('admin.notifications.type') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Qabul qiluvchi
+                  {{ t('admin.notifications.recipient') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Holati
+                  {{ t('common.status') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sana
+                  {{ t('common.date') }}
                 </th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amallar
+                  {{ t('common.actions') }}
                 </th>
               </tr>
             </thead>
@@ -150,7 +150,7 @@
                   </div>
                   <div v-else>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      Ommaviy
+                      {{ t('admin.notifications.stats.broadcast') }}
                     </span>
                     <p v-if="notification.business" class="text-xs text-gray-500 mt-1">
                       {{ notification.business.name }}
@@ -162,13 +162,13 @@
                     v-if="notification.read_at"
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
                   >
-                    O'qilgan
+                    {{ t('admin.notifications.status.read') }}
                   </span>
                   <span
                     v-else
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                   >
-                    Yangi
+                    {{ t('admin.notifications.status.new') }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -178,7 +178,7 @@
                   <button
                     @click="deleteNotification(notification)"
                     class="text-red-600 hover:text-red-900"
-                    title="O'chirish"
+                    :title="t('common.delete')"
                   >
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -188,7 +188,7 @@
               </tr>
               <tr v-if="notifications.data.length === 0">
                 <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                  Bildirishnomalar topilmadi
+                  {{ t('admin.notifications.not_found') }}
                 </td>
               </tr>
             </tbody>
@@ -198,7 +198,7 @@
         <!-- Pagination -->
         <div v-if="notifications.last_page > 1" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div class="text-sm text-gray-500">
-            {{ notifications.total }} ta natijadan {{ notifications.from }}-{{ notifications.to }} ko'rsatilmoqda
+            {{ t('admin.common.showing') }} {{ notifications.from }}-{{ notifications.to }} {{ t('admin.common.of') }} {{ notifications.total }} {{ t('admin.common.results') }}
           </div>
           <div class="flex items-center space-x-2">
             <Link
@@ -206,14 +206,14 @@
               :href="notifications.prev_page_url"
               class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50"
             >
-              Oldingi
+              {{ t('common.previous') }}
             </Link>
             <Link
               v-if="notifications.next_page_url"
               :href="notifications.next_page_url"
               class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50"
             >
-              Keyingi
+              {{ t('common.next') }}
             </Link>
           </div>
         </div>
@@ -227,6 +227,9 @@ import { ref, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   notifications: Object,
@@ -293,7 +296,7 @@ const getTypeIcon = (type) => {
 };
 
 const deleteNotification = async (notification) => {
-  if (!confirm('Bu bildirishnomani o\'chirishni xohlaysizmi?')) return;
+  if (!confirm(t('admin.notifications.delete_confirm'))) return;
 
   try {
     await axios.delete(`/dashboard/notifications/${notification.id}`);

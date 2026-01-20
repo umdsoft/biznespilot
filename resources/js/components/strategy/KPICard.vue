@@ -46,7 +46,7 @@
         @click="$emit('update')"
         class="text-indigo-600 hover:text-indigo-800 text-sm"
       >
-        Yangilash
+        {{ t('strategy.kpi_card.refresh') }}
       </button>
     </div>
 
@@ -56,7 +56,7 @@
       class="mt-3 flex items-center space-x-2 text-amber-600 text-sm"
     >
       <ExclamationTriangleIcon class="w-4 h-4" />
-      <span>Maqsadga yetish xavf ostida</span>
+      <span>{{ t('strategy.kpi_card.goal_at_risk') }}</span>
     </div>
   </div>
 </template>
@@ -70,6 +70,9 @@ import {
   QuestionMarkCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   kpi: {
@@ -86,24 +89,24 @@ defineEmits(['update']);
 
 const categoryLabel = computed(() => {
   const labels = {
-    revenue: 'Daromad',
-    marketing: 'Marketing',
-    sales: 'Savdo',
-    content: 'Kontent',
-    customer: 'Mijozlar',
-    operational: 'Operatsion',
+    revenue: t('strategy.category.revenue'),
+    marketing: t('strategy.category.marketing'),
+    sales: t('strategy.category.sales'),
+    content: t('strategy.category.content'),
+    customer: t('strategy.category.customer'),
+    operational: t('strategy.category.operational'),
   };
   return labels[props.kpi.category] || props.kpi.category;
 });
 
 const statusLabel = computed(() => {
   const labels = {
-    not_started: 'Boshlanmagan',
-    on_track: 'Rejada',
-    at_risk: 'Xavf ostida',
-    behind: 'Orqada',
-    achieved: 'Erishildi',
-    exceeded: 'Oshib ketdi',
+    not_started: t('strategy.kpi_status.not_started'),
+    on_track: t('strategy.kpi_status.on_track'),
+    at_risk: t('strategy.kpi_status.at_risk'),
+    behind: t('strategy.kpi_status.behind'),
+    achieved: t('strategy.kpi_status.achieved'),
+    exceeded: t('strategy.kpi_status.exceeded'),
   };
   return labels[props.kpi.status] || props.kpi.status;
 });

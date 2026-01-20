@@ -30,7 +30,7 @@
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Orqaga
+          {{ t('common.back') }}
         </Link>
 
         <!-- Form Card -->
@@ -44,8 +44,8 @@
                 </svg>
               </div>
               <div>
-                <h1 class="text-2xl font-bold text-white">Yangi biznes yaratish</h1>
-                <p class="text-blue-100 mt-0.5">Biznesingiz haqida asosiy ma'lumotlarni kiriting</p>
+                <h1 class="text-2xl font-bold text-white">{{ t('create_business.title') }}</h1>
+                <p class="text-blue-100 mt-0.5">{{ t('create_business.subtitle') }}</p>
               </div>
             </div>
           </div>
@@ -67,12 +67,12 @@
             <!-- Business Name -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Biznes nomi <span class="text-red-500">*</span>
+                {{ t('create_business.name') }} <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.name"
                 type="text"
-                placeholder="Masalan: TechStart"
+                :placeholder="t('create_business.name_placeholder')"
                 class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 :class="{ 'border-red-300 dark:border-red-600': form.errors.name }"
                 required
@@ -82,7 +82,7 @@
             <!-- Business Category -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Biznes kategoriyasi <span class="text-red-500">*</span>
+                {{ t('create_business.category') }} <span class="text-red-500">*</span>
               </label>
               <select
                 v-model="form.category"
@@ -90,23 +90,23 @@
                 :class="{ 'border-red-300 dark:border-red-600': form.errors.category }"
                 required
               >
-                <option value="" class="dark:bg-gray-900">Kategoriyani tanlang...</option>
+                <option value="" class="dark:bg-gray-900">{{ t('create_business.category_select') }}</option>
                 <option v-for="category in businessCategories" :key="category.value" :value="category.value" class="dark:bg-gray-900">
                   {{ category.label }}
                 </option>
               </select>
-              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">AI sizning kategoriyangizga mos tavsiyalar beradi</p>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ t('create_business.category_hint') }}</p>
             </div>
 
             <!-- Description -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Biznes haqida qisqacha
+                {{ t('create_business.description') }}
               </label>
               <textarea
                 v-model="form.description"
                 rows="3"
-                placeholder="Biznesingiz nima bilan shug'ullanadi?"
+                :placeholder="t('create_business.description_placeholder')"
                 class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               ></textarea>
             </div>
@@ -115,7 +115,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Qaysi viloyatdansiz? <span class="text-red-500">*</span>
+                  {{ t('create_business.region') }} <span class="text-red-500">*</span>
                 </label>
                 <select
                   v-model="form.region"
@@ -123,7 +123,7 @@
                   :class="{ 'border-red-300 dark:border-red-600': form.errors.region }"
                   required
                 >
-                  <option value="" class="dark:bg-gray-900">Viloyatni tanlang...</option>
+                  <option value="" class="dark:bg-gray-900">{{ t('create_business.region_select') }}</option>
                   <option v-for="region in regions" :key="region.value" :value="region.value" class="dark:bg-gray-900">
                     {{ region.label }}
                   </option>
@@ -131,12 +131,12 @@
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Veb-sayt
+                  {{ t('create_business.website') }}
                 </label>
                 <input
                   v-model="form.website"
                   type="url"
-                  placeholder="https://biznes.uz"
+                  :placeholder="t('create_business.website_placeholder')"
                   class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -146,35 +146,35 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Xodimlar soni
+                  {{ t('create_business.employee_count') }}
                 </label>
                 <select
                   v-model="form.employee_count"
                   class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                  <option value="" class="dark:bg-gray-900">Tanlang...</option>
-                  <option value="1" class="dark:bg-gray-900">Faqat men</option>
-                  <option value="2-5" class="dark:bg-gray-900">2-5 kishi</option>
-                  <option value="6-10" class="dark:bg-gray-900">6-10 kishi</option>
-                  <option value="11-50" class="dark:bg-gray-900">11-50 kishi</option>
-                  <option value="51-200" class="dark:bg-gray-900">51-200 kishi</option>
-                  <option value="200+" class="dark:bg-gray-900">200+ kishi</option>
+                  <option value="" class="dark:bg-gray-900">{{ t('create_business.select') }}</option>
+                  <option value="1" class="dark:bg-gray-900">{{ t('create_business.employee_1') }}</option>
+                  <option value="2-5" class="dark:bg-gray-900">{{ t('create_business.employee_2_5') }}</option>
+                  <option value="6-10" class="dark:bg-gray-900">{{ t('create_business.employee_6_10') }}</option>
+                  <option value="11-50" class="dark:bg-gray-900">{{ t('create_business.employee_11_50') }}</option>
+                  <option value="51-200" class="dark:bg-gray-900">{{ t('create_business.employee_51_200') }}</option>
+                  <option value="200+" class="dark:bg-gray-900">{{ t('create_business.employee_200_plus') }}</option>
                 </select>
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Oylik daromad (taxminan)
+                  {{ t('create_business.monthly_revenue') }}
                 </label>
                 <select
                   v-model="form.monthly_revenue"
                   class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                  <option value="" class="dark:bg-gray-900">Tanlang...</option>
-                  <option value="0-10m" class="dark:bg-gray-900">0 - 10 mln so'm</option>
-                  <option value="10-50m" class="dark:bg-gray-900">10 - 50 mln so'm</option>
-                  <option value="50-100m" class="dark:bg-gray-900">50 - 100 mln so'm</option>
-                  <option value="100-500m" class="dark:bg-gray-900">100 - 500 mln so'm</option>
-                  <option value="500m+" class="dark:bg-gray-900">500 mln+ so'm</option>
+                  <option value="" class="dark:bg-gray-900">{{ t('create_business.select') }}</option>
+                  <option value="0-10m" class="dark:bg-gray-900">{{ t('create_business.revenue_0_10m') }}</option>
+                  <option value="10-50m" class="dark:bg-gray-900">{{ t('create_business.revenue_10_50m') }}</option>
+                  <option value="50-100m" class="dark:bg-gray-900">{{ t('create_business.revenue_50_100m') }}</option>
+                  <option value="100-500m" class="dark:bg-gray-900">{{ t('create_business.revenue_100_500m') }}</option>
+                  <option value="500m+" class="dark:bg-gray-900">{{ t('create_business.revenue_500m_plus') }}</option>
                 </select>
               </div>
             </div>
@@ -182,12 +182,12 @@
             <!-- Target Audience -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Maqsadli auditoriya
+                {{ t('create_business.target_audience') }}
               </label>
               <textarea
                 v-model="form.target_audience"
                 rows="2"
-                placeholder="Kimlar sizning mijozlaringiz? (Masalan: 25-45 yoshli tadbirkorlar)"
+                :placeholder="t('create_business.target_audience_placeholder')"
                 class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               ></textarea>
             </div>
@@ -195,9 +195,9 @@
             <!-- Main Goals -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Asosiy maqsadlaringiz <span class="text-red-500">*</span>
+                {{ t('create_business.main_goals') }} <span class="text-red-500">*</span>
               </label>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Kamida bitta maqsad tanlang (bir nechta tanlash mumkin)</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{{ t('create_business.main_goals_hint') }}</p>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label
                   v-for="goal in availableGoals"
@@ -235,21 +235,21 @@
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  Biznesni yaratish
+                  {{ t('create_business.submit') }}
                 </span>
                 <span v-else class="flex items-center justify-center">
                   <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Yaratilmoqda...
+                  {{ t('create_business.creating') }}
                 </span>
               </button>
             </div>
 
             <!-- Help Text -->
             <p class="text-center text-xs text-gray-500 dark:text-gray-400 pt-2">
-              Ma'lumotlarni keyinroq ham o'zgartirish mumkin
+              {{ t('create_business.help_text') }}
             </p>
           </form>
         </div>
@@ -260,6 +260,9 @@
 
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   isAdditionalBusiness: {

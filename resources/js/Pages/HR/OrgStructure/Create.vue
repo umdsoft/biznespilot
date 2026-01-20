@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     BuildingOfficeIcon,
     CheckCircleIcon,
@@ -12,6 +13,8 @@ import {
     CakeIcon,
     ComputerDesktopIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     businessTypes: Array,
@@ -44,17 +47,17 @@ const submit = () => {
 </script>
 
 <template>
-    <HRLayout title="Tashkiliy Tuzilma Yaratish">
-        <Head title="Tashkiliy Tuzilma Yaratish" />
+    <HRLayout :title="t('hr.create_org_structure')">
+        <Head :title="t('hr.create_org_structure')" />
 
         <div class="max-w-4xl mx-auto space-y-6">
             <!-- Header -->
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                    Tashkiliy Tuzilma Yaratish
+                    {{ t('hr.create_org_structure') }}
                 </h1>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Biznesingiz uchun tashkiliy tuzilma yarating va shablonlardan foydalaning
+                    {{ t('hr.org_structure_desc') }}
                 </p>
             </div>
 
@@ -63,10 +66,10 @@ const submit = () => {
                 <!-- Business Type Selection -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        1. Biznes turini tanlang
+                        1. {{ t('hr.select_business_type') }}
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                        Biznesingiz turiga mos bo'lgan tashkiliy tuzilma shablonlarini taklif qilamiz
+                        {{ t('hr.business_type_desc') }}
                     </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -116,13 +119,13 @@ const submit = () => {
                 <!-- Basic Information -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        2. Asosiy ma'lumotlar
+                        2. {{ t('hr.basic_info') }}
                     </h2>
 
                     <div class="space-y-4">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Nomi
+                                {{ t('hr.name') }}
                             </label>
                             <input
                                 id="name"
@@ -138,7 +141,7 @@ const submit = () => {
 
                         <div>
                             <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Tavsif (ixtiyoriy)
+                                {{ t('hr.description_optional') }}
                             </label>
                             <textarea
                                 id="description"
@@ -156,7 +159,7 @@ const submit = () => {
                 <!-- Template Usage -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        3. Shablonlardan foydalanish
+                        3. {{ t('hr.use_templates') }}
                     </h2>
 
                     <div class="flex items-start space-x-3">
@@ -168,15 +171,14 @@ const submit = () => {
                         />
                         <div class="flex-1">
                             <label for="use_templates" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Tayyor shablonlardan foydalanish
+                                {{ t('hr.use_templates') }}
                             </label>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                Tanlangan biznes turi uchun tayyor bo'limlar va lavozimlarni avtomatik yaratish.
-                                Har bir lavozim uchun YQM (Yakuniy Qiymatdagi Maxsulot) ta'rifi mavjud.
+                                {{ t('hr.use_templates_desc') }}
                             </p>
                             <div v-if="form.use_templates" class="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                                 <p class="text-sm text-purple-900 dark:text-purple-300">
-                                    <strong>Quyidagi bo'limlar yaratiladi:</strong>
+                                    <strong>{{ t('hr.template_departments') }}</strong>
                                 </p>
                                 <ul class="list-disc list-inside text-sm text-purple-800 dark:text-purple-400 mt-2 space-y-1">
                                     <li>Kadrlar bo'limi (HR)</li>
@@ -198,15 +200,15 @@ const submit = () => {
                         @click="$inertia.visit(route('hr.org-structure.index'))"
                         class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                        Bekor qilish
+                        {{ t('hr.cancel') }}
                     </button>
                     <button
                         type="submit"
                         :disabled="form.processing || !form.business_type_id"
                         class="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span v-if="form.processing">Yaratilmoqda...</span>
-                        <span v-else>Tashkiliy Tuzilma Yaratish</span>
+                        <span v-if="form.processing">{{ t('hr.creating') }}</span>
+                        <span v-else>{{ t('hr.create_org_structure') }}</span>
                     </button>
                 </div>
             </form>

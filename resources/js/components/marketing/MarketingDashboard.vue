@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
 import {
     ChartBarIcon,
     UserGroupIcon,
@@ -19,6 +20,8 @@ import {
     PlusIcon,
     ArrowRightIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     panelType: {
@@ -45,8 +48,8 @@ const getRouteName = (name) => {
 };
 
 const formatCurrency = (value) => {
-    if (!value) return '0 so\'m';
-    return new Intl.NumberFormat('uz-UZ').format(value) + ' so\'m';
+    if (!value) return '0 ' + t('common.currency');
+    return new Intl.NumberFormat('uz-UZ').format(value) + ' ' + t('common.currency');
 };
 
 const formatNumber = (value) => {
@@ -67,13 +70,13 @@ const budgetPercentage = computed(() => {
 
 const getStatusLabel = (status) => {
     const labels = {
-        active: 'Faol',
-        completed: 'Tugallangan',
-        draft: 'Qoralama',
-        paused: 'To\'xtatilgan',
-        scheduled: 'Rejalashtirilgan',
-        approved: 'Tasdiqlangan',
-        pending_review: 'Ko\'rib chiqilmoqda',
+        active: t('marketing.status_active'),
+        completed: t('marketing.status_completed'),
+        draft: t('marketing.status_draft'),
+        paused: t('marketing.status_paused'),
+        scheduled: t('marketing.status_scheduled'),
+        approved: t('marketing.status_approved'),
+        pending_review: t('marketing.status_pending_review'),
     };
     return labels[status] || status;
 };
@@ -124,9 +127,9 @@ const formatDate = (dateStr) => {
     const diff = date - now;
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return 'Bugun';
-    if (days === 1) return 'Ertaga';
-    if (days > 1 && days < 7) return `${days} kundan keyin`;
+    if (days === 0) return t('common.today');
+    if (days === 1) return t('common.tomorrow');
+    if (days > 1 && days < 7) return t('marketing.days_later', { days });
 
     return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' });
 };

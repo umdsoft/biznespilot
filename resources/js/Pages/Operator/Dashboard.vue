@@ -2,6 +2,9 @@
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import OperatorDashboard from '@/components/Dashboard/OperatorDashboard.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     stats: Object,
@@ -12,8 +15,8 @@ defineProps({
 </script>
 
 <template>
-    <OperatorLayout title="Bosh sahifa">
-        <Head title="Operator - Bosh sahifa" />
+    <OperatorLayout :title="t('nav.dashboard')">
+        <Head :title="'Operator - ' + t('nav.dashboard')" />
         <OperatorDashboard
             :stats="stats"
             :recent-leads="recentLeads"

@@ -1,6 +1,9 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     survey: Object,
@@ -9,8 +12,8 @@ const props = defineProps({
 const statusMessage = computed(() => {
     if (!props.survey) {
         return {
-            title: 'So\'rovnoma topilmadi',
-            description: 'Bu so\'rovnoma mavjud emas yoki o\'chirilgan.',
+            title: t('public_survey.status.not_found_title'),
+            description: t('public_survey.status.not_found_desc'),
             icon: 'notfound',
         };
     }
@@ -18,33 +21,33 @@ const statusMessage = computed(() => {
     switch (props.survey.status) {
         case 'draft':
             return {
-                title: 'So\'rovnoma hali faol emas',
-                description: 'Bu so\'rovnoma hozirda tayyorlanmoqda. Tez orada faollashtiriladi.',
+                title: t('public_survey.status.draft_title'),
+                description: t('public_survey.status.draft_desc'),
                 icon: 'draft',
             };
         case 'paused':
             return {
-                title: 'So\'rovnoma vaqtincha to\'xtatilgan',
-                description: 'Bu so\'rovnoma vaqtincha to\'xtatilgan. Keyinroq qayta urinib ko\'ring.',
+                title: t('public_survey.status.paused_title'),
+                description: t('public_survey.status.paused_desc'),
                 icon: 'paused',
             };
         case 'completed':
             return {
-                title: 'So\'rovnoma yakunlangan',
-                description: 'Bu so\'rovnoma muvaffaqiyatli yakunlangan. Ishtirokingiz uchun rahmat!',
+                title: t('public_survey.status.completed_title'),
+                description: t('public_survey.status.completed_desc'),
                 icon: 'completed',
             };
         default:
             if (props.survey.expires_at) {
                 return {
-                    title: 'So\'rovnoma muddati tugagan',
-                    description: 'Bu so\'rovnomaning amal qilish muddati tugagan.',
+                    title: t('public_survey.status.expired_title'),
+                    description: t('public_survey.status.expired_desc'),
                     icon: 'expired',
                 };
             }
             return {
-                title: 'So\'rovnoma faol emas',
-                description: 'Bu so\'rovnoma hozirda faol emas.',
+                title: t('public_survey.status.inactive_title'),
+                description: t('public_survey.status.inactive_desc'),
                 icon: 'inactive',
             };
     }
@@ -54,7 +57,7 @@ const themeColor = computed(() => props.survey?.theme_color || '#6366f1');
 </script>
 
 <template>
-    <Head :title="survey?.title || 'So\'rovnoma'" />
+    <Head :title="survey?.title || t('public_survey.survey')" />
 
     <div class="min-h-screen flex items-center justify-center p-4" :style="{ background: `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}05 100%)` }">
         <div class="max-w-md w-full">
@@ -94,13 +97,13 @@ const themeColor = computed(() => props.survey?.theme_color || '#6366f1');
                     <p class="text-gray-600 mb-6">{{ statusMessage.description }}</p>
 
                     <div v-if="survey?.title" class="mb-6 p-4 bg-gray-50 rounded-xl">
-                        <p class="text-sm text-gray-500 mb-1">So'rovnoma nomi:</p>
+                        <p class="text-sm text-gray-500 mb-1">{{ t('public_survey.survey_name') }}:</p>
                         <p class="font-semibold text-gray-900">{{ survey.title }}</p>
                     </div>
 
                     <div v-if="survey?.expires_at" class="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
                         <p class="text-sm text-amber-600">
-                            Amal qilish muddati: {{ new Date(survey.expires_at).toLocaleDateString('uz-UZ') }}
+                            {{ t('public_survey.expires_at') }}: {{ new Date(survey.expires_at).toLocaleDateString('uz-UZ') }}
                         </p>
                     </div>
 
@@ -112,7 +115,7 @@ const themeColor = computed(() => props.survey?.theme_color || '#6366f1');
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        Orqaga qaytish
+                        {{ t('public_survey.go_back') }}
                     </button>
                 </div>
             </div>

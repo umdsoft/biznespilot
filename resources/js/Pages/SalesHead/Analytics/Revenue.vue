@@ -1,8 +1,11 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import { formatFullCurrency, formatPercent } from '@/utils/formatting';
 import { ArrowLeftIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     revenueData: {
@@ -38,8 +41,8 @@ const maxMonthlyRevenue = Math.max(...props.monthlyRevenue.map(m => m.revenue));
 </script>
 
 <template>
-    <SalesHeadLayout title="Daromad Tahlili">
-        <Head title="Daromad Tahlili" />
+    <SalesHeadLayout :title="t('analytics.revenue_analysis')">
+        <Head :title="t('analytics.revenue_analysis')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -51,8 +54,8 @@ const maxMonthlyRevenue = Math.max(...props.monthlyRevenue.map(m => m.revenue));
                     <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Daromad Tahlili</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Batafsil daromad statistikasi</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('analytics.revenue_analysis') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.detailed_revenue_stats') }}</p>
                 </div>
             </div>
 
@@ -60,16 +63,16 @@ const maxMonthlyRevenue = Math.max(...props.monthlyRevenue.map(m => m.revenue));
             <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-6 text-white">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <p class="text-emerald-100">Jami daromad</p>
+                        <p class="text-emerald-100">{{ t('analytics.total_revenue') }}</p>
                         <p class="text-3xl font-bold mt-1">{{ formatFullCurrency(revenueData.total) }}</p>
-                        <p class="text-emerald-100 text-sm mt-1">Maqsad: {{ formatFullCurrency(revenueData.target) }}</p>
+                        <p class="text-emerald-100 text-sm mt-1">{{ t('saleshead.target') }}: {{ formatFullCurrency(revenueData.target) }}</p>
                     </div>
                     <div class="text-right">
                         <div class="flex items-center gap-2 justify-end" :class="revenueData.trend >= 0 ? 'text-green-300' : 'text-red-300'">
                             <component :is="revenueData.trend >= 0 ? ArrowUpIcon : ArrowDownIcon" class="w-5 h-5" />
                             <span class="text-lg font-medium">{{ Math.abs(revenueData.trend) }}%</span>
                         </div>
-                        <p class="text-emerald-100 text-sm">O'tgan oyga nisbatan</p>
+                        <p class="text-emerald-100 text-sm">{{ t('analytics.compared_to_last_month') }}</p>
                     </div>
                 </div>
                 <div class="h-3 bg-white/20 rounded-full overflow-hidden">
@@ -78,24 +81,24 @@ const maxMonthlyRevenue = Math.max(...props.monthlyRevenue.map(m => m.revenue));
                         :style="{ width: `${Math.min(targetProgress, 100)}%` }"
                     ></div>
                 </div>
-                <p class="text-emerald-100 text-sm mt-2">{{ formatPercent(targetProgress) }} bajarildi</p>
+                <p class="text-emerald-100 text-sm mt-2">{{ formatPercent(targetProgress) }} {{ t('analytics.completed') }}</p>
             </div>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">O'rtacha bitim</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.avg_deal') }}</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ formatFullCurrency(revenueData.average_deal) }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Jami bitimlar</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('analytics.total_deals') }}</p>
                     <p class="text-2xl font-bold text-emerald-600 mt-1">{{ monthlyRevenue.reduce((sum, m) => sum + m.deals, 0) }}</p>
                 </div>
             </div>
 
             <!-- Monthly Revenue -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">Oylik daromad</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">{{ t('analytics.monthly_revenue') }}</h3>
                 <div class="space-y-4">
                     <div
                         v-for="month in monthlyRevenue"
@@ -111,14 +114,14 @@ const maxMonthlyRevenue = Math.max(...props.monthlyRevenue.map(m => m.revenue));
                                 <span class="text-white text-sm font-medium">{{ formatFullCurrency(month.revenue) }}</span>
                             </div>
                         </div>
-                        <span class="w-20 text-sm text-gray-500 dark:text-gray-400 text-right">{{ month.deals }} bitim</span>
+                        <span class="w-20 text-sm text-gray-500 dark:text-gray-400 text-right">{{ month.deals }} {{ t('saleshead.deal') }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Revenue Sources -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">Daromad manbalari</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-6">{{ t('analytics.revenue_sources') }}</h3>
                 <div class="space-y-4">
                     <div
                         v-for="source in topSources"

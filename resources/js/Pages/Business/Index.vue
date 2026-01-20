@@ -1,10 +1,10 @@
 <template>
-  <BusinessLayout title="Bizneslar">
+  <BusinessLayout :title="t('business.title')">
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Bizneslar</h2>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ t('business.title') }}</h2>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Sizning barcha bizneslaringizni boshqaring
+          {{ t('business.manage_all') }}
         </p>
       </div>
       <Link
@@ -14,7 +14,7 @@
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Yangi Biznes
+        {{ t('business.new_business') }}
       </Link>
     </div>
 
@@ -25,9 +25,9 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Bizneslar topilmadi</h3>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{{ t('business.no_businesses') }}</h3>
       <p class="text-gray-600 dark:text-gray-400 mb-6">
-        Boshlash uchun birinchi biznesingizni yarating
+        {{ t('business.create_first') }}
       </p>
       <Link
         href="/business/create"
@@ -36,7 +36,7 @@
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Yangi Biznes Yaratish
+        {{ t('business.create_new') }}
       </Link>
     </div>
 
@@ -73,21 +73,21 @@
             <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            {{ business.users_count }} a'zo
+            {{ business.users_count }} {{ t('business.members') }}
           </div>
           <div class="flex items-center space-x-2">
             <Link
               :href="`/business/${business.id}`"
               class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500 font-medium text-sm"
             >
-              Ko'rish
+              {{ t('business.view') }}
             </Link>
             <Link
               v-if="business.role === 'owner' || business.role === 'admin'"
               :href="`/business/${business.id}/edit`"
               class="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm"
             >
-              Tahrirlash
+              {{ t('business.edit') }}
             </Link>
           </div>
         </div>
@@ -100,6 +100,9 @@
 import { Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
   businesses: {
@@ -110,11 +113,11 @@ defineProps({
 
 const getRoleLabel = (role) => {
   const labels = {
-    owner: 'Egasi',
-    admin: 'Admin',
-    manager: 'Menejer',
-    member: 'A\'zo',
-    viewer: 'Ko\'ruvchi',
+    owner: t('business.role_owner'),
+    admin: t('business.role_admin'),
+    manager: t('business.role_manager'),
+    member: t('business.role_member'),
+    viewer: t('business.role_viewer'),
   };
   return labels[role] || role;
 };

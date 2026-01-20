@@ -1,17 +1,17 @@
 <template>
-  <BusinessLayout title="AI Chatbot">
+  <BusinessLayout :title="t('chatbot.ai_chatbot')">
   <div class="flex flex-col h-[calc(100vh-12rem)]">
     <div class="mb-4 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">AI Marketing Maslahatchi</h1>
-        <p class="text-sm text-gray-600 mt-1">Biznes va marketing savollari bo'yicha yordam</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ t('chatbot.ai_marketing_advisor') }}</h1>
+        <p class="text-sm text-gray-600 mt-1">{{ t('chatbot.business_marketing_help') }}</p>
       </div>
       <button
         v-if="chatMessages.length > 0"
         @click="clearHistory"
         class="px-4 py-2 text-sm text-red-600 hover:text-red-700 font-medium"
       >
-        Tarixni Tozalash
+        {{ t('chatbot.clear_history') }}
       </button>
     </div>
 
@@ -22,12 +22,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <div>
-          <h3 class="text-sm font-medium text-yellow-800">API Kaliti Kerak</h3>
+          <h3 class="text-sm font-medium text-yellow-800">{{ t('chatbot.api_key_required') }}</h3>
           <p class="mt-1 text-sm text-yellow-700">
-            Chatbot funksiyasidan foydalanish uchun Settings sahifasida OpenAI yoki Claude API kalitini qo'shing.
+            {{ t('chatbot.api_key_message') }}
           </p>
           <Link :href="route('business.settings.index')" class="mt-3 inline-flex items-center text-sm font-medium text-yellow-800 hover:text-yellow-900">
-            Settings ga o'tish
+            {{ t('chatbot.go_to_settings') }}
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -47,9 +47,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Assalomu alaykum!</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('chatbot.greeting') }}</h3>
           <p class="text-gray-600 max-w-md mx-auto">
-            Men sizning AI marketing maslahatchiingizman. Biznes, marketing, mijozlar va strategiya haqida savollaringizga yordam beraman.
+            {{ t('chatbot.welcome_message') }}
           </p>
           <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
             <button
@@ -117,10 +117,10 @@
               rows="1"
               :disabled="!hasApiKey || isTyping"
               class="input resize-none"
-              placeholder="Savolingizni yozing..."
+              :placeholder="t('chatbot.type_question')"
               style="min-height: 44px; max-height: 120px"
             ></textarea>
-            <p class="text-xs text-gray-500 mt-1">Enter - yuborish, Shift+Enter - yangi qator</p>
+            <p class="text-xs text-gray-500 mt-1">{{ t('chatbot.enter_to_send') }}</p>
           </div>
           <button
             type="submit"
@@ -144,6 +144,9 @@ import { Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   messages: Array,
@@ -201,7 +204,7 @@ const sendMessage = async () => {
       }, 300);
     }
   } catch (error) {
-    alert(error.response?.data?.error || 'Xatolik yuz berdi');
+    alert(error.response?.data?.error || t('common.error'));
   } finally {
     isTyping.value = false;
   }
@@ -213,13 +216,13 @@ const sendSuggestion = (suggestion) => {
 };
 
 const clearHistory = async () => {
-  if (!confirm('Haqiqatan ham chat tarixini tozalamoqchimisiz?')) return;
+  if (!confirm(t('chatbot.confirm_clear'))) return;
 
   try {
     await axios.delete(route('business.chatbot.clear'));
     chatMessages.value = [];
   } catch (error) {
-    alert('Xatolik yuz berdi');
+    alert(t('common.error'));
   }
 };
 

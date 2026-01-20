@@ -17,6 +17,9 @@ import { CheckIcon } from '@heroicons/vue/24/solid';
 import TodoModal from '@/components/todos/TodoModal.vue';
 import RecurrenceModal from '@/components/todos/RecurrenceModal.vue';
 import TodoDetailModal from '@/components/todos/TodoDetailModal.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     todos: Object,
@@ -89,27 +92,27 @@ const activeFilter = ref(props.filter || 'all');
 const activeStatus = ref(props.statusFilter || 'active');
 const loadingTodoId = ref(null);
 
-// Kanban columns configuration
+// Kanban columns configuration - labels will be translated via t()
 const columns = [
-    { key: 'overdue', label: "Muddati o'tgan", color: 'red', icon: ExclamationTriangleIcon },
-    { key: 'today', label: 'Bugun', color: 'blue', icon: ClockIcon },
-    { key: 'tomorrow', label: 'Ertaga', color: 'indigo', icon: CalendarIcon },
-    { key: 'this_week', label: 'Shu hafta', color: 'purple', icon: CalendarIcon },
-    { key: 'later', label: 'Keyinroq', color: 'gray', icon: CalendarIcon },
+    { key: 'overdue', labelKey: 'todos.columns.overdue', color: 'red', icon: ExclamationTriangleIcon },
+    { key: 'today', labelKey: 'todos.columns.today', color: 'blue', icon: ClockIcon },
+    { key: 'tomorrow', labelKey: 'todos.columns.tomorrow', color: 'indigo', icon: CalendarIcon },
+    { key: 'this_week', labelKey: 'todos.columns.this_week', color: 'purple', icon: CalendarIcon },
+    { key: 'later', labelKey: 'todos.columns.later', color: 'gray', icon: CalendarIcon },
 ];
 
-// Filters
+// Filters - labels will be translated via t()
 const filterOptions = [
-    { value: 'all', label: 'Barchasi' },
-    { value: 'personal', label: 'Shaxsiy' },
-    { value: 'team', label: 'Jamoa' },
-    { value: 'process', label: 'Jarayon' },
+    { value: 'all', labelKey: 'todos.filters.all' },
+    { value: 'personal', labelKey: 'todos.filters.personal' },
+    { value: 'team', labelKey: 'todos.filters.team' },
+    { value: 'process', labelKey: 'todos.filters.process' },
 ];
 
 const statusOptions = [
-    { value: 'active', label: 'Faol' },
-    { value: 'completed', label: 'Bajarilgan' },
-    { value: 'all', label: 'Barchasi' },
+    { value: 'active', labelKey: 'todos.status.active' },
+    { value: 'completed', labelKey: 'todos.status.completed' },
+    { value: 'all', labelKey: 'todos.status.all' },
 ];
 
 // Watch filters and reload
@@ -368,9 +371,9 @@ const hasTemplatesRoute = computed(() => {
         <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Vazifalar</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('todos.title') }}</h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {{ stats.total }} ta faol vazifa
+                        {{ t('todos.active_count', { count: stats.total }) }}
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -380,7 +383,7 @@ const hasTemplatesRoute = computed(() => {
                         class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-colors"
                     >
                         <DocumentDuplicateIcon class="w-5 h-5" />
-                        Shablonlar
+                        {{ t('todos.templates') }}
                     </Link>
                     <button
                         @click="openTodoModal()"
@@ -390,7 +393,7 @@ const hasTemplatesRoute = computed(() => {
                         ]"
                     >
                         <PlusIcon class="w-5 h-5" />
-                        Yangi vazifa
+                        {{ t('todos.new_task') }}
                     </button>
                 </div>
             </div>
@@ -409,7 +412,7 @@ const hasTemplatesRoute = computed(() => {
                                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                         ]"
                     >
-                        {{ option.label }}
+                        {{ t(option.labelKey) }}
                     </button>
                 </div>
                 <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
@@ -424,7 +427,7 @@ const hasTemplatesRoute = computed(() => {
                                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                         ]"
                     >
-                        {{ option.label }}
+                        {{ t(option.labelKey) }}
                     </button>
                 </div>
 
@@ -433,12 +436,12 @@ const hasTemplatesRoute = computed(() => {
                     <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
                         <ExclamationTriangleIcon class="w-4 h-4" />
                         <span class="font-semibold">{{ stats.overdue }}</span>
-                        <span class="text-gray-500 dark:text-gray-400">muddati o'tgan</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ t('todos.stats.overdue') }}</span>
                     </div>
                     <div class="flex items-center gap-1.5 text-green-600 dark:text-green-400">
                         <CheckCircleIcon class="w-4 h-4" />
                         <span class="font-semibold">{{ stats.completed_today }}</span>
-                        <span class="text-gray-500 dark:text-gray-400">bugun bajarilgan</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ t('todos.stats.completed_today') }}</span>
                     </div>
                 </div>
             </div>
@@ -457,7 +460,7 @@ const hasTemplatesRoute = computed(() => {
                     <div class="p-3 flex items-center gap-2">
                         <div :class="['w-2 h-2 rounded-full', getColumnHeaderClass(column.color)]"></div>
                         <h3 class="font-semibold text-gray-700 dark:text-gray-300 text-sm">
-                            {{ column.label }}
+                            {{ t(column.labelKey) }}
                         </h3>
                         <span class="ml-auto text-xs font-bold px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
                             {{ getColumnCount(column.key) }}
@@ -540,7 +543,7 @@ const hasTemplatesRoute = computed(() => {
                             <!-- Team progress (for team tasks) -->
                             <div v-if="todo.type === 'team' && todo.assignees && todo.assignees.length > 0" class="mt-3">
                                 <div class="flex items-center justify-between text-xs mb-1">
-                                    <span class="text-gray-500 dark:text-gray-400">Jamoa progress</span>
+                                    <span class="text-gray-500 dark:text-gray-400">{{ t('todos.team_progress') }}</span>
                                     <span class="font-medium text-gray-700 dark:text-gray-300">
                                         {{ todo.completed_assignees_count || 0 }}/{{ todo.assignees_count || todo.assignees.length }}
                                     </span>
@@ -581,7 +584,7 @@ const hasTemplatesRoute = computed(() => {
                             <!-- Subtasks progress -->
                             <div v-else-if="todo.subtasks_count > 0" class="mt-3">
                                 <div class="flex items-center justify-between text-xs mb-1">
-                                    <span class="text-gray-500 dark:text-gray-400">Sub-vazifalar</span>
+                                    <span class="text-gray-500 dark:text-gray-400">{{ t('todos.subtasks') }}</span>
                                     <span class="font-medium text-gray-700 dark:text-gray-300">
                                         {{ todo.completed_subtasks_count }}/{{ todo.subtasks_count }}
                                     </span>
@@ -607,7 +610,7 @@ const hasTemplatesRoute = computed(() => {
                                     <ClockIcon class="w-3.5 h-3.5" />
                                     {{ todo.due_date_formatted }}
                                 </div>
-                                <div v-else class="text-xs text-gray-400">Muddatsiz</div>
+                                <div v-else class="text-xs text-gray-400">{{ t('todos.no_deadline') }}</div>
 
                                 <!-- Single assignee or creator -->
                                 <div v-if="todo.type !== 'team' && todo.assignee" class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
@@ -624,7 +627,7 @@ const hasTemplatesRoute = computed(() => {
                             class="text-center py-8 text-gray-400 dark:text-gray-500"
                         >
                             <component :is="column.icon" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p class="text-sm">Vazifa yo'q</p>
+                            <p class="text-sm">{{ t('todos.no_tasks') }}</p>
                         </div>
                     </div>
 
@@ -635,7 +638,7 @@ const hasTemplatesRoute = computed(() => {
                             class="w-full flex items-center justify-center gap-2 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
                         >
                             <PlusIcon class="w-4 h-4" />
-                            Vazifa qo'shish
+                            {{ t('todos.add_task') }}
                         </button>
                     </div>
                 </div>

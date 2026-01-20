@@ -11,6 +11,9 @@ import {
     BuildingOfficeIcon,
     CreditCardIcon,
 } from '@heroicons/vue/24/outline';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     data: {
@@ -26,15 +29,15 @@ const props = defineProps({
 });
 
 const flowCategories = [
-    { key: 'operating', name: 'Operatsion faoliyat', icon: BanknotesIcon, color: 'blue' },
-    { key: 'investing', name: 'Investitsiya faoliyati', icon: BuildingOfficeIcon, color: 'purple' },
-    { key: 'financing', name: 'Moliyaviy faoliyat', icon: CreditCardIcon, color: 'orange' },
+    { key: 'operating', nameKey: 'finance.operating_activity', icon: BanknotesIcon, color: 'blue' },
+    { key: 'investing', nameKey: 'finance.investing_activity', icon: BuildingOfficeIcon, color: 'purple' },
+    { key: 'financing', nameKey: 'finance.financing_activity', icon: CreditCardIcon, color: 'orange' },
 ];
 </script>
 
 <template>
-    <FinanceLayout title="Pul Oqimi">
-        <Head title="Pul Oqimi Hisoboti" />
+    <FinanceLayout :title="t('finance.cash_flow')">
+        <Head :title="t('finance.cash_flow_report')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -47,36 +50,36 @@ const flowCategories = [
                         <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </Link>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Pul Oqimi Hisoboti</h1>
-                        <p class="mt-1 text-gray-500 dark:text-gray-400">Kiruvchi va chiquvchi pul oqimlari</p>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('finance.cash_flow_report') }}</h1>
+                        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ t('finance.cash_flow_desc') }}</p>
                     </div>
                 </div>
                 <button
                     class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                 >
                     <DocumentArrowDownIcon class="w-5 h-5" />
-                    Yuklab olish
+                    {{ t('finance.download') }}
                 </button>
             </div>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Boshlang'ich Balans</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.opening_balance') }}</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
                         {{ formatFullCurrency(data.summary?.opening_balance) }}
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Sof O'zgarish</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.net_change') }}</p>
                     <p class="text-2xl font-bold mt-1" :class="data.summary?.net_change >= 0 ? 'text-green-600' : 'text-red-600'">
                         {{ data.summary?.net_change >= 0 ? '+' : '' }}{{ formatFullCurrency(data.summary?.net_change) }}
                     </p>
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Yakuniy Balans</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('finance.closing_balance') }}</p>
                     <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">
                         {{ formatFullCurrency(data.summary?.closing_balance) }}
                     </p>
@@ -109,13 +112,13 @@ const flowCategories = [
                                 }"
                             />
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ category.name }}</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t(category.nameKey) }}</h3>
                     </div>
                     <div class="p-6 space-y-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <ArrowDownIcon class="w-4 h-4 text-green-500" />
-                                <span class="text-gray-600 dark:text-gray-400">Kiruvchi</span>
+                                <span class="text-gray-600 dark:text-gray-400">{{ t('finance.inflow') }}</span>
                             </div>
                             <span class="font-medium text-green-600">
                                 {{ formatFullCurrency(data[category.key]?.inflow) }}
@@ -124,14 +127,14 @@ const flowCategories = [
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <ArrowUpIcon class="w-4 h-4 text-red-500" />
-                                <span class="text-gray-600 dark:text-gray-400">Chiquvchi</span>
+                                <span class="text-gray-600 dark:text-gray-400">{{ t('finance.outflow') }}</span>
                             </div>
                             <span class="font-medium text-red-600">
                                 {{ formatFullCurrency(data[category.key]?.outflow) }}
                             </span>
                         </div>
                         <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                            <span class="font-semibold text-gray-900 dark:text-white">Sof</span>
+                            <span class="font-semibold text-gray-900 dark:text-white">{{ t('finance.net') }}</span>
                             <span
                                 class="font-bold"
                                 :class="data[category.key]?.net >= 0 ? 'text-green-600' : 'text-red-600'"
@@ -146,17 +149,17 @@ const flowCategories = [
             <!-- Monthly Trend -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Oylik Trend</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('finance.monthly_trend') }}</h3>
                 </div>
                 <div class="p-6">
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
                                 <tr class="text-left text-sm text-gray-500 dark:text-gray-400">
-                                    <th class="pb-3 font-medium">Oy</th>
-                                    <th class="pb-3 font-medium text-right">Kiruvchi</th>
-                                    <th class="pb-3 font-medium text-right">Chiquvchi</th>
-                                    <th class="pb-3 font-medium text-right">Sof</th>
+                                    <th class="pb-3 font-medium">{{ t('finance.month') }}</th>
+                                    <th class="pb-3 font-medium text-right">{{ t('finance.inflow') }}</th>
+                                    <th class="pb-3 font-medium text-right">{{ t('finance.outflow') }}</th>
+                                    <th class="pb-3 font-medium text-right">{{ t('finance.net') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">

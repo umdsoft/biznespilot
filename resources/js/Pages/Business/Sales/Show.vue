@@ -1,6 +1,9 @@
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import LeadShow from '@/components/leads/LeadShow.vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     lead: {

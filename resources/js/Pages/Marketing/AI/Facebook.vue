@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import AIChannelPage from '@/components/ai-analysis/AIChannelPage.vue';
-import { h } from 'vue';
+import { h, computed } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps({
     channel: Object,
@@ -18,36 +21,36 @@ const FacebookIcon = {
     }
 };
 
-const platformConfig = {
-    title: 'Facebook Tahlili',
-    subtitle: 'Facebook sahifangiz statistikasi',
+const platformConfig = computed(() => ({
+    title: t('nav.facebook_analysis'),
+    subtitle: t('marketing.facebook_stats'),
     headerGradient: 'bg-gradient-to-br from-blue-500 to-blue-700',
     icon: FacebookIcon,
     emptyIconBg: 'bg-blue-100 dark:bg-blue-900/30',
     emptyIconColor: 'text-blue-600 dark:text-blue-400',
-    connectTitle: 'Facebook Ulang',
-    connectDescription: 'Facebook sahifangizni ulang va batafsil tahlillarni ko\'ring.',
+    connectTitle: t('marketing.connect_facebook'),
+    connectDescription: t('marketing.connect_facebook_desc'),
     connectButtonClass: 'bg-blue-600 hover:bg-blue-700',
-    connectButtonText: 'Facebook Ulash',
+    connectButtonText: t('marketing.connect_facebook_btn'),
     metricsConfig: [
         { key: 'followers_count', label: 'Followers', icon: '👥', iconColor: 'text-blue-600' },
         { key: 'page_likes', label: 'Page Likes', icon: '👍', iconColor: 'text-green-600' },
         { key: 'reach', label: 'Reach', icon: '📈', iconColor: 'text-purple-600' },
         { key: 'engagement_rate', label: 'Engagement', icon: '💬', iconColor: 'text-orange-600', suffix: '%' },
     ],
-    tableTitle: 'Haftalik Statistika',
+    tableTitle: t('marketing.weekly_stats'),
     tableColumns: [
-        { key: 'date', label: 'Sana' },
+        { key: 'date', label: t('common.date') },
         { key: 'reach', label: 'Reach' },
-        { key: 'impressions', label: 'Ko\'rishlar' },
+        { key: 'impressions', label: t('marketing.views') },
         { key: 'engagement', label: 'Engagement' },
     ],
-};
+}));
 </script>
 
 <template>
-    <MarketingLayout title="Facebook Tahlili">
-        <Head title="Facebook Tahlili" />
+    <MarketingLayout :title="t('nav.facebook_analysis')">
+        <Head :title="t('nav.facebook_analysis')" />
         <AIChannelPage
             :channel="channel"
             :metrics="metrics"

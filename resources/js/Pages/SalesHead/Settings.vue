@@ -2,12 +2,15 @@
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import { useI18n } from '@/i18n';
 import {
     Cog6ToothIcon,
     BellIcon,
     UserGroupIcon,
     ChartBarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
 
 const props = defineProps({
     settings: {
@@ -36,27 +39,27 @@ const saveSettings = () => {
 
 const settingSections = [
     {
-        title: 'Bildirishnomalar',
+        title: t('settings.notifications'),
         icon: BellIcon,
         settings: [
-            { key: 'notifications_enabled', label: "Barcha bildirishnomalar", description: "Tizim bildirishnomalarini yoqish/o'chirish" },
-            { key: 'daily_report_email', label: 'Kunlik hisobot', description: 'Har kuni email orqali hisobot olish' },
-            { key: 'weekly_summary', label: 'Haftalik xulosa', description: 'Har hafta umumiy xulosa olish' },
+            { key: 'notifications_enabled', label: t('settings.all_notifications'), description: t('settings.all_notifications_desc') },
+            { key: 'daily_report_email', label: t('settings.daily_report'), description: t('settings.daily_report_desc') },
+            { key: 'weekly_summary', label: t('settings.weekly_summary'), description: t('settings.weekly_summary_desc') },
         ],
     },
     {
-        title: 'Jamoa',
+        title: t('saleshead.team'),
         icon: UserGroupIcon,
         settings: [
-            { key: 'team_alerts', label: "Jamoa ogohlantirishlari", description: "Jamoa a'zolari haqida ogohlantirishlar" },
+            { key: 'team_alerts', label: t('settings.team_alerts'), description: t('settings.team_alerts_desc') },
         ],
     },
 ];
 </script>
 
 <template>
-    <SalesHeadLayout title="Sozlamalar">
-        <Head title="Sozlamalar" />
+    <SalesHeadLayout :title="t('settings.title')">
+        <Head :title="t('settings.title')" />
 
         <div class="space-y-6">
             <!-- Header -->
@@ -65,8 +68,8 @@ const settingSections = [
                     <Cog6ToothIcon class="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sozlamalar</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Sotuv bo'limi sozlamalari</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('settings.title') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('saleshead.sales_department_settings') }}</p>
                 </div>
             </div>
 
@@ -114,7 +117,7 @@ const settingSections = [
                     :disabled="form.processing"
                     class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-medium rounded-lg transition-colors"
                 >
-                    {{ form.processing ? 'Saqlanmoqda...' : 'Saqlash' }}
+                    {{ form.processing ? t('common.saving') : t('common.save') }}
                 </button>
             </div>
         </div>

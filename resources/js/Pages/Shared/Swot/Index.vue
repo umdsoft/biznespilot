@@ -1,5 +1,5 @@
 <template>
-    <component :is="layoutComponent" title="SWOT Tahlil">
+    <component :is="layoutComponent" :title="t('swot.title')">
         <SwotIndex
             :current-business="currentBusiness"
             :swot="swot"
@@ -13,9 +13,12 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/i18n';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import SwotIndex from '@/components/swot/SwotIndex.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     currentBusiness: { type: Object, required: true },

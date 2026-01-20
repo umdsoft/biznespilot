@@ -2,15 +2,15 @@
   <div class="space-y-6">
     <!-- Period Selector -->
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Manba Tahlili</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ t('kpi.source_analysis') }}</h3>
       <div class="flex items-center gap-2">
         <select
           v-model="selectedPeriod"
           class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
         >
-          <option value="week">Oxirgi hafta</option>
-          <option value="month">Joriy oy</option>
-          <option value="quarter">Joriy kvartal</option>
+          <option value="week">{{ t('kpi.last_week') }}</option>
+          <option value="month">{{ t('kpi.current_month') }}</option>
+          <option value="quarter">{{ t('kpi.current_quarter') }}</option>
         </select>
       </div>
     </div>
@@ -35,15 +35,15 @@
         </div>
         <div class="space-y-2">
           <div class="flex justify-between">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Lidlar</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.leads') }}</span>
             <span class="font-semibold text-gray-900 dark:text-gray-100">{{ category.leads }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Xarajat</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.expense') }}</span>
             <span class="font-semibold text-gray-900 dark:text-gray-100">{{ formatMoney(category.spend) }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Konversiya</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('kpi.conversion') }}</span>
             <span
               class="font-semibold"
               :class="category.conversion_rate >= 10 ? 'text-green-600' : 'text-yellow-600'"
@@ -71,18 +71,18 @@
     <!-- Detailed Sources Table -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h4 class="font-semibold text-gray-900 dark:text-gray-100">Batafsil manba tahlili</h4>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ t('kpi.detailed_source_analysis') }}</h4>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Manba</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kategoriya</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lidlar</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ulushi</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Xarajat</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Konversiya</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.source') }}</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.category') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.leads') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.share') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.expense') }}</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('kpi.conversion') }}</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">CPL</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ROI</th>
             </tr>
@@ -146,7 +146,7 @@
             </tr>
             <tr v-if="!sourceAnalysis.sources?.length">
               <td colspan="8" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                Manba ma'lumotlari mavjud emas
+                {{ t('kpi.no_source_data') }}
               </td>
             </tr>
           </tbody>
@@ -162,13 +162,13 @@
           <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span class="font-semibold text-green-800 dark:text-green-300">Eng yaxshi konversiya</span>
+          <span class="font-semibold text-green-800 dark:text-green-300">{{ t('kpi.best_conversion') }}</span>
         </div>
         <p class="text-lg font-bold text-green-900 dark:text-green-200">
           {{ sourceAnalysis.insights.best_conversion.source_name }}
         </p>
         <p class="text-sm text-green-700 dark:text-green-400">
-          {{ sourceAnalysis.insights.best_conversion.conversion_rate }}% konversiya
+          {{ sourceAnalysis.insights.best_conversion.conversion_rate }}% {{ t('kpi.conversion') }}
         </p>
       </div>
 
@@ -178,7 +178,7 @@
           <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
-          <span class="font-semibold text-blue-800 dark:text-blue-300">Eng yaxshi ROI</span>
+          <span class="font-semibold text-blue-800 dark:text-blue-300">{{ t('kpi.best_roi') }}</span>
         </div>
         <p class="text-lg font-bold text-blue-900 dark:text-blue-200">
           {{ sourceAnalysis.insights.best_roi.source_name }}
@@ -194,20 +194,20 @@
           <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span class="font-semibold text-purple-800 dark:text-purple-300">Eng past CPL</span>
+          <span class="font-semibold text-purple-800 dark:text-purple-300">{{ t('kpi.lowest_cpl') }}</span>
         </div>
         <p class="text-lg font-bold text-purple-900 dark:text-purple-200">
           {{ sourceAnalysis.insights.lowest_cpl.source_name }}
         </p>
         <p class="text-sm text-purple-700 dark:text-purple-400">
-          {{ formatMoney(sourceAnalysis.insights.lowest_cpl.cpl) }} / lid
+          {{ formatMoney(sourceAnalysis.insights.lowest_cpl.cpl) }} / {{ t('kpi.lead') }}
         </p>
       </div>
     </div>
 
     <!-- Recommendations -->
     <div v-if="recommendations.length > 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-      <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">Tavsiyalar</h4>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('kpi.recommendations') }}</h4>
       <div class="space-y-3">
         <div
           v-for="(rec, index) in recommendations"
@@ -239,6 +239,9 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   businessId: {
@@ -271,10 +274,10 @@ const formatMoney = (value) => {
 
 const getCategoryName = (key) => {
   const names = {
-    digital: 'Digital',
-    offline: 'Offline',
-    referral: 'Tavsiya',
-    organic: 'Organik'
+    digital: t('kpi.category_digital'),
+    offline: t('kpi.category_offline'),
+    referral: t('kpi.category_referral'),
+    organic: t('kpi.category_organic')
   };
   return names[key] || key;
 };
