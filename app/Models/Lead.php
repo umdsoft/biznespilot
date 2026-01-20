@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -287,6 +289,8 @@ class Lead extends Model
         'uuid',
         'business_id',
         'source_id',
+        'campaign_id',
+        'marketing_channel_id',
         'assigned_to',
         'name',
         'email',
@@ -299,14 +303,34 @@ class Lead extends Model
         'address',
         'gender',
         'status',
+        'qualification_status',
+        'qualified_at',
+        'qualified_by',
+        'stage_changed_at',
         'lost_reason',
         'lost_reason_details',
         'score',
+        'score_category',
+        'score_breakdown',
+        'scored_at',
+        'last_engagement_at',
         'estimated_value',
         'data',
         'notes',
         'last_contacted_at',
         'converted_at',
+        // UTM tracking
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_content',
+        'utm_term',
+        // First touch tracking
+        'first_touch_at',
+        'first_touch_source',
+        // Cost attribution
+        'acquisition_cost',
+        'acquisition_source_type',
     ];
 
     /**
@@ -317,9 +341,16 @@ class Lead extends Model
     protected $casts = [
         'estimated_value' => 'decimal:2',
         'data' => 'array',
+        'score_breakdown' => 'array',
         'birth_date' => 'date',
+        'stage_changed_at' => 'datetime',
+        'scored_at' => 'datetime',
+        'last_engagement_at' => 'datetime',
         'last_contacted_at' => 'datetime',
         'converted_at' => 'datetime',
+        'qualified_at' => 'datetime',
+        'first_touch_at' => 'datetime',
+        'acquisition_cost' => 'decimal:2',
     ];
 
     /**
@@ -328,6 +359,29 @@ class Lead extends Model
     public function source(): BelongsTo
     {
         return $this->belongsTo(LeadSource::class, 'source_id');
+    }
+
+    /**
+     * Pipeline stage (status orqali)
+     */
+    public function stage(): BelongsTo
+    {
+        return $this->belongsTo(PipelineStage::class, 'status', 'slug')
+            ->where('business_id', $this->business_id);
+    }
+
+    /**
+     * Pipeline stage ni olish (cache bilan)
+     */
+    public function getStageAttribute(): ?PipelineStage
+    {
+        if (! $this->status) {
+            return null;
+        }
+
+        return PipelineStage::where('business_id', $this->business_id)
+            ->where('slug', $this->status)
+            ->first();
     }
 
     /**
@@ -344,6 +398,46 @@ class Lead extends Model
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
+    }
+
+    /**
+     * Get the campaign for this lead (Marketing Attribution).
+     */
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class);
+    }
+
+    /**
+     * Get the marketing channel for this lead (Marketing Attribution).
+     */
+    public function marketingChannel(): BelongsTo
+    {
+        return $this->belongsTo(MarketingChannel::class);
+    }
+
+    /**
+     * Get qualification history for this lead.
+     */
+    public function qualifications(): HasMany
+    {
+        return $this->hasMany(LeadQualification::class);
+    }
+
+    /**
+     * Get the user who qualified this lead.
+     */
+    public function qualifiedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'qualified_by');
+    }
+
+    /**
+     * Get the sale created from this lead.
+     */
+    public function sale(): HasOne
+    {
+        return $this->hasOne(Sale::class);
     }
 
     /**
@@ -542,5 +636,238 @@ class Lead extends Model
     public function getLastOffer(): ?OfferLeadAssignment
     {
         return $this->offerAssignments()->latest('sent_at')->first();
+    }
+
+    /**
+     * Get score history for this lead.
+     */
+    public function scoreHistory(): HasMany
+    {
+        return $this->hasMany(LeadScoreHistory::class)->orderByDesc('created_at');
+    }
+
+    /**
+     * Get score category info.
+     */
+    public function getScoreCategoryInfoAttribute(): array
+    {
+        $categories = [
+            'hot' => ['name' => 'Issiq', 'color' => '#ef4444', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
+            'warm' => ['name' => 'Iliq', 'color' => '#f97316', 'bg' => 'bg-orange-100', 'text' => 'text-orange-800'],
+            'cool' => ['name' => 'Salqin', 'color' => '#eab308', 'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
+            'cold' => ['name' => 'Sovuq', 'color' => '#3b82f6', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
+            'frozen' => ['name' => 'Muzlagan', 'color' => '#6b7280', 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
+        ];
+
+        return $categories[$this->score_category] ?? $categories['frozen'];
+    }
+
+    /**
+     * Check if lead is hot.
+     */
+    public function isHot(): bool
+    {
+        return $this->score_category === 'hot' || ($this->score ?? 0) >= 80;
+    }
+
+    /**
+     * Scope: Filter by score category.
+     */
+    public function scopeScoreCategory($query, string $category)
+    {
+        return $query->where('score_category', $category);
+    }
+
+    /**
+     * Scope: Hot leads.
+     */
+    public function scopeHotLeads($query)
+    {
+        return $query->where('score_category', 'hot');
+    }
+
+    /**
+     * Scope: Filter by minimum score.
+     */
+    public function scopeMinScore($query, int $score)
+    {
+        return $query->where('score', '>=', $score);
+    }
+
+    // ==========================================
+    // MARKETING ATTRIBUTION SCOPES & METHODS
+    // ==========================================
+
+    /**
+     * Scope: MQL leads only.
+     */
+    public function scopeMql(Builder $query): Builder
+    {
+        return $query->where('qualification_status', 'mql');
+    }
+
+    /**
+     * Scope: SQL leads only.
+     */
+    public function scopeSql(Builder $query): Builder
+    {
+        return $query->where('qualification_status', 'sql');
+    }
+
+    /**
+     * Scope: Qualified leads (MQL or SQL).
+     */
+    public function scopeQualified(Builder $query): Builder
+    {
+        return $query->whereIn('qualification_status', ['mql', 'sql']);
+    }
+
+    /**
+     * Scope: Disqualified leads.
+     */
+    public function scopeDisqualified(Builder $query): Builder
+    {
+        return $query->where('qualification_status', 'disqualified');
+    }
+
+    /**
+     * Scope: Filter by campaign.
+     */
+    public function scopeFromCampaign(Builder $query, $campaignId): Builder
+    {
+        return $query->where('campaign_id', $campaignId);
+    }
+
+    /**
+     * Scope: Filter by marketing channel.
+     */
+    public function scopeFromChannel(Builder $query, $channelId): Builder
+    {
+        return $query->where('marketing_channel_id', $channelId);
+    }
+
+    /**
+     * Scope: Filter by date range.
+     */
+    public function scopeCreatedBetween(Builder $query, Carbon $from, Carbon $to): Builder
+    {
+        return $query->whereBetween('created_at', [$from, $to]);
+    }
+
+    /**
+     * Scope: Leads with attribution data.
+     */
+    public function scopeWithAttribution(Builder $query): Builder
+    {
+        return $query->where(function ($q) {
+            $q->whereNotNull('campaign_id')
+              ->orWhereNotNull('marketing_channel_id')
+              ->orWhereNotNull('utm_source');
+        });
+    }
+
+    /**
+     * Check if lead is MQL.
+     */
+    public function isMql(): bool
+    {
+        return $this->qualification_status === 'mql';
+    }
+
+    /**
+     * Check if lead is SQL.
+     */
+    public function isSql(): bool
+    {
+        return $this->qualification_status === 'sql';
+    }
+
+    /**
+     * Check if lead is qualified (MQL or SQL).
+     */
+    public function isQualified(): bool
+    {
+        return in_array($this->qualification_status, ['mql', 'sql']);
+    }
+
+    /**
+     * Check if lead is disqualified.
+     */
+    public function isDisqualified(): bool
+    {
+        return $this->qualification_status === 'disqualified';
+    }
+
+    /**
+     * Check if lead is won.
+     */
+    public function isWon(): bool
+    {
+        return $this->status === 'won';
+    }
+
+    /**
+     * Check if lead has marketing attribution.
+     */
+    public function hasAttribution(): bool
+    {
+        return $this->campaign_id !== null
+            || $this->marketing_channel_id !== null
+            || $this->utm_source !== null;
+    }
+
+    /**
+     * Get UTM parameters as array.
+     */
+    public function getUtmArray(): array
+    {
+        return [
+            'utm_source' => $this->utm_source,
+            'utm_medium' => $this->utm_medium,
+            'utm_campaign' => $this->utm_campaign,
+            'utm_content' => $this->utm_content,
+            'utm_term' => $this->utm_term,
+        ];
+    }
+
+    /**
+     * Get full attribution summary for reporting.
+     */
+    public function getAttributionSummary(): array
+    {
+        return [
+            'lead_id' => $this->id,
+            'campaign_id' => $this->campaign_id,
+            'campaign_name' => $this->campaign?->name,
+            'channel_id' => $this->marketing_channel_id,
+            'channel_name' => $this->marketingChannel?->name,
+            'source_id' => $this->source_id,
+            'source_name' => $this->source?->name,
+            'utm' => $this->getUtmArray(),
+            'first_touch' => [
+                'at' => $this->first_touch_at?->toIso8601String(),
+                'source' => $this->first_touch_source,
+            ],
+            'qualification' => [
+                'status' => $this->qualification_status,
+                'qualified_at' => $this->qualified_at?->toIso8601String(),
+            ],
+            'created_at' => $this->created_at->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Get qualification status info with labels and colors.
+     */
+    public function getQualificationStatusInfoAttribute(): array
+    {
+        $statuses = [
+            'new' => ['name' => 'Yangi', 'color' => '#6b7280', 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
+            'mql' => ['name' => 'MQL', 'color' => '#3b82f6', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
+            'sql' => ['name' => 'SQL', 'color' => '#10b981', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
+            'disqualified' => ['name' => 'Rad etildi', 'color' => '#ef4444', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
+        ];
+
+        return $statuses[$this->qualification_status] ?? $statuses['new'];
     }
 }

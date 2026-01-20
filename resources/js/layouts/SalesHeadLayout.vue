@@ -1,5 +1,10 @@
 <template>
   <BaseLayout :title="title || t('layout.home')" :config="layoutConfig" :quick-stats="formattedQuickStats">
+    <!-- Alert Dropdown in Header -->
+    <template #notifications>
+      <AlertDropdown />
+    </template>
+
     <template #navigation>
       <template v-for="(section, sectionIndex) in layoutConfig.navigation" :key="sectionIndex">
         <!-- Section Divider -->
@@ -15,43 +20,83 @@
         </div>
 
         <!-- Navigation Items -->
-        <NavLink
-          v-for="item in section.items"
-          :key="item.href"
-          :href="item.href"
-          :active="isActive(item)"
-        >
-          <component :is="item.icon" class="w-5 h-5 mr-3" />
-          <span class="flex-1">{{ item.label }}</span>
-          <!-- Leads Badge -->
-          <span
-            v-if="item.href === '/sales-head/leads' && leadStats.new > 0"
-            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-emerald-500 text-white rounded-full"
+        <template v-for="item in section.items" :key="item.href || item.label">
+          <!-- Dropdown Menu (with children) -->
+          <div v-if="item.children" class="mb-1">
+            <button
+              @click="toggleDropdown(item.label)"
+              :class="[
+                'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                isChildActive(item.children)
+                  ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+              ]"
+            >
+              <component :is="item.icon" class="w-5 h-5 mr-3" />
+              <span class="flex-1 text-left">{{ item.label }}</span>
+              <ChevronDownIcon
+                :class="[
+                  'w-4 h-4 transition-transform duration-200',
+                  openDropdowns[item.label] ? 'rotate-180' : ''
+                ]"
+              />
+            </button>
+
+            <!-- Dropdown Children -->
+            <div
+              v-show="openDropdowns[item.label]"
+              class="mt-1 ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-1"
+            >
+              <NavLink
+                v-for="child in item.children"
+                :key="child.href"
+                :href="child.href"
+                :active="isActive(child)"
+                class="!py-1.5 !text-sm"
+              >
+                <span>{{ child.label }}</span>
+              </NavLink>
+            </div>
+          </div>
+
+          <!-- Regular Menu Item (no children) -->
+          <NavLink
+            v-else
+            :href="item.href"
+            :active="isActive(item)"
           >
-            {{ leadStats.new > 99 ? '99+' : leadStats.new }}
-          </span>
-          <!-- Tasks Badge -->
-          <span
-            v-if="item.href === '/sales-head/tasks' && taskStats.overdue > 0"
-            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
-          >
-            {{ taskStats.overdue > 99 ? '99+' : taskStats.overdue }}
-          </span>
-          <!-- Calls Badge -->
-          <span
-            v-if="item.href === '/sales-head/calls' && callStats.missed > 0"
-            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-orange-500 text-white rounded-full"
-          >
-            {{ callStats.missed > 99 ? '99+' : callStats.missed }}
-          </span>
-          <!-- Inbox Badge -->
-          <span
-            v-if="item.href === '/sales-head/inbox' && inboxStats.unread > 0"
-            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
-          >
-            {{ inboxStats.unread > 99 ? '99+' : inboxStats.unread }}
-          </span>
-        </NavLink>
+            <component :is="item.icon" class="w-5 h-5 mr-3" />
+            <span class="flex-1">{{ item.label }}</span>
+            <!-- Leads Badge -->
+            <span
+              v-if="item.href === '/sales-head/leads' && leadStats.new > 0"
+              class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-emerald-500 text-white rounded-full"
+            >
+              {{ leadStats.new > 99 ? '99+' : leadStats.new }}
+            </span>
+            <!-- Tasks Badge -->
+            <span
+              v-if="item.href === '/sales-head/tasks' && taskStats.overdue > 0"
+              class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+            >
+              {{ taskStats.overdue > 99 ? '99+' : taskStats.overdue }}
+            </span>
+            <!-- Calls Badge -->
+            <span
+              v-if="item.href === '/sales-head/calls' && callStats.missed > 0"
+              class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-orange-500 text-white rounded-full"
+            >
+              {{ callStats.missed > 99 ? '99+' : callStats.missed }}
+            </span>
+            <!-- Inbox Badge -->
+            <span
+              v-if="item.href === '/sales-head/inbox' && inboxStats.unread > 0"
+              class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+            >
+              {{ inboxStats.unread > 99 ? '99+' : inboxStats.unread }}
+            </span>
+          </NavLink>
+        </template>
       </template>
     </template>
 
@@ -60,12 +105,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import BaseLayout from './BaseLayout.vue';
 import NavLink from '@/components/NavLink.vue';
+import AlertDropdown from '@/components/Sales/AlertDropdown.vue';
 import { salesHeadLayoutConfig } from '@/composables/useLayoutConfig';
 import { useI18n } from '@/i18n';
+import { ChevronDownIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 
 const { t } = useI18n();
@@ -79,6 +126,34 @@ defineProps({
 
 const page = usePage();
 const layoutConfig = salesHeadLayoutConfig;
+
+// Dropdown state
+const openDropdowns = reactive({});
+
+// Initialize dropdowns - open if any child is active
+const initDropdowns = () => {
+  layoutConfig.navigation.forEach(section => {
+    section.items.forEach(item => {
+      if (item.children) {
+        // Auto-open if any child is active
+        const hasActiveChild = item.children.some(child =>
+          page.url.startsWith(child.href)
+        );
+        openDropdowns[item.label] = hasActiveChild;
+      }
+    });
+  });
+};
+
+// Toggle dropdown
+const toggleDropdown = (label) => {
+  openDropdowns[label] = !openDropdowns[label];
+};
+
+// Check if any child is active
+const isChildActive = (children) => {
+  return children.some(child => page.url.startsWith(child.href));
+};
 
 // Stats
 const leadStats = ref({ new: 0, total: 0 });
@@ -156,6 +231,7 @@ const isActive = (item) => {
 };
 
 onMounted(() => {
+  initDropdowns();
   startStatsPolling();
 });
 

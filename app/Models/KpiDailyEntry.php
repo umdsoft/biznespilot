@@ -32,6 +32,10 @@ class KpiDailyEntry extends Model
         // Revenue
         'revenue_new',
         'revenue_repeat',
+        'revenue_digital',
+        'revenue_offline',
+        'revenue_referral',
+        'revenue_organic',
         'revenue_total',
         // Payments
         'payment_cash',
@@ -44,6 +48,11 @@ class KpiDailyEntry extends Model
         'conversion_rate',
         'cpl',
         'cac',
+        'roas_digital',
+        'roas_offline',
+        'roas_total',
+        'roi_total',
+        'profit_total',
         // Meta
         'notes',
         'source',
@@ -71,6 +80,15 @@ class KpiDailyEntry extends Model
         'conversion_rate' => 'decimal:2',
         'cpl' => 'decimal:2',
         'cac' => 'decimal:2',
+        'revenue_digital' => 'decimal:2',
+        'revenue_offline' => 'decimal:2',
+        'revenue_referral' => 'decimal:2',
+        'revenue_organic' => 'decimal:2',
+        'roas_digital' => 'decimal:4',
+        'roas_offline' => 'decimal:4',
+        'roas_total' => 'decimal:4',
+        'roi_total' => 'decimal:4',
+        'profit_total' => 'decimal:2',
         'is_complete' => 'boolean',
         'verified_at' => 'datetime',
     ];

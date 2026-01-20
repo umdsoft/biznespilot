@@ -144,7 +144,8 @@ class EnsureHasBusiness
                $request->is('sanctum/*') ||
                $request->is('_debugbar/*') ||
                $request->is('integrations/*/auth-url') ||
-               $request->is('integrations/*/callback');
+               $request->is('integrations/*/callback') ||
+               $request->is('business/notifications*'); // Allow notifications for all departments
     }
 
     /**

@@ -468,6 +468,49 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/content/{content}/edit', [MarketingController::class, 'editContent'])->name('content.edit');
         Route::put('/content/{content}', [MarketingController::class, 'updateContent'])->name('content.update');
         Route::delete('/content/{content}', [MarketingController::class, 'deleteContent'])->name('content.destroy');
+
+        // Marketing KPI routes
+        Route::prefix('kpi')->name('kpi.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\MarketingKpiController::class, 'dashboard'])->name('dashboard');
+            Route::get('/leaderboard', [App\Http\Controllers\Marketing\MarketingKpiController::class, 'leaderboard'])->name('leaderboard');
+        });
+
+        // Content AI routes
+        Route::prefix('content-ai')->name('content-ai.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Marketing\ContentAIController::class, 'index'])->name('index');
+            Route::post('/generate', [App\Http\Controllers\Marketing\ContentAIController::class, 'generate'])->name('generate');
+            Route::post('/generate-variations', [App\Http\Controllers\Marketing\ContentAIController::class, 'generateVariations'])->name('generate-variations');
+            Route::post('/rewrite', [App\Http\Controllers\Marketing\ContentAIController::class, 'rewrite'])->name('rewrite');
+            Route::post('/generate-hashtags', [App\Http\Controllers\Marketing\ContentAIController::class, 'generateHashtags'])->name('generate-hashtags');
+
+            // Style Guide
+            Route::get('/style-guide', [App\Http\Controllers\Marketing\ContentAIController::class, 'styleGuide'])->name('style-guide');
+            Route::put('/style-guide', [App\Http\Controllers\Marketing\ContentAIController::class, 'updateStyleGuide'])->name('style-guide.update');
+            Route::post('/style-guide/analyze', [App\Http\Controllers\Marketing\ContentAIController::class, 'analyzeAndBuild'])->name('style-guide.analyze');
+
+            // Templates
+            Route::get('/templates', [App\Http\Controllers\Marketing\ContentAIController::class, 'templates'])->name('templates');
+            Route::post('/templates', [App\Http\Controllers\Marketing\ContentAIController::class, 'storeTemplate'])->name('templates.store');
+            Route::delete('/templates/{template}', [App\Http\Controllers\Marketing\ContentAIController::class, 'destroyTemplate'])->name('templates.destroy');
+
+            // History
+            Route::get('/history', [App\Http\Controllers\Marketing\ContentAIController::class, 'history'])->name('history');
+            Route::post('/history/{generation}/rate', [App\Http\Controllers\Marketing\ContentAIController::class, 'rateGeneration'])->name('history.rate');
+
+            // Content Ideas (G'oyalar banki)
+            Route::prefix('ideas')->name('ideas.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'index'])->name('index');
+                Route::get('/trending', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'trending'])->name('trending');
+                Route::get('/seasonal', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'seasonal'])->name('seasonal');
+                Route::get('/search', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'search'])->name('search');
+                Route::get('/category/{category}', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'byCategory'])->name('category');
+                Route::get('/collection/{collection}', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'collection'])->name('collection');
+                Route::post('/', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'store'])->name('store');
+                Route::post('/{idea}/use', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'useIdea'])->name('use');
+                Route::post('/usage/{usage}/rate', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'rateUsage'])->name('usage.rate');
+                Route::post('/usage/{usage}/published', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'markPublished'])->name('usage.published');
+            });
+        });
     });
 
     // AI Analysis routes (Facebook) - Instagram moved to /integrations/instagram
@@ -1451,13 +1494,83 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/export', [App\Http\Controllers\SalesHead\AnalyticsController::class, 'export'])->name('export');
     });
 
-    // KPI
+    // KPI (eski - redirect to new sales-kpi)
     Route::prefix('kpi')->name('kpi.')->group(function () {
-        Route::get('/', [App\Http\Controllers\SalesHead\KpiController::class, 'index'])->name('index');
-        Route::get('/data-entry', [App\Http\Controllers\SalesHead\KpiController::class, 'dataEntry'])->name('data-entry');
-        Route::post('/plan', [App\Http\Controllers\SalesHead\KpiController::class, 'storePlan'])->name('plan.store');
-        Route::post('/daily-entry', [App\Http\Controllers\SalesHead\KpiController::class, 'storeDailyEntry'])->name('daily-entry.store');
-        Route::post('/targets', [App\Http\Controllers\SalesHead\KpiController::class, 'setTargets'])->name('targets');
+        Route::get('/', fn () => redirect()->route('sales-head.sales-kpi.dashboard'))->name('index');
+        Route::get('/data-entry', fn () => redirect()->route('sales-head.sales-kpi.dashboard'))->name('data-entry');
+        Route::post('/plan', fn () => redirect()->route('sales-head.sales-kpi.dashboard'))->name('plan.store');
+        Route::post('/daily-entry', fn () => redirect()->route('sales-head.sales-kpi.dashboard'))->name('daily-entry.store');
+        Route::post('/targets', fn () => redirect()->route('sales-head.sales-kpi.targets'))->name('targets');
+    });
+
+    // Sales KPI System (yangi - Bonus, Jarima, Gamification)
+    Route::prefix('sales-kpi')->name('sales-kpi.')->group(function () {
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'dashboard'])->name('dashboard');
+
+        // Setup Wizard
+        Route::get('/setup', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'setup'])->name('setup');
+        Route::post('/apply-template', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'applyTemplate'])->name('apply-template');
+
+        // Settings
+        Route::get('/settings', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'settings'])->name('settings');
+        Route::post('/settings/kpi', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'storeKpiSetting'])->name('settings.kpi.store');
+        Route::put('/settings/{kpiSetting}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'updateKpiSetting'])->name('settings.kpi.update');
+        Route::delete('/settings/{kpiSetting}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'destroyKpiSetting'])->name('settings.kpi.destroy');
+
+        // Bonus Settings CRUD
+        Route::post('/bonus-settings', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'storeBonusSetting'])->name('bonus-settings.store');
+        Route::put('/bonus-settings/{bonusSetting}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'updateBonusSetting'])->name('bonus-settings.update');
+        Route::delete('/bonus-settings/{bonusSetting}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'destroyBonusSetting'])->name('bonus-settings.destroy');
+
+        // Penalty Rules CRUD
+        Route::post('/penalty-rules', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'storePenaltyRule'])->name('penalty-rules.store');
+        Route::put('/penalty-rules/{penaltyRule}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'updatePenaltyRule'])->name('penalty-rules.update');
+        Route::delete('/penalty-rules/{penaltyRule}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'destroyPenaltyRule'])->name('penalty-rules.destroy');
+
+        // Targets
+        Route::get('/targets', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'targets'])->name('targets');
+        Route::post('/targets', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'storeTargets'])->name('targets.store');
+
+        // Bonuses
+        Route::get('/bonuses', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'bonuses'])->name('bonuses');
+        Route::post('/bonuses/{bonus}/approve', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'approveBonus'])->name('bonuses.approve');
+
+        // Penalties
+        Route::get('/penalties', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'penalties'])->name('penalties');
+        Route::post('/penalties/{penalty}/confirm', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'confirmPenalty'])->name('penalties.confirm');
+        Route::post('/penalties/{penalty}/review-appeal', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'reviewAppeal'])->name('penalties.review-appeal');
+
+        // Leaderboard
+        Route::get('/leaderboard', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'leaderboard'])->name('leaderboard');
+
+        // Achievements
+        Route::get('/achievements', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'achievements'])->name('achievements');
+
+        // Operator KPI
+        Route::get('/operator/{userId}', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'operatorKpi'])->name('operator');
+    });
+
+    // Sales Alerts (Smart Alert tizimi)
+    Route::prefix('alerts')->name('alerts.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Sales\AlertController::class, 'index'])->name('index');
+        Route::get('/active', [App\Http\Controllers\Sales\AlertController::class, 'getActive'])->name('active');
+        Route::get('/unread-count', [App\Http\Controllers\Sales\AlertController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/mark-all-read', [App\Http\Controllers\Sales\AlertController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::get('/{alert}', [App\Http\Controllers\Sales\AlertController::class, 'show'])->name('show');
+        Route::post('/{alert}/read', [App\Http\Controllers\Sales\AlertController::class, 'markAsRead'])->name('read');
+        Route::post('/{alert}/acknowledge', [App\Http\Controllers\Sales\AlertController::class, 'acknowledge'])->name('acknowledge');
+        Route::post('/{alert}/snooze', [App\Http\Controllers\Sales\AlertController::class, 'snooze'])->name('snooze');
+        Route::post('/{alert}/resolve', [App\Http\Controllers\Sales\AlertController::class, 'resolve'])->name('resolve');
+        Route::post('/{alert}/dismiss', [App\Http\Controllers\Sales\AlertController::class, 'dismiss'])->name('dismiss');
+        Route::get('/settings', [App\Http\Controllers\Sales\AlertController::class, 'settings'])->name('settings');
+        Route::post('/settings', [App\Http\Controllers\Sales\AlertController::class, 'updateSettings'])->name('settings.update');
+    });
+
+    // My Day (Bugungi kun dashboard)
+    Route::prefix('my-day')->name('my-day.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Sales\MyDayController::class, 'index'])->name('index');
+        Route::get('/stats', [App\Http\Controllers\Sales\MyDayController::class, 'stats'])->name('stats');
     });
 
     // Profile & Settings
@@ -1476,6 +1589,9 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::post('/reorder', [App\Http\Controllers\Business\PipelineStageController::class, 'reorder'])->name('reorder');
         Route::post('/{pipelineStage}/toggle-active', [App\Http\Controllers\Business\PipelineStageController::class, 'toggleActive'])->name('toggle-active');
     });
+
+    // Marketing Information Combined Page (Tab-based)
+    Route::get('/marketing-info', [App\Http\Controllers\SalesHead\MarketingInfoController::class, 'index'])->name('marketing-info.index');
 
     // Marketing Information (Read-Only)
     Route::prefix('dream-buyer')->name('dream-buyer.')->group(function () {
@@ -1534,6 +1650,31 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
 
     // Sotuv Skriptlari Arsenal
     Route::get('/sales-script', [App\Http\Controllers\Shared\SalesScriptArsenalController::class, 'salesHeadIndex'])->name('sales-script');
+
+    // Pipeline Avtomatizatsiya (Lead bosqichlarini avtomatik o'zgartirish)
+    Route::prefix('pipeline-automation')->name('pipeline-automation.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'store'])->name('store');
+        Route::post('/reset', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'resetToDefaults'])->name('reset');
+        Route::post('/{rule}/toggle', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'toggle'])->name('toggle');
+        Route::put('/{rule}', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'update'])->name('update');
+        Route::delete('/{rule}', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'destroy'])->name('destroy');
+        Route::get('/stagnant-leads', [App\Http\Controllers\Shared\PipelineAutomationController::class, 'stagnantLeads'])->name('stagnant-leads');
+    });
+
+    // Lead Scoring (Lidlar ballari va kategoriyalash)
+    Route::prefix('lead-scoring')->name('lead-scoring.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\LeadScoringController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Shared\LeadScoringController::class, 'store'])->name('store');
+        Route::post('/reset', [App\Http\Controllers\Shared\LeadScoringController::class, 'resetToDefaults'])->name('reset');
+        Route::post('/recalculate-all', [App\Http\Controllers\Shared\LeadScoringController::class, 'recalculateAll'])->name('recalculate-all');
+        Route::post('/{rule}/toggle', [App\Http\Controllers\Shared\LeadScoringController::class, 'toggle'])->name('toggle');
+        Route::put('/{rule}', [App\Http\Controllers\Shared\LeadScoringController::class, 'update'])->name('update');
+        Route::delete('/{rule}', [App\Http\Controllers\Shared\LeadScoringController::class, 'destroy'])->name('destroy');
+        Route::get('/category/{category}', [App\Http\Controllers\Shared\LeadScoringController::class, 'leadsByCategory'])->name('category');
+        Route::get('/lead/{lead}', [App\Http\Controllers\Shared\LeadScoringController::class, 'leadScoreDetails'])->name('lead-details');
+        Route::post('/lead/{lead}/recalculate', [App\Http\Controllers\Shared\LeadScoringController::class, 'recalculateLead'])->name('lead-recalculate');
+    });
 });
 
 // ==============================================
@@ -1577,25 +1718,25 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::post('/{content}/generate-ai', [App\Http\Controllers\Marketing\ContentController::class, 'generateAI'])->name('generate-ai');
     });
 
-    // Analytics - Full features with API endpoints
+    // Analytics - Using Shared AnalyticsController
     Route::prefix('analytics')->name('analytics.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\AnalyticsController::class, 'index'])->name('index');
-        Route::get('/social', [App\Http\Controllers\Marketing\AnalyticsController::class, 'social'])->name('social');
-        Route::get('/campaigns', [App\Http\Controllers\Marketing\AnalyticsController::class, 'campaigns'])->name('campaigns');
-        Route::get('/funnel', [App\Http\Controllers\Marketing\AnalyticsController::class, 'funnel'])->name('funnel');
-        Route::get('/content-performance', [App\Http\Controllers\Marketing\AnalyticsController::class, 'contentPerformance'])->name('content-performance');
+        Route::get('/', [App\Http\Controllers\Shared\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/social', [App\Http\Controllers\Shared\AnalyticsController::class, 'social'])->name('social');
+        Route::get('/campaigns', [App\Http\Controllers\Shared\AnalyticsController::class, 'campaigns'])->name('campaigns');
+        Route::get('/funnel', [App\Http\Controllers\Shared\AnalyticsController::class, 'funnel'])->name('funnel');
+        Route::get('/content-performance', [App\Http\Controllers\Shared\AnalyticsController::class, 'contentPerformance'])->name('content-performance');
 
         // API Endpoints
-        Route::get('/api/initial', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getInitialData'])->name('api.initial');
-        Route::post('/data/funnel', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getFunnelData'])->name('data.funnel');
-        Route::post('/data/dream-buyer', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getDreamBuyerPerformance'])->name('data.dream-buyer');
-        Route::post('/data/offer', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getOfferPerformance'])->name('data.offer');
-        Route::post('/data/lead-source', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getLeadSourceAnalysis'])->name('data.lead-source');
-        Route::post('/data/revenue-trends', [App\Http\Controllers\Marketing\AnalyticsController::class, 'getRevenueTrends'])->name('data.revenue-trends');
+        Route::get('/api/initial', [App\Http\Controllers\Shared\AnalyticsController::class, 'getInitialData'])->name('api.initial');
+        Route::post('/data/funnel', [App\Http\Controllers\Shared\AnalyticsController::class, 'getFunnelData'])->name('data.funnel');
+        Route::post('/data/dream-buyer', [App\Http\Controllers\Shared\AnalyticsController::class, 'getDreamBuyerPerformance'])->name('data.dream-buyer');
+        Route::post('/data/offer', [App\Http\Controllers\Shared\AnalyticsController::class, 'getOfferPerformance'])->name('data.offer');
+        Route::post('/data/lead-source', [App\Http\Controllers\Shared\AnalyticsController::class, 'getLeadSourceAnalysis'])->name('data.lead-source');
+        Route::post('/data/revenue-trends', [App\Http\Controllers\Shared\AnalyticsController::class, 'getRevenueTrends'])->name('data.revenue-trends');
 
         // Export
-        Route::post('/export/pdf', [App\Http\Controllers\Marketing\AnalyticsController::class, 'exportPDF'])->name('export.pdf');
-        Route::post('/export/excel', [App\Http\Controllers\Marketing\AnalyticsController::class, 'exportExcel'])->name('export.excel');
+        Route::post('/export/pdf', [App\Http\Controllers\Shared\AnalyticsController::class, 'exportPDF'])->name('export.pdf');
+        Route::post('/export/excel', [App\Http\Controllers\Shared\AnalyticsController::class, 'exportExcel'])->name('export.excel');
     });
 
     // Social Media Accounts
@@ -1852,6 +1993,73 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // ==============================================
+    // KPI Dashboard & Bonus System Routes (Phase 2)
+    // ==============================================
+
+    // KPI Dashboard
+    Route::prefix('kpi-dashboard')->name('kpi-dashboard.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\KpiDashboardController::class, 'index'])->name('index');
+        Route::get('/realtime', [App\Http\Controllers\Marketing\KpiDashboardController::class, 'realtime'])->name('realtime');
+        Route::get('/comparison', [App\Http\Controllers\Marketing\KpiDashboardController::class, 'comparison'])->name('comparison');
+        Route::get('/team-performance', [App\Http\Controllers\Marketing\KpiDashboardController::class, 'teamPerformance'])->name('team-performance');
+        Route::post('/refresh', [App\Http\Controllers\Marketing\KpiDashboardController::class, 'refresh'])->name('refresh');
+    });
+
+    // Targets (Maqsadlar)
+    Route::prefix('targets')->name('targets.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\TargetController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\TargetController::class, 'store'])->name('store');
+        Route::put('/{target}', [App\Http\Controllers\Marketing\TargetController::class, 'update'])->name('update');
+        Route::delete('/{target}', [App\Http\Controllers\Marketing\TargetController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk', [App\Http\Controllers\Marketing\TargetController::class, 'bulkStore'])->name('bulk');
+        Route::post('/copy-previous', [App\Http\Controllers\Marketing\TargetController::class, 'copyFromPrevious'])->name('copy-previous');
+    });
+
+    // Bonuses (Bonuslar)
+    Route::prefix('bonuses')->name('bonuses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\BonusController::class, 'index'])->name('index');
+        Route::get('/history', [App\Http\Controllers\Marketing\BonusController::class, 'history'])->name('history');
+        Route::get('/{bonus}', [App\Http\Controllers\Marketing\BonusController::class, 'show'])->name('show');
+        // Admin routes
+        Route::get('/admin/list', [App\Http\Controllers\Marketing\BonusController::class, 'adminIndex'])->name('admin');
+        Route::post('/{bonus}/approve', [App\Http\Controllers\Marketing\BonusController::class, 'approve'])->name('approve');
+        Route::post('/{bonus}/mark-paid', [App\Http\Controllers\Marketing\BonusController::class, 'markPaid'])->name('mark-paid');
+        Route::post('/recalculate', [App\Http\Controllers\Marketing\BonusController::class, 'recalculate'])->name('recalculate');
+    });
+
+    // Penalties (Jarimalar)
+    Route::prefix('penalties')->name('penalties.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\BonusController::class, 'penalties'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\BonusController::class, 'storePenalty'])->name('store');
+        Route::post('/{penalty}/dispute', [App\Http\Controllers\Marketing\BonusController::class, 'disputePenalty'])->name('dispute');
+        Route::post('/{penalty}/waive', [App\Http\Controllers\Marketing\BonusController::class, 'waivePenalty'])->name('waive');
+    });
+
+    // Alerts (Ogohlantirishlar)
+    Route::prefix('alerts')->name('alerts.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\AlertController::class, 'index'])->name('index');
+        Route::get('/active', [App\Http\Controllers\Marketing\AlertController::class, 'active'])->name('active');
+        Route::get('/unresolved', [App\Http\Controllers\Marketing\AlertController::class, 'unresolved'])->name('unresolved');
+        Route::get('/{alert}', [App\Http\Controllers\Marketing\AlertController::class, 'show'])->name('show');
+        Route::post('/{alert}/acknowledge', [App\Http\Controllers\Marketing\AlertController::class, 'acknowledge'])->name('acknowledge');
+        Route::post('/{alert}/resolve', [App\Http\Controllers\Marketing\AlertController::class, 'resolve'])->name('resolve');
+        Route::post('/{alert}/dismiss', [App\Http\Controllers\Marketing\AlertController::class, 'dismiss'])->name('dismiss');
+        Route::post('/check-now', [App\Http\Controllers\Marketing\AlertController::class, 'checkNow'])->name('check-now');
+        Route::post('/bulk-acknowledge', [App\Http\Controllers\Marketing\AlertController::class, 'bulkAcknowledge'])->name('bulk-acknowledge');
+        Route::post('/bulk-resolve', [App\Http\Controllers\Marketing\AlertController::class, 'bulkResolve'])->name('bulk-resolve');
+    });
+
+    // Leaderboard (Reyting)
+    Route::prefix('leaderboard')->name('leaderboard.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\LeaderboardController::class, 'index'])->name('index');
+        Route::get('/profile', [App\Http\Controllers\Marketing\LeaderboardController::class, 'myProfile'])->name('profile');
+        Route::get('/weekly', [App\Http\Controllers\Marketing\LeaderboardController::class, 'weekly'])->name('weekly');
+        Route::get('/monthly', [App\Http\Controllers\Marketing\LeaderboardController::class, 'monthly'])->name('monthly');
+        Route::get('/achievements', [App\Http\Controllers\Marketing\LeaderboardController::class, 'achievements'])->name('achievements');
+        Route::post('/refresh', [App\Http\Controllers\Marketing\LeaderboardController::class, 'refresh'])->name('refresh');
+    });
 });
 
 // ==============================================
@@ -2161,8 +2369,8 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
         Route::post('/{conversation}/send', [App\Http\Controllers\Operator\InboxController::class, 'sendMessage'])->name('send');
     });
 
-    // My KPI
-    Route::get('/kpi', [App\Http\Controllers\Operator\KpiController::class, 'index'])->name('kpi.index');
+    // My KPI - using SalesKpiController's myKpi method
+    Route::get('/kpi', [App\Http\Controllers\SalesHead\SalesKpiController::class, 'myKpi'])->name('kpi.index');
 
     // My Tasks
     Route::prefix('tasks')->name('tasks.')->group(function () {
@@ -2198,4 +2406,22 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
 
     // Sotuv Skriptlari Arsenal
     Route::get('/sales-script', [App\Http\Controllers\Shared\SalesScriptArsenalController::class, 'operatorIndex'])->name('sales-script');
+
+    // Sales Alerts (shared controller)
+    Route::prefix('alerts')->name('alerts.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Sales\AlertController::class, 'index'])->name('index');
+        Route::get('/active', [App\Http\Controllers\Sales\AlertController::class, 'getActive'])->name('active');
+        Route::get('/{alert}', [App\Http\Controllers\Sales\AlertController::class, 'show'])->name('show');
+        Route::post('/{alert}/acknowledge', [App\Http\Controllers\Sales\AlertController::class, 'acknowledge'])->name('acknowledge');
+        Route::post('/{alert}/dismiss', [App\Http\Controllers\Sales\AlertController::class, 'dismiss'])->name('dismiss');
+        Route::post('/{alert}/snooze', [App\Http\Controllers\Sales\AlertController::class, 'snooze'])->name('snooze');
+        Route::post('/{alert}/resolve', [App\Http\Controllers\Sales\AlertController::class, 'resolve'])->name('resolve');
+        Route::post('/mark-all-read', [App\Http\Controllers\Sales\AlertController::class, 'markAllAsRead'])->name('mark-all-read');
+    });
+
+    // My Day (shared controller)
+    Route::prefix('my-day')->name('my-day.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Sales\MyDayController::class, 'index'])->name('index');
+        Route::get('/stats', [App\Http\Controllers\Sales\MyDayController::class, 'stats'])->name('stats');
+    });
 });

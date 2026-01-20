@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Listeners;
+
+use App\Events\LeadStageChanged;
+use App\Jobs\Sales\UpdateUserKpiSnapshotJob;
+use App\Services\Sales\AchievementService;
+use App\Services\Sales\LeaderboardService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+
+class LeadStageChangedListener implements ShouldQueue
+{
+    public string $queue = 'kpi';
+
+    /**
+     * Handle the event.
+     */
+    public function handle(LeadStageChanged $event): void
+    {
+        $lead = $event->lead;
+        $newStage = $event->newStage;
+        $automated = $event->automated;
+
+        Log::info('LeadStageChangedListener: Processing stage change', [
+            'lead_id' => $lead->id,
+            'new_stage' => $newStage->slug,
+            'is_won' => $newStage->is_won,
+            'automated' => $automated,
+        ]);
+
+        // Agar "won" bosqichiga o'tgan bo'lsa - KPI yangilash
+        if ($newStage->is_won) {
+            $this->handleLeadWon($lead);
+        }
+
+        // Agar "lost" bosqichiga o'tgan bo'lsa
+        if ($newStage->is_lost) {
+            $this->handleLeadLost($lead);
+        }
+    }
+
+    /**
+     * Lead "won" holatiga o'tganda
+     */
+    protected function handleLeadWon($lead): void
+    {
+        // 1. KPI Snapshot yangilash
+        if ($lead->assigned_to) {
+            try {
+                UpdateUserKpiSnapshotJob::dispatch(
+                    $lead->business_id,
+                    $lead->assigned_to,
+                    'leads_converted'
+                );
+            } catch (\Exception $e) {
+                Log::error('LeadStageChangedListener: Failed to dispatch KPI job', [
+                    'lead_id' => $lead->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 2. Achievement tekshirish
+        if ($lead->assigned_to) {
+            try {
+                app(AchievementService::class)->checkAndAwardAchievements(
+                    $lead->business_id,
+                    $lead->assigned_to
+                );
+            } catch (\Exception $e) {
+                Log::error('LeadStageChangedListener: Failed to check achievements', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 3. Leaderboard yangilash
+        if ($lead->assigned_to) {
+            try {
+                app(LeaderboardService::class)->updateUserScore(
+                    $lead->business_id,
+                    $lead->assigned_to,
+                    'leads_converted'
+                );
+            } catch (\Exception $e) {
+                Log::error('LeadStageChangedListener: Failed to update leaderboard', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        Log::info('LeadStageChangedListener: Lead won processed', [
+            'lead_id' => $lead->id,
+            'assigned_to' => $lead->assigned_to,
+        ]);
+    }
+
+    /**
+     * Lead "lost" holatiga o'tganda
+     */
+    protected function handleLeadLost($lead): void
+    {
+        Log::info('LeadStageChangedListener: Lead lost', [
+            'lead_id' => $lead->id,
+            'lost_reason' => $lead->lost_reason,
+        ]);
+
+        // Lost holatda maxsus KPI yoki metrikalar
+        // Keyinchalik qo'shish mumkin
+    }
+}

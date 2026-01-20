@@ -30,6 +30,10 @@ import {
   BriefcaseIcon,
   UserPlusIcon,
   BookOpenIcon,
+  SunIcon,
+  BellAlertIcon,
+  ArrowPathIcon,
+  FireIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -234,12 +238,13 @@ export const salesHeadLayoutConfig = {
     { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' },
   ],
 
-  // Navigation
+  // Navigation - Optimized: Tab-based pages
   navigation: [
     {
       title: null,
       items: [
         { href: '/sales-head', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
+        { href: '/sales-head/my-day', label: 'Mening Kunim', icon: SunIcon },
       ]
     },
     {
@@ -247,6 +252,7 @@ export const salesHeadLayoutConfig = {
       items: [
         { href: '/sales-head/leads', label: 'Lidlar', icon: UserGroupIcon, badgeKey: 'new_leads' },
         { href: '/sales-head/deals', label: 'Bitimlar', icon: CurrencyDollarIcon },
+        { href: '/sales-head/inbox', label: 'Yagona Inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
       ]
     },
     {
@@ -254,37 +260,36 @@ export const salesHeadLayoutConfig = {
       items: [
         { href: '/sales-head/team', label: 'Operatorlar', icon: UsersIcon },
         { href: '/sales-head/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/sales-head/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
+        { href: '/sales-head/pipeline-automation', label: 'Pipeline Avtomatizatsiya', icon: ArrowPathIcon },
+        { href: '/sales-head/lead-scoring', label: 'Lead Scoring', icon: FireIcon },
       ]
     },
     {
-      title: 'Kommunikatsiya',
+      title: 'Samaradorlik',
       items: [
-        { href: '/sales-head/inbox', label: 'Yagona Inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
-        { href: '/sales-head/calls', label: 'Qo\'ng\'iroqlar', icon: PhoneIcon },
+        {
+          label: 'KPI & Gamification',
+          icon: ChartBarIcon,
+          children: [
+            { href: '/sales-head/sales-kpi', label: 'Dashboard' },
+            { href: '/sales-head/sales-kpi/settings', label: 'KPI Sozlamalari' },
+            { href: '/sales-head/sales-kpi/targets', label: 'Maqsadlar' },
+            { href: '/sales-head/sales-kpi/bonuses', label: 'Bonuslar' },
+            { href: '/sales-head/sales-kpi/penalties', label: 'Jarimalar' },
+            { href: '/sales-head/sales-kpi/leaderboard', label: 'Reyting' },
+            { href: '/sales-head/sales-kpi/achievements', label: 'Yutuqlar' },
+          ]
+        },
+        { href: '/sales-head/analytics', label: 'Analitika', icon: PresentationChartLineIcon },
       ]
     },
     {
-      title: 'Hisobotlar va Analitika',
+      title: 'Marketing & AI',
       items: [
-        { href: '/sales-head/analytics', label: 'Analitika', icon: ChartBarIcon },
-        { href: '/sales-head/kpi', label: 'KPI', icon: PresentationChartLineIcon },
-      ]
-    },
-    {
-      title: 'Marketing Ma\'lumotlari',
-      items: [
-        { href: '/sales-head/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
-        { href: '/sales-head/offers', label: 'Takliflar', icon: TagIcon },
-        { href: '/sales-head/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
-      ]
-    },
-    {
-      title: 'AI Tavsiyalar',
-      items: [
-        { href: '/sales-head/competitor-insights', label: 'Tavsiyalar', icon: LightBulbIcon },
-        { href: '/sales-head/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', icon: ChatBubbleLeftRightIcon },
-        { href: '/sales-head/sales-script', label: 'Sotuv Arsenali', icon: BookOpenIcon },
+        // Marketing ma'lumotlari bitta sahifada tab sifatida
+        { href: '/sales-head/marketing-info', label: 'Marketing Ma\'lumotlari', icon: MegaphoneIcon },
+        // AI tavsiyalar va skriptlar birlashgan
+        { href: '/sales-head/competitor-insights', label: 'AI Tavsiyalar', icon: LightBulbIcon },
       ]
     },
   ],
@@ -744,6 +749,7 @@ export const operatorLayoutConfig = {
       title: null,
       items: [
         { href: '/operator', label: 'Bosh sahifa', icon: HomeIcon, exact: true },
+        { href: '/operator/my-day', label: 'Mening Kunim', icon: SunIcon },
       ]
     },
     {

@@ -258,6 +258,40 @@ class Business extends Model
         return $this->hasMany(Campaign::class);
     }
 
+    // ==================== SALES KPI & GAMIFICATION RELATIONSHIPS ====================
+
+    /**
+     * Get the KPI settings for the business.
+     */
+    public function kpiSettings(): HasMany
+    {
+        return $this->hasMany(SalesKpiSetting::class);
+    }
+
+    /**
+     * Get the bonus settings for the business.
+     */
+    public function bonusSettings(): HasMany
+    {
+        return $this->hasMany(SalesBonusSetting::class);
+    }
+
+    /**
+     * Get the penalty rules for the business.
+     */
+    public function penaltyRules(): HasMany
+    {
+        return $this->hasMany(SalesPenaltyRule::class);
+    }
+
+    /**
+     * Get the achievement definitions for the business.
+     */
+    public function achievementDefinitions(): HasMany
+    {
+        return $this->hasMany(SalesAchievementDefinition::class);
+    }
+
     // ==================== ONBOARDING RELATIONSHIPS ====================
 
     /**
@@ -617,6 +651,30 @@ class Business extends Model
     public function activeReportSchedules(): HasMany
     {
         return $this->hasMany(ReportSchedule::class)->where('is_active', true);
+    }
+
+    /**
+     * Get the content templates for the business.
+     */
+    public function contentTemplates(): HasMany
+    {
+        return $this->hasMany(ContentTemplate::class);
+    }
+
+    /**
+     * Get the content style guide for the business.
+     */
+    public function contentStyleGuide(): HasOne
+    {
+        return $this->hasOne(ContentStyleGuide::class);
+    }
+
+    /**
+     * Get the content generations for the business.
+     */
+    public function contentGenerations(): HasMany
+    {
+        return $this->hasMany(ContentGeneration::class);
     }
 
     // ==================== ACCESS CONTROL ====================
