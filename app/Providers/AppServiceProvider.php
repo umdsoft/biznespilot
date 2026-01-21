@@ -10,6 +10,11 @@ use App\Models\Lead;
 use App\Models\MarketingSpend;
 use App\Models\Sale;
 use App\Models\Task;
+use App\Models\AttendanceRecord;
+use App\Models\LeaveRequest;
+use App\Models\EmployeeGoal;
+use App\Models\EmployeeEngagement;
+use App\Models\FlightRisk;
 use App\Observers\CallLogObserver;
 use App\Observers\ContentGenerationObserver;
 use App\Observers\CustomerObserver;
@@ -18,6 +23,11 @@ use App\Observers\LeadObserver;
 use App\Observers\MarketingSpendObserver;
 use App\Observers\SaleObserver;
 use App\Observers\TaskObserver;
+use App\Observers\HR\AttendanceRecordObserver;
+use App\Observers\HR\LeaveRequestObserver;
+use App\Observers\HR\EmployeeGoalObserver;
+use App\Observers\HR\EmployeeEngagementObserver;
+use App\Observers\HR\FlightRiskObserver;
 use App\Events\LeadStageChanged;
 use App\Events\LeadScoreUpdated;
 use App\Events\TaskCompleted;
@@ -26,6 +36,7 @@ use App\Listeners\LeadStageChangedListener;
 use App\Listeners\PipelineAutomationListener;
 use App\Listeners\Sales\SalesIntegrationListener;
 use App\Listeners\Marketing\MarketingIntegrationListener;
+use App\Listeners\HR\HRIntegrationListener;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +93,16 @@ class AppServiceProvider extends ServiceProvider
 
         // Marketing integration subscriber (Sales → Marketing KPI yangilash)
         Event::subscribe(MarketingIntegrationListener::class);
+
+        // HR observers (Attendance, Leave, Goals, Engagement, FlightRisk)
+        AttendanceRecord::observe(AttendanceRecordObserver::class);
+        LeaveRequest::observe(LeaveRequestObserver::class);
+        EmployeeGoal::observe(EmployeeGoalObserver::class);
+        EmployeeEngagement::observe(EmployeeEngagementObserver::class);
+        FlightRisk::observe(FlightRiskObserver::class);
+
+        // HR integration subscriber (Sales → HR Engagement yangilash)
+        Event::subscribe(HRIntegrationListener::class);
 
         // Production optimizations
         $this->configureProductionSettings();

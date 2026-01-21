@@ -1,14 +1,14 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { useI18n } from '@/i18n';
 import {
-    BuildingOfficeIcon,
     PlusIcon,
-    UsersIcon,
-    BriefcaseIcon,
-    ChartBarIcon,
+    PrinterIcon,
+    PencilIcon,
+    UserPlusIcon,
+    DocumentTextIcon,
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
@@ -16,236 +16,234 @@ const { t } = useI18n();
 const props = defineProps({
     orgStructure: Object,
     business: Object,
+    systemDepartments: Array,
+    departments: Object,
+    ownerInfo: Object,
 });
 
-const getDepartmentStats = (department) => {
-    if (!department.positions) return { total: 0, filled: 0, vacant: 0 };
-
-    const total = department.positions.reduce((sum, p) => sum + (p.required_count || 0), 0);
-    const filled = department.positions.reduce((sum, p) => sum + (p.current_count || 0), 0);
-    const vacant = total - filled;
-
-    return { total, filled, vacant };
+// Professional department colors (light text for dark mode compatibility)
+const departmentColors = {
+    sales_head: { bg: '#059669', light: '#D1FAE5', text: '#10B981', darkBg: '#064E3B' },
+    sales_operator: { bg: '#059669', light: '#D1FAE5', text: '#10B981', darkBg: '#064E3B' },
+    marketing: { bg: '#7C3AED', light: '#EDE9FE', text: '#A78BFA', darkBg: '#4C1D95' },
+    hr: { bg: '#DB2777', light: '#FCE7F3', text: '#F472B6', darkBg: '#831843' },
+    finance: { bg: '#EA580C', light: '#FFEDD5', text: '#FB923C', darkBg: '#7C2D12' },
+    default: { bg: '#475569', light: '#F1F5F9', text: '#94A3B8', darkBg: '#1E293B' },
 };
 
-const getDepartmentFillRate = (department) => {
-    const stats = getDepartmentStats(department);
-    return stats.total > 0 ? Math.round((stats.filled / stats.total) * 100) : 0;
-};
+// Merged department structure
+const mergedDepartments = computed(() => {
+    if (!props.systemDepartments) return [];
 
-const getTotalStats = () => {
-    if (!props.orgStructure?.departments) return { total: 0, filled: 0, vacant: 0 };
+    const departments = [];
+    const salesDept = {
+        code: 'sales',
+        name: "Sotuv bo'limi",
+        employees: [],
+        positions: [],
+        employee_count: 0,
+    };
 
-    let total = 0;
-    let filled = 0;
+    let hasSalesData = false;
 
-    props.orgStructure.departments.forEach(dept => {
-        const stats = getDepartmentStats(dept);
-        total += stats.total;
-        filled += stats.filled;
+    props.systemDepartments.forEach(dept => {
+        if (dept.code === 'sales_head' || dept.code === 'sales_operator') {
+            salesDept.employees = [...salesDept.employees, ...dept.employees];
+            salesDept.positions = [...salesDept.positions, ...dept.positions];
+            salesDept.employee_count += dept.employee_count;
+            hasSalesData = true;
+        } else {
+            departments.push(dept);
+        }
     });
 
-    return { total, filled, vacant: total - filled };
+    if (hasSalesData || props.systemDepartments.some(d => d.code === 'sales_head' || d.code === 'sales_operator')) {
+        departments.unshift(salesDept);
+    }
+
+    return departments;
+});
+
+const getColor = (code) => {
+    if (code === 'sales' || code === 'sales_head' || code === 'sales_operator') {
+        return departmentColors.sales_head;
+    }
+    return departmentColors[code] || departmentColors.default;
 };
 
-const totalStats = getTotalStats();
-const overallFillRate = totalStats.total > 0 ? Math.round((totalStats.filled / totalStats.total) * 100) : 0;
+// Department goals
+const deptGoals = {
+    sales: "Sotuvlarni amalga oshirish va daromadni ko'paytirish",
+    marketing: "Brend qiymatini oshirish va sifatli lidlar generatsiya qilish",
+    hr: "Malakali kadrlarni jalb qilish va samaradorlikni oshirish",
+    finance: "Moliyaviy barqarorlikni ta'minlash",
+};
+
+const getGoal = (code) => {
+    if (code === 'sales' || code === 'sales_head' || code === 'sales_operator') return deptGoals.sales;
+    return deptGoals[code] || '';
+};
+
+// Stats
+const stats = computed(() => {
+    let employees = 0, positions = 0;
+    mergedDepartments.value.forEach(d => {
+        employees += d.employee_count || 0;
+        positions += d.positions?.length || 0;
+    });
+    return { departments: mergedDepartments.value.length, employees, positions };
+});
+
+// Mission
+const mission = computed(() => {
+    return props.orgStructure?.description || "Mijozlarga yuqori sifatli xizmat ko'rsatish va biznesni barqaror rivojlantirish";
+});
 </script>
 
 <template>
     <HRLayout :title="t('hr.org_structure')">
         <Head :title="t('hr.org_structure')" />
 
-        <div class="space-y-6">
+        <div class="space-y-5">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                        {{ t('hr.org_structure') }}
+                    <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Tashkiliy tuzilma
                     </h1>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        {{ t('hr.org_structure_subtitle') }}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ stats.departments }} bo'lim · {{ stats.employees }} xodim · {{ stats.positions }} lavozim
                     </p>
                 </div>
-
-                <Link
-                    v-if="!orgStructure"
-                    :href="route('hr.org-structure.create')"
-                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                    <PlusIcon class="w-5 h-5 mr-2" />
-                    {{ t('hr.create_org_structure') }}
-                </Link>
+                <div class="flex items-center gap-2">
+                    <Link
+                        :href="route('hr.job-descriptions.index')"
+                        class="inline-flex items-center px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                        <DocumentTextIcon class="w-4 h-4 mr-1.5" />
+                        Lavozimlar
+                    </Link>
+                    <button class="inline-flex items-center px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <PrinterIcon class="w-4 h-4 mr-1.5" />
+                        Chop etish
+                    </button>
+                    <Link
+                        v-if="orgStructure"
+                        :href="route('hr.org-structure.edit', orgStructure.id)"
+                        class="inline-flex items-center px-3 py-2 text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100"
+                    >
+                        <PencilIcon class="w-4 h-4 mr-1.5" />
+                        Tahrirlash
+                    </Link>
+                    <Link
+                        v-else
+                        :href="route('hr.org-structure.create')"
+                        class="inline-flex items-center px-3 py-2 text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100"
+                    >
+                        <PlusIcon class="w-4 h-4 mr-1.5" />
+                        Yaratish
+                    </Link>
+                </div>
             </div>
 
-            <!-- Empty State -->
-            <div v-if="!orgStructure" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full mb-4">
-                    <BuildingOfficeIcon class="w-8 h-8 text-purple-600 dark:text-purple-400" />
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    {{ t('hr.no_org_structure') }}
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                    {{ t('hr.org_structure_desc') }}
-                </p>
-                <Link
-                    :href="route('hr.org-structure.create')"
-                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                    <PlusIcon class="w-5 h-5 mr-2" />
-                    {{ t('hr.start') }}
-                </Link>
-            </div>
+            <!-- Org Chart Container -->
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 overflow-x-auto border border-gray-200 dark:border-gray-800">
+                <div class="min-w-max flex flex-col items-center">
 
-            <!-- Org Structure Display -->
-            <div v-else class="space-y-6">
-                <!-- Stats Overview -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-purple-600 dark:text-purple-400">{{ t('hr.total_positions') }}</p>
-                                <p class="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-2">
-                                    {{ totalStats.total }}
-                                </p>
-                            </div>
-                            <div class="p-3 bg-purple-100 dark:bg-purple-800/50 rounded-lg">
-                                <BriefcaseIcon class="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                            </div>
+                    <!-- Director -->
+                    <div class="bg-gray-900 dark:bg-gray-800 rounded-lg shadow-xl w-72 overflow-hidden">
+                        <div class="bg-gray-800 dark:bg-gray-700 px-4 py-2.5">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center">Direktor</p>
                         </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-green-600 dark:text-green-400">{{ t('hr.filled_positions') }}</p>
-                                <p class="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">
-                                    {{ totalStats.filled }}
-                                </p>
-                            </div>
-                            <div class="p-3 bg-green-100 dark:bg-green-800/50 rounded-lg">
-                                <UsersIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-6 border border-orange-200 dark:border-orange-700">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-orange-600 dark:text-orange-400">{{ t('hr.vacant_positions') }}</p>
-                                <p class="text-3xl font-bold text-orange-900 dark:text-orange-100 mt-2">
-                                    {{ totalStats.vacant }}
-                                </p>
-                            </div>
-                            <div class="p-3 bg-orange-100 dark:bg-orange-800/50 rounded-lg">
-                                <BriefcaseIcon class="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-blue-600 dark:text-blue-400">{{ t('hr.fill_rate') }}</p>
-                                <p class="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">
-                                    {{ overallFillRate }}%
-                                </p>
-                            </div>
-                            <div class="p-3 bg-blue-100 dark:bg-blue-800/50 rounded-lg">
-                                <ChartBarIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Org Structure Info -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                                {{ orgStructure.name }}
-                            </h2>
-                            <p v-if="orgStructure.description" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {{ orgStructure.description }}
+                        <div class="p-4">
+                            <p class="text-white font-semibold text-base text-center">
+                                {{ ownerInfo?.name || business?.name }}
                             </p>
-                            <div v-if="orgStructure.business_type" class="mt-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                                    {{ orgStructure.business_type.name_uz }}
-                                </span>
-                            </div>
+                            <p class="text-gray-400 text-sm text-center mt-0.5">
+                                {{ ownerInfo?.position || 'Bosh direktor' }}
+                            </p>
                         </div>
-                        <Link
-                            :href="route('hr.org-structure.edit', orgStructure.id)"
-                            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            {{ t('hr.edit') }}
-                        </Link>
+                        <div class="bg-gray-800/50 dark:bg-gray-700/50 px-4 py-2.5 border-t border-gray-700">
+                            <p class="text-xs text-gray-400 text-center">
+                                <span class="text-yellow-500 font-medium">YQM:</span>
+                                {{ ownerInfo?.yqm || 'Korxonani boshqarish va rivojlantirish' }}
+                            </p>
+                        </div>
                     </div>
 
-                    <!-- Departments List -->
-                    <div class="space-y-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Bo'limlar
-                        </h3>
+                    <!-- Connector from Director -->
+                    <div class="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div
-                                v-for="department in orgStructure.departments"
-                                :key="department.id"
-                                class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
-                            >
-                                <div class="flex items-start justify-between">
-                                    <div class="flex items-start space-x-3 flex-1">
+                    <!-- Horizontal Line -->
+                    <div v-if="mergedDepartments.length > 1" class="relative flex items-center">
+                        <div
+                            class="h-px bg-gray-300 dark:bg-gray-600"
+                            :style="{ width: `${(mergedDepartments.length - 1) * 232 + (mergedDepartments.length - 1) * 12}px` }"
+                        ></div>
+                    </div>
+
+                    <!-- Departments -->
+                    <div class="flex gap-3">
+                        <div
+                            v-for="dept in mergedDepartments"
+                            :key="dept.code"
+                            class="flex flex-col items-center"
+                        >
+                            <!-- Vertical connector -->
+                            <div class="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
+
+                            <!-- Department Card -->
+                            <div class="w-56 rounded-lg overflow-hidden shadow-lg">
+                                <!-- Header -->
+                                <div
+                                    class="px-4 py-3 text-center"
+                                    :style="{ backgroundColor: getColor(dept.code).bg }"
+                                >
+                                    <p class="text-white font-semibold text-sm">{{ dept.name }}</p>
+                                    <p class="text-white/70 text-xs mt-0.5">{{ dept.employee_count }} xodim</p>
+                                </div>
+
+                                <!-- Employees -->
+                                <div class="bg-white dark:bg-gray-800 max-h-64 overflow-y-auto">
+                                    <template v-if="dept.employees?.length > 0">
                                         <div
-                                            class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                                            :style="{ backgroundColor: department.color || '#9333ea' }"
+                                            v-for="emp in dept.employees"
+                                            :key="emp.id"
+                                            class="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                                         >
-                                            {{ department.name.substring(0, 2).toUpperCase() }}
-                                        </div>
-                                        <div class="flex-1">
-                                            <h4 class="font-semibold text-gray-900 dark:text-white">
-                                                {{ department.name }}
-                                            </h4>
-                                            <p v-if="department.yqm_description" class="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                                                YQM: {{ department.yqm_description }}
+                                            <p class="font-medium text-gray-900 dark:text-white text-sm">{{ emp.name }}</p>
+                                            <p class="text-xs mt-0.5 font-medium" :style="{ color: getColor(dept.code).text }">
+                                                {{ emp.position }}
                                             </p>
-
-                                            <!-- Department Stats -->
-                                            <div class="mt-3 flex items-center space-x-4 text-xs">
-                                                <div class="flex items-center space-x-1">
-                                                    <BriefcaseIcon class="w-4 h-4 text-gray-400" />
-                                                    <span class="text-gray-600 dark:text-gray-400">
-                                                        {{ department.positions?.length || 0 }} lavozim
-                                                    </span>
-                                                </div>
-                                                <div class="flex items-center space-x-1">
-                                                    <UsersIcon class="w-4 h-4 text-gray-400" />
-                                                    <span class="text-gray-600 dark:text-gray-400">
-                                                        {{ getDepartmentStats(department).filled }}/{{ getDepartmentStats(department).total }} xodim
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Fill Rate Progress -->
-                                            <div class="mt-2">
-                                                <div class="flex items-center justify-between text-xs mb-1">
-                                                    <span class="text-gray-500 dark:text-gray-400">Bandlik</span>
-                                                    <span class="font-medium text-gray-700 dark:text-gray-300">
-                                                        {{ getDepartmentFillRate(department) }}%
-                                                    </span>
-                                                </div>
-                                                <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
-                                                    <div
-                                                        class="bg-gradient-to-r from-purple-600 to-pink-600 h-1.5 rounded-full transition-all duration-300"
-                                                        :style="{ width: getDepartmentFillRate(department) + '%' }"
-                                                    ></div>
-                                                </div>
-                                            </div>
+                                            <p v-if="emp.yqm" class="text-xs text-gray-600 dark:text-gray-300 mt-1.5 leading-relaxed">
+                                                <span class="font-medium" :style="{ color: getColor(dept.code).text }">YQM:</span>
+                                                {{ emp.yqm }}
+                                            </p>
                                         </div>
+                                    </template>
+                                    <div v-else class="px-4 py-8 text-center">
+                                        <UserPlusIcon class="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                                        <p class="text-xs text-gray-400 dark:text-gray-500">Xodim yo'q</p>
                                     </div>
                                 </div>
+
+                                <!-- Goal -->
+                                <div
+                                    class="px-3 py-2.5"
+                                    :style="{ backgroundColor: getColor(dept.code).bg }"
+                                >
+                                    <p class="text-xs text-center leading-snug text-white font-medium">
+                                        {{ getGoal(dept.code) }}
+                                    </p>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Mission -->
+                    <div class="mt-8 w-full max-w-3xl">
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg px-6 py-4 text-center">
+                            <p class="text-white text-sm font-medium">{{ mission }}</p>
                         </div>
                     </div>
                 </div>

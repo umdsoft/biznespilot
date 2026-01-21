@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\BusinessType;
+use App\Models\BusinessUser;
 use App\Models\DepartmentTemplate;
+use App\Models\JobDescription;
 use App\Models\OrgAssignment;
 use App\Models\OrgDepartment;
 use App\Models\OrgPosition;
@@ -32,9 +34,143 @@ class OrgStructureController extends Controller
             ->where('business_id', $business->id)
             ->first();
 
+        // Get employees grouped by department from BusinessUser
+        $employees = BusinessUser::where('business_id', $business->id)
+            ->with(['user', 'jobDescription'])
+            ->get()
+            ->groupBy('department');
+
+        // Get job descriptions for each department
+        $jobDescriptions = JobDescription::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->get()
+            ->groupBy('department');
+
+        // Build department structure from system departments
+        $systemDepartments = collect(BusinessUser::DEPARTMENTS)->map(function ($label, $code) use ($employees, $jobDescriptions) {
+            $deptEmployees = $employees->get($code, collect());
+            $deptPositions = $jobDescriptions->get($code, collect());
+
+            return [
+                'code' => $code,
+                'name' => $label,
+                'employees' => $deptEmployees->map(function ($emp) use ($deptPositions, $code) {
+                    // Get position title from jobDescription
+                    $positionTitle = $emp->jobDescription?->title;
+                    $positionSummary = $emp->jobDescription?->job_summary;
+
+                    // If no job_description, generate position based on department and role
+                    if (!$positionTitle) {
+                        // Department-based position titles
+                        $departmentPositions = [
+                            'sales_head' => [
+                                'admin' => 'Sotuv direktori',
+                                'manager' => 'Sotuv rahbari',
+                                'member' => 'Sotuv menejeri',
+                                'viewer' => 'Sotuv mutaxassisi',
+                            ],
+                            'sales_operator' => [
+                                'admin' => 'Call-center rahbari',
+                                'manager' => 'Operator rahbari',
+                                'member' => 'Sotuv operatori',
+                                'viewer' => 'Operator',
+                            ],
+                            'marketing' => [
+                                'admin' => 'Marketing direktori',
+                                'manager' => 'Marketing rahbari',
+                                'member' => 'Marketolog',
+                                'viewer' => 'SMM mutaxassisi',
+                            ],
+                            'hr' => [
+                                'admin' => 'HR direktori',
+                                'manager' => 'HR rahbari',
+                                'member' => 'HR mutaxassisi',
+                                'viewer' => 'Rekruter',
+                            ],
+                            'finance' => [
+                                'admin' => 'Moliya direktori',
+                                'manager' => 'Bosh hisobchi',
+                                'member' => 'Hisobchi',
+                                'viewer' => 'Kassir',
+                            ],
+                        ];
+
+                        $positionTitle = $departmentPositions[$code][$emp->role]
+                            ?? $departmentPositions[$code]['member']
+                            ?? BusinessUser::DEPARTMENTS[$code] ?? 'Xodim';
+                    }
+
+                    // Generate YQM based on department if not set
+                    if (!$positionSummary) {
+                        $departmentYqm = [
+                            'sales_head' => 'Sotuvlarni boshqarish va daromadni oshirish',
+                            'sales_operator' => 'Mijozlar bilan aloqa va sotuvlarni yakunlash',
+                            'marketing' => 'Bozorda o\'rnini mustahkamlash va lid generatsiya',
+                            'hr' => 'Kadrlar bilan ishlash va jamoa samaradorligini oshirish',
+                            'finance' => 'Moliyaviy hisobotlar va pul oqimini boshqarish',
+                        ];
+                        $positionSummary = $departmentYqm[$code] ?? null;
+                    }
+
+                    return [
+                        'id' => $emp->id,
+                        'user_id' => $emp->user_id,
+                        'name' => $emp->user?->name ?? 'Noma\'lum',
+                        'phone' => $emp->user?->phone,
+                        'position' => $positionTitle,
+                        'yqm' => $positionSummary,
+                        'job_description_id' => $emp->job_description_id,
+                        'salary' => $emp->salary,
+                        'employment_type' => $emp->employment_type,
+                        'role' => $emp->role,
+                        'department_code' => $code,
+                    ];
+                })->values()->all(),
+                'positions' => $deptPositions->map(function ($pos) use ($deptEmployees) {
+                    $assignedEmployees = $deptEmployees->filter(function ($emp) use ($pos) {
+                        return $emp->job_description_id === $pos->id;
+                    });
+                    return [
+                        'id' => $pos->id,
+                        'title' => $pos->title,
+                        'yqm' => $pos->job_summary,
+                        'responsibilities' => $pos->responsibilities,
+                        'required_count' => 1,
+                        'current_count' => $assignedEmployees->count(),
+                        'employees' => $assignedEmployees->map(function ($emp) {
+                            return [
+                                'id' => $emp->id,
+                                'name' => $emp->user?->name ?? 'Noma\'lum',
+                            ];
+                        })->values()->all(),
+                    ];
+                })->values()->all(),
+                'employee_count' => $deptEmployees->count(),
+            ];
+        })->values()->all();
+
+        // Get business owner (the user who created the business or has admin role)
+        $owner = BusinessUser::where('business_id', $business->id)
+            ->where('role', 'admin')
+            ->with('user')
+            ->first();
+
+        $ownerInfo = $owner ? [
+            'name' => $owner->user?->name ?? 'Direktor',
+            'position' => $owner->jobDescription?->title ?? 'Direktor',
+            'yqm' => $owner->jobDescription?->job_summary ?? 'Korxonani boshqarish va rivojlantirish',
+        ] : [
+            'name' => $business->owner?->name ?? $business->name,
+            'position' => 'Direktor',
+            'yqm' => 'Korxonani boshqarish va rivojlantirish',
+        ];
+
         return Inertia::render('HR/OrgStructure/Index', [
             'orgStructure' => $orgStructure,
             'business' => $business,
+            'systemDepartments' => $systemDepartments,
+            'departments' => BusinessUser::DEPARTMENTS,
+            'ownerInfo' => $ownerInfo,
         ]);
     }
 

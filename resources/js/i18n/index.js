@@ -3388,7 +3388,7 @@ const allTranslations = {
         'dashboard.finance.no_transactions': 'Tranzaksiyalar mavjud emas',
         'dashboard.finance.no_pending_invoices': 'Kutilayotgan faktura yo\'q',
         // HR Dashboard
-        'dashboard.hr.welcome': 'Xush kelibsiz, {name}!',
+        'dashboard.hr.welcome': 'Xush kelibsiz, :name!',
         'dashboard.hr.hr_panel': 'HR Panel',
         'dashboard.hr.today': 'Bugun',
         'dashboard.hr.employees': 'Xodimlar',

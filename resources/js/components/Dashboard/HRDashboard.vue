@@ -1,82 +1,103 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import {
     UsersIcon,
     UserGroupIcon,
     BuildingOfficeIcon,
     BellIcon,
-    ClockIcon,
-    CheckCircleIcon,
-    ChartBarIcon,
-    XCircleIcon,
     CalendarIcon,
     BanknotesIcon,
 } from '@heroicons/vue/24/outline';
 import StatCard from './StatCard.vue';
 import DashboardCard from './DashboardCard.vue';
-import QuickActions from './QuickActions.vue';
+import EngagementWidget from '@/components/HR/EngagementWidget.vue';
+import FlightRiskWidget from '@/components/HR/FlightRiskWidget.vue';
+import OnboardingWidget from '@/components/HR/OnboardingWidget.vue';
+import HRAlertsList from '@/components/HR/HRAlertsList.vue';
 import { useI18n } from '@/i18n';
+import axios from 'axios';
 
 const { t } = useI18n();
+const page = usePage();
+const userName = computed(() => page.props.auth?.user?.name || t('dashboard.hr.hr_panel'));
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
     recentActivities: { type: Array, default: () => [] },
     pendingTasks: { type: Array, default: () => [] },
-    todayAttendance: { type: Object, default: null },
     leaveBalances: { type: Array, default: () => [] },
     upcomingLeaves: { type: Array, default: () => [] },
     currentBusiness: { type: Object, default: null },
 });
 
-const checkingIn = ref(false);
-const checkingOut = ref(false);
+// HR Analytics Data
+const engagementData = ref(null);
+const flightRiskData = ref(null);
+const onboardingData = ref(null);
+const alertsData = ref([]);
+const alertsUnreadCount = ref(0);
+const loadingAnalytics = ref(false);
 
-// Check-in handler
-const checkIn = async () => {
-    if (checkingIn.value) return;
+// Fetch HR Analytics Data
+const fetchHRAnalytics = async () => {
+    if (!props.currentBusiness?.id) return;
 
-    checkingIn.value = true;
-
+    loadingAnalytics.value = true;
     try {
-        await router.post(route('hr.attendance.check-in'), {
-            location: 'Office',
-        }, {
-            preserveScroll: true,
-            onFinish: () => {
-                checkingIn.value = false;
-            }
-        });
+        const [engagementRes, flightRiskRes, onboardingRes, alertsRes] = await Promise.all([
+            axios.get(`/api/v1/businesses/${props.currentBusiness.id}/hr/engagement/statistics`).catch(() => ({ data: { data: null } })),
+            axios.get(`/api/v1/businesses/${props.currentBusiness.id}/hr/flight-risk/statistics`).catch(() => ({ data: { data: null } })),
+            axios.get(`/api/v1/businesses/${props.currentBusiness.id}/hr/onboarding/statistics`).catch(() => ({ data: { data: null } })),
+            axios.get(`/api/v1/businesses/${props.currentBusiness.id}/hr/alerts?limit=5`).catch(() => ({ data: { data: { data: [] } } })),
+        ]);
+
+        engagementData.value = engagementRes.data.data;
+        flightRiskData.value = flightRiskRes.data.data;
+        onboardingData.value = onboardingRes.data.data;
+        alertsData.value = alertsRes.data.data?.data || [];
+        alertsUnreadCount.value = alertsData.value.filter(a => a.status === 'new').length;
     } catch (error) {
-        checkingIn.value = false;
+        console.error('Error fetching HR analytics:', error);
+    } finally {
+        loadingAnalytics.value = false;
     }
 };
 
-// Check-out handler
-const checkOut = async () => {
-    if (checkingOut.value) return;
-
-    checkingOut.value = true;
-
+// Alert handlers
+const handleAlertAcknowledge = async (alertId) => {
+    if (!props.currentBusiness?.id) return;
     try {
-        await router.post(route('hr.attendance.check-out'), {}, {
-            preserveScroll: true,
-            onFinish: () => {
-                checkingOut.value = false;
-            }
-        });
+        await axios.post(`/api/v1/businesses/${props.currentBusiness.id}/hr/alerts/${alertId}/acknowledge`);
+        fetchHRAnalytics();
     } catch (error) {
-        checkingOut.value = false;
+        console.error('Error acknowledging alert:', error);
     }
 };
 
-const quickActions = computed(() => [
-    { href: '/hr/team', icon: UsersIcon, label: t('dashboard.hr.employees'), color: 'blue' },
-    { href: '/hr/attendance', icon: ClockIcon, label: t('dashboard.hr.attendance'), color: 'purple' },
-    { href: '/hr/departments', icon: BuildingOfficeIcon, label: t('dashboard.hr.departments'), color: 'green' },
-    { href: '/hr/invitations', icon: BellIcon, label: t('dashboard.hr.invitations'), color: 'orange' },
-]);
+const handleAlertResolve = async (alertId) => {
+    if (!props.currentBusiness?.id) return;
+    try {
+        await axios.post(`/api/v1/businesses/${props.currentBusiness.id}/hr/alerts/${alertId}/resolve`);
+        fetchHRAnalytics();
+    } catch (error) {
+        console.error('Error resolving alert:', error);
+    }
+};
+
+const handleMarkAllSeen = async () => {
+    if (!props.currentBusiness?.id) return;
+    try {
+        await axios.post(`/api/v1/businesses/${props.currentBusiness.id}/hr/alerts/mark-all-seen`);
+        fetchHRAnalytics();
+    } catch (error) {
+        console.error('Error marking all as seen:', error);
+    }
+};
+
+onMounted(() => {
+    fetchHRAnalytics();
+});
 
 const getActivityColor = (type) => {
     const colors = {
@@ -107,7 +128,7 @@ const getPriorityColor = (priority) => {
             <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
             <div class="relative">
                 <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
-                    {{ t('dashboard.hr.welcome', { name: currentBusiness?.name || t('dashboard.hr.hr_panel') }) }}
+                    {{ t('dashboard.hr.welcome', { name: userName }) }}
                 </h1>
                 <p class="text-purple-100 text-lg">
                     {{ t('dashboard.hr.today') }} {{ new Date().toLocaleDateString('uz-UZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
@@ -194,85 +215,6 @@ const getPriorityColor = (priority) => {
             </div>
         </div>
 
-        <!-- Today's Attendance Widget -->
-        <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Left side - Status -->
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                            <ClockIcon class="w-6 h-6" />
-                        </div>
-                        <div>
-                            <p class="text-sm opacity-90">{{ t('dashboard.hr.today') }}</p>
-                            <p class="text-xl font-bold">{{ new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' }) }}</p>
-                        </div>
-                    </div>
-
-                    <div v-if="todayAttendance" class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm opacity-90">Check-in:</span>
-                            <span class="text-lg font-bold">{{ todayAttendance.check_in || '--:--' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm opacity-90">Check-out:</span>
-                            <span class="text-lg font-bold">{{ todayAttendance.check_out || '--:--' }}</span>
-                        </div>
-                        <div v-if="todayAttendance.work_hours" class="flex items-center justify-between">
-                            <span class="text-sm opacity-90">{{ t('dashboard.hr.work_hours') }}:</span>
-                            <span class="text-lg font-bold">{{ todayAttendance.work_hours }} {{ t('dashboard.hr.hours') }}</span>
-                        </div>
-                    </div>
-                    <div v-else class="text-center py-4">
-                        <p class="text-sm opacity-90">{{ t('dashboard.hr.no_check_in_today') }}</p>
-                    </div>
-                </div>
-
-                <!-- Right side - Actions -->
-                <div class="flex flex-col justify-center gap-3">
-                    <button
-                        v-if="!todayAttendance || !todayAttendance.is_checked_in"
-                        @click="checkIn"
-                        :disabled="checkingIn"
-                        class="flex items-center justify-center gap-2 px-6 py-4 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <CheckCircleIcon class="w-6 h-6" />
-                        <span v-if="checkingIn">{{ t('dashboard.hr.checking_in') }}</span>
-                        <span v-else>Check-in</span>
-                    </button>
-
-                    <button
-                        v-else-if="!todayAttendance.is_checked_out"
-                        @click="checkOut"
-                        :disabled="checkingOut"
-                        class="flex items-center justify-center gap-2 px-6 py-4 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <XCircleIcon class="w-6 h-6" />
-                        <span v-if="checkingOut">{{ t('dashboard.hr.checking_out') }}</span>
-                        <span v-else>Check-out</span>
-                    </button>
-
-                    <div v-else class="flex items-center justify-center gap-2 px-6 py-4 bg-white/20 rounded-xl">
-                        <CheckCircleIcon class="w-6 h-6" />
-                        <span class="font-semibold">{{ t('dashboard.hr.work_completed_today') }}</span>
-                    </div>
-
-                    <div v-if="todayAttendance" class="text-center">
-                        <span class="inline-flex px-4 py-1 rounded-full text-sm font-medium bg-white/20">
-                            {{ todayAttendance.status_label }}
-                        </span>
-                    </div>
-
-                    <Link
-                        :href="route('hr.attendance.index')"
-                        class="text-center text-sm opacity-90 hover:opacity-100 transition-opacity underline"
-                    >
-                        {{ t('dashboard.view_details') }}
-                    </Link>
-                </div>
-            </div>
-        </div>
-
         <!-- Leave Balance Widget -->
         <div v-if="leaveBalances.length > 0" class="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 text-white shadow-xl">
             <div class="flex items-center gap-3 mb-6">
@@ -326,6 +268,62 @@ const getPriorityColor = (priority) => {
                 >
                     {{ t('dashboard.view_details') }}
                 </Link>
+            </div>
+        </div>
+
+        <!-- HR Analytics Section -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                    HR Analytics
+                </h2>
+                <span v-if="loadingAnalytics" class="text-sm text-gray-500">Yuklanmoqda...</span>
+            </div>
+
+            <!-- Analytics Widgets Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                <!-- Engagement Widget -->
+                <EngagementWidget
+                    v-if="engagementData"
+                    :avg-score="engagementData.overview?.avg_score || 0"
+                    :highly-engaged="engagementData.distribution?.highly_engaged?.count || 0"
+                    :engaged="engagementData.distribution?.engaged?.count || 0"
+                    :neutral="engagementData.distribution?.neutral?.count || 0"
+                    :disengaged="engagementData.distribution?.disengaged?.count || 0"
+                    :business-id="currentBusiness?.id"
+                />
+
+                <!-- Flight Risk Widget -->
+                <FlightRiskWidget
+                    v-if="flightRiskData"
+                    :total-at-risk="(flightRiskData.distribution?.critical?.count || 0) + (flightRiskData.distribution?.high?.count || 0)"
+                    :critical-count="flightRiskData.distribution?.critical?.count || 0"
+                    :high-count="flightRiskData.distribution?.high?.count || 0"
+                    :medium-count="flightRiskData.distribution?.medium?.count || 0"
+                    :top-risk-employees="flightRiskData.top_risk_employees || []"
+                    :business-id="currentBusiness?.id"
+                />
+
+                <!-- Onboarding Widget -->
+                <OnboardingWidget
+                    v-if="onboardingData"
+                    :active-plans="onboardingData.active_plans || 0"
+                    :completed-plans="onboardingData.completed_plans || 0"
+                    :overdue-tasks-count="onboardingData.overdue_tasks_count || 0"
+                    :recent-onboardings="onboardingData.recent_onboardings || []"
+                    :milestone-scores="onboardingData.milestone_completion_rates || { day_30: 0, day_60: 0, day_90: 0 }"
+                    :business-id="currentBusiness?.id"
+                />
+
+                <!-- Alerts Widget -->
+                <HRAlertsList
+                    :alerts="alertsData"
+                    :unread-count="alertsUnreadCount"
+                    :business-id="currentBusiness?.id"
+                    @acknowledge="handleAlertAcknowledge"
+                    @resolve="handleAlertResolve"
+                    @mark-all-seen="handleMarkAllSeen"
+                />
             </div>
         </div>
 
@@ -423,8 +421,5 @@ const getPriorityColor = (priority) => {
                 </div>
             </DashboardCard>
         </div>
-
-        <!-- Quick Actions -->
-        <QuickActions :actions="quickActions" />
     </div>
 </template>

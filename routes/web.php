@@ -1675,6 +1675,14 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/lead/{lead}', [App\Http\Controllers\Shared\LeadScoringController::class, 'leadScoreDetails'])->name('lead-details');
         Route::post('/lead/{lead}/recalculate', [App\Http\Controllers\Shared\LeadScoringController::class, 'recalculateLead'])->name('lead-recalculate');
     });
+
+    // ==================== Business Systematization (Denis Shenukov) ====================
+    // Sotuv Analitikasi Dashboard (ROP - Sotuv bo'limi rahbari uchun)
+    Route::get('/sales-analytics', function () {
+        return inertia('Sales/Dashboard', [
+            'currentBusiness' => auth()->user()?->currentBusiness,
+        ]);
+    })->name('sales-analytics');
 });
 
 // ==============================================
@@ -2060,6 +2068,14 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::get('/achievements', [App\Http\Controllers\Marketing\LeaderboardController::class, 'achievements'])->name('achievements');
         Route::post('/refresh', [App\Http\Controllers\Marketing\LeaderboardController::class, 'refresh'])->name('refresh');
     });
+
+    // ==================== Business Systematization (Denis Shenukov) ====================
+    // Marketing-Sales Integration Dashboard (70/30 rule)
+    Route::get('/sales-integration', function () {
+        return inertia('Marketing/Integration/Dashboard', [
+            'currentBusiness' => auth()->user()?->currentBusiness,
+        ]);
+    })->name('sales-integration');
 });
 
 // ==============================================
@@ -2311,15 +2327,53 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
 
     // Reports (Hisobotlar)
     Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/', function () {
-            return inertia('HR/Reports/Index');
-        })->name('index');
+        Route::get('/', [App\Http\Controllers\HR\ReportsWebController::class, 'index'])->name('index');
     });
 
-    // Settings (Sozlamalar)
-    Route::get('/settings', function () {
-        return inertia('HR/Settings/Index');
-    })->name('settings');
+    // ==================== Mehnat Qonunchiligi ====================
+
+    // Unified Employee Management (Xodimlar boshqaruvi - all in one)
+    Route::get('/employees', [App\Http\Controllers\HR\EmployeeManagementController::class, 'index'])->name('employees.index');
+    Route::put('/employees/{employee}/contract', [App\Http\Controllers\HR\EmployeeManagementController::class, 'updateContract'])->name('employees.contract.update');
+    Route::post('/employees/{employee}/terminate', [App\Http\Controllers\HR\EmployeeManagementController::class, 'terminate'])->name('employees.terminate');
+    Route::post('/employees/leave-request', [App\Http\Controllers\HR\EmployeeManagementController::class, 'createLeaveRequest'])->name('employees.leave-request.store');
+
+    // Legacy routes (for backward compatibility)
+    // Contracts (Mehnat shartnomalari)
+    Route::get('/contracts', [App\Http\Controllers\HR\ContractsWebController::class, 'index'])->name('contracts.index');
+
+    // Employee Leave Management (Ta'tillar boshqaruvi)
+    Route::get('/employee-leave', [App\Http\Controllers\HR\EmployeeLeaveWebController::class, 'index'])->name('employee-leave.index');
+
+    // Termination (Ishdan bo'shatish)
+    Route::get('/termination', [App\Http\Controllers\HR\TerminationWebController::class, 'index'])->name('termination.index');
+
+    // ==================== HR Analytics System ====================
+
+    // Engagement (Hodimlar qiziqishi)
+    Route::get('/engagement', [App\Http\Controllers\HR\EngagementWebController::class, 'index'])->name('engagement.index');
+
+    // Flight Risk (Ketish xavfi)
+    Route::get('/flight-risk', [App\Http\Controllers\HR\FlightRiskWebController::class, 'index'])->name('flight-risk.index');
+
+    // Surveys (So'rovnomalar)
+    Route::get('/surveys', [App\Http\Controllers\HR\SurveyWebController::class, 'index'])->name('surveys.index');
+    Route::get('/surveys/my', [App\Http\Controllers\HR\SurveyWebController::class, 'mySurveys'])->name('surveys.my');
+    Route::get('/surveys/{surveyId}', [App\Http\Controllers\HR\SurveyWebController::class, 'show'])->name('surveys.show');
+    Route::get('/surveys/{surveyId}/fill', [App\Http\Controllers\HR\SurveyWebController::class, 'fill'])->name('surveys.fill');
+    Route::get('/surveys/{surveyId}/results', [App\Http\Controllers\HR\SurveyWebController::class, 'results'])->name('surveys.results');
+
+    // Onboarding (30-60-90)
+    Route::get('/onboarding', [App\Http\Controllers\HR\OnboardingWebController::class, 'index'])->name('onboarding.index');
+
+    // ==================== Business Systematization (Denis Shenukov) ====================
+
+    // Employee Classification (Думатель vs Делатель)
+    Route::get('/classification', function () {
+        return inertia('HR/Classification/Index', [
+            'currentBusiness' => auth()->user()?->currentBusiness,
+        ]);
+    })->name('classification.index');
 });
 
 // ==============================================

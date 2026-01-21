@@ -115,4 +115,88 @@ class MarketingChannel extends Model
             default => null,
         };
     }
+
+    // === NEW: Business Systematization Features ===
+
+    /**
+     * Get marketing campaigns for this channel.
+     */
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(MarketingCampaign::class, 'channel_id');
+    }
+
+    /**
+     * Get marketing budgets for this channel.
+     */
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(MarketingBudget::class, 'channel_id');
+    }
+
+    /**
+     * Get content calendar items for this channel.
+     */
+    public function contentCalendarItems(): HasMany
+    {
+        return $this->hasMany(ContentCalendar::class, 'channel_id');
+    }
+
+    /**
+     * Get lead flow tracking for this channel.
+     */
+    public function leadFlows(): HasMany
+    {
+        return $this->hasMany(LeadFlowTracking::class, 'marketing_channel_id');
+    }
+
+    /**
+     * Get total spent (all time) from campaigns.
+     */
+    public function getTotalCampaignSpentAttribute(): float
+    {
+        return $this->campaigns()->sum('budget_spent');
+    }
+
+    /**
+     * Get total leads generated from campaigns.
+     */
+    public function getTotalCampaignLeadsAttribute(): int
+    {
+        return $this->campaigns()->sum('leads_generated');
+    }
+
+    /**
+     * Get average CPL from campaigns.
+     */
+    public function getAverageCampaignCplAttribute(): float
+    {
+        $totalSpent = $this->total_campaign_spent;
+        $totalLeads = $this->total_campaign_leads;
+
+        if ($totalLeads == 0) return 0;
+
+        return round($totalSpent / $totalLeads, 2);
+    }
+
+    /**
+     * Get total ROI from campaigns.
+     */
+    public function getTotalCampaignRoiAttribute(): float
+    {
+        $totalSpent = $this->total_campaign_spent;
+        $totalRevenue = $this->campaigns()->sum('revenue_generated');
+
+        if ($totalSpent == 0) return 0;
+
+        return round((($totalRevenue - $totalSpent) / $totalSpent) * 100, 2);
+    }
+
+    /**
+     * Scope: Active channels.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }

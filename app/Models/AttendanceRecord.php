@@ -23,6 +23,8 @@ class AttendanceRecord extends Model
         'notes',
         'location',
         'ip_address',
+        'source',
+        'metadata',
     ];
 
     protected $casts = [
@@ -30,6 +32,7 @@ class AttendanceRecord extends Model
         'check_in' => 'datetime',
         'check_out' => 'datetime',
         'work_hours' => 'decimal:2',
+        'metadata' => 'array',
     ];
 
     // ==================== Relationships ====================

@@ -90,6 +90,22 @@ Route::prefix('webhooks/utel')->group(function () {
         ->name('webhooks.utel.test');
 });
 
+// Camera Attendance Webhooks (Kamera orqali davomat)
+Route::prefix('webhooks/attendance')->group(function () {
+    // Kameradan check-in/check-out qabul qilish
+    Route::post('camera', [\App\Http\Controllers\Api\HR\CameraAttendanceController::class, 'webhook'])
+        ->name('webhooks.attendance.camera');
+
+    // Test endpoint
+    Route::get('test', function () {
+        return response()->json([
+            'success' => true,
+            'message' => 'Camera attendance webhook is working',
+            'timestamp' => now()->toISOString(),
+        ]);
+    })->name('webhooks.attendance.test');
+});
+
 // Protected routes - API v1 (Rate limited - 120 requests per minute for authenticated users)
 Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(function () {
     // Authentication routes
@@ -282,6 +298,231 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
             Route::get('/trend-analysis/{kpiCode}', [KpiDashboardController::class, 'getTrendAnalysis']);
             Route::get('/aggregation-status', [KpiDashboardController::class, 'getAggregationStatus']);
             Route::post('/trigger-aggregation', [KpiDashboardController::class, 'triggerAggregation']);
+        });
+
+        // ========== HR SYSTEM API ROUTES ==========
+        // HR Dashboard - Asosiy HR boshqaruv paneli
+        Route::prefix('hr')->group(function () {
+            // Dashboard
+            Route::get('/dashboard', [\App\Http\Controllers\Api\HR\HRDashboardController::class, 'index']);
+            Route::get('/dashboard/employees', [\App\Http\Controllers\Api\HR\HRDashboardController::class, 'employeeOverview']);
+            Route::get('/dashboard/departments', [\App\Http\Controllers\Api\HR\HRDashboardController::class, 'departmentStats']);
+
+            // Engagement - Hodimlar ishga qiziqishi
+            Route::prefix('engagement')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\HR\EngagementController::class, 'index']);
+                Route::get('/statistics', [\App\Http\Controllers\Api\HR\EngagementController::class, 'statistics']);
+                Route::get('/{userId}', [\App\Http\Controllers\Api\HR\EngagementController::class, 'show']);
+                Route::post('/', [\App\Http\Controllers\Api\HR\EngagementController::class, 'store']);
+                Route::post('/{userId}/recalculate', [\App\Http\Controllers\Api\HR\EngagementController::class, 'recalculate']);
+            });
+
+            // Flight Risk - Ketish xavfi
+            Route::prefix('flight-risk')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\HR\FlightRiskController::class, 'index']);
+                Route::get('/statistics', [\App\Http\Controllers\Api\HR\FlightRiskController::class, 'statistics']);
+                Route::get('/{userId}', [\App\Http\Controllers\Api\HR\FlightRiskController::class, 'show']);
+                Route::post('/{userId}/recalculate', [\App\Http\Controllers\Api\HR\FlightRiskController::class, 'recalculate']);
+                Route::post('/{userId}/mitigation', [\App\Http\Controllers\Api\HR\FlightRiskController::class, 'addMitigationAction']);
+                Route::post('/{userId}/mitigation/{actionIndex}/complete', [\App\Http\Controllers\Api\HR\FlightRiskController::class, 'completeMitigationAction']);
+            });
+
+            // Onboarding - Yangi hodimlar adaptatsiyasi
+            Route::prefix('onboarding')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'index']);
+                Route::get('/statistics', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'statistics']);
+                Route::post('/', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'store']);
+                Route::get('/{planId}', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'show']);
+                Route::put('/{planId}', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'update']);
+                Route::post('/{planId}/tasks', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'addTask']);
+                Route::put('/{planId}/tasks/{taskId}', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'updateTaskStatus']);
+                Route::post('/{planId}/milestone', [\App\Http\Controllers\Api\HR\OnboardingController::class, 'completeMilestone']);
+            });
+
+            // Surveys - So'rovnomalar
+            Route::prefix('surveys')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\HR\SurveyController::class, 'index']);
+                Route::get('/statistics', [\App\Http\Controllers\Api\HR\SurveyController::class, 'statistics']);
+                Route::get('/my-available', [\App\Http\Controllers\Api\HR\SurveyController::class, 'myAvailableSurveys']);
+                Route::post('/', [\App\Http\Controllers\Api\HR\SurveyController::class, 'store']);
+                Route::post('/from-template', [\App\Http\Controllers\Api\HR\SurveyController::class, 'createFromTemplate']);
+                Route::get('/{surveyId}', [\App\Http\Controllers\Api\HR\SurveyController::class, 'show']);
+                Route::put('/{surveyId}', [\App\Http\Controllers\Api\HR\SurveyController::class, 'update']);
+                Route::post('/{surveyId}/activate', [\App\Http\Controllers\Api\HR\SurveyController::class, 'activate']);
+                Route::post('/{surveyId}/close', [\App\Http\Controllers\Api\HR\SurveyController::class, 'close']);
+                Route::post('/{surveyId}/respond', [\App\Http\Controllers\Api\HR\SurveyController::class, 'submitResponse']);
+                Route::get('/{surveyId}/results', [\App\Http\Controllers\Api\HR\SurveyController::class, 'results']);
+                Route::get('/{surveyId}/engagement', [\App\Http\Controllers\Api\HR\SurveyController::class, 'surveyEngagement']);
+                Route::get('/{surveyId}/flight-risk', [\App\Http\Controllers\Api\HR\SurveyController::class, 'surveyFlightRisk']);
+            });
+
+            // Alerts - HR ogohlantirishlari
+            Route::prefix('alerts')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\HR\AlertsController::class, 'index']);
+                Route::get('/unread-count', [\App\Http\Controllers\Api\HR\AlertsController::class, 'unreadCount']);
+                Route::get('/statistics', [\App\Http\Controllers\Api\HR\AlertsController::class, 'statistics']);
+                Route::post('/mark-all-seen', [\App\Http\Controllers\Api\HR\AlertsController::class, 'markAllAsSeen']);
+                Route::get('/{alertId}', [\App\Http\Controllers\Api\HR\AlertsController::class, 'show']);
+                Route::post('/{alertId}/acknowledge', [\App\Http\Controllers\Api\HR\AlertsController::class, 'acknowledge']);
+                Route::post('/{alertId}/resolve', [\App\Http\Controllers\Api\HR\AlertsController::class, 'resolve']);
+            });
+
+            // Turnover - Hodimlar ketishi tahlili
+            Route::prefix('turnover')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'index']);
+                Route::get('/statistics', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'statistics']);
+                Route::get('/report', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'report']);
+                Route::post('/', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'store']);
+                Route::get('/{recordId}', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'show']);
+                Route::post('/{recordId}/exit-interview', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'storeExitInterview']);
+                Route::put('/{recordId}/replacement-status', [\App\Http\Controllers\Api\HR\TurnoverController::class, 'updateReplacementStatus']);
+            });
+
+            // Employee Management - Yagona xodimlar boshqaruvi
+            Route::prefix('employees')->group(function () {
+                Route::put('/{employeeId}/contract', [\App\Http\Controllers\HR\EmployeeManagementController::class, 'updateContract']);
+                Route::post('/{employeeId}/terminate', [\App\Http\Controllers\HR\EmployeeManagementController::class, 'terminate']);
+            });
+
+            // Leave Requests - Ta'til so'rovlari
+            Route::post('/leave-requests', [\App\Http\Controllers\HR\EmployeeManagementController::class, 'createLeaveRequest']);
+        });
+
+        // ========== BUSINESS SYSTEMATIZATION API ROUTES ==========
+        // Denis Shenukov metodologiyasi asosida biznes tizimlash
+
+        // Sales Analytics - ROP (Sotuv bo'limi rahbari) dashboard
+        Route::prefix('sales-analytics')->group(function () {
+            // Dashboard
+            Route::get('/dashboard', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'dashboard']);
+            Route::get('/current-period', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'currentPeriod']);
+            Route::get('/manager-rankings', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'managerRankings']);
+            Route::get('/receivables', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'receivables']);
+            Route::get('/funnel', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'funnel']);
+            Route::get('/rejection-analysis', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'rejectionAnalysis']);
+            Route::get('/trend', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'trend']);
+            Route::get('/manager-activity/{userId}', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'managerActivity']);
+
+            // Sales Targets - Sotuv rejalari
+            Route::get('/targets', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'listTargets']);
+            Route::post('/targets', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'createTarget']);
+            Route::put('/targets/{target}', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'updateTarget']);
+
+            // Sales Activities - Kunlik faoliyat
+            Route::post('/activities', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'recordActivity']);
+
+            // Receivables - Debitorka
+            Route::get('/receivables/list', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'listReceivables']);
+            Route::post('/receivables', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'createReceivable']);
+            Route::post('/receivables/{receivable}/payment', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'recordPayment']);
+
+            // Funnel & Rejections - Voronka va rad etishlar
+            Route::get('/funnel-stages', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'listFunnelStages']);
+            Route::get('/rejection-reasons', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'listRejectionReasons']);
+            Route::post('/lost-deals', [\App\Http\Controllers\Api\BusinessSystematization\SalesAnalyticsController::class, 'recordLostDeal']);
+        });
+
+        // Motivation System - Motivatsiya tizimi
+        Route::prefix('motivation')->group(function () {
+            // Schemes - Motivatsiya sxemalari
+            Route::get('/schemes', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'listSchemes']);
+            Route::get('/schemes/{scheme}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'getScheme']);
+            Route::post('/schemes', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'createScheme']);
+            Route::put('/schemes/{scheme}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'updateScheme']);
+
+            // Components - Motivatsiya komponentlari
+            Route::post('/schemes/{scheme}/components', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'addComponent']);
+            Route::put('/components/{component}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'updateComponent']);
+            Route::delete('/components/{component}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'deleteComponent']);
+
+            // Employee Motivation - Xodimga tayinlash
+            Route::post('/assign', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'assignToEmployee']);
+            Route::get('/employee/{userId}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'getEmployeeMotivation']);
+
+            // Calculations - Hisoblashlar
+            Route::post('/calculate', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'calculate']);
+            Route::get('/calculations/{userId}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'getCalculationHistory']);
+            Route::post('/calculations/{calculation}/approve', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'approveCalculation']);
+
+            // KPI Helper - KPI hisoblash
+            Route::post('/calculate-kpi', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'calculateKpi']);
+            Route::post('/generate-scale', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'generateScaleTable']);
+
+            // Key Task Maps - Asosiy vazifalar kartasi
+            Route::get('/key-task-maps', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'listKeyTaskMaps']);
+            Route::post('/key-task-maps', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'createKeyTaskMap']);
+            Route::put('/key-tasks/{task}', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'updateKeyTask']);
+            Route::get('/key-task-maps/{map}/bonus', [\App\Http\Controllers\Api\BusinessSystematization\MotivationController::class, 'calculateKeyTaskMapBonus']);
+        });
+
+        // Marketing Integration - Marketing-Sotuv integratsiyasi
+        Route::prefix('marketing-integration')->group(function () {
+            // Dashboard
+            Route::get('/dashboard', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'dashboard']);
+            Route::get('/sales-linkage', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'salesLinkage']);
+            Route::get('/channel-performance', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'channelPerformance']);
+            Route::get('/budget-status', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'budgetStatus']);
+            Route::get('/lead-quality', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'leadQuality']);
+            Route::get('/campaign-roi', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'campaignRoi']);
+            Route::post('/calculate-bonus', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'calculateBonus']);
+
+            // KPIs - Marketing KPI'lar
+            Route::get('/kpis', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'listKpis']);
+            Route::post('/kpis', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'createKpi']);
+            Route::put('/kpis/{kpi}', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'updateKpi']);
+
+            // Campaigns - Kampaniyalar
+            Route::get('/campaigns', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'listCampaigns']);
+            Route::post('/campaigns', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'createCampaign']);
+            Route::put('/campaigns/{campaign}', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'updateCampaignMetrics']);
+
+            // Budgets - Byudjetlar
+            Route::get('/budgets', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'listBudgets']);
+            Route::post('/budgets', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'saveBudget']);
+            Route::post('/budgets/{budget}/spend', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'recordSpending']);
+
+            // Lead Flow - Lid oqimi
+            Route::post('/lead-flow', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'recordLeadFlow']);
+            Route::get('/lead-flow/history', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'getLeadFlowHistory']);
+
+            // Channels - Kanallar
+            Route::get('/channels', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'listChannels']);
+            Route::post('/channels', [\App\Http\Controllers\Api\BusinessSystematization\MarketingIntegrationController::class, 'createChannel']);
+        });
+
+        // Employee Classification - Xodim klassifikatsiyasi (HR kengaytma)
+        Route::prefix('employee-classification')->group(function () {
+            // Dashboard
+            Route::get('/dashboard', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'dashboard']);
+            Route::get('/summary', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'classificationSummary']);
+            Route::get('/star-risks', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'starEmployeeRisks']);
+            Route::get('/position-mismatches', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'positionMismatches']);
+            Route::get('/knowledge-risks', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'knowledgeRisks']);
+
+            // Classifications - Klassifikatsiyalar
+            Route::get('/', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'listClassifications']);
+            Route::post('/classify', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'classifyEmployee']);
+            Route::post('/mark-star', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'markAsStarEmployee']);
+
+            // Function Knowledge - Funksiya bilimi
+            Route::get('/functions', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'listFunctionKnowledge']);
+            Route::post('/functions', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'registerFunctionKnowledge']);
+            Route::put('/functions/{function}', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'updateKnowledgeHolders']);
+
+            // Vacancies - Vakansiyalar
+            Route::get('/vacancies', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'listVacancies']);
+            Route::post('/vacancies', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'createVacancy']);
+            Route::put('/vacancies/{vacancy}', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'updateVacancy']);
+
+            // Interviews - Intervyular
+            Route::get('/vacancies/{vacancy}/interviews', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'listInterviews']);
+            Route::post('/vacancies/{vacancy}/interviews', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'createInterview']);
+            Route::put('/interviews/{interview}', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'updateInterview']);
+
+            // Business Diagnostics - Biznes diagnostikasi
+            Route::get('/diagnostics', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'getLatestDiagnostics']);
+            Route::post('/diagnostics', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'createDiagnostics']);
+            Route::get('/diagnostics/history', [\App\Http\Controllers\Api\BusinessSystematization\EmployeeClassificationController::class, 'getDiagnosticsHistory']);
         });
     });
 });

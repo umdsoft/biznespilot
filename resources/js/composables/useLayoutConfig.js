@@ -31,9 +31,10 @@ import {
   UserPlusIcon,
   BookOpenIcon,
   SunIcon,
-  BellAlertIcon,
   ArrowPathIcon,
   FireIcon,
+  ScaleIcon,
+  ChartPieIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -280,6 +281,7 @@ export const salesHeadLayoutConfig = {
             { href: '/sales-head/sales-kpi/achievements', label: 'Yutuqlar' },
           ]
         },
+        { href: '/sales-head/sales-analytics', label: 'Sotuv Analitikasi (ROP)', icon: ChartPieIcon },
         { href: '/sales-head/analytics', label: 'Analitika', icon: PresentationChartLineIcon },
       ]
     },
@@ -497,6 +499,7 @@ export const marketingLayoutConfig = {
       items: [
         { href: '/marketing/analytics', label: 'Umumiy Analitika', icon: ChartBarIcon },
         { href: '/marketing/analytics/campaigns', label: 'Kampaniya Analitika', icon: PresentationChartLineIcon },
+        { href: '/marketing/sales-integration', label: 'Sotuv Integratsiyasi (70/30)', icon: ChartPieIcon },
       ]
     },
     {
@@ -658,37 +661,40 @@ export const hrLayoutConfig = {
       ]
     },
     {
-      title: 'Jamoa Boshqaruvi',
+      title: 'Xodimlar Boshqaruvi',
       items: [
-        { href: '/hr/org-structure', label: 'Tashkiliy Tuzilma', icon: BuildingOfficeIcon },
-        { href: '/hr/team', label: 'Xodimlar', icon: UsersIcon },
-        { href: '/hr/departments', label: 'Bo\'limlar', icon: BuildingOfficeIcon },
-        { href: '/hr/invitations', label: 'Taklifnomalar', icon: BellIcon },
-        { href: '/hr/job-descriptions', label: 'Lavozim Majburiyatlari', icon: BriefcaseIcon },
-        { href: '/hr/recruiting', label: 'Ishga Qabul', icon: UserPlusIcon },
+        { href: '/hr/employees', label: 'Xodimlar', icon: UsersIcon },
       ]
     },
     {
-      title: 'Ish Jarayonlari',
+      title: 'Tashkiliy Tuzilma',
       items: [
-        { href: '/hr/attendance', label: 'Davomat', icon: ClockIcon },
-        { href: '/hr/leave', label: 'Ta\'til', icon: CalendarIcon },
-        { href: '/hr/performance', label: 'Samaradorlik', icon: ChartBarIcon },
-        { href: '/hr/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
-        { href: '/hr/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
+        { href: '/hr/org-structure', label: 'Org struktura', icon: BuildingOfficeIcon },
+      ]
+    },
+    {
+      title: 'Ishga Qabul',
+      items: [
+        { href: '/hr/recruiting', label: 'Vakansiyalar', icon: BriefcaseIcon },
+        { href: '/hr/onboarding', label: 'Yangi xodimlar', icon: ArrowPathIcon },
       ]
     },
     {
       title: 'Moliyaviy',
       items: [
-        { href: '/hr/payroll', label: 'Ish Haqi', icon: CurrencyDollarIcon },
+        { href: '/hr/payroll', label: 'Ish haqi', icon: CurrencyDollarIcon },
+      ]
+    },
+    {
+      title: 'Analitika',
+      items: [
+        { href: '/hr/surveys', label: 'So\'rovnomalar', icon: DocumentTextIcon },
       ]
     },
     {
       title: 'Hisobotlar',
       items: [
-        { href: '/hr/reports', label: 'Barcha Hisobotlar', icon: DocumentChartBarIcon },
-        { href: '/hr/reports/team-analytics', label: 'Jamoa Analitika', icon: PresentationChartLineIcon },
+        { href: '/hr/reports', label: 'HR Hisobotlar', icon: DocumentChartBarIcon },
       ]
     },
   ],

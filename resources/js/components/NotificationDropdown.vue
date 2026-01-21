@@ -215,6 +215,13 @@ const formatTime = (dateString) => {
 
 const getIcon = (type) => {
   const icons = {
+    survey: {
+      render() {
+        return h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+          h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' })
+        ]);
+      }
+    },
     alert: {
       render() {
         return h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
@@ -272,6 +279,7 @@ const getIcon = (type) => {
 
 const getIconBgClass = (type) => {
   const classes = {
+    survey: 'bg-purple-100 dark:bg-purple-900/30',
     alert: 'bg-red-100 dark:bg-red-900/30',
     insight: 'bg-blue-100 dark:bg-blue-900/30',
     report: 'bg-purple-100 dark:bg-purple-900/30',
@@ -285,6 +293,7 @@ const getIconBgClass = (type) => {
 
 const getIconClass = (type) => {
   const classes = {
+    survey: 'text-purple-600 dark:text-purple-400',
     alert: 'text-red-600 dark:text-red-400',
     insight: 'text-blue-600 dark:text-blue-400',
     report: 'text-purple-600 dark:text-purple-400',

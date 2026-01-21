@@ -489,3 +489,47 @@ Schedule::job(new \App\Jobs\System\DataCleanupJob)
     ->timezone('Asia/Tashkent')
     ->name('system-data-cleanup')
     ->onOneServer();
+
+// ==========================================
+// HR ENGAGEMENT & RETENTION SCHEDULED JOBS
+// ==========================================
+
+// HR Engagement Scores - Har kuni 05:00 da
+// Barcha hodimlar uchun engagement ballini hisoblaydi (Gallup Q12 asosida)
+Schedule::job(new \App\Jobs\HR\CalculateEngagementScoresJob)
+    ->dailyAt('05:00')
+    ->timezone('Asia/Tashkent')
+    ->name('hr-calculate-engagement')
+    ->onOneServer();
+
+// HR Flight Risk hisoblash - Har hafta dushanba 06:00 da
+// Barcha hodimlar uchun ketish xavfini hisoblaydi va alertlar yuboradi
+Schedule::job(new \App\Jobs\HR\CalculateFlightRiskJob)
+    ->weeklyOn(1, '06:00') // Monday at 6:00 AM
+    ->timezone('Asia/Tashkent')
+    ->name('hr-calculate-flight-risk')
+    ->onOneServer();
+
+// HR Onboarding Reminders - Har kuni 08:00 da
+// Onboarding vazifalari eslatmalarini yuboradi va milestonelarni tekshiradi
+Schedule::job(new \App\Jobs\HR\SendOnboardingRemindersJob)
+    ->dailyAt('08:00')
+    ->timezone('Asia/Tashkent')
+    ->name('hr-onboarding-reminders')
+    ->onOneServer();
+
+// HR Work Anniversaries - Har kuni 07:00 da
+// Ish yilliklarini tekshiradi va tabriklar yuboradi
+Schedule::job(new \App\Jobs\HR\CheckWorkAnniversariesJob)
+    ->dailyAt('07:00')
+    ->timezone('Asia/Tashkent')
+    ->name('hr-work-anniversaries')
+    ->onOneServer();
+
+// HR Turnover Report - Har oyning 3-kuni 08:00 da
+// O'tgan oy uchun turnover hisobotini yaratadi
+Schedule::job(new \App\Jobs\HR\GenerateTurnoverReportJob)
+    ->monthlyOn(3, '08:00') // 3rd day of month at 8:00 AM
+    ->timezone('Asia/Tashkent')
+    ->name('hr-turnover-report')
+    ->onOneServer();

@@ -31,11 +31,34 @@ class BusinessUser extends Pivot
         'viewer' => 'Ko\'ruvchi',
     ];
 
+    const EMPLOYMENT_TYPES = [
+        'full_time' => 'To\'liq ish kuni',
+        'part_time' => 'Yarim stavka',
+        'contract' => 'Shartnoma asosida',
+        'internship' => 'Amaliyot',
+        'temporary' => 'Vaqtinchalik',
+    ];
+
+    const CONTRACT_TYPES = [
+        'unlimited' => 'Muddatsiz',
+        'fixed_term' => 'Muddatli',
+        'probation' => 'Sinov muddati',
+    ];
+
     protected $fillable = [
         'business_id',
         'user_id',
         'role',
+        'employee_code',
+        'badge_id',
+        'face_id',
         'department',
+        'job_description_id',
+        'salary',
+        'employment_type',
+        'contract_type',
+        'contract_start_date',
+        'contract_end_date',
         'permissions',
         'invited_at',
         'accepted_at',
@@ -47,10 +70,13 @@ class BusinessUser extends Pivot
 
     protected $casts = [
         'permissions' => 'array',
+        'salary' => 'decimal:2',
         'invited_at' => 'datetime',
         'accepted_at' => 'datetime',
         'joined_at' => 'datetime',
         'invitation_expires_at' => 'datetime',
+        'contract_start_date' => 'date',
+        'contract_end_date' => 'date',
     ];
 
     /**
@@ -67,6 +93,22 @@ class BusinessUser extends Pivot
     public function getRoleLabelAttribute(): ?string
     {
         return self::ROLES[$this->role] ?? $this->role;
+    }
+
+    /**
+     * Get employment type label
+     */
+    public function getEmploymentTypeLabelAttribute(): ?string
+    {
+        return self::EMPLOYMENT_TYPES[$this->employment_type] ?? $this->employment_type;
+    }
+
+    /**
+     * Get contract type label
+     */
+    public function getContractTypeLabelAttribute(): ?string
+    {
+        return self::CONTRACT_TYPES[$this->contract_type] ?? $this->contract_type;
     }
 
     /**
@@ -107,5 +149,13 @@ class BusinessUser extends Pivot
     public function inviter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'invited_by');
+    }
+
+    /**
+     * Get the job description (position)
+     */
+    public function jobDescription(): BelongsTo
+    {
+        return $this->belongsTo(JobDescription::class);
     }
 }

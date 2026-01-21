@@ -119,6 +119,9 @@ class TeamController extends Controller
             'phone' => 'required|string|min:12|max:12',
             'password' => ['required', 'confirmed', Password::min(6)],
             'department' => 'required|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
+            'job_description_id' => 'nullable|uuid|exists:job_descriptions,id',
+            'salary' => 'nullable|numeric|min:0',
+            'employment_type' => 'nullable|in:'.implode(',', array_keys(BusinessUser::EMPLOYMENT_TYPES)),
         ], [
             'name.required' => 'F.I.O kiritilishi shart',
             'phone.required' => 'Telefon raqam kiritilishi shart',
@@ -127,6 +130,7 @@ class TeamController extends Controller
             'password.confirmed' => 'Parollar mos kelmayapti',
             'password.min' => 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak',
             'department.required' => 'Bo\'lim tanlanishi shart',
+            'salary.numeric' => 'Oylik raqam bo\'lishi kerak',
         ]);
 
         // Check if user with this phone already exists
@@ -165,6 +169,11 @@ class TeamController extends Controller
             'user_id' => $user->id,
             'role' => 'member', // All team members are "member" role
             'department' => $validated['department'],
+            'job_description_id' => $validated['job_description_id'] ?? null,
+            'salary' => $validated['salary'] ?? null,
+            'employment_type' => $validated['employment_type'] ?? 'full_time',
+            'contract_type' => 'unlimited',
+            'contract_start_date' => now()->format('Y-m-d'),
             'joined_at' => now(),
             'accepted_at' => now(),
             'invited_by' => Auth::id(),
@@ -182,6 +191,12 @@ class TeamController extends Controller
                 'role_label' => $member->role_label,
                 'department' => $member->department,
                 'department_label' => $member->department_label,
+                'job_description_id' => $member->job_description_id,
+                'salary' => $member->salary,
+                'employment_type' => $member->employment_type,
+                'employment_type_label' => $member->employment_type_label,
+                'contract_type' => $member->contract_type,
+                'contract_start_date' => $member->contract_start_date?->format('Y-m-d'),
                 'status' => 'active',
                 'joined_at' => $member->joined_at->format('d.m.Y H:i'),
             ],
