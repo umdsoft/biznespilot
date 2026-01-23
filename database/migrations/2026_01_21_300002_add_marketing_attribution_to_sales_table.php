@@ -31,19 +31,19 @@ return new class extends Migration
                     ->nullOnDelete();
             }
 
-            // Indexlar (faqat mavjud bo'lmaganlarni)
+            // Indexlar (faqat mavjud bo'lmaganlarni va column mavjud bo'lganda)
             $indexes = Schema::getIndexListing('sales');
 
-            if (!in_array('sales_business_lead_idx', $indexes)) {
+            if (Schema::hasColumn('sales', 'lead_id') && !in_array('sales_business_lead_idx', $indexes)) {
                 $table->index(['business_id', 'lead_id'], 'sales_business_lead_idx');
             }
-            if (!in_array('sales_business_campaign_idx', $indexes)) {
+            if (Schema::hasColumn('sales', 'campaign_id') && !in_array('sales_business_campaign_idx', $indexes)) {
                 $table->index(['business_id', 'campaign_id'], 'sales_business_campaign_idx');
             }
-            if (!in_array('sales_business_channel_idx', $indexes)) {
+            if (Schema::hasColumn('sales', 'marketing_channel_id') && !in_array('sales_business_channel_idx', $indexes)) {
                 $table->index(['business_id', 'marketing_channel_id'], 'sales_business_channel_idx');
             }
-            if (!in_array('sales_business_closed_idx', $indexes)) {
+            if (Schema::hasColumn('sales', 'closed_at') && !in_array('sales_business_closed_idx', $indexes)) {
                 $table->index(['business_id', 'closed_at'], 'sales_business_closed_idx');
             }
         });

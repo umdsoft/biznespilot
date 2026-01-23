@@ -48,6 +48,8 @@ use App\Http\Controllers\Shared\OfferAutomationController;
 use App\Http\Controllers\Shared\CompetitorInsightsController as SharedCompetitorInsightsController;
 use App\Http\Controllers\Public\OfferViewController;
 use App\Http\Controllers\Business\PipelineStageController;
+use App\Http\Controllers\Business\WeeklyAnalyticsController;
+use App\Http\Controllers\Business\WeeklyGoalsController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\TargetAnalysisController;
@@ -684,6 +686,35 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         // Export Endpoints
         Route::post('/export/pdf', [AnalyticsController::class, 'exportPDF'])->name('export.pdf');
         Route::post('/export/excel', [AnalyticsController::class, 'exportExcel'])->name('export.excel');
+
+        // Business Owner Insights Pages
+        Route::get('/lost-deals', [AnalyticsController::class, 'lostDeals'])->name('lost-deals');
+        Route::get('/operator-performance', [AnalyticsController::class, 'operatorPerformance'])->name('operator-performance');
+        Route::get('/channel-roi', [AnalyticsController::class, 'channelROI'])->name('channel-roi');
+        Route::get('/insights', [AnalyticsController::class, 'businessInsights'])->name('insights');
+
+        // Business Owner Insights API Endpoints
+        Route::get('/api/lost-deals', [AnalyticsController::class, 'getLostDealData'])->name('api.lost-deals');
+        Route::get('/api/operator-performance', [AnalyticsController::class, 'getOperatorPerformanceData'])->name('api.operator-performance');
+        Route::get('/api/channel-roi', [AnalyticsController::class, 'getChannelROIData'])->name('api.channel-roi');
+        Route::get('/api/insights', [AnalyticsController::class, 'getBusinessInsightsData'])->name('api.insights');
+
+        // Weekly Analytics (AI-powered)
+        Route::get('/weekly-report', [WeeklyAnalyticsController::class, 'index'])->name('weekly-report');
+        Route::get('/api/weekly-report/{weekStart?}', [WeeklyAnalyticsController::class, 'getWeekData'])->name('api.weekly-report');
+        Route::post('/api/weekly-report/{id}/ai', [WeeklyAnalyticsController::class, 'generateAiAnalysis'])->name('api.weekly-report.ai');
+        Route::post('/api/weekly-report/regenerate/{weekStart?}', [WeeklyAnalyticsController::class, 'regenerate'])->name('api.weekly-report.regenerate');
+        Route::get('/api/weekly-report/{id}/pdf/download', [WeeklyAnalyticsController::class, 'downloadPdf'])->name('api.weekly-report.pdf.download');
+        Route::get('/api/weekly-report/{id}/pdf/stream', [WeeklyAnalyticsController::class, 'streamPdf'])->name('api.weekly-report.pdf.stream');
+
+        // Weekly Goals
+        Route::get('/weekly-goals', [WeeklyGoalsController::class, 'index'])->name('weekly-goals');
+        Route::get('/api/weekly-goals/current', [WeeklyGoalsController::class, 'getCurrentGoal'])->name('api.weekly-goals.current');
+        Route::get('/api/weekly-goals/week/{weekStart}', [WeeklyGoalsController::class, 'getGoalForWeek'])->name('api.weekly-goals.week');
+        Route::put('/api/weekly-goals/{id}/targets', [WeeklyGoalsController::class, 'updateTargets'])->name('api.weekly-goals.update-targets');
+        Route::post('/api/weekly-goals/{id}/refresh', [WeeklyGoalsController::class, 'refreshActuals'])->name('api.weekly-goals.refresh');
+        Route::get('/api/weekly-goals/{id}/operators', [WeeklyGoalsController::class, 'getOperatorKpis'])->name('api.weekly-goals.operators');
+        Route::get('/api/weekly-goals/history', [WeeklyGoalsController::class, 'getHistory'])->name('api.weekly-goals.history');
     });
 
     // Target Analysis routes

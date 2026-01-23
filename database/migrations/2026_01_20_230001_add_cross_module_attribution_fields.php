@@ -16,86 +16,138 @@ return new class extends Migration
     {
         // 1. Lead uchun acquisition cost
         Schema::table('leads', function (Blueprint $table) {
-            $table->decimal('acquisition_cost', 12, 2)->nullable()->after('estimated_value')
-                ->comment('Bu lid uchun sarflangan marketing xarajati');
-            $table->string('acquisition_source_type')->nullable()->after('acquisition_cost')
-                ->comment('digital, offline, referral, organic');
+            if (!Schema::hasColumn('leads', 'acquisition_cost')) {
+                $table->decimal('acquisition_cost', 12, 2)->nullable()->after('estimated_value')
+                    ->comment('Bu lid uchun sarflangan marketing xarajati');
+            }
+            if (!Schema::hasColumn('leads', 'acquisition_source_type')) {
+                $table->string('acquisition_source_type')->nullable()->after('acquisition_cost')
+                    ->comment('digital, offline, referral, organic');
+            }
         });
 
         // 2. Sale uchun attribution cost
         Schema::table('sales', function (Blueprint $table) {
-            $table->decimal('acquisition_cost', 12, 2)->nullable()->after('cost')
-                ->comment('Lead acquisition cost transferred from lead');
-            $table->string('attribution_source_type')->nullable()->after('attribution_data')
-                ->comment('digital, offline, referral, organic');
-            $table->decimal('attributed_spend', 12, 2)->nullable()->after('attribution_source_type')
-                ->comment('Marketing spend attributed to this sale');
+            // acquisition_cost already exists, skip it
+            if (!Schema::hasColumn('sales', 'attribution_source_type')) {
+                $table->string('attribution_source_type')->nullable()->after('acquisition_cost')
+                    ->comment('digital, offline, referral, organic');
+            }
+            if (!Schema::hasColumn('sales', 'attributed_spend')) {
+                $table->decimal('attributed_spend', 12, 2)->nullable()->after('attribution_source_type')
+                    ->comment('Marketing spend attributed to this sale');
+            }
         });
 
         // 3. Customer uchun acquisition va churn tracking
         Schema::table('customers', function (Blueprint $table) {
             // Acquisition source tracking
-            $table->string('first_acquisition_source')->nullable()->after('lead_id')
-                ->comment('Birinchi kanaldan kelgan manba nomi');
-            $table->string('first_acquisition_source_type')->nullable()->after('first_acquisition_source')
-                ->comment('digital, offline, referral, organic');
-            $table->foreignUuid('first_acquisition_channel_id')->nullable()->after('first_acquisition_source_type')
-                ->constrained('marketing_channels')->nullOnDelete();
-            $table->foreignUuid('first_campaign_id')->nullable()->after('first_acquisition_channel_id')
-                ->constrained('campaigns')->nullOnDelete();
-            $table->decimal('total_acquisition_cost', 12, 2)->default(0)->after('first_campaign_id')
-                ->comment('Umumiy sarflangan marketing xarajati');
+            if (!Schema::hasColumn('customers', 'first_acquisition_source')) {
+                $table->string('first_acquisition_source')->nullable()->after('lead_id')
+                    ->comment('Birinchi kanaldan kelgan manba nomi');
+            }
+            if (!Schema::hasColumn('customers', 'first_acquisition_source_type')) {
+                $table->string('first_acquisition_source_type')->nullable()->after('first_acquisition_source')
+                    ->comment('digital, offline, referral, organic');
+            }
+            if (!Schema::hasColumn('customers', 'first_acquisition_channel_id')) {
+                $table->foreignUuid('first_acquisition_channel_id')->nullable()->after('first_acquisition_source_type')
+                    ->constrained('marketing_channels')->nullOnDelete();
+            }
+            if (!Schema::hasColumn('customers', 'first_campaign_id')) {
+                $table->foreignUuid('first_campaign_id')->nullable()->after('first_acquisition_channel_id')
+                    ->constrained('campaigns')->nullOnDelete();
+            }
+            if (!Schema::hasColumn('customers', 'total_acquisition_cost')) {
+                $table->decimal('total_acquisition_cost', 12, 2)->default(0)->after('first_campaign_id')
+                    ->comment('Umumiy sarflangan marketing xarajati');
+            }
 
             // Churn tracking
-            $table->decimal('churn_risk_score', 5, 2)->nullable()->after('total_acquisition_cost')
-                ->comment('0-100 oraligida churn xavfi');
-            $table->string('churn_risk_level')->nullable()->after('churn_risk_score')
-                ->comment('low, medium, high, critical');
-            $table->timestamp('last_activity_at')->nullable()->after('churn_risk_level')
-                ->comment('Oxirgi faollik vaqti');
-            $table->timestamp('churned_at')->nullable()->after('last_activity_at')
-                ->comment('Churn bolgan sana');
-            $table->string('churn_reason')->nullable()->after('churned_at')
-                ->comment('Churn sababi');
+            if (!Schema::hasColumn('customers', 'churn_risk_score')) {
+                $table->decimal('churn_risk_score', 5, 2)->nullable()->after('total_acquisition_cost')
+                    ->comment('0-100 oraligida churn xavfi');
+            }
+            if (!Schema::hasColumn('customers', 'churn_risk_level')) {
+                $table->string('churn_risk_level')->nullable()->after('churn_risk_score')
+                    ->comment('low, medium, high, critical');
+            }
+            if (!Schema::hasColumn('customers', 'last_activity_at')) {
+                $table->timestamp('last_activity_at')->nullable()->after('churn_risk_level')
+                    ->comment('Oxirgi faollik vaqti');
+            }
+            if (!Schema::hasColumn('customers', 'churned_at')) {
+                $table->timestamp('churned_at')->nullable()->after('last_activity_at')
+                    ->comment('Churn bolgan sana');
+            }
+            if (!Schema::hasColumn('customers', 'churn_reason')) {
+                $table->string('churn_reason')->nullable()->after('churned_at')
+                    ->comment('Churn sababi');
+            }
 
             // CLV tracking
-            $table->decimal('lifetime_value', 12, 2)->default(0)->after('total_spent')
-                ->comment('Predicted lifetime value');
-            $table->integer('days_since_last_purchase')->nullable()->after('lifetime_value');
-            $table->integer('purchase_frequency_days')->nullable()->after('days_since_last_purchase')
-                ->comment('Ortacha xarid orasidagi kun');
+            if (!Schema::hasColumn('customers', 'lifetime_value')) {
+                $table->decimal('lifetime_value', 12, 2)->default(0)->after('total_spent')
+                    ->comment('Predicted lifetime value');
+            }
+            if (!Schema::hasColumn('customers', 'days_since_last_purchase')) {
+                $table->integer('days_since_last_purchase')->nullable()->after('lifetime_value');
+            }
+            if (!Schema::hasColumn('customers', 'purchase_frequency_days')) {
+                $table->integer('purchase_frequency_days')->nullable()->after('days_since_last_purchase')
+                    ->comment('Ortacha xarid orasidagi kun');
+            }
         });
 
         // 4. KpiDailyEntry uchun revenue by source
         Schema::table('kpi_daily_entries', function (Blueprint $table) {
             // Revenue by source type
-            $table->decimal('revenue_digital', 12, 2)->default(0)->after('revenue_repeat')
-                ->comment('Digital marketing orqali kelgan daromad');
-            $table->decimal('revenue_offline', 12, 2)->default(0)->after('revenue_digital')
-                ->comment('Offline marketing orqali kelgan daromad');
-            $table->decimal('revenue_referral', 12, 2)->default(0)->after('revenue_offline')
-                ->comment('Referral orqali kelgan daromad');
-            $table->decimal('revenue_organic', 12, 2)->default(0)->after('revenue_referral')
-                ->comment('Organic orqali kelgan daromad');
+            if (!Schema::hasColumn('kpi_daily_entries', 'revenue_digital')) {
+                $table->decimal('revenue_digital', 12, 2)->default(0)->after('revenue_repeat')
+                    ->comment('Digital marketing orqali kelgan daromad');
+            }
+            if (!Schema::hasColumn('kpi_daily_entries', 'revenue_offline')) {
+                $table->decimal('revenue_offline', 12, 2)->default(0)->after('revenue_digital')
+                    ->comment('Offline marketing orqali kelgan daromad');
+            }
+            if (!Schema::hasColumn('kpi_daily_entries', 'revenue_referral')) {
+                $table->decimal('revenue_referral', 12, 2)->default(0)->after('revenue_offline')
+                    ->comment('Referral orqali kelgan daromad');
+            }
+            if (!Schema::hasColumn('kpi_daily_entries', 'revenue_organic')) {
+                $table->decimal('revenue_organic', 12, 2)->default(0)->after('revenue_referral')
+                    ->comment('Organic orqali kelgan daromad');
+            }
 
             // ROAS tracking
-            $table->decimal('roas_digital', 8, 4)->nullable()->after('cac')
-                ->comment('Digital marketing ROAS');
-            $table->decimal('roas_offline', 8, 4)->nullable()->after('roas_digital')
-                ->comment('Offline marketing ROAS');
-            $table->decimal('roas_total', 8, 4)->nullable()->after('roas_offline')
-                ->comment('Umumiy ROAS');
+            if (!Schema::hasColumn('kpi_daily_entries', 'roas_digital')) {
+                $table->decimal('roas_digital', 8, 4)->nullable()->after('cac')
+                    ->comment('Digital marketing ROAS');
+            }
+            if (!Schema::hasColumn('kpi_daily_entries', 'roas_offline')) {
+                $table->decimal('roas_offline', 8, 4)->nullable()->after('roas_digital')
+                    ->comment('Offline marketing ROAS');
+            }
+            if (!Schema::hasColumn('kpi_daily_entries', 'roas_total')) {
+                $table->decimal('roas_total', 8, 4)->nullable()->after('roas_offline')
+                    ->comment('Umumiy ROAS');
+            }
 
             // ROI tracking
-            $table->decimal('roi_total', 8, 4)->nullable()->after('roas_total')
-                ->comment('Umumiy ROI (profit/spend)');
+            if (!Schema::hasColumn('kpi_daily_entries', 'roi_total')) {
+                $table->decimal('roi_total', 8, 4)->nullable()->after('roas_total')
+                    ->comment('Umumiy ROI (profit/spend)');
+            }
 
             // Profit tracking
-            $table->decimal('profit_total', 12, 2)->default(0)->after('roi_total')
-                ->comment('Umumiy foyda');
+            if (!Schema::hasColumn('kpi_daily_entries', 'profit_total')) {
+                $table->decimal('profit_total', 12, 2)->default(0)->after('roi_total')
+                    ->comment('Umumiy foyda');
+            }
         });
 
         // 5. Meta/Google conversion reconciliation table
+        if (!Schema::hasTable('conversion_reconciliations')) {
         Schema::create('conversion_reconciliations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('business_id')->constrained()->cascadeOnDelete();
@@ -138,6 +190,7 @@ return new class extends Migration
             $table->index(['business_id', 'reconciliation_date']);
             $table->index(['business_id', 'status']);
         });
+        }
     }
 
     public function down(): void

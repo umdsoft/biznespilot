@@ -514,4 +514,157 @@ class AnalyticsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Lost Deal Analysis Page
+     */
+    public function lostDeals(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return redirect()->route('business.index');
+        }
+
+        return Inertia::render('Business/Analytics/LostDeals', [
+            'lostReasons' => \App\Models\Lead::LOST_REASONS,
+            'lazyLoad' => true,
+        ]);
+    }
+
+    /**
+     * API: Get lost deal analysis data
+     */
+    public function getLostDealData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_lost_deals_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return $this->analyticsService->getLostDealAnalysis($currentBusiness->id, $filters);
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Operator Performance Page
+     */
+    public function operatorPerformance(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return redirect()->route('business.index');
+        }
+
+        return Inertia::render('Business/Analytics/OperatorPerformance', [
+            'lazyLoad' => true,
+        ]);
+    }
+
+    /**
+     * API: Get operator performance data
+     */
+    public function getOperatorPerformanceData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_operators_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return $this->analyticsService->getOperatorPerformance($currentBusiness->id, $filters);
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Channel ROI Page
+     */
+    public function channelROI(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return redirect()->route('business.index');
+        }
+
+        return Inertia::render('Business/Analytics/ChannelROI', [
+            'lazyLoad' => true,
+        ]);
+    }
+
+    /**
+     * API: Get channel ROI data
+     */
+    public function getChannelROIData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_channel_roi_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return $this->analyticsService->getChannelROI($currentBusiness->id, $filters);
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Business Insights Page - All insights in one place for Business Owner
+     */
+    public function businessInsights(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return redirect()->route('business.index');
+        }
+
+        return Inertia::render('Business/Analytics/Insights', [
+            'lazyLoad' => true,
+        ]);
+    }
+
+    /**
+     * API: Get business insights data
+     */
+    public function getBusinessInsightsData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "analytics_insights_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            return $this->analyticsService->getBusinessInsights($currentBusiness->id, $filters);
+        });
+
+        return response()->json($data);
+    }
 }

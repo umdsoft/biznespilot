@@ -85,4 +85,12 @@ return [
         'meta_pixel_id' => env('META_PIXEL_ID'),
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+    ],
+
+    'telegram-bot-api' => [
+        'token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
+
 ];

@@ -320,6 +320,42 @@ Schedule::command('todos:generate-recurring')
     ->onOneServer();
 
 // ==========================================
+// WEEKLY ANALYTICS (AI-POWERED) SCHEDULED JOBS
+// ==========================================
+
+// Haftalik Analitika - Har dushanba 07:30 da
+// Barcha bizneslar uchun haftalik hisobotlarni yaratadi
+Schedule::command('analytics:weekly')
+    ->weeklyOn(1, '07:30') // Monday at 7:30 AM
+    ->timezone('Asia/Tashkent')
+    ->name('weekly-analytics-report')
+    ->onOneServer();
+
+// Haftalik AI Tahlil - Har dushanba 08:00 da
+// Yaratilgan hisobotlar uchun AI tahlil qiladi
+Schedule::command('analytics:weekly --with-ai')
+    ->weeklyOn(1, '08:00') // Monday at 8:00 AM
+    ->timezone('Asia/Tashkent')
+    ->name('weekly-analytics-ai')
+    ->onOneServer();
+
+// Haftalik Analitika Xabarnomalar - Har dushanba 09:00 da
+// Biznes egalariga haftalik hisobot xabarnomalarini yuboradi (Email va Telegram)
+Schedule::command('analytics:weekly --with-notify --notify-channels=mail,telegram')
+    ->weeklyOn(1, '09:00') // Monday at 9:00 AM
+    ->timezone('Asia/Tashkent')
+    ->name('weekly-analytics-notify')
+    ->onOneServer();
+
+// Haftalik Maqsadlar Yangilash - Har kuni 23:00 da
+// Barcha bizneslar uchun haftalik maqsadlarni yangilaydi
+Schedule::job(new \App\Jobs\UpdateWeeklyGoalsJob)
+    ->dailyAt('23:00')
+    ->timezone('Asia/Tashkent')
+    ->name('weekly-goals-update')
+    ->onOneServer();
+
+// ==========================================
 // SALES KPI & GAMIFICATION SCHEDULED JOBS
 // ==========================================
 

@@ -87,7 +87,13 @@
       "Bash(ssh root@213.230.65.239 \"cd /var/www/biznespilot && git pull origin main && php artisan optimize:clear && systemctl restart php8.2-fpm\")",
       "Bash(ssh:*)",
       "Bash(ping:*)",
-      "Bash(powershell -ExecutionPolicy Bypass -File:*)"
+      "Bash(powershell -ExecutionPolicy Bypass -File:*)",
+      "Bash(xargs:*)",
+      "Bash(while read service)",
+      "Bash(do grep -q \"$service\" \"d:\\\\biznespilot\\\\app\\\\Http\\\\Controllers\"/*.php)",
+      "Bash(sc query:*)",
+      "Bash(tasklist:*)",
+      "Bash(Get-Content d:/biznespilot/storage/logs/laravel.log -Tail 50)"
     ]
   }
 }

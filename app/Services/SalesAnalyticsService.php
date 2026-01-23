@@ -710,4 +710,373 @@ class SalesAnalyticsService
             'active_pipeline_deals' => $activeLeads->count(),
         ];
     }
+
+    /**
+     * Lost Deal Analysis - Nega sotuvlar yo'qoldi
+     */
+    public function getLostDealAnalysis(string $businessId, array $filters = []): array
+    {
+        $query = Lead::where('business_id', $businessId)
+            ->where('status', 'lost');
+
+        // Apply date filters
+        if (! empty($filters['date_from'])) {
+            $query->where('updated_at', '>=', Carbon::parse($filters['date_from']));
+        }
+        if (! empty($filters['date_to'])) {
+            $query->where('updated_at', '<=', Carbon::parse($filters['date_to']));
+        }
+
+        $lostLeads = $query->get();
+
+        // Group by lost reason
+        $byReason = $lostLeads->groupBy('lost_reason')->map(function ($group, $reason) use ($lostLeads) {
+            $totalLost = $lostLeads->count();
+            return [
+                'reason' => $reason ?: 'unknown',
+                'reason_label' => Lead::LOST_REASONS[$reason] ?? 'Noma\'lum',
+                'count' => $group->count(),
+                'percentage' => $totalLost > 0 ? round(($group->count() / $totalLost) * 100, 1) : 0,
+                'total_value' => $group->sum('estimated_value'),
+                'avg_value' => $group->count() > 0 ? round($group->sum('estimated_value') / $group->count(), 0) : 0,
+            ];
+        })->sortByDesc('count')->values();
+
+        // Group by stage where lost
+        $byStage = $lostLeads->groupBy('sales_funnel_stage_id')->map(function ($group, $stageId) use ($lostLeads) {
+            $stage = $stageId ? \App\Models\SalesFunnelStage::find($stageId) : null;
+            $totalLost = $lostLeads->count();
+            return [
+                'stage_id' => $stageId,
+                'stage_name' => $stage?->name ?? 'Bosqich belgilanmagan',
+                'count' => $group->count(),
+                'percentage' => $totalLost > 0 ? round(($group->count() / $totalLost) * 100, 1) : 0,
+                'total_value' => $group->sum('estimated_value'),
+            ];
+        })->sortByDesc('count')->values();
+
+        // Group by operator (assigned_to)
+        $byOperator = $lostLeads->groupBy('assigned_to')->map(function ($group, $userId) use ($lostLeads) {
+            $user = $userId ? \App\Models\User::find($userId) : null;
+            $totalLost = $lostLeads->count();
+            return [
+                'user_id' => $userId,
+                'user_name' => $user?->name ?? 'Tayinlanmagan',
+                'count' => $group->count(),
+                'percentage' => $totalLost > 0 ? round(($group->count() / $totalLost) * 100, 1) : 0,
+                'total_value' => $group->sum('estimated_value'),
+            ];
+        })->sortByDesc('count')->values();
+
+        // Group by source
+        $bySource = $lostLeads->groupBy('marketing_channel_id')->map(function ($group, $channelId) use ($lostLeads) {
+            $channel = $channelId ? \App\Models\MarketingChannel::find($channelId) : null;
+            $totalLost = $lostLeads->count();
+            return [
+                'channel_id' => $channelId,
+                'channel_name' => $channel?->name ?? 'Manba noma\'lum',
+                'count' => $group->count(),
+                'percentage' => $totalLost > 0 ? round(($group->count() / $totalLost) * 100, 1) : 0,
+                'total_value' => $group->sum('estimated_value'),
+            ];
+        })->sortByDesc('count')->values();
+
+        // Monthly trend
+        $monthlyTrend = $lostLeads->groupBy(function ($lead) {
+            return $lead->updated_at->format('Y-m');
+        })->map(function ($group, $month) {
+            return [
+                'month' => $month,
+                'count' => $group->count(),
+                'total_value' => $group->sum('estimated_value'),
+            ];
+        })->sortKeys()->values();
+
+        return [
+            'summary' => [
+                'total_lost' => $lostLeads->count(),
+                'total_value_lost' => $lostLeads->sum('estimated_value'),
+                'avg_value_lost' => $lostLeads->count() > 0 ? round($lostLeads->sum('estimated_value') / $lostLeads->count(), 0) : 0,
+            ],
+            'by_reason' => $byReason,
+            'by_stage' => $byStage,
+            'by_operator' => $byOperator,
+            'by_source' => $bySource,
+            'monthly_trend' => $monthlyTrend,
+        ];
+    }
+
+    /**
+     * Operator Performance Analysis
+     */
+    public function getOperatorPerformance(string $businessId, array $filters = []): array
+    {
+        $query = Lead::where('business_id', $businessId)
+            ->whereNotNull('assigned_to');
+
+        // Apply date filters
+        if (! empty($filters['date_from'])) {
+            $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
+        }
+        if (! empty($filters['date_to'])) {
+            $query->where('created_at', '<=', Carbon::parse($filters['date_to']));
+        }
+
+        $leads = $query->get();
+
+        // Group by operator
+        $operators = $leads->groupBy('assigned_to')->map(function ($group, $userId) {
+            $user = \App\Models\User::find($userId);
+
+            $totalLeads = $group->count();
+            $wonLeads = $group->where('status', 'won');
+            $lostLeads = $group->where('status', 'lost');
+            $activeLeads = $group->whereNotIn('status', ['won', 'lost']);
+
+            $totalRevenue = $wonLeads->sum('estimated_value');
+            $conversionRate = $totalLeads > 0 ? round(($wonLeads->count() / $totalLeads) * 100, 1) : 0;
+            $avgDealSize = $wonLeads->count() > 0 ? round($totalRevenue / $wonLeads->count(), 0) : 0;
+
+            // Calculate avg response time (if first_contact_at exists)
+            $avgResponseTime = null;
+            $leadsWithResponse = $group->filter(fn ($lead) => $lead->first_contact_at !== null);
+            if ($leadsWithResponse->count() > 0) {
+                $totalMinutes = $leadsWithResponse->sum(function ($lead) {
+                    return $lead->created_at->diffInMinutes($lead->first_contact_at);
+                });
+                $avgResponseTime = round($totalMinutes / $leadsWithResponse->count(), 0);
+            }
+
+            return [
+                'user_id' => $userId,
+                'user_name' => $user?->name ?? 'Noma\'lum',
+                'user_avatar' => $user?->avatar_url ?? null,
+                'total_leads' => $totalLeads,
+                'won_leads' => $wonLeads->count(),
+                'lost_leads' => $lostLeads->count(),
+                'active_leads' => $activeLeads->count(),
+                'total_revenue' => $totalRevenue,
+                'conversion_rate' => $conversionRate,
+                'avg_deal_size' => $avgDealSize,
+                'avg_response_time_minutes' => $avgResponseTime,
+                'pipeline_value' => $activeLeads->sum('estimated_value'),
+            ];
+        })->sortByDesc('total_revenue')->values();
+
+        // Calculate team averages
+        $teamStats = [
+            'total_operators' => $operators->count(),
+            'avg_conversion_rate' => $operators->count() > 0 ? round($operators->avg('conversion_rate'), 1) : 0,
+            'avg_deal_size' => $operators->count() > 0 ? round($operators->avg('avg_deal_size'), 0) : 0,
+            'total_revenue' => $operators->sum('total_revenue'),
+            'total_leads' => $operators->sum('total_leads'),
+        ];
+
+        // Top and bottom performers
+        $topPerformers = $operators->take(3);
+        $bottomPerformers = $operators->sortBy('conversion_rate')->take(3)->values();
+
+        return [
+            'operators' => $operators,
+            'team_stats' => $teamStats,
+            'top_performers' => $topPerformers,
+            'bottom_performers' => $bottomPerformers,
+        ];
+    }
+
+    /**
+     * Marketing Channel ROI Analysis
+     */
+    public function getChannelROI(string $businessId, array $filters = []): array
+    {
+        $channels = \App\Models\MarketingChannel::where('business_id', $businessId)
+            ->where('is_active', true)
+            ->get();
+
+        $result = [];
+
+        foreach ($channels as $channel) {
+            $query = Lead::where('business_id', $businessId)
+                ->where('marketing_channel_id', $channel->id);
+
+            // Apply date filters
+            if (! empty($filters['date_from'])) {
+                $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
+            }
+            if (! empty($filters['date_to'])) {
+                $query->where('created_at', '<=', Carbon::parse($filters['date_to']));
+            }
+
+            $leads = $query->get();
+            $wonLeads = $leads->where('status', 'won');
+
+            $totalLeads = $leads->count();
+            $revenue = $wonLeads->sum('estimated_value');
+            $conversionRate = $totalLeads > 0 ? round(($wonLeads->count() / $totalLeads) * 100, 1) : 0;
+
+            // Get spend from MarketingSpend records or campaigns
+            $spendQuery = \App\Models\MarketingSpend::where('channel_id', $channel->id);
+            if (! empty($filters['date_from'])) {
+                $spendQuery->where('date', '>=', Carbon::parse($filters['date_from']));
+            }
+            if (! empty($filters['date_to'])) {
+                $spendQuery->where('date', '<=', Carbon::parse($filters['date_to']));
+            }
+            $spend = $spendQuery->sum('amount') ?: $channel->campaigns()->sum('budget_spent') ?: 0;
+
+            // Calculate metrics
+            $costPerLead = $totalLeads > 0 && $spend > 0 ? round($spend / $totalLeads, 0) : 0;
+            $costPerAcquisition = $wonLeads->count() > 0 && $spend > 0 ? round($spend / $wonLeads->count(), 0) : 0;
+            $roi = $spend > 0 ? round((($revenue - $spend) / $spend) * 100, 1) : 0;
+            $roas = $spend > 0 ? round($revenue / $spend, 2) : 0;
+
+            $result[] = [
+                'channel_id' => $channel->id,
+                'channel_name' => $channel->name,
+                'channel_type' => $channel->type,
+                'total_leads' => $totalLeads,
+                'won_leads' => $wonLeads->count(),
+                'revenue' => $revenue,
+                'spend' => $spend,
+                'conversion_rate' => $conversionRate,
+                'cost_per_lead' => $costPerLead,
+                'cost_per_acquisition' => $costPerAcquisition,
+                'roi' => $roi,
+                'roas' => $roas,
+                'recommendation' => $this->getChannelRecommendation($roi, $conversionRate, $totalLeads),
+            ];
+        }
+
+        // Sort by ROI
+        usort($result, fn ($a, $b) => $b['roi'] <=> $a['roi']);
+
+        return [
+            'channels' => $result,
+            'summary' => [
+                'total_spend' => collect($result)->sum('spend'),
+                'total_revenue' => collect($result)->sum('revenue'),
+                'overall_roi' => collect($result)->sum('spend') > 0
+                    ? round(((collect($result)->sum('revenue') - collect($result)->sum('spend')) / collect($result)->sum('spend')) * 100, 1)
+                    : 0,
+                'best_channel' => $result[0] ?? null,
+            ],
+        ];
+    }
+
+    /**
+     * Get channel recommendation based on metrics
+     */
+    private function getChannelRecommendation(float $roi, float $conversionRate, int $totalLeads): string
+    {
+        if ($roi > 200 && $conversionRate > 10) {
+            return 'scale_up'; // Byudjetni oshiring
+        } elseif ($roi > 100 && $conversionRate > 5) {
+            return 'maintain'; // Davom eting
+        } elseif ($roi > 0 && $totalLeads > 10) {
+            return 'optimize'; // Optimizatsiya qiling
+        } elseif ($totalLeads < 5) {
+            return 'test_more'; // Ko'proq test qiling
+        } else {
+            return 'reduce'; // Byudjetni kamaytiring
+        }
+    }
+
+    /**
+     * Business Owner Insights - Barcha ma'lumotlar bir joyda
+     */
+    public function getBusinessInsights(string $businessId, array $filters = []): array
+    {
+        $lostDealAnalysis = $this->getLostDealAnalysis($businessId, $filters);
+        $operatorPerformance = $this->getOperatorPerformance($businessId, $filters);
+        $channelROI = $this->getChannelROI($businessId, $filters);
+        $dashboardMetrics = $this->getDashboardMetrics($businessId, $filters);
+
+        // Key insights for business owner
+        $insights = [];
+
+        // 1. Top losing reason
+        if ($lostDealAnalysis['by_reason']->isNotEmpty()) {
+            $topReason = $lostDealAnalysis['by_reason']->first();
+            $insights[] = [
+                'type' => 'warning',
+                'icon' => 'alert',
+                'title' => "Eng ko'p yo'qotish sababi: {$topReason['reason_label']}",
+                'description' => "{$topReason['count']} ta lid ({$topReason['percentage']}%) shu sababdan yo'qoldi. Jami " . number_format($topReason['total_value'], 0, '', ' ') . " so'm.",
+                'action' => 'Sotuv jarayonini tahlil qiling',
+            ];
+        }
+
+        // 2. Best performing operator
+        if ($operatorPerformance['top_performers']->isNotEmpty()) {
+            $topOp = $operatorPerformance['top_performers']->first();
+            $insights[] = [
+                'type' => 'success',
+                'icon' => 'star',
+                'title' => "Eng yaxshi operator: {$topOp['user_name']}",
+                'description' => "{$topOp['conversion_rate']}% konversiya, " . number_format($topOp['total_revenue'], 0, '', ' ') . " so'm daromad.",
+                'action' => 'Uning usullarini jamoaga o\'rgating',
+            ];
+        }
+
+        // 3. Worst performing operator
+        if ($operatorPerformance['bottom_performers']->isNotEmpty()) {
+            $bottomOp = $operatorPerformance['bottom_performers']->first();
+            if ($bottomOp['conversion_rate'] < $operatorPerformance['team_stats']['avg_conversion_rate']) {
+                $insights[] = [
+                    'type' => 'warning',
+                    'icon' => 'user',
+                    'title' => "{$bottomOp['user_name']} ga yordam kerak",
+                    'description' => "Konversiya {$bottomOp['conversion_rate']}% (jamoa o'rtachasi: {$operatorPerformance['team_stats']['avg_conversion_rate']}%)",
+                    'action' => 'Coaching o\'tkazing',
+                ];
+            }
+        }
+
+        // 4. Best ROI channel
+        if (! empty($channelROI['channels'])) {
+            $bestChannel = $channelROI['channels'][0];
+            if ($bestChannel['roi'] > 0) {
+                $insights[] = [
+                    'type' => 'success',
+                    'icon' => 'trending-up',
+                    'title' => "Eng samarali kanal: {$bestChannel['channel_name']}",
+                    'description' => "ROI: {$bestChannel['roi']}%, ROAS: {$bestChannel['roas']}x",
+                    'action' => $bestChannel['recommendation'] === 'scale_up' ? 'Byudjetni oshiring' : 'Davom eting',
+                ];
+            }
+        }
+
+        // 5. Channel to reduce
+        if (! empty($channelROI['channels'])) {
+            $worstChannel = end($channelROI['channels']);
+            if ($worstChannel && $worstChannel['roi'] < 0 && $worstChannel['spend'] > 0) {
+                $insights[] = [
+                    'type' => 'danger',
+                    'icon' => 'trending-down',
+                    'title' => "{$worstChannel['channel_name']} zarar keltirmoqda",
+                    'description' => "ROI: {$worstChannel['roi']}%, " . number_format($worstChannel['spend'], 0, '', ' ') . " so'm sarflandi.",
+                    'action' => 'Byudjetni kamaytiring yoki to\'xtating',
+                ];
+            }
+        }
+
+        // 6. Money lost this period
+        if ($lostDealAnalysis['summary']['total_value_lost'] > 0) {
+            $insights[] = [
+                'type' => 'info',
+                'icon' => 'dollar',
+                'title' => 'Yo\'qotilgan potensial daromad',
+                'description' => number_format($lostDealAnalysis['summary']['total_value_lost'], 0, '', ' ') . " so'm ({$lostDealAnalysis['summary']['total_lost']} ta lid)",
+                'action' => 'Lost Deal tahlilini ko\'ring',
+            ];
+        }
+
+        return [
+            'insights' => $insights,
+            'metrics' => $dashboardMetrics,
+            'lost_deals' => $lostDealAnalysis,
+            'operators' => $operatorPerformance,
+            'channels' => $channelROI,
+        ];
+    }
 }

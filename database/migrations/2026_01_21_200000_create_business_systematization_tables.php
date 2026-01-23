@@ -593,19 +593,21 @@ return new class extends Migration
         // ============================================================
 
         // Marketing Channels
-        Schema::create('marketing_channels', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
-            $table->string('name');
-            $table->string('code')->nullable(); // instagram, google_ads, telegram, etc.
-            $table->enum('channel_type', ['paid', 'organic', 'referral', 'direct', 'other'])->default('paid');
-            $table->boolean('is_active')->default(true);
-            $table->string('color')->default('#3B82F6');
-            $table->timestamps();
+        if (!Schema::hasTable('marketing_channels')) {
+            Schema::create('marketing_channels', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('business_id');
+                $table->string('name');
+                $table->string('code')->nullable(); // instagram, google_ads, telegram, etc.
+                $table->enum('channel_type', ['paid', 'organic', 'referral', 'direct', 'other'])->default('paid');
+                $table->boolean('is_active')->default(true);
+                $table->string('color')->default('#3B82F6');
+                $table->timestamps();
 
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
-            $table->index(['business_id', 'is_active']);
-        });
+                $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
+                $table->index(['business_id', 'is_active']);
+            });
+        }
 
         // Marketing Campaigns
         Schema::create('marketing_campaigns', function (Blueprint $table) {
