@@ -219,4 +219,20 @@ class User extends Authenticatable
     {
         session(['current_business_id' => $businessId]);
     }
+
+    /**
+     * Get operator call statistics
+     */
+    public function operatorStats()
+    {
+        return $this->hasMany(\App\Models\OperatorCallStats::class);
+    }
+
+    /**
+     * Get call logs where this user is the operator
+     */
+    public function callLogs()
+    {
+        return $this->hasMany(\App\Models\CallLog::class);
+    }
 }

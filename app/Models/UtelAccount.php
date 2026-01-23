@@ -65,7 +65,15 @@ class UtelAccount extends Model
      */
     public function getApiBaseUrl(): string
     {
-        return $this->getSetting('api_url', 'https://api.utel.uz');
+        return $this->getSetting('api_url', 'https://api.utel.uz/api');
+    }
+
+    /**
+     * Get subdomain
+     */
+    public function getSubdomain(): ?string
+    {
+        return $this->getSetting('subdomain');
     }
 
     /**

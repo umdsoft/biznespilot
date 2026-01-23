@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\CallCenter\CallAnalysisController;
 use App\Http\Controllers\Api\IntegrationsController;
 use App\Http\Controllers\Api\KpiConfigurationController;
 use App\Http\Controllers\Api\KpiDailyDataController;
@@ -88,6 +89,83 @@ Route::prefix('webhooks/utel')->group(function () {
     // Test endpoint
     Route::get('test', [UtelWebhookController::class, 'test'])
         ->name('webhooks.utel.test');
+});
+
+// ========== CALL RECORDING ROUTES (Auth required) ==========
+// UTEL va OnlinePBX to'g'ridan-to'g'ri URL qaytaradi - streaming kerak emas
+Route::prefix('v1/calls')->middleware(['web', 'auth'])->group(function () {
+    // Get recording URL (provider dan to'g'ridan-to'g'ri URL)
+    Route::get('{callId}/recording', [\App\Http\Controllers\Api\CallRecordingController::class, 'getUrl'])
+        ->name('api.calls.recording');
+
+    // Get recording info (metadata)
+    Route::get('{callId}/recording/info', [\App\Http\Controllers\Api\CallRecordingController::class, 'info'])
+        ->name('api.calls.recording.info');
+
+    // Check if recording is available
+    Route::get('{callId}/recording/check', [\App\Http\Controllers\Api\CallRecordingController::class, 'check'])
+        ->name('api.calls.recording.check');
+});
+
+// ========== CALL CENTER / AI ANALYSIS ROUTES (Auth required) ==========
+// Qo'ng'iroqlarni AI tahlil qilish - Groq Whisper + Claude Haiku
+Route::prefix('v1/call-center')->middleware(['web', 'auth'])->group(function () {
+    // Qo'ng'iroqlar ro'yxati
+    Route::get('calls', [CallAnalysisController::class, 'index'])
+        ->name('api.call-center.calls.index');
+
+    // Bitta qo'ng'iroq detail
+    Route::get('calls/{id}', [CallAnalysisController::class, 'show'])
+        ->name('api.call-center.calls.show');
+
+    // Bitta qo'ng'iroqni tahlilga yuborish
+    Route::post('calls/{id}/analyze', [CallAnalysisController::class, 'analyze'])
+        ->name('api.call-center.calls.analyze');
+
+    // Bir nechta qo'ng'iroqni tahlilga yuborish (bulk)
+    Route::post('calls/analyze-bulk', [CallAnalysisController::class, 'analyzeBulk'])
+        ->name('api.call-center.calls.analyze-bulk');
+
+    // Qo'ng'iroq tahlil natijalarini olish
+    Route::get('calls/{id}/analysis', [CallAnalysisController::class, 'getAnalysis'])
+        ->name('api.call-center.calls.analysis');
+
+    // Tahlil xarajatini hisoblash (oldindan)
+    Route::post('calls/estimate-cost', [CallAnalysisController::class, 'estimateCost'])
+        ->name('api.call-center.calls.estimate-cost');
+
+    // Tahlil statistikasi
+    Route::get('stats', [CallAnalysisController::class, 'stats'])
+        ->name('api.call-center.stats');
+
+    // ========== OPERATOR STATISTIKASI ==========
+    // Umumiy ko'rinish
+    Route::get('overview', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'overview'])
+        ->name('api.call-center.overview');
+
+    // Liderlar ro'yxati
+    Route::get('leaderboard', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'leaderboard'])
+        ->name('api.call-center.leaderboard');
+
+    // Operatorlar ro'yxati
+    Route::get('operators', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'index'])
+        ->name('api.call-center.operators.index');
+
+    // Bitta operator
+    Route::get('operators/{userId}', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'show'])
+        ->name('api.call-center.operators.show');
+
+    // Operator tarix (barcha tahlillar)
+    Route::get('operators/{userId}/history', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'history'])
+        ->name('api.call-center.operators.history');
+
+    // Operator statistikasi (davrlar bo'yicha)
+    Route::get('operators/{userId}/stats', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'stats'])
+        ->name('api.call-center.operators.stats');
+
+    // Statistikani qayta hisoblash
+    Route::post('operators/{userId}/recalculate', [\App\Http\Controllers\Api\CallCenter\OperatorStatsController::class, 'recalculate'])
+        ->name('api.call-center.operators.recalculate');
 });
 
 // Camera Attendance Webhooks (Kamera orqali davomat)

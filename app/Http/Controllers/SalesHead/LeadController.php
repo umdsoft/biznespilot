@@ -925,6 +925,7 @@ class LeadController extends Controller
 
     /**
      * Get recording URL for a call
+     * UTEL va OnlinePBX dan to'g'ridan-to'g'ri URL olish
      */
     public function getCallRecording(string $callId)
     {
@@ -942,45 +943,12 @@ class LeadController extends Controller
             return response()->json(['error' => 'Qo\'ng\'iroq topilmadi'], 404);
         }
 
-        // If we already have recording URL, return it
-        if ($call->recording_url) {
-            return response()->json([
-                'success' => true,
-                'recording_url' => $call->recording_url,
-            ]);
-        }
-
-        // Try to fetch from PBX API
-        $pbxAccount = \App\Models\PbxAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->first();
-
-        if (! $pbxAccount) {
-            return response()->json([
-                'success' => false,
-                'error' => 'PBX hisobi topilmadi',
-            ], 404);
-        }
-
         try {
-            $pbxService = app(\App\Services\OnlinePbxService::class);
-            $pbxService->setAccount($pbxAccount);
-
-            // Try to get recording URL using provider_call_id
-            $providerCallId = $call->provider_call_id;
-            if (! $providerCallId) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Yozuv topilmadi',
-                ]);
-            }
-
-            $recordingUrl = $pbxService->getRecordingUrl($providerCallId);
+            // Unified service orqali URL olish
+            $recordingService = app(\App\Services\CallRecordingService::class);
+            $recordingUrl = $recordingService->getRecordingUrl($call);
 
             if ($recordingUrl) {
-                // Save for future use
-                $call->update(['recording_url' => $recordingUrl]);
-
                 return response()->json([
                     'success' => true,
                     'recording_url' => $recordingUrl,
@@ -995,6 +963,7 @@ class LeadController extends Controller
         } catch (\Exception $e) {
             \Log::error('Get recording error', [
                 'call_id' => $callId,
+                'provider' => $call->provider,
                 'error' => $e->getMessage(),
             ]);
 

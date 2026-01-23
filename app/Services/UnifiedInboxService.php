@@ -70,11 +70,12 @@ class UnifiedInboxService
             $conversations = $conversations->merge($chatbotConversations);
         }
 
-        // Get phone calls if not filtering by other channels
-        if (empty($filters['channel']) || $filters['channel'] === 'phone') {
-            $phoneConversations = $this->getPhoneConversations($business, $filters);
-            $conversations = $conversations->merge($phoneConversations);
-        }
+        // Phone calls are NOT included in Yagona Inbox
+        // They have their own dedicated Call Center section
+        // if (empty($filters['channel']) || $filters['channel'] === 'phone') {
+        //     $phoneConversations = $this->getPhoneConversations($business, $filters);
+        //     $conversations = $conversations->merge($phoneConversations);
+        // }
 
         // Sort by last message time
         return $conversations->sortByDesc('last_message_at_raw')
@@ -642,7 +643,6 @@ class UnifiedInboxService
     {
         $chatbotQuery = fn () => ChatbotConversation::where('business_id', $business->id);
         $telegramQuery = fn () => TelegramConversation::where('business_id', $business->id);
-        $callQuery = fn () => CallLog::where('business_id', $business->id);
 
         // Telegram stats
         $telegramTotal = $telegramQuery()->count();
@@ -670,40 +670,23 @@ class UnifiedInboxService
             ->whereNull('read_at')
             ->count();
 
-        // Phone call stats
-        $phoneTotal = $callQuery()->distinct('lead_id')->count('lead_id');
-        $phoneMissed = $callQuery()->whereIn('status', ['missed', 'no_answer'])->count();
-        $phoneCompleted = $callQuery()->where('status', 'completed')->count();
-
-        // Count unique phone "conversations" (leads with calls)
-        $leadsWithCalls = $callQuery()->whereNotNull('lead_id')->distinct('lead_id')->count('lead_id');
-        $callsWithoutLead = $callQuery()->whereNull('lead_id')->distinct('from_number')->count('from_number');
-        $phoneConversations = $leadsWithCalls + $callsWithoutLead;
-
+        // Phone calls are excluded from Yagona Inbox stats
+        // They have their own dedicated Call Center section
         return [
-            'total' => $chatbotTotal + $telegramTotal + $phoneConversations,
+            'total' => $chatbotTotal + $telegramTotal,
             'open' => $chatbotOpen + $telegramOpen,
-            'pending' => $chatbotPending + $telegramPending + $phoneMissed,
-            'closed' => $chatbotClosed + $telegramClosed + $phoneCompleted,
+            'pending' => $chatbotPending + $telegramPending,
+            'closed' => $chatbotClosed + $telegramClosed,
             'by_channel' => [
                 'instagram' => $chatbotQuery()->where('platform', 'instagram')->count(),
                 'telegram' => $telegramTotal,
                 'facebook' => $chatbotQuery()->where('platform', 'facebook')->count(),
-                'phone' => $phoneConversations,
             ],
             'unread' => [
-                'total' => $telegramUnread + $instagramUnread + $phoneMissed,
+                'total' => $telegramUnread + $instagramUnread,
                 'instagram' => $instagramUnread,
                 'telegram' => $telegramUnread,
                 'facebook' => 0,
-                'phone' => $phoneMissed,
-            ],
-            'phone_stats' => [
-                'total_calls' => $callQuery()->count(),
-                'completed' => $phoneCompleted,
-                'missed' => $phoneMissed,
-                'inbound' => $callQuery()->where('direction', 'inbound')->count(),
-                'outbound' => $callQuery()->where('direction', 'outbound')->count(),
             ],
             'response_rate' => $this->calculateResponseRate($business),
         ];

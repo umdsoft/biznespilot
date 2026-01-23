@@ -569,3 +569,57 @@ Schedule::job(new \App\Jobs\HR\GenerateTurnoverReportJob)
     ->timezone('Asia/Tashkent')
     ->name('hr-turnover-report')
     ->onOneServer();
+
+// ==========================================
+// TELEPHONY - UTEL/OnlinePBX SYNC JOBS
+// ==========================================
+
+// UTEL Call History Sync - Har 3 daqiqada
+// Barcha faol UTEL hisoblaridan qo'ng'iroqlar tarixini sinxronlaydi
+// Mavjud qo'ng'iroqlar uchun ham lead bog'lash va missed calls tozalashni tekshiradi
+Schedule::call(function () {
+    $accounts = \App\Models\UtelAccount::where('is_active', true)->get();
+
+    foreach ($accounts as $account) {
+        try {
+            $service = app(\App\Services\UtelService::class)->setAccount($account);
+
+            // Sync call history - this also links outbound calls and clears missed calls
+            $service->syncCallHistory(now()->subHours(2), now());
+
+            // Reconcile any remaining missed calls that weren't caught by normal sync
+            $service->reconcileMissedCalls();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('UTEL sync failed', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+})->everyThreeMinutes()
+    ->timezone('Asia/Tashkent')
+    ->name('utel-call-sync')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// OnlinePBX Call History Sync - Har 5 daqiqada
+Schedule::call(function () {
+    $accounts = \App\Models\PbxAccount::where('is_active', true)
+        ->where('provider', 'onlinepbx')
+        ->get();
+
+    foreach ($accounts as $account) {
+        try {
+            $service = app(\App\Services\OnlinePbxService::class)->setAccount($account);
+            $service->syncCallHistory(now()->subHours(1), now());
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('OnlinePBX sync failed', [
+                'account_id' => $account->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+})->everyFiveMinutes()
+    ->timezone('Asia/Tashkent')
+    ->name('onlinepbx-call-sync')
+    ->onOneServer();

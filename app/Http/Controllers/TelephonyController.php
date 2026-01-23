@@ -414,10 +414,9 @@ class TelephonyController extends Controller
     public function connectUtel(Request $request)
     {
         $validated = $request->validate([
+            'subdomain' => 'required|string|max:50|regex:/^[a-zA-Z0-9]+$/',
             'email' => 'required|email',
             'password' => 'required|string|min:4',
-            'caller_id' => 'nullable|string|max:20',
-            'extension' => 'nullable|string|max:10',
         ]);
 
         $business = $this->getCurrentBusiness();
@@ -426,7 +425,11 @@ class TelephonyController extends Controller
             return back()->with('error', 'Biznes topilmadi');
         }
 
-        // Test connection
+        // Build API URL from subdomain
+        $apiUrl = 'https://api.' . strtolower($validated['subdomain']) . '.utel.uz/api';
+
+        // Set API URL and test connection
+        $this->utelService->setBaseUrl($apiUrl);
         $result = $this->utelService->testConnection(
             $validated['email'],
             $validated['password']
@@ -442,19 +445,45 @@ class TelephonyController extends Controller
         // Deactivate existing UTEL accounts
         UtelAccount::where('business_id', $business->id)->update(['is_active' => false]);
 
-        // Create new account
-        UtelAccount::create([
+        // Create new account with API URL in settings
+        $account = UtelAccount::create([
             'business_id' => $business->id,
             'name' => 'UTEL',
             'email' => $validated['email'],
             'password' => Crypt::encryptString($validated['password']),
             'access_token' => $result['token'] ?? null,
             'token_expires_at' => isset($result['expires_at']) ? \Carbon\Carbon::parse($result['expires_at']) : now()->addHours(24),
-            'caller_id' => $validated['caller_id'],
-            'extension' => $validated['extension'],
             'is_active' => true,
             'last_sync_at' => now(),
+            'settings' => [
+                'api_url' => $apiUrl,
+                'subdomain' => strtolower($validated['subdomain']),
+            ],
         ]);
+
+        // Automatically configure webhook for real-time call notifications
+        try {
+            $webhookUrl = config('app.url') . '/api/webhooks/utel/' . $business->id;
+            $this->utelService->setAccount($account);
+            $webhookResult = $this->utelService->configureWebhook($webhookUrl);
+
+            if ($webhookResult['success']) {
+                Log::info('UTEL webhook configured successfully', [
+                    'business_id' => $business->id,
+                    'webhook_url' => $webhookUrl,
+                ]);
+            } else {
+                Log::warning('UTEL webhook configuration failed', [
+                    'business_id' => $business->id,
+                    'error' => $webhookResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('UTEL webhook configuration error', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'UTEL muvaffaqiyatli ulandi!');
     }
@@ -503,6 +532,60 @@ class TelephonyController extends Controller
         }
 
         return back()->with('error', $result['error']);
+    }
+
+    /**
+     * Configure UTEL webhook for real-time call notifications
+     */
+    public function configureUtelWebhook()
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (! $business) {
+            return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        $account = UtelAccount::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $account) {
+            return response()->json(['error' => 'UTEL ulangan emas'], 400);
+        }
+
+        try {
+            $webhookUrl = config('app.url') . '/api/webhooks/utel/' . $business->id;
+            $this->utelService->setAccount($account);
+            $result = $this->utelService->configureWebhook($webhookUrl);
+
+            if ($result['success']) {
+                Log::info('UTEL webhook configured manually', [
+                    'business_id' => $business->id,
+                    'webhook_url' => $webhookUrl,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Webhook muvaffaqiyatli sozlandi! Endi qo\'ng\'iroqlar avtomatik sinxronlanadi.',
+                    'webhook_url' => $webhookUrl,
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'error' => $result['error'] ?? 'Webhook sozlashda xatolik',
+            ], 400);
+        } catch (\Exception $e) {
+            Log::error('UTEL webhook configuration error', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Xatolik: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

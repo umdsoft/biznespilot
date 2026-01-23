@@ -309,6 +309,7 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
         Route::post('/utel/disconnect', [TelephonyController::class, 'disconnectUtel'])->name('utel.disconnect');
         Route::post('/utel/sync', [TelephonyController::class, 'syncUtel'])->name('utel.sync');
         Route::post('/utel/refresh-balance', [TelephonyController::class, 'refreshUtelBalance'])->name('utel.refresh-balance');
+        Route::post('/utel/configure-webhook', [TelephonyController::class, 'configureUtelWebhook'])->name('utel.configure-webhook');
 
         // Status & Data
         Route::get('/status', [TelephonyController::class, 'status'])->name('status');
@@ -870,6 +871,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     Route::get('/kpi/data-entry', [DashboardController::class, 'kpiDataEntry'])->name('kpi.data-entry');
     Route::post('/kpi/calculate-plan', [DashboardController::class, 'calculateKPIPlan'])->name('kpi.calculate-plan');
     Route::post('/kpi/save-plan', [DashboardController::class, 'saveKPIPlan'])->name('kpi.save-plan');
+
+    // Call Center Analytics (AI qo'ng'iroq tahlili)
+    Route::get('/call-center', fn() => \Inertia\Inertia::render('Business/CallCenter/Index'))->name('call-center');
 
     // Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {
@@ -1603,6 +1607,9 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
         Route::get('/', [App\Http\Controllers\Sales\MyDayController::class, 'index'])->name('index');
         Route::get('/stats', [App\Http\Controllers\Sales\MyDayController::class, 'stats'])->name('stats');
     });
+
+    // Call Center Analytics (AI qo'ng'iroq tahlili)
+    Route::get('/call-center', fn() => \Inertia\Inertia::render('SalesHead/CallCenter/Index'))->name('call-center');
 
     // Profile & Settings
     Route::get('/profile', [App\Http\Controllers\SalesHead\ProfileController::class, 'index'])->name('profile');

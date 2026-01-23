@@ -93,7 +93,12 @@
       "Bash(do grep -q \"$service\" \"d:\\\\biznespilot\\\\app\\\\Http\\\\Controllers\"/*.php)",
       "Bash(sc query:*)",
       "Bash(tasklist:*)",
-      "Bash(Get-Content d:/biznespilot/storage/logs/laravel.log -Tail 50)"
+      "Bash(Get-Content d:/biznespilot/storage/logs/laravel.log -Tail 50)",
+      "Bash(git checkout:*)",
+      "Bash(timeout:*)",
+      "Bash(netstat:*)",
+      "Bash(Select-String -Pattern \"error|exception\" -CaseSensitive:$false)",
+      "Bash(Select-Object -Last 10)"
     ]
   }
 }

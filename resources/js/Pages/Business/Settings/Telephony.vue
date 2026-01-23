@@ -46,6 +46,22 @@ const isRefreshingBalance = ref(false);
 
 const hasActiveProvider = computed(() => props.pbxAccount || props.sipuniAccount || props.moiZvonkiAccount || props.utelAccount);
 
+// Check if currently selected tab's provider is connected
+const currentTabConnected = computed(() => {
+    switch (activeTab.value) {
+        case 'pbx':
+            return !!props.pbxAccount;
+        case 'sipuni':
+            return !!props.sipuniAccount;
+        case 'moizvonki':
+            return !!props.moiZvonkiAccount;
+        case 'utel':
+            return !!props.utelAccount;
+        default:
+            return false;
+    }
+});
+
 // PBX Connect form
 const pbxForm = useForm({
     api_url: '',
@@ -72,14 +88,15 @@ const moiZvonkiForm = useForm({
 
 // UTEL Connect form (O'zbekiston)
 const utelForm = useForm({
+    subdomain: '',
     email: '',
     password: '',
-    caller_id: '',
-    extension: '',
 });
 
 const isSyncing = ref(false);
 const isRefreshingUtelBalance = ref(false);
+const isConfiguringWebhook = ref(false);
+const webhookConfigured = ref(false);
 
 const connectPbx = () => {
     isConnecting.value = true;
@@ -177,12 +194,20 @@ const syncMoiZvonki = async () => {
 // UTEL Methods
 const connectUtel = () => {
     isConnecting.value = true;
-    utelForm.post(route('integrations.telephony.utel.connect'), {
+    router.post(route('integrations.telephony.utel.connect'), {
+        subdomain: utelForm.subdomain,
+        email: utelForm.email,
+        password: utelForm.password,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            utelForm.reset();
+        },
+        onError: (errors) => {
+            utelForm.errors = errors;
+        },
         onFinish: () => {
             isConnecting.value = false;
-            if (!utelForm.hasErrors) {
-                utelForm.reset();
-            }
         },
     });
 };
@@ -241,9 +266,43 @@ const refreshUtelBalance = async () => {
     }
 };
 
+const configureUtelWebhook = async () => {
+    isConfiguringWebhook.value = true;
+    webhookConfigured.value = false;
+    try {
+        const response = await fetch(route('integrations.telephony.utel.configure-webhook'), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            },
+        });
+        const data = await response.json();
+        if (data.success) {
+            webhookConfigured.value = true;
+            setTimeout(() => {
+                webhookConfigured.value = false;
+            }, 5000);
+        } else {
+            console.error('Failed to configure webhook:', data.error);
+            alert(data.error || 'Webhook sozlashda xatolik');
+        }
+    } catch (error) {
+        console.error('Failed to configure UTEL webhook:', error);
+        alert('Webhook sozlashda xatolik yuz berdi');
+    } finally {
+        isConfiguringWebhook.value = false;
+    }
+};
+
+const copiedUrl = ref(null);
+
 const copyWebhookUrl = (url) => {
     navigator.clipboard.writeText(url);
-    alert('Webhook URL nusxalandi!');
+    copiedUrl.value = url;
+    setTimeout(() => {
+        copiedUrl.value = null;
+    }, 2000);
 };
 
 const refreshBalance = async () => {
@@ -352,8 +411,8 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                 </p>
                             </div>
                         </div>
-                        <!-- Status indicator -->
-                        <div v-if="hasActiveProvider" class="hidden md:flex items-center gap-3 px-4 py-2 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-xl">
+                        <!-- Status indicator - shows only when current tab's provider is connected -->
+                        <div v-if="currentTabConnected" class="hidden md:flex items-center gap-3 px-4 py-2 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-xl">
                             <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                             <span class="text-green-600 dark:text-green-400 font-medium">Ulangan</span>
                         </div>
@@ -594,9 +653,20 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                                     <button
                                                         v-if="webhookUrls?.onlinepbx"
                                                         @click="copyWebhookUrl(webhookUrls.onlinepbx)"
-                                                        class="px-3 py-2 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-500/30 text-xs"
+                                                        :class="[
+                                                            'px-3 py-2 rounded text-xs transition-all duration-200',
+                                                            copiedUrl === webhookUrls.onlinepbx
+                                                                ? 'bg-green-500/20 text-green-400'
+                                                                : 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-500/30'
+                                                        ]"
                                                     >
-                                                        Nusxalash
+                                                        <span v-if="copiedUrl === webhookUrls.onlinepbx" class="flex items-center gap-1">
+                                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                            Nusxalandi
+                                                        </span>
+                                                        <span v-else>Nusxalash</span>
                                                     </button>
                                                 </div>
                                                 <p class="text-xs text-gray-500 mt-2">
@@ -853,9 +923,20 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                             <button
                                                 v-if="webhookUrls?.onlinepbx"
                                                 @click="copyWebhookUrl(webhookUrls.onlinepbx)"
-                                                class="px-3 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 text-xs transition-colors"
+                                                :class="[
+                                                    'px-3 py-2 rounded-lg text-xs transition-all duration-200',
+                                                    copiedUrl === webhookUrls.onlinepbx
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                                                ]"
                                             >
-                                                Nusxalash
+                                                <span v-if="copiedUrl === webhookUrls.onlinepbx" class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Nusxalandi
+                                                </span>
+                                                <span v-else>Nusxalash</span>
                                             </button>
                                         </div>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
@@ -1553,9 +1634,20 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                             <button
                                                 v-if="webhookUrls?.moizvonki"
                                                 @click="copyWebhookUrl(webhookUrls.moizvonki)"
-                                                class="px-3 py-2 bg-gray-200 dark:bg-gray-600/50 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-xs transition-colors"
+                                                :class="[
+                                                    'px-3 py-2 rounded-lg text-xs transition-all duration-200',
+                                                    copiedUrl === webhookUrls.moizvonki
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-gray-200 dark:bg-gray-600/50 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                                ]"
                                             >
-                                                Nusxalash
+                                                <span v-if="copiedUrl === webhookUrls.moizvonki" class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Nusxalandi
+                                                </span>
+                                                <span v-else>Nusxalash</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1691,58 +1783,30 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                 </div>
                             </div>
 
-                            <!-- Step-by-step Instructions -->
+                            <!-- Step-by-step Instructions (3 columns) -->
                             <div class="mb-8">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                    </svg>
-                                    UTEL ulash yo'riqnomasi
-                                </h3>
-                                <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <!-- Step 1 -->
-                                    <div class="flex gap-4">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-gray-900 dark:text-white font-bold shadow-lg">1</div>
-                                        </div>
-                                        <div class="flex-1 pt-1">
-                                            <p class="text-gray-900 dark:text-white font-medium mb-1">UTEL hisobini yarating</p>
-                                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                                                <a href="https://utel.uz" target="_blank" class="text-green-400 hover:text-green-300 underline inline-flex items-center gap-1">
-                                                    utel.uz
-                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
-                                                </a>
-                                                saytida ro'yxatdan o'ting
-                                            </p>
-                                        </div>
+                                    <div class="bg-gray-50 dark:bg-gray-700/20 rounded-xl p-4 text-center">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg mx-auto mb-3">1</div>
+                                        <p class="text-gray-900 dark:text-white font-medium text-sm mb-1">UTEL hisobini yarating</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-xs">
+                                            <a href="https://utel.uz" target="_blank" class="text-green-400 hover:text-green-300 underline">utel.uz</a> da ro'yxatdan o'ting
+                                        </p>
                                     </div>
 
                                     <!-- Step 2 -->
-                                    <div class="flex gap-4">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-gray-900 dark:text-white font-bold shadow-lg">2</div>
-                                        </div>
-                                        <div class="flex-1 pt-1">
-                                            <p class="text-gray-900 dark:text-white font-medium mb-1">Virtual raqam oling</p>
-                                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                                                UTEL kabinetidan O'zbekiston telefon raqamini sotib oling (71, 78, 90, 91, 93, 94, 97, 99)
-                                            </p>
-                                        </div>
+                                    <div class="bg-gray-50 dark:bg-gray-700/20 rounded-xl p-4 text-center">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg mx-auto mb-3">2</div>
+                                        <p class="text-gray-900 dark:text-white font-medium text-sm mb-1">Virtual raqam oling</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-xs">UTEL kabinetidan telefon raqam sotib oling</p>
                                     </div>
 
                                     <!-- Step 3 -->
-                                    <div class="flex gap-4">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-gray-900 dark:text-white font-bold shadow-lg">3</div>
-                                        </div>
-                                        <div class="flex-1 pt-1">
-                                            <p class="text-gray-900 dark:text-white font-medium mb-1">Ma'lumotlaringizni kiriting</p>
-                                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                                                Quyidagi forma orqali UTEL hisobingiz ma'lumotlarini kiriting
-                                            </p>
-                                        </div>
+                                    <div class="bg-gray-50 dark:bg-gray-700/20 rounded-xl p-4 text-center">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg mx-auto mb-3">3</div>
+                                        <p class="text-gray-900 dark:text-white font-medium text-sm mb-1">Ma'lumotlarni kiriting</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-xs">Quyidagi formani to'ldiring</p>
                                     </div>
                                 </div>
                             </div>
@@ -1751,6 +1815,28 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                             <form @submit.prevent="connectUtel" class="max-w-lg mx-auto text-left">
                                 <div class="bg-gray-50 dark:bg-gray-700/20 rounded-2xl p-6 space-y-5">
                                     <h4 class="text-gray-900 dark:text-white font-medium text-center mb-4">UTEL ma'lumotlarini kiriting</h4>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Subdomain
+                                            <span class="text-red-400">*</span>
+                                        </label>
+                                        <div class="flex items-center">
+                                            <span class="text-gray-500 dark:text-gray-400 text-sm mr-2">https://api.</span>
+                                            <input
+                                                v-model="utelForm.subdomain"
+                                                type="text"
+                                                required
+                                                placeholder="cc279"
+                                                class="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                                            />
+                                            <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">.utel.uz</span>
+                                        </div>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            UTEL kabinet URL dan (masalan: cc279.utel.uz → <strong>cc279</strong>)
+                                        </p>
+                                        <p v-if="utelForm.errors.subdomain" class="mt-1 text-sm text-red-400">{{ utelForm.errors.subdomain }}</p>
+                                    </div>
 
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1786,36 +1872,6 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                             UTEL kabinetiga kirish parolingiz (xavfsiz saqlanadi)
                                         </p>
                                         <p v-if="utelForm.errors.password" class="mt-1 text-sm text-red-400">{{ utelForm.errors.password }}</p>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Caller ID (ixtiyoriy)
-                                        </label>
-                                        <input
-                                            v-model="utelForm.caller_id"
-                                            type="text"
-                                            placeholder="+998901234567"
-                                            class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                        />
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Chiquvchi qo'ng'iroqlarda ko'rinadigan raqam
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Extension (ixtiyoriy)
-                                        </label>
-                                        <input
-                                            v-model="utelForm.extension"
-                                            type="text"
-                                            placeholder="101"
-                                            class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                                        />
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Ichki raqamingiz (agar PBX ishlatayotgan bo'lsangiz)
-                                        </p>
                                     </div>
 
                                     <button
@@ -1954,6 +2010,44 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                 </div>
                             </div>
 
+                            <!-- Auto Sync Info -->
+                            <div class="mb-6 p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/30">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Real-time sinxronlash</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                            Qo'ng'iroqlar har 5 daqiqada avtomatik sinxronlanadi. Real-time sinxronlash uchun webhook'ni UTEL'da sozlang yoki quyidagi tugmani bosing.
+                                        </p>
+                                        <button
+                                            @click="configureUtelWebhook"
+                                            :disabled="isConfiguringWebhook"
+                                            class="px-4 py-2 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50 text-sm flex items-center gap-2"
+                                        >
+                                            <svg v-if="isConfiguringWebhook" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <span v-if="isConfiguringWebhook">Sozlanmoqda...</span>
+                                            <span v-else>Webhook avtomatik sozlash</span>
+                                        </button>
+                                        <p v-if="webhookConfigured" class="text-xs text-green-400 mt-2 flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Webhook muvaffaqiyatli sozlandi!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Webhook URL Info -->
                             <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700/20 rounded-xl border border-gray-200 dark:border-gray-600/30">
                                 <div class="flex items-start gap-3">
@@ -1963,15 +2057,26 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                                         </svg>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Webhook URL (UTEL kabinetida sozlash kerak)</p>
+                                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Webhook URL (qo'lda sozlash uchun)</p>
                                         <div class="flex items-center gap-2">
                                             <code class="flex-1 bg-gray-100 dark:bg-gray-800/50 px-3 py-2 rounded-lg text-green-400 text-xs font-mono overflow-x-auto">{{ webhookUrls?.utel || '—' }}</code>
                                             <button
                                                 v-if="webhookUrls?.utel"
                                                 @click="copyWebhookUrl(webhookUrls.utel)"
-                                                class="px-3 py-2 bg-gray-200 dark:bg-gray-600/50 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-xs transition-colors"
+                                                :class="[
+                                                    'px-3 py-2 rounded-lg text-xs transition-all duration-200',
+                                                    copiedUrl === webhookUrls.utel
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-gray-200 dark:bg-gray-600/50 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                                ]"
                                             >
-                                                Nusxalash
+                                                <span v-if="copiedUrl === webhookUrls.utel" class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Nusxalandi
+                                                </span>
+                                                <span v-else>Nusxalash</span>
                                             </button>
                                         </div>
                                     </div>
@@ -2074,40 +2179,6 @@ const formatUtelBalance = (balance, currency = 'UZS') => {
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div v-if="hasActiveProvider" class="bg-gray-100 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-900 dark:text-white mb-4">Tezkor harakatlar</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Link
-                            :href="route('integrations.telephony.history')"
-                            class="flex items-center gap-4 p-4 bg-gray-100 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:bg-gray-700/50 transition-colors"
-                        >
-                            <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-900 dark:text-white">Qo'ng'iroqlar tarixi</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Barcha qo'ng'iroqlarni ko'ring</p>
-                            </div>
-                        </Link>
-                        <Link
-                            :href="route('integrations.telephony.statistics')"
-                            class="flex items-center gap-4 p-4 bg-gray-100 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:bg-gray-700/50 transition-colors"
-                        >
-                            <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-900 dark:text-white">Statistika</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Batafsil tahlil</p>
-                            </div>
-                        </Link>
-                    </div>
-                </div>
             </div>
         </div>
     </BusinessLayout>

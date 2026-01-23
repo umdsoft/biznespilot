@@ -310,6 +310,7 @@ const viewMode = ref('kanban');
 const searchQuery = ref('');
 const sourceFilter = ref('');
 const operatorFilter = ref('');
+const missedCallsFilter = ref(false);
 const localOperators = ref([]);
 const isDragging = ref(false);
 const draggedLead = ref(null);
@@ -499,6 +500,11 @@ const filteredLeads = computed(() => {
         }
     }
 
+    // Filter by missed calls
+    if (missedCallsFilter.value) {
+        filtered = filtered.filter(lead => hasMissedCalls(lead));
+    }
+
     return filtered;
 });
 
@@ -547,6 +553,57 @@ const isPhoneCallLead = (lead) => {
     }
     return false;
 };
+
+// Parse lead data helper
+const getLeadData = (lead) => {
+    let data = lead.data;
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            data = {};
+        }
+    }
+    return data || {};
+};
+
+// Check if lead has missed calls
+const hasMissedCalls = (lead) => {
+    const data = getLeadData(lead);
+
+    // Check missed_calls counter
+    if (data.missed_calls > 0) return true;
+
+    // Check last_call_status
+    const status = data.last_call_status;
+    if (status === 'no_answer' || status === 'missed' || status === 'unanswered') return true;
+
+    // Check call history if available
+    if (lead.calls?.some(call => call.status === 'no_answer' || call.status === 'missed')) return true;
+
+    return false;
+};
+
+// Get missed calls count for a lead
+const getMissedCallsCount = (lead) => {
+    const data = getLeadData(lead);
+    return data.missed_calls || 1;
+};
+
+// Toggle missed calls filter
+const toggleMissedCallsFilter = () => {
+    missedCallsFilter.value = !missedCallsFilter.value;
+};
+
+// Count total missed calls leads
+const missedCallsCount = computed(() => {
+    return leads.value.filter(lead => hasMissedCalls(lead)).length;
+});
+
+// Get leads with missed calls (for quick access)
+const leadsWithMissedCalls = computed(() => {
+    return leads.value.filter(lead => hasMissedCalls(lead));
+});
 
 const getScoreStars = (score) => {
     if (score >= 80) return 5;
@@ -735,14 +792,14 @@ onUnmounted(() => {
 <template>
     <Head :title="panelType === 'saleshead' ? t('leads.index.title') : t('leads.index.sales_pipeline')" />
 
-    <div class="h-full flex flex-col -m-4 sm:-m-6 lg:-m-8">
+    <div class="h-full flex flex-col -m-4">
         <!-- Header -->
-        <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-4">
+        <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 lg:px-6 py-4">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <!-- Title & Stats -->
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4 lg:gap-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 class="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                             {{ panelType === 'saleshead' ? t('leads.index.title') : t('leads.index.sales_pipeline') }}
                         </h1>
                         <p v-if="isLoading" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
@@ -754,24 +811,24 @@ onUnmounted(() => {
                     </div>
 
                     <!-- Quick Stats -->
-                    <div v-if="!isLoading" class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
-                        <div class="text-center">
-                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats?.won_deals || 0 }}</p>
+                    <div v-if="!isLoading" class="hidden xl:flex items-center gap-4 pl-4 border-l border-gray-200 dark:border-gray-700">
+                        <div class="text-center px-2">
+                            <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ stats?.won_deals || 0 }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.stats.won') }}</p>
                         </div>
-                        <div class="text-center">
-                            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats?.new_leads || 0 }}</p>
+                        <div class="text-center px-2">
+                            <p class="text-xl font-bold text-blue-600 dark:text-blue-400">{{ stats?.new_leads || 0 }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.pipeline.new') }}</p>
                         </div>
-                        <div class="text-center">
-                            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats?.qualified_leads || 0 }}</p>
+                        <div class="text-center px-2">
+                            <p class="text-xl font-bold text-purple-600 dark:text-purple-400">{{ stats?.qualified_leads || 0 }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('leads.stats.qualified') }}</p>
                         </div>
                     </div>
-                    <div v-else class="hidden xl:flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-gray-700">
-                        <div v-for="i in 3" :key="i" class="text-center">
-                            <div class="w-12 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
-                            <div class="w-16 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div v-else class="hidden xl:flex items-center gap-4 pl-4 border-l border-gray-200 dark:border-gray-700">
+                        <div v-for="i in 3" :key="i" class="text-center px-2">
+                            <div class="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
+                            <div class="w-14 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                         </div>
                     </div>
                 </div>
@@ -821,6 +878,30 @@ onUnmounted(() => {
                         </option>
                     </select>
 
+                    <!-- Missed Calls Filter -->
+                    <button
+                        @click="toggleMissedCallsFilter"
+                        :disabled="missedCallsCount === 0"
+                        :class="[
+                            'relative inline-flex items-center gap-2 px-3 py-2 font-medium rounded-lg border transition-colors',
+                            missedCallsFilter
+                                ? 'bg-red-500 border-red-500 text-white'
+                                : missedCallsCount > 0
+                                    ? 'bg-white dark:bg-gray-700 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                    : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400 cursor-not-allowed'
+                        ]"
+                        :title="missedCallsFilter ? 'Barcha lidlar' : 'O\'tkazib yuborilgan qo\'ng\'iroqlar'"
+                    >
+                        <PhoneIcon class="w-4 h-4" />
+                        <span class="hidden sm:inline text-sm">{{ missedCallsFilter ? 'Barchasi' : 'O\'tkazib yuborilgan' }}</span>
+                        <span
+                            v-if="!missedCallsFilter"
+                            class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+                        >
+                            {{ missedCallsCount }}
+                        </span>
+                    </button>
+
                     <!-- View Toggle -->
                     <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                         <button
@@ -859,26 +940,13 @@ onUnmounted(() => {
                         <Cog6ToothIcon class="w-5 h-5" />
                         <span class="hidden lg:inline">{{ t('leads.index.pipeline_settings') }}</span>
                     </Link>
-
-                    <!-- Add Lead Button -->
-                    <Link
-                        :href="getRouteUrl('create')"
-                        :class="[
-                            'inline-flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg transition-colors shadow-lg',
-                            themeColors.buttonBg,
-                            themeColors.buttonShadow
-                        ]"
-                    >
-                        <PlusIcon class="w-5 h-5" />
-                        <span class="hidden sm:inline">{{ t('leads.index.add_lead') }}</span>
-                    </Link>
                 </div>
             </div>
         </div>
 
         <!-- Loading Skeleton for Kanban -->
         <div v-if="viewMode === 'kanban' && isLoading" class="flex-1 overflow-x-auto overflow-y-hidden">
-            <div class="h-full p-4 sm:p-6">
+            <div class="h-full px-2 sm:px-3 lg:px-4 py-4">
                 <div class="flex gap-4 h-full min-w-max">
                     <div v-for="i in 7" :key="i" class="w-72 flex-shrink-0 flex flex-col bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                         <div class="p-3 border-b border-gray-200 dark:border-gray-700">
@@ -889,6 +957,11 @@ onUnmounted(() => {
                             <div class="w-24 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                         </div>
                         <div class="flex-1 p-2 space-y-2">
+                            <!-- Add Lead Button Skeleton - First column only -->
+                            <div v-if="i === 1" class="flex items-center justify-center gap-1.5 w-full py-1.5 border border-dashed rounded-md border-gray-300 dark:border-gray-600">
+                                <div class="w-3.5 h-3.5 rounded bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+                                <div class="w-16 h-3 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
+                            </div>
                             <div v-for="j in 2" :key="j" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
                                 <div class="flex items-center gap-2 mb-2">
                                     <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
@@ -905,7 +978,7 @@ onUnmounted(() => {
 
         <!-- Kanban Board -->
         <div v-else-if="viewMode === 'kanban'" class="flex-1 overflow-x-auto overflow-y-hidden">
-            <div class="h-full p-4 sm:p-6">
+            <div class="h-full px-2 sm:px-3 lg:px-4 py-4">
                 <div class="flex gap-4 h-full min-w-max">
                     <!-- Pipeline Columns -->
                     <div
@@ -939,6 +1012,21 @@ onUnmounted(() => {
                                 dragOverColumn === stage.value ? themeColors.dragOver : ''
                             ]"
                         >
+                            <!-- Add Lead Button - Only in "new" column -->
+                            <Link
+                                v-if="stage.value === 'new'"
+                                :href="getRouteUrl('create')"
+                                :class="[
+                                    'flex items-center justify-center gap-1.5 w-full py-1.5 border border-dashed rounded-md transition-all hover:shadow-sm text-xs',
+                                    panelType === 'saleshead'
+                                        ? 'border-emerald-300 dark:border-emerald-600 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-400 dark:hover:border-emerald-500'
+                                        : 'border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500'
+                                ]"
+                            >
+                                <PlusIcon class="w-3.5 h-3.5" />
+                                <span class="font-medium">{{ t('leads.index.add_lead') }}</span>
+                            </Link>
+
                             <!-- Lead Cards -->
                             <div
                                 v-for="lead in leadsByStatus[stage.value]"
@@ -947,12 +1035,23 @@ onUnmounted(() => {
                                 @dragstart="handleDragStart($event, lead)"
                                 @dragend="handleDragEnd"
                                 :class="[
-                                    'bg-white dark:bg-gray-800 rounded-lg border p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group',
-                                    isLeadSelected(lead)
-                                        ? themeColors.selectedBorder
-                                        : `border-gray-200 dark:border-gray-700 hover:border-${themeColors.primary}-300 dark:hover:border-${themeColors.primary}-600`
+                                    'relative bg-white dark:bg-gray-800 rounded-lg border p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group',
+                                    hasMissedCalls(lead)
+                                        ? 'border-red-400 dark:border-red-500 ring-2 ring-red-500/20'
+                                        : isLeadSelected(lead)
+                                            ? themeColors.selectedBorder
+                                            : `border-gray-200 dark:border-gray-700 hover:border-${themeColors.primary}-300 dark:hover:border-${themeColors.primary}-600`
                                 ]"
                             >
+                                <!-- Missed Call Badge -->
+                                <div
+                                    v-if="hasMissedCalls(lead)"
+                                    class="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse z-10"
+                                >
+                                    <PhoneIcon class="w-3 h-3" />
+                                    <span>{{ getMissedCallsCount(lead) }}</span>
+                                </div>
+
                                 <!-- Card Header -->
                                 <div class="flex items-start justify-between gap-2 mb-2">
                                     <div class="flex items-center gap-2 min-w-0">

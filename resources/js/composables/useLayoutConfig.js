@@ -35,6 +35,7 @@ import {
   FireIcon,
   ScaleIcon,
   ChartPieIcon,
+  SparklesIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -86,8 +87,8 @@ export const businessLayoutConfig = {
   headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
   logoBorderClass: 'border-gray-200 dark:border-gray-700',
   sectionBorderClass: 'border-gray-200 dark:border-gray-700',
-  mainClass: 'p-6',
-  contentClass: 'max-w-screen-2xl mx-auto',
+  mainClass: 'p-4',
+  contentClass: '', // Full width for sales pipeline
   titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent',
 
   // Logo
@@ -178,8 +179,8 @@ export const businessLayoutConfig = {
       items: [
         { href: '/business/analytics', label: 'Analitika', labelKey: 'nav.analytics', icon: ChartBarIcon },
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
+        { href: '/business/call-center', label: 'Qo\'ng\'iroq Tahlili', labelKey: 'nav.call_center', icon: SparklesIcon },
         { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },
-        { href: '/business/sales-script', label: 'Sotuv Skriptlari', labelKey: 'nav.sales_scripts', icon: ChatBubbleLeftRightIcon },
       ]
     },
     {
@@ -200,8 +201,8 @@ export const salesHeadLayoutConfig = {
   headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
   logoBorderClass: 'border-gray-200 dark:border-gray-700',
   sectionBorderClass: 'border-gray-200 dark:border-gray-700',
-  mainClass: 'p-6',
-  contentClass: 'max-w-screen-2xl mx-auto',
+  mainClass: 'p-4',
+  contentClass: '', // Full width for sales pipeline
   titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent',
 
   // Logo
@@ -281,6 +282,7 @@ export const salesHeadLayoutConfig = {
             { href: '/sales-head/sales-kpi/achievements', label: 'Yutuqlar' },
           ]
         },
+        { href: '/sales-head/call-center', label: 'Qo\'ng\'iroq Tahlili', icon: SparklesIcon },
         { href: '/sales-head/sales-analytics', label: 'Sotuv Analitikasi (ROP)', icon: ChartPieIcon },
         { href: '/sales-head/analytics', label: 'Analitika', icon: PresentationChartLineIcon },
       ]
@@ -466,7 +468,6 @@ export const marketingLayoutConfig = {
         { href: '/marketing/offers', label: 'Takliflar', icon: TagIcon },
         { href: '/marketing/swot', label: 'SWOT Tahlil', icon: AdjustmentsHorizontalIcon },
         { href: '/marketing/competitor-insights', label: 'AI Tavsiyalar', icon: LightBulbIcon },
-        { href: '/marketing/competitor-insights/sales-scripts', label: 'Sotuv Skriptlari', icon: ChatBubbleLeftRightIcon },
       ]
     },
     {
@@ -708,8 +709,8 @@ export const operatorLayoutConfig = {
   headerClass: 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
   logoBorderClass: 'border-gray-200 dark:border-gray-700',
   sectionBorderClass: 'border-gray-200 dark:border-gray-700',
-  mainClass: 'p-6',
-  contentClass: 'max-w-screen-2xl mx-auto',
+  mainClass: 'p-4',
+  contentClass: '', // Full width for leads
   titleClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent',
 
   // Logo

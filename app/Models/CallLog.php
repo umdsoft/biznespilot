@@ -6,6 +6,7 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CallLog extends Model
 {
@@ -22,6 +23,7 @@ class CallLog extends Model
         'to_number',
         'status',
         'duration',
+        'conversation', // Actual talk time in seconds (0 if call was not answered)
         'wait_time',
         'recording_url',
         'notes',
@@ -29,6 +31,8 @@ class CallLog extends Model
         'started_at',
         'answered_at',
         'ended_at',
+        'analysis_status',
+        'analysis_error',
     ];
 
     protected $casts = [
@@ -74,6 +78,21 @@ class CallLog extends Model
     public const PROVIDER_SIPUNI = 'sipuni';
 
     /**
+     * Analysis status constants
+     */
+    public const ANALYSIS_STATUS_PENDING = 'pending';
+
+    public const ANALYSIS_STATUS_QUEUED = 'queued';
+
+    public const ANALYSIS_STATUS_TRANSCRIBING = 'transcribing';
+
+    public const ANALYSIS_STATUS_ANALYZING = 'analyzing';
+
+    public const ANALYSIS_STATUS_COMPLETED = 'completed';
+
+    public const ANALYSIS_STATUS_FAILED = 'failed';
+
+    /**
      * Get the business that owns this call
      */
     public function business(): BelongsTo
@@ -95,6 +114,14 @@ class CallLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the analysis for this call
+     */
+    public function analysis(): HasOne
+    {
+        return $this->hasOne(CallAnalysis::class);
     }
 
     /**
@@ -258,6 +285,117 @@ class CallLog extends Model
             'status' => self::STATUS_FAILED,
             'metadata' => $metadata,
             'ended_at' => now(),
+        ]);
+    }
+
+    /**
+     * Scope: Filter by analysis status
+     */
+    public function scopeAnalysisStatus($query, string $status)
+    {
+        return $query->where('analysis_status', $status);
+    }
+
+    /**
+     * Scope: Calls pending analysis
+     */
+    public function scopePendingAnalysis($query)
+    {
+        return $query->where('analysis_status', self::ANALYSIS_STATUS_PENDING);
+    }
+
+    /**
+     * Scope: Calls with completed analysis
+     */
+    public function scopeAnalyzed($query)
+    {
+        return $query->where('analysis_status', self::ANALYSIS_STATUS_COMPLETED);
+    }
+
+    /**
+     * Scope: Calls that can be analyzed (completed with recording)
+     */
+    public function scopeAnalyzable($query)
+    {
+        return $query->whereIn('status', [self::STATUS_COMPLETED, self::STATUS_ANSWERED])
+            ->whereNotNull('recording_url')
+            ->where('duration', '>=', 30);  // Minimum 30 sekund
+    }
+
+    /**
+     * Check if call can be analyzed
+     */
+    public function canBeAnalyzed(): bool
+    {
+        return in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_ANSWERED])
+            && !empty($this->recording_url)
+            && $this->duration >= 30
+            && $this->analysis_status === self::ANALYSIS_STATUS_PENDING;
+    }
+
+    /**
+     * Get analysis status label in Uzbek
+     */
+    public function getAnalysisStatusLabelAttribute(): string
+    {
+        $labels = [
+            self::ANALYSIS_STATUS_PENDING => 'Tahlil qilinmagan',
+            self::ANALYSIS_STATUS_QUEUED => 'Navbatda',
+            self::ANALYSIS_STATUS_TRANSCRIBING => 'Transkript qilinmoqda',
+            self::ANALYSIS_STATUS_ANALYZING => 'Tahlil qilinmoqda',
+            self::ANALYSIS_STATUS_COMPLETED => 'Tayyor',
+            self::ANALYSIS_STATUS_FAILED => 'Xatolik',
+        ];
+
+        return $labels[$this->analysis_status] ?? $this->analysis_status ?? 'Noma\'lum';
+    }
+
+    /**
+     * Queue call for analysis
+     */
+    public function queueForAnalysis(): void
+    {
+        $this->update([
+            'analysis_status' => self::ANALYSIS_STATUS_QUEUED,
+            'analysis_error' => null,
+        ]);
+    }
+
+    /**
+     * Mark analysis as transcribing
+     */
+    public function markAsTranscribing(): void
+    {
+        $this->update(['analysis_status' => self::ANALYSIS_STATUS_TRANSCRIBING]);
+    }
+
+    /**
+     * Mark analysis as analyzing
+     */
+    public function markAsAnalyzing(): void
+    {
+        $this->update(['analysis_status' => self::ANALYSIS_STATUS_ANALYZING]);
+    }
+
+    /**
+     * Mark analysis as completed
+     */
+    public function markAnalysisCompleted(): void
+    {
+        $this->update([
+            'analysis_status' => self::ANALYSIS_STATUS_COMPLETED,
+            'analysis_error' => null,
+        ]);
+    }
+
+    /**
+     * Mark analysis as failed
+     */
+    public function markAnalysisFailed(string $error): void
+    {
+        $this->update([
+            'analysis_status' => self::ANALYSIS_STATUS_FAILED,
+            'analysis_error' => $error,
         ]);
     }
 }
