@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class EmployeeEngagement extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'employee_engagements';
 
@@ -69,11 +70,6 @@ class EmployeeEngagement extends Model
     public const LEVEL_EXCELLENT = 'excellent';   // 86-100
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

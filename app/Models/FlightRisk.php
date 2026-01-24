@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class FlightRisk extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'flight_risks';
 
@@ -67,11 +68,6 @@ class FlightRisk extends Model
     public const LEVEL_CRITICAL = 'critical'; // 76-100
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

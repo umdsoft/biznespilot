@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 
 class CustdevSurvey extends Model
 {
-    use HasFactory, HasUuid, SoftDeletes;
+    use BelongsToBusiness, HasFactory, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'business_id',
@@ -233,11 +234,6 @@ class CustdevSurvey extends Model
     }
 
     // Relationships
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function dreamBuyer(): BelongsTo
     {

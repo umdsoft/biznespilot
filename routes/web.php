@@ -20,8 +20,6 @@ use App\Http\Controllers\CustdevController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\GoogleAdsAnalyticsController;
-use App\Http\Controllers\GoogleAdsCampaignController;
 use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\InsightController;
 use App\Http\Controllers\InstagramAnalysisController;
@@ -69,8 +67,6 @@ use App\Http\Controllers\TodoTemplateController;
 use App\Http\Controllers\TwoFactorAuthController;
 use App\Http\Controllers\UnifiedInboxController;
 use App\Http\Controllers\WelcomeController;
-use App\Http\Controllers\WhatsAppWebhookController;
-use App\Http\Controllers\YouTubeAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 // ==============================================
@@ -243,48 +239,6 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
                 Route::get('/flow-automations/{id}', [InstagramChatbotController::class, 'getFlowAutomation'])->name('flow-automations.show');
                 Route::put('/flow-automations/{id}', [InstagramChatbotController::class, 'updateFlowAutomation'])->name('flow-automations.update');
             });
-        });
-    });
-
-    // ==================== YOUTUBE ====================
-    Route::prefix('youtube')->name('youtube.')->group(function () {
-        Route::get('/', [YouTubeAnalyticsController::class, 'index'])->name('index');
-        Route::post('/sync', [YouTubeAnalyticsController::class, 'sync'])->name('sync');
-        Route::get('/video/{videoId}', [YouTubeAnalyticsController::class, 'videoDetail'])->name('video');
-
-        // Connect/Disconnect (shared for all panels)
-        Route::get('/auth-url', [YouTubeAnalyticsController::class, 'getAuthUrl'])->name('auth-url');
-        Route::get('/callback', [YouTubeAnalyticsController::class, 'handleCallback'])->name('callback');
-        Route::post('/disconnect', [YouTubeAnalyticsController::class, 'disconnect'])->name('disconnect');
-    });
-
-    // ==================== GOOGLE ADS ====================
-    Route::prefix('google-ads')->name('google-ads.')->group(function () {
-        Route::get('/', [GoogleAdsAnalyticsController::class, 'index'])->name('index');
-
-        // Connect/Disconnect (shared for all panels)
-        Route::get('/auth-url', [GoogleAdsAnalyticsController::class, 'getAuthUrl'])->name('auth-url');
-        Route::get('/callback', [GoogleAdsAnalyticsController::class, 'handleCallback'])->name('callback');
-        Route::post('/disconnect', [GoogleAdsAnalyticsController::class, 'disconnect'])->name('disconnect');
-
-        // Campaigns page
-        Route::get('/campaigns/{id}', [GoogleAdsCampaignController::class, 'showPage'])->name('campaigns.show');
-
-        // Campaigns API
-        Route::prefix('api/campaigns')->name('api.campaigns.')->group(function () {
-            Route::get('/', [GoogleAdsCampaignController::class, 'index'])->name('index');
-            Route::get('/filters', [GoogleAdsCampaignController::class, 'filters'])->name('filters');
-            Route::post('/', [GoogleAdsCampaignController::class, 'store'])->name('store');
-            Route::get('/{id}', [GoogleAdsCampaignController::class, 'show'])->name('show');
-            Route::put('/{id}', [GoogleAdsCampaignController::class, 'update'])->name('update');
-            Route::patch('/{id}/status', [GoogleAdsCampaignController::class, 'updateStatus'])->name('status');
-            Route::delete('/{id}', [GoogleAdsCampaignController::class, 'destroy'])->name('destroy');
-            Route::post('/sync', [GoogleAdsCampaignController::class, 'sync'])->name('sync');
-            Route::get('/{id}/insights', [GoogleAdsCampaignController::class, 'getInsights'])->name('insights');
-            Route::get('/{id}/ad-groups', [GoogleAdsCampaignController::class, 'getAdGroups'])->name('ad-groups');
-            Route::get('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'getKeywords'])->name('keywords');
-            Route::post('/ad-groups/{adGroupId}/keywords', [GoogleAdsCampaignController::class, 'addKeywords'])->name('keywords.add');
-            Route::delete('/keywords/{keywordId}', [GoogleAdsCampaignController::class, 'removeKeyword'])->name('keywords.remove');
         });
     });
 
@@ -884,32 +838,10 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::put('/api-keys', [SettingsController::class, 'updateApiKeys'])->name('api-keys.update');
         Route::delete('/api-keys', [SettingsController::class, 'deleteApiKey'])->name('api-keys.delete');
 
-        // WhatsApp Integration
-        Route::get('/whatsapp', [SettingsController::class, 'whatsapp'])->name('whatsapp');
-        Route::get('/whatsapp-ai', [SettingsController::class, 'whatsappAI'])->name('whatsapp-ai');
-
         // Instagram Integration
         Route::get('/instagram-ai', [SettingsController::class, 'instagramAI'])->name('instagram-ai');
 
-        // Google Ads Integration
-        Route::get('/google-ads', [SettingsController::class, 'googleAds'])->name('google-ads');
-        Route::post('/google-ads/connect', [SettingsController::class, 'connectGoogleAds'])->name('google-ads.connect');
-        Route::post('/google-ads/disconnect', [SettingsController::class, 'disconnectGoogleAds'])->name('google-ads.disconnect');
-        Route::get('/google-ads/callback', [SettingsController::class, 'googleAdsCallback'])->name('google-ads.callback');
-
-        // Yandex Direct Integration
-        Route::get('/yandex-direct', [SettingsController::class, 'yandexDirect'])->name('yandex-direct');
-        Route::post('/yandex-direct/connect', [SettingsController::class, 'connectYandexDirect'])->name('yandex-direct.connect');
-        Route::post('/yandex-direct/disconnect', [SettingsController::class, 'disconnectYandexDirect'])->name('yandex-direct.disconnect');
-        Route::get('/yandex-direct/callback', [SettingsController::class, 'yandexDirectCallback'])->name('yandex-direct.callback');
-
-        // YouTube Analytics Integration
-        Route::get('/youtube', [SettingsController::class, 'youtube'])->name('youtube');
-        Route::post('/youtube/connect', [SettingsController::class, 'connectYoutube'])->name('youtube.connect');
-        Route::post('/youtube/disconnect', [SettingsController::class, 'disconnectYoutube'])->name('youtube.disconnect');
-        Route::get('/youtube/callback', [SettingsController::class, 'youtubeCallback'])->name('youtube.callback');
-
-        // Analytics Settings (GA4, Yandex Metrika, Facebook Pixel)
+        // Analytics Settings (GA4, Facebook Pixel)
         Route::get('/analytics', [App\Http\Controllers\AnalyticsSettingsController::class, 'index'])->name('analytics');
         Route::post('/analytics', [App\Http\Controllers\AnalyticsSettingsController::class, 'update'])->name('analytics.update');
 
@@ -1110,12 +1042,6 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     });
 
     // Instagram Analysis - Note: Routes moved to /integrations/instagram
-
-    // YouTube Analytics - Note: Routes moved to /integrations/youtube
-
-    // Google Ads Analytics - Note: Routes moved to /integrations/google-ads
-
-    // Google Ads Campaigns - Note: Routes moved to /integrations/google-ads/campaigns
 
     // Instagram Chatbot - Note: Routes moved to /integrations/instagram/chatbot
 
@@ -1388,9 +1314,6 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     // Facebook Messenger webhooks
     Route::match(['get', 'post'], '/facebook/{business}', [FacebookWebhookController::class, 'handle'])->name('facebook');
 
-    // WhatsApp webhooks
-    Route::match(['get', 'post'], '/whatsapp/{business}', [WhatsAppWebhookController::class, 'handle'])->name('whatsapp');
-
     // Telephony webhooks
     Route::post('/pbx', [TelephonyController::class, 'pbxWebhook'])->name('pbx');
     Route::post('/sipuni', [TelephonyController::class, 'sipuniWebhook'])->name('sipuni');
@@ -1399,18 +1322,6 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     // Payment webhooks (Payme & Click)
     Route::post('/payme', [PaymentController::class, 'paymeWebhook'])->name('payme');
     Route::post('/click', [PaymentController::class, 'clickWebhook'])->name('click');
-    Route::get('/whatsapp/{business}/info', [WhatsAppWebhookController::class, 'getWebhookInfo'])->name('whatsapp.info');
-    Route::post('/whatsapp/{business}/test', [WhatsAppWebhookController::class, 'sendTestMessage'])->name('whatsapp.test');
-    Route::post('/whatsapp/{business}/template', [WhatsAppWebhookController::class, 'sendTemplate'])->name('whatsapp.template');
-    Route::post('/whatsapp/{business}/buttons', [WhatsAppWebhookController::class, 'sendButtons'])->name('whatsapp.buttons');
-    Route::post('/whatsapp/{business}/media', [WhatsAppWebhookController::class, 'sendMedia'])->name('whatsapp.media');
-});
-
-// WhatsApp AI API routes (authenticated + business access)
-Route::middleware(['auth', 'business.access'])->prefix('api/whatsapp/{business}')->name('api.whatsapp.')->group(function () {
-    Route::get('/ai-config', [WhatsAppWebhookController::class, 'getAIConfig'])->name('ai-config');
-    Route::post('/ai-config', [WhatsAppWebhookController::class, 'updateAIConfig'])->name('ai-config.update');
-    Route::post('/ai-templates', [WhatsAppWebhookController::class, 'saveAITemplates'])->name('ai-templates');
 });
 
 // Instagram AI API routes (authenticated + business access)

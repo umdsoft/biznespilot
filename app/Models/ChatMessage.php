@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChatMessage extends Model
 {
+    use BelongsToBusiness;
     /**
      * The attributes that are mass assignable.
      *
@@ -36,13 +38,5 @@ class ChatMessage extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the business that owns the message.
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
     }
 }

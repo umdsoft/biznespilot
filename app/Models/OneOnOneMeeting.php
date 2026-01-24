@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class OneOnOneMeeting extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'one_on_one_meetings';
 
@@ -63,11 +64,6 @@ class OneOnOneMeeting extends Model
     public const TYPE_CAREER_DISCUSSION = 'career_discussion';
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function employee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employee_id');

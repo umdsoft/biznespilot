@@ -851,13 +851,15 @@
 
               <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                  <!-- Google Ads -->
-                  <a
-                    :href="route('business.settings.google-ads')"
-                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-blue-200 dark:border-blue-500/30 rounded-xl p-3 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+                  <!-- Google Ads - Coming Soon -->
+                  <div
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
+                    <div class="absolute top-1.5 right-1.5">
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
+                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-white dark:bg-white rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                      <div class="w-12 h-12 bg-white dark:bg-white rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <svg class="w-7 h-7" viewBox="0 0 48 48">
                           <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
                           <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
@@ -865,26 +867,28 @@
                           <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Google Ads</h3>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Google Ads</h3>
                       <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Kampaniyalar</p>
                     </div>
-                  </a>
+                  </div>
 
-                  <!-- Yandex Direct -->
-                  <a
-                    :href="route('business.settings.yandex-direct')"
-                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-red-200 dark:border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
+                  <!-- Yandex Direct - Coming Soon -->
+                  <div
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
+                    <div class="absolute top-1.5 right-1.5">
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
+                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-[#FC3F1D] rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                      <div class="w-12 h-12 bg-[#FC3F1D] rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
                           <path d="M14.5 5H12.2C9.6 5 8 6.8 8 9.1C8 10.9 8.9 12.2 10.5 13L8 19H10.5L12.8 13.4V19H15V5H14.5ZM12.8 11.5L11.5 10.8C10.6 10.4 10.2 9.8 10.2 9C10.2 7.9 10.9 7.2 12.1 7.2H12.8V11.5Z" fill="white"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Yandex Direct</h3>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">Yandex Direct</h3>
                       <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Reklama</p>
                     </div>
-                  </a>
+                  </div>
 
                   <!-- Facebook Ads -->
                   <a
@@ -946,21 +950,23 @@
 
               <div class="p-4 bg-gray-50/50 dark:bg-transparent">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                  <!-- YouTube Analytics -->
-                  <a
-                    :href="route('business.settings.youtube')"
-                    class="group relative overflow-hidden bg-white dark:bg-gray-800/50 border border-red-200 dark:border-red-500/30 rounded-xl p-3 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
+                  <!-- YouTube Analytics - Coming Soon -->
+                  <div
+                    class="group relative overflow-hidden bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-600/30 rounded-xl p-3 opacity-70 dark:opacity-60 cursor-not-allowed"
                   >
+                    <div class="absolute top-1.5 right-1.5">
+                      <span class="px-1.5 py-0.5 rounded text-[8px] font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">Tez kunda</span>
+                    </div>
                     <div class="flex flex-col items-center text-center">
-                      <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                      <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                         </svg>
                       </div>
-                      <h3 class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">YouTube</h3>
+                      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">YouTube</h3>
                       <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Kanal statistika</p>
                     </div>
-                  </a>
+                  </div>
 
                   <!-- Google Analytics -->
                   <a

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OnboardingProgress extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'onboarding_progress';
 
@@ -38,12 +39,6 @@ class OnboardingProgress extends Model
         'launched_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
     ];
-
-    // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     // Scopes
     public function scopeNotCompleted($query)

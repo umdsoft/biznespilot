@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FeedbackReport extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     // Types
     public const TYPE_BUG = 'bug';
@@ -113,11 +114,6 @@ class FeedbackReport extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
     }
 
     public function resolvedBy(): BelongsTo

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class KpiMonthlySummary extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToBusiness;
 
     protected $fillable = [
         'business_id',
@@ -156,11 +157,6 @@ class KpiMonthlySummary extends Model
     /**
      * Relationships
      */
-    public function business()
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function kpiTemplate()
     {
         return $this->belongsTo(KpiTemplate::class, 'kpi_code', 'kpi_code');

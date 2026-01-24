@@ -5,14 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\FacebookPage;
-use App\Models\GoogleAdsAccount;
 use App\Models\GoogleAnalyticsAccount;
 use App\Models\InstagramAccount;
 use App\Models\PosSystem;
 use App\Models\TelegramBot;
 use App\Models\WhatsAppAccount;
-use App\Models\YandexDirectAccount;
-use App\Models\YandexMetricaAccount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -39,9 +36,6 @@ class IntegrationsController extends Controller
             'whatsapp' => $this->getWhatsAppStatus($business),
             'pos' => $this->getPosStatus($business),
             'google_analytics' => $this->getGoogleAnalyticsStatus($business),
-            'yandex_metrica' => $this->getYandexMetricaStatus($business),
-            'google_ads' => $this->getGoogleAdsStatus($business),
-            'yandex_direct' => $this->getYandexDirectStatus($business),
             'email' => $this->getEmailMarketingStatus($business),
         ];
 
@@ -82,15 +76,6 @@ class IntegrationsController extends Controller
                     break;
                 case 'google_analytics':
                     $this->disconnectGoogleAnalytics($business);
-                    break;
-                case 'yandex_metrica':
-                    $this->disconnectYandexMetrica($business);
-                    break;
-                case 'google_ads':
-                    $this->disconnectGoogleAds($business);
-                    break;
-                case 'yandex_direct':
-                    $this->disconnectYandexDirect($business);
                     break;
                 case 'email':
                     // Placeholder for future integrations
@@ -158,15 +143,6 @@ class IntegrationsController extends Controller
                     break;
                 case 'google_analytics':
                     $syncResult = $this->syncGoogleAnalytics($business);
-                    break;
-                case 'yandex_metrica':
-                    $syncResult = $this->syncYandexMetrica($business);
-                    break;
-                case 'google_ads':
-                    $syncResult = $this->syncGoogleAds($business);
-                    break;
-                case 'yandex_direct':
-                    $syncResult = $this->syncYandexDirect($business);
                     break;
                 default:
                     return response()->json([
@@ -526,182 +502,6 @@ class IntegrationsController extends Controller
 
         // TODO: Trigger Google Analytics sync job here
         // dispatch(new SyncGoogleAnalyticsJob($account));
-
-        return [
-            'synced_at' => now()->toIso8601String(),
-            'status' => 'queued',
-        ];
-    }
-
-    // ==================== Yandex.Metrica ====================
-
-    private function getYandexMetricaStatus(Business $business): array
-    {
-        $account = YandexMetricaAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->first();
-
-        if (! $account) {
-            return [
-                'isConnected' => false,
-                'isActive' => false,
-            ];
-        }
-
-        return [
-            'isConnected' => true,
-            'isActive' => $account->is_active,
-            'connectedAt' => $account->created_at?->toIso8601String(),
-            'lastSync' => $account->last_synced_at?->toIso8601String(),
-            'counterName' => $account->counter_name,
-            'websiteUrl' => $account->website_url,
-            'stats' => [
-                ['label' => 'Visitors', 'value' => $account->visitors ?? 0],
-                ['label' => 'Visits', 'value' => $account->visits ?? 0],
-                ['label' => 'Conv. Rate', 'value' => $account->conversion_rate ? round($account->conversion_rate, 1).'%' : '0%'],
-            ],
-        ];
-    }
-
-    private function disconnectYandexMetrica(Business $business): void
-    {
-        YandexMetricaAccount::where('business_id', $business->id)
-            ->update([
-                'is_active' => false,
-                'access_token' => null,
-                'refresh_token' => null,
-                'disconnected_at' => now(),
-            ]);
-    }
-
-    private function syncYandexMetrica(Business $business): array
-    {
-        $account = YandexMetricaAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $account->last_synced_at = now();
-        $account->save();
-
-        // TODO: Trigger Yandex.Metrica sync job here
-        // dispatch(new SyncYandexMetricaJob($account));
-
-        return [
-            'synced_at' => now()->toIso8601String(),
-            'status' => 'queued',
-        ];
-    }
-
-    // ==================== Google Ads ====================
-
-    private function getGoogleAdsStatus(Business $business): array
-    {
-        $account = GoogleAdsAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->first();
-
-        if (! $account) {
-            return [
-                'isConnected' => false,
-                'isActive' => false,
-            ];
-        }
-
-        return [
-            'isConnected' => true,
-            'isActive' => $account->is_active,
-            'connectedAt' => $account->created_at?->toIso8601String(),
-            'lastSync' => $account->last_synced_at?->toIso8601String(),
-            'accountName' => $account->account_name,
-            'stats' => [
-                ['label' => 'Campaigns', 'value' => $account->active_campaigns ?? 0],
-                ['label' => 'Clicks', 'value' => $account->clicks ?? 0],
-                ['label' => 'ROAS', 'value' => $account->roas ? round($account->roas, 2).'x' : '0x'],
-            ],
-        ];
-    }
-
-    private function disconnectGoogleAds(Business $business): void
-    {
-        GoogleAdsAccount::where('business_id', $business->id)
-            ->update([
-                'is_active' => false,
-                'access_token' => null,
-                'refresh_token' => null,
-                'developer_token' => null,
-                'disconnected_at' => now(),
-            ]);
-    }
-
-    private function syncGoogleAds(Business $business): array
-    {
-        $account = GoogleAdsAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $account->last_synced_at = now();
-        $account->save();
-
-        // TODO: Trigger Google Ads sync job here
-        // dispatch(new SyncGoogleAdsJob($account));
-
-        return [
-            'synced_at' => now()->toIso8601String(),
-            'status' => 'queued',
-        ];
-    }
-
-    // ==================== Yandex.Direct ====================
-
-    private function getYandexDirectStatus(Business $business): array
-    {
-        $account = YandexDirectAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->first();
-
-        if (! $account) {
-            return [
-                'isConnected' => false,
-                'isActive' => false,
-            ];
-        }
-
-        return [
-            'isConnected' => true,
-            'isActive' => $account->is_active,
-            'connectedAt' => $account->created_at?->toIso8601String(),
-            'lastSync' => $account->last_synced_at?->toIso8601String(),
-            'accountName' => $account->account_name,
-            'stats' => [
-                ['label' => 'Campaigns', 'value' => $account->active_campaigns ?? 0],
-                ['label' => 'Clicks', 'value' => $account->clicks ?? 0],
-                ['label' => 'ROI', 'value' => $account->roi ? round($account->roi, 1).'%' : '0%'],
-            ],
-        ];
-    }
-
-    private function disconnectYandexDirect(Business $business): void
-    {
-        YandexDirectAccount::where('business_id', $business->id)
-            ->update([
-                'is_active' => false,
-                'access_token' => null,
-                'refresh_token' => null,
-                'disconnected_at' => now(),
-            ]);
-    }
-
-    private function syncYandexDirect(Business $business): array
-    {
-        $account = YandexDirectAccount::where('business_id', $business->id)
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $account->last_synced_at = now();
-        $account->save();
-
-        // TODO: Trigger Yandex.Direct sync job here
-        // dispatch(new SyncYandexDirectJob($account));
 
         return [
             'synced_at' => now()->toIso8601String(),

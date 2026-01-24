@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Campaign extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
         'business_id',
@@ -33,11 +33,6 @@ class Campaign extends Model
         'scheduled_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function messages(): HasMany
     {

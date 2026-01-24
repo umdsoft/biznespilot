@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
 
 class AdIntegration extends Model
 {
+    use BelongsToBusiness;
     protected $fillable = [
         'business_id',
         'platform',
@@ -49,14 +50,6 @@ class AdIntegration extends Model
     const PLATFORM_YOUTUBE = 'youtube';
 
     const PLATFORM_FACEBOOK = 'facebook';
-
-    /**
-     * Get the business that owns the integration.
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Encrypt and set access token

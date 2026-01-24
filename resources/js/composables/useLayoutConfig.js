@@ -63,22 +63,6 @@ const TelegramIcon = {
   }
 };
 
-const YouTubeIcon = {
-  render() {
-    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
-      h('path', { d: 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z' })
-    ]);
-  }
-};
-
-const GoogleIcon = {
-  render() {
-    return h('svg', { class: 'w-5 h-5', viewBox: '0 0 24 24', fill: 'currentColor' }, [
-      h('path', { d: 'M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z' })
-    ]);
-  }
-};
-
 // Business Layout Configuration
 export const businessLayoutConfig = {
   // Styling
@@ -136,23 +120,6 @@ export const businessLayoutConfig = {
       ]
     },
     {
-      title: 'Tadqiqot',
-      titleKey: 'nav.research',
-      items: [
-        { href: '/business/dream-buyer', label: 'Ideal Mijoz', labelKey: 'nav.dream_buyer', icon: UserGroupIcon },
-        { href: '/business/custdev', label: 'CustDev So\'rovnoma', labelKey: 'nav.custdev', icon: ClipboardDocumentListIcon },
-        { href: '/business/competitors', label: 'Raqobatchilar', labelKey: 'nav.competitors', icon: ChartBarIcon },
-      ]
-    },
-    {
-      title: 'Takliflar va Strategiya',
-      titleKey: 'nav.offers_strategy',
-      items: [
-        { href: '/business/offers', label: 'Takliflar', labelKey: 'nav.offers', icon: TagIcon },
-        { href: '/business/strategy', label: 'Strategiya Rejasi', labelKey: 'nav.strategy', icon: DocumentChartBarIcon },
-      ]
-    },
-    {
       title: null,
       titleKey: null,
       items: [
@@ -163,17 +130,6 @@ export const businessLayoutConfig = {
       ]
     },
     {
-      title: 'AI Yordamchilar',
-      titleKey: 'nav.ai_helpers',
-      items: [
-        { href: '/business/facebook-analysis', label: 'Facebook analiz', labelKey: 'nav.facebook_analysis', icon: FacebookIcon },
-        { href: '/integrations/instagram', label: 'Instagram Tahlili', labelKey: 'nav.instagram_analysis', icon: InstagramIcon },
-        { href: '/business/telegram-funnels', label: 'Telegram Funnel', labelKey: 'nav.telegram_funnel', icon: TelegramIcon },
-        { href: '/business/youtube-analytics', label: 'YouTube Analitika', labelKey: 'nav.youtube_analytics', icon: YouTubeIcon },
-        { href: '/business/google-ads-analytics', label: 'Google Ads', labelKey: 'nav.google_ads', icon: GoogleIcon },
-      ]
-    },
-    {
       title: 'Tahlillar',
       titleKey: 'nav.analytics_section',
       items: [
@@ -181,6 +137,15 @@ export const businessLayoutConfig = {
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
         { href: '/business/call-center', label: 'Qo\'ng\'iroq Tahlili', labelKey: 'nav.call_center', icon: SparklesIcon },
         { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },
+      ]
+    },
+    {
+      title: 'Integratsiyalar',
+      titleKey: 'nav.integrations_section',
+      items: [
+        { href: '/business/facebook-analysis', label: 'Target Analiz', labelKey: 'nav.target_analysis', icon: FacebookIcon },
+        { href: '/integrations/instagram', label: 'Instagram', labelKey: 'nav.instagram', icon: InstagramIcon },
+        { href: '/business/telegram-funnels', label: 'Telegram', labelKey: 'nav.telegram', icon: TelegramIcon },
       ]
     },
     {
@@ -486,13 +451,11 @@ export const marketingLayoutConfig = {
       ]
     },
     {
-      title: 'AI Yordamchilar',
+      title: 'Integratsiyalar',
       items: [
-        { href: '/marketing/facebook-analysis', label: 'Facebook analiz', icon: FacebookIcon },
+        { href: '/marketing/facebook-analysis', label: 'Target analiz', icon: FacebookIcon },
         { href: '/integrations/instagram', label: 'Instagram Tahlili', icon: InstagramIcon },
         { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
-        { href: '/marketing/youtube-analytics', label: 'YouTube Analitika', icon: YouTubeIcon },
-        { href: '/marketing/google-ads', label: 'Google Ads', icon: GoogleIcon },
       ]
     },
     {

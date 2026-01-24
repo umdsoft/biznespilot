@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MarketingMetrics extends Model
 {
-    use HasUuids;
+    use BelongsToBusiness, HasUuids;
 
     protected $table = 'marketing_metrics';
 
@@ -81,14 +81,6 @@ class MarketingMetrics extends Model
         'webinars' => 'Vebinarlar',
         'ebooks' => 'E-kitoblar',
     ];
-
-    /**
-     * Biznes bilan bog'lanish
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Tarix yozuvlari

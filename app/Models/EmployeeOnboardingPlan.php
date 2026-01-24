@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class EmployeeOnboardingPlan extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'employee_onboarding_plans';
 
@@ -85,11 +86,6 @@ class EmployeeOnboardingPlan extends Model
     public const PHASE_DAY_90 = 'day_90';
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

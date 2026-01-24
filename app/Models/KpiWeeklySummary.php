@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class KpiWeeklySummary extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBusiness;
 
     protected $fillable = [
         'business_id',
@@ -73,14 +74,6 @@ class KpiWeeklySummary extends Model
         'sales_achievement' => 'decimal:2',
         'revenue_achievement' => 'decimal:2',
     ];
-
-    /**
-     * Get the business
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Scope for specific year

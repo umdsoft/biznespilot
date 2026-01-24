@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OfferMetric extends Model
 {
-    use HasFactory, HasUuid;
+    use BelongsToBusiness, HasFactory, HasUuid;
 
     protected $fillable = [
         'offer_id',
@@ -54,11 +55,6 @@ class OfferMetric extends Model
     public function offer(): BelongsTo
     {
         return $this->belongsTo(Offer::class);
-    }
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
     }
 
     // Helper methods

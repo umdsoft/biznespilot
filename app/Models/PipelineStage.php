@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class PipelineStage extends Model
 {
+    use BelongsToBusiness, HasFactory;
     protected $fillable = [
         'business_id',
         'name',
@@ -45,14 +47,6 @@ class PipelineStage extends Model
         'cyan' => ['bg' => 'bg-cyan-500', 'text' => 'text-cyan-600', 'light' => 'bg-cyan-100'],
         'gray' => ['bg' => 'bg-gray-500', 'text' => 'text-gray-600', 'light' => 'bg-gray-100'],
     ];
-
-    /**
-     * Get the business that owns this stage.
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Get leads in this stage.

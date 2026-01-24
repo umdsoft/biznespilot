@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class KpiPlan extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBusiness;
 
     protected $fillable = [
         'business_id',
@@ -61,14 +62,6 @@ class KpiPlan extends Model
         'daily_breakdown' => 'array',
         'weekly_breakdown' => 'array',
     ];
-
-    /**
-     * Get the business that owns the KPI plan
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Scope for active plans

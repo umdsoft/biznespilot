@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OperatorWeeklyKpi extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBusiness;
 
     protected $table = 'operator_weekly_kpis';
 
@@ -37,11 +38,6 @@ class OperatorWeeklyKpi extends Model
         'actual_revenue' => 'decimal:2',
         'overall_score' => 'decimal:2',
     ];
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function user(): BelongsTo
     {

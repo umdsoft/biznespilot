@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class AlertRule extends Model
 {
-    use HasUuids;
+    use BelongsToBusiness, HasUuids;
 
     protected $fillable = [
         'business_id',
@@ -35,11 +36,6 @@ class AlertRule extends Model
         'threshold_percent' => 'decimal:2',
         'is_active' => 'boolean',
     ];
-
-    public function business()
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function alerts()
     {

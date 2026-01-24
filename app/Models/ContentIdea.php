@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContentIdea extends Model
 {
-    use HasUuid, SoftDeletes;
+    use BelongsToBusiness, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'business_id',
@@ -122,11 +123,6 @@ class ContentIdea extends Model
     ];
 
     // ==================== RELATIONSHIPS ====================
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function createdBy(): BelongsTo
     {

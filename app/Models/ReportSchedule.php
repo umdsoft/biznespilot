@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ReportSchedule extends Model
 {
-    use SoftDeletes;
+    use BelongsToBusiness, SoftDeletes;
 
     protected $fillable = [
         'business_id',
@@ -82,11 +83,6 @@ class ReportSchedule extends Model
     public const PERIOD_QUARTERLY = 'quarterly';
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

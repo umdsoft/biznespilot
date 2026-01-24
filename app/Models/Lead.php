@@ -6,6 +6,7 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Lead extends Model
 {
-    use BelongsToBusiness, HasUuid, SoftDeletes;
+    use BelongsToBusiness, HasFactory, HasUuid, SoftDeletes;
 
     /**
      * Yo'qotilgan lid sabablari

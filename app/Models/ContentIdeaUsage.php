@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContentIdeaUsage extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
         'content_idea_id',
@@ -51,11 +52,6 @@ class ContentIdeaUsage extends Model
     public function idea(): BelongsTo
     {
         return $this->belongsTo(ContentIdea::class, 'content_idea_id');
-    }
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
     }
 
     public function user(): BelongsTo

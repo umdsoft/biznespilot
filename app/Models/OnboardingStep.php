@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OnboardingStep extends Model
 {
-    use HasUuid;
+    use BelongsToBusiness, HasUuid;
 
     protected $fillable = [
         'business_id',
@@ -30,11 +31,6 @@ class OnboardingStep extends Model
     ];
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function stepDefinition(): BelongsTo
     {
         return $this->belongsTo(StepDefinition::class);

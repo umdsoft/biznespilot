@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ReportTemplate extends Model
 {
-    use SoftDeletes;
+    use BelongsToBusiness, SoftDeletes;
 
     protected $fillable = [
         'business_id',
@@ -118,11 +119,6 @@ class ReportTemplate extends Model
     ];
 
     // Relationships
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function generatedReports(): HasMany
     {
         return $this->hasMany(GeneratedReport::class);

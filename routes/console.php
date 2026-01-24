@@ -623,3 +623,15 @@ Schedule::call(function () {
     ->timezone('Asia/Tashkent')
     ->name('onlinepbx-call-sync')
     ->onOneServer();
+
+// ==========================================
+// KPI ALERT SYSTEM SCHEDULED JOBS
+// ==========================================
+
+// KPI Alerts Check - Har soatda
+// Barcha bizneslar uchun KPI alertlarini tekshiradi va bildirishnomalar yuboradi
+Schedule::command('kpi:check-alerts')
+    ->hourly()
+    ->timezone('Asia/Tashkent')
+    ->name('kpi-check-alerts')
+    ->onOneServer();

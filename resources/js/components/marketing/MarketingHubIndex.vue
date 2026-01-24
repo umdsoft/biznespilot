@@ -173,7 +173,7 @@
             </span>
           </div>
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-            O'chirmas Takliflar
+            Rad qilib bo'lmas takliflar
           </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Mijozlarni jalb qiladigan kuchli va qaytarib bo'lmas takliflarni yarating

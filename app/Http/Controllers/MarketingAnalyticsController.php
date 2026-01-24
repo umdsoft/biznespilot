@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use App\Models\MarketingChannel;
+use App\Services\MarketingChannelAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +13,12 @@ use Inertia\Inertia;
 class MarketingAnalyticsController extends Controller
 {
     protected int $cacheTTL = 300; // 5 minutes
+    protected MarketingChannelAnalyticsService $channelAnalytics;
+
+    public function __construct(MarketingChannelAnalyticsService $channelAnalytics)
+    {
+        $this->channelAnalytics = $channelAnalytics;
+    }
 
     /**
      * Display the Marketing Hub (Marketing Markazi) - shared between Business and Marketing panels
@@ -160,33 +168,70 @@ class MarketingAnalyticsController extends Controller
     }
 
     /**
-     * Display all marketing channels.
+     * Display all marketing channels with auto-connected integrations.
      */
     public function channels(Request $request)
     {
         $businessId = session('current_business_id');
 
-        $query = MarketingChannel::where('business_id', $businessId);
-
-        // Filter by type
-        if ($request->has('type') && $request->type) {
-            $query->where('type', $request->type);
+        if (!$businessId) {
+            return redirect()->route('business.index');
         }
 
-        // Filter by status
-        if ($request->has('is_active') && $request->is_active !== null) {
-            $query->where('is_active', $request->boolean('is_active'));
-        }
+        $business = Business::find($businessId);
 
-        $channels = $query->with(['instagramMetrics' => function ($query) {
-            $query->latest('metric_date')->limit(7);
-        }, 'telegramMetrics' => function ($query) {
-            $query->latest('metric_date')->limit(7);
-        }])->paginate(20);
+        // Get connected channels from integrations
+        $connectedChannels = $this->channelAnalytics->getConnectedChannels($business);
+
+        // Get overall statistics
+        $stats = $this->channelAnalytics->getOverallStats($connectedChannels);
+
+        // Get AI recommendations
+        $recommendations = $this->channelAnalytics->getAIRecommendations($business, $connectedChannels, $stats);
+
+        // Get available platforms for connection
+        $availablePlatforms = $this->channelAnalytics->getAvailablePlatforms($business);
+
+        // Also get manual channels (legacy support)
+        $manualChannels = MarketingChannel::where('business_id', $businessId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($channel) {
+                return [
+                    'id' => $channel->id,
+                    'type' => 'manual',
+                    'platform' => ucfirst($channel->platform ?? $channel->type ?? 'Other'),
+                    'platform_icon' => strtolower($channel->platform ?? 'other'),
+                    'name' => $channel->name,
+                    'profile_url' => $channel->url ?? null,
+                    'profile_picture' => null,
+                    'is_connected' => false,
+                    'last_synced_at' => null,
+                    'metrics' => [
+                        'followers' => $channel->followers_count ?? 0,
+                        'engagement_rate' => $channel->engagement_rate ?? 0,
+                        'reach_30d' => $channel->monthly_reach ?? 0,
+                        'leads_30d' => 0,
+                    ],
+                    'growth' => null,
+                    'effectiveness_score' => 0,
+                    'effectiveness_label' => 'Noma\'lum',
+                    'effectiveness_color' => 'gray',
+                    'status' => $channel->is_active ? 'active' : 'inactive',
+                    'notes' => $channel->notes ?? null,
+                ];
+            })->toArray();
 
         return Inertia::render('Business/Marketing/Channels', [
-            'channels' => $channels,
-            'filters' => $request->only(['type', 'is_active']),
+            'connectedChannels' => $connectedChannels,
+            'manualChannels' => $manualChannels,
+            'stats' => $stats,
+            'recommendations' => $recommendations,
+            'availablePlatforms' => $availablePlatforms,
+            'currentBusiness' => [
+                'id' => $business->id,
+                'name' => $business->name,
+            ],
         ]);
     }
 

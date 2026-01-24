@@ -16,20 +16,31 @@ use Illuminate\Support\Facades\Log;
  */
 class MarketingAutomationService
 {
-    protected WhatsAppService $whatsappService;
+    protected ?WhatsAppService $whatsappService = null;
 
-    protected InstagramDMService $instagramService;
+    protected ?InstagramDMService $instagramService = null;
 
     protected ClaudeAIService $claudeAI;
 
-    public function __construct(
-        WhatsAppService $whatsappService,
-        InstagramDMService $instagramService,
-        ClaudeAIService $claudeAI
-    ) {
-        $this->whatsappService = $whatsappService;
-        $this->instagramService = $instagramService;
+    public function __construct(ClaudeAIService $claudeAI)
+    {
         $this->claudeAI = $claudeAI;
+    }
+
+    protected function getWhatsAppService(): WhatsAppService
+    {
+        if (!$this->whatsappService) {
+            $this->whatsappService = app(WhatsAppService::class);
+        }
+        return $this->whatsappService;
+    }
+
+    protected function getInstagramService(): InstagramDMService
+    {
+        if (!$this->instagramService) {
+            $this->instagramService = app(InstagramDMService::class);
+        }
+        return $this->instagramService;
     }
 
     /**
@@ -263,17 +274,24 @@ class MarketingAutomationService
      */
     protected function sendToChannel(string $channel, Customer $customer, string $message): ?array
     {
-        if ($channel === 'whatsapp' || $channel === 'all') {
-            if ($customer->phone) {
-                return $this->whatsappService->sendTextMessage($customer->phone, $message);
+        try {
+            if ($channel === 'whatsapp' || $channel === 'all') {
+                if ($customer->phone) {
+                    return $this->getWhatsAppService()->sendTextMessage($customer->phone, $message);
+                }
             }
-        }
 
-        if ($channel === 'instagram' || $channel === 'all') {
-            // Instagram requires user ID, stored in phone field for IG customers
-            if ($customer->source === 'instagram' && $customer->phone) {
-                return $this->instagramService->sendMessage($customer->phone, $message);
+            if ($channel === 'instagram' || $channel === 'all') {
+                // Instagram DM requires different approach - skip for now
+                // Will be implemented when Instagram Graph API is configured
+                Log::info('Instagram DM skipped - not configured', ['customer_id' => $customer->id]);
             }
+        } catch (\Exception $e) {
+            Log::error('Send to channel failed', [
+                'channel' => $channel,
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return null;
@@ -313,7 +331,7 @@ class MarketingAutomationService
     /**
      * Generate AI campaign message
      */
-    public function generateAICampaignMessage(Business $business, string $campaignGoal, array $context = []): string
+    public function generateAICampaignMessage(Business $business, string $campaignGoal): string
     {
         $systemPrompt = 'Siz marketing campaign xabarlari yaratuvchi AI assistantsiz.';
         $systemPrompt .= "\nBiznes: {$business->name}";
@@ -326,7 +344,7 @@ class MarketingAutomationService
         $userMessage .= "\n- {offer_name} - Taklif nomi";
 
         try {
-            $response = $this->claudeAI->sendMessage(
+            $response = $this->claudeAI->chat(
                 [['role' => 'user', 'content' => $userMessage]],
                 $systemPrompt,
                 512
@@ -334,6 +352,7 @@ class MarketingAutomationService
 
             return $response['content'] ?? 'Salom {customer_name}! {business_name}dan maxsus taklif!';
         } catch (\Exception $e) {
+            Log::warning('AI message generation failed', ['error' => $e->getMessage()]);
             return 'Salom {customer_name}! {business_name}dan yangi taklif bor!';
         }
     }

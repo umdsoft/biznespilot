@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalesChannel extends Model
 {
-    use HasFactory;
+    use BelongsToBusiness, HasFactory;
 
     protected $fillable = [
         'business_id',
@@ -25,14 +25,6 @@ class SalesChannel extends Model
         'commission_percent' => 'decimal:2',
         'is_active' => 'boolean',
     ];
-
-    /**
-     * Get the business that owns the channel
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Scope for active channels

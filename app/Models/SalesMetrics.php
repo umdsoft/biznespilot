@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SalesMetrics extends Model
 {
-    use HasUuids;
+    use BelongsToBusiness, HasUuids;
 
     protected $table = 'sales_metrics';
 
@@ -96,14 +96,6 @@ class SalesMetrics extends Model
         'phone' => 'Telefon',
         'none' => 'Hech narsa',
     ];
-
-    /**
-     * Biznes bilan bog'lanish
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Tarix yozuvlari

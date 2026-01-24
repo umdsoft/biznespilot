@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class HRSurvey extends Model
 {
-    use HasFactory, HasUuid;
+    use BelongsToBusiness, HasFactory, HasUuid;
 
     protected $table = 'hr_surveys';
 
@@ -57,14 +58,6 @@ class HRSurvey extends Model
         'end_date' => 'datetime',
         'settings' => 'array',
     ];
-
-    /**
-     * Biznes
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Yaratuvchi

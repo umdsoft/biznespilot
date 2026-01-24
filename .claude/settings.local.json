@@ -98,7 +98,11 @@
       "Bash(timeout:*)",
       "Bash(netstat:*)",
       "Bash(Select-String -Pattern \"error|exception\" -CaseSensitive:$false)",
-      "Bash(Select-Object -Last 10)"
+      "Bash(Select-Object -Last 10)",
+      "Bash(Get-Content storage/logs/laravel.log -Tail 100)",
+      "Bash(Select-String -Pattern \"Error|Exception|500\")",
+      "Bash(Select-Object -Last 20)",
+      "Bash(Select-String -Pattern \"Error|Exception|SQLSTATE|Table\")"
     ]
   }
 }

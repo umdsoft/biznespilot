@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class KpiDailyEntry extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToBusiness;
 
     protected $fillable = [
         'business_id',
@@ -145,14 +146,6 @@ class KpiDailyEntry extends Model
 
         // Check if complete
         $this->is_complete = $this->leads_total > 0 || $this->sales_total > 0 || $this->revenue_total > 0;
-    }
-
-    /**
-     * Get the business
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
     }
 
     /**

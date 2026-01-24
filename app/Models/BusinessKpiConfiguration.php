@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BusinessKpiConfiguration extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToBusiness;
 
     protected $fillable = [
         'business_id',
@@ -59,11 +60,6 @@ class BusinessKpiConfiguration extends Model
     /**
      * Relationships
      */
-    public function business()
-    {
-        return $this->belongsTo(Business::class);
-    }
-
     public function createdByUser()
     {
         return $this->belongsTo(User::class, 'created_by_user_id');

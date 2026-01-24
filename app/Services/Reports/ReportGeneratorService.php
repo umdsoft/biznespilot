@@ -174,14 +174,14 @@ class ReportGeneratorService
                 'start' => $startDate->format('Y-m-d'),
                 'end' => $endDate->format('Y-m-d'),
             ],
-            'health_score' => $healthScore['score'],
-            'health_label' => $healthScore['label'],
+            'health_score' => $healthScore['overall_score'] ?? 0,
+            'health_label' => $healthScore['label'] ?? 'Noma\'lum',
             'key_metrics' => [
-                'total_sales' => $metrics['sales']['total_sales'] ?? 0,
+                'total_sales' => $metrics['sales']['total_count'] ?? 0,
                 'total_revenue' => $metrics['sales']['total_revenue'] ?? 0,
-                'total_leads' => $metrics['marketing']['total_leads'] ?? 0,
-                'conversion_rate' => $metrics['marketing']['conversion_rate'] ?? 0,
-                'roi' => $metrics['financial']['roi'] ?? 0,
+                'total_leads' => $metrics['leads']['total_leads'] ?? 0,
+                'conversion_rate' => $metrics['leads']['conversion_rate'] ?? 0,
+                'roi' => 0, // ROI will be calculated separately
             ],
             'kpi_progress' => $metrics['kpi_progress'] ?? null,
         ];

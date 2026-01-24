@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class OfferLeadAssignment extends Model
 {
-    use HasFactory, HasUuid, SoftDeletes;
+    use BelongsToBusiness, HasFactory, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'offer_id',
@@ -116,11 +117,6 @@ class OfferLeadAssignment extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
-    }
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
     }
 
     public function assignedBy(): BelongsTo

@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LeadSource extends Model
 {
-    use HasFactory;
+    use BelongsToBusiness, HasFactory;
 
     protected $fillable = [
         'business_id',
@@ -31,14 +31,6 @@ class LeadSource extends Model
         'is_trackable' => 'boolean',
         'is_active' => 'boolean',
     ];
-
-    /**
-     * Get the business that owns the lead source
-     */
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     /**
      * Get daily source details
