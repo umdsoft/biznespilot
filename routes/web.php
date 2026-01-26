@@ -53,6 +53,7 @@ use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\TargetAnalysisController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\Telegram\SystemBotController;
 use App\Http\Controllers\Telegram\TelegramBotManagementController;
 use App\Http\Controllers\Telegram\TelegramBroadcastController;
 use App\Http\Controllers\Telegram\TelegramConversationController;
@@ -838,6 +839,11 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::put('/api-keys', [SettingsController::class, 'updateApiKeys'])->name('api-keys.update');
         Route::delete('/api-keys', [SettingsController::class, 'deleteApiKey'])->name('api-keys.delete');
 
+        // Telegram System Bot Integration (Kunlik hisobotlar uchun)
+        Route::get('/telegram/status', [SettingsController::class, 'telegramStatus'])->name('telegram.status');
+        Route::post('/telegram/connect', [SettingsController::class, 'telegramConnect'])->name('telegram.connect');
+        Route::delete('/telegram/disconnect', [SettingsController::class, 'telegramDisconnect'])->name('telegram.disconnect');
+
         // Instagram Integration
         Route::get('/instagram-ai', [SettingsController::class, 'instagramAI'])->name('instagram-ai');
 
@@ -1300,6 +1306,7 @@ Route::prefix('offer')->name('offers.public.')->group(function () {
 Route::post('/api/lead-forms/{slug}/submit', [PublicLeadFormController::class, 'apiSubmit'])->name('api.lead-form.submit');
 
 // Webhook routes (public, no authentication required)
+// NOTE: System Bot webhook is in routes/api.php: POST /api/webhooks/system-bot
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
     // Telegram Funnel Builder webhooks (new system)
     Route::match(['get', 'post'], '/telegram-funnel/{botId}', [TelegramFunnelWebhookController::class, 'handle'])->name('telegram.funnel.webhook');
@@ -2016,6 +2023,15 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::get('/monthly', [App\Http\Controllers\Marketing\LeaderboardController::class, 'monthly'])->name('monthly');
         Route::get('/achievements', [App\Http\Controllers\Marketing\LeaderboardController::class, 'achievements'])->name('achievements');
         Route::post('/refresh', [App\Http\Controllers\Marketing\LeaderboardController::class, 'refresh'])->name('refresh');
+    });
+
+    // ==================== TrendSee - Viral Content Hunter ====================
+    // Viral Instagram Reels with AI analysis (TrendSee)
+    Route::prefix('trends')->name('trends.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ViralContentController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\Marketing\ViralContentController::class, 'show'])->name('show');
+        Route::post('/refresh', [App\Http\Controllers\Marketing\ViralContentController::class, 'refresh'])->name('refresh');
+        Route::post('/sync-fetch', [App\Http\Controllers\Marketing\ViralContentController::class, 'syncFetch'])->name('sync-fetch');
     });
 
     // ==================== Business Systematization (Denis Shenukov) ====================

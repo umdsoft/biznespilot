@@ -677,6 +677,30 @@ class Business extends Model
         return $this->hasMany(ContentGeneration::class);
     }
 
+    /**
+     * Get the orders for the business.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the tasks for the business.
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Get the sales for the business.
+     */
+    public function sales(): HasMany
+    {
+        return $this->hasMany(Sale::class);
+    }
+
     // ==================== ACCESS CONTROL ====================
 
     /**

@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div class="flex items-center gap-3">
-            <Link :href="route('marketing.content-ai.index')"
+            <Link :href="route('business.marketing.content-ai.index')"
                   class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
               <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </Link>
@@ -241,7 +241,7 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         Content AI orqali yangi kontent yarating va tarix shu yerda ko'rinadi.
       </p>
-      <Link :href="route('marketing.content-ai.index')"
+      <Link :href="route('business.marketing.content-ai.index')"
             class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all">
         <SparklesIcon class="w-5 h-5" />
         Kontent yaratish
@@ -401,7 +401,7 @@ const copyContent = (content) => {
 
 const markAsPublished = async (gen) => {
   try {
-    await axios.post(route('marketing.content-ai.history.rate', gen.id), {
+    await axios.post(route('business.marketing.content-ai.history.rate', gen.id), {
       status: 'published',
     });
     gen.status = 'published';
@@ -412,7 +412,7 @@ const markAsPublished = async (gen) => {
 
 const rateGeneration = async (gen, stars) => {
   try {
-    await axios.post(route('marketing.content-ai.history.rate', gen.id), {
+    await axios.post(route('business.marketing.content-ai.history.rate', gen.id), {
       rating: stars,
     });
     gen.rating = stars;

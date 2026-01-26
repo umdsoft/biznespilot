@@ -121,4 +121,4 @@
     </noscript>
 </body>
 </html>
-<?php /**PATH D:\marketing startap\biznespilot\resources\views/app.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\biznespilot\resources\views/app.blade.php ENDPATH**/ ?>

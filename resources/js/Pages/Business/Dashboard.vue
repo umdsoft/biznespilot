@@ -1,5 +1,8 @@
 <template>
   <BusinessLayout :title="t('nav.dashboard')">
+    <!-- Telegram Connect Banner (for users without linked Telegram) -->
+    <TelegramConnectBanner />
+
     <!-- Welcome Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
@@ -236,6 +239,7 @@
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
+import TelegramConnectBanner from '@/components/Dashboard/TelegramConnectBanner.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';

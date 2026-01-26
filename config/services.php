@@ -93,4 +93,35 @@ return [
         'token' => env('TELEGRAM_BOT_TOKEN'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | BiznesPilot System Bot (Dual Bot Strategy)
+    |--------------------------------------------------------------------------
+    |
+    | System Bot - BiznesPilot dan Business Owner larga notification yuborish.
+    | Bu bot Tenant Bot lardan alohida va faqat system-to-admin xabarlar uchun.
+    |
+    */
+    'telegram' => [
+        'system_bot_token' => env('TELEGRAM_SYSTEM_BOT_TOKEN'),
+        'system_bot_username' => env('TELEGRAM_SYSTEM_BOT_USERNAME', 'BiznesPilotBot'),
+        'webhook_secret' => env('TELEGRAM_SYSTEM_WEBHOOK_SECRET'),
+        'webhook_url' => env('TELEGRAM_SYSTEM_WEBHOOK_URL'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Apify - TrendSee (Viral Content Hunter)
+    |--------------------------------------------------------------------------
+    |
+    | Apify Instagram Scraper for fetching viral Instagram Reels.
+    | Uses synchronous endpoint for instant results.
+    |
+    | Get your token at: https://console.apify.com/account/integrations
+    |
+    */
+    'apify' => [
+        'token' => env('APIFY_TOKEN'),
+    ],
+
 ];

@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\CustdevResponse;
 use App\Models\Lead;
 use App\Models\MarketingSpend;
+use App\Models\Order;
 use App\Models\Sale;
 use App\Models\Task;
 use App\Models\AttendanceRecord;
@@ -21,6 +22,7 @@ use App\Observers\CustomerObserver;
 use App\Observers\CustdevResponseObserver;
 use App\Observers\LeadObserver;
 use App\Observers\MarketingSpendObserver;
+use App\Observers\OrderObserver;
 use App\Observers\SaleObserver;
 use App\Observers\TaskObserver;
 use App\Observers\HR\AttendanceRecordObserver;
@@ -37,6 +39,8 @@ use App\Listeners\PipelineAutomationListener;
 use App\Listeners\Sales\SalesIntegrationListener;
 use App\Listeners\Marketing\MarketingIntegrationListener;
 use App\Listeners\HR\HRIntegrationListener;
+use App\Events\PaymentReceived;
+use App\Listeners\SendPaymentNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
@@ -81,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         // Cross-module attribution observers (Marketing ↔ Sales ↔ Finance)
         Sale::observe(SaleObserver::class);
         Customer::observe(CustomerObserver::class);
+        Order::observe(OrderObserver::class);
 
         // Pipeline automation event subscriber
         Event::subscribe(PipelineAutomationListener::class);
@@ -103,6 +108,9 @@ class AppServiceProvider extends ServiceProvider
 
         // HR integration subscriber (Sales → HR Engagement yangilash)
         Event::subscribe(HRIntegrationListener::class);
+
+        // Payment received notification (Telegram real-time alerts)
+        Event::listen(PaymentReceived::class, SendPaymentNotification::class);
 
         // Production optimizations
         $this->configureProductionSettings();

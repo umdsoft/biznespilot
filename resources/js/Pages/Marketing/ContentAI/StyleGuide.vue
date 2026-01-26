@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div class="flex items-center gap-3">
-            <Link :href="route('marketing.content-ai.index')"
+            <Link :href="route('business.marketing.content-ai.index')"
                   class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
               <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </Link>
@@ -436,7 +436,7 @@ watch(pillarsInput, (val) => {
 const saveStyleGuide = async () => {
   saving.value = true;
   try {
-    await axios.put(route('marketing.content-ai.style-guide.update'), form.value);
+    await axios.put(route('business.marketing.content-ai.style-guide.update'), form.value);
     // Success notification could be added here
   } catch (error) {
     console.error('Save failed:', error);
@@ -449,7 +449,7 @@ const saveStyleGuide = async () => {
 const analyzeExisting = async () => {
   analyzing.value = true;
   try {
-    const response = await axios.post(route('marketing.content-ai.style-guide.analyze'));
+    const response = await axios.post(route('business.marketing.content-ai.style-guide.analyze'));
     // Update form with analyzed data
     if (response.data.styleGuide) {
       const sg = response.data.styleGuide;

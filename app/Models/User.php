@@ -32,6 +32,11 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'two_factor_enabled',
         'two_factor_enabled_at',
+        // System Bot Telegram fields (Dual Bot Strategy)
+        'telegram_chat_id',
+        'telegram_auth_token',
+        'telegram_linked_at',
+        'receive_daily_reports',
     ];
 
     /**
@@ -59,6 +64,57 @@ class User extends Authenticatable
             'two_factor_enabled_at' => 'datetime',
             'locked_until' => 'datetime',
             'last_login_at' => 'datetime',
+            'telegram_linked_at' => 'datetime',
+            'receive_daily_reports' => 'boolean',
+        ];
+    }
+
+    /**
+     * Check if user has linked their Telegram account (System Bot).
+     */
+    public function hasTelegramLinked(): bool
+    {
+        return !empty($this->telegram_chat_id);
+    }
+
+    /**
+     * Unlink Telegram account.
+     */
+    public function unlinkTelegram(): void
+    {
+        $this->update([
+            'telegram_chat_id' => null,
+            'telegram_auth_token' => null,
+            'telegram_linked_at' => null,
+        ]);
+
+        // Clear user cache to update UI immediately
+        \App\Http\Middleware\HandleInertiaRequests::clearUserCache($this->id);
+    }
+
+    /**
+     * Generate Telegram connect link for System Bot authentication.
+     *
+     * Deep Linking: User clicks link -> Opens bot -> /start {token} -> Account linked
+     *
+     * @return array{link: string, token: string, expires_at: string}
+     */
+    public function generateTelegramConnectLink(): array
+    {
+        // Generate unique token
+        $token = \Illuminate\Support\Str::random(32);
+
+        // Save token to user
+        $this->update([
+            'telegram_auth_token' => $token,
+        ]);
+
+        $botUsername = config('services.telegram.system_bot_username', 'BiznesPilotBot');
+
+        return [
+            'link' => "https://t.me/{$botUsername}?start={$token}",
+            'token' => $token,
+            'expires_at' => now()->addHours(24)->toIso8601String(),
         ];
     }
 

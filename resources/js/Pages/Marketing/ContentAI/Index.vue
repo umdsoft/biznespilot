@@ -12,20 +12,20 @@
           </p>
         </div>
         <div class="flex gap-3">
-          <Link :href="route('marketing.content-ai.ideas.index')"
+          <Link :href="route('business.marketing.content-ai.ideas.index')"
                 class="px-4 py-2 rounded-lg font-medium bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 transition-all flex items-center gap-2">
             <LightBulbIcon class="w-4 h-4" />
             G'oyalar
           </Link>
-          <Link :href="route('marketing.content-ai.style-guide')"
+          <Link :href="route('business.marketing.content-ai.style-guide')"
                 class="px-4 py-2 rounded-lg font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
             Style Guide
           </Link>
-          <Link :href="route('marketing.content-ai.templates')"
+          <Link :href="route('business.marketing.content-ai.templates')"
                 class="px-4 py-2 rounded-lg font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
             Shablonlar
           </Link>
-          <Link :href="route('marketing.content-ai.history')"
+          <Link :href="route('business.marketing.content-ai.history')"
                 class="px-4 py-2 rounded-lg font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
             Tarix
           </Link>
@@ -298,14 +298,14 @@
                 <span class="font-medium text-gray-900 dark:text-white">~{{ styleGuide.avg_post_length }} belgi</span>
               </div>
             </div>
-            <Link :href="route('marketing.content-ai.style-guide')"
+            <Link :href="route('business.marketing.content-ai.style-guide')"
                   class="mt-4 block w-full text-center px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
               Tahrirlash
             </Link>
           </div>
           <div v-else class="text-center py-4">
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Style Guide hali sozlanmagan</p>
-            <Link :href="route('marketing.content-ai.style-guide')"
+            <Link :href="route('business.marketing.content-ai.style-guide')"
                   class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
               Sozlash
             </Link>
@@ -427,7 +427,7 @@ const currentVariation = computed(() => {
 const generateContent = async () => {
   generating.value = true;
   try {
-    const response = await axios.post(route('marketing.content-ai.generate'), form.value);
+    const response = await axios.post(route('business.marketing.content-ai.generate'), form.value);
     generatedContent.value = response.data.generation;
     activeVariation.value = 0;
     rating.value = 0;
@@ -452,7 +452,7 @@ const rateContent = async (stars) => {
   rating.value = stars;
   if (generatedContent.value?.id) {
     try {
-      await axios.post(route('marketing.content-ai.history.rate', generatedContent.value.id), {
+      await axios.post(route('business.marketing.content-ai.history.rate', generatedContent.value.id), {
         rating: stars,
       });
     } catch (error) {

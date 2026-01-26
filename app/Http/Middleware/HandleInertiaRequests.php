@@ -79,6 +79,9 @@ class HandleInertiaRequests extends Middleware
                     'id' => $role->id,
                     'name' => $role->name,
                 ])->toArray(),
+                // Telegram System Bot status
+                'has_telegram_linked' => $user->hasTelegramLinked(),
+                'receive_daily_reports' => (bool) $user->receive_daily_reports,
             ];
         });
 
@@ -177,7 +180,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * Clear user cache when needed (call this after user/business updates).
      */
-    public static function clearUserCache(int $userId): void
+    public static function clearUserCache(string|int $userId): void
     {
         Cache::forget("user_auth_data_{$userId}");
         Cache::forget("user_businesses_{$userId}");
@@ -186,7 +189,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * Clear business cache when needed.
      */
-    public static function clearBusinessCache(int $businessId): void
+    public static function clearBusinessCache(string|int $businessId): void
     {
         Cache::forget("current_business_{$businessId}");
     }

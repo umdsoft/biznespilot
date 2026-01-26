@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div class="flex items-center gap-3">
-            <Link :href="route('marketing.content-ai.index')"
+            <Link :href="route('business.marketing.content-ai.index')"
                   class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
               <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </Link>
@@ -497,7 +497,7 @@ const closeModal = () => {
 const saveTemplate = async () => {
   saving.value = true;
   try {
-    await axios.post(route('marketing.content-ai.templates.store'), templateForm.value);
+    await axios.post(route('business.marketing.content-ai.templates.store'), templateForm.value);
     closeModal();
     router.reload({ only: ['templates'] });
   } catch (error) {
@@ -512,7 +512,7 @@ const deleteTemplate = async (template) => {
   if (!confirm('Bu shablonni o\'chirmoqchimisiz?')) return;
 
   try {
-    await axios.delete(route('marketing.content-ai.templates.destroy', template.id));
+    await axios.delete(route('business.marketing.content-ai.templates.destroy', template.id));
     router.reload({ only: ['templates'] });
   } catch (error) {
     console.error('Delete failed:', error);

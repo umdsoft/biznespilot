@@ -6,6 +6,7 @@ use App\Events\LeadWon;
 use App\Events\LeadScoreUpdated;
 use App\Events\LeadQualificationChanged;
 use App\Events\Sales\DealClosed;
+use App\Events\Sales\DealLost;
 use App\Jobs\Marketing\CalculateMarketingKpiSnapshotsJob;
 use App\Models\MarketingKpiSnapshot;
 use App\Services\Marketing\MarketingKpiCalculatorService;
@@ -42,6 +43,7 @@ class MarketingIntegrationListener implements ShouldQueue
         return [
             LeadWon::class => 'handleLeadWon',
             DealClosed::class => 'handleDealClosed',
+            DealLost::class => 'handleDealLost',
             LeadQualificationChanged::class => 'handleQualificationChanged',
         ];
     }
@@ -129,6 +131,65 @@ class MarketingIntegrationListener implements ShouldQueue
             );
         } catch (\Exception $e) {
             Log::error('MarketingIntegrationListener: Failed to process DealClosed', [
+                'lead_id' => $lead->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * DealLost eventni qayta ishlash - Lost count va wasted spend yangilash.
+     *
+     * Bu metod marketing ROI ni to'g'ri hisoblash uchun muhim:
+     * - Qaysi kanal/kampaniya ko'proq yo'qotadi
+     * - Wasted marketing spend tracking
+     */
+    public function handleDealLost(DealLost $event): void
+    {
+        $lead = $event->lead;
+
+        // Agar lead marketing attribution bor bo'lsa
+        if (!$lead->campaign_id && !$lead->marketing_channel_id) {
+            Log::debug('MarketingIntegrationListener: DealLost without attribution, skipping KPI update', [
+                'lead_id' => $lead->id,
+            ]);
+            return;
+        }
+
+        Log::info('MarketingIntegrationListener: Processing DealLost', [
+            'lead_id' => $lead->id,
+            'campaign_id' => $lead->campaign_id,
+            'channel_id' => $lead->marketing_channel_id,
+            'estimated_value' => $event->estimatedValue,
+            'lost_reason' => $event->lostReason,
+        ]);
+
+        try {
+            // Lost count increment qilish
+            $this->incrementMarketingKpi(
+                $lead->business_id,
+                $lead->marketing_channel_id,
+                $lead->campaign_id,
+                [
+                    'lost_count' => 1,
+                ]
+            );
+
+            // Full recalculation trigger (conversion rate, loss rate hisoblash uchun)
+            CalculateMarketingKpiSnapshotsJob::dispatch(
+                $lead->business_id,
+                'daily',
+                Carbon::today()
+            )->delay(now()->addMinutes(5));
+
+            Log::info('MarketingIntegrationListener: DealLost KPI updated', [
+                'lead_id' => $lead->id,
+                'channel_id' => $lead->marketing_channel_id,
+                'campaign_id' => $lead->campaign_id,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('MarketingIntegrationListener: Failed to process DealLost', [
                 'lead_id' => $lead->id,
                 'error' => $e->getMessage(),
             ]);
@@ -313,6 +374,17 @@ class MarketingIntegrationListener implements ShouldQueue
 
         if ($snapshot->sql_count > 0) {
             $updates['sql_to_won_rate'] = round(($snapshot->won_count / $snapshot->sql_count) * 100, 2);
+        }
+
+        // Loss rate - Yo'qotilgan lidlar foizi (Black Box metrikasi)
+        if ($snapshot->leads_count > 0) {
+            $updates['loss_rate'] = round(($snapshot->lost_count / $snapshot->leads_count) * 100, 2);
+        }
+
+        // Win/Loss ratio
+        $totalDecided = $snapshot->won_count + $snapshot->lost_count;
+        if ($totalDecided > 0) {
+            $updates['win_rate'] = round(($snapshot->won_count / $totalDecided) * 100, 2);
         }
 
         if (!empty($updates)) {

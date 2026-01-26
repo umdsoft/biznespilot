@@ -24,7 +24,7 @@ class ContentStatisticsService
         $cacheKey = "content_stats_{$businessId}_{$startDate->format('Y-m-d')}";
 
         return Cache::remember($cacheKey, $this->cacheTTL, function () use ($businessId) {
-            $stats = DB::table('content_calendars')
+            $stats = DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->selectRaw('
                     COUNT(*) as total,
@@ -65,7 +65,7 @@ class ContentStatisticsService
     public function getSocialStats(string $businessId): array
     {
         return Cache::remember("social_stats_{$businessId}", $this->cacheTTL, function () use ($businessId) {
-            $stats = DB::table('content_calendars')
+            $stats = DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->where('status', 'published')
                 ->selectRaw('
@@ -97,26 +97,26 @@ class ContentStatisticsService
     }
 
     /**
-     * Get content by platform
+     * Get content by channel (platform)
      */
     public function getContentByPlatform(string $businessId): array
     {
         return Cache::remember("content_by_platform_{$businessId}", $this->cacheTTL, function () use ($businessId) {
-            return DB::table('content_calendars')
+            return DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->where('status', 'published')
                 ->selectRaw('
-                    platform,
+                    channel,
                     COUNT(*) as count,
                     SUM(COALESCE(reach, 0)) as reach,
                     SUM(COALESCE(likes, 0)) as likes,
                     SUM(COALESCE(comments, 0)) as comments
                 ')
-                ->groupBy('platform')
+                ->groupBy('channel')
                 ->get()
                 ->map(function ($row) {
                     return [
-                        'platform' => $row->platform,
+                        'platform' => $row->channel, // Keep 'platform' key for backward compatibility
                         'count' => (int) $row->count,
                         'reach' => (int) $row->reach,
                         'likes' => (int) $row->likes,
@@ -138,7 +138,7 @@ class ContentStatisticsService
             ->where('scheduled_at', '>=', Carbon::now())
             ->orderBy('scheduled_at')
             ->limit($limit)
-            ->get(['id', 'title', 'platform', 'scheduled_at', 'content_type'])
+            ->get(['id', 'title', 'channel', 'scheduled_at', 'content_type'])
             ->toArray();
     }
 
@@ -150,7 +150,7 @@ class ContentStatisticsService
         $startDate = Carbon::now()->subDays($days);
 
         return Cache::remember("content_trends_{$businessId}_{$days}", $this->cacheTTL, function () use ($businessId, $startDate) {
-            return DB::table('content_calendars')
+            return DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->where('status', 'published')
                 ->where('published_at', '>=', $startDate)

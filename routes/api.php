@@ -91,6 +91,12 @@ Route::prefix('webhooks/utel')->group(function () {
         ->name('webhooks.utel.test');
 });
 
+// ========== SYSTEM BOT WEBHOOK (Dual Bot Strategy) ==========
+// BiznesPilot System Bot - Business Owner larga notification yuborish
+// Bu Tenant Bot lardan alohida va faqat system-to-admin xabarlar uchun
+Route::post('webhooks/system-bot', [\App\Http\Controllers\Telegram\SystemBotController::class, 'webhook'])
+    ->name('webhooks.system-bot');
+
 // ========== CALL RECORDING ROUTES (Auth required) ==========
 // UTEL va OnlinePBX to'g'ridan-to'g'ri URL qaytaradi - streaming kerak emas
 Route::prefix('v1/calls')->middleware(['web', 'auth'])->group(function () {

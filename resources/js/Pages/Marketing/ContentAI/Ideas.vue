@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div class="flex items-center gap-3">
-            <Link :href="route('marketing.content-ai.index')"
+            <Link :href="route('business.marketing.content-ai.index')"
                   class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
               <ArrowLeftIcon class="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </Link>
@@ -509,7 +509,7 @@ const loadCollection = async (collection) => {
   searchQuery.value = '';
 
   try {
-    const response = await axios.get(route('marketing.content-ai.ideas.collection', collection.id));
+    const response = await axios.get(route('business.marketing.content-ai.ideas.collection', collection.id));
     loadedIdeas.value.collection = response.data.ideas;
   } catch (error) {
     console.error('Failed to load collection:', error);
@@ -522,7 +522,7 @@ const loadCategory = async (category) => {
   searchQuery.value = '';
 
   try {
-    const response = await axios.get(route('marketing.content-ai.ideas.category', category));
+    const response = await axios.get(route('business.marketing.content-ai.ideas.category', category));
     loadedIdeas.value.category = response.data.ideas;
   } catch (error) {
     console.error('Failed to load category:', error);
@@ -539,7 +539,7 @@ const searchIdeas = async () => {
   activeCategory.value = null;
 
   try {
-    const response = await axios.get(route('marketing.content-ai.ideas.search'), {
+    const response = await axios.get(route('business.marketing.content-ai.ideas.search'), {
       params: {
         query: searchQuery.value,
         content_type: filterType.value || undefined,
@@ -560,13 +560,13 @@ const previewIdea = (idea) => {
 
 const useIdea = async (idea) => {
   try {
-    const response = await axios.post(route('marketing.content-ai.ideas.use', idea.id), {
+    const response = await axios.post(route('business.marketing.content-ai.ideas.use', idea.id), {
       generate_now: true,
     });
 
     if (response.data.generation) {
       // Redirect to main Content AI page with the generation
-      router.visit(route('marketing.content-ai.index'), {
+      router.visit(route('business.marketing.content-ai.index'), {
         data: { generation_id: response.data.generation.id },
       });
     }
@@ -579,7 +579,7 @@ const useIdea = async (idea) => {
 const createIdea = async () => {
   saving.value = true;
   try {
-    await axios.post(route('marketing.content-ai.ideas.store'), newIdea.value);
+    await axios.post(route('business.marketing.content-ai.ideas.store'), newIdea.value);
     showCreateModal.value = false;
     newIdea.value = {
       title: '',

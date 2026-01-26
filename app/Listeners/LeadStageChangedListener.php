@@ -6,12 +6,17 @@ use App\Events\LeadStageChanged;
 use App\Jobs\Sales\UpdateUserKpiSnapshotJob;
 use App\Services\Sales\AchievementService;
 use App\Services\Sales\LeaderboardService;
+use App\Services\Sales\LostOpportunityService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
 class LeadStageChangedListener implements ShouldQueue
 {
     public string $queue = 'kpi';
+
+    public function __construct(
+        protected LostOpportunityService $lostOpportunityService
+    ) {}
 
     /**
      * Handle the event.
@@ -98,15 +103,56 @@ class LeadStageChangedListener implements ShouldQueue
 
     /**
      * Lead "lost" holatiga o'tganda
+     *
+     * LostOpportunity yaratish va Marketing Attribution tracking.
      */
     protected function handleLeadLost($lead): void
     {
-        Log::info('LeadStageChangedListener: Lead lost', [
+        Log::info('LeadStageChangedListener: Processing lead lost', [
             'lead_id' => $lead->id,
             'lost_reason' => $lead->lost_reason,
+            'estimated_value' => $lead->estimated_value,
         ]);
 
-        // Lost holatda maxsus KPI yoki metrikalar
-        // Keyinchalik qo'shish mumkin
+        try {
+            // LostOpportunity yaratish (attribution bilan)
+            $lostOpportunity = $this->lostOpportunityService->trackLostLead(
+                lead: $lead,
+                lostReason: $lead->lost_reason ?? 'other',
+                lostReasonDetails: $lead->lost_reason_details,
+                lostBy: $lead->assignedTo,
+                lostToCompetitor: null // Lead modelda competitor ma'lumoti bo'lsa qo'shish mumkin
+            );
+
+            Log::info('LeadStageChangedListener: Lost opportunity created', [
+                'lead_id' => $lead->id,
+                'lost_opportunity_id' => $lostOpportunity->id,
+                'estimated_value' => $lostOpportunity->estimated_value,
+                'campaign_id' => $lostOpportunity->campaign_id,
+            ]);
+
+            // KPI Snapshot yangilash - yo'qotilgan lidlar soni
+            if ($lead->assigned_to) {
+                try {
+                    UpdateUserKpiSnapshotJob::dispatch(
+                        $lead->business_id,
+                        $lead->assigned_to,
+                        'leads_lost'
+                    );
+                } catch (\Exception $e) {
+                    Log::error('LeadStageChangedListener: Failed to dispatch lost KPI job', [
+                        'lead_id' => $lead->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error('LeadStageChangedListener: Failed to track lost opportunity', [
+                'lead_id' => $lead->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
     }
 }

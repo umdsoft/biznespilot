@@ -25,12 +25,14 @@ class Task extends Model
         'reminder_at',
         'completed_at',
         'result',
+        'stagnant_alert_sent_at',
     ];
 
     protected $casts = [
         'due_date' => 'datetime',
         'reminder_at' => 'datetime',
         'completed_at' => 'datetime',
+        'stagnant_alert_sent_at' => 'datetime',
     ];
 
     /**
@@ -95,6 +97,22 @@ class Task extends Model
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /**
+     * Alias for assignedUser (for CheckStagnantTasksJob compatibility)
+     */
+    public function assignee(): BelongsTo
+    {
+        return $this->assignedUser();
+    }
+
+    /**
+     * Alias for user (task creator)
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->user();
     }
 
     /**

@@ -220,4 +220,80 @@ class SettingsController extends Controller
             ],
         ]);
     }
+
+    // ==========================================
+    // TELEGRAM SYSTEM BOT INTEGRATION
+    // ==========================================
+
+    /**
+     * Get Telegram connection status.
+     */
+    public function telegramStatus()
+    {
+        $user = Auth::user();
+
+        return response()->json([
+            'connected' => $user->hasTelegramLinked(),
+            'chat_id' => $user->telegram_chat_id ? '***' . substr($user->telegram_chat_id, -4) : null,
+            'linked_at' => $user->telegram_linked_at?->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Generate Telegram connect link for deep linking authentication.
+     *
+     * User clicks link -> Opens System Bot -> /start {token} -> Account linked
+     */
+    public function telegramConnect()
+    {
+        $user = Auth::user();
+
+        // If already connected, return status
+        if ($user->hasTelegramLinked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Telegram allaqachon ulangan',
+                'connected' => true,
+                'linked_at' => $user->telegram_linked_at?->toIso8601String(),
+            ], 400);
+        }
+
+        // Generate connect link
+        $linkData = $user->generateTelegramConnectLink();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Havolani bosing va botni ishga tushiring',
+            'link' => $linkData['link'],
+            'expires_at' => $linkData['expires_at'],
+            'instructions' => [
+                '1. Quyidagi havolani bosing',
+                '2. Telegram ochiladi',
+                '3. "Start" tugmasini bosing',
+                '4. Hisob avtomatik ulanadi',
+            ],
+        ]);
+    }
+
+    /**
+     * Disconnect Telegram account.
+     */
+    public function telegramDisconnect()
+    {
+        $user = Auth::user();
+
+        if (!$user->hasTelegramLinked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Telegram ulanmagan',
+            ], 400);
+        }
+
+        $user->unlinkTelegram();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Telegram uzildi. Endi kunlik hisobotlar yuborilmaydi.',
+        ]);
+    }
 }
