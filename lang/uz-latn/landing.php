@@ -10,6 +10,7 @@ return [
         'features' => 'Imkoniyatlar',
         'how_it_works' => 'Qanday ishlaydi',
         'benefits' => 'Afzalliklar',
+        'pricing' => 'Narxlar',
         'faq' => 'FAQ',
         'login' => 'Kirish',
         'register' => "Ro'yxatdan o'tish",
@@ -181,7 +182,6 @@ return [
             [
                 'quote' => "Oldin 5 xil dastur ishlatardik — hech narsani nazorat qilolmasdik. BiznesPilotda hammasi bir joyda. Endi biznesimni to'liq ko'raman.",
                 'author' => 'Aziz Karimov',
-                'role' => 'CEO, TechStart UZ',
                 'avatar' => 'AK',
                 'stat' => "To'liq nazorat",
                 'company_size' => '25 xodim',
@@ -189,7 +189,6 @@ return [
             [
                 'quote' => "Moliya bo'limini boshqarish osonlashdi. Pul qayerda, kim qarzdor — hammasi aniq. Sun'iy intellekt hisobotlarni tayyor qilib beradi.",
                 'author' => 'Nilufar Rashidova',
-                'role' => 'Moliya direktori, FoodExpress',
                 'avatar' => 'NR',
                 'stat' => '100% aniqlik',
                 'company_size' => '50+ xodim',
@@ -197,7 +196,6 @@ return [
             [
                 'quote' => "Sun'iy intellekt yordamida muammolarni oldindan ko'raman. Tizim o'zi aytadi: 'Bu mijozga e'tibor bering'. Juda qulay.",
                 'author' => 'Bobur Alimov',
-                'role' => 'Founder, EduPlatform',
                 'avatar' => 'BA',
                 'stat' => "Oldindan ko'rish",
                 'company_size' => '15 xodim',
@@ -208,6 +206,111 @@ return [
             ['value' => '100%', 'label' => 'Nazorat'],
             ['value' => '24/7', 'label' => "Sun'iy intellekt"],
             ['value' => '10 daq', 'label' => "O'rnatish"],
+        ],
+    ],
+
+    // Pricing Section
+    'pricing' => [
+        'badge' => '14 kun bepul sinov',
+        'title' => "Shaffof narxlar, yashirin to'lovlarsiz",
+        'subtitle' => "Biznesingizga mos tarifni tanlang. Istalgan vaqt o'zgartirish mumkin.",
+        'popular_badge' => 'ENG FOYDALI',
+        'per_month' => "so'm/oy",
+        'free_label' => 'Bepul',
+        'note' => "Barcha tariflarda 14 kunlik bepul sinov. Kredit karta talab qilinmaydi.",
+        'compare_link' => "Barcha imkoniyatlarni solishtirish",
+        'plans' => [
+            [
+                'name' => 'Start',
+                'description' => 'Boshlash uchun',
+                'price' => '299,000',
+                'features' => [
+                    '2 ta xodim',
+                    '1 ta filial',
+                    'Instagram + Telegram',
+                    '500 ta lid/oy',
+                    '60 daq Call Center AI',
+                ],
+                'cta' => 'Boshlash',
+            ],
+            [
+                'name' => 'Standard',
+                'description' => 'Rivojlanish uchun',
+                'price' => '599,000',
+                'features' => [
+                    '5 ta xodim',
+                    '1 ta filial',
+                    'Flow Builder (Vizual)',
+                    '2,000 ta lid/oy',
+                    '150 daq Call Center AI',
+                ],
+                'cta' => 'Tanlash',
+            ],
+            [
+                'name' => 'Business',
+                'description' => 'Tizimlashish uchun',
+                'price' => '799,000',
+                'popular' => true,
+                'features' => [
+                    '10 ta xodim',
+                    '2 ta filial',
+                    'HR Bot + Marketing ROI',
+                    '10,000 ta lid/oy',
+                    '400 daq Call Center AI',
+                ],
+                'cta' => 'Bepul Boshlash',
+            ],
+            [
+                'name' => 'Premium',
+                'description' => 'Masshtablash uchun',
+                'price' => '1,499,000',
+                'premium' => true,
+                'features' => [
+                    '15 ta xodim',
+                    '5 ta filial',
+                    'AI Bot + Anti-Fraud',
+                    'Cheksiz lid',
+                    '1,000 daq Call Center AI',
+                ],
+                'cta' => 'Premium olish',
+            ],
+        ],
+    ],
+
+    // Pricing Page (dedicated page)
+    'pricing_page' => [
+        'monthly' => 'Oylik',
+        'yearly' => 'Yillik',
+        'feature' => 'Imkoniyat',
+        'compare_title' => 'Barcha imkoniyatlarni solishtiring',
+        'compare_subtitle' => 'Har bir tarifda nimalar bor - batafsil jadval',
+        'faq_badge' => 'Savollar va javoblar',
+        'faq_title' => "Ko'p so'raladigan savollar",
+        'faqs' => [
+            [
+                'question' => "Botni o'zim sozlay olamanmi?",
+                'answer' => "Ha, albatta! BiznesPilotda oddiy drag-and-drop Flow Builder mavjud. Hech qanday dasturlash bilimi talab qilinmaydi. Video qo'llanmalar va Telegram support ham bor.",
+            ],
+            [
+                'question' => "Call Center daqiqalari tugasa nima bo'ladi?",
+                'answer' => "Premium tarifda oyiga 50 ta qo'ng'iroq tahlili kiradi. Tugagandan so'ng, har bir qo'shimcha tahlil 1,000 so'm. Yoki keyingi oyga kutishingiz mumkin - limitlar yangilanadi.",
+            ],
+            [
+                'question' => "To'lov turlari qanday?",
+                'answer' => "Click, Payme, bank o'tkazmasi va naqd to'lov qabul qilamiz. Korporativ mijozlar uchun shartnoma va schet-faktura tayyorlaymiz.",
+            ],
+            [
+                'question' => "Tarif o'zgartirsa bo'ladimi?",
+                'answer' => "Istalgan vaqt yuqoriroq tarifga o'tishingiz mumkin. To'langan summa proporsional hisoblanadi. Pastroq tarifga o'tish esa keyingi to'lov davridan boshlab amalga oshadi.",
+            ],
+            [
+                'question' => "Ma'lumotlarim xavfsizmi?",
+                'answer' => "Ha, biz SSL shifrlash, kunlik backup va serverlarimiz Yevropa data-centerlarida joylashgan. GDPR talablariga muvofiq ishlaymiz.",
+            ],
+            [
+                'question' => "Bekor qilsam nima bo'ladi?",
+                'answer' => "Istalgan vaqt bekor qilishingiz mumkin. To'langan davr tugagunicha tizimdan foydalanishingiz mumkin. Ma'lumotlaringizni eksport qilish imkoniyati bor.",
+            ],
         ],
     ],
 
@@ -288,6 +391,6 @@ return [
             'title' => 'Ijtimoiy tarmoqlar',
         ],
         'copyright' => "© :year BiznesPilot. O'zbekistonda ishlab chiqilgan ❤️",
-        'support' => '24/7 yordam: +998 XX XXX XX XX',
+        'support' => '24/7 yordam: +998 50 504 86 68',
     ],
 ];

@@ -37,6 +37,9 @@ class DatabaseSeeder extends Seeder
             DreamBuyerSeeder::class,
             OfferSeeder::class,
 
+            // 6. Instagram Automation (Chatbot/Sales Flow)
+            SalesFlowSeeder::class,
+
             // NOTE: The following seeders need schema updates:
             // CustomerDataSeeder, LeadSeeder, CampaignSeeder, ConversationSeeder
         ]);

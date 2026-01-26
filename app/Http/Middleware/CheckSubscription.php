@@ -36,25 +36,37 @@ class CheckSubscription
             ], 404);
         }
 
-        // Get the active subscription
+        // Get the active subscription (including trialing status)
+        // SubscriptionService 'trialing' status yaratadi
         $subscription = $business->subscriptions()
-            ->where('status', 'active')
-            ->whereDate('ends_at', '>=', now())
+            ->whereIn('status', ['active', 'trialing'])
+            ->where(function ($query) {
+                $query->whereDate('ends_at', '>=', now())
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'trialing')
+                            ->whereDate('trial_ends_at', '>=', now());
+                    });
+            })
             ->first();
 
-        // Check if trial is active
-        $hasActiveTrial = $business->subscriptions()
-            ->where('status', 'trial')
-            ->whereDate('trial_ends_at', '>=', now())
-            ->exists();
-
-        if (! $subscription && ! $hasActiveTrial) {
+        if (!$subscription) {
             return response()->json([
                 'success' => false,
-                'message' => 'No active subscription found. Please upgrade your plan.',
+                'message' => 'Aktiv obuna topilmadi. Iltimos, tarifni tanlang.',
                 'error_code' => 'NO_ACTIVE_SUBSCRIPTION',
             ], 402);
         }
+
+        // Trial tugash ogohlantirishi (3 kun qolganida)
+        if ($subscription->status === 'trialing' && $subscription->trial_ends_at) {
+            $daysRemaining = now()->diffInDays($subscription->trial_ends_at, false);
+            if ($daysRemaining <= 3 && $daysRemaining >= 0) {
+                $request->headers->set('X-Trial-Warning', "Trial {$daysRemaining} kunda tugaydi");
+            }
+        }
+
+        // Subscription ma'lumotlarini request ga qo'shish
+        $request->merge(['current_subscription' => $subscription]);
 
         return $next($request);
     }

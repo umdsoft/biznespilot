@@ -21,6 +21,7 @@ class InstagramMessage extends Model
         'media_data',
         'is_automated',
         'is_read',
+        'status', // sent, delivered, read, failed
         'sent_at',
     ];
 
@@ -30,6 +31,15 @@ class InstagramMessage extends Model
         'is_read' => 'boolean',
         'sent_at' => 'datetime',
     ];
+
+    // Status constants
+    const STATUS_SENT = 'sent';
+
+    const STATUS_DELIVERED = 'delivered';
+
+    const STATUS_READ = 'read';
+
+    const STATUS_FAILED = 'failed';
 
     // Direction constants
     const DIRECTION_INCOMING = 'incoming';

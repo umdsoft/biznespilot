@@ -124,7 +124,7 @@ class Offer extends Model
                 'status',
                 'channel',
                 'sent_at',
-                'viewed_at',
+                'first_viewed_at',
                 'converted_at',
                 'view_count',
                 'click_count',

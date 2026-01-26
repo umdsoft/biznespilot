@@ -4,6 +4,7 @@ namespace App\Jobs\CallCenter;
 
 use App\Models\CallAnalysis;
 use App\Models\CallLog;
+use App\Models\Subscription;
 use App\Services\CallCenter\AudioProcessingService;
 use App\Services\CallCenter\CallAnalysisService;
 use App\Services\CallCenter\OperatorStatsService;
@@ -13,6 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProcessCallAnalysisJob implements ShouldQueue
@@ -63,6 +65,25 @@ class ProcessCallAnalysisJob implements ShouldQueue
             'call_log_id' => $this->callLog->id,
             'recording_url' => $this->callLog->recording_url,
         ]);
+
+        // LIMIT CHECK: Avval audio daqiqalar limitini tekshirish
+        $limitCheck = $this->checkAudioMinutesLimit();
+        if (!$limitCheck['allowed']) {
+            Log::warning('Audio minutes limit reached', [
+                'call_log_id' => $this->callLog->id,
+                'business_id' => $this->callLog->business_id,
+                'used_minutes' => $limitCheck['used'],
+                'limit_minutes' => $limitCheck['limit'],
+            ]);
+
+            $this->callLog->markAnalysisFailed(
+                'Oylik audio tahlil limiti tugadi. ' .
+                "Ishlatilgan: {$limitCheck['used']} daqiqa / Limit: {$limitCheck['limit']} daqiqa. " .
+                'Iltimos, tarifingizni yangilang.'
+            );
+
+            return; // Job'ni tugatish, retry qilmaslik
+        }
 
         // Initialize analysis record
         $analysis = CallAnalysis::create([
@@ -217,6 +238,70 @@ class ProcessCallAnalysisJob implements ShouldQueue
             'call-analysis',
             'call_log:'.$this->callLog->id,
             'business:'.$this->callLog->business_id,
+        ];
+    }
+
+    /**
+     * Check if business has remaining audio minutes in their plan.
+     *
+     * @return array{allowed: bool, used: int, limit: int|null, remaining: int|null}
+     */
+    protected function checkAudioMinutesLimit(): array
+    {
+        $business = $this->callLog->business;
+
+        if (!$business) {
+            Log::warning('Business not found for call log', ['call_log_id' => $this->callLog->id]);
+            return ['allowed' => false, 'used' => 0, 'limit' => 0, 'remaining' => 0];
+        }
+
+        // Get active subscription with plan
+        $subscription = Subscription::where('business_id', $business->id)
+            ->whereIn('status', ['active', 'trialing'])
+            ->where(function ($query) {
+                $query->whereDate('ends_at', '>=', now())
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'trialing')
+                            ->whereDate('trial_ends_at', '>=', now());
+                    });
+            })
+            ->with('plan')
+            ->first();
+
+        if (!$subscription || !$subscription->plan) {
+            Log::warning('No active subscription found', ['business_id' => $business->id]);
+            return ['allowed' => false, 'used' => 0, 'limit' => 0, 'remaining' => 0];
+        }
+
+        $plan = $subscription->plan;
+        $audioMinutesLimit = $plan->audio_minutes_limit;
+
+        // null = cheksiz (unlimited)
+        if ($audioMinutesLimit === null) {
+            return ['allowed' => true, 'used' => 0, 'limit' => null, 'remaining' => null];
+        }
+
+        // Bu oyda ishlatilgan daqiqalarni hisoblash
+        $startOfMonth = now()->startOfMonth();
+        $usedMinutes = (int) DB::table('call_logs')
+            ->where('business_id', $business->id)
+            ->where('created_at', '>=', $startOfMonth)
+            ->whereNotNull('analysis_status')
+            ->whereIn('analysis_status', ['completed', 'analyzing', 'transcribing'])
+            ->sum('duration') / 60; // sekunddan daqiqaga
+
+        // Joriy qo'ng'iroq davomiyligini qo'shish
+        $callDurationMinutes = (int) ceil(($this->callLog->duration ?? 0) / 60);
+        $totalMinutes = $usedMinutes + $callDurationMinutes;
+
+        $remaining = max(0, $audioMinutesLimit - $usedMinutes);
+        $allowed = $totalMinutes <= $audioMinutesLimit;
+
+        return [
+            'allowed' => $allowed,
+            'used' => $usedMinutes,
+            'limit' => $audioMinutesLimit,
+            'remaining' => $remaining,
         ];
     }
 }

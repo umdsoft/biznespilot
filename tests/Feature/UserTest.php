@@ -49,8 +49,8 @@ class UserTest extends TestCase
         $business1 = Business::factory()->create(['user_id' => $user->id]);
         $business2 = Business::factory()->create(['user_id' => $user->id]);
 
-        $user->businesses()->attach($business1->id, ['role' => 'owner']);
-        $user->businesses()->attach($business2->id, ['role' => 'admin']);
+        $user->teamBusinesses()->attach($business1->id, ['role' => 'owner']);
+        $user->teamBusinesses()->attach($business2->id, ['role' => 'admin']);
 
         $this->assertCount(2, $user->businesses);
     }
@@ -62,7 +62,7 @@ class UserTest extends TestCase
     {
         $user = User::factory()->create();
         $business = Business::factory()->create(['user_id' => $user->id]);
-        $user->businesses()->attach($business->id, ['role' => 'owner']);
+        $user->teamBusinesses()->attach($business->id, ['role' => 'owner']);
 
         session(['current_business_id' => $business->id]);
 
@@ -176,9 +176,10 @@ class UserTest extends TestCase
         $user = User::factory()->create();
         $business = Business::factory()->create(['user_id' => $user->id]);
 
-        $user->businesses()->attach($business->id, ['role' => 'manager']);
+        $user->teamBusinesses()->attach($business->id, ['role' => 'manager']);
 
-        $pivot = $user->businesses()->first()->pivot;
+        // Use teamBusinesses() which has the pivot, not businesses() which is hasMany
+        $pivot = $user->teamBusinesses()->first()->pivot;
         $this->assertEquals('manager', $pivot->role);
     }
 }

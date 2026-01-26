@@ -21,7 +21,7 @@ class DreamBuyerTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->business = Business::factory()->create(['user_id' => $this->user->id]);
-        $this->user->businesses()->attach($this->business->id, ['role' => 'owner']);
+        $this->user->teamBusinesses()->attach($this->business->id, ['role' => 'owner']);
     }
 
     /**
@@ -35,7 +35,7 @@ class DreamBuyerTest extends TestCase
             'business_id' => $this->business->id,
             'name' => 'Test Dream Buyer',
             'description' => 'Premium customer profile',
-            'priority' => 1,
+            'priority' => 'high',
         ]);
 
         $this->assertNotNull($dreamBuyer->id);
@@ -63,27 +63,29 @@ class DreamBuyerTest extends TestCase
         $dreamBuyer = DreamBuyer::factory()->primary()->forBusiness($this->business)->create();
 
         $this->assertTrue($dreamBuyer->is_primary);
-        $this->assertEquals(1, $dreamBuyer->priority);
+        $this->assertEquals('high', $dreamBuyer->priority);
     }
 
     /**
-     * Test Sell Like Crazy framework fields.
+     * Test Sell Like Crazy framework fields (Nine Questions).
      */
     public function test_dream_buyer_sell_like_crazy_fields(): void
     {
         $dreamBuyer = DreamBuyer::factory()->forBusiness($this->business)->create([
-            'where_spend_time' => 'Instagram va Telegram',
-            'info_sources' => 'YouTube va bloglar',
-            'frustrations' => 'Vaqt yetishmaydi',
-            'dreams' => 'Biznesni o\'stirish',
-            'fears' => 'Pulni yo\'qotish',
+            'q3_where_do_they_hang_out' => 'Instagram va Telegram',
+            'q5_what_are_they_afraid_of' => 'Pulni yo\'qotish',
+            'q6_what_are_they_frustrated_with' => 'Vaqt yetishmaydi',
+            'q8_what_do_they_secretly_want' => 'Biznesni o\'stirish',
+            'pain_points' => 'Marketing qiyinchiliklari',
+            'goals' => 'Sotuvlarni oshirish',
         ]);
 
-        $this->assertNotNull($dreamBuyer->where_spend_time);
-        $this->assertNotNull($dreamBuyer->info_sources);
-        $this->assertNotNull($dreamBuyer->frustrations);
-        $this->assertNotNull($dreamBuyer->dreams);
-        $this->assertNotNull($dreamBuyer->fears);
+        $this->assertNotNull($dreamBuyer->q3_where_do_they_hang_out);
+        $this->assertNotNull($dreamBuyer->q5_what_are_they_afraid_of);
+        $this->assertNotNull($dreamBuyer->q6_what_are_they_frustrated_with);
+        $this->assertNotNull($dreamBuyer->q8_what_do_they_secretly_want);
+        $this->assertNotNull($dreamBuyer->pain_points);
+        $this->assertNotNull($dreamBuyer->goals);
     }
 
     /**
@@ -119,28 +121,32 @@ class DreamBuyerTest extends TestCase
     }
 
     /**
-     * Test dream buyer data cast to array.
+     * Test dream buyer demographic fields.
      */
-    public function test_dream_buyer_data_cast(): void
+    public function test_dream_buyer_demographic_fields(): void
     {
         $dreamBuyer = DreamBuyer::factory()->forBusiness($this->business)->create([
-            'data' => ['age_range' => '25-35', 'income' => 'high'],
+            'age_range' => '25-35',
+            'income_level' => 'high',
+            'location' => 'Toshkent',
+            'occupation' => 'Tadbirkor',
         ]);
 
-        $this->assertIsArray($dreamBuyer->data);
-        $this->assertEquals('25-35', $dreamBuyer->data['age_range']);
-        $this->assertEquals('high', $dreamBuyer->data['income']);
+        $this->assertEquals('25-35', $dreamBuyer->age_range);
+        $this->assertEquals('high', $dreamBuyer->income_level);
+        $this->assertEquals('Toshkent', $dreamBuyer->location);
+        $this->assertEquals('Tadbirkor', $dreamBuyer->occupation);
     }
 
     /**
-     * Test dream buyer communication preferences.
+     * Test dream buyer preferred channels.
      */
-    public function test_dream_buyer_communication_preferences(): void
+    public function test_dream_buyer_preferred_channels(): void
     {
         $dreamBuyer = DreamBuyer::factory()->forBusiness($this->business)->create([
-            'communication_preferences' => 'telegram',
+            'preferred_channels' => 'telegram',
         ]);
 
-        $this->assertEquals('telegram', $dreamBuyer->communication_preferences);
+        $this->assertEquals('telegram', $dreamBuyer->preferred_channels);
     }
 }

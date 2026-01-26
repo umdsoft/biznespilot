@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Business;
 use App\Models\CallLog;
 use App\Models\ContentGeneration;
 use App\Models\Customer;
@@ -16,6 +17,7 @@ use App\Models\LeaveRequest;
 use App\Models\EmployeeGoal;
 use App\Models\EmployeeEngagement;
 use App\Models\FlightRisk;
+use App\Observers\BusinessObserver;
 use App\Observers\CallLogObserver;
 use App\Observers\ContentGenerationObserver;
 use App\Observers\CustomerObserver;
@@ -69,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Register observers
+        Business::observe(BusinessObserver::class);
         CustdevResponse::observe(CustdevResponseObserver::class);
 
         // Sales KPI & Gamification observers

@@ -13,17 +13,24 @@
             </a>
 
             <!-- Desktop Navigation -->
+            @php
+                $isPricingPage = request()->routeIs('pricing');
+                $baseUrl = $isPricingPage ? route('landing') : '';
+            @endphp
             <nav class="hidden lg:flex items-center space-x-8">
-                <a href="#features" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                <a href="{{ $baseUrl }}#features" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                     {{ $translations['nav']['features'] }}
                 </a>
-                <a href="#how-it-works" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                <a href="{{ $baseUrl }}#how-it-works" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                     {{ $translations['nav']['how_it_works'] }}
                 </a>
-                <a href="#benefits" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                <a href="{{ $baseUrl }}#benefits" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                     {{ $translations['nav']['benefits'] }}
                 </a>
-                <a href="#faq" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                <a href="{{ $isPricingPage ? '#' : '#pricing' }}" class="{{ $isPricingPage ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-gray-900 font-medium' }} transition-colors">
+                    {{ $translations['nav']['pricing'] }}
+                </a>
+                <a href="{{ $baseUrl }}#faq" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                     {{ $translations['nav']['faq'] }}
                 </a>
             </nav>
@@ -101,16 +108,19 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="mobile-menu lg:hidden">
             <div class="py-4 space-y-2 border-t border-gray-100">
-                <a href="#features" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <a href="{{ $baseUrl }}#features" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
                     {{ $translations['nav']['features'] }}
                 </a>
-                <a href="#how-it-works" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <a href="{{ $baseUrl }}#how-it-works" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
                     {{ $translations['nav']['how_it_works'] }}
                 </a>
-                <a href="#benefits" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <a href="{{ $baseUrl }}#benefits" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
                     {{ $translations['nav']['benefits'] }}
                 </a>
-                <a href="#faq" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+                <a href="{{ $isPricingPage ? '#' : '#pricing' }}" class="block px-4 py-2 {{ $isPricingPage ? 'text-blue-600 font-semibold bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                    {{ $translations['nav']['pricing'] }}
+                </a>
+                <a href="{{ $baseUrl }}#faq" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
                     {{ $translations['nav']['faq'] }}
                 </a>
 

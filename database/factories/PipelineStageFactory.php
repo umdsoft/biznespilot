@@ -21,21 +21,24 @@ class PipelineStageFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->randomElement([
-            'Yangi',
+        // Use stage names that don't conflict with default stages (new, won, lost)
+        $name = fake()->randomElement([
             'Aloqa qilindi',
             'Kvalifikatsiya',
             'Taklif',
             'Muzokara',
-            'Yutilgan',
-            'Yo\'qotilgan',
+            'Tasdiqlash',
+            'Shartnoma',
         ]);
+
+        // Add unique suffix to avoid slug conflicts
+        $uniqueSuffix = fake()->unique()->randomNumber(5);
 
         return [
             'business_id' => Business::factory(),
             'name' => $name,
-            'slug' => Str::slug($name),
-            'order' => fake()->numberBetween(1, 10),
+            'slug' => Str::slug($name) . '-' . $uniqueSuffix,
+            'order' => fake()->numberBetween(10, 90), // Between default stages (1 and 100+)
             'color' => fake()->hexColor(),
             'is_won' => false,
             'is_lost' => false,

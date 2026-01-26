@@ -28,7 +28,7 @@ class LeadFactory extends Factory
             'company' => fake()->optional(0.5)->company(),
             'status' => fake()->randomElement(['new', 'contacted', 'qualified', 'proposal', 'negotiation']),
             'qualification_status' => fake()->randomElement(['new', 'mql', 'sql', 'disqualified']),
-            'score' => fake()->optional(0.6)->numberBetween(0, 100),
+            'score' => fake()->numberBetween(0, 100),
             'score_category' => fake()->randomElement(['frozen', 'cold', 'cool', 'warm', 'hot']),
             'estimated_value' => fake()->optional(0.5)->randomFloat(2, 100000, 50000000),
             'region' => fake()->randomElement(array_keys(Lead::REGIONS)),
@@ -37,9 +37,9 @@ class LeadFactory extends Factory
     }
 
     /**
-     * Create a new lead.
+     * Create a new lead with 'new' status.
      */
-    public function new(): static
+    public function newLead(): static
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'new',

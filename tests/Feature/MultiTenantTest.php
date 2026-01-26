@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Lead;
 use App\Models\User;
 use App\Models\KpiDailyActual;
+use App\Models\KpiDefinition;
 use App\Models\PipelineStage;
 use App\Models\Offer;
 use App\Models\DreamBuyer;
@@ -37,17 +38,17 @@ class MultiTenantTest extends TestCase
 
         $this->business1 = Business::factory()->create([
             'name' => 'Business 1',
-            'owner_id' => $this->user1->id,
+            'user_id' => $this->user1->id,
         ]);
 
         $this->business2 = Business::factory()->create([
             'name' => 'Business 2',
-            'owner_id' => $this->user2->id,
+            'user_id' => $this->user2->id,
         ]);
 
         // Attach users to their businesses
-        $this->user1->businesses()->attach($this->business1->id, ['role' => 'owner']);
-        $this->user2->businesses()->attach($this->business2->id, ['role' => 'owner']);
+        $this->user1->teamBusinesses()->attach($this->business1->id, ['role' => 'owner']);
+        $this->user2->teamBusinesses()->attach($this->business2->id, ['role' => 'owner']);
     }
 
     /**
@@ -88,19 +89,33 @@ class MultiTenantTest extends TestCase
      */
     public function test_kpi_data_is_isolated_by_business(): void
     {
+        // First create the KPI definition (required by foreign key)
+        KpiDefinition::create([
+            'category' => 'sales',
+            'kpi_code' => 'leads_count',
+            'kpi_name' => 'Leads Count',
+            'kpi_name_uz' => 'Lidlar soni',
+            'default_unit' => 'dona',
+            'is_active' => true,
+        ]);
+
         // Create KPI data for both businesses
         KpiDailyActual::create([
             'business_id' => $this->business1->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 150,
             'actual_value' => 100,
+            'unit' => 'dona',
         ]);
 
         KpiDailyActual::create([
             'business_id' => $this->business2->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 250,
             'actual_value' => 200,
+            'unit' => 'dona',
         ]);
 
         // Set session to business 1
@@ -123,29 +138,34 @@ class MultiTenantTest extends TestCase
      */
     public function test_pipeline_stages_are_isolated_by_business(): void
     {
+        // Note: Business::create auto-creates 3 default stages (new, won, lost)
+        // So we create custom stages and verify isolation
         PipelineStage::create([
             'business_id' => $this->business1->id,
             'name' => 'Business 1 Stage',
             'slug' => 'b1-stage',
-            'order' => 1,
+            'order' => 50,
         ]);
 
         PipelineStage::create([
             'business_id' => $this->business2->id,
             'name' => 'Business 2 Stage',
             'slug' => 'b2-stage',
-            'order' => 1,
+            'order' => 50,
         ]);
 
         session(['current_business_id' => $this->business1->id]);
         $stages = PipelineStage::all();
-        $this->assertCount(1, $stages);
-        $this->assertEquals('Business 1 Stage', $stages->first()->name);
+        // 3 default stages + 1 custom = 4
+        $this->assertCount(4, $stages);
+        $this->assertTrue($stages->contains('name', 'Business 1 Stage'));
+        $this->assertFalse($stages->contains('name', 'Business 2 Stage'));
 
         session(['current_business_id' => $this->business2->id]);
         $stages = PipelineStage::all();
-        $this->assertCount(1, $stages);
-        $this->assertEquals('Business 2 Stage', $stages->first()->name);
+        $this->assertCount(4, $stages);
+        $this->assertTrue($stages->contains('name', 'Business 2 Stage'));
+        $this->assertFalse($stages->contains('name', 'Business 1 Stage'));
     }
 
     /**
@@ -268,6 +288,12 @@ class MultiTenantTest extends TestCase
             $names = collect($data)->pluck('name')->toArray();
             $this->assertContains('Business 1 Lead', $names);
             $this->assertNotContains('Business 2 Lead', $names);
+        } else {
+            // API route might not exist (404) or require different auth
+            $this->assertTrue(
+                in_array($response->status(), [401, 404]),
+                'Expected 200, 401, or 404, got ' . $response->status()
+            );
         }
     }
 

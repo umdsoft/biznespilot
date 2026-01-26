@@ -359,7 +359,7 @@
         <div class="bg-emerald-50 rounded-lg p-4">
           <p class="font-medium text-emerald-800 mb-2">Ma'lumotlarni himoya qilish bo'yicha mas'ul:</p>
           <p><strong>Email:</strong> privacy@biznespilot.uz</p>
-          <p><strong>Telefon:</strong> +998 71 200 00 00</p>
+          <p><strong>Telefon:</strong> +998 50 504 86 68</p>
           <p><strong>Manzil:</strong> Toshkent shahri, O'zbekiston</p>
           <p class="mt-2 text-emerald-700 text-xs">
             So'rovlar 30 ish kuni ichida ko'rib chiqiladi va javob beriladi.

@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -128,10 +129,23 @@ return new class extends Migration
         });
 
         // Migrate existing data: populate year and week_number from week_start
-        DB::table('weekly_plans')->whereNull('year')->update([
-            'year' => DB::raw('YEAR(week_start)'),
-            'week_number' => DB::raw('WEEK(week_start, 1)'),
-        ]);
+        // Using PHP Carbon instead of raw SQL for SQLite/MySQL compatibility
+        $plans = DB::table('weekly_plans')
+            ->whereNull('year')
+            ->whereNotNull('week_start')
+            ->get(['id', 'week_start']);
+
+        foreach ($plans as $plan) {
+            if ($plan->week_start) {
+                $date = Carbon::parse($plan->week_start);
+                DB::table('weekly_plans')
+                    ->where('id', $plan->id)
+                    ->update([
+                        'year' => $date->year,
+                        'week_number' => $date->weekOfYear,
+                    ]);
+            }
+        }
     }
 
     /**

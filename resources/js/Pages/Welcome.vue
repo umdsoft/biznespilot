@@ -682,7 +682,7 @@
             <h4 class="font-semibold mb-4">{{ t('welcome.footer.contact') }}</h4>
             <ul class="space-y-2 text-gray-400 text-sm">
               <li>support@biznespilot.uz</li>
-              <li>+998 71 200 00 00</li>
+              <li>+998 50 504 86 68</li>
               <li>{{ t('welcome.footer.location') }}</li>
             </ul>
           </div>

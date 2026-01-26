@@ -50,7 +50,6 @@
           </div>
           <div>
             <p class="font-semibold text-white text-sm">{{ currentTestimonial.name }}</p>
-            <p class="text-white/70 text-xs">{{ currentTestimonial.position }}</p>
           </div>
         </div>
 
@@ -123,7 +122,6 @@ const testimonials = [
   {
     id: 1,
     name: 'Aziz Karimov',
-    position: 'TechStart CEO',
     avatar: 'AK',
     text: 'BiznesPilot AI bizning sotuvlarimizni 3 oyda 40% ga oshirdi! AI tahlillari juda aniq va foydali.',
     rating: 5,
@@ -132,7 +130,6 @@ const testimonials = [
   {
     id: 2,
     name: 'Malika Rahimova',
-    position: 'FashionUz asoschisi',
     avatar: 'MR',
     text: 'Instagram avtomatizatsiyasi orqali kuniga 50+ mijoz bilan bog\'lanishni yo\'lga qo\'ydik. Vaqtni tejash ajoyib!',
     rating: 5,
@@ -141,7 +138,6 @@ const testimonials = [
   {
     id: 3,
     name: 'Bobur Toshmatov',
-    position: 'FoodDelivery.uz direktor',
     avatar: 'BT',
     text: 'CRM tizimi orqali mijozlarni boshqarish ancha osonlashdi. Hozir har bir mijozni kuzatib boramiz.',
     rating: 5,
@@ -150,7 +146,6 @@ const testimonials = [
   {
     id: 4,
     name: 'Dilnoza Azimova',
-    position: 'BeautyStudio egasi',
     avatar: 'DA',
     text: 'AI chatbot mijozlarimga 24/7 javob beradi. Men endi faqat muhim ishlar bilan shug\'ullanaman.',
     rating: 5,
@@ -159,7 +154,6 @@ const testimonials = [
   {
     id: 5,
     name: 'Jasur Alimov',
-    position: 'AutoParts.uz menejeri',
     avatar: 'JA',
     text: 'Raqobatchilar tahlili funksiyasi juda foydali. Bozordagi o\'zgarishlarni darhol ko\'rib turamiz.',
     rating: 4,
@@ -168,7 +162,6 @@ const testimonials = [
   {
     id: 6,
     name: 'Nodira Umarova',
-    position: 'EduCenter rahbari',
     avatar: 'NU',
     text: 'Marketing kampaniyalarini rejalashtirish endi juda oson. AI tavsiyalari doim to\'g\'ri chiqadi!',
     rating: 5,
@@ -177,7 +170,6 @@ const testimonials = [
   {
     id: 7,
     name: 'Sherzod Qodirov',
-    position: 'BuildMart asoschisi',
     avatar: 'ShQ',
     text: 'Hisobotlar va tahlillar real vaqtda ko\'rinadi. Endi qarorlarni ma\'lumotlarga asoslanib qabul qilamiz.',
     rating: 5,
@@ -185,26 +177,15 @@ const testimonials = [
   },
   {
     id: 8,
-    name: 'Gulnora Karimova',
-    position: 'TravelUz marketing menejeri',
-    avatar: 'GK',
-    text: 'Ideal Mijoz funksiyasi bizga to\'g\'ri auditoriyani topishda juda yordam berdi. Targetlash aniqroq bo\'ldi.',
-    rating: 5,
-    metric: 'Konversiya 45% oshdi',
-  },
-  {
-    id: 9,
     name: 'Anvar Rahmonov',
-    position: 'MediPlus klinikasi egasi',
     avatar: 'AR',
     text: 'Telegram bot orqali bemorlar bilan aloqa o\'rnatish juda qulay. Navbatga yozilish avtomatlashtirildi.',
     rating: 5,
     metric: 'Navbat samaradorligi 70% oshdi',
   },
   {
-    id: 10,
+    id: 9,
     name: 'Kamola Sodiqova',
-    position: 'HandMade.uz asoschisi',
     avatar: 'KS',
     text: 'Kichik biznes uchun ideal platforma! Narxi hamyonbop, funksiyalari esa professional darajada.',
     rating: 5,

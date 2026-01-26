@@ -22,8 +22,8 @@
     {{-- Benefits Section --}}
     @include('landing.partials.benefits')
 
-    {{-- Testimonials Section --}}
-    @include('landing.partials.testimonials')
+    {{-- Pricing Section --}}
+    @include('landing.partials.pricing')
 
     {{-- FAQ Section --}}
     @include('landing.partials.faq')

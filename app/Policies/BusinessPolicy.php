@@ -47,7 +47,7 @@ class BusinessPolicy
     public function delete(User $user, Business $business): bool
     {
         // Only business owner can delete
-        return $business->owner_id === $user->id;
+        return $business->user_id === $user->id;
     }
 
     /**
@@ -88,7 +88,7 @@ class BusinessPolicy
     public function manageSubscription(User $user, Business $business): bool
     {
         // Only owner can manage subscription
-        return $business->owner_id === $user->id;
+        return $business->user_id === $user->id;
     }
 
     /**
@@ -96,7 +96,7 @@ class BusinessPolicy
      */
     private function isOwnerOrAdmin(User $user, Business $business): bool
     {
-        if ($business->owner_id === $user->id) {
+        if ($business->user_id === $user->id) {
             return true;
         }
 

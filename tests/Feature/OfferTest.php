@@ -22,7 +22,7 @@ class OfferTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->business = Business::factory()->create(['user_id' => $this->user->id]);
-        $this->user->businesses()->attach($this->business->id, ['role' => 'owner']);
+        $this->user->teamBusinesses()->attach($this->business->id, ['role' => 'owner']);
     }
 
     /**
@@ -196,13 +196,17 @@ class OfferTest extends TestCase
         $offer = Offer::factory()->forBusiness($this->business)->create();
         $lead = Lead::factory()->forBusiness($this->business)->create();
 
-        $offer->leads()->attach($lead->id, [
+        // Use OfferLeadAssignment model directly to ensure UUID is generated
+        \App\Models\OfferLeadAssignment::create([
+            'offer_id' => $offer->id,
+            'lead_id' => $lead->id,
+            'business_id' => $this->business->id,
             'status' => 'sent',
             'channel' => 'telegram',
             'sent_at' => now(),
-            'tracking_code' => 'TEST123',
         ]);
 
+        $offer->refresh();
         $this->assertCount(1, $offer->leads);
         $this->assertEquals($lead->id, $offer->leads->first()->id);
     }

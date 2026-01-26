@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Business;
 use App\Models\KpiDailyActual;
+use App\Models\KpiDefinition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,7 +22,35 @@ class KpiTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->business = Business::factory()->create(['user_id' => $this->user->id]);
-        $this->user->businesses()->attach($this->business->id, ['role' => 'owner']);
+        $this->user->teamBusinesses()->attach($this->business->id, ['role' => 'owner']);
+
+        // Create KPI definitions required for foreign key constraints
+        KpiDefinition::create([
+            'category' => 'sales',
+            'kpi_code' => 'leads_count',
+            'kpi_name' => 'Leads Count',
+            'kpi_name_uz' => 'Lidlar soni',
+            'default_unit' => 'dona',
+            'is_active' => true,
+        ]);
+
+        KpiDefinition::create([
+            'category' => 'sales',
+            'kpi_code' => 'sales_count',
+            'kpi_name' => 'Sales Count',
+            'kpi_name_uz' => 'Sotuvlar soni',
+            'default_unit' => 'dona',
+            'is_active' => true,
+        ]);
+
+        KpiDefinition::create([
+            'category' => 'marketing',
+            'kpi_code' => 'conversion_rate',
+            'kpi_name' => 'Conversion Rate',
+            'kpi_name_uz' => 'Konversiya darajasi',
+            'default_unit' => '%',
+            'is_active' => true,
+        ]);
     }
 
     /**
@@ -35,7 +64,9 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         $this->assertNotNull($kpi->id);
@@ -54,14 +85,18 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 150,
             'actual_value' => 100,
+            'unit' => 'dona',
         ]);
 
         KpiDailyActual::create([
             'business_id' => $business2->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 250,
             'actual_value' => 200,
+            'unit' => 'dona',
         ]);
 
         session(['current_business_id' => $this->business->id]);
@@ -82,17 +117,21 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         KpiDailyActual::create([
             'business_id' => $this->business->id,
             'kpi_code' => 'sales_count',
             'date' => now()->toDateString(),
+            'planned_value' => 20,
             'actual_value' => 10,
+            'unit' => 'dona',
         ]);
 
-        $kpis = KpiDailyActual::where('date', now()->toDateString())->get();
+        $kpis = KpiDailyActual::whereDate('date', now()->toDateString())->get();
         $this->assertCount(2, $kpis);
     }
 
@@ -107,17 +146,21 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         KpiDailyActual::create([
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->subDays(7)->toDateString(),
+            'planned_value' => 60,
             'actual_value' => 30,
+            'unit' => 'dona',
         ]);
 
-        $todayKpis = KpiDailyActual::where('date', now()->toDateString())->get();
+        $todayKpis = KpiDailyActual::whereDate('date', now()->toDateString())->get();
         $this->assertCount(1, $todayKpis);
         $this->assertEquals(50, $todayKpis->first()->actual_value);
     }
@@ -133,7 +176,9 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'conversion_rate',
             'date' => now()->toDateString(),
+            'planned_value' => 30.00,
             'actual_value' => 25.75,
+            'unit' => '%',
         ]);
 
         $this->assertEquals(25.75, $kpi->actual_value);
@@ -148,7 +193,9 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         $this->assertEquals($this->business->id, $kpi->business_id);
@@ -165,7 +212,9 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         $kpi->update(['actual_value' => 75]);
@@ -184,13 +233,16 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         $kpiId = $kpi->id;
         $kpi->delete();
 
-        $this->assertDatabaseMissing('kpi_daily_actuals', ['id' => $kpiId]);
+        // KpiDailyActual uses SoftDeletes, so check for soft deleted
+        $this->assertSoftDeleted('kpi_daily_actuals', ['id' => $kpiId]);
     }
 
     /**
@@ -204,14 +256,18 @@ class KpiTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 100,
             'actual_value' => 50,
+            'unit' => 'dona',
         ]);
 
         KpiDailyActual::create([
             'business_id' => $this->business->id,
             'kpi_code' => 'sales_count',
             'date' => now()->toDateString(),
+            'planned_value' => 20,
             'actual_value' => 10,
+            'unit' => 'dona',
         ]);
 
         $leadsKpis = KpiDailyActual::where('kpi_code', 'leads_count')->get();

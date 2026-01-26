@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Business;
 use App\Models\GeneratedReport;
 use App\Models\KpiDailyActual;
+use App\Models\KpiDefinition;
 use App\Models\Lead;
 use App\Models\Offer;
 use App\Models\User;
@@ -35,11 +36,21 @@ class PolicyTest extends TestCase
         $this->business = Business::factory()->create(['user_id' => $this->owner->id]);
         $this->otherBusiness = Business::factory()->create(['user_id' => $this->otherUser->id]);
 
-        $this->owner->businesses()->attach($this->business->id, ['role' => 'owner']);
-        $this->otherUser->businesses()->attach($this->otherBusiness->id, ['role' => 'owner']);
+        $this->owner->teamBusinesses()->attach($this->business->id, ['role' => 'owner']);
+        $this->otherUser->teamBusinesses()->attach($this->otherBusiness->id, ['role' => 'owner']);
 
         // Set current business for owner
         $this->owner->setRelation('currentBusiness', $this->business);
+
+        // Create KPI definition for foreign key constraints
+        KpiDefinition::create([
+            'category' => 'sales',
+            'kpi_code' => 'leads_count',
+            'kpi_name' => 'Leads Count',
+            'kpi_name_uz' => 'Lidlar soni',
+            'default_unit' => 'dona',
+            'is_active' => true,
+        ]);
     }
 
     // ===========================================
@@ -122,13 +133,15 @@ class PolicyTest extends TestCase
     }
 
     /**
-     * Test user can export leads.
+     * Test export requires admin/manager role.
      */
     public function test_lead_policy_export(): void
     {
         $policy = new LeadPolicy();
 
-        $this->assertTrue($policy->export($this->owner));
+        // Export requires admin, sales_head, or manager role
+        // Regular user without role cannot export
+        $this->assertFalse($policy->export($this->owner));
     }
 
     // ===========================================
@@ -245,7 +258,9 @@ class PolicyTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 150,
             'actual_value' => 100,
+            'unit' => 'dona',
         ]);
 
         $this->assertTrue($policy->view($this->owner, $kpi));
@@ -261,7 +276,9 @@ class PolicyTest extends TestCase
             'business_id' => $this->otherBusiness->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 150,
             'actual_value' => 100,
+            'unit' => 'dona',
         ]);
 
         $this->assertFalse($policy->view($this->owner, $kpi));
@@ -287,7 +304,9 @@ class PolicyTest extends TestCase
             'business_id' => $this->business->id,
             'kpi_code' => 'leads_count',
             'date' => now()->toDateString(),
+            'planned_value' => 150,
             'actual_value' => 100,
+            'unit' => 'dona',
         ]);
 
         $this->assertTrue($policy->update($this->owner, $kpi));

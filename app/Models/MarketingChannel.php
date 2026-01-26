@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MarketingChannel extends Model
 {
-    use BelongsToBusiness, HasUuid, SoftDeletes;
+    use BelongsToBusiness, HasFactory, HasUuid, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -22,15 +23,14 @@ class MarketingChannel extends Model
         'name',
         'type',
         'platform',
-        'platform_account_id',
-        'access_token',
-        'refresh_token',
-        'token_expires_at',
         'description',
+        'monthly_budget',
+        'api_key',
+        'api_secret',
+        'access_token',
+        'account_id',
+        'settings',
         'is_active',
-        'last_synced_at',
-        'config',
-        'metrics',
     ];
 
     /**
@@ -40,10 +40,8 @@ class MarketingChannel extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
-        'config' => 'array',
-        'metrics' => 'array',
-        'token_expires_at' => 'datetime',
-        'last_synced_at' => 'datetime',
+        'settings' => 'array',
+        'monthly_budget' => 'decimal:2',
     ];
 
     /**

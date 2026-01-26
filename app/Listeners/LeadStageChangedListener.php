@@ -7,6 +7,7 @@ use App\Jobs\Sales\UpdateUserKpiSnapshotJob;
 use App\Services\Sales\AchievementService;
 use App\Services\Sales\LeaderboardService;
 use App\Services\Sales\LostOpportunityService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
@@ -56,7 +57,7 @@ class LeadStageChangedListener implements ShouldQueue
                 UpdateUserKpiSnapshotJob::dispatch(
                     $lead->business_id,
                     $lead->assigned_to,
-                    'leads_converted'
+                    Carbon::now()
                 );
             } catch (\Exception $e) {
                 Log::error('LeadStageChangedListener: Failed to dispatch KPI job', [
@@ -137,7 +138,7 @@ class LeadStageChangedListener implements ShouldQueue
                     UpdateUserKpiSnapshotJob::dispatch(
                         $lead->business_id,
                         $lead->assigned_to,
-                        'leads_lost'
+                        Carbon::now()
                     );
                 } catch (\Exception $e) {
                     Log::error('LeadStageChangedListener: Failed to dispatch lost KPI job', [

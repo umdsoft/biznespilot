@@ -26,6 +26,7 @@ class InstagramConversation extends Model
         'last_message_at',
         'is_bot_active',
         'needs_human',
+        'profile_synced_at', // User Profile Sync timestamp
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class InstagramConversation extends Model
         'last_message_at' => 'datetime',
         'is_bot_active' => 'boolean',
         'needs_human' => 'boolean',
+        'profile_synced_at' => 'datetime',
     ];
 
     // Status constants
@@ -148,5 +150,13 @@ class InstagramConversation extends Model
     public function getDisplayNameAttribute(): string
     {
         return $this->participant_name ?? $this->participant_username ?? 'Foydalanuvchi';
+    }
+
+    /**
+     * Get business_id through the Instagram Account relationship.
+     */
+    public function getBusinessIdAttribute(): ?string
+    {
+        return $this->instagramAccount?->business_id;
     }
 }

@@ -194,7 +194,7 @@
           <p><strong>Kompaniya:</strong> BiznesPilot AI</p>
           <p><strong>Manzil:</strong> Toshkent shahri, O'zbekiston</p>
           <p><strong>Email:</strong> support@biznespilot.uz</p>
-          <p><strong>Telefon:</strong> +998 71 200 00 00</p>
+          <p><strong>Telefon:</strong> +998 50 504 86 68</p>
           <p><strong>Ish vaqti:</strong> Dushanba - Juma, 09:00 - 18:00</p>
         </div>
       </section>

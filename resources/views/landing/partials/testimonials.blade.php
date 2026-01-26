@@ -106,7 +106,6 @@
                                 </div>
                                 <div class="ml-4">
                                     <div class="font-bold text-gray-900">{{ $testimonial['author'] }}</div>
-                                    <div class="text-sm text-gray-500">{{ $testimonial['role'] }}</div>
                                 </div>
                             </div>
 

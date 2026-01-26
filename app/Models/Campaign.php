@@ -4,34 +4,36 @@ namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Campaign extends Model
 {
-    use BelongsToBusiness, HasUuid;
+    use BelongsToBusiness, HasFactory, HasUuid;
 
     protected $fillable = [
         'business_id',
+        'channel_id',
         'name',
-        'type', // broadcast, drip, trigger
-        'channel', // whatsapp, instagram, all
-        'message_template',
-        'target_audience',
-        'schedule_type', // immediate, scheduled
-        'scheduled_at',
+        'type', // broadcast, drip, trigger, email, social
+        'description',
         'status', // draft, active, paused, completed
+        'budget',
+        'starts_at',
+        'ends_at',
+        'target_audience',
         'settings',
-        'sent_count',
-        'failed_count',
-        'completed_at',
+        'metrics',
     ];
 
     protected $casts = [
         'settings' => 'array',
         'target_audience' => 'array',
-        'scheduled_at' => 'datetime',
-        'completed_at' => 'datetime',
+        'metrics' => 'array',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'budget' => 'decimal:2',
     ];
 
     public function messages(): HasMany

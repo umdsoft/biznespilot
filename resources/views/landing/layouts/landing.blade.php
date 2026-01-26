@@ -99,6 +99,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Alpine.js for interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Tailwind CSS via CDN -->
@@ -150,6 +151,9 @@
 
     <!-- Custom Styles -->
     <style>
+        /* Hide Alpine.js elements before initialization */
+        [x-cloak] { display: none !important; }
+
         /* Smooth scrolling */
         html {
             scroll-behavior: smooth;
@@ -309,14 +313,14 @@
                 "contactPoint": [
                     {
                         "@@type": "ContactPoint",
-                        "telephone": "+998-XX-XXX-XX-XX",
+                        "telephone": "+998505048668",
                         "contactType": "customer service",
                         "availableLanguage": ["Uzbek", "Russian", "English"],
                         "areaServed": "UZ"
                     },
                     {
                         "@@type": "ContactPoint",
-                        "telephone": "+998-XX-XXX-XX-XX",
+                        "telephone": "+998505048668",
                         "contactType": "sales",
                         "availableLanguage": ["Uzbek", "Russian"],
                         "areaServed": "UZ"
@@ -482,16 +486,26 @@
             window.location.href = '/lang/' + locale;
         }
 
-        // Smooth scroll for anchor links
+        // Smooth scroll for anchor links with header offset
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+                    const headerOffset = 100; // Fixed header height + padding
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
                     });
+
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                        mobileMenu.classList.remove('active');
+                    }
                 }
             });
         });

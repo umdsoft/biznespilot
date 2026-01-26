@@ -24,6 +24,13 @@ class Plan extends Model
         'team_member_limit',
         'lead_limit',
         'chatbot_channel_limit',
+        'telegram_bot_limit',
+        'has_instagram',
+        'audio_minutes_limit',
+        'ai_requests_limit',
+        'storage_limit_mb',
+        'instagram_dm_limit',
+        'content_posts_limit',
         'has_amocrm',
         'features',
         'description',
@@ -37,6 +44,7 @@ class Plan extends Model
      */
     protected $casts = [
         'has_amocrm' => 'boolean',
+        'has_instagram' => 'boolean',
         'features' => 'array',
         'is_active' => 'boolean',
         'price_monthly' => 'decimal:2',

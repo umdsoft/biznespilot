@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class ContentCalendar extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuid;
 
     protected $table = 'content_calendar';
 
@@ -20,12 +22,14 @@ class ContentCalendar extends Model
         'monthly_plan_id',
         'title',
         'description',
+        'content',
         'content_text',
         'media_urls',
         'hashtags',
         'content_type',
         'format',
         'channel',
+        'platform',
         'channel_account',
         'scheduled_date',
         'scheduled_time',
@@ -150,6 +154,63 @@ class ContentCalendar extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Instagram Content Link - real Instagram post statistikasi
+     */
+    public function instagramContentLink(): HasOne
+    {
+        return $this->hasOne(InstagramContentLink::class, 'content_calendar_id');
+    }
+
+    /**
+     * Check if post is linked to Instagram
+     */
+    public function hasInstagramLink(): bool
+    {
+        return $this->instagramContentLink()->exists();
+    }
+
+    /**
+     * Get Instagram stats (from linked post or fallback to local)
+     */
+    public function getInstagramStatsAttribute(): array
+    {
+        $link = $this->instagramContentLink;
+
+        if ($link) {
+            return [
+                'has_link' => true,
+                'views' => $link->views,
+                'likes' => $link->likes,
+                'comments' => $link->comments,
+                'shares' => $link->shares,
+                'saves' => $link->saves,
+                'reach' => $link->reach,
+                'engagement_rate' => $link->engagement_rate,
+                'is_top_performer' => $link->is_top_performer,
+                'performance_score' => $link->performance_score,
+                'permalink' => $link->permalink,
+                'last_synced_at' => $link->last_synced_at?->diffForHumans(),
+            ];
+        }
+
+        // Fallback to local stats
+        return [
+            'has_link' => false,
+            'views' => $this->views,
+            'likes' => $this->likes,
+            'comments' => $this->comments,
+            'shares' => $this->shares,
+            'saves' => $this->saves,
+            'reach' => $this->reach,
+            'engagement_rate' => $this->engagement_rate,
+            'is_top_performer' => false,
+            'performance_score' => 0,
+            'permalink' => $this->post_url,
+            'last_synced_at' => null,
+        ];
     }
 
     // Scopes

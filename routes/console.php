@@ -527,6 +527,35 @@ Schedule::job(new \App\Jobs\System\DataCleanupJob)
     ->onOneServer();
 
 // ==========================================
+// TOKEN HEALTH MONITOR (Self-Healing System)
+// ==========================================
+
+// Token Health Check - Har kuni tunda 03:00 da
+// Barcha Facebook/Instagram tokenlarni tekshiradi
+// Eskirayotganlarni avtomatik yangilaydi (7 kundan kam qolsa)
+// Muammoli tokenlar uchun adminni Telegram orqali ogohlantiradi
+Schedule::job(new \App\Jobs\CheckAllTokensJob)
+    ->dailyAt('03:00')
+    ->timezone('Asia/Tashkent')
+    ->name('token-health-check')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// ==========================================
+// INSTAGRAM CONTENT PERFORMANCE SYNC
+// ==========================================
+
+// Instagram Content Performance Sync - Har 6 soatda
+// Instagram postlar statistikalarini sinxronlaydi (reach, engagement, saves)
+// Top performerlarni aniqlaydi va content calendar bilan bog'laydi
+Schedule::job(new \App\Jobs\SyncContentPerformanceJob)
+    ->everySixHours()
+    ->timezone('Asia/Tashkent')
+    ->name('sync-content-performance')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// ==========================================
 // HR ENGAGEMENT & RETENTION SCHEDULED JOBS
 // ==========================================
 
@@ -665,51 +694,47 @@ Schedule::job(new \App\Jobs\CheckStagnantTasksJob)
 // ==========================================
 // TRENDSEE - VIRAL CONTENT HUNTER JOBS
 // ==========================================
+// [MVP] DISABLED - Viral module removed from MVP scope
+// API instability and complexity issues. Focus on CRM & Finance.
 
-// Viral Content Hunt - Har hafta dushanba 09:00 da
-// Instagram dan viral reelslarni qidiradi va AI bilan tahlil qiladi
-// RapidAPI (RocketAPI) dan foydalanadi - xarajatni kamaytirish uchun haftalik
-Schedule::job(new \App\Jobs\ViralHunterJob)
-    ->weeklyOn(1, '09:00') // Monday at 9:00 AM
-    ->timezone('Asia/Tashkent')
-    ->name('trendsee-viral-hunt')
-    ->onOneServer();
+// // Viral Content Hunt - Har hafta dushanba 09:00 da
+// // Instagram dan viral reelslarni qidiradi va AI bilan tahlil qiladi
+// Schedule::job(new \App\Jobs\ViralHunterJob)
+//     ->weeklyOn(1, '09:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('trendsee-viral-hunt')
+//     ->onOneServer();
 
-// Analyze Pending Viral Content - Har kuni 10:00 da
-// AI tahlilini kutayotgan viral kontentlarni tahlil qiladi
-Schedule::call(function () {
-    $pendingContents = \App\Models\ViralContent::unprocessed()
-        ->orderBy('play_count', 'desc')
-        ->limit(20)
-        ->get();
-
-    foreach ($pendingContents as $content) {
-        \App\Jobs\AnalyzeViralContentJob::dispatch($content->id)
-            ->onQueue('low');
-    }
-})->dailyAt('10:00')
-    ->timezone('Asia/Tashkent')
-    ->name('trendsee-analyze-pending')
-    ->onOneServer();
+// // Analyze Pending Viral Content - Har kuni 10:00 da
+// Schedule::call(function () {
+//     $pendingContents = \App\Models\ViralContent::unprocessed()
+//         ->orderBy('play_count', 'desc')
+//         ->limit(20)
+//         ->get();
+//     foreach ($pendingContents as $content) {
+//         \App\Jobs\AnalyzeViralContentJob::dispatch($content->id)
+//             ->onQueue('low');
+//     }
+// })->dailyAt('10:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('trendsee-analyze-pending')
+//     ->onOneServer();
 
 // ==========================================
 // TRENDSEE - HYBRID INTELLIGENCE ENGINE JOBS
 // ==========================================
+// [MVP] DISABLED - Focus on core CRM features
 
-// Fetch Global Trends - Har hafta yakshanba 06:00 da
-// Google Trends va boshqa manbalardan search trendlarni yuklab oladi
-// "Fetch Once, Serve Many" arxitekturasi - barcha foydalanuvchilar uchun
-Schedule::job(new \App\Jobs\FetchTrendsJob('UZ', 'google'))
-    ->weeklyOn(0, '06:00') // Sunday at 6:00 AM
-    ->timezone('Asia/Tashkent')
-    ->name('trendsee-fetch-trends')
-    ->onOneServer();
+// // Fetch Global Trends - Har hafta yakshanba 06:00 da
+// Schedule::job(new \App\Jobs\FetchTrendsJob('UZ', 'google'))
+//     ->weeklyOn(0, '06:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('trendsee-fetch-trends')
+//     ->onOneServer();
 
-// Refresh Competitor Data - Har hafta seshanba 03:00 da
-// Eskirgan raqobatchi ma'lumotlarini yangilaydi
-// Hybrid Logic: Internal -> Orders/Leads dan (bepul), External -> RapidAPI dan (pullik)
-Schedule::job(new \App\Jobs\RefreshCompetitorsJob(20))
-    ->weeklyOn(2, '03:00') // Tuesday at 3:00 AM
-    ->timezone('Asia/Tashkent')
-    ->name('trendsee-refresh-competitors')
-    ->onOneServer();
+// // Refresh Competitor Data - Har hafta seshanba 03:00 da
+// Schedule::job(new \App\Jobs\RefreshCompetitorsJob(20))
+//     ->weeklyOn(2, '03:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('trendsee-refresh-competitors')
+//     ->onOneServer();

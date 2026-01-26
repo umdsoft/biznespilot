@@ -9,11 +9,14 @@ use App\Models\User;
 use App\Models\WeeklyAnalytics;
 use App\Services\WeeklyAnalyticsService;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class WeeklyAnalyticsTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected User $user;
     protected Business $business;
     protected WeeklyAnalyticsService $service;
@@ -22,9 +25,10 @@ class WeeklyAnalyticsTest extends TestCase
     {
         parent::setUp();
 
-        // Use existing database - don't refresh
-        $this->user = User::first() ?? User::factory()->create();
-        $this->business = Business::first() ?? Business::factory()->create(['user_id' => $this->user->id]);
+        // Create test user and business using factories
+        $this->user = User::factory()->create();
+        $this->business = Business::factory()->create(['user_id' => $this->user->id]);
+        $this->user->teamBusinesses()->attach($this->business->id, ['role' => 'owner']);
         $this->service = app(WeeklyAnalyticsService::class);
     }
 

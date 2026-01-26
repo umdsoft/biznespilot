@@ -22,7 +22,7 @@ class PipelineTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->business = Business::factory()->create(['user_id' => $this->user->id]);
-        $this->user->businesses()->attach($this->business->id, ['role' => 'owner']);
+        $this->user->teamBusinesses()->attach($this->business->id, ['role' => 'owner']);
     }
 
     /**
@@ -59,11 +59,18 @@ class PipelineTest extends TestCase
 
     /**
      * Test won stage status.
+     * Note: Business auto-creates default stages including 'won', so we verify the existing one.
      */
     public function test_pipeline_stage_won_status(): void
     {
-        $stage = PipelineStage::factory()->won()->forBusiness($this->business)->create();
+        session(['current_business_id' => $this->business->id]);
 
+        // Get the auto-created 'won' stage
+        $stage = PipelineStage::where('business_id', $this->business->id)
+            ->where('slug', 'won')
+            ->first();
+
+        $this->assertNotNull($stage, 'Default won stage should exist');
         $this->assertTrue($stage->is_won);
         $this->assertFalse($stage->is_lost);
         $this->assertEquals('won', $stage->slug);
@@ -71,11 +78,18 @@ class PipelineTest extends TestCase
 
     /**
      * Test lost stage status.
+     * Note: Business auto-creates default stages including 'lost', so we verify the existing one.
      */
     public function test_pipeline_stage_lost_status(): void
     {
-        $stage = PipelineStage::factory()->lost()->forBusiness($this->business)->create();
+        session(['current_business_id' => $this->business->id]);
 
+        // Get the auto-created 'lost' stage
+        $stage = PipelineStage::where('business_id', $this->business->id)
+            ->where('slug', 'lost')
+            ->first();
+
+        $this->assertNotNull($stage, 'Default lost stage should exist');
         $this->assertTrue($stage->is_lost);
         $this->assertFalse($stage->is_won);
         $this->assertEquals('lost', $stage->slug);
@@ -83,27 +97,35 @@ class PipelineTest extends TestCase
 
     /**
      * Test pipeline stages are isolated by business.
+     * Note: Business auto-creates 3 default stages (new, won, lost).
      */
     public function test_pipeline_stages_are_isolated_by_business(): void
     {
         $business2 = Business::factory()->create();
 
-        PipelineStage::factory()->forBusiness($this->business)->create(['name' => 'Stage 1']);
-        PipelineStage::factory()->forBusiness($business2)->create(['name' => 'Stage 2']);
+        PipelineStage::factory()->forBusiness($this->business)->create(['name' => 'Stage 1', 'slug' => 'stage-1']);
+        PipelineStage::factory()->forBusiness($business2)->create(['name' => 'Stage 2', 'slug' => 'stage-2']);
 
         session(['current_business_id' => $this->business->id]);
         $stages = PipelineStage::all();
 
-        $this->assertCount(1, $stages);
-        $this->assertEquals('Stage 1', $stages->first()->name);
+        // 3 default stages + 1 custom = 4 for this business
+        $this->assertCount(4, $stages);
+        $this->assertTrue($stages->contains('name', 'Stage 1'));
+        $this->assertFalse($stages->contains('name', 'Stage 2'));
     }
 
     /**
      * Test pipeline stage ordering.
+     * Note: Business auto-creates 3 default stages with order 1, 100, 101.
+     * We test ordering with custom stages in the middle range.
      */
     public function test_pipeline_stage_ordering(): void
     {
         session(['current_business_id' => $this->business->id]);
+
+        // Delete default stages to test pure ordering
+        PipelineStage::where('business_id', $this->business->id)->delete();
 
         PipelineStage::create([
             'business_id' => $this->business->id,
@@ -135,17 +157,18 @@ class PipelineTest extends TestCase
 
     /**
      * Test lead can be linked to pipeline stage.
+     * Note: Business auto-creates a 'new' stage by default.
      */
     public function test_lead_linked_to_pipeline_stage(): void
     {
         session(['current_business_id' => $this->business->id]);
 
-        $stage = PipelineStage::create([
-            'business_id' => $this->business->id,
-            'name' => 'New',
-            'slug' => 'new',
-            'order' => 1,
-        ]);
+        // Get the auto-created 'new' stage
+        $stage = PipelineStage::where('business_id', $this->business->id)
+            ->where('slug', 'new')
+            ->first();
+
+        $this->assertNotNull($stage, 'Default new stage should exist');
 
         $lead = Lead::factory()->forBusiness($this->business)->create([
             'status' => 'new',

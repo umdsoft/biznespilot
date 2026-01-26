@@ -332,6 +332,12 @@ class Lead extends Model
         // Cost attribution
         'acquisition_cost',
         'acquisition_source_type',
+        // Instagram Chatbot fields
+        'instagram_conversation_id',
+        'chatbot_source_type',
+        'chatbot_detected_intent',
+        'chatbot_first_message',
+        'chatbot_data',
     ];
 
     /**
@@ -352,6 +358,7 @@ class Lead extends Model
         'qualified_at' => 'datetime',
         'first_touch_at' => 'datetime',
         'acquisition_cost' => 'decimal:2',
+        'chatbot_data' => 'array',
     ];
 
     /**
@@ -621,6 +628,91 @@ class Lead extends Model
     public function hasTelegram(): bool
     {
         return $this->telegramUser()->exists();
+    }
+
+    // ==========================================
+    // INSTAGRAM CHATBOT RELATIONSHIPS & METHODS
+    // ==========================================
+
+    /**
+     * Instagram conversation bog'lanishi
+     */
+    public function instagramConversation(): BelongsTo
+    {
+        return $this->belongsTo(InstagramConversation::class);
+    }
+
+    /**
+     * Check if lead came from Instagram chatbot
+     */
+    public function isFromInstagramChatbot(): bool
+    {
+        return $this->instagram_conversation_id !== null;
+    }
+
+    /**
+     * Check if lead came from chatbot (any type)
+     */
+    public function isFromChatbot(): bool
+    {
+        return $this->chatbot_source_type !== null;
+    }
+
+    /**
+     * Get chatbot source label
+     */
+    public function getChatbotSourceLabelAttribute(): ?string
+    {
+        $labels = [
+            'dm' => 'Instagram DM',
+            'comment' => 'Instagram Izoh',
+            'story_reply' => 'Story Javob',
+            'story_mention' => 'Story Eslatma',
+        ];
+
+        return $labels[$this->chatbot_source_type] ?? $this->chatbot_source_type;
+    }
+
+    /**
+     * Get chatbot intent label
+     */
+    public function getChatbotIntentLabelAttribute(): ?string
+    {
+        $labels = [
+            'order' => 'Buyurtma',
+            'complaint' => 'Shikoyat',
+            'consultation' => 'Konsultatsiya',
+            'price_inquiry' => 'Narx so\'rovi',
+            'human_handoff' => 'Operator so\'rovi',
+            'product_info' => 'Mahsulot haqida',
+            'delivery_status' => 'Yetkazish holati',
+        ];
+
+        return $labels[$this->chatbot_detected_intent] ?? $this->chatbot_detected_intent;
+    }
+
+    /**
+     * Scope: Leads from Instagram chatbot
+     */
+    public function scopeFromInstagramChatbot($query)
+    {
+        return $query->whereNotNull('instagram_conversation_id');
+    }
+
+    /**
+     * Scope: Leads by chatbot source type
+     */
+    public function scopeByChatbotSource($query, string $sourceType)
+    {
+        return $query->where('chatbot_source_type', $sourceType);
+    }
+
+    /**
+     * Scope: Leads by chatbot intent
+     */
+    public function scopeByChatbotIntent($query, string $intent)
+    {
+        return $query->where('chatbot_detected_intent', $intent);
     }
 
     /**

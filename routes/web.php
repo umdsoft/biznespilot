@@ -75,6 +75,7 @@ use Illuminate\Support\Facades\Route;
 // ==============================================
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
+Route::get('/pricing', [LandingController::class, 'pricing'])->name('pricing');
 
 // Privacy Policy, Terms & About (Public)
 Route::get('/privacy-policy', [LandingController::class, 'privacy'])->name('privacy-policy');
@@ -152,6 +153,11 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
         Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
         Route::post('/refresh', [TargetAnalysisController::class, 'refreshMeta'])->name('refresh');
         Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
+    });
+
+    // ==================== SOCIAL ACCOUNTS (Qat'iy Bitta Akkaunt) ====================
+    Route::prefix('social')->name('social.')->group(function () {
+        Route::get('/oauth/callback', [\App\Http\Controllers\SocialAccountController::class, 'handleCallback'])->name('oauth.callback');
     });
 
     // Meta API endpoints
@@ -846,6 +852,15 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
         // Instagram Integration
         Route::get('/instagram-ai', [SettingsController::class, 'instagramAI'])->name('instagram-ai');
+
+        // Social Accounts Integration (Qat'iy Bitta Akkaunt Tizimi)
+        Route::prefix('social')->name('social.')->group(function () {
+            Route::get('/check', [\App\Http\Controllers\SocialAccountController::class, 'checkExistingConnection'])->name('check');
+            Route::post('/initiate-oauth', [\App\Http\Controllers\SocialAccountController::class, 'initiateOAuth'])->name('initiate-oauth');
+            Route::get('/select-accounts', [\App\Http\Controllers\SocialAccountController::class, 'showAccountSelection'])->name('select-accounts');
+            Route::post('/save-accounts', [\App\Http\Controllers\SocialAccountController::class, 'saveSelectedAccounts'])->name('save-accounts');
+            Route::delete('/disconnect', [\App\Http\Controllers\SocialAccountController::class, 'disconnect'])->name('disconnect');
+        });
 
         // Analytics Settings (GA4, Facebook Pixel)
         Route::get('/analytics', [App\Http\Controllers\AnalyticsSettingsController::class, 'index'])->name('analytics');

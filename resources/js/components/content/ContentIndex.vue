@@ -309,11 +309,29 @@
                 </div>
                 <div v-for="post in selectedDayPosts" :key="post.id" class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800">
                     <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ post.title }}</h4>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ post.title }}</h4>
+                                <!-- Instagram link indicator -->
+                                <span v-if="post.has_instagram_link || post.instagram_link" class="inline-flex items-center">
+                                    <svg class="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
+                                    </svg>
+                                    <span v-if="isTopPerformer(post)" class="ml-1">🔥</span>
+                                </span>
+                            </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{{ post.content }}</p>
+                            <!-- Stats for published posts -->
+                            <div v-if="post.status === 'published' && hasStats(post)" class="flex items-center gap-3 mt-2 text-xs">
+                                <span v-if="getPostViews(post)" class="flex items-center text-gray-500">👁️ {{ formatNumber(getPostViews(post)) }}</span>
+                                <span v-if="getPostLikes(post)" class="flex items-center text-pink-500">❤️ {{ formatNumber(getPostLikes(post)) }}</span>
+                                <span v-if="getPostComments(post)" class="flex items-center text-blue-500">💬 {{ formatNumber(getPostComments(post)) }}</span>
+                                <span v-if="getEngagementRate(post) > 0" :class="getEngagementRateClass(post)">
+                                    ER: {{ getEngagementRate(post).toFixed(1) }}%
+                                </span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 ml-2">
                             <button @click="viewPost(post)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -416,14 +434,37 @@
                                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">-</span>
                             </td>
                             <td class="px-4 py-3">
-                                <div v-if="post.status === 'published' && hasStats(post)" class="flex items-center space-x-3 text-xs">
-                                    <span v-if="post.views" class="flex items-center text-gray-500 dark:text-gray-400">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        {{ formatNumber(post.views) }}
-                                    </span>
-                                    <span v-if="post.likes" class="flex items-center text-pink-500">{{ formatNumber(post.likes) }}</span>
+                                <div v-if="post.status === 'published' && hasStats(post)" class="space-y-1">
+                                    <!-- Instagram link badge -->
+                                    <div v-if="post.has_instagram_link || post.instagram_link" class="flex items-center gap-1 mb-1">
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 text-pink-700 dark:text-pink-300">
+                                            <svg class="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+                                            </svg>
+                                            Linked
+                                        </span>
+                                        <!-- Top performer badge -->
+                                        <span v-if="isTopPerformer(post)" class="text-orange-500" title="Top Performer">🔥</span>
+                                    </div>
+                                    <!-- Stats row -->
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <span v-if="getPostViews(post)" class="flex items-center text-gray-500 dark:text-gray-400" title="Ko'rishlar">
+                                            👁️ {{ formatNumber(getPostViews(post)) }}
+                                        </span>
+                                        <span v-if="getPostLikes(post)" class="flex items-center text-pink-500" title="Layklar">
+                                            ❤️ {{ formatNumber(getPostLikes(post)) }}
+                                        </span>
+                                        <span v-if="getPostComments(post)" class="flex items-center text-blue-500" title="Izohlar">
+                                            💬 {{ formatNumber(getPostComments(post)) }}
+                                        </span>
+                                    </div>
+                                    <!-- Engagement rate -->
+                                    <div v-if="getEngagementRate(post) > 0" class="flex items-center gap-1 text-[10px]">
+                                        <span class="text-gray-400">ER:</span>
+                                        <span :class="getEngagementRateClass(post)">
+                                            {{ getEngagementRate(post).toFixed(1) }}%
+                                        </span>
+                                    </div>
                                 </div>
                                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">-</span>
                             </td>
@@ -868,8 +909,32 @@ const getStatusDotClass = (status, post = null) => { if (post && isPostOverdue(p
 
 const formatDate = (dateStr) => { if (!dateStr) return ''; const date = new Date(dateStr); return date.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 const formatTime = (dateStr) => { if (!dateStr) return ''; const date = new Date(dateStr); return date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) }
-const hasStats = (post) => post.views || post.likes || post.comments || post.shares
+const hasStats = (post) => getPostViews(post) || getPostLikes(post) || getPostComments(post) || post.shares
 const formatNumber = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num?.toString() || '0' }
+
+// Instagram stats helpers
+const getPostViews = (post) => post.instagram_link?.views ?? post.views ?? 0
+const getPostLikes = (post) => post.instagram_link?.likes ?? post.likes ?? 0
+const getPostComments = (post) => post.instagram_link?.comments ?? post.comments ?? 0
+const getPostShares = (post) => post.instagram_link?.shares ?? post.shares ?? 0
+const getPostSaves = (post) => post.instagram_link?.saves ?? post.saves ?? 0
+const getEngagementRate = (post) => {
+    if (post.instagram_link?.engagement_rate) return parseFloat(post.instagram_link.engagement_rate)
+    if (post.engagement_rate) return parseFloat(post.engagement_rate)
+    return 0
+}
+const isTopPerformer = (post) => {
+    if (post.instagram_link?.is_top_performer) return true
+    if (post.is_top_performer) return true
+    return getEngagementRate(post) >= 5
+}
+const getEngagementRateClass = (post) => {
+    const rate = getEngagementRate(post)
+    if (rate >= 5) return 'text-emerald-600 dark:text-emerald-400 font-semibold'
+    if (rate >= 3) return 'text-blue-600 dark:text-blue-400'
+    if (rate >= 1) return 'text-gray-600 dark:text-gray-400'
+    return 'text-gray-400 dark:text-gray-500'
+}
 
 const openCreateModal = () => { postForm.value = { title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [] }; hashtagInput.value = ''; showCreateModal.value = true }
 const closeCreateModal = () => { showCreateModal.value = false }

@@ -25,7 +25,7 @@ class WeeklyAnalyticsService
 
         // Check if already exists
         $existing = WeeklyAnalytics::where('business_id', $business->id)
-            ->where('week_start', $weekStart->format('Y-m-d'))
+            ->whereDate('week_start', $weekStart->format('Y-m-d'))
             ->first();
 
         if ($existing) {

@@ -86,7 +86,12 @@ class KpiDailyActual extends Model
      */
     public function kpiTemplate()
     {
-        return $this->belongsTo(KpiTemplate::class, 'kpi_code', 'kpi_code');
+        return $this->belongsTo(KpiDefinition::class, 'kpi_code', 'kpi_code');
+    }
+
+    public function kpiDefinition()
+    {
+        return $this->belongsTo(KpiDefinition::class, 'kpi_code', 'kpi_code');
     }
 
     public function weeklySummary()

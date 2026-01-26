@@ -110,6 +110,30 @@ class LandingController extends Controller
     }
 
     /**
+     * Show the pricing page
+     */
+    public function pricing(Request $request)
+    {
+        $locale = $this->getCurrentLocale($request);
+        App::setLocale($locale);
+        $translations = $this->getTranslations($locale);
+
+        return view('landing.pricing', [
+            'locale' => $locale,
+            'translations' => $translations,
+            'locales' => $this->getLocaleOptions(),
+        ]);
+    }
+
+    /**
+     * Show the new landing page (Inertia)
+     */
+    public function landingPage()
+    {
+        return inertia('LandingPage');
+    }
+
+    /**
      * Get current locale from cookie or default
      */
     protected function getCurrentLocale(Request $request): string

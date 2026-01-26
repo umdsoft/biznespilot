@@ -15,8 +15,8 @@ class ClaudeAIServiceTest extends TestCase
     {
         parent::setUp();
 
-        // Set a test API key
-        config(['services.claude.api_key' => 'test-api-key-12345']);
+        // Set a test API key (service reads from services.anthropic.api_key)
+        config(['services.anthropic.api_key' => 'test-api-key-12345']);
         $this->service = new ClaudeAIService();
     }
 
@@ -187,8 +187,8 @@ class ClaudeAIServiceTest extends TestCase
         $userMessage = 'Salom';
         $conversationHistory = [];
         $businessContext = [
-            'name' => 'Test Business',
-            'category' => 'services',
+            'business_name' => 'Test Business',
+            'description' => 'Test business providing services',
         ];
 
         $result = $this->service->generateChatbotResponse($userMessage, $conversationHistory, $businessContext);
@@ -238,7 +238,7 @@ class ClaudeAIServiceTest extends TestCase
 
         $result = $this->service->complete('Test prompt', null, 100, false);
 
-        $this->assertStringContainsString('AI xizmati vaqtinchalik mavjud emas', $result);
+        $this->assertStringContainsString('AI xizmati hozircha mavjud emas', $result);
     }
 
     /**
@@ -246,12 +246,14 @@ class ClaudeAIServiceTest extends TestCase
      */
     public function test_missing_api_key(): void
     {
-        config(['services.claude.api_key' => null]);
+        // Clear both possible config keys and env (use empty string as service has strict string type)
+        config(['services.anthropic.api_key' => '']);
+        putenv('ANTHROPIC_API_KEY=');
         $service = new ClaudeAIService();
 
         $result = $service->complete('Test prompt');
 
-        $this->assertStringContainsString('API kaliti sozlanmagan', $result);
+        $this->assertStringContainsString('API kalit sozlanmagan', $result);
     }
 
     /**

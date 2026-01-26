@@ -708,48 +708,53 @@ return new class extends Migration
             $table->index(['business_id', 'period_start']);
         });
 
-        // Competitor Tracking
-        Schema::create('competitors', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
-            $table->string('name');
-            $table->string('website')->nullable();
-            $table->text('description')->nullable();
-            $table->enum('threat_level', ['low', 'medium', 'high'])->default('medium');
-            $table->json('strengths')->nullable();
-            $table->json('weaknesses')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+        // Competitor Tracking (skip if already exists from marketing tables)
+        if (!Schema::hasTable('competitors')) {
+            Schema::create('competitors', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('business_id');
+                $table->string('name');
+                $table->string('website')->nullable();
+                $table->text('description')->nullable();
+                $table->enum('threat_level', ['low', 'medium', 'high'])->default('medium');
+                $table->json('strengths')->nullable();
+                $table->json('weaknesses')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
 
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
-        });
+                $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
+            });
+        }
 
-        // Competitor Activity Log
-        Schema::create('competitor_activities', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
-            $table->uuid('competitor_id');
+        // Competitor Activity Log (skip if already exists)
+        if (!Schema::hasTable('competitor_activities')) {
+            Schema::create('competitor_activities', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('business_id');
+                $table->uuid('competitor_id');
 
-            $table->date('activity_date');
-            $table->enum('activity_type', ['price_change', 'new_product', 'campaign', 'pr', 'partnership', 'other']);
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->string('source_url')->nullable();
+                $table->date('activity_date');
+                $table->enum('activity_type', ['price_change', 'new_product', 'campaign', 'pr', 'partnership', 'other']);
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->string('source_url')->nullable();
 
-            $table->boolean('requires_response')->default(false);
-            $table->text('recommended_action')->nullable();
-            $table->enum('response_status', ['pending', 'planned', 'executed', 'ignored'])->nullable();
+                $table->boolean('requires_response')->default(false);
+                $table->text('recommended_action')->nullable();
+                $table->enum('response_status', ['pending', 'planned', 'executed', 'ignored'])->nullable();
 
-            $table->uuid('logged_by')->nullable();
-            $table->timestamps();
+                $table->uuid('logged_by')->nullable();
+                $table->timestamps();
 
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
-            $table->foreign('competitor_id')->references('id')->on('competitors')->onDelete('cascade');
-            $table->index(['business_id', 'activity_date']);
-        });
+                $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
+                $table->foreign('competitor_id')->references('id')->on('competitors')->onDelete('cascade');
+                $table->index(['business_id', 'activity_date']);
+            });
+        }
 
-        // Customer Segments
-        Schema::create('customer_segments', function (Blueprint $table) {
+        // Customer Segments (skip if already exists)
+        if (!Schema::hasTable('customer_segments')) {
+            Schema::create('customer_segments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('business_id');
             $table->string('name');
@@ -775,45 +780,48 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
-        });
+            });
+        }
 
-        // Content Calendar
-        Schema::create('content_calendar', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('business_id');
-            $table->uuid('channel_id')->nullable();
-            $table->uuid('campaign_id')->nullable();
+        // Content Calendar (skip if already exists)
+        if (!Schema::hasTable('content_calendar')) {
+            Schema::create('content_calendar', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('business_id');
+                $table->uuid('channel_id')->nullable();
+                $table->uuid('campaign_id')->nullable();
 
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->enum('content_type', ['post', 'story', 'video', 'reels', 'blog', 'email', 'ad', 'other'])->default('post');
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->enum('content_type', ['post', 'story', 'video', 'reels', 'blog', 'email', 'ad', 'other'])->default('post');
 
-            $table->date('scheduled_date');
-            $table->time('scheduled_time')->nullable();
+                $table->date('scheduled_date');
+                $table->time('scheduled_time')->nullable();
 
-            $table->enum('status', ['idea', 'draft', 'review', 'approved', 'scheduled', 'published', 'cancelled'])->default('idea');
+                $table->enum('status', ['idea', 'draft', 'review', 'approved', 'scheduled', 'published', 'cancelled'])->default('idea');
 
-            $table->text('content_text')->nullable();
-            $table->json('media_urls')->nullable();
-            $table->string('post_url')->nullable(); // Link after publishing
+                $table->text('content_text')->nullable();
+                $table->json('media_urls')->nullable();
+                $table->string('post_url')->nullable(); // Link after publishing
 
-            // Performance (after publishing)
-            $table->integer('views')->default(0);
-            $table->integer('likes')->default(0);
-            $table->integer('comments')->default(0);
-            $table->integer('shares')->default(0);
-            $table->integer('clicks')->default(0);
+                // Performance (after publishing)
+                $table->integer('views')->default(0);
+                $table->integer('likes')->default(0);
+                $table->integer('comments')->default(0);
+                $table->integer('shares')->default(0);
+                $table->integer('clicks')->default(0);
 
-            $table->uuid('assigned_to')->nullable();
-            $table->uuid('approved_by')->nullable();
-            $table->timestamps();
+                $table->uuid('assigned_to')->nullable();
+                $table->uuid('approved_by')->nullable();
+                $table->timestamps();
 
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
-            $table->foreign('channel_id')->references('id')->on('marketing_channels')->onDelete('set null');
-            $table->foreign('campaign_id')->references('id')->on('marketing_campaigns')->onDelete('set null');
-            $table->index(['business_id', 'scheduled_date']);
-            $table->index(['business_id', 'status']);
-        });
+                $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
+                $table->foreign('channel_id')->references('id')->on('marketing_channels')->onDelete('set null');
+                $table->foreign('campaign_id')->references('id')->on('marketing_campaigns')->onDelete('set null');
+                $table->index(['business_id', 'scheduled_date']);
+                $table->index(['business_id', 'status']);
+            });
+        }
 
         // ============================================================
         // PART 6: CROSS-DEPARTMENT INTEGRATION
