@@ -836,6 +836,12 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
     // Call Center Analytics (AI qo'ng'iroq tahlili)
     Route::get('/call-center', fn() => \Inertia\Inertia::render('Business/CallCenter/Index'))->name('call-center');
 
+    // Calls Management (with Smart Audit)
+    Route::prefix('calls')->name('calls.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\CallController::class, 'index'])->name('index');
+        Route::get('/{call}', [App\Http\Controllers\Business\CallController::class, 'show'])->name('show');
+    });
+
     // Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
@@ -1384,6 +1390,8 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
 
     // Calls routes for SalesHead
     Route::prefix('calls')->name('calls.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SalesHead\CallController::class, 'index'])->name('index');
+        Route::get('/{call}', [App\Http\Controllers\SalesHead\CallController::class, 'show'])->name('show');
         Route::patch('/{call}/status', [App\Http\Controllers\SalesHead\LeadController::class, 'updateCallStatus'])->name('update-status');
         Route::get('/{call}/recording', [App\Http\Controllers\SalesHead\LeadController::class, 'getCallRecording'])->name('recording');
     });

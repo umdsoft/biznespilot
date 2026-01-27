@@ -334,6 +334,54 @@ class CallLog extends Model
     }
 
     /**
+     * Scope: Calls recommended for Smart Audit
+     * Filters calls that need attention based on:
+     * - Duration between 30s and 10 minutes
+     * - Lead status is 'junk' or 'thinking'
+     * - No AI analysis performed yet
+     */
+    public function scopeRecommended($query)
+    {
+        return $query->whereIn('status', [self::STATUS_COMPLETED, self::STATUS_ANSWERED])
+            ->whereBetween('duration', [30, 600]) // 30s to 10 minutes
+            ->whereHas('lead', function ($q) {
+                $q->whereIn('status', ['junk', 'thinking']);
+            })
+            ->where(function ($q) {
+                $q->where('analysis_status', self::ANALYSIS_STATUS_PENDING)
+                    ->orWhereNull('analysis_status');
+            });
+    }
+
+    /**
+     * Get recommended reason for Smart Audit
+     */
+    public function getRecommendedReasonAttribute(): ?string
+    {
+        if (!$this->lead) {
+            return null;
+        }
+
+        $reasons = [];
+
+        if ($this->duration < 60) {
+            $reasons[] = 'Qisqa muloqot (' . $this->formatted_duration . ')';
+        }
+
+        if ($this->lead->status === 'junk') {
+            $reasons[] = 'Lid "Keraksiz" deb belgilangan';
+        } elseif ($this->lead->status === 'thinking') {
+            $reasons[] = 'Lid "O\'ylanmoqda" holatida';
+        }
+
+        if (!$this->analysis_status || $this->analysis_status === self::ANALYSIS_STATUS_PENDING) {
+            $reasons[] = 'AI tahlil qilinmagan';
+        }
+
+        return !empty($reasons) ? implode(' • ', $reasons) : null;
+    }
+
+    /**
      * Get analysis status label in Uzbek
      */
     public function getAnalysisStatusLabelAttribute(): string

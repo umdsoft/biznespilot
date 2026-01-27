@@ -135,7 +135,7 @@ export const businessLayoutConfig = {
       items: [
         { href: '/business/analytics', label: 'Analitika', labelKey: 'nav.analytics', icon: ChartBarIcon },
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
-        { href: '/business/call-center', label: 'Qo\'ng\'iroq Tahlili', labelKey: 'nav.call_center', icon: SparklesIcon },
+        { href: '/business/calls', label: 'Qo\'ng\'iroq Tahlili', labelKey: 'nav.call_center', icon: SparklesIcon },
         { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },
       ]
     },
@@ -247,7 +247,7 @@ export const salesHeadLayoutConfig = {
             { href: '/sales-head/sales-kpi/achievements', label: 'Yutuqlar' },
           ]
         },
-        { href: '/sales-head/call-center', label: 'Qo\'ng\'iroq Tahlili', icon: SparklesIcon },
+        { href: '/sales-head/calls', label: 'Qo\'ng\'iroq Tahlili', icon: SparklesIcon },
         { href: '/sales-head/sales-analytics', label: 'Sotuv Analitikasi (ROP)', icon: ChartPieIcon },
         { href: '/sales-head/analytics', label: 'Analitika', icon: PresentationChartLineIcon },
       ]

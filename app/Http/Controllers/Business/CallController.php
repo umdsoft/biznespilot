@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\SalesHead;
+namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
@@ -56,7 +56,7 @@ class CallController extends Controller
             'selected_day' => (int) $selectedDay,
         ];
 
-        return Inertia::render('SalesHead/Calls/Index', [
+        return Inertia::render('Business/Calls/Index', [
             'calls' => $calls,
             'stats' => $stats,
             'dailyBreakdown' => $dailyBreakdown,
@@ -71,7 +71,7 @@ class CallController extends Controller
 
     public function show($call)
     {
-        return Inertia::render('SalesHead/Calls/Show');
+        return Inertia::render('Business/Calls/Show');
     }
 
     /**

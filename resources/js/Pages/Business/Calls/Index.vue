@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { useI18n } from '@/i18n';
 import {
     PhoneIcon,
@@ -82,7 +82,7 @@ const periods = [
 const selectedDay = ref(props.dateInfo?.selected_day || props.dateInfo?.current_day || 1);
 
 const handlePeriodChange = (periodKey) => {
-    router.get('/sales-head/calls', { period: periodKey }, {
+    router.get('/business/calls', { period: periodKey }, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -90,7 +90,7 @@ const handlePeriodChange = (periodKey) => {
 
 const handleDayChange = (day) => {
     selectedDay.value = day;
-    router.get('/sales-head/calls', { period: 'daily', day: day }, {
+    router.get('/business/calls', { period: 'daily', day: day }, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -162,7 +162,7 @@ const getDayButtonClass = (day) => {
 };
 
 const handleTabChange = (tabKey) => {
-    router.get('/sales-head/calls', { tab: tabKey }, {
+    router.get('/business/calls', { tab: tabKey }, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -189,7 +189,7 @@ const handleAnalyzeCall = async (callId) => {
 </script>
 
 <template>
-    <SalesHeadLayout :title="t('nav.calls')">
+    <BusinessLayout :title="t('nav.calls')">
         <Head :title="t('nav.calls')" />
 
         <div class="space-y-8">
@@ -533,5 +533,5 @@ const handleAnalyzeCall = async (callId) => {
                 </div>
             </div>
         </div>
-    </SalesHeadLayout>
+    </BusinessLayout>
 </template>
