@@ -16,32 +16,20 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // 1. Core permissions and roles
+            // 1. Core permissions and roles (KERAK)
             RolesAndPermissionsSeeder::class,
 
-            // 2. Base configuration data
+            // 2. Base configuration data (KERAK)
             PlanSeeder::class,
             StepDefinitionSeeder::class,
             IndustrySeeder::class,
 
-            // 3. Industry-related reference data
-            IndustryBenchmarkSeeder::class,
-            StrategyTemplateSeeder::class,
-
-            // 4. User and Business setup
+            // 3. Admin user (KERAK)
             TestUserSeeder::class,
-            BusinessSeeder::class,
 
-            // 5. Business-dependent seeders
-            AlertRuleSeeder::class,
-            DreamBuyerSeeder::class,
-            OfferSeeder::class,
-
-            // 6. Instagram Automation (Chatbot/Sales Flow)
-            SalesFlowSeeder::class,
-
-            // NOTE: The following seeders need schema updates:
-            // CustomerDataSeeder, LeadSeeder, CampaignSeeder, ConversationSeeder
+            // NOTE: Quyidagi seederlar test/development uchun:
+            // BusinessSeeder, AlertRuleSeeder, DreamBuyerSeeder, OfferSeeder,
+            // SalesFlowSeeder, IndustryBenchmarkSeeder, StrategyTemplateSeeder
         ]);
     }
 }

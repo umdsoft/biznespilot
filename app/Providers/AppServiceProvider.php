@@ -42,11 +42,16 @@ use App\Listeners\Sales\SalesIntegrationListener;
 use App\Listeners\Marketing\MarketingIntegrationListener;
 use App\Listeners\HR\HRIntegrationListener;
 use App\Events\PaymentReceived;
+use App\Events\PaymentSuccessEvent;
 use App\Listeners\SendPaymentNotification;
+use App\Listeners\ActivateSubscriptionListener;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -69,6 +74,9 @@ class AppServiceProvider extends ServiceProvider
         if (str_starts_with(config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
+
+        // Configure rate limiters (must be in boot for config:cache compatibility)
+        $this->configureRateLimiters();
 
         // Register observers
         Business::observe(BusinessObserver::class);
@@ -115,11 +123,49 @@ class AppServiceProvider extends ServiceProvider
         // Payment received notification (Telegram real-time alerts)
         Event::listen(PaymentReceived::class, SendPaymentNotification::class);
 
+        // SaaS Billing: To'lov muvaffaqiyatli bo'lganda obunani aktivlashtirish
+        // (Payme/Click → PaymentSuccessEvent → ActivateSubscriptionListener)
+        Event::listen(PaymentSuccessEvent::class, ActivateSubscriptionListener::class);
+
         // Production optimizations
         $this->configureProductionSettings();
 
         // Development tools
         $this->configureDevelopmentSettings();
+    }
+
+    /**
+     * Configure rate limiters for API throttling.
+     */
+    private function configureRateLimiters(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('web', function (Request $request) {
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('ai', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('webhooks', function (Request $request) {
+            return Limit::perMinute(300)->by($request->ip());
+        });
+
+        RateLimiter::for('billing-webhooks', function (Request $request) {
+            return Limit::perMinute(100)->by($request->ip());
+        });
+
+        RateLimiter::for('kpi-sync', function (Request $request) {
+            return Limit::perHour(5)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('kpi-monitoring', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
     }
 
     /**

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\QuotaExceededException;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\User;
+use App\Services\SubscriptionGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,6 +17,13 @@ use Inertia\Inertia;
 class TeamController extends Controller
 {
     use HasCurrentBusiness;
+
+    protected SubscriptionGate $gate;
+
+    public function __construct(SubscriptionGate $gate)
+    {
+        $this->gate = $gate;
+    }
 
     /**
      * Get team members for the current business
@@ -96,15 +105,40 @@ class TeamController extends Controller
             array_unshift($members, $ownerData);
         }
 
+        // Tarif limitini olish
+        $usersQuota = null;
+        try {
+            $limit = $this->gate->getLimit($business, 'users');
+            $currentCount = count($members);
+            $usersQuota = [
+                'current' => $currentCount,
+                'limit' => $limit,
+                'remaining' => $limit === -1 ? null : max(0, $limit - $currentCount),
+                'is_unlimited' => $limit === -1,
+                'can_add' => $this->gate->canAdd($business, 'users'),
+            ];
+        } catch (\Exception $e) {
+            // Obuna bo'lmasa default qiymatlar
+            $usersQuota = [
+                'current' => count($members),
+                'limit' => 0,
+                'remaining' => 0,
+                'is_unlimited' => false,
+                'can_add' => false,
+            ];
+        }
+
         return [
             'members' => $members,
             'departments' => BusinessUser::DEPARTMENTS,
             'roles' => BusinessUser::ROLES,
+            'quota' => $usersQuota,
         ];
     }
 
     /**
      * Add a new team member (create user with phone/password)
+     * Tarif limitini tekshiradi - users
      */
     public function invite(Request $request)
     {
@@ -112,6 +146,26 @@ class TeamController extends Controller
 
         if (! $business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        // SubscriptionGate orqali user limitini tekshirish
+        try {
+            $this->gate->checkQuota($business, 'users');
+        } catch (QuotaExceededException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'error_code' => 'QUOTA_EXCEEDED',
+                'limit_key' => 'users',
+                'upgrade_required' => true,
+            ], 403);
+        } catch (\App\Exceptions\NoActiveSubscriptionException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'error_code' => 'NO_ACTIVE_SUBSCRIPTION',
+                'upgrade_required' => true,
+            ], 402);
         }
 
         $validated = $request->validate([

@@ -31,7 +31,8 @@ return new class extends Migration
             // === MARKETING ATTRIBUTION (Lead dan meros) ===
             $table->foreignUuid('campaign_id')->nullable()->constrained('campaigns')->nullOnDelete();
             $table->foreignUuid('marketing_channel_id')->nullable()->constrained('marketing_channels')->nullOnDelete();
-            $table->foreignUuid('source_id')->nullable()->constrained('lead_sources')->nullOnDelete();
+            $table->unsignedBigInteger('source_id')->nullable();
+            $table->foreign('source_id')->references('id')->on('lead_sources')->nullOnDelete();
 
             // UTM Parameters
             $table->string('utm_source', 100)->nullable();
@@ -72,14 +73,14 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Indexes for analytics
-            $table->index(['business_id', 'lost_at']);
-            $table->index(['business_id', 'campaign_id', 'lost_at']);
-            $table->index(['business_id', 'marketing_channel_id', 'lost_at']);
-            $table->index(['business_id', 'lost_reason']);
-            $table->index(['business_id', 'lost_to_competitor']);
-            $table->index(['business_id', 'is_recoverable']);
-            $table->index(['business_id', 'utm_source', 'utm_medium']);
+            // Indexes for analytics (shortened names for MySQL 64 char limit)
+            $table->index(['business_id', 'lost_at'], 'lo_biz_lost_idx');
+            $table->index(['business_id', 'campaign_id', 'lost_at'], 'lo_biz_camp_lost_idx');
+            $table->index(['business_id', 'marketing_channel_id', 'lost_at'], 'lo_biz_channel_lost_idx');
+            $table->index(['business_id', 'lost_reason'], 'lo_biz_reason_idx');
+            $table->index(['business_id', 'lost_to_competitor'], 'lo_biz_competitor_idx');
+            $table->index(['business_id', 'is_recoverable'], 'lo_biz_recoverable_idx');
+            $table->index(['business_id', 'utm_source', 'utm_medium'], 'lo_biz_utm_idx');
         });
     }
 

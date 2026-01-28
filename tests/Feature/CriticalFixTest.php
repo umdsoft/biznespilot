@@ -129,6 +129,9 @@ class CriticalFixTest extends TestCase
             'category' => 'retail',
         ]);
 
+        // BusinessObserver avtomatik subscription yaratadi - uni o'chiramiz
+        $business->subscriptions()->delete();
+
         $plan = Plan::where('slug', $planSlug)->first();
 
         Subscription::create([
@@ -241,7 +244,8 @@ class CriticalFixTest extends TestCase
 
     public function test_subscription_belongs_to_business_and_plan(): void
     {
-        $business = $this->createBusinessWithSubscription('start');
+        $planSlug = 'start';
+        $business = $this->createBusinessWithSubscription($planSlug);
 
         $subscription = Subscription::where('business_id', $business->id)->first();
 
@@ -253,7 +257,8 @@ class CriticalFixTest extends TestCase
         $this->assertEquals($business->name, $subscription->business->name);
 
         $this->assertNotNull($subscription->plan);
-        $this->assertEquals('Start', $subscription->plan->name);
+        $expectedPlan = Plan::where('slug', $planSlug)->first();
+        $this->assertEquals($expectedPlan->name, $subscription->plan->name);
     }
 
     // ============================================================

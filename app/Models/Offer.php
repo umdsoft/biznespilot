@@ -62,6 +62,8 @@ class Offer extends Model
         'time_delay_days' => 'integer',
         'effort_score' => 'integer',
         'guarantee_period_days' => 'integer',
+        'guarantees' => 'array',
+        'bonuses' => 'array',
     ];
 
     /**

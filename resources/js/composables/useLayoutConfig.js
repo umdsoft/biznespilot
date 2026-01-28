@@ -266,46 +266,46 @@ export const salesHeadLayoutConfig = {
 
 // Admin Layout Configuration
 export const adminLayoutConfig = {
-  // Styling
-  bgClass: 'bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-50',
-  sidebarClass: 'bg-white/80 backdrop-blur-xl border-r border-red-200/50 shadow-lg',
-  headerClass: 'bg-white/80 backdrop-blur-xl border-b border-red-200/50',
-  logoBorderClass: 'border-red-200/50 bg-gradient-to-r from-red-50/50 to-transparent',
-  sectionBorderClass: 'border-red-200/50',
+  // Styling - with dark mode support (Green theme)
+  bgClass: 'bg-gradient-to-br from-slate-50 via-emerald-50/20 to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900',
+  sidebarClass: 'bg-white/80 backdrop-blur-xl border-r border-emerald-200/50 shadow-lg dark:bg-gray-800/90 dark:border-gray-700',
+  headerClass: 'bg-white/80 backdrop-blur-xl border-b border-emerald-200/50 dark:bg-gray-800/90 dark:border-gray-700',
+  logoBorderClass: 'border-emerald-200/50 bg-gradient-to-r from-emerald-50/50 to-transparent dark:border-gray-700 dark:from-gray-800/50',
+  sectionBorderClass: 'border-emerald-200/50 dark:border-gray-700',
   mainClass: 'p-6',
   contentClass: 'max-w-screen-2xl mx-auto',
-  titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent',
+  titleClass: 'bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent',
 
   // Logo
   homeUrl: '/dashboard',
   brandName: 'Admin Panel',
   brandSubtitle: null,
-  logoGradient: 'bg-gradient-to-br from-red-600 to-rose-600',
-  logoTextGradient: 'bg-gradient-to-r from-red-600 to-rose-600',
+  logoGradient: 'bg-gradient-to-br from-emerald-600 to-green-600',
+  logoTextGradient: 'bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400',
   logoIcon: ShieldCheckIcon,
 
   // Badge
   badge: 'Platforma Administratori',
-  badgeClass: 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200/50',
-  badgeDotClass: 'bg-red-500',
-  badgeTextClass: 'text-red-700',
+  badgeClass: 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200/50 dark:from-emerald-900/30 dark:to-green-900/30 dark:border-emerald-700/50',
+  badgeDotClass: 'bg-emerald-500',
+  badgeTextClass: 'text-emerald-700 dark:text-emerald-300',
 
   // Features
   showBusinessSelector: false,
   showBusinessInfo: false,
-  showNotifications: false,
-  showDarkModeToggle: false,
+  showNotifications: true,
+  showDarkModeToggle: true,
   showFeedbackWidget: false,
   showQuickStats: false,
   showTitleIcon: true,
   titleIcon: ShieldCheckIcon,
-  titleIconBgClass: 'bg-gradient-to-br from-red-100 to-rose-100',
-  titleIconClass: 'text-red-600',
+  titleIconBgClass: 'bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30',
+  titleIconClass: 'text-emerald-600 dark:text-emerald-400',
 
   // User styling
-  userAvatarClass: 'bg-gradient-to-br from-red-100 to-rose-100',
-  userAvatarTextClass: 'bg-gradient-to-r from-red-600 to-rose-600',
-  userRoleClass: 'text-red-600 font-medium',
+  userAvatarClass: 'bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50',
+  userAvatarTextClass: 'bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400',
+  userRoleClass: 'text-emerald-600 dark:text-emerald-400 font-medium',
   userRoleLabel: 'Admin',
 
   // User menu
@@ -331,6 +331,7 @@ export const adminLayoutConfig = {
         { href: '/dashboard/feedback', label: 'Fikr-mulohazalar', icon: ChatBubbleLeftRightIcon },
         { href: '/dashboard/notifications', label: 'Bildirishnomalar', icon: BellIcon },
         { href: '/dashboard/subscriptions', label: 'Obunalar', icon: CreditCardIcon },
+        { href: '/dashboard/plans', label: 'Tarif Rejalari', icon: TagIcon },
       ]
     },
     {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SubscriptionGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -43,12 +44,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => fn () => $this->getAuthData($user),
             'businesses' => fn () => $this->getUserBusinesses($user),
             'currentBusiness' => fn () => $this->getCurrentBusiness($user),
+            'subscription' => fn () => $this->getSubscriptionData($user),
             'locale' => fn () => $this->getLocale($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 'warning' => fn () => $request->session()->get('warning'),
                 'info' => fn () => $request->session()->get('info'),
+                'upgrade_required' => fn () => $request->session()->get('upgrade_required'),
             ],
         ];
     }
@@ -214,5 +217,93 @@ class HandleInertiaRequests extends Middleware
                 'ru' => ['code' => 'ru', 'name' => 'Русский', 'flag' => '🇷🇺'],
             ],
         ];
+    }
+
+    /**
+     * Get subscription data with limits and features.
+     * Frontend uchun v-if="features.hr_tasks" formatida ishlatiladi.
+     */
+    private function getSubscriptionData($user): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $currentBusinessId = session('current_business_id');
+
+        if (! $currentBusinessId) {
+            return null;
+        }
+
+        // Cache subscription data for 5 minutes
+        $cacheKey = "subscription_data_{$currentBusinessId}";
+
+        return Cache::remember($cacheKey, 300, function () use ($currentBusinessId) {
+            $business = \App\Models\Business::find($currentBusinessId);
+
+            if (! $business) {
+                return null;
+            }
+
+            $gate = app(SubscriptionGate::class);
+
+            try {
+                $subscription = $gate->getActiveSubscription($business);
+                $plan = $subscription->plan;
+
+                // Features - v-if="features.hr_tasks" formatida
+                $featuresRaw = $gate->getEnabledFeatures($business);
+                $features = [];
+                foreach ($featuresRaw as $key => $data) {
+                    $features[$key] = $data['enabled'];
+                }
+
+                // Limits - usage stats bilan
+                $limits = $gate->getUsageStats($business);
+
+                // Plan ma'lumotlari
+                $planData = [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                ];
+
+                // Subscription ma'lumotlari
+                $subscriptionData = [
+                    'status' => $subscription->status,
+                    'ends_at' => $subscription->ends_at?->toISOString(),
+                    'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
+                    'days_remaining' => max(0, now()->diffInDays($subscription->ends_at, false)),
+                    'is_trial' => $subscription->status === 'trialing',
+                ];
+
+                return [
+                    'has_subscription' => true,
+                    'plan' => $planData,
+                    'subscription' => $subscriptionData,
+                    'features' => $features,
+                    'limits' => $limits,
+                    'features_detail' => $featuresRaw,
+                ];
+
+            } catch (\App\Exceptions\NoActiveSubscriptionException $e) {
+                return [
+                    'has_subscription' => false,
+                    'plan' => null,
+                    'subscription' => null,
+                    'features' => [],
+                    'limits' => [],
+                    'features_detail' => [],
+                ];
+            }
+        });
+    }
+
+    /**
+     * Clear subscription cache when plan changes.
+     */
+    public static function clearSubscriptionCache(string|int $businessId): void
+    {
+        Cache::forget("subscription_data_{$businessId}");
     }
 }

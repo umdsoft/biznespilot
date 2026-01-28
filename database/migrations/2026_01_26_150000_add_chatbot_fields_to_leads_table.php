@@ -23,7 +23,7 @@ return new class extends Migration
             // Instagram Conversation bog'lanishi
             $table->uuid('instagram_conversation_id')
                 ->nullable()
-                ->after('telegram_user_id')
+                ->after('data')
                 ->comment('InstagramConversation jadvaliga bog\'lanish');
 
             // Chatbot manba turi

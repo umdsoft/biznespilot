@@ -11,6 +11,14 @@ class Plan extends Model
     use HasUuid;
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'id';
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<string>
@@ -18,8 +26,15 @@ class Plan extends Model
     protected $fillable = [
         'name',
         'slug',
+        'description',
         'price_monthly',
         'price_yearly',
+        'currency',
+        'limits',
+        'features',
+        'is_active',
+        'sort_order',
+        // Legacy columns (backward compatibility)
         'business_limit',
         'team_member_limit',
         'lead_limit',
@@ -32,9 +47,6 @@ class Plan extends Model
         'instagram_dm_limit',
         'content_posts_limit',
         'has_amocrm',
-        'features',
-        'description',
-        'is_active',
     ];
 
     /**
@@ -43,10 +55,11 @@ class Plan extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'has_amocrm' => 'boolean',
-        'has_instagram' => 'boolean',
+        'limits' => 'array',
         'features' => 'array',
         'is_active' => 'boolean',
+        'has_amocrm' => 'boolean',
+        'has_instagram' => 'boolean',
         'price_monthly' => 'decimal:2',
         'price_yearly' => 'decimal:2',
     ];
@@ -57,5 +70,71 @@ class Plan extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get a specific limit value.
+     * Returns -1 for unlimited, null if not set.
+     */
+    public function getLimit(string $key, $default = null): ?int
+    {
+        $limits = $this->limits ?? [];
+        $value = $limits[$key] ?? $default;
+
+        return $value !== null ? (int) $value : null;
+    }
+
+    /**
+     * Check if a limit is unlimited (-1 or null).
+     */
+    public function isLimitUnlimited(string $key): bool
+    {
+        $limit = $this->getLimit($key);
+        return $limit === -1 || $limit === null;
+    }
+
+    /**
+     * Check if a feature is enabled.
+     */
+    public function hasFeature(string $key): bool
+    {
+        $features = $this->features ?? [];
+        return (bool) ($features[$key] ?? false);
+    }
+
+    /**
+     * Get all enabled features.
+     */
+    public function getEnabledFeatures(): array
+    {
+        $features = $this->features ?? [];
+        return array_keys(array_filter($features));
+    }
+
+    /**
+     * Get all limits as array.
+     */
+    public function getAllLimits(): array
+    {
+        return $this->limits ?? [];
+    }
+
+    /**
+     * Get active plans ordered by price.
+     */
+    public static function getActivePlans()
+    {
+        return static::where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('price_monthly')
+            ->get();
+    }
+
+    /**
+     * Get plan by slug.
+     */
+    public static function findBySlug(string $slug): ?self
+    {
+        return static::where('slug', $slug)->first();
     }
 }

@@ -9,75 +9,46 @@ use Illuminate\Support\Str;
 /**
  * PlanSeeder - BiznesPilot tariflarini yaratish
  *
- * 5 ta tarif:
- * 1. Free - Bepul (faqat Telegram + CRM, Instagram yo'q, Call Center AI yo'q)
- * 2. Start - Boshlash uchun (299,000 so'm)
- * 3. Standard - Rivojlanish uchun (599,000 so'm)
- * 4. Business - Tizimlashish uchun (799,000 so'm) - ENG FOYDALI
- * 5. Premium - Masshtablash uchun (1,499,000 so'm) - VIP
+ * Tariflar JSON formatida limits va features bilan:
+ * - limits: raqamli cheklovlar (users, branches, monthly_leads, va h.k.)
+ * - features: yoqish/o'chirish mumkin bo'lgan funksiyalar
+ *
+ * Barcha tariflarda mavjud (cheklovsiz):
+ * - Instagram/Facebook integratsiya
+ * - Vizual voronka (Flow Builder)
+ * - Marketing ROI hisoboti
  */
 class PlanSeeder extends Seeder
 {
     public function run(): void
     {
         $plans = [
-            // FREE - Bepul tarif (faqat Telegram + CRM, Instagram yo'q, Call Center AI yo'q)
-            [
-                'name' => 'Free',
-                'slug' => 'free',
-                'description' => 'Bepul boshlang - CRM, lidlar va Telegram chatbot',
-                'price_monthly' => 0,
-                'price_yearly' => 0,
-                'business_limit' => 1,
-                'team_member_limit' => 1,
-                'lead_limit' => 100,
-                'chatbot_channel_limit' => 1,
-                'telegram_bot_limit' => 1,     // Telegram chatbot ✅
-                'has_instagram' => false,       // Instagram chatbot ❌
-                'audio_minutes_limit' => 0,     // Call Center AI ❌
-                'ai_requests_limit' => 10,
-                'storage_limit_mb' => 100,
-                'instagram_dm_limit' => 0,
-                'content_posts_limit' => 0,
-                'has_amocrm' => false,
-                'is_active' => true,
-                'features' => [
-                    'To\'liq CRM funksiyalari',
-                    'Lidlarni boshqarish',
-                    'Pipeline va voronka',
-                    'Telegram chatbot (1 ta)',
-                    '100 ta lid/oy',
-                    'Asosiy hisobotlar',
-                ],
-            ],
-
             // START - 299,000 so'm/oy
             [
                 'name' => 'Start',
                 'slug' => 'start',
-                'description' => 'Boshlash uchun',
+                'description' => 'Kichik bizneslar uchun boshlang\'ich tarif',
                 'price_monthly' => 299000,
                 'price_yearly' => 2990000,
-                'business_limit' => 1,
-                'team_member_limit' => 2,
-                'lead_limit' => 500,
-                'chatbot_channel_limit' => 1,
-                'telegram_bot_limit' => 1,
-                'has_instagram' => true,        // Instagram chatbot ✅
-                'audio_minutes_limit' => 60,    // Call Center AI ✅
-                'ai_requests_limit' => 100,
-                'storage_limit_mb' => 500,
-                'instagram_dm_limit' => 200,
-                'content_posts_limit' => 20,
-                'has_amocrm' => false,
+                'currency' => 'UZS',
+                'sort_order' => 1,
                 'is_active' => true,
+                'limits' => [
+                    'users' => 2,
+                    'branches' => 1,
+                    'instagram_accounts' => 1,
+                    'monthly_leads' => 500,
+                    'ai_call_minutes' => 60,
+                    'extra_call_price' => 500,
+                    'chatbot_channels' => 2,
+                    'telegram_bots' => 2,
+                    'ai_requests' => 500,
+                    'storage_mb' => 500,
+                ],
                 'features' => [
-                    '2 ta xodim',
-                    '1 ta filial',
-                    'Instagram + Telegram chatbot',
-                    'Marketing ROI',
-                    '500 ta lid/oy',
-                    '60 daq Call Center AI',
+                    'hr_tasks' => false,
+                    'hr_bot' => false,
+                    'anti_fraud' => false,
                 ],
             ],
 
@@ -85,28 +56,28 @@ class PlanSeeder extends Seeder
             [
                 'name' => 'Standard',
                 'slug' => 'standard',
-                'description' => 'Rivojlanish uchun',
+                'description' => 'O\'sib borayotgan bizneslar uchun standart tarif',
                 'price_monthly' => 599000,
                 'price_yearly' => 5990000,
-                'business_limit' => 1,
-                'team_member_limit' => 5,
-                'lead_limit' => 2000,
-                'chatbot_channel_limit' => 2,
-                'telegram_bot_limit' => 2,
-                'has_instagram' => true,
-                'audio_minutes_limit' => 150,
-                'ai_requests_limit' => 300,
-                'storage_limit_mb' => 2048,
-                'instagram_dm_limit' => 500,
-                'content_posts_limit' => 50,
-                'has_amocrm' => false,
+                'currency' => 'UZS',
+                'sort_order' => 2,
                 'is_active' => true,
+                'limits' => [
+                    'users' => 5,
+                    'branches' => 1,
+                    'instagram_accounts' => 2,
+                    'monthly_leads' => 2000,
+                    'ai_call_minutes' => 150,
+                    'extra_call_price' => 450,
+                    'chatbot_channels' => 3,
+                    'telegram_bots' => 3,
+                    'ai_requests' => 2000,
+                    'storage_mb' => 1000,
+                ],
                 'features' => [
-                    '5 ta xodim',
-                    '1 ta filial',
-                    'Flow Builder (Vizual)',
-                    '2,000 ta lid/oy',
-                    '150 daq Call Center AI',
+                    'hr_tasks' => true,
+                    'hr_bot' => false,
+                    'anti_fraud' => false,
                 ],
             ],
 
@@ -114,28 +85,28 @@ class PlanSeeder extends Seeder
             [
                 'name' => 'Business',
                 'slug' => 'business',
-                'description' => 'Tizimlashish uchun',
+                'description' => 'O\'rta va katta bizneslar uchun professional tarif',
                 'price_monthly' => 799000,
                 'price_yearly' => 7990000,
-                'business_limit' => 2,
-                'team_member_limit' => 10,
-                'lead_limit' => 10000,
-                'chatbot_channel_limit' => 5,
-                'telegram_bot_limit' => 5,
-                'has_instagram' => true,
-                'audio_minutes_limit' => 400,
-                'ai_requests_limit' => 1000,
-                'storage_limit_mb' => 10240,
-                'instagram_dm_limit' => 2000,
-                'content_posts_limit' => 100,
-                'has_amocrm' => true,
+                'currency' => 'UZS',
+                'sort_order' => 3,
                 'is_active' => true,
+                'limits' => [
+                    'users' => 10,
+                    'branches' => 2,
+                    'instagram_accounts' => 3,
+                    'monthly_leads' => 10000,
+                    'ai_call_minutes' => 400,
+                    'extra_call_price' => 400,
+                    'chatbot_channels' => 5,
+                    'telegram_bots' => 5,
+                    'ai_requests' => 10000,
+                    'storage_mb' => 5000,
+                ],
                 'features' => [
-                    '10 ta xodim',
-                    '2 ta filial',
-                    'HR Bot + Marketing ROI',
-                    '10,000 ta lid/oy',
-                    '400 daq Call Center AI',
+                    'hr_tasks' => true,
+                    'hr_bot' => true,
+                    'anti_fraud' => false,
                 ],
             ],
 
@@ -143,33 +114,74 @@ class PlanSeeder extends Seeder
             [
                 'name' => 'Premium',
                 'slug' => 'premium',
-                'description' => 'Masshtablash uchun',
+                'description' => 'Korporativ mijozlar uchun to\'liq imkoniyatli tarif',
                 'price_monthly' => 1499000,
                 'price_yearly' => 14990000,
-                'business_limit' => 5,
-                'team_member_limit' => 15,
-                'lead_limit' => null,           // Cheksiz
-                'chatbot_channel_limit' => null, // Cheksiz
-                'telegram_bot_limit' => null,   // Cheksiz
-                'has_instagram' => true,
-                'audio_minutes_limit' => 1000,
-                'ai_requests_limit' => null,    // Cheksiz
-                'storage_limit_mb' => null,     // Cheksiz
-                'instagram_dm_limit' => null,   // Cheksiz
-                'content_posts_limit' => null,  // Cheksiz
-                'has_amocrm' => true,
+                'currency' => 'UZS',
+                'sort_order' => 4,
                 'is_active' => true,
+                'limits' => [
+                    'users' => 15,
+                    'branches' => 5,
+                    'instagram_accounts' => 10,
+                    'monthly_leads' => null, // Cheksiz
+                    'ai_call_minutes' => 1000,
+                    'extra_call_price' => 300,
+                    'chatbot_channels' => 20,
+                    'telegram_bots' => 20,
+                    'ai_requests' => 50000,
+                    'storage_mb' => 50000,
+                ],
                 'features' => [
-                    '15 ta xodim',
-                    '5 ta filial',
-                    'AI Bot + Anti-Fraud',
-                    'Cheksiz lid',
-                    '1,000 daq Call Center AI',
+                    'hr_tasks' => true,
+                    'hr_bot' => true,
+                    'anti_fraud' => true,
+                ],
+            ],
+
+            // ENTERPRISE - 4,999,000 so'm/oy (Maxsus)
+            [
+                'name' => 'Enterprise',
+                'slug' => 'enterprise',
+                'description' => 'Katta korporatsiyalar uchun maxsus tarif',
+                'price_monthly' => 4999000,
+                'price_yearly' => 49990000,
+                'currency' => 'UZS',
+                'sort_order' => 5,
+                'is_active' => true,
+                'limits' => [
+                    'users' => null, // Cheksiz
+                    'branches' => null, // Cheksiz
+                    'instagram_accounts' => null, // Cheksiz
+                    'monthly_leads' => null, // Cheksiz
+                    'ai_call_minutes' => 10000,
+                    'extra_call_price' => 250,
+                    'chatbot_channels' => null, // Cheksiz
+                    'telegram_bots' => null, // Cheksiz
+                    'ai_requests' => null, // Cheksiz
+                    'storage_mb' => null, // Cheksiz
+                ],
+                'features' => [
+                    'hr_tasks' => true,
+                    'hr_bot' => true,
+                    'anti_fraud' => true,
                 ],
             ],
         ];
 
         foreach ($plans as $planData) {
+            // Legacy columns for backward compatibility
+            $legacyData = [
+                'team_member_limit' => $planData['limits']['users'] ?? null,
+                'business_limit' => $planData['limits']['branches'] ?? null,
+                'lead_limit' => $planData['limits']['monthly_leads'] ?? null,
+                'chatbot_channel_limit' => $planData['limits']['chatbot_channels'] ?? null,
+                'telegram_bot_limit' => $planData['limits']['telegram_bots'] ?? null,
+                'audio_minutes_limit' => $planData['limits']['ai_call_minutes'] ?? null,
+                'ai_requests_limit' => $planData['limits']['ai_requests'] ?? null,
+                'storage_limit_mb' => $planData['limits']['storage_mb'] ?? null,
+            ];
+
             $plan = Plan::where('slug', $planData['slug'])->first();
 
             if (!$plan) {
@@ -177,7 +189,7 @@ class PlanSeeder extends Seeder
                 $plan->id = Str::uuid()->toString();
             }
 
-            $plan->fill($planData);
+            $plan->fill(array_merge($planData, $legacyData));
             $plan->save();
         }
 

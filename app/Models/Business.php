@@ -436,6 +436,7 @@ class Business extends Model
 
     /**
      * Check if business can use a feature
+     * Uses new JSON-based features from Plan model
      */
     public function canUseFeature(string $feature): bool
     {
@@ -445,84 +446,49 @@ class Business extends Model
             return false;
         }
 
-        // Check specific features
-        switch ($feature) {
-            case 'amocrm':
-                return $plan->has_amocrm;
-            default:
-                return in_array($feature, $plan->features ?? []);
-        }
+        return $plan->hasFeature($feature);
     }
 
     /**
      * Check if business has reached a specific limit
+     * Uses new JSON-based limits from Plan model via PlanLimitService
      */
-    public function hasReachedLimit(string $limitType): bool
+    public function hasReachedLimit(string $limitKey): bool
     {
-        $plan = $this->currentPlan();
+        return app(\App\Services\PlanLimitService::class)->hasReachedLimit($this, $limitKey);
+    }
 
-        if (! $plan) {
-            return true; // No plan = reached all limits
-        }
+    /**
+     * Check if business can add more items for a limit
+     */
+    public function canAdd(string $limitKey, int $count = 1): bool
+    {
+        return app(\App\Services\PlanLimitService::class)->canAdd($this, $limitKey, $count);
+    }
 
-        switch ($limitType) {
-            case 'leads':
-                $limit = $plan->lead_limit;
-                $current = $this->leads()->count();
-
-                return $limit && $current >= $limit;
-
-            case 'team_members':
-                $limit = $plan->team_member_limit;
-                $current = $this->teamMembers()->count();
-
-                return $limit && $current >= $limit;
-
-            case 'chatbot_channels':
-                $limit = $plan->chatbot_channel_limit;
-                $current = $this->chatbotConfigs()->count();
-
-                return $limit && $current >= $limit;
-
-            case 'businesses':
-                $limit = $plan->business_limit;
-
-                // This would be checked at user level, not business level
-                return false;
-
-            default:
-                return false;
-        }
+    /**
+     * Get remaining quota for a limit
+     */
+    public function getRemainingQuota(string $limitKey): ?int
+    {
+        return app(\App\Services\PlanLimitService::class)->getRemainingQuota($this, $limitKey);
     }
 
     /**
      * Get usage stats for the business
+     * Uses new JSON-based limits via PlanLimitService
      */
     public function getUsageStats(): array
     {
-        $plan = $this->currentPlan();
+        return app(\App\Services\PlanLimitService::class)->getUsageStats($this);
+    }
 
-        if (! $plan) {
-            return [];
-        }
-
-        return [
-            'leads' => [
-                'current' => $this->leads()->count(),
-                'limit' => $plan->lead_limit ?? 'unlimited',
-                'percentage' => $plan->lead_limit ? ($this->leads()->count() / $plan->lead_limit) * 100 : 0,
-            ],
-            'team_members' => [
-                'current' => $this->teamMembers()->count(),
-                'limit' => $plan->team_member_limit ?? 'unlimited',
-                'percentage' => $plan->team_member_limit ? ($this->teamMembers()->count() / $plan->team_member_limit) * 100 : 0,
-            ],
-            'chatbot_channels' => [
-                'current' => $this->chatbotConfigs()->count(),
-                'limit' => $plan->chatbot_channel_limit ?? 'unlimited',
-                'percentage' => $plan->chatbot_channel_limit ? ($this->chatbotConfigs()->count() / $plan->chatbot_channel_limit) * 100 : 0,
-            ],
-        ];
+    /**
+     * Get all enabled features for the business
+     */
+    public function getEnabledFeatures(): array
+    {
+        return app(\App\Services\PlanLimitService::class)->getEnabledFeatures($this);
     }
 
     /**

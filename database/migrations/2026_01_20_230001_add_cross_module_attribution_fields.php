@@ -28,7 +28,11 @@ return new class extends Migration
 
         // 2. Sale uchun attribution cost
         Schema::table('sales', function (Blueprint $table) {
-            // acquisition_cost already exists, skip it
+            // First add acquisition_cost if it doesn't exist
+            if (!Schema::hasColumn('sales', 'acquisition_cost')) {
+                $table->decimal('acquisition_cost', 12, 2)->nullable()->after('profit')
+                    ->comment('Bu sotuv uchun sarflangan marketing xarajati');
+            }
             if (!Schema::hasColumn('sales', 'attribution_source_type')) {
                 $table->string('attribution_source_type')->nullable()->after('acquisition_cost')
                     ->comment('digital, offline, referral, organic');

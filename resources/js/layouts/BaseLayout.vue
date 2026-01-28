@@ -279,6 +279,9 @@
 
     <!-- Feedback Widget -->
     <FeedbackWidget v-if="config.showFeedbackWidget" />
+
+    <!-- Upgrade Modal (global - subscription limit/feature errors) -->
+    <UpgradeModal />
   </div>
 </template>
 
@@ -289,6 +292,7 @@ import NavLink from '@/components/NavLink.vue';
 import FeedbackWidget from '@/components/FeedbackWidget.vue';
 import NotificationDropdown from '@/components/NotificationDropdown.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
+import UpgradeModal from '@/components/UpgradeModal.vue';
 import { useI18n } from '@/i18n';
 import axios from 'axios';
 

@@ -3,31 +3,39 @@
     <!-- Telegram Connect Banner (for users without linked Telegram) -->
     <TelegramConnectBanner />
 
-    <!-- Welcome Section -->
-    <div class="mb-8">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {{ t('dashboard.welcome') }}, {{ $page.props.auth?.user?.name }}!
-          </h2>
-          <p class="mt-2 text-gray-600 dark:text-gray-400 flex items-center">
-            <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <span class="font-medium">{{ currentBusiness?.name }}</span>
-          </p>
+    <!-- Welcome Section with Subscription Widget -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Welcome (Left - 3 columns) -->
+      <div class="lg:col-span-3">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {{ t('dashboard.welcome') }}, {{ $page.props.auth?.user?.name }}!
+            </h2>
+            <p class="mt-2 text-gray-600 dark:text-gray-400 flex items-center">
+              <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span class="font-medium">{{ currentBusiness?.name }}</span>
+            </p>
+          </div>
+          <div class="flex gap-3">
+            <Link
+              :href="route('business.sales.index')"
+              class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:shadow-xl"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {{ t('common.leads') }}
+            </Link>
+          </div>
         </div>
-        <div class="flex gap-3">
-          <Link
-            :href="route('business.sales.index')"
-            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:shadow-xl"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            {{ t('common.leads') }}
-          </Link>
-        </div>
+      </div>
+
+      <!-- Subscription Widget (Right - 1 column) -->
+      <div class="lg:col-span-1">
+        <SubscriptionWidget :subscription-status="subscriptionStatus" />
       </div>
     </div>
 
@@ -181,7 +189,7 @@
           <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
             <span class="font-medium">{{ t('dashboard.benchmark') }}:</span>
             <span :class="kpis.churn_rate < 5 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-              {{ kpis.churn_rate < 5 ? '✓ ' + t('dashboard.good') : '✗ ' + t('dashboard.high') }} (< 5%)
+              {{ kpis.churn_rate < 5 ? '✓ ' + t('dashboard.good') : '✗ ' + t('dashboard.high') }} (&lt; 5%)
             </span>
           </div>
         </div>
@@ -240,6 +248,7 @@
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
 import TelegramConnectBanner from '@/components/Dashboard/TelegramConnectBanner.vue';
+import SubscriptionWidget from '@/components/Dashboard/SubscriptionWidget.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
@@ -261,6 +270,7 @@ const props = defineProps({
   aiInsights: Array,
   recentActivities: Array,
   activeAlertsCount: { type: Number, default: 0 },
+  subscriptionStatus: { type: Object, default: null },
 });
 
 // Reactive state for lazy-loaded data

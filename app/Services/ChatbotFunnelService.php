@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Business;
 use App\Models\ChatbotConversation;
 use App\Models\Lead;
 use App\Models\LeadSource;
@@ -195,6 +196,7 @@ class ChatbotFunnelService
 
     /**
      * Create lead when conversation reaches PURCHASE stage
+     * Tarif limitini tekshiradi - monthly_leads
      */
     public function createLeadFromConversation(ChatbotConversation $conversation): ?Lead
     {
@@ -203,6 +205,20 @@ class ChatbotFunnelService
         }
 
         if ($conversation->customer_email || $conversation->customer_phone) {
+            // TARIF LIMITI: Oylik lid limitini tekshirish
+            $business = Business::find($conversation->business_id);
+            if ($business) {
+                $gate = app(SubscriptionGate::class);
+                if (!$gate->canAdd($business, 'monthly_leads')) {
+                    Log::warning('Lead creation blocked - monthly limit reached', [
+                        'business_id' => $conversation->business_id,
+                        'conversation_id' => $conversation->id,
+                        'channel' => $conversation->channel,
+                    ]);
+                    return null;
+                }
+            }
+
             // Get or create appropriate source for the channel
             $source = $this->getOrCreateChatbotSource($conversation->business_id, $conversation->channel);
 

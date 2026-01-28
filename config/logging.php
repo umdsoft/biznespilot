@@ -135,6 +135,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Billing/Payment events (Payme, Click)
+        'billing' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/billing.log'),
+            'level' => 'info',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\BusinessManagementController;
 use App\Http\Controllers\Admin\FeedbackManagementController;
 use App\Http\Controllers\Admin\NotificationManagementController;
+use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\AlgorithmController;
@@ -1248,9 +1249,16 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
     // Dashboard
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // System Health & Analytics
-    Route::get('/system-health', [AdminDashboardController::class, 'systemHealth'])->name('system-health');
-    Route::get('/analytics', [AdminDashboardController::class, 'analytics'])->name('analytics');
+    // System Health & Analytics (Pages)
+    Route::get('/system-health', [AdminDashboardController::class, 'systemHealthPage'])->name('system-health');
+    Route::get('/analytics', [AdminDashboardController::class, 'analyticsPage'])->name('analytics');
+    Route::get('/activity-logs', [AdminDashboardController::class, 'activityLogs'])->name('activity-logs');
+    Route::get('/subscriptions', [AdminDashboardController::class, 'subscriptions'])->name('subscriptions');
+
+    // Settings
+    Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
+    Route::put('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/clear-cache', [AdminDashboardController::class, 'clearCache'])->name('clear-cache');
 
     // Business Management
     Route::prefix('businesses')->name('businesses.')->group(function () {
@@ -1295,6 +1303,24 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
         Route::delete('/{notification}', [NotificationManagementController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-delete', [NotificationManagementController::class, 'bulkDestroy'])->name('bulk-destroy');
     });
+
+    // Plan Management (Admin - Tarif Rejalari)
+    Route::prefix('plans')->name('plans.')->group(function () {
+        Route::get('/', [PlanController::class, 'index'])->name('index');
+        Route::get('/create', [PlanController::class, 'create'])->name('create');
+        Route::post('/', [PlanController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [PlanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [PlanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PlanController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [PlanController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/reorder', [PlanController::class, 'reorder'])->name('reorder');
+    });
+});
+
+// Admin API Routes (JSON responses for AJAX calls)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.api.')->group(function () {
+    Route::get('/system-health', [AdminDashboardController::class, 'systemHealth'])->name('system-health');
+    Route::get('/analytics', [AdminDashboardController::class, 'analytics'])->name('analytics');
 });
 
 // Public Survey routes (CustDev - no authentication required)

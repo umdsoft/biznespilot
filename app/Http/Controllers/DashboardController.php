@@ -16,6 +16,7 @@ use App\Services\DashboardService;
 use App\Services\KPICalculator;
 use App\Services\KPIPlanCalculator;
 use App\Services\SalesAnalyticsService;
+use App\Services\SubscriptionGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -85,6 +86,13 @@ class DashboardController extends Controller
                 ->count()
         );
 
+        // Subscription status for widget (cached for 5 minutes)
+        $subscriptionStatus = Cache::remember(
+            "dashboard_subscription_status_{$currentBusiness->id}",
+            300,
+            fn () => $this->getSubscriptionStatus($currentBusiness)
+        );
+
         return Inertia::render('Business/Dashboard', [
             // LAZY LOAD flags - frontend will fetch via API
             'lazyLoad' => true,
@@ -104,6 +112,8 @@ class DashboardController extends Controller
                 'name' => $currentBusiness->name,
                 'type' => $currentBusiness->type,
             ],
+            // Subscription widget data
+            'subscriptionStatus' => $subscriptionStatus,
         ]);
     }
 
@@ -547,5 +557,92 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('business.kpi')->with('success', 'KPI rejasi muvaffaqiyatli saqlandi!');
+    }
+
+    /**
+     * Get subscription status for dashboard widget
+     */
+    private function getSubscriptionStatus(Business $business): ?array
+    {
+        $gate = app(SubscriptionGate::class);
+
+        try {
+            $subscription = $gate->getActiveSubscription($business);
+            $plan = $subscription->plan;
+
+            // Calculate days remaining
+            $daysRemaining = max(0, now()->diffInDays($subscription->ends_at, false));
+
+            // Format renewal date
+            $renewsAt = $subscription->ends_at?->translatedFormat('d-F, Y');
+
+            // Get usage stats
+            $usageStats = $gate->getUsageStats($business);
+
+            // Build usage array with percentages for main limits
+            $usage = [];
+            $mainLimits = ['users', 'monthly_leads', 'ai_call_minutes', 'instagram_accounts', 'telegram_bots', 'storage_mb'];
+
+            foreach ($mainLimits as $limitKey) {
+                if (isset($usageStats[$limitKey])) {
+                    $stat = $usageStats[$limitKey];
+                    $usage[$limitKey] = [
+                        'label' => $stat['label'],
+                        'used' => $stat['current'],
+                        'limit' => $stat['is_unlimited'] ? null : $stat['limit'],
+                        'percent' => $stat['percentage'],
+                        'is_unlimited' => $stat['is_unlimited'],
+                        'is_exceeded' => $stat['is_exceeded'],
+                        'is_warning' => $stat['is_warning'],
+                    ];
+                }
+            }
+
+            // Determine status label and color
+            $statusLabel = match ($subscription->status) {
+                'active' => 'Faol',
+                'trialing' => 'Sinov davri',
+                'past_due' => "To'lov kutilmoqda",
+                'canceled' => 'Bekor qilingan',
+                default => 'Faol',
+            };
+
+            $statusColor = match ($subscription->status) {
+                'active' => 'green',
+                'trialing' => 'blue',
+                'past_due' => 'red',
+                'canceled' => 'gray',
+                default => 'green',
+            };
+
+            return [
+                'has_subscription' => true,
+                'plan_name' => $plan->name,
+                'plan_slug' => $plan->slug,
+                'price' => $plan->monthly_price,
+                'status' => $subscription->status,
+                'status_label' => $statusLabel,
+                'status_color' => $statusColor,
+                'is_trial' => $subscription->status === 'trialing',
+                'days_remaining' => $daysRemaining,
+                'renews_at' => $renewsAt,
+                'usage' => $usage,
+            ];
+
+        } catch (\App\Exceptions\NoActiveSubscriptionException $e) {
+            return [
+                'has_subscription' => false,
+                'plan_name' => null,
+                'plan_slug' => null,
+                'price' => null,
+                'status' => 'no_subscription',
+                'status_label' => 'Obuna yo\'q',
+                'status_color' => 'gray',
+                'is_trial' => false,
+                'days_remaining' => 0,
+                'renews_at' => null,
+                'usage' => [],
+            ];
+        }
     }
 }

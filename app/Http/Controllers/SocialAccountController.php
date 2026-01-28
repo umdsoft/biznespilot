@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\QuotaExceededException;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Jobs\SyncHistoricalDataJob;
 use App\Models\Business;
@@ -11,6 +12,7 @@ use App\Models\Integration;
 use App\Models\MetaAdAccount;
 use App\Services\FacebookService;
 use App\Services\Integration\MetaOAuthService;
+use App\Services\SubscriptionGate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +22,7 @@ use Inertia\Inertia;
  * SocialAccountController - Qat'iy Bitta Akkaunt Tizimi
  *
  * QOIDALAR:
- * 1. Har bir business uchun faqat 1 ta Facebook/Instagram akkaunt
+ * 1. Har bir business uchun faqat 1 ta Facebook/Instagram akkaunt (Tarif limitiga qarab)
  * 2. OAuth callback'da avtomatik saqlanmaydi - avval tanlash kerak
  * 3. Agar akkaunt ulangan bo'lsa - yangi ulanish bloklanadi
  * 4. Akkaunt tanlangandan keyin 6 oylik tarix sinxronlanadi
@@ -29,10 +31,15 @@ class SocialAccountController extends Controller
 {
     use HasCurrentBusiness;
 
+    protected SubscriptionGate $gate;
+
     public function __construct(
         protected FacebookService $facebookService,
-        protected MetaOAuthService $oauthService
-    ) {}
+        protected MetaOAuthService $oauthService,
+        SubscriptionGate $gate
+    ) {
+        $this->gate = $gate;
+    }
 
     /**
      * Check if business already has connected account
@@ -88,7 +95,7 @@ class SocialAccountController extends Controller
 
     /**
      * Initiate OAuth flow
-     * Avval mavjud ulanishni tekshiradi
+     * Avval mavjud ulanishni va tarif limitini tekshiradi
      */
     public function initiateOAuth(Request $request): JsonResponse
     {
@@ -96,6 +103,26 @@ class SocialAccountController extends Controller
 
         if (!$business) {
             return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        // TARIF LIMITI: Instagram akkaunt limitini tekshirish
+        try {
+            $this->gate->checkQuota($business, 'instagram_accounts');
+        } catch (QuotaExceededException $e) {
+            return response()->json([
+                'error' => 'quota_exceeded',
+                'message' => $e->getMessage(),
+                'error_code' => 'QUOTA_EXCEEDED',
+                'limit_key' => 'instagram_accounts',
+                'upgrade_required' => true,
+            ], 403);
+        } catch (\App\Exceptions\NoActiveSubscriptionException $e) {
+            return response()->json([
+                'error' => 'no_subscription',
+                'message' => $e->getMessage(),
+                'error_code' => 'NO_ACTIVE_SUBSCRIPTION',
+                'upgrade_required' => true,
+            ], 402);
         }
 
         // A QADAM: Tekshirish - agar akkaunt bor bo'lsa bloklash

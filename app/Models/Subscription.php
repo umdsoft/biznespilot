@@ -22,14 +22,14 @@ class Subscription extends Model
         'business_id',
         'plan_id',
         'status',
-        'billing_cycle',
-        'trial_ends_at',
         'starts_at',
         'ends_at',
+        'trial_ends_at',
+        'cancelled_at',
+        'cancellation_reason',
         'amount',
         'currency',
-        'payment_gateway_id',
-        'auto_renew',
+        'metadata',
     ];
 
     /**
@@ -38,11 +38,12 @@ class Subscription extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'trial_ends_at' => 'datetime',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'cancelled_at' => 'datetime',
         'amount' => 'decimal:2',
-        'auto_renew' => 'boolean',
+        'metadata' => 'array',
     ];
 
     /**

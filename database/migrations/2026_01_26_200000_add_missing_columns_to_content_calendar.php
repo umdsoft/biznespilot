@@ -19,7 +19,7 @@ return new class extends Migration
 
             // Add content_text if not exists (alias for content)
             if (!Schema::hasColumn('content_calendar', 'content_text')) {
-                $table->text('content_text')->nullable()->after('description');
+                $table->text('content_text')->nullable()->after('content');
             }
 
             // Add channel column if not exists (some migrations use 'platform')

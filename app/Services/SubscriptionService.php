@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Services\PlanLimitService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,127 @@ class SubscriptionService
     {
         $this->notificationService = $notificationService;
     }
+
+    // =========================================================================
+    // BILLING INTEGRATION METHODS (Payme/Click to'lovdan keyin chaqiriladi)
+    // =========================================================================
+
+    /**
+     * Activate subscription after successful payment.
+     *
+     * Bu metod Payme/Click orqali to'lov muvaffaqiyatli bo'lganda
+     * ActivateSubscriptionListener tomonidan chaqiriladi.
+     *
+     * @param Business $business - To'lov qilgan biznes
+     * @param Plan $plan - Sotib olingan tarif
+     * @param string $paymentProvider - 'payme' yoki 'click'
+     * @param int $transactionId - BillingTransaction ID
+     */
+    public function activate(
+        Business $business,
+        Plan $plan,
+        string $paymentProvider,
+        int $transactionId
+    ): Subscription {
+        // Mavjud aktiv obunani bekor qilish
+        $this->cancelActive($business);
+
+        $startsAt = now();
+        $endsAt = now()->addMonth(); // Oylik obuna
+
+        $subscription = Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'trial_ends_at' => null,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+            'amount' => $plan->price_monthly ?? $plan->monthly_price,
+            'currency' => 'UZS',
+            'auto_renew' => true,
+            'payment_provider' => $paymentProvider,
+            'last_payment_at' => now(),
+            'metadata' => [
+                'activated_via' => $paymentProvider,
+                'billing_transaction_id' => $transactionId,
+            ],
+        ]);
+
+        Log::channel('billing')->info('[SubscriptionService] Subscription activated', [
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'subscription_id' => $subscription->id,
+            'provider' => $paymentProvider,
+            'transaction_id' => $transactionId,
+        ]);
+
+        // Notification yuborish
+        $this->notificationService->sendSystemNotification(
+            $business,
+            'Obuna aktivlashtirildi!',
+            "{$plan->name} tarifi muvaffaqiyatli aktivlashtirildi. Keyingi to'lov: {$endsAt->format('d.m.Y')}"
+        );
+
+        return $subscription;
+    }
+
+    /**
+     * Renew existing subscription after successful payment.
+     *
+     * Bu metod mavjud obunani to'lovdan keyin yangilaydi.
+     *
+     * @param Subscription $subscription - Mavjud obuna
+     * @param Plan $plan - Tarif (yangi yoki mavjud)
+     * @param string $paymentProvider - 'payme' yoki 'click'
+     * @param int $transactionId - BillingTransaction ID
+     */
+    public function renewFromPayment(
+        Subscription $subscription,
+        Plan $plan,
+        string $paymentProvider,
+        int $transactionId
+    ): Subscription {
+        $newEndsAt = $subscription->ends_at > now()
+            ? $subscription->ends_at->addMonth() // Muddati tugamagan - qo'shish
+            : now()->addMonth(); // Muddati tugagan - yangi boshlanish
+
+        $subscription->update([
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'ends_at' => $newEndsAt,
+            'amount' => $plan->price_monthly ?? $plan->monthly_price,
+            'payment_provider' => $paymentProvider,
+            'last_payment_at' => now(),
+            'metadata' => array_merge($subscription->metadata ?? [], [
+                'last_renewed_via' => $paymentProvider,
+                'last_billing_transaction_id' => $transactionId,
+                'renewed_at' => now()->toISOString(),
+            ]),
+        ]);
+
+        Log::channel('billing')->info('[SubscriptionService] Subscription renewed', [
+            'subscription_id' => $subscription->id,
+            'business_id' => $subscription->business_id,
+            'plan_id' => $plan->id,
+            'new_ends_at' => $newEndsAt,
+            'provider' => $paymentProvider,
+            'transaction_id' => $transactionId,
+        ]);
+
+        // Notification yuborish
+        $this->notificationService->sendSystemNotification(
+            $subscription->business,
+            'Obuna yangilandi!',
+            "Obunangiz {$newEndsAt->format('d.m.Y')} gacha uzaytirildi."
+        );
+
+        return $subscription->fresh();
+    }
+
+    // =========================================================================
+    // STANDARD SUBSCRIPTION METHODS
+    // =========================================================================
 
     /**
      * Create a new subscription for a business.
@@ -530,37 +652,12 @@ class SubscriptionService
 
     /**
      * Check if business can downgrade to a plan.
+     * Uses PlanLimitService for centralized limit checking.
      */
     protected function checkPlanLimits(Business $business, Plan $plan): array
     {
-        $checks = [];
-
-        // Check team member limit
-        $currentMembers = $business->users()->count();
-        if ($plan->team_member_limit && $currentMembers > $plan->team_member_limit) {
-            $checks[] = "Jamoa a'zolari soni ({$currentMembers}) limitdan ({$plan->team_member_limit}) oshib ketgan";
-        }
-
-        // Check lead limit
-        $currentLeads = $business->leads()->count();
-        if ($plan->lead_limit && $currentLeads > $plan->lead_limit) {
-            $checks[] = "Lidlar soni ({$currentLeads}) limitdan ({$plan->lead_limit}) oshib ketgan";
-        }
-
-        // Check chatbot limit
-        if ($plan->chatbot_channel_limit) {
-            $currentChannels = $business->chatbotChannels()->count();
-            if ($currentChannels > $plan->chatbot_channel_limit) {
-                $checks[] = "Chatbot kanallari ({$currentChannels}) limitdan ({$plan->chatbot_channel_limit}) oshib ketgan";
-            }
-        }
-
-        return [
-            'can_downgrade' => empty($checks),
-            'message' => empty($checks)
-                ? null
-                : 'Downgrade uchun quyidagi limitlarni kamaytiring: ' . implode(', ', $checks),
-        ];
+        $planLimitService = app(PlanLimitService::class);
+        return $planLimitService->canDowngradeToPlan($business, $plan);
     }
 
     /**
@@ -670,6 +767,7 @@ class SubscriptionService
 
     /**
      * Get available plans for upgrade/downgrade.
+     * Uses new JSON-based limits and features structure.
      */
     public function getAvailablePlans(Business $business): array
     {
@@ -677,6 +775,7 @@ class SubscriptionService
         $currentPlanId = $currentSubscription?->plan_id;
 
         $plans = Plan::where('is_active', true)
+            ->orderBy('sort_order')
             ->orderBy('price_monthly')
             ->get();
 
@@ -694,12 +793,8 @@ class SubscriptionService
                 'description' => $plan->description,
                 'price_monthly' => $plan->price_monthly,
                 'price_yearly' => $plan->price_yearly,
-                'features' => $plan->features,
-                'limits' => [
-                    'team_members' => $plan->team_member_limit,
-                    'leads' => $plan->lead_limit,
-                    'chatbot_channels' => $plan->chatbot_channel_limit,
-                ],
+                'features' => $plan->features ?? [],
+                'limits' => $plan->limits ?? [],
                 'is_current' => $isCurrent,
                 'is_upgrade' => $isUpgrade,
                 'is_downgrade' => $isDowngrade,

@@ -3,7 +3,9 @@
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\CheckFeatureLimit;
 use App\Http\Middleware\CheckSubscription;
+use App\Http\Middleware\CheckSubscriptionQuota;
 use App\Http\Middleware\EnsureBusinessAccess;
+use App\Http\Middleware\EnsureFeatureEnabled;
 use App\Http\Middleware\EnsureHasBusiness;
 use App\Http\Middleware\FinanceMiddleware;
 use App\Http\Middleware\ForceHttps;
@@ -11,15 +13,14 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HRMiddleware;
 use App\Http\Middleware\MarketingMiddleware;
 use App\Http\Middleware\OperatorMiddleware;
+use App\Http\Middleware\PaymeBasicAuth;
 use App\Http\Middleware\SalesHeadMiddleware;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetBusinessContext;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,34 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
-        then: function () {
-            // Configure rate limiters
-            RateLimiter::for('api', function (Request $request) {
-                return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
-            });
-
-            RateLimiter::for('web', function (Request $request) {
-                return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
-            });
-
-            RateLimiter::for('ai', function (Request $request) {
-                return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
-            });
-
-            RateLimiter::for('webhooks', function (Request $request) {
-                return Limit::perMinute(300)->by($request->ip());
-            });
-
-            // KPI Sync endpoints rate limiter (DDoS protection)
-            RateLimiter::for('kpi-sync', function (Request $request) {
-                return Limit::perHour(5)->by($request->user()?->id ?: $request->ip());
-            });
-
-            // KPI monitoring endpoints (admin only, higher limit)
-            RateLimiter::for('kpi-monitoring', function (Request $request) {
-                return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
-            });
-        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Trust all proxies (cloudflared, ngrok, etc.)
@@ -89,6 +62,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'has.business' => EnsureHasBusiness::class,
             'subscription' => CheckSubscription::class,
             'feature.limit' => CheckFeatureLimit::class,
+            // Yangi middleware'lar - SubscriptionGate pattern
+            'feature' => EnsureFeatureEnabled::class,      // Route::middleware('feature:hr_tasks')
+            'quota' => CheckSubscriptionQuota::class,       // Route::middleware('quota:users')
             'admin' => AdminMiddleware::class,
             'sales.head' => SalesHeadMiddleware::class,
             'marketing' => MarketingMiddleware::class,
@@ -96,6 +72,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'hr' => HRMiddleware::class,
             'operator' => OperatorMiddleware::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            // Billing middleware
+            'payme.auth' => PaymeBasicAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -109,6 +87,114 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return redirect()->guest(route('login'));
         });
+
+        // =================================================================
+        // SUBSCRIPTION EXCEPTIONS - Graceful Handling
+        // =================================================================
+
+        // Handle QuotaExceededException (limit tugagan)
+        $exceptions->render(function (\App\Exceptions\QuotaExceededException $e, Request $request) {
+            // API so'rovlari uchun JSON qaytarish
+            if ($request->is('api/*') || ($request->expectsJson() && !$request->hasHeader('X-Inertia'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'error_code' => 'QUOTA_EXCEEDED',
+                    'limit_key' => $e->getLimitKey(),
+                    'limit_label' => $e->getLimitLabel(),
+                    'limit' => $e->getLimit(),
+                    'current_usage' => $e->getCurrentUsage(),
+                    'upgrade_required' => true,
+                ], 403);
+            }
+
+            // Inertia so'rovlari uchun - flash xabar bilan qaytish
+            if ($request->hasHeader('X-Inertia')) {
+                return redirect()->back()->with([
+                    'error' => $e->getMessage(),
+                    'upgrade_required' => true,
+                    'upgrade_data' => [
+                        'type' => 'quota',
+                        'limit_key' => $e->getLimitKey(),
+                        'limit_label' => $e->getLimitLabel(),
+                        'limit' => $e->getLimit(),
+                        'current_usage' => $e->getCurrentUsage(),
+                    ],
+                ]);
+            }
+
+            // Oddiy web so'rovlar uchun
+            return redirect()->back()->with([
+                'error' => $e->getMessage(),
+                'upgrade_required' => true,
+            ]);
+        });
+
+        // Handle FeatureNotAvailableException (feature mavjud emas)
+        $exceptions->render(function (\App\Exceptions\FeatureNotAvailableException $e, Request $request) {
+            // API so'rovlari uchun JSON qaytarish
+            if ($request->is('api/*') || ($request->expectsJson() && !$request->hasHeader('X-Inertia'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'error_code' => 'FEATURE_NOT_AVAILABLE',
+                    'feature_key' => $e->getFeatureKey(),
+                    'feature_label' => $e->getFeatureLabel(),
+                    'upgrade_required' => true,
+                ], 403);
+            }
+
+            // Inertia so'rovlari uchun - flash xabar bilan qaytish
+            if ($request->hasHeader('X-Inertia')) {
+                return redirect()->back()->with([
+                    'error' => $e->getMessage(),
+                    'upgrade_required' => true,
+                    'upgrade_data' => [
+                        'type' => 'feature',
+                        'feature_key' => $e->getFeatureKey(),
+                        'feature_label' => $e->getFeatureLabel(),
+                    ],
+                ]);
+            }
+
+            // Oddiy web so'rovlar uchun
+            return redirect()->back()->with([
+                'error' => $e->getMessage(),
+                'upgrade_required' => true,
+            ]);
+        });
+
+        // Handle NoActiveSubscriptionException (obuna yo'q)
+        $exceptions->render(function (\App\Exceptions\NoActiveSubscriptionException $e, Request $request) {
+            // API so'rovlari uchun JSON qaytarish
+            if ($request->is('api/*') || ($request->expectsJson() && !$request->hasHeader('X-Inertia'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'error_code' => 'NO_ACTIVE_SUBSCRIPTION',
+                    'upgrade_required' => true,
+                ], 402);
+            }
+
+            // Inertia so'rovlari uchun - pricing sahifasiga yo'naltirish
+            if ($request->hasHeader('X-Inertia')) {
+                return redirect()->route('pricing')->with([
+                    'warning' => $e->getMessage(),
+                    'upgrade_required' => true,
+                    'upgrade_data' => [
+                        'type' => 'no_subscription',
+                    ],
+                ]);
+            }
+
+            // Oddiy web so'rovlar uchun
+            return redirect()->route('pricing')->with([
+                'warning' => $e->getMessage(),
+                'upgrade_required' => true,
+            ]);
+        });
+
+        // =================================================================
 
         // Handle CSRF token mismatch (419) specially for better UX
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, Request $request) {
@@ -191,6 +277,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Symfony\Component\HttpKernel\Exception\HttpException::class,
             \Illuminate\Database\Eloquent\ModelNotFoundException::class,
             \Illuminate\Validation\ValidationException::class,
+            // Subscription exceptions - bu normal UX flow
+            \App\Exceptions\QuotaExceededException::class,
+            \App\Exceptions\FeatureNotAvailableException::class,
+            \App\Exceptions\NoActiveSubscriptionException::class,
         ]);
 
         // Throttle exception reporting to prevent log flooding

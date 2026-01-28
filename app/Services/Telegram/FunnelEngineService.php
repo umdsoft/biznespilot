@@ -2,6 +2,7 @@
 
 namespace App\Services\Telegram;
 
+use App\Models\Business;
 use App\Models\Lead;
 use App\Models\LeadSource;
 use App\Models\TelegramBot;
@@ -13,6 +14,7 @@ use App\Models\TelegramMessage;
 use App\Models\TelegramTrigger;
 use App\Models\TelegramUser;
 use App\Models\TelegramUserState;
+use App\Services\SubscriptionGate;
 use Illuminate\Support\Facades\Log;
 
 class FunnelEngineService
@@ -1252,11 +1254,28 @@ class FunnelEngineService
 
     /**
      * Create lead from collected data
+     * Tarif limitini tekshiradi - monthly_leads
      */
     protected function createLead(TelegramFunnelStep $step): void
     {
         $config = $step->action_config ?? [];
         $collectedData = $this->state->collected_data ?? [];
+
+        // TARIF LIMITI: Oylik lid limitini tekshirish
+        $business = Business::find($this->bot->business_id);
+        if ($business) {
+            $gate = app(SubscriptionGate::class);
+            if (!$gate->canAdd($business, 'monthly_leads')) {
+                Log::warning('Lead creation blocked - monthly limit reached', [
+                    'business_id' => $this->bot->business_id,
+                    'bot_id' => $this->bot->id,
+                    'telegram_user_id' => $this->user->telegram_id,
+                ]);
+                // Lead yaratmasdan davom etish - foydalanuvchiga xabar berilmaydi
+                // Chunki bu avtomatik jarayon
+                return;
+            }
+        }
 
         // Get source_id from config or create default Telegram source
         $sourceId = $config['source_id'] ?? null;

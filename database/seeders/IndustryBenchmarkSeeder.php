@@ -179,7 +179,6 @@ class IndustryBenchmarkSeeder extends Seeder
                         'year' => $currentYear,
                     ],
                     [
-                        'id' => Str::uuid()->toString(),
                         'industry_id' => $industry->id,
                         'metric_name' => $benchmark['metric_name'],
                         'metric_type' => $benchmark['metric_type'],

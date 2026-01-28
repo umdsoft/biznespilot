@@ -29,8 +29,8 @@ class OfferFactory extends Factory
             'pricing' => fake()->randomFloat(2, 100000, 10000000),
             'pricing_model' => fake()->randomElement(['fixed', 'subscription', 'tiered']),
             'status' => fake()->randomElement(['draft', 'active', 'paused']),
-            'guarantees' => fake()->optional(0.5)->sentence(),
-            'bonuses' => fake()->optional(0.5)->paragraph(),
+            'guarantees' => fake()->boolean(50) ? [fake()->sentence()] : [],
+            'bonuses' => fake()->boolean(50) ? [fake()->sentence()] : [],
             'scarcity' => fake()->optional(0.3)->sentence(),
             'urgency' => fake()->optional(0.3)->sentence(),
             // Value Equation scores

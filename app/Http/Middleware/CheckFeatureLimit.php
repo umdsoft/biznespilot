@@ -3,107 +3,134 @@
 namespace App\Http\Middleware;
 
 use App\Models\Business;
+use App\Services\PlanLimitService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckFeatureLimit
 {
+    protected PlanLimitService $planLimitService;
+
+    public function __construct(PlanLimitService $planLimitService)
+    {
+        $this->planLimitService = $planLimitService;
+    }
+
     /**
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  $feature  The feature to check (e.g., 'leads', 'team_members', 'chatbot_channels')
+     * @param  string|null  $limitOrFeature  The limit key (e.g., 'users', 'monthly_leads') or feature key (e.g., 'hr_tasks')
+     * @param  string|null  $type  Type of check: 'limit' or 'feature' (default: 'limit')
      */
-    public function handle(Request $request, Closure $next, ?string $feature = null): Response
+    public function handle(Request $request, Closure $next, ?string $limitOrFeature = null, ?string $type = 'limit'): Response
     {
         // Get current business ID from session
         $businessId = session('current_business_id');
 
-        if (! $businessId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Business context is required',
-            ], 400);
+        if (!$businessId) {
+            return $this->errorResponse('Business context is required', 400);
         }
 
-        // Get the business with subscription and plan
-        $business = Business::with(['subscriptions.plan'])->find($businessId);
+        // Get the business
+        $business = Business::find($businessId);
 
-        if (! $business) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Business not found',
-            ], 404);
+        if (!$business) {
+            return $this->errorResponse('Business not found', 404);
         }
 
-        // Get the active subscription
-        $subscription = $business->subscriptions()
-            ->with('plan')
-            ->where(function ($query) {
-                $query->where('status', 'active')
-                    ->whereDate('ends_at', '>=', now())
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'trial')
-                            ->whereDate('trial_ends_at', '>=', now());
-                    });
-            })
-            ->first();
+        // Check if business has an active subscription
+        $subscription = $this->planLimitService->getActiveSubscription($business);
 
-        if (! $subscription || ! $subscription->plan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active subscription plan found',
-            ], 402);
+        if (!$subscription || !$subscription->plan) {
+            return $this->errorResponse(
+                'Aktiv obuna topilmadi. Iltimos, tarifni tanlang.',
+                402,
+                'NO_ACTIVE_SUBSCRIPTION'
+            );
         }
 
-        $plan = $subscription->plan;
+        // If no specific limit/feature to check, just verify subscription exists
+        if (!$limitOrFeature) {
+            return $next($request);
+        }
 
-        // Check feature limits based on the feature parameter
-        if ($feature) {
-            $limitExceeded = false;
-            $limitMessage = '';
+        // Check based on type
+        if ($type === 'feature') {
+            return $this->checkFeature($request, $next, $business, $limitOrFeature);
+        }
 
-            switch ($feature) {
-                case 'leads':
-                    $currentCount = $business->leads()->count();
-                    if ($plan->lead_limit && $currentCount >= $plan->lead_limit) {
-                        $limitExceeded = true;
-                        $limitMessage = "Lead limit reached ({$plan->lead_limit}). Please upgrade your plan.";
-                    }
-                    break;
+        return $this->checkLimit($request, $next, $business, $limitOrFeature);
+    }
 
-                case 'team_members':
-                    $currentCount = $business->teamMembers()->count();
-                    if ($plan->team_member_limit && $currentCount >= $plan->team_member_limit) {
-                        $limitExceeded = true;
-                        $limitMessage = "Team member limit reached ({$plan->team_member_limit}). Please upgrade your plan.";
-                    }
-                    break;
+    /**
+     * Check if limit has been reached.
+     */
+    protected function checkLimit(Request $request, Closure $next, Business $business, string $limitKey): Response
+    {
+        if ($this->planLimitService->hasReachedLimit($business, $limitKey)) {
+            $plan = $this->planLimitService->getCurrentPlan($business);
+            $limit = $this->planLimitService->getPlanLimit($plan, $limitKey);
+            $config = $this->planLimitService->getLimitConfig()[$limitKey] ?? null;
+            $label = $config['label'] ?? $limitKey;
 
-                case 'chatbot_channels':
-                    $currentCount = $business->chatbotConfigs()->count();
-                    if ($plan->chatbot_channel_limit && $currentCount >= $plan->chatbot_channel_limit) {
-                        $limitExceeded = true;
-                        $limitMessage = "Chatbot channel limit reached ({$plan->chatbot_channel_limit}). Please upgrade your plan.";
-                    }
-                    break;
-
-                default:
-                    // Unknown feature, allow the request to proceed
-                    break;
-            }
-
-            if ($limitExceeded) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $limitMessage,
-                    'error_code' => 'FEATURE_LIMIT_EXCEEDED',
+            return $this->errorResponse(
+                "{$label} limiti tugadi ({$limit}). Tarifingizni yangilang.",
+                403,
+                'FEATURE_LIMIT_EXCEEDED',
+                [
+                    'limit_key' => $limitKey,
+                    'limit_value' => $limit,
                     'upgrade_required' => true,
-                ], 403);
-            }
+                ]
+            );
         }
 
         return $next($request);
+    }
+
+    /**
+     * Check if feature is enabled.
+     */
+    protected function checkFeature(Request $request, Closure $next, Business $business, string $featureKey): Response
+    {
+        if (!$this->planLimitService->hasFeature($business, $featureKey)) {
+            $config = $this->planLimitService->getFeatureConfig()[$featureKey] ?? null;
+            $label = $config['label'] ?? $featureKey;
+
+            return $this->errorResponse(
+                "{$label} xususiyati sizning tarifingizda mavjud emas. Tarifingizni yangilang.",
+                403,
+                'FEATURE_NOT_AVAILABLE',
+                [
+                    'feature_key' => $featureKey,
+                    'upgrade_required' => true,
+                ]
+            );
+        }
+
+        return $next($request);
+    }
+
+    /**
+     * Generate error response.
+     */
+    protected function errorResponse(
+        string $message,
+        int $status,
+        ?string $errorCode = null,
+        array $extra = []
+    ): Response {
+        $response = [
+            'success' => false,
+            'message' => $message,
+        ];
+
+        if ($errorCode) {
+            $response['error_code'] = $errorCode;
+        }
+
+        return response()->json(array_merge($response, $extra), $status);
     }
 }

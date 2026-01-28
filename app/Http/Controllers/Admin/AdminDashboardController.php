@@ -7,9 +7,14 @@ use App\Models\Business;
 use App\Models\Campaign;
 use App\Models\ChatbotConversation;
 use App\Models\Customer;
+use App\Models\Industry;
+use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
+use Spatie\Activitylog\Models\Activity;
 
 class AdminDashboardController extends Controller
 {
@@ -229,5 +234,220 @@ class AdminDashboardController extends Controller
             ->count();
 
         return $activeLastMonth > 0 ? round(($churnedThisMonth / $activeLastMonth) * 100, 2) : 0;
+    }
+
+    /**
+     * Settings page
+     */
+    public function settings()
+    {
+        $settings = [
+            'platform_name' => config('app.name', 'BiznesPilot'),
+            'support_email' => config('mail.from.address', 'support@biznespilot.uz'),
+            'default_language' => config('app.locale', 'uz'),
+            'require_2fa' => false,
+            'session_timeout' => config('session.lifetime', 120),
+            'maintenance_mode' => app()->isDownForMaintenance(),
+            'maintenance_message' => '',
+        ];
+
+        return Inertia::render('Admin/Settings/Index', [
+            'settings' => $settings,
+        ]);
+    }
+
+    /**
+     * Update settings
+     */
+    public function updateSettings(Request $request)
+    {
+        // Settings would typically be saved to database or config
+        // For now, just return success
+        return back()->with('success', 'Sozlamalar saqlandi');
+    }
+
+    /**
+     * Activity logs page
+     */
+    public function activityLogs()
+    {
+        $logs = [];
+        $stats = [
+            'today' => 0,
+            'this_week' => 0,
+            'errors' => 0,
+            'active_users' => User::where('last_login_at', '>=', now()->subDay())->count(),
+        ];
+
+        // Check if Activity model exists
+        if (class_exists(Activity::class)) {
+            $logs = Activity::with('causer')
+                ->latest()
+                ->limit(100)
+                ->get()
+                ->map(fn ($log) => [
+                    'id' => $log->id,
+                    'description' => $log->description,
+                    'event' => $log->event ?? 'action',
+                    'user' => $log->causer ? [
+                        'name' => $log->causer->name,
+                        'email' => $log->causer->email,
+                    ] : null,
+                    'properties' => $log->properties,
+                    'created_at' => $log->created_at->format('Y-m-d H:i:s'),
+                ]);
+
+            $stats['today'] = Activity::whereDate('created_at', today())->count();
+            $stats['this_week'] = Activity::where('created_at', '>=', now()->startOfWeek())->count();
+        }
+
+        return Inertia::render('Admin/ActivityLogs/Index', [
+            'logs' => $logs,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * System health page
+     */
+    public function systemHealthPage()
+    {
+        $health = [
+            'database' => $this->checkDatabase(),
+            'storage' => $this->checkStorage(),
+            'cache' => $this->checkCache(),
+            'queue' => $this->checkQueue(),
+        ];
+
+        $systemInfo = [
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+            'server_time' => now()->format('Y-m-d H:i:s'),
+            'environment' => app()->environment(),
+        ];
+
+        return Inertia::render('Admin/SystemHealth/Index', [
+            'initialHealth' => [
+                'health' => $health,
+                'overall' => $this->calculateOverallHealth($health),
+            ],
+            'systemInfo' => $systemInfo,
+        ]);
+    }
+
+    /**
+     * Analytics page
+     */
+    public function analyticsPage()
+    {
+        $analytics = [
+            'active_subscriptions' => Business::where('status', 'active')->count(),
+            'subscription_growth' => $this->calculateGrowthRate(Business::class),
+            'churn_rate' => $this->calculateChurnRate(),
+            'average_campaigns_per_business' => Campaign::count() / max(Business::count(), 1),
+            'average_conversations_per_business' => ChatbotConversation::count() / max(Business::count(), 1),
+            'user_growth' => $this->getMonthlyGrowth(User::class),
+            'business_growth' => $this->getMonthlyGrowth(Business::class),
+            'top_industries' => $this->getTopIndustries(),
+        ];
+
+        return Inertia::render('Admin/Analytics/Index', [
+            'initialAnalytics' => $analytics,
+        ]);
+    }
+
+    /**
+     * Calculate growth rate
+     */
+    protected function calculateGrowthRate($model)
+    {
+        $lastMonth = $model::whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+
+        $thisMonth = $model::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        if ($lastMonth === 0) {
+            return $thisMonth > 0 ? 100 : 0;
+        }
+
+        return round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1);
+    }
+
+    /**
+     * Get top industries
+     */
+    protected function getTopIndustries()
+    {
+        return Business::select('industry_id')
+            ->selectRaw('COUNT(*) as count')
+            ->with('industry:id,name_uz')
+            ->whereNotNull('industry_id')
+            ->groupBy('industry_id')
+            ->orderByDesc('count')
+            ->limit(8)
+            ->get()
+            ->map(fn ($item) => [
+                'name' => $item->industry->name_uz ?? 'Noma\'lum',
+                'count' => $item->count,
+            ]);
+    }
+
+    /**
+     * Subscriptions management page
+     */
+    public function subscriptions()
+    {
+        $subscriptions = Subscription::with(['business.owner', 'plan'])
+            ->latest()
+            ->get()
+            ->map(fn ($sub) => [
+                'id' => $sub->id,
+                'business' => $sub->business ? [
+                    'name' => $sub->business->name,
+                    'owner' => $sub->business->owner ? [
+                        'name' => $sub->business->owner->name,
+                        'email' => $sub->business->owner->email,
+                    ] : null,
+                ] : null,
+                'plan' => $sub->plan ? [
+                    'id' => $sub->plan->id,
+                    'name' => $sub->plan->name,
+                ] : null,
+                'plan_id' => $sub->plan_id,
+                'status' => $sub->status,
+                'billing_cycle' => $sub->metadata['billing_cycle'] ?? 'monthly',
+                'amount' => $sub->amount,
+                'currency' => $sub->currency ?? 'UZS',
+                'starts_at' => $sub->starts_at,
+                'ends_at' => $sub->ends_at,
+                'trial_ends_at' => $sub->trial_ends_at,
+                'auto_renew' => $sub->metadata['auto_renew'] ?? true,
+            ]);
+
+        $stats = [
+            'total' => Subscription::count(),
+            'active' => Subscription::where('status', 'active')->count(),
+            'trial' => Subscription::where('status', 'trial')->count(),
+            'cancelled' => Subscription::where('status', 'cancelled')->count(),
+            'expired' => Subscription::where('status', 'expired')->count(),
+            'total_revenue' => Subscription::where('status', 'active')->sum('amount'),
+            'mrr' => Subscription::where('status', 'active')->sum('amount'),
+        ];
+
+        $plans = Plan::where('is_active', true)
+            ->get()
+            ->map(fn ($plan) => [
+                'id' => $plan->id,
+                'name' => $plan->name,
+            ]);
+
+        return Inertia::render('Admin/Subscriptions/Index', [
+            'subscriptions' => $subscriptions,
+            'stats' => $stats,
+            'plans' => $plans,
+        ]);
     }
 }

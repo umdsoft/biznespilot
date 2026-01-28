@@ -134,17 +134,23 @@ class IndustrySeeder extends Seeder
             $subIndustries = $industryData['sub_industries'] ?? [];
             unset($industryData['sub_industries']);
 
-            $industry = Industry::create($industryData);
+            $industry = Industry::updateOrCreate(
+                ['slug' => $industryData['slug']],
+                $industryData
+            );
 
             foreach ($subIndustries as $subIndustryData) {
-                Industry::create([
-                    'parent_id' => $industry->id,
-                    'name_uz' => $subIndustryData['name_uz'],
-                    'name_en' => $subIndustryData['name_en'],
-                    'slug' => $subIndustryData['slug'],
-                    'icon' => $industry->icon,
-                    'sort_order' => 0,
-                ]);
+                Industry::updateOrCreate(
+                    ['slug' => $subIndustryData['slug']],
+                    [
+                        'parent_id' => $industry->id,
+                        'name_uz' => $subIndustryData['name_uz'],
+                        'name_en' => $subIndustryData['name_en'],
+                        'slug' => $subIndustryData['slug'],
+                        'icon' => $industry->icon,
+                        'sort_order' => 0,
+                    ]
+                );
             }
         }
     }

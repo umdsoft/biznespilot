@@ -97,6 +97,23 @@ Route::prefix('webhooks/utel')->group(function () {
 Route::post('webhooks/system-bot', [\App\Http\Controllers\Telegram\SystemBotController::class, 'webhook'])
     ->name('webhooks.system-bot');
 
+// ========== BILLING WEBHOOKS (Payme & Click) ==========
+// SaaS to'lov tizimlari uchun merchant API'lar
+Route::prefix('billing')->middleware('throttle:billing-webhooks')->group(function () {
+    // Payme Merchant API (JSON-RPC)
+    // https://developer.help.paycom.uz/
+    Route::post('payme', [\App\Http\Controllers\Billing\PaymeMerchantController::class, 'handle'])
+        ->middleware('payme.auth')
+        ->name('billing.payme.webhook');
+
+    // Click Merchant API (REST)
+    // https://docs.click.uz/
+    Route::post('click/prepare', [\App\Http\Controllers\Billing\ClickMerchantController::class, 'prepare'])
+        ->name('billing.click.prepare');
+    Route::post('click/complete', [\App\Http\Controllers\Billing\ClickMerchantController::class, 'complete'])
+        ->name('billing.click.complete');
+});
+
 // ========== CALL RECORDING ROUTES (Auth required) ==========
 // UTEL va OnlinePBX to'g'ridan-to'g'ri URL qaytaradi - streaming kerak emas
 Route::prefix('v1/calls')->middleware(['web', 'auth'])->group(function () {

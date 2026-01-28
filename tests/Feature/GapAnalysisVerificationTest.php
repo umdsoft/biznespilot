@@ -56,8 +56,8 @@ class GapAnalysisVerificationTest extends TestCase
             'type' => 'paid_social',
         ]);
 
-        // Lost pipeline stage - use existing or create
-        $this->lostStage = PipelineStage::firstOrCreate(
+        // Lost pipeline stage - use updateOrCreate to ensure is_lost is true
+        $this->lostStage = PipelineStage::updateOrCreate(
             ['business_id' => $this->business->id, 'slug' => 'lost'],
             [
                 'name' => 'Yo\'qotilgan',

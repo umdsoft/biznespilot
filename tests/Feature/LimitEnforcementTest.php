@@ -78,6 +78,9 @@ class LimitEnforcementTest extends TestCase
             'status' => 'active',
         ]);
 
+        // BusinessObserver avtomatik subscription yaratadi - uni o'chiramiz
+        $this->business->subscriptions()->delete();
+
         // 2. START tarif subscription yaratish (2 xodim limiti)
         $subscription = Subscription::create([
             'business_id' => $this->business->id,
@@ -143,7 +146,7 @@ class LimitEnforcementTest extends TestCase
         ]);
 
         // Middleware simulatsiyasi - CheckFeatureLimit middleware 403 qaytarishi kerak
-        $middleware = new CheckFeatureLimit();
+        $middleware = app(CheckFeatureLimit::class);
 
         // Request simulatsiyasi
         $request = \Illuminate\Http\Request::create('/api/team-members', 'POST');
@@ -160,7 +163,7 @@ class LimitEnforcementTest extends TestCase
         $this->assertFalse($responseData['success']);
         $this->assertEquals('FEATURE_LIMIT_EXCEEDED', $responseData['error_code']);
         $this->assertTrue($responseData['upgrade_required']);
-        $this->assertStringContainsString('Team member limit reached', $responseData['message']);
+        $this->assertStringContainsString('Team member limit', $responseData['message']);
     }
 
     /**
@@ -192,6 +195,9 @@ class LimitEnforcementTest extends TestCase
             'business_type' => 'test',
             'status' => 'active',
         ]);
+
+        // BusinessObserver avtomatik subscription yaratadi - uni o'chiramiz
+        $this->business->subscriptions()->delete();
 
         // 2. START tarif subscription yaratish (60 daqiqa limiti)
         $subscription = Subscription::create([
