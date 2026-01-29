@@ -70,7 +70,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import SalesHeadLayout from '@/Layouts/SalesHeadLayout.vue';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import { UserGroupIcon, TagIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
 
 // Simple list components - inline
