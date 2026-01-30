@@ -25,19 +25,22 @@
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
                 </svg>
-                {{ $translations['features']['badge'] }}
+                <?php echo e($translations['features']['badge']); ?>
+
             </div>
             <h2 class="text-4xl sm:text-5xl font-black text-gray-900 mb-6">
-                {{ $translations['features']['title'] }}
+                <?php echo e($translations['features']['title']); ?>
+
             </h2>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                {{ $translations['features']['subtitle'] }}
+                <?php echo e($translations['features']['subtitle']); ?>
+
             </p>
         </div>
 
         <!-- Features grid -->
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @php
+            <?php
             $featureIcons = [
                 'chart' => '
                     <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
@@ -368,41 +371,45 @@
                     ],
                 ],
             ];
-            @endphp
+            ?>
 
-            @foreach($translations['features']['items'] as $index => $feature)
-                <div class="animate-on-scroll group" style="animation-delay: {{ $index * 0.1 }}s;">
+            <?php $__currentLoopData = $translations['features']['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $feature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="animate-on-scroll group" style="animation-delay: <?php echo e($index * 0.1); ?>s;">
                     <div class="relative h-full p-8 bg-white rounded-3xl border border-gray-100 hover:border-gray-200 transition-all duration-500 hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-2 cursor-pointer"
-                         onclick="openFeatureModal('{{ $feature['icon'] }}')">
+                         onclick="openFeatureModal('<?php echo e($feature['icon']); ?>')">
                         <!-- Gradient background on hover -->
-                        <div class="absolute inset-0 bg-gradient-to-br {{ $lightBgColors[$feature['icon']] ?? 'from-blue-50 to-indigo-50' }} rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br <?php echo e($lightBgColors[$feature['icon']] ?? 'from-blue-50 to-indigo-50'); ?> rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                         <!-- Stat Badge -->
-                        @if(isset($feature['stat']))
+                        <?php if(isset($feature['stat'])): ?>
                         <div class="absolute -top-3 right-6">
-                            <div class="bg-gradient-to-r {{ $bgColors[$feature['icon']] ?? 'from-blue-500 to-indigo-600' }} text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
-                                {{ $feature['stat'] }}
+                            <div class="bg-gradient-to-r <?php echo e($bgColors[$feature['icon']] ?? 'from-blue-500 to-indigo-600'); ?> text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                                <?php echo e($feature['stat']); ?>
+
                             </div>
                         </div>
-                        @endif
+                        <?php endif; ?>
 
                         <div class="relative">
                             <!-- Icon -->
-                            <div class="w-20 h-20 mb-6 {{ $textColors[$feature['icon']] ?? 'text-blue-600' }}">
-                                {!! $featureIcons[$feature['icon']] ?? $featureIcons['chart'] !!}
+                            <div class="w-20 h-20 mb-6 <?php echo e($textColors[$feature['icon']] ?? 'text-blue-600'); ?>">
+                                <?php echo $featureIcons[$feature['icon']] ?? $featureIcons['chart']; ?>
+
                             </div>
 
                             <!-- Content -->
                             <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-900">
-                                {{ $feature['title'] }}
+                                <?php echo e($feature['title']); ?>
+
                             </h3>
                             <p class="text-gray-600 leading-relaxed">
-                                {{ $feature['description'] }}
+                                <?php echo e($feature['description']); ?>
+
                             </p>
 
                             <!-- Arrow link -->
-                            <div class="mt-6 flex items-center text-sm font-semibold {{ $textColors[$feature['icon']] ?? 'text-blue-600' }} opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <span>{{ $locale === 'ru' ? 'Подробнее' : 'Batafsil' }}</span>
+                            <div class="mt-6 flex items-center text-sm font-semibold <?php echo e($textColors[$feature['icon']] ?? 'text-blue-600'); ?> opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <span><?php echo e($locale === 'ru' ? 'Подробнее' : 'Batafsil'); ?></span>
                                 <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
@@ -410,42 +417,43 @@
                         </div>
                     </div>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
 
     <!-- Feature Modals -->
-    @foreach(['chart', 'users', 'bot', 'calendar', 'dashboard', 'team'] as $featureKey)
-    @php
+    <?php $__currentLoopData = ['chart', 'users', 'bot', 'calendar', 'dashboard', 'team']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $featureKey): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php
         $modalData = $featureDetails[$featureKey][$locale === 'ru' ? 'ru' : 'uz'];
         $gradientClass = $bgColors[$featureKey];
         $textColorClass = $textColors[$featureKey];
-    @endphp
-    <div id="modal-{{ $featureKey }}" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+    ?>
+    <div id="modal-<?php echo e($featureKey); ?>" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFeatureModal('{{ $featureKey }}')"></div>
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFeatureModal('<?php echo e($featureKey); ?>')"></div>
 
         <!-- Modal Content -->
         <div class="flex min-h-full items-center justify-center p-4">
             <div class="relative w-full max-w-3xl transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all">
                 <!-- Close button -->
-                <button onclick="closeFeatureModal('{{ $featureKey }}')" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                <button onclick="closeFeatureModal('<?php echo e($featureKey); ?>')" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
                     <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
 
                 <!-- Header with gradient -->
-                <div class="bg-gradient-to-r {{ $gradientClass }} p-8 text-white">
+                <div class="bg-gradient-to-r <?php echo e($gradientClass); ?> p-8 text-white">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
                             <div class="w-10 h-10 text-white">
-                                {!! $featureIcons[$featureKey] !!}
+                                <?php echo $featureIcons[$featureKey]; ?>
+
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-2xl font-bold">{{ $modalData['title'] }}</h3>
-                            <p class="text-white/80">{{ $modalData['subtitle'] }}</p>
+                            <h3 class="text-2xl font-bold"><?php echo e($modalData['title']); ?></h3>
+                            <p class="text-white/80"><?php echo e($modalData['subtitle']); ?></p>
                         </div>
                     </div>
                 </div>
@@ -453,53 +461,57 @@
                 <!-- Body -->
                 <div class="p-8">
                     <p class="text-gray-600 text-lg mb-8 leading-relaxed">
-                        {{ $modalData['description'] }}
+                        <?php echo e($modalData['description']); ?>
+
                     </p>
 
                     <!-- Benefits -->
                     <div class="mb-8">
                         <h4 class="text-lg font-bold text-gray-900 mb-4">
-                            {{ $locale === 'ru' ? 'Что вы получаете:' : 'Nimalarni olasiz:' }}
+                            <?php echo e($locale === 'ru' ? 'Что вы получаете:' : 'Nimalarni olasiz:'); ?>
+
                         </h4>
                         <div class="grid sm:grid-cols-2 gap-3">
-                            @foreach($modalData['benefits'] as $benefit)
+                            <?php $__currentLoopData = $modalData['benefits']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $benefit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="flex items-start gap-3">
-                                <svg class="w-5 h-5 {{ $textColorClass }} flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 <?php echo e($textColorClass); ?> flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-gray-700">{{ $benefit }}</span>
+                                <span class="text-gray-700"><?php echo e($benefit); ?></span>
                             </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>
 
                     <!-- Stats -->
                     <div class="grid grid-cols-3 gap-4 mb-8">
-                        @foreach($modalData['stats'] as $stat)
+                        <?php $__currentLoopData = $modalData['stats']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="text-center p-4 bg-gray-50 rounded-2xl">
-                            <div class="text-2xl font-bold {{ $textColorClass }}">{{ $stat['value'] }}</div>
-                            <div class="text-sm text-gray-600">{{ $stat['label'] }}</div>
+                            <div class="text-2xl font-bold <?php echo e($textColorClass); ?>"><?php echo e($stat['value']); ?></div>
+                            <div class="text-sm text-gray-600"><?php echo e($stat['label']); ?></div>
                         </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
 
                     <!-- CTA -->
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="{{ route('register') }}" class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r {{ $gradientClass }} text-white font-semibold rounded-xl hover:opacity-90 transition-opacity">
-                            {{ $locale === 'ru' ? 'Попробовать бесплатно' : 'Bepul sinab ko\'rish' }}
+                        <a href="<?php echo e(route('register')); ?>" class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r <?php echo e($gradientClass); ?> text-white font-semibold rounded-xl hover:opacity-90 transition-opacity">
+                            <?php echo e($locale === 'ru' ? 'Попробовать бесплатно' : 'Bepul sinab ko\'rish'); ?>
+
                             <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                             </svg>
                         </a>
-                        <button onclick="closeFeatureModal('{{ $featureKey }}')" class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
-                            {{ $locale === 'ru' ? 'Закрыть' : 'Yopish' }}
+                        <button onclick="closeFeatureModal('<?php echo e($featureKey); ?>')" class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
+                            <?php echo e($locale === 'ru' ? 'Закрыть' : 'Yopish'); ?>
+
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </section>
 
 <!-- Modal JavaScript -->
@@ -577,3 +589,4 @@ document.addEventListener('keydown', function(e) {
     animation: modalIn 0.3s ease-out forwards;
 }
 </style>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/features.blade.php ENDPATH**/ ?>

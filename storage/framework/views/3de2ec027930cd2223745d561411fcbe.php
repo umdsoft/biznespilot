@@ -25,14 +25,15 @@
             <div class="text-center lg:text-left z-10">
                 <!-- Badge -->
                 <div class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-300 text-yellow-800 rounded-full text-sm font-bold mb-8 backdrop-blur-sm shadow-lg">
-                    <span class="mr-2">{{ $translations['hero']['badge'] }}</span>
+                    <span class="mr-2"><?php echo e($translations['hero']['badge']); ?></span>
                 </div>
 
                 <!-- Title -->
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight mb-6 leading-[1.1]">
-                    {{ $translations['hero']['title'] }}
+                    <?php echo e($translations['hero']['title']); ?>
+
                     <span class="relative">
-                        <span class="relative z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">{{ $translations['hero']['title_highlight'] }}</span>
+                        <span class="relative z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent"><?php echo e($translations['hero']['title_highlight']); ?></span>
                         <svg class="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M2 10C50 4 100 2 150 6C200 10 250 4 298 8" stroke="url(#underlineGrad)" stroke-width="4" stroke-linecap="round"/>
                             <defs>
@@ -48,17 +49,19 @@
 
                 <!-- Subtitle -->
                 <p class="text-lg sm:text-xl text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                    {{ $translations['hero']['subtitle'] }}
+                    <?php echo e($translations['hero']['subtitle']); ?>
+
                 </p>
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
-                    <a href="{{ route('register') }}"
+                    <a href="<?php echo e(route('register')); ?>"
                        class="group relative inline-flex items-center justify-center px-8 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold text-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1 hover:scale-105">
                         <span class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                         <span class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity"></span>
                         <span class="relative flex items-center">
-                            {{ $translations['hero']['cta_primary'] }}
+                            <?php echo e($translations['hero']['cta_primary']); ?>
+
                         </span>
                     </a>
                     <a href="#features"
@@ -66,7 +69,8 @@
                         <svg class="w-6 h-6 mr-2 text-blue-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                         </svg>
-                        {{ $translations['hero']['cta_secondary'] }}
+                        <?php echo e($translations['hero']['cta_secondary']); ?>
+
                     </a>
                 </div>
 
@@ -75,12 +79,13 @@
                     <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
-                    {{ $locale === 'ru' ? 'Карта не нужна • Отменить можно в любой момент' : "Kredit karta kerak emas • Istalgan vaqt bekor qilish mumkin" }}
+                    <?php echo e($locale === 'ru' ? 'Карта не нужна • Отменить можно в любой момент' : "Kredit karta kerak emas • Istalgan vaqt bekor qilish mumkin"); ?>
+
                 </p>
 
                 <!-- Social Proof Bar -->
                 <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100">
-                    <p class="text-xs text-gray-500 mb-3 text-center lg:text-left">{{ $translations['hero']['trusted_by'] }}</p>
+                    <p class="text-xs text-gray-500 mb-3 text-center lg:text-left"><?php echo e($translations['hero']['trusted_by']); ?></p>
                     <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6">
                         <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
                             <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">T</div>
@@ -107,8 +112,8 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="font-bold text-gray-900">{{ $translations['hero']['stats']['businesses'] }}</div>
-                            <div class="text-xs text-gray-500">{{ $locale === 'ru' ? 'используют' : 'foydalanmoqda' }}</div>
+                            <div class="font-bold text-gray-900"><?php echo e($translations['hero']['stats']['businesses']); ?></div>
+                            <div class="text-xs text-gray-500"><?php echo e($locale === 'ru' ? 'используют' : 'foydalanmoqda'); ?></div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 text-sm">
@@ -118,8 +123,8 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="font-bold text-gray-900">{{ $translations['hero']['stats']['leads'] }}</div>
-                            <div class="text-xs text-gray-500">{{ $locale === 'ru' ? 'обработано' : 'qayta ishlandi' }}</div>
+                            <div class="font-bold text-gray-900"><?php echo e($translations['hero']['stats']['leads']); ?></div>
+                            <div class="text-xs text-gray-500"><?php echo e($locale === 'ru' ? 'обработано' : 'qayta ishlandi'); ?></div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 text-sm">
@@ -129,8 +134,8 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="font-bold text-green-600">{{ $translations['hero']['stats']['growth'] }}</div>
-                            <div class="text-xs text-gray-500">{{ $locale === 'ru' ? 'эффективность' : 'samaradorlik' }}</div>
+                            <div class="font-bold text-green-600"><?php echo e($translations['hero']['stats']['growth']); ?></div>
+                            <div class="text-xs text-gray-500"><?php echo e($locale === 'ru' ? 'эффективность' : 'samaradorlik'); ?></div>
                         </div>
                     </div>
                 </div>
@@ -149,7 +154,7 @@
                         <circle cx="65" cy="65" r="14" fill="url(#logoGrad)"/>
                         <path d="M60 65 L65 60 L70 65 L65 70 Z" fill="white"/>
                         <text x="88" y="62" fill="#1e293b" font-size="12" font-weight="bold">BiznesPilot</text>
-                        <text x="88" y="76" fill="#94a3b8" font-size="9">{{ $locale === 'ru' ? 'Система управления' : 'Boshqaruv tizimi' }}</text>
+                        <text x="88" y="76" fill="#94a3b8" font-size="9"><?php echo e($locale === 'ru' ? 'Система управления' : 'Boshqaruv tizimi'); ?></text>
 
                         <!-- Navigation tabs -->
                         <g transform="translate(220, 52)">
@@ -157,13 +162,13 @@
                             <text x="12" y="18" fill="white" font-size="10" font-weight="600">Marketing</text>
 
                             <rect x="80" width="55" height="28" rx="6" fill="#f1f5f9"/>
-                            <text x="92" y="18" fill="#64748b" font-size="10">{{ $locale === 'ru' ? 'Продажи' : 'Sotuv' }}</text>
+                            <text x="92" y="18" fill="#64748b" font-size="10"><?php echo e($locale === 'ru' ? 'Продажи' : 'Sotuv'); ?></text>
 
                             <rect x="145" width="60" height="28" rx="6" fill="#f1f5f9"/>
-                            <text x="157" y="18" fill="#64748b" font-size="10">{{ $locale === 'ru' ? 'Финансы' : 'Moliya' }}</text>
+                            <text x="157" y="18" fill="#64748b" font-size="10"><?php echo e($locale === 'ru' ? 'Финансы' : 'Moliya'); ?></text>
 
                             <rect x="215" width="55" height="28" rx="6" fill="#f1f5f9"/>
-                            <text x="227" y="18" fill="#64748b" font-size="10">{{ $locale === 'ru' ? 'Команда' : 'Jamoa' }}</text>
+                            <text x="227" y="18" fill="#64748b" font-size="10"><?php echo e($locale === 'ru' ? 'Команда' : 'Jamoa'); ?></text>
                         </g>
 
                         <!-- User avatar -->
@@ -177,11 +182,11 @@
                             <path d="M8 12 L12 8 L16 12 L12 16 Z" fill="white"/>
                             <text x="32" y="8" fill="white" font-size="9" opacity="0.9">MARKETING</text>
                             <text x="32" y="22" fill="white" font-size="16" font-weight="bold">2,847</text>
-                            <text x="0" y="50" fill="white" font-size="10" opacity="0.9">{{ $locale === 'ru' ? 'Лидов' : 'Leadlar' }}</text>
+                            <text x="0" y="50" fill="white" font-size="10" opacity="0.9"><?php echo e($locale === 'ru' ? 'Лидов' : 'Leadlar'); ?></text>
                             <rect y="60" width="140" height="4" rx="2" fill="white" opacity="0.2"/>
                             <rect y="60" width="98" height="4" rx="2" fill="white" opacity="0.6"/>
-                            <text x="0" y="80" fill="white" font-size="9" opacity="0.8">{{ $locale === 'ru' ? 'Кампании: 12 активных' : 'Kampaniyalar: 12 faol' }}</text>
-                            <text x="0" y="95" fill="white" font-size="9" opacity="0.8">{{ $locale === 'ru' ? 'Конверсия: 24.8%' : 'Konversiya: 24.8%' }}</text>
+                            <text x="0" y="80" fill="white" font-size="9" opacity="0.8"><?php echo e($locale === 'ru' ? 'Кампании: 12 активных' : 'Kampaniyalar: 12 faol'); ?></text>
+                            <text x="0" y="95" fill="white" font-size="9" opacity="0.8"><?php echo e($locale === 'ru' ? 'Конверсия: 24.8%' : 'Konversiya: 24.8%'); ?></text>
                         </g>
 
                         <!-- Sales Module -->
@@ -189,13 +194,13 @@
                         <g transform="translate(235, 125)">
                             <circle cx="12" cy="12" r="12" fill="white" opacity="0.2"/>
                             <text x="8" y="17" fill="white" font-size="12">$</text>
-                            <text x="32" y="8" fill="white" font-size="9" opacity="0.9">{{ $locale === 'ru' ? 'ПРОДАЖИ' : 'SOTUV' }}</text>
+                            <text x="32" y="8" fill="white" font-size="9" opacity="0.9"><?php echo e($locale === 'ru' ? 'ПРОДАЖИ' : 'SOTUV'); ?></text>
                             <text x="32" y="22" fill="white" font-size="16" font-weight="bold">$128.5K</text>
-                            <text x="0" y="50" fill="white" font-size="10" opacity="0.9">{{ $locale === 'ru' ? 'Доход за месяц' : 'Bu oy daromad' }}</text>
+                            <text x="0" y="50" fill="white" font-size="10" opacity="0.9"><?php echo e($locale === 'ru' ? 'Доход за месяц' : 'Bu oy daromad'); ?></text>
                             <rect y="60" width="140" height="4" rx="2" fill="white" opacity="0.2"/>
                             <rect y="60" width="112" height="4" rx="2" fill="white" opacity="0.6"/>
-                            <text x="0" y="80" fill="white" font-size="9" opacity="0.8">{{ $locale === 'ru' ? 'Сделки: 47 открытых' : 'Deallar: 47 ochiq' }}</text>
-                            <text x="0" y="95" fill="white" font-size="9" opacity="0.8">{{ $locale === 'ru' ? 'Средний чек: $2,734' : "O'rtacha: $2,734" }}</text>
+                            <text x="0" y="80" fill="white" font-size="9" opacity="0.8"><?php echo e($locale === 'ru' ? 'Сделки: 47 открытых' : 'Deallar: 47 ochiq'); ?></text>
+                            <text x="0" y="95" fill="white" font-size="9" opacity="0.8"><?php echo e($locale === 'ru' ? 'Средний чек: $2,734' : "O'rtacha: $2,734"); ?></text>
                         </g>
 
                         <!-- Finance Module -->
@@ -203,18 +208,18 @@
                         <g transform="translate(415, 125)">
                             <circle cx="12" cy="12" r="12" fill="white" opacity="0.2"/>
                             <path d="M7 12 L12 7 L17 12 L12 17 Z M10 12 L12 10 L14 12 L12 14 Z" fill="white"/>
-                            <text x="32" y="8" fill="white" font-size="9" opacity="0.9">{{ $locale === 'ru' ? 'ФИНАНСЫ' : 'MOLIYA' }}</text>
+                            <text x="32" y="8" fill="white" font-size="9" opacity="0.9"><?php echo e($locale === 'ru' ? 'ФИНАНСЫ' : 'MOLIYA'); ?></text>
                             <text x="32" y="22" fill="white" font-size="16" font-weight="bold">89.2%</text>
-                            <text x="0" y="50" fill="white" font-size="10" opacity="0.9">{{ $locale === 'ru' ? 'Маржа прибыли' : 'Foyda margini' }}</text>
+                            <text x="0" y="50" fill="white" font-size="10" opacity="0.9"><?php echo e($locale === 'ru' ? 'Маржа прибыли' : 'Foyda margini'); ?></text>
                             <rect y="60" width="130" height="4" rx="2" fill="white" opacity="0.2"/>
                             <rect y="60" width="116" height="4" rx="2" fill="white" opacity="0.6"/>
-                            <text x="0" y="80" fill="white" font-size="9" opacity="0.8">{{ $locale === 'ru' ? 'Доход: $156.2K' : 'Kirim: $156.2K' }}</text>
-                            <text x="0" y="95" fill="white" font-size="9" opacity="0.8">{{ $locale === 'ru' ? 'Расход: $27.7K' : 'Chiqim: $27.7K' }}</text>
+                            <text x="0" y="80" fill="white" font-size="9" opacity="0.8"><?php echo e($locale === 'ru' ? 'Доход: $156.2K' : 'Kirim: $156.2K'); ?></text>
+                            <text x="0" y="95" fill="white" font-size="9" opacity="0.8"><?php echo e($locale === 'ru' ? 'Расход: $27.7K' : 'Chiqim: $27.7K'); ?></text>
                         </g>
 
                         <!-- Unified Dashboard Area -->
                         <rect x="40" y="255" width="340" height="225" rx="16" fill="#f8fafc"/>
-                        <text x="60" y="285" fill="#1e293b" font-size="13" font-weight="600">{{ $locale === 'ru' ? 'Единый Dashboard' : 'Yagona Dashboard' }}</text>
+                        <text x="60" y="285" fill="#1e293b" font-size="13" font-weight="600"><?php echo e($locale === 'ru' ? 'Единый Dashboard' : 'Yagona Dashboard'); ?></text>
 
                         <!-- Mini module indicators -->
                         <g transform="translate(200, 272)">
@@ -263,7 +268,7 @@
                             <rect width="130" height="28" rx="8" fill="url(#aiGrad)"/>
                             <circle cx="14" cy="14" r="10" fill="white" opacity="0.2"/>
                             <text x="10" y="18" fill="white" font-size="10" font-weight="bold">AI</text>
-                            <text x="32" y="18" fill="white" font-size="10" font-weight="600">{{ $locale === 'ru' ? 'Автоматизация' : 'Avtomatlashtirish' }}</text>
+                            <text x="32" y="18" fill="white" font-size="10" font-weight="600"><?php echo e($locale === 'ru' ? 'Автоматизация' : 'Avtomatlashtirish'); ?></text>
                         </g>
 
                         <!-- AI Tasks -->
@@ -272,15 +277,15 @@
                             <circle cx="16" cy="22" r="8" fill="#22c55e"/>
                             <path d="M12 22 L15 25 L20 19" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
                             <text x="32" y="18" fill="#166534" font-size="9" font-weight="600">Lead scoring</text>
-                            <text x="32" y="32" fill="#16a34a" font-size="8">847 lead {{ $locale === 'ru' ? 'оценено' : 'baholandi' }}</text>
+                            <text x="32" y="32" fill="#16a34a" font-size="8">847 lead <?php echo e($locale === 'ru' ? 'оценено' : 'baholandi'); ?></text>
                         </g>
 
                         <g transform="translate(415, 365)">
                             <rect width="130" height="45" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
                             <circle cx="16" cy="22" r="8" fill="#3b82f6"/>
                             <path d="M12 22 L20 22 M16 18 L16 26" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
-                            <text x="32" y="18" fill="#1e40af" font-size="9" font-weight="600">{{ $locale === 'ru' ? 'Создание отчёта' : 'Hisobot yaratish' }}</text>
-                            <text x="32" y="32" fill="#2563eb" font-size="8">{{ $locale === 'ru' ? 'Финансы + Продажи' : 'Moliya + Sotuv' }}</text>
+                            <text x="32" y="18" fill="#1e40af" font-size="9" font-weight="600"><?php echo e($locale === 'ru' ? 'Создание отчёта' : 'Hisobot yaratish'); ?></text>
+                            <text x="32" y="32" fill="#2563eb" font-size="8"><?php echo e($locale === 'ru' ? 'Финансы + Продажи' : 'Moliya + Sotuv'); ?></text>
                         </g>
 
                         <g transform="translate(415, 420)">
@@ -288,7 +293,7 @@
                             <circle cx="16" cy="22" r="8" fill="#f59e0b"/>
                             <path d="M13 22 L19 22 M16 19 L16 25" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(45 16 22)"/>
                             <text x="32" y="18" fill="#92400e" font-size="9" font-weight="600">Workflow</text>
-                            <text x="32" y="32" fill="#b45309" font-size="8">15 {{ $locale === 'ru' ? 'авто-процессов' : 'avtomatik jarayon' }}</text>
+                            <text x="32" y="32" fill="#b45309" font-size="8">15 <?php echo e($locale === 'ru' ? 'авто-процессов' : 'avtomatik jarayon'); ?></text>
                         </g>
 
                         <!-- Gradients & Filters -->
@@ -335,3 +340,4 @@
         </svg>
     </div>
 </section>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/hero.blade.php ENDPATH**/ ?>

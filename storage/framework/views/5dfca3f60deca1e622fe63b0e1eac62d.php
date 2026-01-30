@@ -8,20 +8,23 @@
                 <svg class="w-4 h-4 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
-                {{ $translations['pricing']['badge'] }}
+                <?php echo e($translations['pricing']['badge']); ?>
+
             </span>
             <h2 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                {{ $translations['pricing']['title'] }}
+                <?php echo e($translations['pricing']['title']); ?>
+
             </h2>
             <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                {{ $translations['pricing']['subtitle'] }}
+                <?php echo e($translations['pricing']['subtitle']); ?>
+
             </p>
         </div>
 
         <!-- Pricing cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
-            @foreach($translations['pricing']['plans'] as $index => $plan)
-                @php
+            <?php $__currentLoopData = $translations['pricing']['plans']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $plan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
                     $isPopular = $plan['popular'] ?? false;
                     $isPremium = $plan['premium'] ?? false;
                     $icons = [
@@ -42,90 +45,92 @@
                         2 => 'border-purple-200 hover:border-purple-400',
                         3 => 'hover:border-amber-300',
                     ];
-                @endphp
-                <div class="animate-on-scroll relative {{ $isPopular ? 'z-10' : '' }}" style="animation-delay: {{ $index * 0.1 }}s;">
-                    {{-- Popular card wrapper with scale --}}
-                    <div class="{{ $isPopular ? 'lg:-mt-4 lg:-mb-4' : '' }}">
-                        {{-- Glow effect --}}
-                        @if($isPopular)
+                ?>
+                <div class="animate-on-scroll relative <?php echo e($isPopular ? 'z-10' : ''); ?>" style="animation-delay: <?php echo e($index * 0.1); ?>s;">
+                    
+                    <div class="<?php echo e($isPopular ? 'lg:-mt-4 lg:-mb-4' : ''); ?>">
+                        
+                        <?php if($isPopular): ?>
                             <div class="absolute -inset-1 bg-gradient-to-r from-purple-500 to-violet-500 rounded-[28px] blur opacity-30"></div>
-                        @elseif($isPremium)
+                        <?php elseif($isPremium): ?>
                             <div class="absolute -inset-1 bg-gradient-to-r from-amber-400 to-orange-500 rounded-[28px] blur opacity-20"></div>
-                        @endif
+                        <?php endif; ?>
 
-                        <div class="relative bg-white rounded-3xl p-8 lg:p-10 shadow-xl border-2 {{ $isPopular ? 'border-purple-300' : ($isPremium ? 'border-amber-200' : 'border-gray-100') }} {{ $borderColors[$index] ?? 'hover:border-blue-300' }} hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
+                        <div class="relative bg-white rounded-3xl p-8 lg:p-10 shadow-xl border-2 <?php echo e($isPopular ? 'border-purple-300' : ($isPremium ? 'border-amber-200' : 'border-gray-100')); ?> <?php echo e($borderColors[$index] ?? 'hover:border-blue-300'); ?> hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
 
                             <!-- Badge -->
-                            @if($isPopular)
+                            <?php if($isPopular): ?>
                                 <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-sm font-bold rounded-full shadow-lg flex items-center gap-1.5">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                     </svg>
-                                    {{ $translations['pricing']['popular_badge'] }}
+                                    <?php echo e($translations['pricing']['popular_badge']); ?>
+
                                 </div>
-                            @elseif($isPremium)
+                            <?php elseif($isPremium): ?>
                                 <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg flex items-center gap-1.5">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"/>
                                     </svg>
                                     VIP
                                 </div>
-                            @endif
+                            <?php endif; ?>
 
                             <!-- Icon & Plan name -->
-                            <div class="flex items-start gap-4 mb-6 {{ $isPopular || $isPremium ? 'mt-2' : '' }}">
-                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 {{ $iconColors[$index] ?? 'text-blue-600 bg-blue-50' }}">
-                                    {!! $icons[$index] ?? $icons[0] !!}
+                            <div class="flex items-start gap-4 mb-6 <?php echo e($isPopular || $isPremium ? 'mt-2' : ''); ?>">
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 <?php echo e($iconColors[$index] ?? 'text-blue-600 bg-blue-50'); ?>">
+                                    <?php echo $icons[$index] ?? $icons[0]; ?>
+
                                 </div>
                                 <div>
-                                    <h3 class="text-2xl font-bold text-gray-900">{{ $plan['name'] }}</h3>
-                                    <p class="text-gray-500 mt-1">{{ $plan['description'] }}</p>
+                                    <h3 class="text-2xl font-bold text-gray-900"><?php echo e($plan['name']); ?></h3>
+                                    <p class="text-gray-500 mt-1"><?php echo e($plan['description']); ?></p>
                                 </div>
                             </div>
 
                             <!-- Price -->
                             <div class="mb-8 pb-8 border-b border-gray-100">
                                 <div class="flex items-end gap-2">
-                                    <span class="text-3xl font-extrabold text-gray-900 tracking-tight whitespace-nowrap">{{ $plan['price'] }}</span>
-                                    <span class="text-gray-500 text-sm pb-1">{{ $translations['pricing']['per_month'] }}</span>
+                                    <span class="text-3xl font-extrabold text-gray-900 tracking-tight whitespace-nowrap"><?php echo e($plan['price']); ?></span>
+                                    <span class="text-gray-500 text-sm pb-1"><?php echo e($translations['pricing']['per_month']); ?></span>
                                 </div>
-                                @if($isPopular)
+                                <?php if($isPopular): ?>
                                     <div class="mt-3 inline-flex items-center gap-1.5 text-purple-600 text-sm font-medium">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
                                         </svg>
                                         Eng foydali tanlov
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
 
                             <!-- Features -->
                             <ul class="space-y-4 mb-10 flex-1">
-                                @foreach($plan['features'] as $feature)
+                                <?php $__currentLoopData = $plan['features']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $feature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <li class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5 {{ $isPopular ? 'text-purple-500' : ($isPremium ? 'text-amber-500' : 'text-green-500') }}" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5 <?php echo e($isPopular ? 'text-purple-500' : ($isPremium ? 'text-amber-500' : 'text-green-500')); ?>" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                         </svg>
-                                        <span class="text-gray-700 text-base">{{ $feature }}</span>
+                                        <span class="text-gray-700 text-base"><?php echo e($feature); ?></span>
                                     </li>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </ul>
 
                             <!-- CTA Button -->
-                            <a href="{{ route('register') }}"
+                            <a href="<?php echo e(route('register')); ?>"
                                class="block w-full py-4 px-6 rounded-2xl font-bold text-center text-lg transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-0.5
-                               {{ $isPopular
+                               <?php echo e($isPopular
                                    ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:from-purple-700 hover:to-violet-700 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40'
                                    : ($isPremium
                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40'
-                                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200 hover:shadow-lg')
-                               }}">
-                                {{ $plan['cta'] }}
+                                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200 hover:shadow-lg')); ?>">
+                                <?php echo e($plan['cta']); ?>
+
                             </a>
                         </div>
                     </div>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
 
         <!-- Trust badges -->
@@ -160,10 +165,12 @@
         <!-- Bottom note -->
         <div class="text-center mt-10 animate-on-scroll">
             <p class="text-gray-500">
-                {{ $translations['pricing']['note'] }}
+                <?php echo e($translations['pricing']['note']); ?>
+
             </p>
-            <a href="{{ route('pricing') }}" class="inline-flex items-center mt-6 text-blue-600 hover:text-blue-700 font-semibold text-lg transition-colors group">
-                {{ $translations['pricing']['compare_link'] }}
+            <a href="<?php echo e(route('pricing')); ?>" class="inline-flex items-center mt-6 text-blue-600 hover:text-blue-700 font-semibold text-lg transition-colors group">
+                <?php echo e($translations['pricing']['compare_link']); ?>
+
                 <svg class="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
@@ -171,3 +178,4 @@
         </div>
     </div>
 </section>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/pricing.blade.php ENDPATH**/ ?>

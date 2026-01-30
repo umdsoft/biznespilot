@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="{{ $locale ?? 'uz-latn' }}" class="scroll-smooth" dir="ltr" prefix="og: https://ogp.me/ns#">
+<html lang="<?php echo e($locale ?? 'uz-latn'); ?>" class="scroll-smooth" dir="ltr" prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <!-- ========== PRIMARY SEO META TAGS ========== -->
-    <title>{{ $translations['meta_title'] ?? 'BiznesPilot - Biznes Boshqaruv Platformasi' }}</title>
-    <meta name="description" content="{{ $translations['meta_description'] ?? '' }}">
-    <meta name="keywords" content="{{ $locale === 'ru'
+    <title><?php echo e($translations['meta_title'] ?? 'BiznesPilot - Biznes Boshqaruv Platformasi'); ?></title>
+    <meta name="description" content="<?php echo e($translations['meta_description'] ?? ''); ?>">
+    <meta name="keywords" content="<?php echo e($locale === 'ru'
         ? 'BiznesPilot, CRM система Узбекистан, автоматизация бизнеса, управление продажами, маркетинг автоматизация, финансовый учет, AI для бизнеса, Telegram бот CRM, lead management, бизнес аналитика, ERP система, управление клиентами, sales automation, бесплатная CRM'
-        : 'BiznesPilot, CRM tizimi Ozbekiston, biznes avtomatlashtirish, sotuvlarni boshqarish, marketing avtomatizatsiya, moliyaviy hisobot, AI biznes uchun, Telegram bot CRM, lead management, biznes analitika, ERP tizimi, mijozlarni boshqarish, sales automation, bepul CRM' }}">
+        : 'BiznesPilot, CRM tizimi Ozbekiston, biznes avtomatlashtirish, sotuvlarni boshqarish, marketing avtomatizatsiya, moliyaviy hisobot, AI biznes uchun, Telegram bot CRM, lead management, biznes analitika, ERP tizimi, mijozlarni boshqarish, sales automation, bepul CRM'); ?>">
     <meta name="author" content="BiznesPilot">
     <meta name="publisher" content="BiznesPilot LLC">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -19,43 +19,43 @@
     <meta name="revisit-after" content="3 days">
     <meta name="rating" content="general">
     <meta name="distribution" content="global">
-    <meta name="language" content="{{ $locale === 'ru' ? 'Russian' : 'Uzbek' }}">
-    <meta name="copyright" content="BiznesPilot {{ date('Y') }}">
+    <meta name="language" content="<?php echo e($locale === 'ru' ? 'Russian' : 'Uzbek'); ?>">
+    <meta name="copyright" content="BiznesPilot <?php echo e(date('Y')); ?>">
 
     <!-- ========== CANONICAL & ALTERNATE LANGUAGES (hreflang) ========== -->
-    <link rel="canonical" href="{{ url('/') }}">
-    <link rel="alternate" hreflang="uz" href="{{ url('/') }}">
-    <link rel="alternate" hreflang="uz-Latn-UZ" href="{{ url('/') }}">
-    <link rel="alternate" hreflang="ru" href="{{ url('/lang/ru') }}">
-    <link rel="alternate" hreflang="ru-UZ" href="{{ url('/lang/ru') }}">
-    <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
+    <link rel="canonical" href="<?php echo e(url('/')); ?>">
+    <link rel="alternate" hreflang="uz" href="<?php echo e(url('/')); ?>">
+    <link rel="alternate" hreflang="uz-Latn-UZ" href="<?php echo e(url('/')); ?>">
+    <link rel="alternate" hreflang="ru" href="<?php echo e(url('/lang/ru')); ?>">
+    <link rel="alternate" hreflang="ru-UZ" href="<?php echo e(url('/lang/ru')); ?>">
+    <link rel="alternate" hreflang="x-default" href="<?php echo e(url('/')); ?>">
 
     <!-- ========== OPEN GRAPH / FACEBOOK ========== -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="BiznesPilot">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="{{ $translations['meta_title'] ?? 'BiznesPilot' }}">
-    <meta property="og:description" content="{{ $translations['meta_description'] ?? '' }}">
-    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
-    <meta property="og:image:secure_url" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:url" content="<?php echo e(url()->current()); ?>">
+    <meta property="og:title" content="<?php echo e($translations['meta_title'] ?? 'BiznesPilot'); ?>">
+    <meta property="og:description" content="<?php echo e($translations['meta_description'] ?? ''); ?>">
+    <meta property="og:image" content="<?php echo e(asset('images/og-image.png')); ?>">
+    <meta property="og:image:secure_url" content="<?php echo e(asset('images/og-image.png')); ?>">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="BiznesPilot - {{ $locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане' : 'O\'zbekistondagi #1 biznes boshqaruv platformasi' }}">
-    <meta property="og:locale" content="{{ $locale === 'ru' ? 'ru_RU' : 'uz_UZ' }}">
-    <meta property="og:locale:alternate" content="{{ $locale === 'ru' ? 'uz_UZ' : 'ru_RU' }}">
-    <meta property="og:updated_time" content="{{ now()->toIso8601String() }}">
+    <meta property="og:image:alt" content="BiznesPilot - <?php echo e($locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане' : 'O\'zbekistondagi #1 biznes boshqaruv platformasi'); ?>">
+    <meta property="og:locale" content="<?php echo e($locale === 'ru' ? 'ru_RU' : 'uz_UZ'); ?>">
+    <meta property="og:locale:alternate" content="<?php echo e($locale === 'ru' ? 'uz_UZ' : 'ru_RU'); ?>">
+    <meta property="og:updated_time" content="<?php echo e(now()->toIso8601String()); ?>">
 
     <!-- ========== TWITTER CARDS ========== -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@biznespilot">
     <meta name="twitter:creator" content="@biznespilot">
-    <meta name="twitter:url" content="{{ url()->current() }}">
-    <meta name="twitter:title" content="{{ $translations['meta_title'] ?? 'BiznesPilot' }}">
-    <meta name="twitter:description" content="{{ $translations['meta_description'] ?? '' }}">
-    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
-    <meta name="twitter:image:alt" content="BiznesPilot - {{ $locale === 'ru' ? 'Платформа управления бизнесом' : 'Biznes boshqaruv platformasi' }}">
-    <meta name="twitter:domain" content="{{ parse_url(url('/'), PHP_URL_HOST) }}">
+    <meta name="twitter:url" content="<?php echo e(url()->current()); ?>">
+    <meta name="twitter:title" content="<?php echo e($translations['meta_title'] ?? 'BiznesPilot'); ?>">
+    <meta name="twitter:description" content="<?php echo e($translations['meta_description'] ?? ''); ?>">
+    <meta name="twitter:image" content="<?php echo e(asset('images/og-image.png')); ?>">
+    <meta name="twitter:image:alt" content="BiznesPilot - <?php echo e($locale === 'ru' ? 'Платформа управления бизнесом' : 'Biznes boshqaruv platformasi'); ?>">
+    <meta name="twitter:domain" content="<?php echo e(parse_url(url('/'), PHP_URL_HOST)); ?>">
 
     <!-- ========== MOBILE & APP META ========== -->
     <meta name="theme-color" content="#2563eb">
@@ -75,17 +75,17 @@
     <meta name="ICBM" content="41.2995, 69.2401">
 
     <!-- ========== VERIFICATION TAGS (add your IDs) ========== -->
-    {{-- <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE"> --}}
-    {{-- <meta name="yandex-verification" content="YOUR_YANDEX_VERIFICATION_CODE"> --}}
-    {{-- <meta name="facebook-domain-verification" content="YOUR_FB_VERIFICATION_CODE"> --}}
+    
+    
+    
 
     <!-- ========== FAVICON & ICONS ========== -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
-    <link rel="mask-icon" href="{{ asset('safari-pinned-tab.svg') }}" color="#2563eb">
+    <link rel="icon" type="image/svg+xml" href="<?php echo e(asset('favicon.svg')); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('favicon-16x16.png')); ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo e(asset('apple-touch-icon.png')); ?>">
+    <link rel="manifest" href="<?php echo e(asset('site.webmanifest')); ?>">
+    <link rel="mask-icon" href="<?php echo e(asset('safari-pinned-tab.svg')); ?>" color="#2563eb">
 
     <!-- ========== PRECONNECT & DNS PREFETCH ========== -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,7 +96,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- ========== COMPILED TAILWIND CSS (via Vite) ========== -->
-    @vite(['resources/css/app.css'])
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css']); ?>
 
     <!-- Custom Styles -->
     <style>
@@ -214,42 +214,42 @@
     <!-- ========== SCHEMA.ORG JSON-LD STRUCTURED DATA ========== -->
     <script type="application/ld+json">
     {
-        "@@context": "https://schema.org",
-        "@@graph": [
+        "@context": "https://schema.org",
+        "@graph": [
             {
-                "@@type": "Organization",
-                "@@id": "{{ url('/') }}#organization",
+                "@type": "Organization",
+                "@id": "<?php echo e(url('/')); ?>#organization",
                 "name": "BiznesPilot",
                 "alternateName": ["Biznes Pilot", "БизнесПилот"],
-                "url": "{{ url('/') }}",
+                "url": "<?php echo e(url('/')); ?>",
                 "logo": {
-                    "@@type": "ImageObject",
-                    "url": "{{ asset('images/logo.png') }}",
+                    "@type": "ImageObject",
+                    "url": "<?php echo e(asset('images/logo.png')); ?>",
                     "width": 512,
                     "height": 512
                 },
-                "image": "{{ asset('images/og-image.png') }}",
-                "description": {!! json_encode($locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане. Маркетинг, Продажи, Финансы - всё в одном месте.' : 'O\'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya - hammasi bir joyda.', JSON_UNESCAPED_UNICODE) !!},
+                "image": "<?php echo e(asset('images/og-image.png')); ?>",
+                "description": <?php echo json_encode($locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане. Маркетинг, Продажи, Финансы - всё в одном месте.' : 'O\'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya - hammasi bir joyda.', JSON_UNESCAPED_UNICODE); ?>,
                 "foundingDate": "2024",
                 "founders": [
                     {
-                        "@@type": "Person",
+                        "@type": "Person",
                         "name": "BiznesPilot Team"
                     }
                 ],
                 "address": {
-                    "@@type": "PostalAddress",
+                    "@type": "PostalAddress",
                     "addressLocality": "Tashkent",
                     "addressRegion": "Tashkent",
                     "addressCountry": "UZ"
                 },
                 "geo": {
-                    "@@type": "GeoCoordinates",
+                    "@type": "GeoCoordinates",
                     "latitude": "41.2995",
                     "longitude": "69.2401"
                 },
                 "areaServed": {
-                    "@@type": "Country",
+                    "@type": "Country",
                     "name": "Uzbekistan"
                 },
                 "sameAs": [
@@ -260,14 +260,14 @@
                 ],
                 "contactPoint": [
                     {
-                        "@@type": "ContactPoint",
+                        "@type": "ContactPoint",
                         "telephone": "+998505048668",
                         "contactType": "customer service",
                         "availableLanguage": ["Uzbek", "Russian", "English"],
                         "areaServed": "UZ"
                     },
                     {
-                        "@@type": "ContactPoint",
+                        "@type": "ContactPoint",
                         "telephone": "+998505048668",
                         "contactType": "sales",
                         "availableLanguage": ["Uzbek", "Russian"],
@@ -276,122 +276,123 @@
                 ]
             },
             {
-                "@@type": "WebSite",
-                "@@id": "{{ url('/') }}#website",
-                "url": "{{ url('/') }}",
+                "@type": "WebSite",
+                "@id": "<?php echo e(url('/')); ?>#website",
+                "url": "<?php echo e(url('/')); ?>",
                 "name": "BiznesPilot",
-                "description": {!! json_encode($translations['meta_description'] ?? '', JSON_UNESCAPED_UNICODE) !!},
+                "description": <?php echo json_encode($translations['meta_description'] ?? '', JSON_UNESCAPED_UNICODE); ?>,
                 "publisher": {
-                    "@@id": "{{ url('/') }}#organization"
+                    "@id": "<?php echo e(url('/')); ?>#organization"
                 },
                 "inLanguage": ["uz", "ru"],
                 "potentialAction": {
-                    "@@type": "SearchAction",
+                    "@type": "SearchAction",
                     "target": {
-                        "@@type": "EntryPoint",
-                        "urlTemplate": "{{ url('/') }}/search?q={search_term_string}"
+                        "@type": "EntryPoint",
+                        "urlTemplate": "<?php echo e(url('/')); ?>/search?q={search_term_string}"
                     },
                     "query-input": "required name=search_term_string"
                 }
             },
             {
-                "@@type": "WebPage",
-                "@@id": "{{ url()->current() }}#webpage",
-                "url": "{{ url()->current() }}",
-                "name": {!! json_encode($translations['meta_title'] ?? 'BiznesPilot', JSON_UNESCAPED_UNICODE) !!},
-                "description": {!! json_encode($translations['meta_description'] ?? '', JSON_UNESCAPED_UNICODE) !!},
+                "@type": "WebPage",
+                "@id": "<?php echo e(url()->current()); ?>#webpage",
+                "url": "<?php echo e(url()->current()); ?>",
+                "name": <?php echo json_encode($translations['meta_title'] ?? 'BiznesPilot', JSON_UNESCAPED_UNICODE); ?>,
+                "description": <?php echo json_encode($translations['meta_description'] ?? '', JSON_UNESCAPED_UNICODE); ?>,
                 "isPartOf": {
-                    "@@id": "{{ url('/') }}#website"
+                    "@id": "<?php echo e(url('/')); ?>#website"
                 },
                 "about": {
-                    "@@id": "{{ url('/') }}#organization"
+                    "@id": "<?php echo e(url('/')); ?>#organization"
                 },
                 "datePublished": "2024-01-01",
-                "dateModified": "{{ now()->toIso8601String() }}",
-                "inLanguage": "{{ $locale === 'ru' ? 'ru' : 'uz' }}",
+                "dateModified": "<?php echo e(now()->toIso8601String()); ?>",
+                "inLanguage": "<?php echo e($locale === 'ru' ? 'ru' : 'uz'); ?>",
                 "breadcrumb": {
-                    "@@type": "BreadcrumbList",
+                    "@type": "BreadcrumbList",
                     "itemListElement": [
                         {
-                            "@@type": "ListItem",
+                            "@type": "ListItem",
                             "position": 1,
-                            "name": "{{ $locale === 'ru' ? 'Главная' : 'Bosh sahifa' }}",
-                            "item": "{{ url('/') }}"
+                            "name": "<?php echo e($locale === 'ru' ? 'Главная' : 'Bosh sahifa'); ?>",
+                            "item": "<?php echo e(url('/')); ?>"
                         }
                     ]
                 }
             },
             {
-                "@@type": "SoftwareApplication",
-                "@@id": "{{ url('/') }}#software",
+                "@type": "SoftwareApplication",
+                "@id": "<?php echo e(url('/')); ?>#software",
                 "name": "BiznesPilot",
                 "applicationCategory": "BusinessApplication",
                 "applicationSubCategory": "CRM, ERP, Marketing Automation",
                 "operatingSystem": "Web Browser, iOS, Android",
                 "offers": {
-                    "@@type": "Offer",
+                    "@type": "Offer",
                     "price": "0",
                     "priceCurrency": "UZS",
-                    "description": "{{ $locale === 'ru' ? '14 дней бесплатно' : '14 kun bepul' }}",
+                    "description": "<?php echo e($locale === 'ru' ? '14 дней бесплатно' : '14 kun bepul'); ?>",
                     "availability": "https://schema.org/InStock",
-                    "priceValidUntil": "{{ now()->addYear()->format('Y-m-d') }}"
+                    "priceValidUntil": "<?php echo e(now()->addYear()->format('Y-m-d')); ?>"
                 },
                 "aggregateRating": {
-                    "@@type": "AggregateRating",
+                    "@type": "AggregateRating",
                     "ratingValue": "4.9",
                     "ratingCount": "500",
                     "bestRating": "5",
                     "worstRating": "1"
                 },
                 "featureList": [
-                    "{{ $locale === 'ru' ? 'Маркетинг автоматизация' : 'Marketing avtomatizatsiya' }}",
-                    "{{ $locale === 'ru' ? 'CRM и управление продажами' : 'CRM va sotuvlarni boshqarish' }}",
-                    "{{ $locale === 'ru' ? 'Финансовый учет' : 'Moliyaviy hisobot' }}",
-                    "{{ $locale === 'ru' ? 'AI-помощник 24/7' : 'AI yordamchi 24/7' }}",
-                    "{{ $locale === 'ru' ? 'Telegram бот интеграция' : 'Telegram bot integratsiya' }}",
-                    "{{ $locale === 'ru' ? 'Реальное время аналитика' : 'Real-time analitika' }}"
+                    "<?php echo e($locale === 'ru' ? 'Маркетинг автоматизация' : 'Marketing avtomatizatsiya'); ?>",
+                    "<?php echo e($locale === 'ru' ? 'CRM и управление продажами' : 'CRM va sotuvlarni boshqarish'); ?>",
+                    "<?php echo e($locale === 'ru' ? 'Финансовый учет' : 'Moliyaviy hisobot'); ?>",
+                    "<?php echo e($locale === 'ru' ? 'AI-помощник 24/7' : 'AI yordamchi 24/7'); ?>",
+                    "<?php echo e($locale === 'ru' ? 'Telegram бот интеграция' : 'Telegram bot integratsiya'); ?>",
+                    "<?php echo e($locale === 'ru' ? 'Реальное время аналитика' : 'Real-time analitika'); ?>"
                 ],
-                "screenshot": "{{ asset('images/og-image.png') }}",
+                "screenshot": "<?php echo e(asset('images/og-image.png')); ?>",
                 "provider": {
-                    "@@id": "{{ url('/') }}#organization"
+                    "@id": "<?php echo e(url('/')); ?>#organization"
                 }
             },
             {
-                "@@type": "FAQPage",
-                "@@id": "{{ url('/') }}#faq",
+                "@type": "FAQPage",
+                "@id": "<?php echo e(url('/')); ?>#faq",
                 "mainEntity": [
-                    @if(isset($translations['faq']['items']) && count($translations['faq']['items']) > 0)
-                    @foreach($translations['faq']['items'] as $index => $item)
+                    <?php if(isset($translations['faq']['items']) && count($translations['faq']['items']) > 0): ?>
+                    <?php $__currentLoopData = $translations['faq']['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     {
-                        "@@type": "Question",
-                        "name": {!! json_encode($item['question'], JSON_UNESCAPED_UNICODE) !!},
+                        "@type": "Question",
+                        "name": <?php echo json_encode($item['question'], JSON_UNESCAPED_UNICODE); ?>,
                         "acceptedAnswer": {
-                            "@@type": "Answer",
-                            "text": {!! json_encode($item['answer'], JSON_UNESCAPED_UNICODE) !!}
+                            "@type": "Answer",
+                            "text": <?php echo json_encode($item['answer'], JSON_UNESCAPED_UNICODE); ?>
+
                         }
-                    }@if(!$loop->last),@endif
-                    @endforeach
-                    @endif
+                    }<?php if(!$loop->last): ?>,<?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
                 ]
             },
             {
-                "@@type": "LocalBusiness",
-                "@@id": "{{ url('/') }}#localbusiness",
+                "@type": "LocalBusiness",
+                "@id": "<?php echo e(url('/')); ?>#localbusiness",
                 "name": "BiznesPilot",
-                "image": "{{ asset('images/logo.png') }}",
+                "image": "<?php echo e(asset('images/logo.png')); ?>",
                 "priceRange": "$$",
                 "address": {
-                    "@@type": "PostalAddress",
+                    "@type": "PostalAddress",
                     "addressLocality": "Tashkent",
                     "addressCountry": "UZ"
                 },
                 "geo": {
-                    "@@type": "GeoCoordinates",
+                    "@type": "GeoCoordinates",
                     "latitude": "41.2995",
                     "longitude": "69.2401"
                 },
                 "openingHoursSpecification": {
-                    "@@type": "OpeningHoursSpecification",
+                    "@type": "OpeningHoursSpecification",
                     "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
                     "opens": "09:00",
                     "closes": "18:00"
@@ -405,7 +406,7 @@
     }
     </script>
 
-    @yield('content')
+    <?php echo $__env->yieldContent('content'); ?>
 
     <!-- ========== FLOATING BUTTONS ========== -->
     <!-- Telegram Contact Button -->
@@ -519,3 +520,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH D:\biznespilot\resources\views/landing/layouts/landing.blade.php ENDPATH**/ ?>

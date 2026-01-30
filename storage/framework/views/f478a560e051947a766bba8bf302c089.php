@@ -8,19 +8,22 @@
                 <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                {{ $translations['faq']['badge'] }}
+                <?php echo e($translations['faq']['badge']); ?>
+
             </div>
             <h2 class="text-4xl sm:text-5xl font-black text-gray-900 mb-6">
-                {{ $translations['faq']['title'] }}
+                <?php echo e($translations['faq']['title']); ?>
+
             </h2>
             <p class="text-xl text-gray-600">
-                {{ $translations['faq']['subtitle'] }}
+                <?php echo e($translations['faq']['subtitle']); ?>
+
             </p>
         </div>
 
         <!-- FAQ Items with visual enhancements -->
         <div class="space-y-4">
-            @php
+            <?php
             $faqIcons = [
                 '<svg viewBox="0 0 24 24" fill="none" class="w-6 h-6" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
                 '<svg viewBox="0 0 24 24" fill="none" class="w-6 h-6" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
@@ -37,25 +40,27 @@
                 ['iconBg' => 'bg-pink-100', 'iconText' => 'text-pink-600', 'hoverBorder' => 'hover:border-pink-200', 'hoverShadow' => 'hover:shadow-pink-100/50', 'hoverIconBg' => 'group-hover:bg-pink-100', 'hoverIconText' => 'group-hover:text-pink-600'],
                 ['iconBg' => 'bg-cyan-100', 'iconText' => 'text-cyan-600', 'hoverBorder' => 'hover:border-cyan-200', 'hoverShadow' => 'hover:shadow-cyan-100/50', 'hoverIconBg' => 'group-hover:bg-cyan-100', 'hoverIconText' => 'group-hover:text-cyan-600'],
             ];
-            @endphp
+            ?>
 
-            @foreach($translations['faq']['items'] as $index => $faq)
-                @php $style = $faqStyles[$index % count($faqStyles)]; @endphp
-                <div class="animate-on-scroll faq-item group" style="animation-delay: {{ $index * 0.1 }}s;">
-                    <div class="bg-gradient-to-r from-gray-50 to-white rounded-2xl overflow-hidden border border-gray-100 {{ $style['hoverBorder'] }} hover:shadow-lg {{ $style['hoverShadow'] }} transition-all duration-300">
+            <?php $__currentLoopData = $translations['faq']['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $faq): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $style = $faqStyles[$index % count($faqStyles)]; ?>
+                <div class="animate-on-scroll faq-item group" style="animation-delay: <?php echo e($index * 0.1); ?>s;">
+                    <div class="bg-gradient-to-r from-gray-50 to-white rounded-2xl overflow-hidden border border-gray-100 <?php echo e($style['hoverBorder']); ?> hover:shadow-lg <?php echo e($style['hoverShadow']); ?> transition-all duration-300">
                         <!-- Question -->
                         <button onclick="toggleFaq(this)" class="w-full flex items-center p-6 text-left">
                             <!-- Icon -->
-                            <div class="flex-shrink-0 w-12 h-12 {{ $style['iconBg'] }} rounded-xl flex items-center justify-center {{ $style['iconText'] }} mr-4 group-hover:scale-110 transition-transform duration-300">
-                                {!! $faqIcons[$index % count($faqIcons)] !!}
+                            <div class="flex-shrink-0 w-12 h-12 <?php echo e($style['iconBg']); ?> rounded-xl flex items-center justify-center <?php echo e($style['iconText']); ?> mr-4 group-hover:scale-110 transition-transform duration-300">
+                                <?php echo $faqIcons[$index % count($faqIcons)]; ?>
+
                             </div>
 
                             <span class="flex-1 text-lg font-bold text-gray-900 pr-4">
-                                {{ $faq['question'] }}
+                                <?php echo e($faq['question']); ?>
+
                             </span>
 
-                            <span class="faq-icon flex-shrink-0 w-10 h-10 bg-gray-100 {{ $style['hoverIconBg'] }} rounded-xl flex items-center justify-center transition-all duration-300">
-                                <svg class="w-5 h-5 text-gray-500 {{ $style['hoverIconText'] }} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <span class="faq-icon flex-shrink-0 w-10 h-10 bg-gray-100 <?php echo e($style['hoverIconBg']); ?> rounded-xl flex items-center justify-center transition-all duration-300">
+                                <svg class="w-5 h-5 text-gray-500 <?php echo e($style['hoverIconText']); ?> transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </span>
@@ -64,12 +69,13 @@
                         <!-- Answer -->
                         <div class="faq-answer">
                             <div class="px-6 pb-6 pl-[88px] text-gray-600 leading-relaxed">
-                                {{ $faq['answer'] }}
+                                <?php echo e($faq['answer']); ?>
+
                             </div>
                         </div>
                     </div>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
 
         <!-- Contact CTA -->
@@ -82,17 +88,19 @@
                         </svg>
                     </div>
                     <div class="text-left">
-                        <p class="text-gray-900 font-bold">{{ $locale === 'ru' ? 'Остались вопросы?' : "Savollaringiz bormi?" }}</p>
-                        <p class="text-sm text-gray-600">{{ $locale === 'ru' ? 'Мы всегда рады помочь' : "Biz yordam berishga tayyormiz" }}</p>
+                        <p class="text-gray-900 font-bold"><?php echo e($locale === 'ru' ? 'Остались вопросы?' : "Savollaringiz bormi?"); ?></p>
+                        <p class="text-sm text-gray-600"><?php echo e($locale === 'ru' ? 'Мы всегда рады помочь' : "Biz yordam berishga tayyormiz"); ?></p>
                     </div>
                 </div>
                 <a href="https://t.me/biznespilot" target="_blank" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
                     </svg>
-                    {{ $locale === 'ru' ? 'Написать в Telegram' : "Telegramga yozish" }}
+                    <?php echo e($locale === 'ru' ? 'Написать в Telegram' : "Telegramga yozish"); ?>
+
                 </a>
             </div>
         </div>
     </div>
 </section>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/faq.blade.php ENDPATH**/ ?>

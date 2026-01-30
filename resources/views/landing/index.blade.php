@@ -13,9 +13,6 @@
     {{-- Features Section --}}
     @include('landing.partials.features')
 
-    {{-- AI Features Carousel Section --}}
-    @include('landing.partials.features-carousel')
-
     {{-- How It Works Section --}}
     @include('landing.partials.how-it-works')
 

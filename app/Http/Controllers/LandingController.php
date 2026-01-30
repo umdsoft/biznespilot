@@ -28,18 +28,7 @@ class LandingController extends Controller
             return $this->redirectAuthenticatedUser();
         }
 
-        // Get current locale
-        $locale = $this->getCurrentLocale($request);
-        App::setLocale($locale);
-
-        // Load translations
-        $translations = $this->getTranslations($locale);
-
-        return view('landing.index', [
-            'locale' => $locale,
-            'translations' => $translations,
-            'locales' => $this->getLocaleOptions(),
-        ]);
+        return inertia('LandingPage');
     }
 
     /**
@@ -114,15 +103,7 @@ class LandingController extends Controller
      */
     public function pricing(Request $request)
     {
-        $locale = $this->getCurrentLocale($request);
-        App::setLocale($locale);
-        $translations = $this->getTranslations($locale);
-
-        return view('landing.pricing', [
-            'locale' => $locale,
-            'translations' => $translations,
-            'locales' => $this->getLocaleOptions(),
-        ]);
+        return inertia('Pricing');
     }
 
     /**

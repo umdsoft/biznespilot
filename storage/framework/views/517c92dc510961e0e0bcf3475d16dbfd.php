@@ -5,7 +5,7 @@
         <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
             <!-- Brand -->
             <div class="lg:col-span-2">
-                <a href="{{ route('landing') }}" class="flex items-center space-x-3 mb-6 group">
+                <a href="<?php echo e(route('landing')); ?>" class="flex items-center space-x-3 mb-6 group">
                     <!-- Animated logo -->
                     <div class="relative">
                         <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
@@ -19,7 +19,8 @@
                     <span class="text-2xl font-black text-white">BiznesPilot</span>
                 </a>
                 <p class="text-gray-400 mb-8 max-w-sm leading-relaxed">
-                    {{ $translations['footer']['description'] }}
+                    <?php echo e($translations['footer']['description']); ?>
+
                 </p>
 
                 <!-- Social links with hover effects -->
@@ -55,7 +56,8 @@
             <div>
                 <h4 class="text-white font-bold mb-6 flex items-center">
                     <span class="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 mr-3"></span>
-                    {{ $translations['footer']['product']['title'] }}
+                    <?php echo e($translations['footer']['product']['title']); ?>
+
                 </h4>
                 <ul class="space-y-4">
                     <li>
@@ -63,7 +65,8 @@
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['product']['features'] }}
+                            <?php echo e($translations['footer']['product']['features']); ?>
+
                         </a>
                     </li>
                     <li>
@@ -71,7 +74,8 @@
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['product']['integrations'] }}
+                            <?php echo e($translations['footer']['product']['integrations']); ?>
+
                         </a>
                     </li>
                     <li>
@@ -79,7 +83,8 @@
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['product']['updates'] }}
+                            <?php echo e($translations['footer']['product']['updates']); ?>
+
                         </a>
                     </li>
                 </ul>
@@ -89,23 +94,26 @@
             <div>
                 <h4 class="text-white font-bold mb-6 flex items-center">
                     <span class="w-8 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 mr-3"></span>
-                    {{ $translations['footer']['company']['title'] }}
+                    <?php echo e($translations['footer']['company']['title']); ?>
+
                 </h4>
                 <ul class="space-y-4">
                     <li>
-                        <a href="{{ route('about') }}" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('about')); ?>" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['company']['about'] }}
+                            <?php echo e($translations['footer']['company']['about']); ?>
+
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('about') }}#contact" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('about')); ?>#contact" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['company']['contact'] }}
+                            <?php echo e($translations['footer']['company']['contact']); ?>
+
                         </a>
                     </li>
                     <li>
@@ -113,7 +121,8 @@
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['company']['careers'] }}
+                            <?php echo e($translations['footer']['company']['careers']); ?>
+
                         </a>
                     </li>
                 </ul>
@@ -123,23 +132,26 @@
             <div>
                 <h4 class="text-white font-bold mb-6 flex items-center">
                     <span class="w-8 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500 mr-3"></span>
-                    {{ $translations['footer']['legal']['title'] }}
+                    <?php echo e($translations['footer']['legal']['title']); ?>
+
                 </h4>
                 <ul class="space-y-4">
                     <li>
-                        <a href="{{ route('privacy-policy') }}" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('privacy-policy')); ?>" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-violet-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['legal']['privacy'] }}
+                            <?php echo e($translations['footer']['legal']['privacy']); ?>
+
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('terms') }}" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                        <a href="<?php echo e(route('terms')); ?>" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-violet-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            {{ $translations['footer']['legal']['terms'] }}
+                            <?php echo e($translations['footer']['legal']['terms']); ?>
+
                         </a>
                     </li>
                 </ul>
@@ -150,7 +162,8 @@
         <div class="pt-8 border-t border-gray-800">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-gray-500 text-sm">
-                    {{ str_replace(':year', date('Y'), $translations['footer']['copyright']) }}
+                    <?php echo e(str_replace(':year', date('Y'), $translations['footer']['copyright'])); ?>
+
                 </p>
 
                 <div class="flex items-center gap-6">
@@ -159,7 +172,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                         </svg>
-                        <span>{{ $locale === 'ru' ? 'Русский' : "O'zbekcha" }}</span>
+                        <span><?php echo e($locale === 'ru' ? 'Русский' : "O'zbekcha"); ?></span>
                     </div>
 
                     <!-- Made in Uzbekistan -->
@@ -186,3 +199,4 @@
         </div>
     </div>
 </footer>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/footer.blade.php ENDPATH**/ ?>

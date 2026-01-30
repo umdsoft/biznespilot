@@ -143,21 +143,24 @@
                             </svg>
                         </span>
                         <span class="text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                            {{ $translations['benefits']['badge'] }}
+                            <?php echo e($translations['benefits']['badge']); ?>
+
                         </span>
                     </div>
 
                     <h2 class="text-4xl sm:text-5xl font-black text-gray-900 mb-6 leading-tight">
-                        {{ $translations['benefits']['title'] }}
+                        <?php echo e($translations['benefits']['title']); ?>
+
                     </h2>
                     <p class="text-xl text-gray-600 leading-relaxed">
-                        {{ $translations['benefits']['subtitle'] }}
+                        <?php echo e($translations['benefits']['subtitle']); ?>
+
                     </p>
                 </div>
 
                 <!-- Benefits list with numbered indicators -->
                 <div class="space-y-4">
-                    @php
+                    <?php
                     $benefitStyles = [
                         0 => ['gradient' => 'from-blue-500 to-indigo-600', 'bg' => 'from-blue-50 to-indigo-50', 'border' => 'border-blue-200/50', 'text' => 'text-blue-600', 'hover' => 'hover:border-blue-300'],
                         1 => ['gradient' => 'from-emerald-500 to-teal-600', 'bg' => 'from-emerald-50 to-teal-50', 'border' => 'border-emerald-200/50', 'text' => 'text-emerald-600', 'hover' => 'hover:border-emerald-300'],
@@ -170,61 +173,65 @@
                         2 => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>',
                         3 => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>',
                     ];
-                    @endphp
+                    ?>
 
-                    @foreach($translations['benefits']['items'] as $index => $benefit)
-                        @php $style = $benefitStyles[$index % 4]; @endphp
-                        <div class="animate-on-scroll" style="animation-delay: {{ $index * 0.1 }}s;">
-                            <div class="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-5 border {{ $style['border'] }} {{ $style['hover'] }} transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5">
+                    <?php $__currentLoopData = $translations['benefits']['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $benefit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php $style = $benefitStyles[$index % 4]; ?>
+                        <div class="animate-on-scroll" style="animation-delay: <?php echo e($index * 0.1); ?>s;">
+                            <div class="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-5 border <?php echo e($style['border']); ?> <?php echo e($style['hover']); ?> transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5">
                                 <div class="flex items-start gap-4">
                                     <!-- Icon -->
-                                    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br {{ $style['gradient'] }} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br <?php echo e($style['gradient']); ?> flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            {!! $icons[$index % 4] !!}
+                                            <?php echo $icons[$index % 4]; ?>
+
                                         </svg>
                                     </div>
 
                                     <!-- Content -->
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:{{ $style['text'] }} transition-colors">
-                                            {{ $benefit['title'] }}
+                                        <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:<?php echo e($style['text']); ?> transition-colors">
+                                            <?php echo e($benefit['title']); ?>
+
                                         </h3>
                                         <p class="text-gray-600 text-sm leading-relaxed mb-3">
-                                            {{ $benefit['description'] }}
+                                            <?php echo e($benefit['description']); ?>
+
                                         </p>
 
                                         <!-- Before/After comparison -->
-                                        @if(isset($benefit['before']) && isset($benefit['after']))
+                                        <?php if(isset($benefit['before']) && isset($benefit['after'])): ?>
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">
                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                 </svg>
-                                                <span class="line-through">{{ $benefit['before'] }}</span>
+                                                <span class="line-through"><?php echo e($benefit['before']); ?></span>
                                             </span>
                                             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                             </svg>
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r {{ $style['bg'] }} {{ $style['text'] }} rounded-full text-xs font-semibold border {{ $style['border'] }}">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r <?php echo e($style['bg']); ?> <?php echo e($style['text']); ?> rounded-full text-xs font-semibold border <?php echo e($style['border']); ?>">
                                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                                 </svg>
-                                                {{ $benefit['after'] }}
+                                                <?php echo e($benefit['after']); ?>
+
                                             </span>
                                         </div>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
 
                                     <!-- Arrow indicator -->
-                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:bg-gradient-to-br {{ $style['bg'] }}">
-                                        <svg class="w-4 h-4 {{ $style['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:bg-gradient-to-br <?php echo e($style['bg']); ?>">
+                                        <svg class="w-4 h-4 <?php echo e($style['text']); ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                         </svg>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
             </div>
         </div>
@@ -240,3 +247,4 @@
         }
     </style>
 </section>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/benefits.blade.php ENDPATH**/ ?>

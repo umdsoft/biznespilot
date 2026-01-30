@@ -11,13 +11,16 @@
                 <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
-                {{ $translations['how_it_works']['badge'] }}
+                <?php echo e($translations['how_it_works']['badge']); ?>
+
             </div>
             <h2 class="text-4xl sm:text-5xl font-black text-gray-900 mb-6">
-                {{ $translations['how_it_works']['title'] }}
+                <?php echo e($translations['how_it_works']['title']); ?>
+
             </h2>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                {{ $translations['how_it_works']['subtitle'] }}
+                <?php echo e($translations['how_it_works']['subtitle']); ?>
+
             </p>
         </div>
 
@@ -30,12 +33,12 @@
             </div>
 
             <div class="grid lg:grid-cols-3 gap-12 lg:gap-8">
-                @foreach($translations['how_it_works']['steps'] as $index => $step)
-                    <div class="animate-on-scroll relative" style="animation-delay: {{ $index * 0.2 }}s;">
+                <?php $__currentLoopData = $translations['how_it_works']['steps']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $step): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="animate-on-scroll relative" style="animation-delay: <?php echo e($index * 0.2); ?>s;">
                         <div class="text-center">
                             <!-- Step illustration -->
                             <div class="relative inline-block mb-8">
-                                @if($index === 0)
+                                <?php if($index === 0): ?>
                                     <!-- Step 1: Connect all business processes -->
                                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-48 h-48 mx-auto">
                                         <circle cx="100" cy="100" r="90" fill="url(#step1Bg)" opacity="0.1"/>
@@ -79,7 +82,7 @@
                                             </filter>
                                         </defs>
                                     </svg>
-                                @elseif($index === 1)
+                                <?php elseif($index === 1): ?>
                                     <!-- Step 2: AI configures everything -->
                                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-48 h-48 mx-auto">
                                         <circle cx="100" cy="100" r="90" fill="url(#step2Bg)" opacity="0.1"/>
@@ -123,7 +126,7 @@
                                             </filter>
                                         </defs>
                                     </svg>
-                                @else
+                                <?php else: ?>
                                     <!-- Step 3: Unified Dashboard -->
                                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-48 h-48 mx-auto">
                                         <circle cx="100" cy="100" r="90" fill="url(#step3Bg)" opacity="0.1"/>
@@ -171,51 +174,57 @@
                                             </filter>
                                         </defs>
                                     </svg>
-                                @endif
+                                <?php endif; ?>
 
                                 <!-- Step number badge -->
-                                <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br {{ $index === 0 ? 'from-blue-500 to-indigo-600' : ($index === 1 ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600') }} rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                    {{ $step['number'] }}
+                                <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br <?php echo e($index === 0 ? 'from-blue-500 to-indigo-600' : ($index === 1 ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600')); ?> rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                    <?php echo e($step['number']); ?>
+
                                 </div>
                             </div>
 
                             <!-- Content -->
                             <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                                {{ $step['title'] }}
+                                <?php echo e($step['title']); ?>
+
                             </h3>
                             <p class="text-gray-600 max-w-xs mx-auto leading-relaxed">
-                                {{ $step['description'] }}
+                                <?php echo e($step['description']); ?>
+
                             </p>
                         </div>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
 
         <!-- Guarantee Message -->
-        @if(isset($translations['how_it_works']['guarantee']))
+        <?php if(isset($translations['how_it_works']['guarantee'])): ?>
         <div class="text-center mt-12 animate-on-scroll">
             <div class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl">
                 <svg class="w-6 h-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                <span class="text-green-800 font-semibold">{{ $translations['how_it_works']['guarantee'] }}</span>
+                <span class="text-green-800 font-semibold"><?php echo e($translations['how_it_works']['guarantee']); ?></span>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
         <!-- CTA -->
         <div class="text-center mt-10 animate-on-scroll">
-            <a href="{{ route('register') }}"
+            <a href="<?php echo e(route('register')); ?>"
                class="group inline-flex items-center px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-1 hover:scale-105">
-                {{ $translations['nav']['get_started'] }}
+                <?php echo e($translations['nav']['get_started']); ?>
+
                 <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
             </a>
             <p class="mt-4 text-sm text-gray-500">
-                {{ $locale === 'ru' ? 'Бесплатно • Без кредитной карты' : "Bepul • Kredit karta kerak emas" }}
+                <?php echo e($locale === 'ru' ? 'Бесплатно • Без кредитной карты' : "Bepul • Kredit karta kerak emas"); ?>
+
             </p>
         </div>
     </div>
 </section>
+<?php /**PATH D:\biznespilot\resources\views/landing/partials/how-it-works.blade.php ENDPATH**/ ?>
