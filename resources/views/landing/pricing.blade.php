@@ -542,7 +542,7 @@
                 </div>
                 <div class="text-left">
                     <p class="text-white font-semibold">Aziz Salomov</p>
-                    <p class="text-blue-100 text-sm">CEO, TechStore Uzbekistan</p>
+                    <p class="text-blue-100 text-sm">CEO</p>
                 </div>
             </div>
         </div>
