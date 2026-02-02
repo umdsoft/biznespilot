@@ -739,7 +739,7 @@ class SubscriptionService
         }
 
         $plan = $subscription->plan;
-        $daysRemaining = now()->diffInDays($subscription->ends_at, false);
+        $daysRemaining = (int) now()->diffInDays($subscription->ends_at, false);
 
         return [
             'has_subscription' => true,

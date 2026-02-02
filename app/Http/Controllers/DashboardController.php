@@ -571,7 +571,7 @@ class DashboardController extends Controller
             $plan = $subscription->plan;
 
             // Calculate days remaining
-            $daysRemaining = max(0, now()->diffInDays($subscription->ends_at, false));
+            $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
 
             // Format renewal date
             $renewsAt = $subscription->ends_at?->translatedFormat('d-F, Y');

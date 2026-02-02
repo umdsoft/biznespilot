@@ -156,7 +156,7 @@ const dismissed = ref(false)
 // Subscription ma'lumotlari (HandleInertiaRequests dan keladi)
 const subscription = computed(() => page.props.subscription?.subscription)
 const isTrial = computed(() => subscription.value?.is_trial === true)
-const daysRemaining = computed(() => subscription.value?.days_remaining ?? 0)
+const daysRemaining = computed(() => Math.round(subscription.value?.days_remaining ?? 0))
 const trialEndsAt = computed(() => subscription.value?.trial_ends_at)
 
 // Holatlar

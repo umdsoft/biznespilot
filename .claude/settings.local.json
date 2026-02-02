@@ -109,7 +109,8 @@
       "Bash(tree:*)",
       "Bash(git status:*)",
       "Bash(git remote set-url:*)",
-      "Bash(ssh-keygen:*)"
+      "Bash(ssh-keygen:*)",
+      "Bash(npx vite build)"
     ]
   }
 }
