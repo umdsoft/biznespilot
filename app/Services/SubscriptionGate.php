@@ -478,7 +478,7 @@ class SubscriptionGate
     protected function getTelegramBotsCount(Business $business): int
     {
         return $business->chatbotConfigs()
-            ->where('channel', 'telegram')
+            ->where('platform', 'telegram')
             ->count();
     }
 

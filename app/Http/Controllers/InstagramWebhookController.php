@@ -523,8 +523,8 @@ class InstagramWebhookController extends Controller
         );
 
         $templates = \App\Models\ChatbotTemplate::where('business_id', $business->id)
-            ->where('channel', 'instagram')
-            ->get(['id', 'trigger_text as trigger', 'response_text as response']);
+            ->where('category', 'instagram')
+            ->get(['id', 'name as trigger', 'content as response']);
 
         return response()->json([
             'success' => true,
@@ -557,7 +557,7 @@ class InstagramWebhookController extends Controller
         ]);
 
         $config = ChatbotConfig::updateOrCreate(
-            ['business_id' => $business->id, 'channel' => 'instagram'],
+            ['business_id' => $business->id, 'platform' => 'instagram'],
             $validated
         );
 
@@ -583,16 +583,16 @@ class InstagramWebhookController extends Controller
 
         // Delete old templates
         \App\Models\ChatbotTemplate::where('business_id', $business->id)
-            ->where('channel', 'instagram')
+            ->where('category', 'instagram')
             ->delete();
 
         // Create new templates
         foreach ($validated['templates'] as $template) {
             \App\Models\ChatbotTemplate::create([
                 'business_id' => $business->id,
-                'channel' => 'instagram',
-                'trigger_text' => $template['trigger'],
-                'response_text' => $template['response'],
+                'category' => 'instagram',
+                'name' => $template['trigger'],
+                'content' => $template['response'],
                 'is_active' => true,
             ]);
         }

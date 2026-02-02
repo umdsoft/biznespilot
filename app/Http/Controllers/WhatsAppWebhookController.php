@@ -375,8 +375,8 @@ class WhatsAppWebhookController extends Controller
         );
 
         $templates = \App\Models\ChatbotTemplate::where('business_id', $business->id)
-            ->where('channel', 'whatsapp')
-            ->get(['id', 'trigger_text as trigger', 'response_text as response']);
+            ->where('category', 'whatsapp')
+            ->get(['id', 'name as trigger', 'content as response']);
 
         return response()->json([
             'success' => true,
@@ -409,7 +409,7 @@ class WhatsAppWebhookController extends Controller
         ]);
 
         $config = \App\Models\ChatbotConfig::updateOrCreate(
-            ['business_id' => $business->id, 'channel' => 'whatsapp'],
+            ['business_id' => $business->id, 'platform' => 'whatsapp'],
             $validated
         );
 
@@ -435,16 +435,16 @@ class WhatsAppWebhookController extends Controller
 
         // Delete old templates
         \App\Models\ChatbotTemplate::where('business_id', $business->id)
-            ->where('channel', 'whatsapp')
+            ->where('category', 'whatsapp')
             ->delete();
 
         // Create new templates
         foreach ($validated['templates'] as $template) {
             \App\Models\ChatbotTemplate::create([
                 'business_id' => $business->id,
-                'channel' => 'whatsapp',
-                'trigger_text' => $template['trigger'],
-                'response_text' => $template['response'],
+                'category' => 'whatsapp',
+                'name' => $template['trigger'],
+                'content' => $template['response'],
                 'is_active' => true,
             ]);
         }

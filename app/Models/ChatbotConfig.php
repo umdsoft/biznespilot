@@ -20,7 +20,7 @@ class ChatbotConfig extends Model
     protected $fillable = [
         'business_id',
         'name',
-        'channel_type',
+        'platform',
         'welcome_message',
         'default_response',
         'is_active',

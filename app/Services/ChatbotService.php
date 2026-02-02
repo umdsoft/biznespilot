@@ -424,21 +424,19 @@ PROMPT;
         ?string $channelUsername
     ): ChatbotConversation {
         $conversation = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
-            ->where('channel_user_id', $channelUserId)
+            ->where('platform', $channel)
+            ->where('platform_user_id', $channelUserId)
             ->where('status', 'active')
             ->first();
 
         if (! $conversation) {
             $conversation = ChatbotConversation::create([
                 'business_id' => $business->id,
-                'chatbot_config_id' => $config->id,
-                'channel' => $channel,
-                'channel_user_id' => $channelUserId,
-                'channel_username' => $channelUsername,
+                'config_id' => $config->id,
+                'platform' => $channel,
+                'platform_user_id' => $channelUserId,
+                'customer_name' => $channelUsername,
                 'status' => 'active',
-                'current_stage' => $config->default_funnel_stage,
-                'started_at' => now(),
             ]);
 
             $config->increment('total_conversations');
@@ -501,7 +499,7 @@ PROMPT;
         $query = ChatbotConversation::where('business_id', $business->id);
 
         if ($channel) {
-            $query->where('channel', $channel);
+            $query->where('platform', $channel);
         }
 
         return [

@@ -21,14 +21,16 @@ class ChatbotConversation extends Model
     protected $fillable = [
         'business_id',
         'config_id',
-        'external_id',
+        'customer_id',
+        'lead_id',
+        'platform',
+        'platform_user_id',
+        'platform_conversation_id',
         'customer_name',
-        'customer_contact',
+        'customer_phone',
         'status',
-        'assigned_to',
-        'started_at',
-        'ended_at',
         'last_message_at',
+        'messages_count',
         'metadata',
     ];
 

@@ -18,13 +18,11 @@ class ChatbotTemplate extends Model
     protected $fillable = [
         'business_id',
         'name',
-        'trigger',
-        'response',
-        'trigger_type',
-        'priority',
+        'type',
+        'category',
+        'content',
+        'variables',
         'is_active',
-        'conditions',
-        'buttons',
     ];
 
     /**
@@ -34,7 +32,6 @@ class ChatbotTemplate extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
-        'conditions' => 'array',
-        'buttons' => 'array',
+        'variables' => 'array',
     ];
 }
