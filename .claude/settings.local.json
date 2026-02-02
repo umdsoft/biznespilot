@@ -105,7 +105,11 @@
       "Bash(Select-String -Pattern \"Error|Exception|SQLSTATE|Table\")",
       "Bash(winget install:*)",
       "Bash(cmd /c \"cd /d C:\\\\Users\\\\Umidbek && start /B cloudflared.exe tunnel --url http://localhost:8000 2>cloudflared_output.txt\")",
-      "Bash(cmd /c \"type C:\\\\Users\\\\Umidbek\\\\cloudflared_output.txt | findstr trycloudflare\")"
+      "Bash(cmd /c \"type C:\\\\Users\\\\Umidbek\\\\cloudflared_output.txt | findstr trycloudflare\")",
+      "Bash(tree:*)",
+      "Bash(git status:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(ssh-keygen:*)"
     ]
   }
 }
