@@ -159,13 +159,14 @@ class SubscriptionService
             : $plan->price_monthly;
 
         $startsAt = now();
-        $endsAt = $billingCycle === 'yearly'
-            ? now()->addYear()
-            : now()->addMonth();
 
         $trialEndsAt = $trialDays
             ? now()->addDays($trialDays)
             : null;
+
+        // Trial uchun ends_at = trial_ends_at (14 kun), pullik uchun billing cycle bo'yicha
+        $endsAt = $trialEndsAt
+            ?? ($billingCycle === 'yearly' ? now()->addYear() : now()->addMonth());
 
         $subscription = Subscription::create([
             'business_id' => $business->id,
@@ -739,7 +740,12 @@ class SubscriptionService
         }
 
         $plan = $subscription->plan;
-        $daysRemaining = (int) now()->diffInDays($subscription->ends_at, false);
+
+        // Trial uchun trial_ends_at, pullik uchun ends_at
+        $effectiveEndDate = ($subscription->status === 'trialing' && $subscription->trial_ends_at)
+            ? $subscription->trial_ends_at
+            : $subscription->ends_at;
+        $daysRemaining = (int) now()->diffInDays($effectiveEndDate, false);
 
         return [
             'has_subscription' => true,
