@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\IntegrationAbuseException;
 use App\Exceptions\QuotaExceededException;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Jobs\SyncHistoricalDataJob;
@@ -12,6 +13,7 @@ use App\Models\Integration;
 use App\Models\MetaAdAccount;
 use App\Services\FacebookService;
 use App\Services\Integration\MetaOAuthService;
+use App\Services\IntegrationGuardService;
 use App\Services\SubscriptionGate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -392,6 +394,21 @@ class SocialAccountController extends Controller
 
             // Save selected Instagram Account (faqat 1 ta)
             if ($request->selected_instagram_id) {
+                // Anti-abuse tekshiruvi: Instagram akkaunt global unikalligi
+                try {
+                    app(IntegrationGuardService::class)->checkInstagramAccount(
+                        $request->selected_instagram_id,
+                        $business
+                    );
+                } catch (IntegrationAbuseException $e) {
+                    return response()->json([
+                        'error' => $e->getMessage(),
+                        'error_code' => 'INTEGRATION_ABUSE',
+                        'abuse_type' => $e->getAbuseType(),
+                        'upgrade_required' => $e->getAbuseType() === 'trial_abuse',
+                    ], 403);
+                }
+
                 $igAccountData = $this->facebookService->getInstagramAccountDetails(
                     $finalToken,
                     $request->selected_instagram_id

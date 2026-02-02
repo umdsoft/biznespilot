@@ -1,31 +1,6 @@
 <!-- Footer -->
 <footer class="relative bg-gray-900 text-gray-400 overflow-hidden">
-    <!-- Background decorations -->
-    <div class="absolute inset-0 overflow-hidden">
-        <!-- Grid pattern -->
-        <svg class="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <pattern id="footerGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <circle cx="20" cy="20" r="1" fill="white"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#footerGrid)"/>
-        </svg>
-
-        <!-- Gradient orbs -->
-        <div class="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full filter blur-[100px] opacity-10"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-violet-500 rounded-full filter blur-[100px] opacity-10"></div>
-
-        <!-- Abstract shapes -->
-        <svg class="absolute bottom-20 right-20 w-48 h-48 text-white opacity-[0.02]" viewBox="0 0 200 200" fill="currentColor">
-            <polygon points="100,10 190,60 190,140 100,190 10,140 10,60"/>
-        </svg>
-        <svg class="absolute top-40 left-20 w-32 h-32 text-white opacity-[0.02]" viewBox="0 0 100 100" fill="currentColor">
-            <circle cx="50" cy="50" r="40"/>
-        </svg>
-    </div>
-
-    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
         <!-- Main footer content -->
         <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
             <!-- Brand -->

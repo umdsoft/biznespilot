@@ -90,74 +90,19 @@
     <!-- ========== PRECONNECT & DNS PREFETCH ========== -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="https://www.google-analytics.com">
 
     <!-- ========== FONTS (with display swap for performance) ========== -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Alpine.js for interactivity -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'float': 'float 6s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-20px)' },
-                        },
-                    },
-                },
-            },
-        }
-    </script>
+    <!-- ========== COMPILED TAILWIND CSS (via Vite) ========== -->
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css']); ?>
 
     <!-- Custom Styles -->
     <style>
-        /* Hide Alpine.js elements before initialization */
-        [x-cloak] { display: none !important; }
-
         /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', system-ui, sans-serif; }
 
         /* Gradient text */
         .gradient-text {
@@ -167,25 +112,15 @@
             background-clip: text;
         }
 
-        /* Gradient background */
-        .gradient-bg {
-            background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 50%, #fdf4ff 100%);
-        }
-
         /* Card hover effect */
-        .card-hover {
-            transition: all 0.3s ease;
-        }
+        .card-hover { transition: all 0.3s ease; }
         .card-hover:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         /* Button glow effect */
-        .btn-glow {
-            position: relative;
-            overflow: hidden;
-        }
+        .btn-glow { position: relative; overflow: hidden; }
         .btn-glow::before {
             content: '';
             position: absolute;
@@ -196,69 +131,82 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
             transition: left 0.5s ease;
         }
-        .btn-glow:hover::before {
-            left: 100%;
-        }
+        .btn-glow:hover::before { left: 100%; }
 
         /* FAQ Accordion */
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .faq-item.active .faq-answer {
-            max-height: 500px;
-        }
-        .faq-item.active .faq-icon {
-            transform: rotate(180deg);
-        }
-        .faq-icon {
-            transition: transform 0.3s ease;
-        }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .faq-item.active .faq-answer { max-height: 500px; }
+        .faq-item.active .faq-icon { transform: rotate(180deg); }
+        .faq-icon { transition: transform 0.3s ease; }
 
         /* Mobile menu */
-        .mobile-menu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .mobile-menu.active {
-            max-height: 400px;
-        }
+        .mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .mobile-menu.active { max-height: 400px; }
 
-        /* Hero animations */
+        /* ========== ANIMATIONS ========== */
+        /* Scroll-triggered slide up animation */
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+
+        /* Hero blob animation */
         @keyframes blob {
             0%, 100% { transform: translate(0, 0) scale(1); }
             25% { transform: translate(20px, -30px) scale(1.1); }
             50% { transform: translate(-20px, 20px) scale(0.9); }
             75% { transform: translate(30px, 10px) scale(1.05); }
         }
-        .animate-blob {
-            animation: blob 15s ease-in-out infinite;
+        .animate-blob { animation: blob 15s ease-in-out infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
-        .animation-delay-2000 {
-            animation-delay: 2s;
-        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+
+        /* Bounce slow */
         @keyframes bounce-slow {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
-        .animate-bounce-slow {
-            animation: bounce-slow 3s ease-in-out infinite;
-        }
+        .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
 
         /* CTA gradient animation */
         @keyframes gradient-x {
             0%, 100% { transform: translateX(-100%); }
             50% { transform: translateX(100%); }
         }
-        .animate-gradient-x {
-            animation: gradient-x 15s ease-in-out infinite;
-        }
+        .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
 
-        /* Benefits float animation */
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
+        /* ========== FLOATING BUTTONS ========== */
+        .floating-btn {
+            position: fixed;
+            z-index: 40;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.2);
+        }
+        #back-to-top {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -460,6 +408,27 @@
 
     <?php echo $__env->yieldContent('content'); ?>
 
+    <!-- ========== FLOATING BUTTONS ========== -->
+    <!-- Telegram Contact Button -->
+    <a href="https://t.me/biznespilot" target="_blank" rel="noopener noreferrer"
+       class="floating-btn text-white"
+       style="bottom: 1.5rem; right: 1.5rem; background-color: #0088cc;"
+       aria-label="Telegram orqali bog'lanish">
+        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+        </svg>
+    </a>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+            class="floating-btn bg-gray-800 hover:bg-gray-700 text-white"
+            style="bottom: 1.5rem; right: 5.5rem;"
+            aria-label="Yuqoriga qaytish">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+        </svg>
+    </button>
+
     <!-- JavaScript for interactions -->
     <script>
         // Mobile menu toggle
@@ -511,13 +480,21 @@
             });
         });
 
-        // Navbar scroll effect
+        // Navbar scroll effect + back-to-top visibility
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('navbar');
+            const backToTop = document.getElementById('back-to-top');
             if (window.scrollY > 50) {
                 navbar.classList.add('shadow-md', 'bg-white/95', 'backdrop-blur-sm');
             } else {
                 navbar.classList.remove('shadow-md', 'bg-white/95', 'backdrop-blur-sm');
+            }
+            if (backToTop) {
+                if (window.scrollY > 600) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
             }
         });
 

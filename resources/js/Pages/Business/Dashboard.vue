@@ -1,5 +1,8 @@
 <template>
   <BusinessLayout :title="t('nav.dashboard')">
+    <!-- Trial Banner (sinov davri haqida ogohlantirish) -->
+    <TrialBanner />
+
     <!-- Telegram Connect Banner (for users without linked Telegram) -->
     <TelegramConnectBanner />
 
@@ -247,6 +250,7 @@
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
+import TrialBanner from '@/components/Dashboard/TrialBanner.vue';
 import TelegramConnectBanner from '@/components/Dashboard/TelegramConnectBanner.vue';
 import SubscriptionWidget from '@/components/Dashboard/SubscriptionWidget.vue';
 import { Link } from '@inertiajs/vue3';

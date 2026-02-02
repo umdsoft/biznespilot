@@ -23,6 +23,35 @@ class PlanSeeder extends Seeder
     public function run(): void
     {
         $plans = [
+            // TRIAL - 14 kunlik bepul sinov
+            [
+                'name' => 'Trial',
+                'slug' => 'trial-pack',
+                'description' => '14 kunlik bepul sinov davri',
+                'price_monthly' => 0,
+                'price_yearly' => 0,
+                'currency' => 'UZS',
+                'sort_order' => 0,
+                'is_active' => false, // Narxlar sahifasida ko'rinmasligi uchun
+                'limits' => [
+                    'users' => 2,
+                    'branches' => 1,
+                    'instagram_accounts' => 1,
+                    'monthly_leads' => 50,
+                    'ai_call_minutes' => 30,
+                    'extra_call_price' => 0,
+                    'chatbot_channels' => 1,
+                    'telegram_bots' => 1,
+                    'ai_requests' => 100,
+                    'storage_mb' => 200,
+                ],
+                'features' => [
+                    'hr_tasks' => true,
+                    'hr_bot' => true,
+                    'anti_fraud' => true,
+                ],
+            ],
+
             // START - 299,000 so'm/oy
             [
                 'name' => 'Start',
@@ -193,6 +222,6 @@ class PlanSeeder extends Seeder
             $plan->save();
         }
 
-        $this->command->info('5 ta tarif muvaffaqiyatli yaratildi/yangilandi!');
+        $this->command->info('6 ta tarif muvaffaqiyatli yaratildi/yangilandi (trial-pack + 5 ta asosiy)!');
     }
 }

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
+use App\Models\Plan;
+use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -157,6 +160,20 @@ class WelcomeController extends Controller
             'onboarding_status' => 'completed',
             'onboarding_completed_at' => now(),
         ]);
+
+        // Avtomatik 14 kunlik trial subscription yaratish
+        try {
+            $trialPlan = Plan::where('slug', 'trial-pack')->first();
+            if ($trialPlan) {
+                app(SubscriptionService::class)->create($business, $trialPlan, 'monthly', 14);
+                Log::info('Trial subscription yaratildi', ['business_id' => $business->id]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Trial subscription yaratishda xatolik', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // Redirect directly to business dashboard
         return redirect()->route('business.dashboard')

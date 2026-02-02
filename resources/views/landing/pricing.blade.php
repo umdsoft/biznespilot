@@ -212,8 +212,8 @@
                         $scheme = $colorSchemes[$plan['color']];
                     @endphp
 
-                    <div class="relative group {{ $isPopular ? 'xl:-mt-6 xl:mb-6' : '' }}"
-                         style="animation: fadeInUp 0.6s ease-out {{ $index * 0.1 }}s both;">
+                    <div class="relative group {{ $isPopular ? 'xl:-mt-6 xl:mb-6' : '' }} animate-fadeInUp"
+                         style="--fade-delay: {{ $index * 0.1 }}s">
 
                         {{-- Glow effect for popular/premium --}}
                         @if($isPopular)
@@ -378,6 +378,9 @@
                     opacity: 1;
                     transform: translateY(0);
                 }
+            }
+            .animate-fadeInUp {
+                animation: fadeInUp 0.6s ease-out var(--fade-delay, 0s) both;
             }
         </style>
     </section>
