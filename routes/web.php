@@ -99,7 +99,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     // Registration - can be disabled via REGISTRATION_ENABLED=false
-    if (env('REGISTRATION_ENABLED', true)) {
+    if (config('app.registration_enabled', true)) {
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register']);
     } else {

@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Registration Control
+    |--------------------------------------------------------------------------
+    |
+    | This value determines whether new user registration is enabled.
+    | Set REGISTRATION_ENABLED=false in .env to disable registration.
+    |
+    */
+
+    'registration_enabled' => (bool) env('REGISTRATION_ENABLED', true),
+
 ];
