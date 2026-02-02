@@ -44,7 +44,7 @@ class PaymentRedirectService
         ?string $subscriptionId = null
     ): array {
         // Summani aniqlash (oylik narx)
-        $amount = (float) $plan->monthly_price;
+        $amount = (float) $plan->price_monthly;
 
         // Tranzaksiya yaratish
         $transaction = $this->createTransaction($business, $plan, $provider, $amount, $subscriptionId);
@@ -236,8 +236,8 @@ class PaymentRedirectService
                 'id' => $plan->id,
                 'name' => $plan->name,
                 'slug' => $plan->slug,
-                'monthly_price' => $plan->monthly_price,
-                'yearly_price' => $plan->yearly_price,
+                'monthly_price' => $plan->price_monthly,
+                'yearly_price' => $plan->price_yearly,
             ],
             'business' => [
                 'id' => $business->id,
@@ -257,7 +257,7 @@ class PaymentRedirectService
                     'transaction_id' => $click['transaction']->id,
                 ],
             ],
-            'amount' => $plan->monthly_price,
+            'amount' => $plan->price_monthly,
             'currency' => 'UZS',
         ];
     }

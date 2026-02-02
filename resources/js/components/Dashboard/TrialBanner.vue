@@ -37,7 +37,7 @@
         </div>
 
         <Link
-          href="/pricing"
+          href="/business/subscription"
           class="inline-flex items-center px-6 py-2.5 bg-white text-red-600 rounded-xl font-semibold text-sm hover:bg-white/90 transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +80,7 @@
         </div>
 
         <Link
-          href="/pricing"
+          href="/business/subscription"
           class="inline-flex items-center px-6 py-2.5 bg-white text-red-600 rounded-xl font-semibold text-sm hover:bg-white/90 transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,7 +125,7 @@
 
         <div class="flex items-center gap-3">
           <Link
-            href="/pricing"
+            href="/business/subscription"
             class="inline-flex items-center px-5 py-2.5 bg-white text-indigo-600 rounded-xl font-semibold text-sm hover:bg-white/90 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Tarif tanlash

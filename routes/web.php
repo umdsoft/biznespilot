@@ -843,6 +843,15 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/{call}', [App\Http\Controllers\Business\CallController::class, 'show'])->name('show');
     });
 
+    // Subscription / Billing routes (tarif sotib olish)
+    Route::prefix('subscription')->name('subscription.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Business\SubscriptionController::class, 'index'])->name('index');
+        Route::get('/success', [\App\Http\Controllers\Business\SubscriptionController::class, 'success'])->name('success');
+        Route::get('/cancel', [\App\Http\Controllers\Business\SubscriptionController::class, 'cancel'])->name('cancel');
+        Route::get('/{plan}/checkout', [\App\Http\Controllers\Business\SubscriptionController::class, 'checkout'])->name('checkout');
+        Route::post('/{plan}/pay', [\App\Http\Controllers\Business\SubscriptionController::class, 'pay'])->name('pay');
+    });
+
     // Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');

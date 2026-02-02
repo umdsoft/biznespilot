@@ -152,6 +152,7 @@ export const businessLayoutConfig = {
       title: null,
       titleKey: null,
       items: [
+        { href: '/business/subscription', label: 'Tarif', labelKey: 'nav.subscription', icon: CreditCardIcon },
         { href: '/business/settings', label: 'Sozlamalar', labelKey: 'nav.settings', icon: CogIcon },
       ]
     },

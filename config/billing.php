@@ -164,9 +164,9 @@ return [
     |
     */
     'urls' => [
-        'success' => env('BILLING_SUCCESS_URL', '/billing/success'),
-        'cancel' => env('BILLING_CANCEL_URL', '/billing/cancel'),
-        'fail' => env('BILLING_FAIL_URL', '/billing/fail'),
+        'success' => env('BILLING_SUCCESS_URL', '/business/subscription/success'),
+        'cancel' => env('BILLING_CANCEL_URL', '/business/subscription/cancel'),
+        'fail' => env('BILLING_FAIL_URL', '/business/subscription/cancel'),
     ],
 
     /*
