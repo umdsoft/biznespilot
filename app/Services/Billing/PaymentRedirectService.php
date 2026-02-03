@@ -47,7 +47,7 @@ class PaymentRedirectService
         // Summani cycle bo'yicha aniqlash
         $amount = $billingCycle === 'yearly'
             ? (float) $plan->price_yearly
-            : (float) ($plan->price_monthly ?? $plan->monthly_price);
+            : (float) $plan->price_monthly;
 
         // Tranzaksiya yaratish
         $transaction = $this->createTransaction($business, $plan, $provider, $amount, $subscriptionId, $billingCycle);

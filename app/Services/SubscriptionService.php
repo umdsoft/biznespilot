@@ -57,8 +57,8 @@ class SubscriptionService
         $endsAt = $billingCycle === 'yearly' ? now()->addYear() : now()->addMonth();
 
         $amount = $billingCycle === 'yearly'
-            ? ($plan->price_yearly ?? $plan->monthly_price * 12)
-            : ($plan->price_monthly ?? $plan->monthly_price);
+            ? (float) $plan->price_yearly
+            : (float) $plan->price_monthly;
 
         $subscription = Subscription::create([
             'business_id' => $business->id,
@@ -129,8 +129,8 @@ class SubscriptionService
             : now()->$addPeriod(); // Muddati tugagan - yangi boshlanish
 
         $amount = $billingCycle === 'yearly'
-            ? ($plan->price_yearly ?? $plan->monthly_price * 12)
-            : ($plan->price_monthly ?? $plan->monthly_price);
+            ? (float) $plan->price_yearly
+            : (float) $plan->price_monthly;
 
         $subscription->update([
             'plan_id' => $plan->id,

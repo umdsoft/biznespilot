@@ -179,7 +179,9 @@
                     <CheckCircleIcon v-if="business.id === $page.props.currentBusiness?.id" class="w-5 h-5 text-blue-600" />
                   </Link>
                 </div>
-                <div class="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2 px-3">
+                <!-- Yangi biznes yaratish - hozircha yashirin -->
+              <!--
+              <div class="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2 px-3">
                   <Link
                     href="/new-business"
                     @click="showBusinessMenu = false"
@@ -189,6 +191,7 @@
                     <span class="text-sm font-medium">{{ t('layout.new_business') }}</span>
                   </Link>
                 </div>
+              -->
               </div>
             </div>
 
@@ -212,8 +215,8 @@
               <NotificationDropdown v-if="config.showNotifications" />
             </slot>
 
-            <!-- Language Switcher -->
-            <LanguageSwitcher />
+            <!-- Language Switcher - hozircha yashirin -->
+            <!-- <LanguageSwitcher /> -->
 
             <!-- Dark Mode Toggle -->
             <button

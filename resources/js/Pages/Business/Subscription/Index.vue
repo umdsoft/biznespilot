@@ -1,18 +1,18 @@
 <template>
-  <BusinessLayout title="Tarif tanlash">
+  <BusinessLayout title="Tarif va To'lov">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       <!-- Header -->
-      <div class="text-center mb-10">
+      <div class="text-center mb-8">
         <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-          Biznesingiz uchun <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">to'g'ri tarif</span>ni tanlang
+          Tarif va <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">To'lov</span>
         </h1>
-        <p class="mt-3 text-lg text-gray-600 dark:text-gray-400">
-          Yashirin to'lovlar yo'q. Istalgan vaqt bekor qilish mumkin.
+        <p class="mt-2 text-gray-600 dark:text-gray-400">
+          Biznesingizga mos tarifni tanlang. Yashirin to'lovlar yo'q.
         </p>
       </div>
 
-      <!-- Joriy obuna ma'lumoti -->
+      <!-- Joriy obuna -->
       <div
         v-if="currentSubscription.has_subscription"
         class="mb-8 mx-auto max-w-2xl p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
@@ -26,28 +26,28 @@
             </div>
             <div>
               <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {{ currentSubscription.plan?.name || 'Trial' }} tarifi
+                Joriy tarif: {{ currentSubscription.plan?.name || 'Trial' }}
               </p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                <template v-if="currentSubscription.is_trial">
-                  Sinov davri: {{ currentSubscription.days_remaining }} kun qoldi
-                </template>
-                <template v-else>
-                  {{ currentSubscription.days_remaining }} kun qoldi
-                </template>
+                {{ currentSubscription.days_remaining }} kun qoldi
               </p>
             </div>
           </div>
-          <span
-            :class="[
-              'px-3 py-1 rounded-full text-xs font-semibold',
-              currentSubscription.is_trial
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-            ]"
-          >
-            {{ currentSubscription.is_trial ? 'Sinov davri' : 'Faol' }}
-          </span>
+          <div class="flex items-center gap-3">
+            <span
+              :class="[
+                'px-3 py-1 rounded-full text-xs font-semibold',
+                currentSubscription.is_trial
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              ]"
+            >
+              {{ currentSubscription.is_trial ? 'Sinov davri' : 'Faol' }}
+            </span>
+            <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+              {{ isYearly ? 'Yillik' : 'Oylik' }}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -80,19 +80,175 @@
         </div>
       </div>
 
-      <!-- Plans grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
-        <PlanCard
-          v-for="plan in plans"
-          :key="plan.id"
-          :plan="plan"
-          :is-yearly="isYearly"
-          @select="selectPlan"
-        />
+      <!-- Comparison Table -->
+      <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+        <table class="w-full text-sm">
+          <!-- Plan Names Header -->
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="sticky left-0 z-10 bg-gray-50 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48 min-w-[180px]">
+                Imkoniyatlar
+              </th>
+              <th
+                v-for="plan in plans"
+                :key="plan.id"
+                :class="[
+                  'px-3 py-4 text-center min-w-[140px]',
+                  plan.is_current ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-gray-800/80'
+                ]"
+              >
+                <div class="space-y-2">
+                  <!-- Badge -->
+                  <div class="h-5">
+                    <span
+                      v-if="plan.is_current"
+                      class="inline-block px-2.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full uppercase"
+                    >
+                      Joriy
+                    </span>
+                    <span
+                      v-else-if="plan.slug === 'business-pack'"
+                      class="inline-block px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-[10px] font-bold rounded-full uppercase"
+                    >
+                      Mashhur
+                    </span>
+                  </div>
+                  <!-- Plan name -->
+                  <div class="font-bold text-gray-900 dark:text-gray-100 text-base">{{ plan.name }}</div>
+                  <!-- Price -->
+                  <div>
+                    <span class="text-lg font-extrabold text-gray-900 dark:text-gray-100">
+                      {{ formatPrice(getPlanPrice(plan)) }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 block">so'm/oy</span>
+                  </div>
+                  <!-- CTA -->
+                  <button
+                    v-if="!plan.is_current"
+                    @click="selectPlan(plan.id)"
+                    :class="[
+                      'w-full py-2 px-3 rounded-lg font-semibold text-xs transition-all',
+                      plan.slug === 'business-pack'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-sm'
+                        : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200'
+                    ]"
+                  >
+                    {{ plan.is_upgrade ? 'Upgrade' : 'Tanlash' }}
+                  </button>
+                  <div
+                    v-else
+                    class="w-full py-2 px-3 rounded-lg text-xs font-semibold text-center bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                  >
+                    Hozirgi tarif
+                  </div>
+                </div>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <!-- Section: Asosiy limitlar -->
+            <tr class="bg-gray-50 dark:bg-gray-700/30">
+              <td :colspan="plans.length + 1" class="px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Asosiy limitlar
+              </td>
+            </tr>
+
+            <tr
+              v-for="(row, idx) in limitRows"
+              :key="'limit-' + idx"
+              class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors"
+            >
+              <td class="sticky left-0 z-10 bg-white dark:bg-gray-800 px-4 py-3 text-gray-700 dark:text-gray-300 font-medium text-sm">
+                {{ row.label }}
+              </td>
+              <td
+                v-for="plan in plans"
+                :key="plan.id"
+                :class="[
+                  'px-3 py-3 text-center text-sm',
+                  plan.is_current ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''
+                ]"
+              >
+                <span v-if="row.getValue(plan) === null" class="text-gray-300 dark:text-gray-600">—</span>
+                <span v-else-if="row.getValue(plan) === -1" class="font-semibold text-blue-600 dark:text-blue-400">Cheksiz</span>
+                <span v-else class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ row.format ? row.format(row.getValue(plan)) : formatNumber(row.getValue(plan)) }}
+                </span>
+              </td>
+            </tr>
+
+            <!-- Section: Qo'shimcha funksiyalar -->
+            <tr class="bg-gray-50 dark:bg-gray-700/30">
+              <td :colspan="plans.length + 1" class="px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Qo'shimcha funksiyalar
+              </td>
+            </tr>
+
+            <tr
+              v-for="(row, idx) in featureRows"
+              :key="'feature-' + idx"
+              class="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors"
+            >
+              <td class="sticky left-0 z-10 bg-white dark:bg-gray-800 px-4 py-3 text-gray-700 dark:text-gray-300 font-medium text-sm">
+                {{ row.label }}
+              </td>
+              <td
+                v-for="plan in plans"
+                :key="plan.id"
+                :class="[
+                  'px-3 py-3 text-center',
+                  plan.is_current ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''
+                ]"
+              >
+                <!-- Enabled -->
+                <svg v-if="row.getValue(plan)" class="w-5 h-5 mx-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                <!-- Disabled -->
+                <svg v-else class="w-5 h-5 mx-auto text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </td>
+            </tr>
+
+            <!-- Bottom CTA Row -->
+            <tr class="border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/10">
+              <td class="sticky left-0 z-10 bg-gray-50 dark:bg-gray-800 px-4 py-4"></td>
+              <td
+                v-for="plan in plans"
+                :key="'cta-' + plan.id"
+                :class="[
+                  'px-3 py-4 text-center',
+                  plan.is_current ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''
+                ]"
+              >
+                <button
+                  v-if="!plan.is_current"
+                  @click="selectPlan(plan.id)"
+                  :class="[
+                    'w-full py-2.5 px-4 rounded-lg font-semibold text-sm transition-all',
+                    plan.slug === 'business-pack'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-sm'
+                      : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200'
+                  ]"
+                >
+                  {{ plan.is_upgrade ? 'Upgrade' : 'Tanlash' }}
+                </button>
+                <div
+                  v-else
+                  class="py-2.5 px-4 rounded-lg text-sm font-semibold text-green-700 dark:text-green-400"
+                >
+                  Hozirgi tarif
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Trust section -->
-      <div class="mt-12 text-center">
+      <div class="mt-10 text-center">
         <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -123,7 +279,6 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import PlanCard from '@/components/subscription/PlanCard.vue';
 
 const props = defineProps({
   plans: { type: Array, required: true },
@@ -132,7 +287,87 @@ const props = defineProps({
 
 const isYearly = ref(false);
 
+const getPlanPrice = (plan) => {
+  if (isYearly.value && plan.price_yearly) {
+    return Math.round(plan.price_yearly / 12);
+  }
+  return plan.price_monthly;
+};
+
+const formatPrice = (price) => {
+  return Math.round(price).toLocaleString('uz-UZ');
+};
+
+const formatNumber = (val) => {
+  if (typeof val === 'number') {
+    return val.toLocaleString('uz-UZ');
+  }
+  return val;
+};
+
 const selectPlan = (planId) => {
   router.visit(`/business/subscription/${planId}/checkout`);
 };
+
+// Limitlar jadvali satrlari
+const limitRows = [
+  {
+    label: 'Xodimlar soni',
+    getValue: (plan) => plan.limits?.users ?? null,
+  },
+  {
+    label: 'Filiallar',
+    getValue: (plan) => plan.limits?.branches ?? null,
+  },
+  {
+    label: 'Instagram akkauntlar',
+    getValue: (plan) => plan.limits?.instagram_accounts ?? null,
+  },
+  {
+    label: 'Oylik lidlar',
+    getValue: (plan) => plan.limits?.monthly_leads ?? null,
+    format: (val) => val === -1 ? 'Cheksiz' : val.toLocaleString('uz-UZ'),
+  },
+  {
+    label: 'AI Call Center (daqiqa)',
+    getValue: (plan) => plan.limits?.ai_call_minutes ?? null,
+  },
+  {
+    label: 'Qo\'shimcha daqiqa narxi',
+    getValue: (plan) => plan.limits?.extra_call_price ?? null,
+    format: (val) => val === 0 ? 'Bepul' : formatPrice(val) + ' so\'m',
+  },
+  {
+    label: 'Chatbot kanallari',
+    getValue: (plan) => plan.limits?.chatbot_channels ?? null,
+  },
+  {
+    label: 'Telegram botlar',
+    getValue: (plan) => plan.limits?.telegram_bots ?? null,
+  },
+  {
+    label: 'AI so\'rovlar',
+    getValue: (plan) => plan.limits?.ai_requests ?? null,
+  },
+  {
+    label: 'Xotira hajmi (MB)',
+    getValue: (plan) => plan.limits?.storage_mb ?? null,
+  },
+];
+
+// Funksiyalar jadvali satrlari
+const featureRows = [
+  {
+    label: 'HR vazifalar boshqaruvi',
+    getValue: (plan) => plan.features?.hr_tasks ?? false,
+  },
+  {
+    label: 'HR Bot (avtomatik yollash)',
+    getValue: (plan) => plan.features?.hr_bot ?? false,
+  },
+  {
+    label: 'Anti-Fraud SMS himoya',
+    getValue: (plan) => plan.features?.anti_fraud ?? false,
+  },
+];
 </script>
