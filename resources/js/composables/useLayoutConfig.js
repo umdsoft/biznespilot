@@ -36,6 +36,7 @@ import {
   ScaleIcon,
   ChartPieIcon,
   SparklesIcon,
+  BanknotesIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -152,7 +153,7 @@ export const businessLayoutConfig = {
       title: null,
       titleKey: null,
       items: [
-        { href: '/business/subscription', label: 'Tarif', labelKey: 'nav.subscription', icon: CreditCardIcon },
+        { href: '/business/billing/plans', label: 'Tarif va To\'lov', labelKey: 'nav.billing', icon: CreditCardIcon },
         { href: '/business/settings', label: 'Sozlamalar', labelKey: 'nav.settings', icon: CogIcon },
       ]
     },
@@ -332,6 +333,7 @@ export const adminLayoutConfig = {
         { href: '/dashboard/feedback', label: 'Fikr-mulohazalar', icon: ChatBubbleLeftRightIcon },
         { href: '/dashboard/notifications', label: 'Bildirishnomalar', icon: BellIcon },
         { href: '/dashboard/subscriptions', label: 'Obunalar', icon: CreditCardIcon },
+        { href: '/dashboard/billing-transactions', label: 'To\'lovlar', icon: BanknotesIcon },
         { href: '/dashboard/plans', label: 'Tarif Rejalari', icon: TagIcon },
       ]
     },

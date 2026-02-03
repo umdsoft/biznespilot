@@ -1251,6 +1251,14 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/my', [FeedbackController::class, 'myFeedback'])->name('my');
         Route::get('/types', [FeedbackController::class, 'getTypes'])->name('types');
     });
+
+    // Billing routes (Tarif va To'lov)
+    Route::prefix('billing')->name('billing.')->group(function () {
+        Route::get('/plans', [\App\Http\Controllers\Business\BillingController::class, 'plans'])->name('plans');
+        Route::post('/checkout', [\App\Http\Controllers\Business\BillingController::class, 'checkout'])->name('checkout');
+        Route::get('/success', [\App\Http\Controllers\Business\BillingController::class, 'success'])->name('success');
+        Route::get('/history', [\App\Http\Controllers\Business\BillingController::class, 'history'])->name('history');
+    });
 });
 
 // Admin Panel Routes (Platform Management)
@@ -1263,6 +1271,7 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
     Route::get('/analytics', [AdminDashboardController::class, 'analyticsPage'])->name('analytics');
     Route::get('/activity-logs', [AdminDashboardController::class, 'activityLogs'])->name('activity-logs');
     Route::get('/subscriptions', [AdminDashboardController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/billing-transactions', [AdminDashboardController::class, 'billingTransactions'])->name('billing-transactions');
 
     // Settings
     Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');

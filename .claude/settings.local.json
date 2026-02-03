@@ -110,7 +110,11 @@
       "Bash(git status:*)",
       "Bash(git remote set-url:*)",
       "Bash(ssh-keygen:*)",
-      "Bash(npx vite build)"
+      "Bash(npx vite build)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)",
+      "Bash(git -c core.editor=true rebase:*)",
+      "Bash(GIT_EDITOR=\":\" git rebase:*)"
     ]
   }
 }

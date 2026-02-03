@@ -41,13 +41,16 @@ class PaymentRedirectService
         Business $business,
         Plan $plan,
         string $provider = 'payme',
-        ?string $subscriptionId = null
+        ?string $subscriptionId = null,
+        string $billingCycle = 'monthly'
     ): array {
-        // Summani aniqlash (oylik narx)
-        $amount = (float) $plan->price_monthly;
+        // Summani cycle bo'yicha aniqlash
+        $amount = $billingCycle === 'yearly'
+            ? (float) $plan->price_yearly
+            : (float) ($plan->price_monthly ?? $plan->monthly_price);
 
         // Tranzaksiya yaratish
-        $transaction = $this->createTransaction($business, $plan, $provider, $amount, $subscriptionId);
+        $transaction = $this->createTransaction($business, $plan, $provider, $amount, $subscriptionId, $billingCycle);
 
         // Provider bo'yicha URL generatsiya
         $paymentUrl = match ($provider) {
@@ -73,7 +76,8 @@ class PaymentRedirectService
         Plan $plan,
         string $provider,
         float $amount,
-        ?string $subscriptionId
+        ?string $subscriptionId,
+        string $billingCycle = 'monthly'
     ): BillingTransaction {
         return BillingTransaction::create([
             'uuid' => (string) Str::uuid(),
@@ -89,6 +93,7 @@ class PaymentRedirectService
                 'plan_name' => $plan->name,
                 'plan_slug' => $plan->slug,
                 'business_name' => $business->name,
+                'billing_cycle' => $billingCycle,
             ],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
@@ -164,11 +169,8 @@ class PaymentRedirectService
             'transaction_param' => $transaction->order_id,
         ];
 
-        // Return URL qo'shish
-        $successUrl = config('billing.urls.success');
-        if ($successUrl) {
-            $params['return_url'] = url($successUrl) . '?order_id=' . $transaction->order_id;
-        }
+        // Return URL - business billing success sahifasiga
+        $params['return_url'] = url('/business/billing/success') . '?order_id=' . $transaction->order_id;
 
         return $baseUrl . '?' . http_build_query($params);
     }
@@ -183,14 +185,16 @@ class PaymentRedirectService
     public function getOrCreatePaymentUrl(
         Business $business,
         Plan $plan,
-        string $provider = 'payme'
+        string $provider = 'payme',
+        string $billingCycle = 'monthly'
     ): array {
-        // Mavjud pending tranzaksiyani tekshirish
+        // Mavjud pending tranzaksiyani tekshirish (billing_cycle bo'yicha ham filter)
         $existingTransaction = BillingTransaction::where('business_id', $business->id)
             ->where('plan_id', $plan->id)
             ->where('provider', $provider)
             ->where('status', BillingTransaction::STATUS_CREATED)
             ->where('expires_at', '>', now())
+            ->where('metadata->billing_cycle', $billingCycle)
             ->first();
 
         if ($existingTransaction) {
@@ -212,7 +216,7 @@ class PaymentRedirectService
         }
 
         // Yangi yaratish
-        $result = $this->createPaymentUrl($business, $plan, $provider);
+        $result = $this->createPaymentUrl($business, $plan, $provider, null, $billingCycle);
         $result['is_existing'] = false;
 
         return $result;

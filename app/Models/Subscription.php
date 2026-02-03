@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Billing\BillingTransaction;
 use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,7 @@ class Subscription extends Model
         'business_id',
         'plan_id',
         'status',
+        'billing_cycle',
         'starts_at',
         'ends_at',
         'trial_ends_at',
@@ -29,6 +31,12 @@ class Subscription extends Model
         'cancellation_reason',
         'amount',
         'currency',
+        'auto_renew',
+        'payment_provider',
+        'last_payment_at',
+        'scheduled_plan_id',
+        'scheduled_change_at',
+        'scheduled_cancellation_at',
         'metadata',
     ];
 
@@ -42,7 +50,11 @@ class Subscription extends Model
         'ends_at' => 'datetime',
         'trial_ends_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'last_payment_at' => 'datetime',
+        'scheduled_change_at' => 'datetime',
+        'scheduled_cancellation_at' => 'datetime',
         'amount' => 'decimal:2',
+        'auto_renew' => 'boolean',
         'metadata' => 'array',
     ];
 
@@ -68,5 +80,39 @@ class Subscription extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Get the scheduled plan for this subscription.
+     */
+    public function scheduledPlan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class, 'scheduled_plan_id');
+    }
+
+    /**
+     * Get billing transactions for this subscription.
+     */
+    public function billingTransactions(): HasMany
+    {
+        return $this->hasMany(BillingTransaction::class);
+    }
+
+    /**
+     * Check if the subscription is currently active.
+     */
+    public function isActive(): bool
+    {
+        return in_array($this->status, ['active', 'trialing'])
+            && $this->ends_at
+            && $this->ends_at->isFuture();
+    }
+
+    /**
+     * Check if the subscription is on a yearly billing cycle.
+     */
+    public function isYearly(): bool
+    {
+        return $this->billing_cycle === 'yearly';
     }
 }

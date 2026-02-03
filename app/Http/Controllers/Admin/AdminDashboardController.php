@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Billing\BillingTransaction;
 use App\Models\Business;
 use App\Models\Campaign;
 use App\Models\ChatbotConversation;
@@ -448,6 +449,67 @@ class AdminDashboardController extends Controller
             'subscriptions' => $subscriptions,
             'stats' => $stats,
             'plans' => $plans,
+        ]);
+    }
+
+    /**
+     * Billing transactions management page
+     */
+    public function billingTransactions(Request $request)
+    {
+        $query = BillingTransaction::with(['business', 'plan'])->latest();
+
+        // Filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('provider')) {
+            $query->where('provider', $request->provider);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('order_id', 'like', "%{$search}%")
+                    ->orWhereHas('business', function ($bq) use ($search) {
+                        $bq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $transactions = $query->paginate(20)->through(fn ($t) => [
+            'id' => $t->id,
+            'order_id' => $t->order_id,
+            'business_name' => $t->business?->name ?? 'N/A',
+            'plan_name' => $t->plan?->name ?? 'N/A',
+            'provider' => $t->provider,
+            'amount' => $t->amount,
+            'currency' => $t->currency,
+            'status' => $t->status,
+            'created_at' => $t->created_at?->format('d.m.Y H:i'),
+        ]);
+
+        $stats = [
+            'total' => BillingTransaction::count(),
+            'paid' => BillingTransaction::where('status', BillingTransaction::STATUS_PAID)->count(),
+            'pending' => BillingTransaction::whereIn('status', [
+                BillingTransaction::STATUS_CREATED,
+                BillingTransaction::STATUS_WAITING,
+                BillingTransaction::STATUS_PROCESSING,
+            ])->count(),
+            'failed' => BillingTransaction::where('status', BillingTransaction::STATUS_FAILED)->count(),
+            'total_revenue' => BillingTransaction::where('status', BillingTransaction::STATUS_PAID)->sum('amount'),
+        ];
+
+        return Inertia::render('Admin/BillingTransactions/Index', [
+            'transactions' => $transactions,
+            'stats' => $stats,
+            'filters' => [
+                'status' => $request->status,
+                'provider' => $request->provider,
+                'search' => $request->search,
+            ],
         ]);
     }
 }
