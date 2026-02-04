@@ -53,7 +53,7 @@ return [
         'app_secret' => env('META_APP_SECRET'),
         'redirect_uri' => env('META_REDIRECT_URI', '/business/meta-ads/callback'),
         'ad_library_token' => env('META_AD_LIBRARY_TOKEN'),
-        'api_version' => env('META_API_VERSION', 'v21.0'),
+        'api_version' => env('META_API_VERSION', 'v24.0'),
         // OAuth scopes — faqat Facebook Developer da approved bo'lganlari
         // MUHIM: Tasdiqlanmagan scope so'ralsa, Facebook butun OAuth ni rad etadi!
         // Yangi scope qo'shishdan oldin Facebook Developer > Permissions da approved ekanligini tekshiring

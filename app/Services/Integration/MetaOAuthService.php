@@ -17,7 +17,7 @@ class MetaOAuthService
 
     public function __construct()
     {
-        $this->apiVersion = config('services.meta.api_version', 'v21.0');
+        $this->apiVersion = config('services.meta.api_version', 'v24.0');
         $this->baseUrl = "https://graph.facebook.com/{$this->apiVersion}";
         $this->appId = config('services.meta.app_id') ?? '';
         $this->appSecret = config('services.meta.app_secret') ?? '';
