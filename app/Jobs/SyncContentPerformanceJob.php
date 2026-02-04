@@ -38,7 +38,7 @@ class SyncContentPerformanceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected const GRAPH_API_URL = 'https://graph.facebook.com/v18.0';
+    protected string $graphApiUrl;
 
     /**
      * Job ning maksimum urinishlar soni

@@ -52,7 +52,17 @@ return [
         'app_id' => env('META_APP_ID'),
         'app_secret' => env('META_APP_SECRET'),
         'redirect_uri' => env('META_REDIRECT_URI', '/business/meta-ads/callback'),
-        'ad_library_token' => env('META_AD_LIBRARY_TOKEN'), // Token with ads_read permission
+        'ad_library_token' => env('META_AD_LIBRARY_TOKEN'),
+        'api_version' => env('META_API_VERSION', 'v21.0'),
+        // OAuth scopes — faqat Facebook Developer da approved bo'lganlari
+        'scopes' => [
+            'public_profile',
+            'pages_show_list',
+            'pages_read_engagement',
+            'pages_manage_metadata',
+            'instagram_basic',
+            'instagram_manage_messages',
+        ],
     ],
 
     'google' => [

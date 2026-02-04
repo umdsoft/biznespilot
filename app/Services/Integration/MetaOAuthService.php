@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 class MetaOAuthService
 {
-    protected string $baseUrl = 'https://graph.facebook.com/v18.0';
+    protected string $baseUrl;
+
+    protected string $apiVersion;
 
     protected string $appId;
 
@@ -15,31 +17,32 @@ class MetaOAuthService
 
     public function __construct()
     {
+        $this->apiVersion = config('services.meta.api_version', 'v21.0');
+        $this->baseUrl = "https://graph.facebook.com/{$this->apiVersion}";
         $this->appId = config('services.meta.app_id') ?? '';
         $this->appSecret = config('services.meta.app_secret') ?? '';
     }
 
     /**
      * OAuth URL yaratish
+     * Scope larni config/services.php dan oladi — faqat approved olanlarini so'raydi
      */
     public function getAuthorizationUrl(string $redirectUri, string $state): string
     {
-        // Meta Graph API v18.0 uchun scope lar
-        // Reklama + Instagram tahlili uchun barcha kerakli permissions
-        $scopes = [
-            // Meta Ads permissions
-            'ads_read',                    // Reklama ma'lumotlarini o'qish
-            'ads_management',              // Reklama boshqaruvi
-            'business_management',         // Biznes boshqaruvi
+        // Scope larni config dan olish (faqat Facebook Developer da approved bo'lganlari)
+        $scopes = config('services.meta.scopes', [
+            'public_profile',
+            'pages_show_list',
+            'pages_read_engagement',
+            'instagram_basic',
+        ]);
 
-            // Facebook Pages permissions (Instagram uchun zarur)
-            'pages_show_list',             // Facebook sahifalarini ko'rish
-            'pages_read_engagement',       // Sahifa engagement ma'lumotlari
-
-            // Instagram Business permissions
-            'instagram_basic',             // Instagram akkaunt ma'lumotlari
-            'instagram_manage_insights',   // Instagram statistika va tahlil
-        ];
+        Log::info('Meta OAuth: Generating authorization URL', [
+            'api_version' => $this->apiVersion,
+            'redirect_uri' => $redirectUri,
+            'scopes' => $scopes,
+            'app_id' => $this->appId,
+        ]);
 
         $params = http_build_query([
             'client_id' => $this->appId,
@@ -49,7 +52,7 @@ class MetaOAuthService
             'state' => $state,
         ]);
 
-        return "https://www.facebook.com/v18.0/dialog/oauth?{$params}";
+        return "https://www.facebook.com/{$this->apiVersion}/dialog/oauth?{$params}";
     }
 
     /**
@@ -74,6 +77,8 @@ class MetaOAuthService
             $error = $response->json('error.message', 'Unknown error');
             Log::error('Meta OAuth token exchange failed', [
                 'error' => $error,
+                'error_code' => $response->json('error.code'),
+                'error_subcode' => $response->json('error.error_subcode'),
                 'response_status' => $response->status(),
                 'response_body' => $response->body(),
             ]);
@@ -116,7 +121,6 @@ class MetaOAuthService
         $data = $response->json();
         $expiresIn = $data['expires_in'] ?? null;
 
-        // Calculate expiry in days for logging
         $expiryDays = $expiresIn ? round($expiresIn / 86400, 1) : 'unknown';
 
         Log::info('Meta OAuth: Long-lived token received', [
@@ -126,7 +130,6 @@ class MetaOAuthService
             'token_type' => $data['token_type'] ?? 'not specified',
         ]);
 
-        // Warn if token seems short-lived (less than 7 days)
         if ($expiresIn && $expiresIn < 604800) {
             Log::warning('Meta OAuth: Token expiry is shorter than expected!', [
                 'expires_in_seconds' => $expiresIn,
@@ -138,7 +141,7 @@ class MetaOAuthService
         return [
             'access_token' => $data['access_token'],
             'token_type' => $data['token_type'] ?? 'bearer',
-            'expires_in' => $expiresIn ?? 5184000, // 60 days default only if not specified
+            'expires_in' => $expiresIn ?? 5184000,
         ];
     }
 
@@ -163,10 +166,9 @@ class MetaOAuthService
         $debug = $this->debugToken($accessToken);
 
         if (empty($debug['expires_at'])) {
-            return false; // Non-expiring token
+            return false;
         }
 
-        // 7 kun oldin yangilash
         return $debug['expires_at'] < (time() + 604800);
     }
 
@@ -182,5 +184,21 @@ class MetaOAuthService
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Graph API base URL ni olish (boshqa service lar uchun)
+     */
+    public function getBaseUrl(): string
+    {
+        return $this->baseUrl;
+    }
+
+    /**
+     * API versiyasini olish
+     */
+    public function getApiVersion(): string
+    {
+        return $this->apiVersion;
     }
 }
