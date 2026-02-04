@@ -78,9 +78,10 @@ Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
 Route::get('/pricing', [LandingController::class, 'pricing'])->name('pricing');
 
-// Privacy Policy, Terms & About (Public)
+// Privacy Policy, Terms, Data Deletion & About (Public)
 Route::get('/privacy-policy', [LandingController::class, 'privacy'])->name('privacy-policy');
 Route::get('/terms', [LandingController::class, 'terms'])->name('terms');
+Route::get('/data-deletion', [LandingController::class, 'dataDeletion'])->name('data-deletion');
 Route::get('/about', [LandingController::class, 'about'])->name('about');
 
 // ==============================================

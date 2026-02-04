@@ -75,6 +75,14 @@ class LandingController extends Controller
     }
 
     /**
+     * Show the data deletion instructions page (Meta requirement)
+     */
+    public function dataDeletion(Request $request)
+    {
+        return inertia('DataDeletion');
+    }
+
+    /**
      * Show the pricing page
      */
     public function pricing(Request $request)
