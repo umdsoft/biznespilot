@@ -354,6 +354,7 @@ class TargetAnalysisController extends Controller
             'current_business_id' => session('current_business_id'),
             'has_code' => $request->has('code'),
             'has_error' => $request->has('error'),
+            'has_error_code' => $request->has('error_code'),
         ]);
 
         // Get business ID - try multiple sources
@@ -381,14 +382,25 @@ class TargetAnalysisController extends Controller
             return $getRedirectRoute('index', ['error' => 'Biznes topilmadi. Iltimos, qayta urinib ko\'ring.']);
         }
 
-        // Check for error from Facebook
-        if ($request->has('error')) {
+        // Check for error from Facebook (both 'error' and 'error_code' formats)
+        if ($request->has('error') || $request->has('error_code')) {
             \Log::error('Meta OAuth: Error from Facebook', [
                 'error' => $request->error,
+                'error_code' => $request->error_code,
                 'description' => $request->error_description,
+                'error_message' => $request->error_message,
             ]);
 
-            return $getRedirectRoute('index', ['error' => $request->error_description ?? 'OAuth xatolik']);
+            // Error 1349220 - Facebook app hali tayyor emas (Live mode transition yoki App Review kerak)
+            if ($request->error_code == '1349220') {
+                $errorText = 'Facebook ilovasi hozirda mavjud emas. Facebook Developer Console da App Review va Privacy Policy sozlamalarini tekshiring.';
+            } else {
+                $errorText = $request->error_description
+                    ?? $request->error_message
+                    ?? 'OAuth xatolik';
+            }
+
+            return $getRedirectRoute('index', ['error' => $errorText]);
         }
 
         // Ensure we have code
@@ -2193,7 +2205,7 @@ class TargetAnalysisController extends Controller
     {
         try {
             $request->validate([
-                'image' => 'required|string', // base64 encoded image
+                'image' => 'required|string|max:2800000', // base64 encoded image, ~2MB limit
             ]);
 
             $business = $this->getCurrentBusiness($request);

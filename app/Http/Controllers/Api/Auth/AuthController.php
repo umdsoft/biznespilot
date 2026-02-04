@@ -41,7 +41,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Registration failed',
-                'error' => $e->getMessage(),
+                'error' => 'Ichki xatolik yuz berdi',
             ], 500);
         }
     }
@@ -130,7 +130,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Login failed',
-                'error' => $e->getMessage(),
+                'error' => 'Ichki xatolik yuz berdi',
             ], 500);
         }
     }
@@ -162,7 +162,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Logout failed',
-                'error' => $e->getMessage(),
+                'error' => 'Ichki xatolik yuz berdi',
             ], 500);
         }
     }
@@ -185,7 +185,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch user data',
-                'error' => $e->getMessage(),
+                'error' => 'Ichki xatolik yuz berdi',
             ], 500);
         }
     }

@@ -24,7 +24,7 @@ class ContentGeneratorService
 
     public function __construct(ContentStyleGuideService $styleGuideService)
     {
-        $this->apiKey = config('services.anthropic.api_key', env('ANTHROPIC_API_KEY'));
+        $this->apiKey = config('services.anthropic.api_key', '');
         $this->styleGuideService = $styleGuideService;
     }
 

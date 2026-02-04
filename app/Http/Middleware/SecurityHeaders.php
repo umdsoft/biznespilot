@@ -48,10 +48,8 @@ class SecurityHeaders
                 ]));
             }
 
-            // Strict Transport Security (HSTS) - only for HTTPS
-            if ($request->secure()) {
-                $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-            }
+            // Strict Transport Security (HSTS) - always set, preload included
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
 
         return $response;

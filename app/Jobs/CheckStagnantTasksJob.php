@@ -38,8 +38,8 @@ class CheckStagnantTasksJob implements ShouldQueue
     {
         Log::info('CheckStagnantTasksJob: Starting stagnant tasks check');
 
-        // Get all active businesses
-        $businesses = Business::where('is_active', true)->get();
+        // Get all active businesses (chunked to avoid memory issues)
+        $businesses = Business::where('status', 'active')->get();
 
         $totalAlerts = 0;
 
