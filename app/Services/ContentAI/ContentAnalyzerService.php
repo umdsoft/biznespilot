@@ -21,7 +21,7 @@ class ContentAnalyzerService
 
     public function __construct()
     {
-        $this->apiKey = config('services.anthropic.api_key', env('ANTHROPIC_API_KEY'));
+        $this->apiKey = config('services.anthropic.api_key', '');
     }
 
     /**

@@ -94,11 +94,11 @@ Schedule::call(function () {
 
 // Daily Business Diagnostic - Har kuni ertalab 6:00
 Schedule::call(function () {
-    $businesses = Business::where('status', 'active')->get();
-
-    foreach ($businesses as $business) {
-        DailyBusinessDiagnosticJob::dispatch($business);
-    }
+    Business::where('status', 'active')->chunk(100, function ($businesses) {
+        foreach ($businesses as $business) {
+            DailyBusinessDiagnosticJob::dispatch($business);
+        }
+    });
 })->dailyAt('06:00')
     ->timezone('Asia/Tashkent')
     ->name('daily-business-diagnostic')
@@ -106,11 +106,11 @@ Schedule::call(function () {
 
 // Anomaly Detection - Har soatda
 Schedule::call(function () {
-    $businesses = Business::where('status', 'active')->get();
-
-    foreach ($businesses as $business) {
-        AnomalyDetectionJob::dispatch($business);
-    }
+    Business::where('status', 'active')->chunk(100, function ($businesses) {
+        foreach ($businesses as $business) {
+            AnomalyDetectionJob::dispatch($business);
+        }
+    });
 })->hourly()
     ->timezone('Asia/Tashkent')
     ->name('anomaly-detection')
@@ -118,11 +118,11 @@ Schedule::call(function () {
 
 // Customer Segmentation - Har hafta dushanba 8:00
 Schedule::call(function () {
-    $businesses = Business::where('status', 'active')->get();
-
-    foreach ($businesses as $business) {
-        CustomerSegmentationJob::dispatch($business);
-    }
+    Business::where('status', 'active')->chunk(100, function ($businesses) {
+        foreach ($businesses as $business) {
+            CustomerSegmentationJob::dispatch($business);
+        }
+    });
 })->weeklyOn(1, '08:00') // 1 = Monday
     ->timezone('Asia/Tashkent')
     ->name('customer-segmentation')
@@ -130,11 +130,11 @@ Schedule::call(function () {
 
 // Churn Prevention - Har kuni 10:00
 Schedule::call(function () {
-    $businesses = Business::where('status', 'active')->get();
-
-    foreach ($businesses as $business) {
-        ChurnPreventionJob::dispatch($business);
-    }
+    Business::where('status', 'active')->chunk(100, function ($businesses) {
+        foreach ($businesses as $business) {
+            ChurnPreventionJob::dispatch($business);
+        }
+    });
 })->dailyAt('10:00')
     ->timezone('Asia/Tashkent')
     ->name('churn-prevention')
@@ -142,13 +142,13 @@ Schedule::call(function () {
 
 // Social Media Sync - Har 6 soatda
 Schedule::call(function () {
-    $businesses = Business::where('status', 'active')
+    Business::where('status', 'active')
         ->whereHas('instagramAccounts')
-        ->get();
-
-    foreach ($businesses as $business) {
-        SocialMediaSyncJob::dispatch($business);
-    }
+        ->chunk(100, function ($businesses) {
+            foreach ($businesses as $business) {
+                SocialMediaSyncJob::dispatch($business);
+            }
+        });
 })->everySixHours()
     ->timezone('Asia/Tashkent')
     ->name('social-media-sync')
@@ -524,6 +524,17 @@ Schedule::job(new \App\Jobs\System\DataCleanupJob)
     ->dailyAt('03:00')
     ->timezone('Asia/Tashkent')
     ->name('system-data-cleanup')
+    ->onOneServer();
+
+// Session Cleanup - Har kuni tunda 03:30 da
+// Eskirgan sessiyalarni bazadan tozalaydi (24 soatdan eski)
+Schedule::call(function () {
+    \Illuminate\Support\Facades\DB::table('sessions')
+        ->where('last_activity', '<', now()->subHours(24)->timestamp)
+        ->delete();
+})->dailyAt('03:30')
+    ->timezone('Asia/Tashkent')
+    ->name('session-cleanup')
     ->onOneServer();
 
 // ==========================================

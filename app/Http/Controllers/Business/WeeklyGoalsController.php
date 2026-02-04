@@ -80,7 +80,7 @@ class WeeklyGoalsController extends Controller
                 'progress' => $progress,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -105,7 +105,7 @@ class WeeklyGoalsController extends Controller
                 'progress' => $progress,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -146,7 +146,7 @@ class WeeklyGoalsController extends Controller
                 'goal' => $this->formatGoal($goal),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -179,7 +179,7 @@ class WeeklyGoalsController extends Controller
                 'progress' => $progress,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -232,7 +232,7 @@ class WeeklyGoalsController extends Controller
                 }),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -257,7 +257,7 @@ class WeeklyGoalsController extends Controller
                 'streak' => $streak,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 

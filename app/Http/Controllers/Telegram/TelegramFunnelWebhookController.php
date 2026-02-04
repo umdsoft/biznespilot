@@ -24,9 +24,6 @@ class TelegramFunnelWebhookController extends Controller
             'bot_id' => $botId,
             'method' => $request->method(),
             'ip' => $request->ip(),
-            'url' => $request->fullUrl(),
-            'headers' => $request->headers->all(),
-            'body' => $request->all(),
         ]);
 
         try {

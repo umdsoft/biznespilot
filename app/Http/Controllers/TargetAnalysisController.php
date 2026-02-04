@@ -2205,7 +2205,7 @@ class TargetAnalysisController extends Controller
     {
         try {
             $request->validate([
-                'image' => 'required|string', // base64 encoded image
+                'image' => 'required|string|max:2800000', // base64 encoded image, ~2MB limit
             ]);
 
             $business = $this->getCurrentBusiness($request);

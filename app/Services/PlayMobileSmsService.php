@@ -38,7 +38,7 @@ class PlayMobileSmsService
         try {
             $apiUrl = $apiUrl ?: 'https://send.smsxabar.uz/broker-api/send';
 
-            Log::info('PlayMobile test connection', ['login' => $login, 'url' => $apiUrl]);
+            Log::info('PlayMobile test connection', ['login' => substr($login, 0, 3) . '***', 'url' => $apiUrl]);
 
             // Send a test request with empty messages to verify credentials
             $response = Http::timeout(30)

@@ -157,7 +157,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -178,7 +178,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -199,7 +199,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -220,7 +220,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -239,7 +239,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -260,7 +260,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -281,7 +281,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json(['trend' => $data]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -302,7 +302,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -321,7 +321,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -340,7 +340,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -359,7 +359,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -378,7 +378,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 

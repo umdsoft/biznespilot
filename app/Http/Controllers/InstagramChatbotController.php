@@ -53,7 +53,7 @@ class InstagramChatbotController extends Controller
 
             return response()->json($stats);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -72,7 +72,7 @@ class InstagramChatbotController extends Controller
 
             return response()->json(['automations' => $automations]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -110,7 +110,7 @@ class InstagramChatbotController extends Controller
                 'automation' => $automation,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -146,7 +146,7 @@ class InstagramChatbotController extends Controller
                 'automation' => $automation,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -160,7 +160,7 @@ class InstagramChatbotController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -177,7 +177,7 @@ class InstagramChatbotController extends Controller
                 'status' => $automation->status,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -204,7 +204,7 @@ class InstagramChatbotController extends Controller
 
             return response()->json($conversations);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -218,7 +218,7 @@ class InstagramChatbotController extends Controller
 
             return response()->json($conversation);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -239,7 +239,7 @@ class InstagramChatbotController extends Controller
                 'message' => $message,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -278,7 +278,7 @@ class InstagramChatbotController extends Controller
 
             return response()->json(['quick_replies' => $quickReplies]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -306,7 +306,7 @@ class InstagramChatbotController extends Controller
                 'quick_reply' => $quickReply,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -431,11 +431,11 @@ class InstagramChatbotController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Flow automation DB error: '.$e->getMessage());
 
-            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: '.$e->getMessage()], 500);
+            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik'], 500);
         } catch (\Exception $e) {
             Log::error('Flow automation error: '.$e->getMessage());
 
-            return response()->json(['error' => 'Xatolik: '.$e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -527,11 +527,11 @@ class InstagramChatbotController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Flow automation update DB error: '.$e->getMessage());
 
-            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik: '.$e->getMessage()], 500);
+            return response()->json(['error' => 'Ma\'lumotlar bazasiga yozishda xatolik'], 500);
         } catch (\Exception $e) {
             Log::error('Flow automation update error: '.$e->getMessage());
 
-            return response()->json(['error' => 'Xatolik: '.$e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -567,7 +567,7 @@ class InstagramChatbotController extends Controller
                 ]),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
