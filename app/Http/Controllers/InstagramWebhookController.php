@@ -59,9 +59,12 @@ class InstagramWebhookController extends Controller
     }
 
     /**
-     * Handle incoming Instagram webhook
+     * Universal webhook handler - Meta faqat bitta URL ga webhook yuboradi
+     * entry.id (Instagram Page ID) orqali qaysi biznesga tegishli ekanini aniqlaydi
+     *
+     * Facebook Developer → Webhooks → Callback URL: https://domain.com/webhooks/instagram
      */
-    public function handle(Request $request, $businessId)
+    public function handleUniversal(Request $request)
     {
         try {
             // Facebook webhook verification (GET request)
@@ -72,6 +75,49 @@ class InstagramWebhookController extends Controller
             // POST request uchun signature verification
             if (! $this->verifySignature($request)) {
                 Log::warning('Instagram webhook signature verification failed', [
+                    'ip' => $request->ip(),
+                ]);
+
+                return response()->json(['error' => 'Invalid signature'], 403);
+            }
+
+            $data = $request->all();
+
+            Log::info('Instagram universal webhook received', [
+                'object' => $data['object'] ?? null,
+                'entry_count' => isset($data['entry']) ? count($data['entry']) : 0,
+            ]);
+
+            if (isset($data['entry'])) {
+                foreach ($data['entry'] as $entry) {
+                    $this->processEntry($entry);
+                }
+            }
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            Log::error('Instagram universal webhook error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['error' => 'Internal error'], 500);
+        }
+    }
+
+    /**
+     * Legacy: business-specific webhook handler (backward compatibility)
+     */
+    public function handle(Request $request, $businessId)
+    {
+        try {
+            if ($request->isMethod('get')) {
+                return $this->verifyWebhook($request);
+            }
+
+            if (! $this->verifySignature($request)) {
+                Log::warning('Instagram webhook signature verification failed', [
                     'business_id' => $businessId,
                     'ip' => $request->ip(),
                 ]);
@@ -79,50 +125,17 @@ class InstagramWebhookController extends Controller
                 return response()->json(['error' => 'Invalid signature'], 403);
             }
 
-            // Validate business
             $business = Business::findOrFail($businessId);
-
-            // Get webhook data
             $data = $request->all();
 
-            Log::info('Instagram webhook received', [
+            Log::info('Instagram webhook received (legacy route)', [
                 'business_id' => $businessId,
                 'object' => $data['object'] ?? null,
             ]);
 
-            // Instagram webhooks come in this format
             if (isset($data['entry'])) {
                 foreach ($data['entry'] as $entry) {
-                    // Get Instagram account by instagram_id from webhook entry
-                    $instagramId = $entry['id'] ?? null;
-                    $instagramAccount = $instagramId
-                        ? InstagramAccount::where('instagram_id', $instagramId)->first()
-                        : InstagramAccount::where('business_id', $business->id)->first();
-
-                    // Process with new SocialChatbotService (primary handler)
-                    if ($instagramAccount) {
-                        $this->processWithSocialChatbot($entry, $instagramAccount);
-                    }
-
-                    // Also check for AI chatbot config (secondary, for AI responses)
-                    $config = ChatbotConfig::where('business_id', $business->id)->first();
-
-                    // Process with AI if enabled and not handled by flow
-                    if ($config && ($config->ai_enabled ?? false)) {
-                        $this->processWithAI($entry, $business);
-                    }
-
-                    // Legacy: Also process with standard service (if config exists)
-                    if ($config && $config->instagram_enabled && $config->instagram_access_token) {
-                        $result = $this->instagramService->handleWebhook($entry, $business);
-
-                        if (! $result['success']) {
-                            Log::warning('Instagram webhook processing failed', [
-                                'business_id' => $businessId,
-                                'error' => $result['error'] ?? 'Unknown error',
-                            ]);
-                        }
-                    }
+                    $this->processEntry($entry, $business);
                 }
             }
 
@@ -136,6 +149,77 @@ class InstagramWebhookController extends Controller
             ]);
 
             return response()->json(['error' => 'Internal error'], 500);
+        }
+    }
+
+    /**
+     * Process a single webhook entry
+     * Instagram Page ID (entry.id) orqali InstagramAccount va Business ni topadi
+     *
+     * @param  array  $entry  Webhook entry data
+     * @param  Business|null  $business  Legacy route dan kelsa, business beriladi
+     */
+    private function processEntry(array $entry, ?Business $business = null): void
+    {
+        $instagramId = $entry['id'] ?? null;
+
+        // 1. InstagramAccount ni topish (entry.id = Instagram Page ID)
+        $instagramAccount = null;
+        if ($instagramId) {
+            $instagramAccount = InstagramAccount::where('instagram_id', $instagramId)->first();
+        }
+
+        // 2. Agar account topilmasa va business berilgan bo'lsa (legacy route) — fallback
+        if (! $instagramAccount && $business) {
+            $instagramAccount = InstagramAccount::where('business_id', $business->id)->first();
+        }
+
+        // 3. Business ni aniqlash — InstagramAccount dan olish
+        if (! $business && $instagramAccount) {
+            $business = $instagramAccount->business;
+        }
+
+        // 4. Agar hech narsa topilmasa — log qilib skip
+        if (! $instagramAccount && ! $business) {
+            Log::warning('Instagram webhook: unknown instagram_id, no matching business', [
+                'instagram_id' => $instagramId,
+                'entry_keys' => array_keys($entry),
+            ]);
+
+            return;
+        }
+
+        $businessId = $business?->id;
+
+        Log::info('Instagram webhook entry processing', [
+            'instagram_id' => $instagramId,
+            'business_id' => $businessId,
+            'account_id' => $instagramAccount?->id,
+        ]);
+
+        // Process with SocialChatbotService (primary handler)
+        if ($instagramAccount) {
+            $this->processWithSocialChatbot($entry, $instagramAccount);
+        }
+
+        // AI chatbot + legacy processing
+        if ($business) {
+            $config = ChatbotConfig::where('business_id', $business->id)->first();
+
+            if ($config && ($config->ai_enabled ?? false)) {
+                $this->processWithAI($entry, $business);
+            }
+
+            if ($config && $config->instagram_enabled && $config->instagram_access_token) {
+                $result = $this->instagramService->handleWebhook($entry, $business);
+
+                if (! $result['success']) {
+                    Log::warning('Instagram webhook processing failed', [
+                        'business_id' => $businessId,
+                        'error' => $result['error'] ?? 'Unknown error',
+                    ]);
+                }
+            }
         }
     }
 

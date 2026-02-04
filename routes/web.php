@@ -1380,11 +1380,17 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::match(['get', 'post'], '/telegram/{business}', [TelegramWebhookController::class, 'handle'])->name('telegram');
     Route::get('/telegram/{business}/verify', [TelegramWebhookController::class, 'verify'])->name('telegram.verify');
 
-    // Instagram webhooks
-    Route::match(['get', 'post'], '/instagram/{business}', [InstagramWebhookController::class, 'handle'])->name('instagram');
+    // Instagram webhooks (universal - single URL for ALL businesses)
+    // Meta faqat bitta webhook URL qo'yishga ruxsat beradi
+    // Business entry.id (Instagram Page ID) orqali avtomatik aniqlanadi
+    Route::match(['get', 'post'], '/instagram', [InstagramWebhookController::class, 'handleUniversal'])->name('instagram');
 
-    // Facebook Messenger webhooks
-    Route::match(['get', 'post'], '/facebook/{business}', [FacebookWebhookController::class, 'handle'])->name('facebook');
+    // Facebook Messenger webhooks (universal - single URL for ALL businesses)
+    Route::match(['get', 'post'], '/facebook', [FacebookWebhookController::class, 'handleUniversal'])->name('facebook');
+
+    // Legacy: business-specific webhook routes (backward compatibility)
+    Route::match(['get', 'post'], '/instagram/{business}', [InstagramWebhookController::class, 'handle'])->name('instagram.business');
+    Route::match(['get', 'post'], '/facebook/{business}', [FacebookWebhookController::class, 'handle'])->name('facebook.business');
 
     // Telephony webhooks
     Route::post('/pbx', [TelephonyController::class, 'pbxWebhook'])->name('pbx');
