@@ -36,7 +36,7 @@ class SetupInstagramProfile extends Command
 
     protected $description = 'Instagram bot profilini sozlash (Get Started, Menu, Ice Breakers)';
 
-    protected const GRAPH_API_URL = 'https://graph.facebook.com/v18.0';
+    protected string $graphApiUrl;
 
     /**
      * Default Get Started payload
@@ -90,6 +90,12 @@ class SetupInstagramProfile extends Command
             'url' => '', // Will be filled from business settings
         ],
     ];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v21.0');
+    }
 
     public function handle(): int
     {
@@ -210,7 +216,7 @@ class SetupInstagramProfile extends Command
     protected function setupGetStarted(InstagramAccount $account, string $accessToken): bool
     {
         try {
-            $response = Http::post(self::GRAPH_API_URL . '/me/messenger_profile', [
+            $response = Http::post($this->graphApiUrl . '/me/messenger_profile', [
                 'platform' => 'instagram',
                 'get_started' => [
                     'payload' => self::GET_STARTED_PAYLOAD,
@@ -262,7 +268,7 @@ class SetupInstagramProfile extends Command
                 return $item['type'] !== 'web_url' || ! empty($item['url']);
             });
 
-            $response = Http::post(self::GRAPH_API_URL . '/me/messenger_profile', [
+            $response = Http::post($this->graphApiUrl . '/me/messenger_profile', [
                 'platform' => 'instagram',
                 'persistent_menu' => [
                     [
@@ -310,7 +316,7 @@ class SetupInstagramProfile extends Command
             // Instagram limit: maksimum 4 ta ice breaker
             $iceBreakers = array_slice($iceBreakers, 0, 4);
 
-            $response = Http::post(self::GRAPH_API_URL . '/me/messenger_profile', [
+            $response = Http::post($this->graphApiUrl . '/me/messenger_profile', [
                 'platform' => 'instagram',
                 'ice_breakers' => $iceBreakers,
                 'access_token' => $accessToken,
@@ -344,7 +350,7 @@ class SetupInstagramProfile extends Command
     protected function showProfileInfo(InstagramAccount $account, string $accessToken): bool
     {
         try {
-            $response = Http::get(self::GRAPH_API_URL . '/me/messenger_profile', [
+            $response = Http::get($this->graphApiUrl . '/me/messenger_profile', [
                 'platform' => 'instagram',
                 'fields' => 'get_started,persistent_menu,ice_breakers',
                 'access_token' => $accessToken,
@@ -420,7 +426,7 @@ class SetupInstagramProfile extends Command
         }
 
         try {
-            $response = Http::delete(self::GRAPH_API_URL . '/me/messenger_profile', [
+            $response = Http::delete($this->graphApiUrl . '/me/messenger_profile', [
                 'platform' => 'instagram',
                 'fields' => ['get_started', 'persistent_menu', 'ice_breakers'],
                 'access_token' => $accessToken,

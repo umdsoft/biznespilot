@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Notification;
  */
 class SocialTokenService
 {
-    protected const GRAPH_API_URL = 'https://graph.facebook.com/v18.0';
+    protected string $graphApiUrl;
 
     /**
      * Tokenni yangilash uchun qolgan minimal kunlar
@@ -37,6 +37,11 @@ class SocialTokenService
      * API so'rovlari orasidagi kutish vaqti (rate limit uchun)
      */
     protected const API_DELAY_SECONDS = 2;
+
+    public function __construct()
+    {
+        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v21.0');
+    }
 
     /**
      * Check token health for an integration
@@ -130,7 +135,7 @@ class SocialTokenService
         // App Access Token yaratish
         $appAccessToken = "{$appId}|{$appSecret}";
 
-        $response = Http::get(self::GRAPH_API_URL . '/debug_token', [
+        $response = Http::get($this->graphApiUrl . '/debug_token', [
             'input_token' => $inputToken,
             'access_token' => $appAccessToken,
         ]);
@@ -227,7 +232,7 @@ class SocialTokenService
 
         try {
             // Exchange for long-lived token
-            $response = Http::get(self::GRAPH_API_URL . '/oauth/access_token', [
+            $response = Http::get($this->graphApiUrl . '/oauth/access_token', [
                 'grant_type' => 'fb_exchange_token',
                 'client_id' => $appId,
                 'client_secret' => $appSecret,

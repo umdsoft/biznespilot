@@ -32,9 +32,7 @@ class MetaOAuthService
         // Scope larni config dan olish (faqat Facebook Developer da approved bo'lganlari)
         $scopes = config('services.meta.scopes', [
             'public_profile',
-            'pages_show_list',
-            'pages_read_engagement',
-            'instagram_basic',
+            'pages_manage_metadata',
         ]);
 
         Log::info('Meta OAuth: Generating authorization URL', [
