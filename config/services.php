@@ -54,12 +54,23 @@ return [
         'redirect_uri' => env('META_REDIRECT_URI', '/business/meta-ads/callback'),
         'ad_library_token' => env('META_AD_LIBRARY_TOKEN'),
         'api_version' => env('META_API_VERSION', 'v21.0'),
-        // OAuth scopes — faqat Facebook Developer da approved bo'lganlari
-        // MUHIM: Tasdiqlanmagan scope so'ralsa, Facebook butun OAuth ni rad etadi!
-        // Yangi scope qo'shishdan oldin Facebook Developer > Permissions da approved ekanligini tekshiring
+        // OAuth scopes — Meta Ads integratsiya uchun kerakli permission lar
+        // MUHIM: Live mode da faqat App Review dan o'tgan scope lar ishlaydi!
+        // Development mode da barcha scope lar developer/tester larga ishlaydi.
+        //
+        // Kerakli scope lar va ularni ishlatadigan endpoint lar:
+        //   ads_read            → GET /me/adaccounts, /{account}/campaigns, insights
+        //   ads_management      → POST campaign/adset/ad yaratish va tahrirlash
+        //   pages_read_engagement → GET /me/accounts (Facebook Pages ro'yxati)
+        //
+        // Live mode ga o'tkazishdan oldin Facebook App Review orqali
+        // ads_read, ads_management, pages_read_engagement ni approve qildiring.
         'scopes' => [
             'public_profile',
-            'pages_manage_metadata',
+            'email',
+            'ads_read',
+            'ads_management',
+            'pages_read_engagement',
         ],
     ],
 

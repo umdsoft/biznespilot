@@ -354,6 +354,7 @@ class TargetAnalysisController extends Controller
             'current_business_id' => session('current_business_id'),
             'has_code' => $request->has('code'),
             'has_error' => $request->has('error'),
+            'has_error_code' => $request->has('error_code'),
         ]);
 
         // Get business ID - try multiple sources
@@ -390,9 +391,14 @@ class TargetAnalysisController extends Controller
                 'error_message' => $request->error_message,
             ]);
 
-            $errorText = $request->error_description
-                ?? $request->error_message
-                ?? 'OAuth xatolik';
+            // Error 1349220 - Facebook app hali tayyor emas (Live mode transition yoki App Review kerak)
+            if ($request->error_code == '1349220') {
+                $errorText = 'Facebook ilovasi hozirda mavjud emas. Facebook Developer Console da App Review va Privacy Policy sozlamalarini tekshiring.';
+            } else {
+                $errorText = $request->error_description
+                    ?? $request->error_message
+                    ?? 'OAuth xatolik';
+            }
 
             return $getRedirectRoute('index', ['error' => $errorText]);
         }
