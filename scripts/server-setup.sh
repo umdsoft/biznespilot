@@ -7,8 +7,10 @@
 #   bash server-setup.sh
 #
 # Bu script quyidagilarni o'rnatadi va sozlaydi:
-#   PHP 8.2, Composer, MySQL, Redis, Nginx, Supervisor,
-#   UFW, Fail2ban, Swap, OPcache, SSL, Log rotation
+#   PHP 8.3, Composer, Node.js LTS, Claude CLI, MySQL, Redis,
+#   Nginx, Supervisor, UFW, Fail2ban, Swap, OPcache, SSL, Log rotation
+#
+# Hozircha root da ishlaydi. Keyinchalik deploy user ochish mumkin.
 # =============================================================================
 
 set -euo pipefail
@@ -16,13 +18,20 @@ set -euo pipefail
 # =============================================================================
 # CONFIGURATION — BU YERDA O'ZGARTIRING
 # =============================================================================
-DEPLOY_USER="deploy"
 DEPLOY_PATH="/var/www/biznespilot"
 DOMAIN="biznespilot.uz"
-PHP_VERSION="8.2"
+PHP_VERSION="8.3"
 SSH_PORT="2222"           # SSH portni o'zgartiring (default 22 dan)
 SWAP_SIZE="2G"            # 1-2GB VPS uchun 2GB swap MAJBURIY
 GITHUB_REPO="git@github.com:umdsoft/biznespilot.git"
+
+# Database sozlamalari
+DB_NAME="biznespilot"
+DB_USERNAME="biznespilot"
+# DB_PASSWORD avtomatik generatsiya qilinadi (MySQL step da)
+
+# Credentials fayli — first-deploy.sh bu fayldan o'qib .env ga yozadi
+CREDENTIALS_FILE="/root/.biznespilot-credentials"
 
 # =============================================================================
 # COLORS & HELPERS
@@ -63,7 +72,7 @@ echo -e "${NC}"
 # =============================================================================
 # 1. SYSTEM UPDATE
 # =============================================================================
-log_step "1/17 — TIZIMNI YANGILASH"
+log_step "1/18 — TIZIMNI YANGILASH"
 
 export DEBIAN_FRONTEND=noninteractive
 apt update && apt upgrade -y
@@ -74,7 +83,7 @@ log_success "Tizim yangilandi"
 # =============================================================================
 # 2. INSTALL BASE PACKAGES
 # =============================================================================
-log_step "2/17 — BAZAVIY PAKETLAR"
+log_step "2/18 — BAZAVIY PAKETLAR"
 
 apt install -y \
     curl \
@@ -106,7 +115,7 @@ log_success "Bazaviy paketlar o'rnatildi"
 # =============================================================================
 # 3. SWAP YARATISH (1-2GB VPS UCHUN MAJBURIY)
 # =============================================================================
-log_step "3/17 — SWAP (${SWAP_SIZE})"
+log_step "3/18 — SWAP (${SWAP_SIZE})"
 
 if [ -f /swapfile ]; then
     log_warning "Swap allaqachon mavjud:"
@@ -135,35 +144,9 @@ fi
 free -h | head -3
 
 # =============================================================================
-# 4. DEPLOY USER YARATISH
+# 4. SSH XAVFSIZLIK
 # =============================================================================
-log_step "4/17 — DEPLOY USER"
-
-if ! id "$DEPLOY_USER" &>/dev/null; then
-    adduser --disabled-password --gecos "" $DEPLOY_USER
-    usermod -aG sudo $DEPLOY_USER
-    usermod -aG www-data $DEPLOY_USER
-
-    # sudo parolsiz (deploy skriptlari uchun)
-    echo "${DEPLOY_USER} ALL=(ALL) NOPASSWD: /usr/sbin/service, /bin/systemctl, /usr/bin/supervisorctl" > /etc/sudoers.d/${DEPLOY_USER}
-    chmod 440 /etc/sudoers.d/${DEPLOY_USER}
-
-    log_success "User '${DEPLOY_USER}' yaratildi"
-else
-    log_warning "User '${DEPLOY_USER}' allaqachon mavjud"
-fi
-
-# SSH katalog
-mkdir -p /home/${DEPLOY_USER}/.ssh
-touch /home/${DEPLOY_USER}/.ssh/authorized_keys
-chmod 700 /home/${DEPLOY_USER}/.ssh
-chmod 600 /home/${DEPLOY_USER}/.ssh/authorized_keys
-chown -R ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh
-
-# =============================================================================
-# 5. SSH XAVFSIZLIK
-# =============================================================================
-log_step "5/17 — SSH XAVFSIZLIK"
+log_step "4/18 — SSH XAVFSIZLIK"
 
 # SSH config backup
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
@@ -178,7 +161,6 @@ MaxAuthTries 5
 ClientAliveInterval 300
 ClientAliveCountMax 2
 X11Forwarding no
-AllowUsers root ${DEPLOY_USER}
 EOF
 
 log_warning "SSH port: ${SSH_PORT} ga o'zgartirildi"
@@ -191,9 +173,9 @@ systemctl restart sshd
 log_success "SSH xavfsizlik sozlandi"
 
 # =============================================================================
-# 6. PHP 8.2
+# 5. PHP 8.3
 # =============================================================================
-log_step "6/17 — PHP ${PHP_VERSION}"
+log_step "5/18 — PHP ${PHP_VERSION}"
 
 add-apt-repository -y ppa:ondrej/php
 apt update
@@ -230,9 +212,9 @@ log_success "PHP ${PHP_VERSION} o'rnatildi"
 php -v | head -1
 
 # =============================================================================
-# 7. PHP OPCACHE + JIT
+# 6. PHP OPCACHE + JIT
 # =============================================================================
-log_step "7/17 — PHP OPCACHE + JIT"
+log_step "6/18 — PHP OPCACHE + JIT"
 
 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-custom.ini << 'EOF'
 [opcache]
@@ -254,9 +236,9 @@ cp /etc/php/${PHP_VERSION}/mods-available/opcache-custom.ini \
 log_success "OPcache + JIT sozlandi"
 
 # =============================================================================
-# 8. PHP-FPM POOL (Low-Memory Optimized)
+# 7. PHP-FPM POOL (Low-Memory Optimized)
 # =============================================================================
-log_step "8/17 — PHP-FPM POOL"
+log_step "7/18 — PHP-FPM POOL"
 
 # Default pool ni o'chirish
 if [ -f /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf ]; then
@@ -265,7 +247,7 @@ fi
 
 cat > /etc/php/${PHP_VERSION}/fpm/pool.d/biznespilot.conf << 'FPMEOF'
 [biznespilot]
-user = deploy
+user = www-data
 group = www-data
 
 listen = /run/php/php-fpm-biznespilot.sock
@@ -309,9 +291,9 @@ systemctl enable php${PHP_VERSION}-fpm
 log_success "PHP-FPM pool sozlandi (ondemand, max_children=5)"
 
 # =============================================================================
-# 9. COMPOSER
+# 8. COMPOSER
 # =============================================================================
-log_step "9/17 — COMPOSER"
+log_step "8/18 — COMPOSER"
 
 if ! command -v composer &>/dev/null; then
     curl -sS https://getcomposer.org/installer | php
@@ -325,9 +307,47 @@ fi
 composer --version
 
 # =============================================================================
-# 10. MYSQL
+# 9. NODE.JS LTS (Claude CLI uchun)
 # =============================================================================
-log_step "10/17 — MYSQL"
+log_step "9/18 — NODE.JS LTS (Claude CLI uchun)"
+
+# Node.js 22 LTS — faqat Claude CLI uchun, build serverda bajarilMAYDI
+if ! command -v node &>/dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt install -y nodejs
+    log_success "Node.js o'rnatildi"
+else
+    log_warning "Node.js allaqachon mavjud"
+fi
+
+node --version
+npm --version
+
+log_success "Node.js LTS o'rnatildi (faqat Claude CLI uchun)"
+
+# =============================================================================
+# 10. CLAUDE CLI
+# =============================================================================
+log_step "10/18 — CLAUDE CLI"
+
+# Claude Code CLI — AI yordamchi terminal (Node.js 18+ talab qiladi)
+if ! command -v claude &>/dev/null; then
+    npm install -g @anthropic-ai/claude-code
+    log_success "Claude CLI o'rnatildi"
+else
+    log_warning "Claude CLI allaqachon mavjud — yangilanmoqda..."
+    npm update -g @anthropic-ai/claude-code 2>/dev/null || true
+fi
+
+claude --version 2>/dev/null || log_warning "Claude CLI versiyasini tekshiring"
+
+log_info "Claude CLI ishlatish uchun: ANTHROPIC_API_KEY ni .env ga qo'shing"
+log_success "Claude CLI tayyor"
+
+# =============================================================================
+# 11. MYSQL
+# =============================================================================
+log_step "11/18 — MYSQL"
 
 apt install -y mysql-server
 systemctl enable mysql
@@ -335,18 +355,29 @@ systemctl start mysql
 
 # Avtomatik xavfsiz sozlash (interactive emas)
 DB_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=')
+DB_ROOT_PASSWORD="${DB_PASSWORD}_root"
 
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_PASSWORD}_root';" 2>/dev/null || true
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_ROOT_PASSWORD}';" 2>/dev/null || true
 mysql -e "DELETE FROM mysql.user WHERE User='';" 2>/dev/null || true
 mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" 2>/dev/null || true
 mysql -e "DROP DATABASE IF EXISTS test;" 2>/dev/null || true
 mysql -e "FLUSH PRIVILEGES;" 2>/dev/null || true
 
 # Database va user yaratish
-mysql -e "CREATE DATABASE IF NOT EXISTS biznespilot CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -e "CREATE USER IF NOT EXISTS 'biznespilot'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON biznespilot.* TO 'biznespilot'@'localhost';"
+mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -e "CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
+mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
+
+# Credentiallarni faylga saqlash — first-deploy.sh .env ga avtomatik yozadi
+cat > "${CREDENTIALS_FILE}" << CREDEOF
+DB_DATABASE=${DB_NAME}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+CREDEOF
+chmod 600 "${CREDENTIALS_FILE}"
+log_success "Credentials saqlandi: ${CREDENTIALS_FILE}"
 
 # MySQL tuning (1-2GB VPS)
 cat > /etc/mysql/mysql.conf.d/biznespilot.cnf << 'MYSQLEOF'
@@ -389,9 +420,9 @@ systemctl restart mysql
 log_success "MySQL o'rnatildi va sozlandi"
 
 # =============================================================================
-# 11. REDIS
+# 12. REDIS
 # =============================================================================
-log_step "11/17 — REDIS"
+log_step "12/18 — REDIS"
 
 apt install -y redis-server
 
@@ -412,9 +443,9 @@ log_success "Redis o'rnatildi (maxmemory=128mb)"
 redis-cli ping
 
 # =============================================================================
-# 12. NGINX
+# 13. NGINX
 # =============================================================================
-log_step "12/17 — NGINX"
+log_step "13/18 — NGINX"
 
 apt install -y nginx
 
@@ -480,13 +511,11 @@ NGXEOF
 
 # Site config
 cat > /etc/nginx/sites-available/biznespilot << 'SITEEOF'
-# HTTP → HTTPS redirect (SSL o'rnatilgandan keyin ishlaydi)
 server {
     listen 80;
     listen [::]:80;
     server_name biznespilot.uz www.biznespilot.uz;
 
-    # SSL o'rnatilgunga qadar to'g'ridan-to'g'ri xizmat qiladi
     root /var/www/biznespilot/public;
     index index.php;
 
@@ -583,9 +612,9 @@ systemctl enable nginx
 log_success "Nginx sozlandi"
 
 # =============================================================================
-# 13. SUPERVISOR (Queue Workers + Scheduler)
+# 14. SUPERVISOR (Queue Workers + Scheduler)
 # =============================================================================
-log_step "13/17 — SUPERVISOR"
+log_step "14/18 — SUPERVISOR"
 
 cat > /etc/supervisor/conf.d/biznespilot.conf << 'SUPEOF'
 ; ===========================================
@@ -598,7 +627,7 @@ autostart=true
 autorestart=true
 stopasgroup=true
 killasgroup=true
-user=deploy
+user=www-data
 numprocs=2
 redirect_stderr=true
 stdout_logfile=/var/www/biznespilot/storage/logs/worker.log
@@ -614,7 +643,7 @@ process_name=%(program_name)s
 command=/bin/sh -c "while [ true ]; do (php /var/www/biznespilot/artisan schedule:run --verbose --no-interaction &); sleep 60; done"
 autostart=true
 autorestart=true
-user=deploy
+user=www-data
 redirect_stderr=true
 stdout_logfile=/var/www/biznespilot/storage/logs/scheduler.log
 stdout_logfile_maxbytes=5MB
@@ -626,9 +655,9 @@ systemctl enable supervisor
 log_success "Supervisor sozlandi (2 worker + scheduler)"
 
 # =============================================================================
-# 14. FIREWALL (UFW)
+# 15. FIREWALL (UFW)
 # =============================================================================
-log_step "14/17 — FIREWALL"
+log_step "15/18 — FIREWALL"
 
 ufw default deny incoming
 ufw default allow outgoing
@@ -641,9 +670,9 @@ log_success "UFW yoqildi (SSH:${SSH_PORT}, HTTP, HTTPS)"
 ufw status
 
 # =============================================================================
-# 15. FAIL2BAN
+# 16. FAIL2BAN
 # =============================================================================
-log_step "15/17 — FAIL2BAN"
+log_step "16/18 — FAIL2BAN"
 
 cat > /etc/fail2ban/jail.local << EOF
 [DEFAULT]
@@ -681,9 +710,9 @@ systemctl enable fail2ban
 log_success "Fail2ban sozlandi"
 
 # =============================================================================
-# 16. LOG ROTATION
+# 17. LOG ROTATION
 # =============================================================================
-log_step "16/17 — LOG ROTATION"
+log_step "17/18 — LOG ROTATION"
 
 cat > /etc/logrotate.d/biznespilot << 'LREOF'
 /var/www/biznespilot/storage/logs/*.log {
@@ -693,7 +722,7 @@ cat > /etc/logrotate.d/biznespilot << 'LREOF'
     compress
     delaycompress
     notifempty
-    create 0664 deploy www-data
+    create 0664 www-data www-data
     sharedscripts
     postrotate
         /usr/bin/supervisorctl restart biznespilot-worker:* > /dev/null 2>&1 || true
@@ -727,15 +756,15 @@ LREOF
 log_success "Log rotation sozlandi"
 
 # =============================================================================
-# 17. LOYIHA PAPKASI + HEALTH CHECK SCRIPT
+# 18. LOYIHA PAPKASI + HEALTH CHECK SCRIPT
 # =============================================================================
-log_step "17/17 — YAKUNIY SOZLAMALAR"
+log_step "18/18 — YAKUNIY SOZLAMALAR"
 
 # Loyiha papkasi
 mkdir -p ${DEPLOY_PATH}/storage/logs
 mkdir -p ${DEPLOY_PATH}/storage/framework/{sessions,views,cache}
 mkdir -p ${DEPLOY_PATH}/bootstrap/cache
-chown -R ${DEPLOY_USER}:www-data ${DEPLOY_PATH}
+chown -R www-data:www-data ${DEPLOY_PATH}
 chmod -R 775 ${DEPLOY_PATH}
 
 # Server health check script
@@ -766,7 +795,17 @@ uptime | awk -F'load average:' '{print "  Load:" $2}'
 # Services
 echo ""
 echo -e "${YELLOW}--- SERVICES ---${NC}"
-for svc in php8.2-fpm nginx mysql redis-server supervisor; do
+
+# PHP-FPM versiyasini avtomatik aniqlash
+PHP_FPM_SVC=""
+for ver in 8.4 8.3 8.2 8.1; do
+    if systemctl is-active --quiet "php${ver}-fpm" 2>/dev/null; then
+        PHP_FPM_SVC="php${ver}-fpm"
+        break
+    fi
+done
+
+for svc in ${PHP_FPM_SVC:-php8.3-fpm} nginx mysql redis-server supervisor; do
     if systemctl is-active --quiet $svc 2>/dev/null; then
         echo -e "  ${GREEN}[OK]${NC} $svc"
     else
@@ -829,35 +868,40 @@ echo ""
 echo -e "${YELLOW}╔══════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${YELLOW}║  DATABASE CREDENTIALS — BU MA'LUMOTLARNI SAQLANG!          ║${NC}"
 echo -e "${YELLOW}╠══════════════════════════════════════════════════════════════╣${NC}"
-echo -e "${YELLOW}║  DB_DATABASE = biznespilot                                  ║${NC}"
-echo -e "${YELLOW}║  DB_USERNAME = biznespilot                                  ║${NC}"
-echo -e "${YELLOW}║  DB_PASSWORD = ${DB_PASSWORD}               ║${NC}"
-echo -e "${YELLOW}║  ROOT_PASS   = ${DB_PASSWORD}_root          ║${NC}"
+echo -e "${YELLOW}║  DB_DATABASE = ${DB_NAME}${NC}"
+echo -e "${YELLOW}║  DB_USERNAME = ${DB_USERNAME}${NC}"
+echo -e "${YELLOW}║  DB_PASSWORD = ${DB_PASSWORD}${NC}"
+echo -e "${YELLOW}║  ROOT_PASS   = ${DB_ROOT_PASSWORD}${NC}"
+echo -e "${YELLOW}║${NC}"
+echo -e "${YELLOW}║  Credentials fayli: ${CREDENTIALS_FILE}${NC}"
+echo -e "${YELLOW}║  first-deploy.sh .env ga avtomatik yozadi${NC}"
 echo -e "${YELLOW}╚══════════════════════════════════════════════════════════════╝${NC}"
 
 echo ""
 echo -e "${CYAN}KEYINGI QADAMLAR:${NC}"
 echo ""
-echo "  1. SSH key qo'shish (lokal kompyuterdan):"
-echo "     ssh-copy-id -p ${SSH_PORT} deploy@$(curl -s ifconfig.me 2>/dev/null || echo 'SERVER_IP')"
+echo "  1. SSH portni tekshiring (YANGI terminalda!):"
+echo "     ssh -p ${SSH_PORT} root@$(curl -s ifconfig.me 2>/dev/null || echo 'SERVER_IP')"
 echo ""
-echo "  2. GitHub SSH key (serverda deploy user sifatida):"
-echo "     su - deploy"
-echo "     ssh-keygen -t ed25519 -C 'deploy@biznespilot'"
+echo "  2. GitHub SSH key yaratish:"
+echo "     ssh-keygen -t ed25519 -C 'root@biznespilot'"
 echo "     cat ~/.ssh/id_ed25519.pub"
 echo "     # Bu keyni GitHub → Repo → Settings → Deploy Keys ga qo'shing"
 echo ""
-echo "  3. Birinchi deploy:"
-echo "     su - deploy"
+echo "  3. Birinchi deploy (root sifatida):"
 echo "     bash ${DEPLOY_PATH}/scripts/first-deploy.sh"
-echo "     # Yoki qo'lda: git clone ... && composer install && ..."
 echo ""
-echo "  4. .env sozlash:"
-echo "     nano ${DEPLOY_PATH}/.env"
-echo ""
-echo "  5. SSL o'rnatish (domain DNS sozlangandan keyin):"
+echo "  4. SSL o'rnatish (domain DNS sozlangandan keyin):"
 echo "     certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
+echo ""
+echo "  5. Keyingi deploy'lar uchun:"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh          # pull (default)"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh full      # composer + migrate"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh status    # server holati"
 echo ""
 echo "  6. Server holatini tekshirish:"
 echo "     server-health"
+echo ""
+echo "  7. Claude CLI ishlatish:"
+echo "     cd ${DEPLOY_PATH} && claude"
 echo ""

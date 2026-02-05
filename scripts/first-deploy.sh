@@ -3,8 +3,7 @@
 # =============================================================================
 # BIZNESPILOT — BIRINCHI DEPLOY
 # =============================================================================
-# server-setup.sh ishlagandan keyin, deploy user sifatida ishga tushiring:
-#   su - deploy
+# server-setup.sh ishlagandan keyin, root sifatida ishga tushiring:
 #   bash /var/www/biznespilot/scripts/first-deploy.sh
 #
 # YOKI git clone qilib bo'lgandan keyin:
@@ -17,10 +16,12 @@ set -euo pipefail
 # CONFIGURATION
 # =============================================================================
 DEPLOY_PATH="/var/www/biznespilot"
-DEPLOY_USER="deploy"
 GITHUB_REPO="git@github.com:umdsoft/biznespilot.git"
 DOMAIN="biznespilot.uz"
-PHP_VERSION="8.2"
+PHP_VERSION="8.3"
+
+# server-setup.sh yaratgan credentials fayli
+CREDENTIALS_FILE="/root/.biznespilot-credentials"
 
 # =============================================================================
 # COLORS & HELPERS
@@ -57,7 +58,7 @@ else
     log_error "GitHub SSH ishlamayapti!"
     echo ""
     echo "  Tuzatish uchun:"
-    echo "  1. ssh-keygen -t ed25519 -C 'deploy@biznespilot'"
+    echo "  1. ssh-keygen -t ed25519 -C 'root@biznespilot'"
     echo "  2. cat ~/.ssh/id_ed25519.pub"
     echo "  3. GitHub → Repo → Settings → Deploy Keys ga qo'shing"
     echo ""
@@ -107,8 +108,8 @@ fi
 # =============================================================================
 log_step "2/9 — RUXSATLAR"
 
-sudo chown -R ${DEPLOY_USER}:www-data ${DEPLOY_PATH}
-sudo chmod -R 775 ${DEPLOY_PATH}/storage ${DEPLOY_PATH}/bootstrap/cache
+chown -R www-data:www-data ${DEPLOY_PATH}
+chmod -R 775 ${DEPLOY_PATH}/storage ${DEPLOY_PATH}/bootstrap/cache
 
 # storage papkalar mavjudligini tekshirish
 mkdir -p storage/logs
@@ -149,21 +150,53 @@ if [ ! -f "${DEPLOY_PATH}/.env" ]; then
         log_info ".env.example dan nusxa olindi"
     fi
 
+    # Production sozlamalarini o'rnatish
+    sed -i 's/^APP_ENV=.*/APP_ENV=production/' ${DEPLOY_PATH}/.env
+    sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' ${DEPLOY_PATH}/.env
+    sed -i "s|^APP_URL=.*|APP_URL=https://${DOMAIN}|" ${DEPLOY_PATH}/.env
+    log_success "APP_ENV=production, APP_DEBUG=false, APP_URL sozlandi"
+
+    # Database credentiallarni server-setup.sh dan o'qib .env ga yozish
+    if [ -f "${CREDENTIALS_FILE}" ]; then
+        log_info "Database credentiallar ${CREDENTIALS_FILE} dan o'qilmoqda..."
+
+        DB_DATABASE=$(grep '^DB_DATABASE=' "${CREDENTIALS_FILE}" | cut -d= -f2)
+        DB_USERNAME=$(grep '^DB_USERNAME=' "${CREDENTIALS_FILE}" | cut -d= -f2)
+        DB_PASSWORD=$(grep '^DB_PASSWORD=' "${CREDENTIALS_FILE}" | cut -d= -f2)
+
+        if [ -n "$DB_DATABASE" ] && [ -n "$DB_USERNAME" ] && [ -n "$DB_PASSWORD" ]; then
+            sed -i "s/^DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE}/" ${DEPLOY_PATH}/.env
+            sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USERNAME}/" ${DEPLOY_PATH}/.env
+            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASSWORD}/" ${DEPLOY_PATH}/.env
+            sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' ${DEPLOY_PATH}/.env
+            log_success "Database credentiallar .env ga yozildi (DB: ${DB_DATABASE}, User: ${DB_USERNAME})"
+        else
+            log_warning "Credentials fayl to'liq emas — qo'lda yozing: nano ${DEPLOY_PATH}/.env"
+        fi
+    else
+        log_warning "Credentials fayl topilmadi (${CREDENTIALS_FILE})"
+        log_warning "Database ma'lumotlarini qo'lda yozing: nano ${DEPLOY_PATH}/.env"
+    fi
+
+    # Cache va Queue driverlarini Redis ga sozlash
+    sed -i 's/^CACHE_STORE=.*/CACHE_STORE=redis/' ${DEPLOY_PATH}/.env
+    sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/' ${DEPLOY_PATH}/.env
+    log_success "CACHE_STORE=redis, QUEUE_CONNECTION=redis sozlandi"
+
     # App key generatsiya
     php artisan key:generate --force
     log_success "APP_KEY generatsiya qilindi"
 
     echo ""
     log_warning "══════════════════════════════════════════════════════"
-    log_warning "  .env faylni ALBATTA tahrirlang!"
+    log_warning "  .env faylni tekshiring va qo'shimcha sozlamalar kiriting:"
     log_warning "  nano ${DEPLOY_PATH}/.env"
     log_warning ""
-    log_warning "  Eng muhim sozlamalar:"
-    log_warning "    APP_ENV=production"
-    log_warning "    APP_DEBUG=false"
-    log_warning "    APP_URL=https://${DOMAIN}"
-    log_warning "    DB_PASSWORD=server-setup dan olgan parolingiz"
-    log_warning "    TELESCOPE_ENABLED=false"
+    log_warning "  Qo'lda kiritish kerak bo'lgan sozlamalar:"
+    log_warning "    ANTHROPIC_API_KEY=... (Claude CLI uchun)"
+    log_warning "    TELEGRAM_SYSTEM_BOT_TOKEN=..."
+    log_warning "    META_APP_ID=..."
+    log_warning "    META_APP_SECRET=..."
     log_warning "══════════════════════════════════════════════════════"
     echo ""
 
@@ -219,20 +252,28 @@ php artisan event:cache
 
 log_success "Config, route, view, event cache yaratildi"
 
+# deploy.sh ni tayyorlash (keyingi deploy'lar uchun)
+if [ -f "${DEPLOY_PATH}/deploy.sh" ]; then
+    chmod +x ${DEPLOY_PATH}/deploy.sh
+    log_success "deploy.sh tayyor (keyingi deploy: ./deploy.sh)"
+else
+    log_warning "deploy.sh topilmadi"
+fi
+
 # =============================================================================
 # 8. SERVISLARNI RESTART
 # =============================================================================
 log_step "8/9 — SERVISLAR RESTART"
 
-sudo systemctl restart php${PHP_VERSION}-fpm
+systemctl restart php${PHP_VERSION}-fpm
 log_success "PHP-FPM restarted"
 
-sudo systemctl restart nginx
+systemctl restart nginx
 log_success "Nginx restarted"
 
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl restart all
+supervisorctl reread
+supervisorctl update
+supervisorctl restart all
 log_success "Supervisor restarted (queue workers + scheduler)"
 
 # =============================================================================
@@ -259,7 +300,7 @@ else
 fi
 
 # Supervisor
-WORKER_STATUS=$(sudo supervisorctl status biznespilot-worker:biznespilot-worker_00 2>/dev/null | awk '{print $2}')
+WORKER_STATUS=$(supervisorctl status biznespilot-worker:biznespilot-worker_00 2>/dev/null | awk '{print $2}')
 if [ "$WORKER_STATUS" = "RUNNING" ]; then
     log_success "Queue workers ishlayapti"
 else
@@ -289,11 +330,17 @@ echo "     A record: ${DOMAIN} → ${SERVER_IP}"
 echo "     A record: www.${DOMAIN} → ${SERVER_IP}"
 echo ""
 echo "  3. SSL o'rnating:"
-echo "     sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
+echo "     certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
 echo ""
-echo "  4. Keyingi deploy'lar uchun:"
-echo "     cd ${DEPLOY_PATH} && ./deploy.sh"
+echo "  4. Keyingi deploy'lar uchun (xavfsiz deploy pipeline):"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh          # pull (default)"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh full      # composer + migrate"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh rollback  # oxirgi commitga qaytish"
+echo "     cd ${DEPLOY_PATH} && ./deploy.sh status    # server holati"
 echo ""
 echo "  5. Server holatini tekshirish:"
 echo "     server-health"
+echo ""
+echo "  6. Claude CLI ishlatish:"
+echo "     cd ${DEPLOY_PATH} && claude"
 echo ""

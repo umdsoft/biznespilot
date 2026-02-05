@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.staging
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -18,18 +19,36 @@
 /public/storage
 /storage/*.key
 /storage/pail
+
+# === CRITICAL: Server crash oldini olish uchun ===
+# Bu fayllar HECH QACHON gitda track qilinmasligi kerak.
+# PHP-FPM (www-data) bu fayllarni yozadi/o'qiydi,
+# git pull (root) bilan conflict bo'lib server qotib qoladi.
+# VFS deadlock va file descriptor conflictni oldini oladi.
 /storage/framework/cache/*
+/storage/framework/cache/data/*
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/framework/testing/*
+/storage/logs/*
 !/storage/framework/.gitkeep
 !/storage/framework/cache/.gitkeep
+!/storage/framework/cache/data/.gitkeep
 !/storage/framework/sessions/.gitkeep
 !/storage/framework/views/.gitkeep
+!/storage/logs/.gitignore
+
+# Bootstrap cache (Laravel auto-generated)
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+!/bootstrap/cache/.gitkeep
+
 /vendor
+
 Homestead.json
 Homestead.yaml
 Thumbs.db
+nul
 
 # Temp files
 tmpclaude-*

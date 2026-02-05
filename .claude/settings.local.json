@@ -112,7 +112,9 @@
       "Bash(ssh-keygen:*)",
       "Bash(npx vite build)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(bash -n:*)"
     ]
   }
 }
