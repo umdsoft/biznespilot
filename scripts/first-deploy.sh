@@ -3,11 +3,11 @@
 # =============================================================================
 # BIZNESPILOT — BIRINCHI DEPLOY
 # =============================================================================
-# server-setup.sh ishlagandan keyin, root sifatida ishga tushiring:
-#   bash /var/www/biznespilot/scripts/first-deploy.sh
-#
-# YOKI git clone qilib bo'lgandan keyin:
+# Repository git clone qilib olinganidan keyin, root sifatida ishga tushiring:
 #   cd /var/www/biznespilot && bash scripts/first-deploy.sh
+#
+# Bu skript: composer, .env, migration, cache, servislarni sozlaydi.
+# Git operatsiyalar (clone/pull) bu skriptda BAJARILMAYDI.
 # =============================================================================
 
 set -euo pipefail
@@ -16,7 +16,6 @@ set -euo pipefail
 # CONFIGURATION
 # =============================================================================
 DEPLOY_PATH="/var/www/biznespilot"
-GITHUB_REPO="git@github.com:umdsoft/biznespilot.git"
 DOMAIN="biznespilot.uz"
 PHP_VERSION="8.3"
 
@@ -48,22 +47,14 @@ echo -e "${NC}"
 # =============================================================================
 # PRE-CHECKS
 # =============================================================================
-log_step "0/9 — TEKSHIRUVLAR"
-
-# GitHub SSH tekshirish
-log_info "GitHub SSH ulanishini tekshirish..."
-if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-    log_success "GitHub SSH ishlayapti"
-else
-    log_error "GitHub SSH ishlamayapti!"
-    echo ""
-    echo "  Tuzatish uchun:"
-    echo "  1. ssh-keygen -t ed25519 -C 'root@biznespilot'"
-    echo "  2. cat ~/.ssh/id_ed25519.pub"
-    echo "  3. GitHub → Repo → Settings → Deploy Keys ga qo'shing"
-    echo ""
+# Repository allaqachon serverda bo'lishi kerak (git clone qilib olingan)
+if [ ! -d "${DEPLOY_PATH}/.git" ]; then
+    log_error "Repository topilmadi: ${DEPLOY_PATH}"
+    echo "  Avval git clone qiling va keyin bu skriptni ishga tushiring."
     exit 1
 fi
+
+cd ${DEPLOY_PATH}
 
 # RAM tekshirish
 AVAIL_MB=$(free -m | awk 'NR==2{print $7}')
@@ -73,40 +64,9 @@ if [ "$AVAIL_MB" -lt 150 ]; then
 fi
 
 # =============================================================================
-# 1. CLONE / FETCH REPOSITORY
+# 1. PERMISSIONS
 # =============================================================================
-log_step "1/9 — REPOSITORY"
-
-if [ -d "${DEPLOY_PATH}/.git" ]; then
-    log_info "Repository allaqachon mavjud — yangilanmoqda..."
-    cd ${DEPLOY_PATH}
-    git fetch origin main
-    git checkout main
-    git reset --hard origin/main
-    log_success "Repository yangilandi"
-else
-    log_info "Repository klonlanmoqda..."
-    cd /var/www
-
-    # Agar papka bo'sh emas bo'lsa (server-setup yaratgan)
-    if [ -d "${DEPLOY_PATH}" ] && [ "$(ls -A ${DEPLOY_PATH} 2>/dev/null)" ]; then
-        # Temp ga clone qilib, keyin ko'chirish
-        rm -rf /tmp/biznespilot-clone
-        git clone ${GITHUB_REPO} /tmp/biznespilot-clone
-        cp -a /tmp/biznespilot-clone/. ${DEPLOY_PATH}/
-        rm -rf /tmp/biznespilot-clone
-    else
-        git clone ${GITHUB_REPO} ${DEPLOY_PATH}
-    fi
-
-    cd ${DEPLOY_PATH}
-    log_success "Repository klonlandi"
-fi
-
-# =============================================================================
-# 2. PERMISSIONS
-# =============================================================================
-log_step "2/9 — RUXSATLAR"
+log_step "1/8 — RUXSATLAR"
 
 chown -R www-data:www-data ${DEPLOY_PATH}
 chmod -R 775 ${DEPLOY_PATH}/storage ${DEPLOY_PATH}/bootstrap/cache
@@ -122,7 +82,7 @@ log_success "Ruxsatlar sozlandi"
 # =============================================================================
 # 3. COMPOSER INSTALL
 # =============================================================================
-log_step "3/9 — COMPOSER DEPENDENCIES"
+log_step "2/8 — COMPOSER DEPENDENCIES"
 
 cd ${DEPLOY_PATH}
 log_info "Composer install boshlandi (bu 1-3 daqiqa olishi mumkin)..."
@@ -139,7 +99,7 @@ log_success "Composer dependencies o'rnatildi"
 # =============================================================================
 # 4. .ENV FAYL
 # =============================================================================
-log_step "4/9 — ENVIRONMENT (.env)"
+log_step "3/8 — ENVIRONMENT (.env)"
 
 if [ ! -f "${DEPLOY_PATH}/.env" ]; then
     if [ -f "${DEPLOY_PATH}/.env.production" ]; then
@@ -213,7 +173,7 @@ fi
 # =============================================================================
 # 5. DATABASE MIGRATION
 # =============================================================================
-log_step "5/9 — DATABASE MIGRATION"
+log_step "4/8 — DATABASE MIGRATION"
 
 cd ${DEPLOY_PATH}
 
@@ -231,7 +191,7 @@ log_success "Migratsiyalar muvaffaqiyatli"
 # =============================================================================
 # 6. STORAGE LINK
 # =============================================================================
-log_step "6/9 — STORAGE LINK"
+log_step "5/8 — STORAGE LINK"
 
 if [ ! -L "${DEPLOY_PATH}/public/storage" ]; then
     php artisan storage:link
@@ -243,7 +203,7 @@ fi
 # =============================================================================
 # 7. CACHE
 # =============================================================================
-log_step "7/9 — CACHE YARATISH"
+log_step "6/8 — CACHE YARATISH"
 
 php artisan config:cache
 php artisan route:cache
@@ -263,7 +223,7 @@ fi
 # =============================================================================
 # 8. SERVISLARNI RESTART
 # =============================================================================
-log_step "8/9 — SERVISLAR RESTART"
+log_step "7/8 — SERVISLAR RESTART"
 
 systemctl restart php${PHP_VERSION}-fpm
 log_success "PHP-FPM restarted"
@@ -279,7 +239,7 @@ log_success "Supervisor restarted (queue workers + scheduler)"
 # =============================================================================
 # 9. HEALTH CHECK
 # =============================================================================
-log_step "9/9 — HEALTH CHECK"
+log_step "8/8 — HEALTH CHECK"
 
 sleep 3
 
