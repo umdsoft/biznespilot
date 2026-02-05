@@ -3,7 +3,7 @@
 @section('content')
     @include('landing.partials.header')
 
-    <main class="pt-24 min-h-screen">
+    <main class="pt-32 min-h-screen">
         <!-- Hero Section -->
         <section class="relative gradient-bg py-20 overflow-hidden">
             <!-- Background decorations -->

@@ -220,9 +220,9 @@
               />
               <label for="terms" class="ml-2 text-xs text-gray-600">
                 {{ t('auth.terms_agree') }}
-                <button type="button" @click="showTermsModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">{{ t('auth.terms_link') }}</button>
+                <a href="/terms" target="_blank" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">{{ t('auth.terms_link') }}</a>
                 {{ t('auth.and') }}
-                <button type="button" @click="showPrivacyModal = true" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">{{ t('auth.privacy_link') }}</button>{{ t('auth.agree_suffix') }}
+                <a href="/privacy-policy" target="_blank" class="text-emerald-600 hover:text-emerald-500 font-medium hover:underline">{{ t('auth.privacy_link') }}</a>{{ t('auth.agree_suffix') }}
               </label>
             </div>
 
@@ -266,17 +266,11 @@
       </div>
     </div>
 
-    <!-- Legal Modals -->
-    <TermsOfServiceModal v-model="showTermsModal" @close="showTermsModal = false" />
-    <PrivacyPolicyModal v-model="showPrivacyModal" @close="showPrivacyModal = false" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
-import TermsOfServiceModal from '@/components/Legal/TermsOfServiceModal.vue';
-import PrivacyPolicyModal from '@/components/Legal/PrivacyPolicyModal.vue';
 import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 import { useI18n } from '@/i18n';
 
@@ -291,7 +285,4 @@ const form = useForm({
   password_confirmation: '',
   terms: false,
 });
-
-const showTermsModal = ref(false);
-const showPrivacyModal = ref(false);
 </script>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
+import { useLandingTranslations } from '@/composables/useLandingTranslations'
 
 const props = defineProps({
   urgencyBarVisible: {
@@ -11,17 +12,19 @@ const props = defineProps({
 
 const emit = defineEmits(['close-urgency'])
 
+const { locale, nav } = useLandingTranslations()
+
 const mobileMenuOpen = ref(false)
 
 const page = usePage()
 const currentPath = computed(() => (page.url || '/').split('?')[0])
 const isOnLandingPage = computed(() => currentPath.value === '/')
 
-const navLinks = [
-  { name: 'Imkoniyatlar', href: '/#features', anchor: '#features' },
-  { name: 'Modullar', href: '/#modules', anchor: '#modules' },
-  { name: 'Narxlar', href: '/pricing' },
-]
+const navLinks = computed(() => [
+  { name: nav.value.features, href: '/#features', anchor: '#features' },
+  { name: nav.value.modules, href: '/#modules', anchor: '#modules' },
+  { name: nav.value.pricing, href: '/pricing' },
+])
 
 function isActive(link) {
   if (link.href === '/pricing') {
@@ -43,9 +46,9 @@ function closeMobileMenu() {
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-3 relative">
       <p class="text-sm font-semibold text-white text-center">
-        <span class="hidden sm:inline">🔥 Diqqat! Faqat bu hafta ro'yxatdan o'tganlar uchun</span>
-        <span class="sm:hidden">🔥 Faqat bu hafta:</span>
-        <span class="underline decoration-2 decoration-white/60 ml-1 font-bold">1 oylik Premium bepul.</span>
+        <span class="hidden sm:inline">🔥 {{ nav.urgency_text }}</span>
+        <span class="sm:hidden">🔥 {{ nav.urgency_text_short }}</span>
+        <span class="underline decoration-2 decoration-white/60 ml-1 font-bold">{{ nav.urgency_highlight }}</span>
       </p>
       <button
         @click="emit('close-urgency')"
@@ -100,15 +103,48 @@ function closeMobileMenu() {
 
         <!-- CTA Buttons -->
         <div class="hidden sm:flex items-center space-x-3">
+          <!-- Language Switcher -->
+          <div class="flex items-center bg-slate-100 rounded-full p-0.5">
+            <a href="/lang/uz-latn"
+               class="flex items-center justify-center w-8 h-8 rounded-full transition-all"
+               :class="locale !== 'ru' ? 'bg-white shadow-sm ring-1 ring-indigo-500/50' : 'hover:bg-slate-200'"
+               title="O'zbekcha">
+              <svg class="w-5 h-5 rounded-full" viewBox="0 0 512 512">
+                <mask id="uzNav"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+                <g mask="url(#uzNav)">
+                  <path fill="#0099b5" d="M0 0h512v167H0z"/>
+                  <path fill="#fff" d="M0 178h512v156H0z"/>
+                  <path fill="#1eb53a" d="M0 345h512v167H0z"/>
+                  <path fill="#ce1126" d="M0 167h512v11H0zM0 334h512v11H0z"/>
+                  <circle cx="163" cy="89" r="45" fill="#fff"/>
+                  <circle cx="176" cy="89" r="40" fill="#0099b5"/>
+                </g>
+              </svg>
+            </a>
+            <a href="/lang/ru"
+               class="flex items-center justify-center w-8 h-8 rounded-full transition-all"
+               :class="locale === 'ru' ? 'bg-white shadow-sm ring-1 ring-indigo-500/50' : 'hover:bg-slate-200'"
+               title="Русский">
+              <svg class="w-5 h-5 rounded-full" viewBox="0 0 512 512">
+                <mask id="ruNav"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+                <g mask="url(#ruNav)">
+                  <path fill="#fff" d="M0 0h512v170.7H0z"/>
+                  <path fill="#0039a6" d="M0 170.7h512v170.6H0z"/>
+                  <path fill="#d52b1e" d="M0 341.3h512V512H0z"/>
+                </g>
+              </svg>
+            </a>
+          </div>
+
           <Link href="/login" class="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
-            Kirish
+            {{ nav.login }}
           </Link>
           <Link
             href="/register"
             class="relative inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 active:scale-[0.98]"
           >
-            Bepul Boshlash
-            <span class="absolute -top-2.5 -right-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-[10px] font-bold rounded-full shadow-md">14 kun tekin</span>
+            {{ nav.get_started }}
+            <span class="absolute -top-2.5 -right-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-[10px] font-bold rounded-full shadow-md">{{ nav.free_badge }}</span>
           </Link>
         </div>
 
@@ -150,15 +186,47 @@ function closeMobileMenu() {
             {{ link.name }}
           </Link>
         </template>
+
+        <!-- Mobile Language Switcher -->
+        <div class="flex items-center justify-center space-x-3 py-2">
+          <a href="/lang/uz-latn"
+             class="flex items-center justify-center w-11 h-11 rounded-xl transition-all"
+             :class="locale !== 'ru' ? 'bg-indigo-50 ring-2 ring-indigo-500' : 'bg-slate-100 hover:bg-slate-200'">
+            <svg class="w-7 h-7 rounded-full" viewBox="0 0 512 512">
+              <mask id="uzNavM"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+              <g mask="url(#uzNavM)">
+                <path fill="#0099b5" d="M0 0h512v167H0z"/>
+                <path fill="#fff" d="M0 178h512v156H0z"/>
+                <path fill="#1eb53a" d="M0 345h512v167H0z"/>
+                <path fill="#ce1126" d="M0 167h512v11H0zM0 334h512v11H0z"/>
+                <circle cx="163" cy="89" r="45" fill="#fff"/>
+                <circle cx="176" cy="89" r="40" fill="#0099b5"/>
+              </g>
+            </svg>
+          </a>
+          <a href="/lang/ru"
+             class="flex items-center justify-center w-11 h-11 rounded-xl transition-all"
+             :class="locale === 'ru' ? 'bg-indigo-50 ring-2 ring-indigo-500' : 'bg-slate-100 hover:bg-slate-200'">
+            <svg class="w-7 h-7 rounded-full" viewBox="0 0 512 512">
+              <mask id="ruNavM"><circle cx="256" cy="256" r="256" fill="#fff"/></mask>
+              <g mask="url(#ruNavM)">
+                <path fill="#fff" d="M0 0h512v170.7H0z"/>
+                <path fill="#0039a6" d="M0 170.7h512v170.6H0z"/>
+                <path fill="#d52b1e" d="M0 341.3h512V512H0z"/>
+              </g>
+            </svg>
+          </a>
+        </div>
+
         <div class="pt-3 border-t border-slate-200 space-y-3">
           <Link href="/login" class="block text-base font-medium text-slate-600 hover:text-slate-900">
-            Kirish
+            {{ nav.login }}
           </Link>
           <Link
             href="/register"
             class="block text-center px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
           >
-            Bepul Boshlash — 14 kun tekin
+            {{ nav.free_mobile }}
           </Link>
         </div>
       </div>

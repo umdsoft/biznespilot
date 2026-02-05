@@ -44,8 +44,8 @@ class LandingController extends Controller
         // Store in cookie (30 days)
         Cookie::queue('landing_locale', $locale, 60 * 24 * 30);
 
-        // Redirect back to landing page
-        return redirect()->route('landing')->withCookie(
+        // Redirect back to the previous page (or landing if no referrer)
+        return redirect()->back()->withCookie(
             cookie('landing_locale', $locale, 60 * 24 * 30)
         );
     }
@@ -123,12 +123,6 @@ class LandingController extends Controller
 
         if ($locale && in_array($locale, $this->supportedLocales)) {
             return $locale;
-        }
-
-        // Check browser preference
-        $browserLocale = $request->getPreferredLanguage(['uz', 'ru']);
-        if ($browserLocale === 'ru') {
-            return 'ru';
         }
 
         return $this->defaultLocale;

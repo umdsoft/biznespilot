@@ -7,7 +7,7 @@
 @section('content')
     @include('landing.partials.header')
 
-    <main class="pt-24 pb-16 min-h-screen gradient-bg">
+    <main class="pt-32 pb-16 min-h-screen gradient-bg">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header -->
             <div class="text-center mb-12">
@@ -106,7 +106,7 @@
                                 </div>
                                 <h4 class="font-semibold text-gray-900">
                                     @if($locale === 'ru')
-                                        Marketing Boshqaruvi
+                                        Управление маркетингом
                                     @else
                                         Marketing Boshqaruvi
                                     @endif
@@ -131,7 +131,7 @@
                                 </div>
                                 <h4 class="font-semibold text-gray-900">
                                     @if($locale === 'ru')
-                                        Sotuv va CRM
+                                        Продажи и CRM
                                     @else
                                         Sotuv va CRM
                                     @endif
@@ -156,7 +156,7 @@
                                 </div>
                                 <h4 class="font-semibold text-gray-900">
                                     @if($locale === 'ru')
-                                        HR Boshqaruvi
+                                        Управление HR
                                     @else
                                         HR Boshqaruvi
                                     @endif
@@ -181,7 +181,7 @@
                                 </div>
                                 <h4 class="font-semibold text-gray-900">
                                     @if($locale === 'ru')
-                                        Moliya Boshqaruvi
+                                        Управление финансами
                                     @else
                                         Moliya Boshqaruvi
                                     @endif

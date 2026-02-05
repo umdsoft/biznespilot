@@ -7,7 +7,7 @@
 @section('content')
     @include('landing.partials.header')
 
-    <main class="pt-24 pb-16 min-h-screen gradient-bg">
+    <main class="pt-32 pb-16 min-h-screen gradient-bg">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header -->
             <div class="text-center mb-12">

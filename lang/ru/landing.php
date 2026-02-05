@@ -8,13 +8,18 @@ return [
     // Navigation
     'nav' => [
         'features' => 'Возможности',
+        'modules' => 'Модули',
         'how_it_works' => 'Как это работает',
         'benefits' => 'Преимущества',
         'pricing' => 'Цены',
         'faq' => 'FAQ',
         'login' => 'Войти',
         'register' => 'Регистрация',
-        'get_started' => '14 дней бесплатно',
+        'get_started' => 'Начать бесплатно',
+        'free_badge' => '14 дней бесплатно',
+        'urgency_text' => 'Внимание! Только для зарегистрировавшихся на этой неделе',
+        'urgency_text_short' => 'Только на этой неделе:',
+        'urgency_highlight' => '1 месяц Premium бесплатно.',
     ],
 
     // Hero Section

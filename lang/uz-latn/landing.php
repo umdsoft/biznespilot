@@ -8,13 +8,18 @@ return [
     // Navigation
     'nav' => [
         'features' => 'Imkoniyatlar',
+        'modules' => 'Modullar',
         'how_it_works' => 'Qanday ishlaydi',
         'benefits' => 'Afzalliklar',
         'pricing' => 'Narxlar',
         'faq' => 'FAQ',
         'login' => 'Kirish',
         'register' => "Ro'yxatdan o'tish",
-        'get_started' => '14 kun bepul sinash',
+        'get_started' => 'Bepul boshlash',
+        'free_badge' => '14 kun tekin',
+        'urgency_text' => "Diqqat! Faqat bu hafta ro'yxatdan o'tganlar uchun",
+        'urgency_text_short' => 'Faqat bu hafta:',
+        'urgency_highlight' => '1 oylik Premium bepul.',
     ],
 
     // Hero Section

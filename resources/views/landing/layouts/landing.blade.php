@@ -430,12 +430,6 @@
 
     <!-- JavaScript for interactions -->
     <script>
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('active');
-        }
-
         // FAQ accordion
         function toggleFaq(element) {
             const item = element.closest('.faq-item');
@@ -450,44 +444,9 @@
             item.classList.toggle('active');
         }
 
-        // Language switcher
-        function switchLanguage(locale) {
-            window.location.href = '/lang/' + locale;
-        }
-
-        // Smooth scroll for anchor links with header offset
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const headerOffset = 100; // Fixed header height + padding
-                    const elementPosition = target.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-
-                    // Close mobile menu if open
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                        mobileMenu.classList.remove('active');
-                    }
-                }
-            });
-        });
-
-        // Navbar scroll effect + back-to-top visibility
+        // Back-to-top visibility
         window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar');
             const backToTop = document.getElementById('back-to-top');
-            if (window.scrollY > 50) {
-                navbar.classList.add('shadow-md', 'bg-white/95', 'backdrop-blur-sm');
-            } else {
-                navbar.classList.remove('shadow-md', 'bg-white/95', 'backdrop-blur-sm');
-            }
             if (backToTop) {
                 if (window.scrollY > 600) {
                     backToTop.classList.add('visible');

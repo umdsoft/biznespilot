@@ -1,5 +1,8 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import { useLandingTranslations } from '@/composables/useLandingTranslations'
+
+const { footer } = useLandingTranslations()
 </script>
 
 <template>
@@ -27,7 +30,7 @@ import { Link } from '@inertiajs/vue3'
             <span class="text-2xl font-black text-white">BiznesPilot</span>
           </Link>
           <p class="text-gray-400 mb-8 max-w-sm leading-relaxed">
-            Instagram va Telegram savdolarini avtomatlashtiruvchi yagona platforma. CRM, chatbot va AI tahlil bir joyda.
+            {{ footer.description }}
           </p>
 
           <!-- Social links -->
@@ -63,25 +66,25 @@ import { Link } from '@inertiajs/vue3'
         <div>
           <h4 class="text-white font-bold mb-6 flex items-center">
             <span class="w-8 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 mr-3"></span>
-            Mahsulot
+            {{ footer.product_title }}
           </h4>
           <ul class="space-y-4">
             <li>
               <Link href="/#features" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Imkoniyatlar
+                {{ footer.features }}
               </Link>
             </li>
             <li>
               <Link href="/pricing" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Narxlar
+                {{ footer.pricing }}
               </Link>
             </li>
             <li>
               <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Integratsiyalar
+                {{ footer.integrations }}
               </a>
             </li>
           </ul>
@@ -91,25 +94,25 @@ import { Link } from '@inertiajs/vue3'
         <div>
           <h4 class="text-white font-bold mb-6 flex items-center">
             <span class="w-8 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 mr-3"></span>
-            Kompaniya
+            {{ footer.company_title }}
           </h4>
           <ul class="space-y-4">
             <li>
-              <Link href="/about" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+              <a href="/about" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Biz haqimizda
-              </Link>
+                {{ footer.about }}
+              </a>
             </li>
             <li>
-              <Link href="/about#contact" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+              <a href="/about#contact" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Aloqa
-              </Link>
+                {{ footer.contact }}
+              </a>
             </li>
             <li>
               <a href="https://t.me/biznespilot" target="_blank" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Vakansiyalar
+                {{ footer.careers }}
               </a>
             </li>
           </ul>
@@ -119,20 +122,20 @@ import { Link } from '@inertiajs/vue3'
         <div>
           <h4 class="text-white font-bold mb-6 flex items-center">
             <span class="w-8 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500 mr-3"></span>
-            Huquqiy
+            {{ footer.legal_title }}
           </h4>
           <ul class="space-y-4">
             <li>
-              <Link href="/privacy-policy" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+              <a href="/privacy-policy" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-violet-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Maxfiylik siyosati
-              </Link>
+                {{ footer.privacy }}
+              </a>
             </li>
             <li>
-              <Link href="/terms" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+              <a href="/terms" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-violet-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                Foydalanish shartlari
-              </Link>
+                {{ footer.terms }}
+              </a>
             </li>
           </ul>
         </div>
@@ -141,16 +144,16 @@ import { Link } from '@inertiajs/vue3'
       <!-- Bottom bar -->
       <div class="pt-8 border-t border-gray-800">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p class="text-gray-500 text-sm">&copy; {{ new Date().getFullYear() }} BiznesPilot. Barcha huquqlar himoyalangan.</p>
+          <p class="text-gray-500 text-sm">&copy; {{ new Date().getFullYear() }} BiznesPilot. {{ footer.copyright }}</p>
           <div class="flex items-center gap-6">
             <div class="flex items-center gap-2 text-sm text-gray-500">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-              <span>O'zbekcha</span>
+              <span>{{ footer.lang_label }}</span>
             </div>
             <div class="flex items-center gap-2 text-gray-500 text-sm">
-              <span>Made with</span>
+              <span>{{ footer.made_with }}</span>
               <svg class="w-4 h-4 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
-              <span>in</span>
+              <span>{{ footer.in_country }}</span>
               <span class="flex items-center gap-1">
                 <span class="w-4 h-3 rounded-sm overflow-hidden flex flex-col">
                   <span class="flex-1 bg-[#0099B5]"></span>
@@ -159,7 +162,7 @@ import { Link } from '@inertiajs/vue3'
                   <span class="h-[2px] bg-[#CE1126]"></span>
                   <span class="flex-1 bg-[#1EB53A]"></span>
                 </span>
-                <span class="font-medium text-white">Uzbekistan</span>
+                <span class="font-medium text-white">{{ footer.country }}</span>
               </span>
             </div>
           </div>
