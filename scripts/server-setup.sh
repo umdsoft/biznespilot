@@ -812,6 +812,10 @@ mkdir -p ${DEPLOY_PATH}/bootstrap/cache
 chown -R www-data:www-data ${DEPLOY_PATH}
 chmod -R 775 ${DEPLOY_PATH}
 
+# Git safe.directory — root www-data ga tegishli repoda ishlashi uchun
+git config --global --add safe.directory ${DEPLOY_PATH}
+log_success "Git safe.directory sozlandi (${DEPLOY_PATH})"
+
 # Server health check script
 cat > /usr/local/bin/server-health << 'HEALTHEOF'
 #!/bin/bash
