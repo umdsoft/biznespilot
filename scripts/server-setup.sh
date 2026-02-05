@@ -154,12 +154,14 @@ listen = /run/php/php-fpm-biznespilot.sock
 listen.owner = www-data
 listen.group = www-data
 
-pm = dynamic
-pm.max_children = 20
-pm.start_servers = 5
-pm.min_spare_servers = 3
-pm.max_spare_servers = 10
-pm.max_requests = 1000
+; Memory-safe: 1-2GB VPS uchun optimallashtirilgan
+pm = ondemand
+pm.max_children = 5
+pm.start_servers = 1
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+pm.max_requests = 500
+pm.process_idle_timeout = 20s
 
 request_terminate_timeout = 180
 request_slowlog_timeout = 10s
@@ -256,16 +258,16 @@ log_info "Supervisor sozlash..."
 cat > /etc/supervisor/conf.d/biznespilot.conf << EOF
 [program:biznespilot-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php ${DEPLOY_PATH}/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+command=php ${DEPLOY_PATH}/artisan queue:work redis --sleep=3 --tries=3 --max-time=300 --memory=128 --max-jobs=100
 autostart=true
 autorestart=true
 stopasgroup=true
 killasgroup=true
 user=${DEPLOY_USER}
-numprocs=4
+numprocs=2
 redirect_stderr=true
 stdout_logfile=${DEPLOY_PATH}/storage/logs/worker.log
-stopwaitsecs=3600
+stopwaitsecs=30
 
 [program:biznespilot-scheduler]
 process_name=%(program_name)s

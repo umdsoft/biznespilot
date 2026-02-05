@@ -36,10 +36,10 @@ return [
     */
     'performance' => [
         // Max parallel algorithm executions
-        'max_parallel' => env('ALGORITHM_MAX_PARALLEL', 10),
+        'max_parallel' => env('ALGORITHM_MAX_PARALLEL', 2),
 
         // Execution timeout in seconds
-        'timeout' => env('ALGORITHM_TIMEOUT', 30),
+        'timeout' => env('ALGORITHM_TIMEOUT', 15),
 
         // Batch processing size
         'batch_size' => env('ALGORITHM_BATCH_SIZE', 10),

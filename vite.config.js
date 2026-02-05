@@ -72,13 +72,10 @@ export default defineConfig({
                 },
             },
         },
-        // Minification settings
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true, // Remove console.log in production
-                drop_debugger: true,
-            },
+        // esbuild — terser dan 10x tez va 5x kam RAM ishlatadi
+        minify: 'esbuild',
+        esbuild: {
+            drop: ['console', 'debugger'],
         },
     },
 });

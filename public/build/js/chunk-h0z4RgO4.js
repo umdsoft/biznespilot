@@ -1,1 +1,0 @@
-function e(e){const t=()=>({saleshead:"sales-head",business:"business",marketing:"marketing",finance:"finance",operator:"operator"}[e]||e),n=e=>`${t()}.offers.${e}`;return{getRoutePrefix:t,getRouteName:n,getRoute:(e,t=null)=>{const r=n(e);return t?route(r,t):route(r)}}}export{e as u};
