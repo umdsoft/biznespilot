@@ -274,10 +274,8 @@ php_admin_value[error_log] = /var/log/php-fpm/biznespilot-error.log
 php_admin_flag[log_errors] = on
 
 ; Security
-php_admin_value[expose_php] = Off
-php_admin_value[display_errors] = Off
-php_admin_value[display_startup_errors] = Off
-php_admin_value[open_basedir] = /var/www/biznespilot:/tmp:/var/lib/php/sessions
+php_admin_flag[display_errors] = off
+php_admin_flag[display_startup_errors] = off
 
 ; Environment
 env[APP_ENV] = production
