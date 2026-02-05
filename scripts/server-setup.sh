@@ -360,28 +360,42 @@ log_success "Claude CLI tayyor"
 # =============================================================================
 log_step "11/18 — MYSQL"
 
-apt install -y mysql-server
-systemctl enable mysql
-systemctl start mysql
-
 # Agar oldin sozlangan bo'lsa — o'tkazish
 if [ -f "${CREDENTIALS_FILE}" ]; then
     log_warning "MySQL allaqachon sozlangan (${CREDENTIALS_FILE} mavjud) — o'tkazilmoqda"
+    apt install -y mysql-server
+    systemctl enable mysql
+    systemctl start mysql
 else
-    # Root ulanishni tekshirish (auth_socket — Ubuntu default)
-    if ! mysql -e "SELECT 1" &>/dev/null; then
-        log_warning "MySQL root auth buzilgan — tiklanmoqda..."
-        systemctl stop mysql
-        mkdir -p /var/run/mysqld && chown mysql:mysql /var/run/mysqld
-        mysqld_safe --skip-grant-tables --skip-networking &
-        sleep 5
-        mysql -e "UPDATE mysql.user SET plugin='auth_socket', authentication_string='' WHERE User='root' AND Host='localhost';"
-        mysql -e "FLUSH PRIVILEGES;"
-        mysqladmin shutdown 2>/dev/null || kill $(pgrep -f mysqld_safe) 2>/dev/null || true
-        sleep 3
-        systemctl start mysql
-        log_success "MySQL root auth tiklandi (auth_socket)"
+    # Toza o'rnatish — eski buzilgan MySQL bo'lsa tozalash
+    systemctl stop mysql 2>/dev/null || true
+    pkill -9 -x mysqld 2>/dev/null || true
+    pkill -9 -f mysqld_safe 2>/dev/null || true
+    sleep 2
+
+    # Agar MySQL oldin o'rnatilgan va auth buzilgan bo'lsa — qayta o'rnatish
+    if dpkg -l mysql-server 2>/dev/null | grep -q '^ii'; then
+        if ! mysql -e "SELECT 1" &>/dev/null; then
+            log_warning "MySQL auth buzilgan — qayta o'rnatilmoqda..."
+            apt purge -y mysql-server mysql-client mysql-common 2>/dev/null || true
+            rm -rf /var/lib/mysql /var/run/mysqld
+            apt autoremove -y 2>/dev/null || true
+        fi
     fi
+
+    apt install -y mysql-server
+    systemctl enable mysql
+    systemctl start mysql
+    sleep 3
+
+    # Root ulanishni tekshirish
+    if ! mysql -e "SELECT 1" &>/dev/null; then
+        log_error "MySQL root ulanishi ishlamayapti!"
+        journalctl -xeu mysql.service --no-pager -n 10 || true
+        exit 1
+    fi
+
+    log_success "MySQL root ulanishi ishlayapti (auth_socket)"
 
     # App parol generatsiya
     DB_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=')
