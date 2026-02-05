@@ -168,7 +168,7 @@ log_warning "MUHIM: Yangi terminalda '${SSH_PORT}' port bilan kirishni tekshirin
 log_warning "  ssh -p ${SSH_PORT} root@SERVER_IP"
 log_info "Keyinchalik PasswordAuthentication no qiling (SSH key o'rnatgandan keyin)"
 
-systemctl restart sshd
+systemctl restart ssh
 
 log_success "SSH xavfsizlik sozlandi"
 
