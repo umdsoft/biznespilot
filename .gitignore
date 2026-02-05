@@ -13,11 +13,19 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# /public/build — localda build qilib git orqali serverga yuboriladi
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+!/storage/framework/.gitkeep
+!/storage/framework/cache/.gitkeep
+!/storage/framework/sessions/.gitkeep
+!/storage/framework/views/.gitkeep
 /vendor
 Homestead.json
 Homestead.yaml

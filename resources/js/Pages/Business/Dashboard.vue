@@ -1,12 +1,15 @@
 <template>
   <BusinessLayout :title="t('nav.dashboard')">
+    <!-- Trial Banner (sinov davri haqida ogohlantirish) -->
+    <TrialBanner />
+
     <!-- Telegram Connect Banner (for users without linked Telegram) -->
     <TelegramConnectBanner />
 
     <!-- Welcome Section with Subscription Widget -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Welcome (Left - 3 columns) -->
-      <div class="lg:col-span-3">
+    <div :class="['grid grid-cols-1 gap-6 mb-8', isTrial ? '' : 'lg:grid-cols-4']">
+      <!-- Welcome -->
+      <div :class="isTrial ? '' : 'lg:col-span-3'">
         <div class="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -33,8 +36,8 @@
         </div>
       </div>
 
-      <!-- Subscription Widget (Right - 1 column) -->
-      <div class="lg:col-span-1">
+      <!-- Subscription Widget (Trial holatda yashiriladi) -->
+      <div v-if="!isTrial" class="lg:col-span-1">
         <SubscriptionWidget :subscription-status="subscriptionStatus" />
       </div>
     </div>
@@ -247,6 +250,7 @@
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
+import TrialBanner from '@/components/Dashboard/TrialBanner.vue';
 import TelegramConnectBanner from '@/components/Dashboard/TelegramConnectBanner.vue';
 import SubscriptionWidget from '@/components/Dashboard/SubscriptionWidget.vue';
 import { Link } from '@inertiajs/vue3';
@@ -309,6 +313,9 @@ const defaultModuleStats = {
 };
 
 // Computed properties - use loaded data or props with defaults
+// Trial holatida SubscriptionWidget yashiriladi (TrialBanner allaqachon ko'rsatadi)
+const isTrial = computed(() => props.subscriptionStatus?.is_trial === true);
+
 const stats = computed(() => loadedData.value.stats || props.stats || { total_leads: 0, total_customers: 0, total_revenue: 0, conversion_rate: 0 });
 const kpis = computed(() => loadedData.value.kpis || props.kpis || defaultKpis);
 const roasBenchmark = computed(() => loadedData.value.roasBenchmark || props.roasBenchmark || defaultRoasBenchmark);

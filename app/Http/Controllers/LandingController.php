@@ -55,15 +55,7 @@ class LandingController extends Controller
      */
     public function privacy(Request $request)
     {
-        $locale = $this->getCurrentLocale($request);
-        App::setLocale($locale);
-        $translations = $this->getTranslations($locale);
-
-        return view('pages.privacy', [
-            'locale' => $locale,
-            'translations' => $translations,
-            'locales' => $this->getLocaleOptions(),
-        ]);
+        return inertia('PrivacyPolicy');
     }
 
     /**
@@ -71,15 +63,7 @@ class LandingController extends Controller
      */
     public function terms(Request $request)
     {
-        $locale = $this->getCurrentLocale($request);
-        App::setLocale($locale);
-        $translations = $this->getTranslations($locale);
-
-        return view('pages.terms', [
-            'locale' => $locale,
-            'translations' => $translations,
-            'locales' => $this->getLocaleOptions(),
-        ]);
+        return inertia('TermsOfService');
     }
 
     /**
@@ -87,15 +71,15 @@ class LandingController extends Controller
      */
     public function about(Request $request)
     {
-        $locale = $this->getCurrentLocale($request);
-        App::setLocale($locale);
-        $translations = $this->getTranslations($locale);
+        return inertia('AboutUs');
+    }
 
-        return view('pages.about', [
-            'locale' => $locale,
-            'translations' => $translations,
-            'locales' => $this->getLocaleOptions(),
-        ]);
+    /**
+     * Show the data deletion instructions page (Meta requirement)
+     */
+    public function dataDeletion(Request $request)
+    {
+        return inertia('DataDeletion');
     }
 
     /**

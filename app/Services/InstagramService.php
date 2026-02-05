@@ -13,7 +13,12 @@ class InstagramService
     /**
      * Instagram Graph API base URL
      */
-    private const API_BASE_URL = 'https://graph.facebook.com/v18.0';
+    private string $apiBaseUrl;
+
+    public function __construct()
+    {
+        $this->apiBaseUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
+    }
 
     /**
      * Fetch and store Instagram metrics for a channel
@@ -103,7 +108,7 @@ class InstagramService
     {
         try {
             // Get basic account info
-            $accountResponse = Http::get(self::API_BASE_URL."/{$accountId}", [
+            $accountResponse = Http::get($this->apiBaseUrl."/{$accountId}", [
                 'fields' => 'followers_count,follows_count,media_count',
                 'access_token' => $accessToken,
             ]);
@@ -120,7 +125,7 @@ class InstagramService
             $accountData = $accountResponse->json();
 
             // Get account insights (profile views, reach, etc.)
-            $insightsResponse = Http::get(self::API_BASE_URL."/{$accountId}/insights", [
+            $insightsResponse = Http::get($this->apiBaseUrl."/{$accountId}/insights", [
                 'metric' => 'profile_views,reach,impressions,website_clicks,email_contacts,phone_call_clicks',
                 'period' => 'day',
                 'access_token' => $accessToken,
@@ -183,7 +188,7 @@ class InstagramService
             ];
 
             // Get media published on the specified date
-            $mediaResponse = Http::get(self::API_BASE_URL."/{$accountId}/media", [
+            $mediaResponse = Http::get($this->apiBaseUrl."/{$accountId}/media", [
                 'fields' => 'id,media_type,timestamp,like_count,comments_count',
                 'access_token' => $accessToken,
             ]);
@@ -210,7 +215,7 @@ class InstagramService
                 $mediaId = $media['id'];
 
                 // Get detailed insights for this media
-                $mediaInsightsResponse = Http::get(self::API_BASE_URL."/{$mediaId}/insights", [
+                $mediaInsightsResponse = Http::get($this->apiBaseUrl."/{$mediaId}/insights", [
                     'metric' => $this->getMetricsForMediaType($mediaType),
                     'access_token' => $accessToken,
                 ]);
@@ -324,7 +329,7 @@ class InstagramService
     {
         try {
             // Check token validity
-            $response = Http::get(self::API_BASE_URL.'/debug_token', [
+            $response = Http::get($this->apiBaseUrl.'/debug_token', [
                 'input_token' => $accessToken,
                 'access_token' => $accessToken,
             ]);
@@ -360,7 +365,7 @@ class InstagramService
     private function exchangeForLongLivedToken(string $shortLivedToken): ?string
     {
         try {
-            $response = Http::get(self::API_BASE_URL.'/oauth/access_token', [
+            $response = Http::get($this->apiBaseUrl.'/oauth/access_token', [
                 'grant_type' => 'fb_exchange_token',
                 'client_id' => config('services.facebook.client_id'),
                 'client_secret' => config('services.facebook.client_secret'),

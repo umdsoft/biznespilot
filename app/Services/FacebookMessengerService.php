@@ -74,7 +74,8 @@ class FacebookMessengerService
             return false;
         }
 
-        $url = 'https://graph.facebook.com/v18.0/me/messages';
+        $apiVersion = config('services.meta.api_version', 'v24.0');
+        $url = "https://graph.facebook.com/{$apiVersion}/me/messages";
 
         $payload = [
             'recipient' => ['id' => $recipientId],
@@ -118,7 +119,8 @@ class FacebookMessengerService
             return false;
         }
 
-        $url = 'https://graph.facebook.com/v18.0/me/messages';
+        $apiVersion = config('services.meta.api_version', 'v24.0');
+        $url = "https://graph.facebook.com/{$apiVersion}/me/messages";
 
         try {
             $response = Http::withHeaders([

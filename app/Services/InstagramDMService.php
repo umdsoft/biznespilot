@@ -74,7 +74,7 @@ class InstagramDMService
             return false;
         }
 
-        $url = "https://graph.facebook.com/v18.0/{$config->instagram_page_id}/messages";
+        $url = "https://graph.facebook.com/" . config('services.meta.api_version', 'v24.0') . "/{$config->instagram_page_id}/messages";
 
         try {
             $response = Http::withHeaders([

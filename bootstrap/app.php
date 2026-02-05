@@ -45,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetBusinessContext::class,
         ]);
 
-        // CSRF verification completely disabled
+        // CSRF verification temporarily disabled
         $middleware->validateCsrfTokens(except: [
             '*',
         ]);
@@ -260,7 +260,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'url' => $request->fullUrl(),
+                    'url' => preg_replace('/([?&])(token|api_key|password|secret|access_token|code)=[^&]*/i', '$1$2=***', $request->fullUrl()),
                     'user_id' => $request->user()?->id,
                     'ip' => $request->ip(),
                 ]);

@@ -67,7 +67,7 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', '{{ config('services.analytics.ga4_id') }}');
+        gtag('config', @json(config('services.analytics.ga4_id')));
     </script>
     @endif
 
@@ -80,7 +80,7 @@
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
         (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
-        ym({{ config('services.analytics.yandex_id') }}, "init", {
+        ym(@json(config('services.analytics.yandex_id')), "init", {
             clickmap:true,
             trackLinks:true,
             accurateTrackBounce:true,
@@ -101,7 +101,7 @@
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '{{ config('services.analytics.meta_pixel_id') }}');
+        fbq('init', @json(config('services.analytics.meta_pixel_id')));
         fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ config('services.analytics.meta_pixel_id') }}&ev=PageView&noscript=1"/></noscript>

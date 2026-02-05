@@ -78,9 +78,10 @@ Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/lang/{locale}', [LandingController::class, 'setLanguage'])->name('landing.language');
 Route::get('/pricing', [LandingController::class, 'pricing'])->name('pricing');
 
-// Privacy Policy, Terms & About (Public)
+// Privacy Policy, Terms, Data Deletion & About (Public)
 Route::get('/privacy-policy', [LandingController::class, 'privacy'])->name('privacy-policy');
 Route::get('/terms', [LandingController::class, 'terms'])->name('terms');
+Route::get('/data-deletion', [LandingController::class, 'dataDeletion'])->name('data-deletion');
 Route::get('/about', [LandingController::class, 'about'])->name('about');
 
 // ==============================================
@@ -99,7 +100,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     // Registration - can be disabled via REGISTRATION_ENABLED=false
-    if (env('REGISTRATION_ENABLED', true)) {
+    if (config('app.registration_enabled', true)) {
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register']);
     } else {
@@ -843,6 +844,15 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/{call}', [App\Http\Controllers\Business\CallController::class, 'show'])->name('show');
     });
 
+    // Subscription / Billing routes (tarif sotib olish)
+    Route::prefix('subscription')->name('subscription.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Business\SubscriptionController::class, 'index'])->name('index');
+        Route::get('/success', [\App\Http\Controllers\Business\SubscriptionController::class, 'success'])->name('success');
+        Route::get('/cancel', [\App\Http\Controllers\Business\SubscriptionController::class, 'cancel'])->name('cancel');
+        Route::get('/{plan}/checkout', [\App\Http\Controllers\Business\SubscriptionController::class, 'checkout'])->name('checkout');
+        Route::post('/{plan}/pay', [\App\Http\Controllers\Business\SubscriptionController::class, 'pay'])->name('pay');
+    });
+
     // Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
@@ -1242,6 +1252,14 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/my', [FeedbackController::class, 'myFeedback'])->name('my');
         Route::get('/types', [FeedbackController::class, 'getTypes'])->name('types');
     });
+
+    // Billing routes (Tarif va To'lov)
+    Route::prefix('billing')->name('billing.')->group(function () {
+        Route::get('/plans', [\App\Http\Controllers\Business\BillingController::class, 'plans'])->name('plans');
+        Route::post('/checkout', [\App\Http\Controllers\Business\BillingController::class, 'checkout'])->name('checkout');
+        Route::get('/success', [\App\Http\Controllers\Business\BillingController::class, 'success'])->name('success');
+        Route::get('/history', [\App\Http\Controllers\Business\BillingController::class, 'history'])->name('history');
+    });
 });
 
 // Admin Panel Routes (Platform Management)
@@ -1254,6 +1272,7 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
     Route::get('/analytics', [AdminDashboardController::class, 'analyticsPage'])->name('analytics');
     Route::get('/activity-logs', [AdminDashboardController::class, 'activityLogs'])->name('activity-logs');
     Route::get('/subscriptions', [AdminDashboardController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/billing-transactions', [AdminDashboardController::class, 'billingTransactions'])->name('billing-transactions');
 
     // Settings
     Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
@@ -1362,11 +1381,17 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::match(['get', 'post'], '/telegram/{business}', [TelegramWebhookController::class, 'handle'])->name('telegram');
     Route::get('/telegram/{business}/verify', [TelegramWebhookController::class, 'verify'])->name('telegram.verify');
 
-    // Instagram webhooks
-    Route::match(['get', 'post'], '/instagram/{business}', [InstagramWebhookController::class, 'handle'])->name('instagram');
+    // Instagram webhooks (universal - single URL for ALL businesses)
+    // Meta faqat bitta webhook URL qo'yishga ruxsat beradi
+    // Business entry.id (Instagram Page ID) orqali avtomatik aniqlanadi
+    Route::match(['get', 'post'], '/instagram', [InstagramWebhookController::class, 'handleUniversal'])->name('instagram');
 
-    // Facebook Messenger webhooks
-    Route::match(['get', 'post'], '/facebook/{business}', [FacebookWebhookController::class, 'handle'])->name('facebook');
+    // Facebook Messenger webhooks (universal - single URL for ALL businesses)
+    Route::match(['get', 'post'], '/facebook', [FacebookWebhookController::class, 'handleUniversal'])->name('facebook');
+
+    // Legacy: business-specific webhook routes (backward compatibility)
+    Route::match(['get', 'post'], '/instagram/{business}', [InstagramWebhookController::class, 'handle'])->name('instagram.business');
+    Route::match(['get', 'post'], '/facebook/{business}', [FacebookWebhookController::class, 'handle'])->name('facebook.business');
 
     // Telephony webhooks
     Route::post('/pbx', [TelephonyController::class, 'pbxWebhook'])->name('pbx');

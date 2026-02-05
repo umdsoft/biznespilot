@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Telegram;
 
+use App\Exceptions\IntegrationAbuseException;
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
+use App\Services\IntegrationGuardService;
 use App\Services\Telegram\TelegramApiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -75,7 +77,23 @@ class TelegramBotManagementController extends Controller
 
         $botInfo = $result['result'];
 
-        // Check if bot already exists
+        // Anti-abuse tekshiruvi: Telegram bot global unikalligi
+        try {
+            app(IntegrationGuardService::class)->checkTelegramBot(
+                $botInfo['username'],
+                $business
+            );
+        } catch (IntegrationAbuseException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'error_code' => 'INTEGRATION_ABUSE',
+                'abuse_type' => $e->getAbuseType(),
+                'upgrade_required' => $e->getAbuseType() === 'trial_abuse',
+            ], 403);
+        }
+
+        // Check if bot already exists in this business
         $existingBot = TelegramBot::where('bot_username', $botInfo['username'])->first();
         if ($existingBot) {
             return response()->json([

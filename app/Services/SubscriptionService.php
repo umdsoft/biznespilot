@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Billing\BillingTransaction;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -45,18 +46,29 @@ class SubscriptionService
         // Mavjud aktiv obunani bekor qilish
         $this->cancelActive($business);
 
+        // Transaction metadata dan billing_cycle o'qish
+        $billingCycle = 'monthly';
+        $transaction = BillingTransaction::find($transactionId);
+        if ($transaction) {
+            $billingCycle = $transaction->getMetadata('billing_cycle', 'monthly');
+        }
+
         $startsAt = now();
-        $endsAt = now()->addMonth(); // Oylik obuna
+        $endsAt = $billingCycle === 'yearly' ? now()->addYear() : now()->addMonth();
+
+        $amount = $billingCycle === 'yearly'
+            ? (float) $plan->price_yearly
+            : (float) $plan->price_monthly;
 
         $subscription = Subscription::create([
             'business_id' => $business->id,
             'plan_id' => $plan->id,
             'status' => 'active',
-            'billing_cycle' => 'monthly',
+            'billing_cycle' => $billingCycle,
             'trial_ends_at' => null,
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
-            'amount' => $plan->price_monthly ?? $plan->monthly_price,
+            'amount' => $amount,
             'currency' => 'UZS',
             'auto_renew' => true,
             'payment_provider' => $paymentProvider,
@@ -64,6 +76,7 @@ class SubscriptionService
             'metadata' => [
                 'activated_via' => $paymentProvider,
                 'billing_transaction_id' => $transactionId,
+                'billing_cycle' => $billingCycle,
             ],
         ]);
 
@@ -73,6 +86,7 @@ class SubscriptionService
             'subscription_id' => $subscription->id,
             'provider' => $paymentProvider,
             'transaction_id' => $transactionId,
+            'billing_cycle' => $billingCycle,
         ]);
 
         // Notification yuborish
@@ -101,21 +115,36 @@ class SubscriptionService
         string $paymentProvider,
         int $transactionId
     ): Subscription {
+        // Transaction metadata dan billing_cycle o'qish
+        $billingCycle = $subscription->billing_cycle ?? 'monthly';
+        $transaction = BillingTransaction::find($transactionId);
+        if ($transaction) {
+            $billingCycle = $transaction->getMetadata('billing_cycle', $billingCycle);
+        }
+
+        $addPeriod = $billingCycle === 'yearly' ? 'addYear' : 'addMonth';
+
         $newEndsAt = $subscription->ends_at > now()
-            ? $subscription->ends_at->addMonth() // Muddati tugamagan - qo'shish
-            : now()->addMonth(); // Muddati tugagan - yangi boshlanish
+            ? $subscription->ends_at->$addPeriod() // Muddati tugamagan - qo'shish
+            : now()->$addPeriod(); // Muddati tugagan - yangi boshlanish
+
+        $amount = $billingCycle === 'yearly'
+            ? (float) $plan->price_yearly
+            : (float) $plan->price_monthly;
 
         $subscription->update([
             'plan_id' => $plan->id,
             'status' => 'active',
+            'billing_cycle' => $billingCycle,
             'ends_at' => $newEndsAt,
-            'amount' => $plan->price_monthly ?? $plan->monthly_price,
+            'amount' => $amount,
             'payment_provider' => $paymentProvider,
             'last_payment_at' => now(),
             'metadata' => array_merge($subscription->metadata ?? [], [
                 'last_renewed_via' => $paymentProvider,
                 'last_billing_transaction_id' => $transactionId,
                 'renewed_at' => now()->toISOString(),
+                'billing_cycle' => $billingCycle,
             ]),
         ]);
 
@@ -159,13 +188,14 @@ class SubscriptionService
             : $plan->price_monthly;
 
         $startsAt = now();
-        $endsAt = $billingCycle === 'yearly'
-            ? now()->addYear()
-            : now()->addMonth();
 
         $trialEndsAt = $trialDays
             ? now()->addDays($trialDays)
             : null;
+
+        // Trial uchun ends_at = trial_ends_at (14 kun), pullik uchun billing cycle bo'yicha
+        $endsAt = $trialEndsAt
+            ?? ($billingCycle === 'yearly' ? now()->addYear() : now()->addMonth());
 
         $subscription = Subscription::create([
             'business_id' => $business->id,
@@ -739,7 +769,12 @@ class SubscriptionService
         }
 
         $plan = $subscription->plan;
-        $daysRemaining = now()->diffInDays($subscription->ends_at, false);
+
+        // Trial uchun trial_ends_at, pullik uchun ends_at
+        $effectiveEndDate = ($subscription->status === 'trialing' && $subscription->trial_ends_at)
+            ? $subscription->trial_ends_at
+            : $subscription->ends_at;
+        $daysRemaining = (int) now()->diffInDays($effectiveEndDate, false);
 
         return [
             'has_subscription' => true,

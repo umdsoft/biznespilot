@@ -144,7 +144,8 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
         // Simple health check: Try to verify API is reachable
         // This doesn't require a business_id, just checks if API responds
 
-        $url = 'https://graph.instagram.com/v18.0/';
+        $apiVersion = config('services.meta.api_version', 'v24.0');
+        $url = "https://graph.instagram.com/{$apiVersion}/";
 
         try {
             $response = @file_get_contents($url);
@@ -161,7 +162,8 @@ class KpiCircuitBreakerHealthCheckCommand extends Command
     protected function checkFacebookHealth(): bool
     {
         // Simple health check for Facebook Graph API
-        $url = 'https://graph.facebook.com/v18.0/';
+        $apiVersion = config('services.meta.api_version', 'v24.0');
+        $url = "https://graph.facebook.com/{$apiVersion}/";
 
         try {
             $response = @file_get_contents($url);

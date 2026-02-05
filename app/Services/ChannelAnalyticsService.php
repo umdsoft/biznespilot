@@ -35,7 +35,7 @@ class ChannelAnalyticsService
     protected function getOverview(Business $business, string $channel, Carbon $startDate, Carbon $endDate): array
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         $messages = ChatbotMessage::whereIn('conversation_id', $conversations->pluck('id'))
@@ -57,7 +57,7 @@ class ChannelAnalyticsService
     protected function getMessageVolume(Business $business, string $channel, Carbon $startDate, Carbon $endDate): array
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->pluck('id');
 
@@ -84,7 +84,7 @@ class ChannelAnalyticsService
     protected function getResponseMetrics(Business $business, string $channel, Carbon $startDate, Carbon $endDate): array
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->pluck('id');
 
@@ -108,7 +108,7 @@ class ChannelAnalyticsService
     protected function getEngagementMetrics(Business $business, string $channel, Carbon $startDate, Carbon $endDate): array
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         return [
@@ -125,7 +125,7 @@ class ChannelAnalyticsService
     protected function getConversionMetrics(Business $business, string $channel, Carbon $startDate, Carbon $endDate): array
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         $totalConversations = $conversations->count();
@@ -147,7 +147,7 @@ class ChannelAnalyticsService
     protected function getHourlyDistribution(Business $business, string $channel, Carbon $startDate, Carbon $endDate): array
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->pluck('id');
 
@@ -174,7 +174,7 @@ class ChannelAnalyticsService
 
         foreach ($channels as $channel) {
             $conversations = ChatbotConversation::where('business_id', $business->id)
-                ->where('channel', $channel)
+                ->where('platform', $channel)
                 ->whereBetween('created_at', [$startDate, $endDate]);
 
             $messages = ChatbotMessage::whereIn('conversation_id', $conversations->pluck('id'))
@@ -196,7 +196,7 @@ class ChannelAnalyticsService
     protected function calculateResponseRate(Business $business, string $channel, Carbon $startDate, Carbon $endDate): float
     {
         $conversations = ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->pluck('id');
 
@@ -238,7 +238,7 @@ class ChannelAnalyticsService
     protected function countReturningCustomers(Business $business, string $channel, Carbon $startDate, Carbon $endDate): int
     {
         return ChatbotConversation::where('business_id', $business->id)
-            ->where('channel', $channel)
+            ->where('platform', $channel)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->select('customer_id')
             ->groupBy('customer_id')

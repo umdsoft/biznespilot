@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Log;
  */
 class SocialChatbotService
 {
-    protected const GRAPH_API_URL = 'https://graph.facebook.com/v18.0';
+    protected string $graphApiUrl;
 
     /**
      * Maximum quick reply buttons (Instagram limit)
@@ -59,6 +59,7 @@ class SocialChatbotService
     public function __construct(ChatbotIntentService $intentService)
     {
         $this->intentService = $intentService;
+        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
     }
 
     /**
@@ -1002,7 +1003,7 @@ class SocialChatbotService
         ?InstagramConversation $conversation = null
     ): array {
         try {
-            $response = Http::post(self::GRAPH_API_URL . "/{$igUserId}/messages", [
+            $response = Http::post($this->graphApiUrl . "/{$igUserId}/messages", [
                 'recipient' => ['id' => $recipientId],
                 'message' => $messagePayload,
                 'access_token' => $accessToken,
@@ -1291,7 +1292,7 @@ class SocialChatbotService
         }
 
         try {
-            $response = Http::get(self::GRAPH_API_URL . "/{$userId}", [
+            $response = Http::get($this->graphApiUrl . "/{$userId}", [
                 'fields' => 'name,profile_pic,username',
                 'access_token' => $accessToken,
             ]);

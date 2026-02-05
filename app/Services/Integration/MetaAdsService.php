@@ -7,9 +7,14 @@ use Illuminate\Support\Facades\Log;
 
 class MetaAdsService
 {
-    protected string $baseUrl = 'https://graph.facebook.com/v18.0';
+    protected string $baseUrl;
 
     protected ?string $accessToken = null;
+
+    public function __construct()
+    {
+        $this->baseUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
+    }
 
     public function setAccessToken(string $token): self
     {

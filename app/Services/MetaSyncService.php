@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 
 class MetaSyncService
 {
-    private const API_VERSION = 'v18.0';
-
     private const BASE_URL = 'https://graph.facebook.com';
+
+    private string $apiVersion;
 
     private string $accessToken;
 
@@ -28,6 +28,11 @@ class MetaSyncService
     /**
      * Initialize the service with an integration
      */
+    public function __construct()
+    {
+        $this->apiVersion = config('services.meta.api_version', 'v24.0');
+    }
+
     public function initialize(Integration $integration): self
     {
         $this->integration = $integration;
@@ -851,7 +856,7 @@ class MetaSyncService
      */
     private function makeRequest(string $endpoint, array $params = []): array
     {
-        $url = self::BASE_URL.'/'.self::API_VERSION.$endpoint;
+        $url = self::BASE_URL.'/'.$this->apiVersion.$endpoint;
 
         $params['access_token'] = $this->accessToken;
 

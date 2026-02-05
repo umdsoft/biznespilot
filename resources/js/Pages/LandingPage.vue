@@ -49,21 +49,18 @@ const problems = [
 const testimonials = [
   {
     name: 'Aziz Karimov',
-    company: 'TechStore UZ',
     text: 'BiznesPilot orqali Instagram sotuvlarimiz 3 barobar oshdi. Bot tungi paytda ham mijozlarga javob beradi — bu g\'aroyib!',
     rating: 5,
     metric: '3x sotuv',
   },
   {
     name: 'Nilufar Rahimova',
-    company: 'GlowBeauty',
     text: 'Menejerlarimiz endi professional gaplashadi. AI tahlili tufayli qo\'ng\'iroqlar sifati 40% yaxshilandi.',
     rating: 5,
     metric: '+40% sifat',
   },
   {
     name: 'Bobur Aliyev',
-    company: 'AutoParts Pro',
     text: 'CRM tizimi juda qulay. Barcha lidlar bitta joyda, hech biri yo\'qolmaydi. Jamoani boshqarish osonlashdi.',
     rating: 5,
     metric: '0% lid yo\'qotish',
@@ -1017,7 +1014,6 @@ onMounted(() => {
               </div>
               <div>
                 <p class="text-sm font-semibold text-slate-900">{{ t.name }}</p>
-                <p class="text-xs text-slate-500">{{ t.company }}</p>
               </div>
             </div>
           </div>

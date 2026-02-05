@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Log;
 
 class InstagramChatbotService
 {
-    protected string $graphApiUrl = 'https://graph.facebook.com/v18.0';
+    protected string $graphApiUrl;
+
+    public function __construct()
+    {
+        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
+    }
 
     /**
      * Get chatbot dashboard stats

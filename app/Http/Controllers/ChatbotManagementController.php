@@ -207,7 +207,7 @@ class ChatbotManagementController extends Controller
 
         // Filter by channel
         if ($request->has('channel') && $request->channel !== 'all') {
-            $query->where('channel', $request->channel);
+            $query->where('platform', $request->channel);
         }
 
         // Filter by stage

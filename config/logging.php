@@ -58,10 +58,10 @@ return [
             'ignore_exceptions' => false,
         ],
 
-        // Production stack - separate files for different concerns
+        // Production stack - daily log + critical file + telegram alerts
         'production' => [
             'driver' => 'stack',
-            'channels' => ['daily', 'critical'],
+            'channels' => ['daily', 'critical', 'telegram'],
             'ignore_exceptions' => false,
         ],
 
@@ -153,11 +153,11 @@ return [
             'replace_placeholders' => true,
         ],
 
-        // Telegram alerts channel
+        // Telegram alerts channel — error va undan yuqori xatoliklarni yuboradi
         'telegram' => [
             'driver' => 'custom',
             'via' => \App\Logging\TelegramLogChannel::class,
-            'level' => 'critical',
+            'level' => env('LOG_TELEGRAM_LEVEL', 'error'),
             'chat_id' => env('LOG_TELEGRAM_CHAT_ID'),
             'token' => env('LOG_TELEGRAM_BOT_TOKEN'),
         ],

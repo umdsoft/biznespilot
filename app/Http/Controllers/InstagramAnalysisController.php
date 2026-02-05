@@ -157,7 +157,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -178,7 +178,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -199,7 +199,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -220,7 +220,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -239,7 +239,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -260,7 +260,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -281,7 +281,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json(['trend' => $data]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -302,7 +302,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -321,7 +321,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -340,7 +340,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -359,7 +359,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -378,7 +378,7 @@ class InstagramAnalysisController extends Controller
 
             return response()->json($data);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Ichki xatolik yuz berdi'], 500);
         }
     }
 
@@ -479,7 +479,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             // Check current permissions
-            $response = \Http::get('https://graph.facebook.com/v18.0/me/permissions', [
+            $response = \Http::get('https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0') . '/me/permissions', [
                 'access_token' => $accessToken,
             ]);
 
@@ -507,7 +507,7 @@ class InstagramAnalysisController extends Controller
             // Check if we have Facebook Pages with Instagram
             $hasInstagramAccount = false;
             if (in_array('pages_show_list', $grantedPermissions)) {
-                $pagesResponse = \Http::get('https://graph.facebook.com/v18.0/me/accounts', [
+                $pagesResponse = \Http::get('https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0') . '/me/accounts', [
                     'access_token' => $accessToken,
                     'fields' => 'id,name,instagram_business_account',
                 ]);
@@ -564,7 +564,7 @@ class InstagramAnalysisController extends Controller
 
         try {
             // First check if we have required permissions
-            $permResponse = \Http::get('https://graph.facebook.com/v18.0/me/permissions', [
+            $permResponse = \Http::get('https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0') . '/me/permissions', [
                 'access_token' => $accessToken,
             ]);
 
@@ -586,7 +586,7 @@ class InstagramAnalysisController extends Controller
             }
 
             // Check if there are any Facebook Pages with Instagram accounts
-            $pagesResponse = \Http::get('https://graph.facebook.com/v18.0/me/accounts', [
+            $pagesResponse = \Http::get('https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0') . '/me/accounts', [
                 'access_token' => $accessToken,
                 'fields' => 'id,name,instagram_business_account',
             ]);

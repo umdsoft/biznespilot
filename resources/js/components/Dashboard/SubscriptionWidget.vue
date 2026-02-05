@@ -114,7 +114,7 @@ const sortedUsage = computed(() => {
 
                     <!-- Upgrade Button -->
                     <Link v-if="!isPremium"
-                          href="/pricing"
+                          href="/business/subscription"
                           class="flex items-center gap-1.5 px-4 py-2 bg-white text-indigo-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -198,7 +198,7 @@ const sortedUsage = computed(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p class="text-gray-500 dark:text-gray-400 text-sm mb-3">Obuna mavjud emas</p>
-                    <Link href="/pricing"
+                    <Link href="/business/subscription"
                           class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -219,7 +219,7 @@ const sortedUsage = computed(() => {
                     </svg>
                     <span class="text-sm font-medium text-red-700 dark:text-red-300">Limit tugamoqda!</span>
                 </div>
-                <Link href="/pricing"
+                <Link href="/business/subscription"
                       class="px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-700 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
                     Limitni oshirish
                 </Link>

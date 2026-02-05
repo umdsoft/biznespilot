@@ -38,7 +38,7 @@ class SyncContentPerformanceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected const GRAPH_API_URL = 'https://graph.facebook.com/v18.0';
+    protected string $graphApiUrl;
 
     /**
      * Job ning maksimum urinishlar soni
@@ -76,6 +76,7 @@ class SyncContentPerformanceJob implements ShouldQueue
     public function __construct(?string $businessId = null)
     {
         $this->businessId = $businessId;
+        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
     }
 
     /**
@@ -229,7 +230,7 @@ class SyncContentPerformanceJob implements ShouldQueue
      */
     protected function fetchBasicMetrics(string $mediaId, string $accessToken): array
     {
-        $response = Http::get(self::GRAPH_API_URL . "/{$mediaId}", [
+        $response = Http::get($this->graphApiUrl . "/{$mediaId}", [
             'fields' => 'like_count,comments_count,caption,permalink,media_type,timestamp',
             'access_token' => $accessToken,
         ]);
@@ -271,7 +272,7 @@ class SyncContentPerformanceJob implements ShouldQueue
             return [];
         }
 
-        $response = Http::get(self::GRAPH_API_URL . "/{$mediaId}/insights", [
+        $response = Http::get($this->graphApiUrl . "/{$mediaId}/insights", [
             'metric' => implode(',', $metrics),
             'access_token' => $accessToken,
         ]);

@@ -269,11 +269,16 @@ class HandleInertiaRequests extends Middleware
                 ];
 
                 // Subscription ma'lumotlari
+                // Trial uchun trial_ends_at dan, pullik uchun ends_at dan hisoblash
+                $effectiveEndDate = ($subscription->status === 'trialing' && $subscription->trial_ends_at)
+                    ? $subscription->trial_ends_at
+                    : $subscription->ends_at;
+
                 $subscriptionData = [
                     'status' => $subscription->status,
                     'ends_at' => $subscription->ends_at?->toISOString(),
                     'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
-                    'days_remaining' => max(0, now()->diffInDays($subscription->ends_at, false)),
+                    'days_remaining' => (int) max(0, now()->diffInDays($effectiveEndDate, false)),
                     'is_trial' => $subscription->status === 'trialing',
                 ];
 

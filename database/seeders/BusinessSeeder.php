@@ -16,15 +16,16 @@ class BusinessSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get test users
-        $adminUser = User::where('login', 'admin')->first();
-        $regularUser = User::where('login', 'user1')->first();
+        // Get test user
+        $adminUser = User::where('login', 'umdsoft')->first();
 
-        if (! $adminUser || ! $regularUser) {
+        if (! $adminUser) {
             $this->command->warn('Users not found. Please run TestUserSeeder first.');
 
             return;
         }
+
+        $regularUser = $adminUser;
 
         // Get a plan
         $plan = Plan::first();

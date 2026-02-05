@@ -570,11 +570,14 @@ class DashboardController extends Controller
             $subscription = $gate->getActiveSubscription($business);
             $plan = $subscription->plan;
 
-            // Calculate days remaining
-            $daysRemaining = max(0, now()->diffInDays($subscription->ends_at, false));
+            // Calculate days remaining (trial uchun trial_ends_at, pullik uchun ends_at)
+            $effectiveEndDate = ($subscription->status === 'trialing' && $subscription->trial_ends_at)
+                ? $subscription->trial_ends_at
+                : $subscription->ends_at;
+            $daysRemaining = (int) max(0, now()->diffInDays($effectiveEndDate, false));
 
             // Format renewal date
-            $renewsAt = $subscription->ends_at?->translatedFormat('d-F, Y');
+            $renewsAt = $effectiveEndDate?->translatedFormat('d-F, Y');
 
             // Get usage stats
             $usageStats = $gate->getUsageStats($business);
