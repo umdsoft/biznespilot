@@ -76,7 +76,7 @@ class SyncContentPerformanceJob implements ShouldQueue
     public function __construct(?string $businessId = null)
     {
         $this->businessId = $businessId;
-        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v21.0');
+        $this->graphApiUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
     }
 
     /**

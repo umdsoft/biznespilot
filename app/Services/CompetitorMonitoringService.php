@@ -261,7 +261,7 @@ class CompetitorMonitoringService
 
         try {
             // First, search for the Instagram business account
-            $apiVersion = config('services.meta.api_version', 'v21.0');
+            $apiVersion = config('services.meta.api_version', 'v24.0');
             $searchResponse = Http::get("https://graph.facebook.com/{$apiVersion}/ig_hashtag_search", [
                 'user_id' => 'me',
                 'q' => ltrim($handle, '@'),

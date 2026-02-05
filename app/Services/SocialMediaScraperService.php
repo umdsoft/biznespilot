@@ -44,7 +44,7 @@ class SocialMediaScraperService
     public function getFacebookMetricsViaAPI(string $pageId, string $accessToken): array
     {
         try {
-            $apiVersion = config('services.meta.api_version', 'v21.0');
+            $apiVersion = config('services.meta.api_version', 'v24.0');
             $response = Http::get("https://graph.facebook.com/{$apiVersion}/{$pageId}", [
                 'fields' => 'id,name,fan_count,followers_count,posts.limit(1).summary(true)',
                 'access_token' => $accessToken,

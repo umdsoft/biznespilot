@@ -166,7 +166,7 @@ class SocialAccountController extends Controller
             'read_insights',
         ];
 
-        $apiVersion = config('services.meta.api_version', 'v21.0');
+        $apiVersion = config('services.meta.api_version', 'v24.0');
         $authUrl = 'https://www.facebook.com/' . $apiVersion . '/dialog/oauth?' . http_build_query([
             'client_id' => config('services.facebook.client_id'),
             'redirect_uri' => $redirectUri,

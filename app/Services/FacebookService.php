@@ -17,7 +17,7 @@ class FacebookService
 
     public function __construct()
     {
-        $this->apiBaseUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v21.0');
+        $this->apiBaseUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
     }
 
     /**

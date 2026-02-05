@@ -53,7 +53,7 @@ return [
         'app_secret' => env('META_APP_SECRET'),
         'redirect_uri' => env('META_REDIRECT_URI', '/business/meta-ads/callback'),
         'ad_library_token' => env('META_AD_LIBRARY_TOKEN'),
-        'api_version' => env('META_API_VERSION', 'v21.0'),
+        'api_version' => env('META_API_VERSION', 'v24.0'),
         // OAuth scopes — Meta Ads integratsiya uchun kerakli permission lar
         // MUHIM: Live mode da faqat App Review dan o'tgan scope lar ishlaydi!
         // Development mode da barcha scope lar developer/tester larga ishlaydi.

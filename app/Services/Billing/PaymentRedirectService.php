@@ -169,8 +169,8 @@ class PaymentRedirectService
             'transaction_param' => $transaction->order_id,
         ];
 
-        // Return URL - business billing success sahifasiga
-        $params['return_url'] = url('/business/billing/success') . '?order_id=' . $transaction->order_id;
+        // Return URL - subscription success sahifasiga
+        $params['return_url'] = url('/business/subscription/success') . '?order_id=' . $transaction->order_id;
 
         return $baseUrl . '?' . http_build_query($params);
     }

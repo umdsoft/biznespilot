@@ -32,7 +32,7 @@ class WhatsAppService
     public function __construct()
     {
         $this->apiUrl = 'https://graph.facebook.com';
-        $this->apiVersion = config('services.meta.api_version', 'v21.0');
+        $this->apiVersion = config('services.meta.api_version', 'v24.0');
         $this->phoneNumberId = config('services.whatsapp.phone_number_id') ?? '';
         $this->accessToken = config('services.whatsapp.access_token') ?? '';
     }

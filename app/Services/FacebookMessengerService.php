@@ -74,7 +74,7 @@ class FacebookMessengerService
             return false;
         }
 
-        $apiVersion = config('services.meta.api_version', 'v21.0');
+        $apiVersion = config('services.meta.api_version', 'v24.0');
         $url = "https://graph.facebook.com/{$apiVersion}/me/messages";
 
         $payload = [
@@ -119,7 +119,7 @@ class FacebookMessengerService
             return false;
         }
 
-        $apiVersion = config('services.meta.api_version', 'v21.0');
+        $apiVersion = config('services.meta.api_version', 'v24.0');
         $url = "https://graph.facebook.com/{$apiVersion}/me/messages";
 
         try {

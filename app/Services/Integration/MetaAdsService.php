@@ -13,7 +13,7 @@ class MetaAdsService
 
     public function __construct()
     {
-        $this->baseUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v21.0');
+        $this->baseUrl = 'https://graph.facebook.com/' . config('services.meta.api_version', 'v24.0');
     }
 
     public function setAccessToken(string $token): self

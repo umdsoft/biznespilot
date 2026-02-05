@@ -171,7 +171,7 @@ class SyncIntegrationsJob implements ShouldQueue
         }
 
         try {
-            $apiVersion = config('services.meta.api_version', 'v21.0');
+            $apiVersion = config('services.meta.api_version', 'v24.0');
             $response = Http::get("https://graph.facebook.com/{$apiVersion}/{$pageId}/insights", [
                 'metric' => 'page_impressions,page_engaged_users,page_fans',
                 'period' => 'day',
