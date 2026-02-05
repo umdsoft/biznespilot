@@ -240,6 +240,10 @@ log_success "OPcache + JIT sozlandi"
 # =============================================================================
 log_step "7/18 — PHP-FPM POOL"
 
+# Log papkasini oldindan yaratish
+mkdir -p /var/log/php-fpm
+chown www-data:www-data /var/log/php-fpm
+
 # Default pool ni o'chirish
 if [ -f /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf ]; then
     mv /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf.disabled
@@ -258,7 +262,6 @@ listen.mode = 0660
 ; ==================================================
 ; MEMORY-SAFE: 1-2GB VPS uchun OPTIMALLASHTIRILGAN
 ; ==================================================
-; ondemand = faqat kerak bo'lganda process ochadi
 pm = ondemand
 pm.max_children = 5
 pm.process_idle_timeout = 20s
@@ -266,27 +269,37 @@ pm.max_requests = 500
 
 ; Timeouts
 request_terminate_timeout = 180
-request_slowlog_timeout = 10s
-slowlog = /var/log/php-fpm/biznespilot-slow.log
 
 ; Logging
-php_admin_value[error_log] = /var/log/php-fpm/biznespilot-error.log
 php_admin_flag[log_errors] = on
-
-; Security
 php_admin_flag[display_errors] = off
-php_admin_flag[display_startup_errors] = off
-
-; Environment
-env[APP_ENV] = production
-env[APP_DEBUG] = false
 FPMEOF
 
-mkdir -p /var/log/php-fpm
+# Config sintaksisni tekshirish
+if php-fpm${PHP_VERSION} -t 2>&1; then
+    log_success "PHP-FPM config tekshiruvi o'tdi"
+else
+    log_error "PHP-FPM config xatosi! Tafsilotlar:"
+    php-fpm${PHP_VERSION} -t 2>&1 || true
+    log_info "Default pool qaytarilmoqda..."
+    if [ -f /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf.disabled ]; then
+        mv /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf.disabled /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
+    fi
+    rm -f /etc/php/${PHP_VERSION}/fpm/pool.d/biznespilot.conf
+    systemctl restart php${PHP_VERSION}-fpm
+    log_warning "Default www.conf pool bilan davom etilmoqda"
+fi
+
 systemctl restart php${PHP_VERSION}-fpm
 systemctl enable php${PHP_VERSION}-fpm
 
-log_success "PHP-FPM pool sozlandi (ondemand, max_children=5)"
+if systemctl is-active --quiet php${PHP_VERSION}-fpm; then
+    log_success "PHP-FPM pool sozlandi va ishlayapti (ondemand, max_children=5)"
+else
+    log_error "PHP-FPM ishga tushmadi! Diagnostika:"
+    journalctl -xeu php${PHP_VERSION}-fpm.service --no-pager -n 20 || true
+    exit 1
+fi
 
 # =============================================================================
 # 8. COMPOSER
