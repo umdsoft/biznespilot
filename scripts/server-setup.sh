@@ -364,31 +364,41 @@ apt install -y mysql-server
 systemctl enable mysql
 systemctl start mysql
 
-# Avtomatik xavfsiz sozlash (interactive emas)
-DB_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=')
-DB_ROOT_PASSWORD="${DB_PASSWORD}_root"
+# Agar oldin sozlangan bo'lsa — o'tkazish
+if [ -f "${CREDENTIALS_FILE}" ]; then
+    log_warning "MySQL allaqachon sozlangan (${CREDENTIALS_FILE} mavjud) — o'tkazilmoqda"
+    DB_PASSWORD=$(grep '^DB_PASSWORD=' "${CREDENTIALS_FILE}" | cut -d= -f2)
+    DB_ROOT_PASSWORD=$(grep '^DB_ROOT_PASSWORD=' "${CREDENTIALS_FILE}" | cut -d= -f2)
+else
+    # Yangi parol generatsiya
+    DB_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=')
+    DB_ROOT_PASSWORD="${DB_PASSWORD}_root"
 
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_ROOT_PASSWORD}';" 2>/dev/null || true
-mysql -e "DELETE FROM mysql.user WHERE User='';" 2>/dev/null || true
-mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" 2>/dev/null || true
-mysql -e "DROP DATABASE IF EXISTS test;" 2>/dev/null || true
-mysql -e "FLUSH PRIVILEGES;" 2>/dev/null || true
+    # Xavfsiz sozlash
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_ROOT_PASSWORD}';" 2>/dev/null || true
+    mysql -e "DELETE FROM mysql.user WHERE User='';" 2>/dev/null || true
+    mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" 2>/dev/null || true
+    mysql -e "DROP DATABASE IF EXISTS test;" 2>/dev/null || true
+    mysql -e "FLUSH PRIVILEGES;" 2>/dev/null || true
 
-# Database va user yaratish
-mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -e "CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost';"
-mysql -e "FLUSH PRIVILEGES;"
+    # Database va user yaratish (root parol bilan)
+    mysql -u root -p"${DB_ROOT_PASSWORD}" -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    mysql -u root -p"${DB_ROOT_PASSWORD}" -e "CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
+    mysql -u root -p"${DB_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost';"
+    mysql -u root -p"${DB_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
 
-# Credentiallarni faylga saqlash — first-deploy.sh .env ga avtomatik yozadi
-cat > "${CREDENTIALS_FILE}" << CREDEOF
+    # Credentiallarni faylga saqlash
+    cat > "${CREDENTIALS_FILE}" << CREDEOF
 DB_DATABASE=${DB_NAME}
 DB_USERNAME=${DB_USERNAME}
 DB_PASSWORD=${DB_PASSWORD}
 DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
 CREDEOF
-chmod 600 "${CREDENTIALS_FILE}"
-log_success "Credentials saqlandi: ${CREDENTIALS_FILE}"
+    chmod 600 "${CREDENTIALS_FILE}"
+    log_success "Credentials saqlandi: ${CREDENTIALS_FILE}"
+fi
+
+log_success "MySQL sozlandi (DB: ${DB_NAME}, User: ${DB_USERNAME})"
 
 # MySQL tuning (1-2GB VPS)
 cat > /etc/mysql/mysql.conf.d/biznespilot.cnf << 'MYSQLEOF'
