@@ -732,6 +732,27 @@ Schedule::job(new \App\Jobs\CheckStagnantTasksJob)
 //     ->onOneServer();
 
 // ==========================================
+// SMART CONTENT LOOP - JAMOAVIY AQL & FEEDBACK
+// ==========================================
+
+// Niche Topic Scores qayta hisoblash - Har kuni 03:30 da
+// Barcha sohalardagi mavzular score larini yangilaydi (Jamoaviy Aql)
+Schedule::command('content-ai:recalculate-niche-scores')
+    ->dailyAt('03:30')
+    ->timezone('Asia/Tashkent')
+    ->name('content-ai-niche-scores')
+    ->onOneServer();
+
+// Content Performance Feedback Loop - Har 6 soatda
+// Published kontent natijalarini yig'adi va niche_topic_scores ni yangilaydi
+Schedule::job(new \App\Jobs\Marketing\ProcessContentFeedbackJob)
+    ->everySixHours()
+    ->timezone('Asia/Tashkent')
+    ->name('content-ai-feedback-loop')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// ==========================================
 // TRENDSEE - HYBRID INTELLIGENCE ENGINE JOBS
 // ==========================================
 // [MVP] DISABLED - Focus on core CRM features

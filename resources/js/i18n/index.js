@@ -343,6 +343,7 @@ const allTranslations = {
         'content.tips.mix_description': 'Ta\'limiy, ko\'ngil ochuvchi, ilhomlantiruvchi va reklama kontentlarini muvozanatda saqlang',
         // Content Modal
         'content.modal.create_title': 'Yangi Kontent Yaratish',
+        'content.modal.edit_title': 'Kontentni Tahrirlash',
         // Content Form
         'content.form.title': 'Sarlavha',
         'content.form.title_placeholder': 'Kontent sarlavhasi',
@@ -1870,7 +1871,7 @@ const allTranslations = {
         'auth.agree_suffix': 'ga roziman',
         'auth.register_button': 'Ro\'yxatdan o\'tish',
         'auth.have_account': 'Akkauntingiz bormi?',
-        'auth.login_link': 'Tizimga kirish',
+        'auth.login_link': 'Login',
         // Forgot Password
         'auth.reset_password': 'Parolni tiklash',
         'auth.reset_desc': 'Email manzilingizni kiriting va biz sizga parolni tiklash uchun havola yuboramiz',
@@ -4164,6 +4165,7 @@ const allTranslations = {
         'content.tips.mix_description': 'Таълимий, кўнгил очувчи, илҳомлантирувчи ва реклама контентларини мувозанатда сақланг',
         // Content Modal
         'content.modal.create_title': 'Янги Контент Яратиш',
+        'content.modal.edit_title': 'Контентни Таҳрирлаш',
         // Content Form
         'content.form.title': 'Сарлавҳа',
         'content.form.title_placeholder': 'Контент сарлавҳаси',
@@ -5511,7 +5513,7 @@ const allTranslations = {
         'auth.agree_suffix': 'га розиман',
         'auth.register_button': 'Рўйхатдан ўтиш',
         'auth.have_account': 'Аккаунтингиз борми?',
-        'auth.login_link': 'Тизимга кириш',
+        'auth.login_link': 'Login',
         // Forgot Password
         'auth.reset_password': 'Паролни тиклаш',
         'auth.reset_desc': 'Email манзилингизни киритинг ва биз сизга паролни тиклаш учун ҳавола юборамиз',
@@ -7387,6 +7389,7 @@ const allTranslations = {
         'content.tips.mix_description': 'Поддерживайте баланс образовательного, развлекательного, вдохновляющего и рекламного контента',
         // Content Modal
         'content.modal.create_title': 'Создать Новый Контент',
+        'content.modal.edit_title': 'Редактировать Контент',
         // Content Form
         'content.form.title': 'Заголовок',
         'content.form.title_placeholder': 'Заголовок контента',

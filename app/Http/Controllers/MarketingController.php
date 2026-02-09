@@ -231,6 +231,7 @@ class MarketingController extends Controller
                     'comments' => $post->comments,
                     'shares' => $post->shares,
                     'hashtags' => $post->hashtags,
+                    'ai_suggestions' => $post->ai_suggestions,
                 ];
             });
 
@@ -392,7 +393,7 @@ class MarketingController extends Controller
 
         $content->update($validated);
 
-        return redirect()->route('business.marketing.content.show', $content)
+        return redirect()->back()
             ->with('success', 'Kontent muvaffaqiyatli yangilandi!');
     }
 

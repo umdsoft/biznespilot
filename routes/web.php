@@ -476,6 +476,18 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
                 Route::post('/usage/{usage}/rate', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'rateUsage'])->name('usage.rate');
                 Route::post('/usage/{usage}/published', [App\Http\Controllers\Marketing\ContentIdeaController::class, 'markPublished'])->name('usage.published');
             });
+
+            // Smart Content Plan (Aqlli Kontent Reja)
+            Route::prefix('smart-plan')->name('smart-plan.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Marketing\ContentPlanController::class, 'index'])->name('index');
+                Route::post('/generate-weekly', [App\Http\Controllers\Marketing\ContentPlanController::class, 'generateWeeklyPlan'])->name('generate-weekly');
+                Route::get('/niche-topics', [App\Http\Controllers\Marketing\ContentPlanController::class, 'getNicheTopics'])->name('niche-topics');
+                Route::get('/pain-points', [App\Http\Controllers\Marketing\ContentPlanController::class, 'getPainPointRecommendations'])->name('pain-points');
+                Route::post('/pain-points/refresh', [App\Http\Controllers\Marketing\ContentPlanController::class, 'refreshPainPointMaps'])->name('pain-points.refresh');
+                Route::get('/ig-optimization', [App\Http\Controllers\Marketing\ContentPlanController::class, 'getIGOptimization'])->name('ig-optimization');
+                Route::post('/sync-performance', [App\Http\Controllers\Marketing\ContentPlanController::class, 'syncPerformance'])->name('sync-performance');
+                Route::get('/history', [App\Http\Controllers\Marketing\ContentPlanController::class, 'history'])->name('history');
+            });
         });
     });
 

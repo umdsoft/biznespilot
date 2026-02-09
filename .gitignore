@@ -54,3 +54,17 @@ nul
 tmpclaude-*
 *.tmp
 .tmp*
+
+# === Development-only fayllar (serverda kerak emas) ===
+# Texnik hujjatlar va tahlil fayllari
+/tz
+
+# Dev utility skriptlar
+check_unused.sh
+/scripts/start-tunnel.bat
+/scripts/start-tunnel.ps1
+/scripts/verify_gap_analysis.php
+/scripts/generate-favicons.mjs
+
+# Claude Code local settings
+/.claude

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Business;
 use App\Models\Campaign;
-use App\Models\ContentCalendar;
+use App\Models\ContentPost;
 use App\Models\Lead;
 use App\Models\Task;
 use App\Services\ContentStatisticsService;
@@ -155,11 +155,10 @@ class DashboardController extends Controller
 
     private function getUpcomingContent($businessId): array
     {
-        return ContentCalendar::where('business_id', $businessId)
+        return ContentPost::where('business_id', $businessId)
             ->whereIn('status', ['scheduled', 'approved', 'pending_review'])
-            ->where('scheduled_date', '>=', now()->toDateString())
-            ->orderBy('scheduled_date')
-            ->orderBy('scheduled_time')
+            ->where('scheduled_at', '>=', now())
+            ->orderBy('scheduled_at')
             ->limit(5)
             ->get()
             ->map(function ($content) {
@@ -167,12 +166,10 @@ class DashboardController extends Controller
                     'id' => $content->id,
                     'uuid' => $content->uuid,
                     'title' => $content->title,
-                    'platform' => $content->channel,
+                    'platform' => $content->platform,
                     'content_type' => $content->content_type,
                     'status' => $content->status,
-                    'scheduled_at' => $content->scheduled_date
-                        ? $content->scheduled_date->format('Y-m-d').' '.($content->scheduled_time ?? '12:00')
-                        : null,
+                    'scheduled_at' => $content->scheduled_at?->format('Y-m-d H:i'),
                 ];
             })
             ->toArray();
@@ -260,22 +257,24 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Recent posts from content calendar
-        $recentPosts = ContentCalendar::where('business_id', $business->id)
+        // Recent posts from content posts
+        $recentPosts = ContentPost::where('business_id', $business->id)
             ->whereIn('status', ['published', 'scheduled', 'draft'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
             ->map(function ($content) {
+                $metrics = is_array($content->metrics) ? $content->metrics : [];
+
                 return [
                     'id' => $content->id,
                     'uuid' => $content->uuid ?? null,
                     'title' => $content->title,
-                    'platform' => $content->channel,
+                    'platform' => $content->platform,
                     'status' => $content->status,
-                    'engagement' => $content->engagement_rate ?? 0,
-                    'reach' => $content->reach ?? 0,
-                    'scheduled_date' => $content->scheduled_date?->format('Y-m-d'),
+                    'engagement' => $metrics['engagement_rate'] ?? 0,
+                    'reach' => $metrics['reach'] ?? 0,
+                    'scheduled_date' => $content->scheduled_at?->format('Y-m-d'),
                     'published_at' => $content->published_at?->format('Y-m-d'),
                     'created_at' => $content->created_at?->format('Y-m-d'),
                 ];
@@ -286,9 +285,9 @@ class DashboardController extends Controller
             'dream_buyers' => \App\Models\DreamBuyer::where('business_id', $business->id)->count(),
             'competitors' => \App\Models\Competitor::where('business_id', $business->id)->count(),
             'offers' => \App\Models\Offer::where('business_id', $business->id)->count(),
-            'total_posts' => ContentCalendar::where('business_id', $business->id)->count(),
-            'published_posts' => ContentCalendar::where('business_id', $business->id)->where('status', 'published')->count(),
-            'scheduled_posts' => ContentCalendar::where('business_id', $business->id)->where('status', 'scheduled')->count(),
+            'total_posts' => ContentPost::where('business_id', $business->id)->count(),
+            'published_posts' => ContentPost::where('business_id', $business->id)->where('status', 'published')->count(),
+            'scheduled_posts' => ContentPost::where('business_id', $business->id)->where('status', 'scheduled')->count(),
             'total_channels' => \App\Models\MarketingChannel::where('business_id', $business->id)->count(),
             'campaigns' => Campaign::where('business_id', $business->id)->count(),
             'total_spend' => Campaign::where('business_id', $business->id)->sum('budget') ?? 0,

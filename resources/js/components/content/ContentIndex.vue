@@ -8,15 +8,26 @@
                     {{ t('content.index.subtitle') }}
                 </p>
             </div>
-            <button
-                @click="openCreateModal"
-                class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200"
-            >
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                {{ t('content.index.add_content') }}
-            </button>
+            <div class="flex items-center gap-2">
+                <a
+                    :href="route('business.marketing.content-ai.smart-plan.index')"
+                    class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-200"
+                >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Smart Reja
+                </a>
+                <button
+                    @click="openCreateModal"
+                    class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200"
+                >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    {{ t('content.index.add_content') }}
+                </button>
+            </div>
         </div>
 
         <!-- Overdue Alert Banner -->
@@ -332,13 +343,19 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-1 ml-2">
-                            <button @click="viewPost(post)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button @click="viewPost(post)" class="p-2 text-gray-500 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
-                            <button v-if="post.status !== 'published'" @click="deletePost(post.id)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button v-if="post.status !== 'published'" @click="openEditModal(post)" class="p-2 text-gray-500 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button v-if="post.status !== 'published'" @click="deletePost(post.id)" class="p-2 text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
@@ -387,7 +404,8 @@
                         <tr
                             v-for="post in filteredPosts"
                             :key="post.id"
-                            class="transition-colors"
+                            @click="viewPost(post)"
+                            class="transition-colors cursor-pointer"
                             :class="isPostOverdue(post) ? 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'"
                         >
                             <td class="px-4 py-3">
@@ -468,15 +486,15 @@
                                 </div>
                                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">-</span>
                             </td>
-                            <td class="px-4 py-3 text-right">
+                            <td class="px-4 py-3 text-right" @click.stop>
                                 <div class="flex items-center justify-end space-x-1">
-                                    <button @click="viewPost(post)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors" :title="t('common.view')">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <button @click="openEditModal(post)" class="p-2 text-gray-500 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors" :title="t('common.edit')">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
-                                    <button v-if="post.status !== 'published'" @click="deletePost(post.id)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" :title="t('common.delete')">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button v-if="post.status !== 'published'" @click="deletePost(post.id)" class="p-2 text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" :title="t('common.delete')">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
@@ -536,14 +554,24 @@
         </div>
     </div>
 
-    <!-- Create Modal -->
+    <!-- Create/Edit Modal -->
     <Teleport to="body">
         <div v-if="showCreateModal" class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
                 <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="closeCreateModal"></div>
                 <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden transform transition-all">
                     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('content.modal.create_title') }}</h3>
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-xl" :class="editingPost ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-indigo-100 dark:bg-indigo-900/40'">
+                                <svg v-if="editingPost" class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <svg v-else class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ editingPost ? t('content.modal.edit_title') : t('content.modal.create_title') }}</h3>
+                        </div>
                         <button @click="closeCreateModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -646,9 +674,9 @@
                             <button type="button" @click="closeCreateModal" class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors">
                                 {{ t('common.cancel') }}
                             </button>
-                            <button type="submit" :disabled="isSubmitting" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all disabled:opacity-50">
+                            <button type="submit" :disabled="isSubmitting" class="px-5 py-2.5 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-50" :class="editingPost ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25 hover:shadow-amber-500/40' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/40'">
                                 <span v-if="isSubmitting">{{ t('common.saving') }}...</span>
-                                <span v-else>{{ t('common.save') }}</span>
+                                <span v-else>{{ editingPost ? t('common.update') : t('common.save') }}</span>
                             </button>
                         </div>
                     </form>
@@ -657,31 +685,204 @@
         </div>
     </Teleport>
 
-    <!-- View Modal -->
+    <!-- Detail Slide-Over Panel -->
     <Teleport to="body">
-        <div v-if="showViewModal && viewingPost" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-                <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="closeViewModal"></div>
-                <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-auto overflow-hidden transform transition-all">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ viewingPost.title }}</h3>
-                        <button @click="closeViewModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <div v-if="showViewModal && viewingPost" class="fixed inset-0 z-50">
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="closeViewModal"></div>
+            <div class="fixed inset-y-0 right-0 w-full max-w-xl bg-white dark:bg-gray-800 shadow-2xl overflow-y-auto">
+                <!-- Header -->
+                <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 min-w-0 pr-4">
+                            <h2 class="text-lg font-bold text-gray-900 dark:text-white leading-tight">{{ viewingPost.title }}</h2>
+                            <div class="flex flex-wrap items-center gap-2 mt-2">
+                                <span :class="getStatusBadgeClass(viewingPost.status, viewingPost)" class="px-2.5 py-1 text-xs font-medium rounded-lg">{{ getStatusLabel(viewingPost.status, viewingPost) }}</span>
+                                <span :class="getContentTypeBadgeClass(viewingPost.content_type)" class="px-2.5 py-1 text-xs font-medium rounded-lg">{{ getContentTypeLabel(viewingPost.content_type) }}</span>
+                                <span class="px-2.5 py-1 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ getFormatLabel(viewingPost.format) }}</span>
+                                <template v-for="(p, idx) in getPlatforms(viewingPost.platform)" :key="idx">
+                                    <span class="px-2.5 py-1 text-xs font-medium rounded-lg" :class="getPlatformBgClass(p)">{{ p }}</span>
+                                </template>
+                            </div>
+                        </div>
+                        <button @click="closeViewModal" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    <div class="p-6">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span :class="getStatusBadgeClass(viewingPost.status)" class="px-2.5 py-1 text-xs font-medium rounded-lg">{{ getStatusLabel(viewingPost.status) }}</span>
-                            <span :class="getContentTypeBadgeClass(viewingPost.content_type)" class="px-2.5 py-1 text-xs font-medium rounded-lg">{{ getContentTypeLabel(viewingPost.content_type) }}</span>
-                            <span class="px-2.5 py-1 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ getFormatLabel(viewingPost.format) }}</span>
+                </div>
+
+                <div class="px-6 py-5 space-y-6">
+                    <!-- Schedule Info -->
+                    <div v-if="viewingPost.scheduled_at || viewingPost.published_at" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                        <div class="p-2 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg">
+                            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                         </div>
-                        <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-4">{{ viewingPost.content }}</p>
-                        <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-                            <p v-if="viewingPost.scheduled_at">Rejalashtirilgan: {{ viewingPost.scheduled_at }}</p>
-                            <p v-if="viewingPost.published_at">Nashr qilingan: {{ viewingPost.published_at }}</p>
+                        <div>
+                            <p v-if="viewingPost.scheduled_at" class="text-sm font-medium text-gray-900 dark:text-white">{{ formatDate(viewingPost.scheduled_at) }}, {{ formatTime(viewingPost.scheduled_at) }}</p>
+                            <p v-if="viewingPost.published_at" class="text-xs text-emerald-600 dark:text-emerald-400">Nashr: {{ viewingPost.published_at }}</p>
+                            <p v-else class="text-xs text-gray-500 dark:text-gray-400">Rejalashtirilgan vaqt</p>
                         </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Kontent</h4>
+                        <div class="p-4 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                            <p class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{{ viewingPost.content }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Smart Suggestions Section (Hybrid Algorithm) -->
+                    <div v-if="viewingPost.ai_suggestions" class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="p-1.5 rounded-lg" :class="viewingPost.ai_suggestions.source === 'algorithm' ? 'bg-gradient-to-br from-cyan-500 to-blue-600' : viewingPost.ai_suggestions.source === 'niche_learning' ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : viewingPost.ai_suggestions.source === 'pain_point' ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-purple-500 to-indigo-600'">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Smart Tavsiyalar</h4>
+                                    <p class="text-[10px] text-gray-400 dark:text-gray-500">{{ viewingPost.ai_suggestions.source_label || 'Ichki algoritm' }}</p>
+                                </div>
+                            </div>
+                            <!-- Confidence Badge -->
+                            <div v-if="viewingPost.ai_suggestions.confidence" class="flex items-center gap-1.5">
+                                <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full" :class="viewingPost.ai_suggestions.confidence >= 80 ? 'bg-emerald-500' : viewingPost.ai_suggestions.confidence >= 60 ? 'bg-blue-500' : 'bg-amber-500'" :style="{ width: viewingPost.ai_suggestions.confidence + '%' }"></div>
+                                </div>
+                                <span class="text-[10px] font-medium" :class="viewingPost.ai_suggestions.confidence >= 80 ? 'text-emerald-600 dark:text-emerald-400' : viewingPost.ai_suggestions.confidence >= 60 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'">{{ viewingPost.ai_suggestions.confidence }}%</span>
+                            </div>
+                        </div>
+
+                        <!-- Source Details -->
+                        <div v-if="viewingPost.ai_suggestions.source_details" class="px-3 py-2 rounded-lg text-xs" :class="viewingPost.ai_suggestions.source === 'algorithm' ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/40' : viewingPost.ai_suggestions.source === 'niche_learning' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40' : viewingPost.ai_suggestions.source === 'pain_point' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/40' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40'">
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>{{ viewingPost.ai_suggestions.source_details }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Hooks -->
+                        <div v-if="viewingPost.ai_suggestions.hooks?.length" class="space-y-2">
+                            <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Boshlash uchun g'oyalar</p>
+                            <div v-for="(hook, i) in viewingPost.ai_suggestions.hooks" :key="'hook-'+i" class="flex items-start gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl">
+                                <span class="text-emerald-500 font-bold text-sm mt-0.5">"</span>
+                                <p class="text-sm text-emerald-800 dark:text-emerald-200 italic">{{ hook }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Content Tips -->
+                        <div v-if="viewingPost.ai_suggestions.content_tips && Object.keys(viewingPost.ai_suggestions.content_tips).length" class="space-y-2">
+                            <p class="text-xs font-medium text-blue-600 dark:text-blue-400">Amaliy maslahatlar</p>
+                            <ul class="space-y-1.5">
+                                <li v-for="(tip, key) in viewingPost.ai_suggestions.content_tips" :key="'tip-'+key" class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                    <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span>{{ tip }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- CTA Suggestions -->
+                        <div v-if="viewingPost.ai_suggestions.cta_suggestions?.length" class="space-y-2">
+                            <p class="text-xs font-medium text-amber-600 dark:text-amber-400">Harakatga chaqiruv</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="(cta, i) in viewingPost.ai_suggestions.cta_suggestions" :key="'cta-'+i" class="px-3 py-1.5 text-xs font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 rounded-lg">
+                                    {{ cta }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Caption Rules -->
+                        <div v-if="viewingPost.ai_suggestions.caption_rules && Object.keys(viewingPost.ai_suggestions.caption_rules).length" class="space-y-2">
+                            <p class="text-xs font-medium text-purple-600 dark:text-purple-400">Yozuv qoidalari</p>
+                            <ul class="space-y-1.5">
+                                <li v-for="(rule, key) in viewingPost.ai_suggestions.caption_rules" v-show="typeof rule === 'string'" :key="'rule-'+key" class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                    <svg class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span>{{ rule }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Algorithm Signals -->
+                        <div v-if="viewingPost.ai_suggestions.algorithm_signals && Object.keys(viewingPost.ai_suggestions.algorithm_signals).length" class="space-y-2">
+                            <p class="text-xs font-medium text-pink-600 dark:text-pink-400">Instagramda muhim ko'rsatkichlar</p>
+                            <ul class="space-y-1.5">
+                                <li v-for="(signal, key) in viewingPost.ai_suggestions.algorithm_signals" :key="'signal-'+key" class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                    <svg class="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                    <span>{{ typeof signal === 'object' ? signal.description : signal }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Pain Point -->
+                        <div v-if="viewingPost.ai_suggestions.pain_text" class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-xl">
+                            <p class="text-xs font-medium text-red-600 dark:text-red-400 mb-1">Mijoz muammosi</p>
+                            <p class="text-sm text-red-800 dark:text-red-200">{{ viewingPost.ai_suggestions.pain_text }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Hashtags -->
+                    <div v-if="viewingPost.hashtags?.length">
+                        <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Teglar</h4>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span v-for="(tag, i) in viewingPost.hashtags" :key="'tag-'+i" class="px-2.5 py-1 text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg">
+                                {{ tag.startsWith('#') ? tag : '#' + tag }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Statistics (published only) -->
+                    <div v-if="viewingPost.status === 'published' && hasStats(viewingPost)">
+                        <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Statistika</h4>
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatNumber(getPostViews(viewingPost)) }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Ko'rishlar</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                <p class="text-lg font-bold text-pink-600 dark:text-pink-400">{{ formatNumber(getPostLikes(viewingPost)) }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Yoqtirishlar</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(getPostComments(viewingPost)) }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Izohlar</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ formatNumber(getPostShares(viewingPost)) }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Ulashish</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+                    <!-- Quick Status Change -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-1">Holat:</span>
+                        <button
+                            v-for="st in statusActions"
+                            :key="st.value"
+                            @click="changeStatus(viewingPost.id, st.value)"
+                            class="px-3 py-1.5 text-xs font-medium rounded-lg border transition-all"
+                            :class="viewingPost.status === st.value ? st.activeClass : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                        >
+                            {{ st.label }}
+                        </button>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2">
+                        <button @click="editFromPanel()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium rounded-xl transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            {{ t('common.edit') }}
+                        </button>
+                        <button v-if="viewingPost.status !== 'published'" @click="closeViewModal(); deletePost(viewingPost.id)" class="px-4 py-2.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-sm font-medium rounded-xl border border-red-200 dark:border-red-800/40 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -702,13 +903,12 @@ const props = defineProps({
 const { t } = useI18n()
 
 // Panel config - universal for all 5 panels
-const getRoutePrefix = () => props.panelType;
-
 const panelConfig = computed(() => {
-    const prefix = getRoutePrefix();
+    const prefix = props.panelType === 'business' ? 'business.marketing' : props.panelType;
     return {
         routePrefix: `${prefix}.content`,
         storeRoute: `${prefix}.content.store`,
+        updateRoute: `${prefix}.content.update`,
         showRoute: `${prefix}.content.show`,
         destroyRoute: `${prefix}.content.destroy`
     };
@@ -724,6 +924,7 @@ const viewingPost = ref(null)
 const isSubmitting = ref(false)
 const hashtagInput = ref('')
 const viewMode = ref('table')
+const editingPost = ref(null) // null = create mode, post object = edit mode
 
 // Calendar state
 const calendarMonth = ref(new Date().getMonth())
@@ -936,19 +1137,111 @@ const getEngagementRateClass = (post) => {
     return 'text-gray-400 dark:text-gray-500'
 }
 
-const openCreateModal = () => { postForm.value = { title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [] }; hashtagInput.value = ''; showCreateModal.value = true }
-const closeCreateModal = () => { showCreateModal.value = false }
+// Status actions for detail panel
+const statusActions = [
+    { value: 'draft', label: t('content.status.draft'), activeClass: 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-500' },
+    { value: 'scheduled', label: t('content.status.scheduled'), activeClass: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' },
+    { value: 'published', label: t('content.status.published'), activeClass: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' },
+]
+
+const changeStatus = (postId, newStatus) => {
+    const post = viewingPost.value
+    if (!post) return
+    // Send all required fields along with new status
+    let platforms = getPlatforms(post.platform)
+    const formData = {
+        title: post.title,
+        content: post.content || post.title,
+        platform: platforms,
+        content_type: post.content_type || 'educational',
+        format: post.format || 'text_post',
+        status: newStatus,
+        scheduled_at: post.scheduled_at || null,
+        hashtags: post.hashtags || [],
+    }
+    router.put(route(panelConfig.value.updateRoute, postId), formData, {
+        preserveScroll: true,
+        onSuccess: () => {
+            if (viewingPost.value && viewingPost.value.id === postId) {
+                viewingPost.value = { ...viewingPost.value, status: newStatus }
+            }
+        }
+    })
+}
+
+const openCreateModal = () => {
+    editingPost.value = null
+    postForm.value = { title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [] }
+    hashtagInput.value = ''
+    showCreateModal.value = true
+}
+
+const openEditModal = (post) => {
+    editingPost.value = post
+    // Parse platforms
+    let platforms = post.platform
+    if (typeof platforms === 'string') {
+        if (platforms.startsWith('[')) { try { platforms = JSON.parse(platforms) } catch (e) { platforms = [platforms] } }
+        else { platforms = [platforms] }
+    }
+    if (!Array.isArray(platforms)) platforms = [platforms]
+    // Parse scheduled date/time
+    let scheduledDate = ''
+    let scheduledTime = ''
+    if (post.scheduled_at) {
+        const parts = post.scheduled_at.includes('T') ? post.scheduled_at.split('T') : post.scheduled_at.split(' ')
+        scheduledDate = parts[0] || ''
+        scheduledTime = (parts[1] || '').substring(0, 5)
+    }
+    // Parse hashtags
+    let hashtags = post.hashtags
+    if (typeof hashtags === 'string') { try { hashtags = JSON.parse(hashtags) } catch (e) { hashtags = [] } }
+    if (!Array.isArray(hashtags)) hashtags = []
+
+    postForm.value = {
+        title: post.title || '',
+        content: post.content || '',
+        platforms: platforms.filter(Boolean),
+        content_type: post.content_type || '',
+        format: post.format || '',
+        status: post.status || 'draft',
+        scheduled_date: scheduledDate,
+        scheduled_time: scheduledTime,
+        scheduled_at: post.scheduled_at || null,
+        hashtags: hashtags,
+    }
+    hashtagInput.value = hashtags.join(', ')
+    showCreateModal.value = true
+}
+
+const closeCreateModal = () => { showCreateModal.value = false; editingPost.value = null }
 const viewPost = (post) => { viewingPost.value = post; showViewModal.value = true }
 const closeViewModal = () => { showViewModal.value = false; viewingPost.value = null }
+const editFromPanel = () => { const post = viewingPost.value; closeViewModal(); if (post) openEditModal(post) }
 
 const submitPost = () => {
     if (postForm.value.platforms.length === 0) { alert(t('content.alert.select_platform')); return }
     isSubmitting.value = true
     if (hashtagInput.value) postForm.value.hashtags = hashtagInput.value.split(',').map(t => t.trim()).filter(t => t)
     if (postForm.value.status === 'scheduled' && postForm.value.scheduled_date && postForm.value.scheduled_time) postForm.value.scheduled_at = `${postForm.value.scheduled_date} ${postForm.value.scheduled_time}`
-    else postForm.value.scheduled_at = null
+    else if (postForm.value.status !== 'scheduled') postForm.value.scheduled_at = null
     const formData = { ...postForm.value, platform: postForm.value.platforms, type: postForm.value.format }
-    router.post(route(panelConfig.value.storeRoute), formData, { preserveScroll: true, onSuccess: () => { closeCreateModal(); isSubmitting.value = false }, onError: () => { isSubmitting.value = false } })
+
+    if (editingPost.value) {
+        // Update existing post
+        router.put(route(panelConfig.value.updateRoute, editingPost.value.id), formData, {
+            preserveScroll: true,
+            onSuccess: () => { closeCreateModal(); isSubmitting.value = false },
+            onError: () => { isSubmitting.value = false }
+        })
+    } else {
+        // Create new post
+        router.post(route(panelConfig.value.storeRoute), formData, {
+            preserveScroll: true,
+            onSuccess: () => { closeCreateModal(); isSubmitting.value = false },
+            onError: () => { isSubmitting.value = false }
+        })
+    }
 }
 
 const deletePost = (id) => { if (confirm(t('content.confirm.delete'))) router.delete(route(panelConfig.value.destroyRoute, id), { preserveScroll: true }) }

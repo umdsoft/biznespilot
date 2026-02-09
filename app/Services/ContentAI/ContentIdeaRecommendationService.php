@@ -404,7 +404,7 @@ class ContentIdeaRecommendationService
     protected function getMostUsedCategory(string $businessId): ?string
     {
         $result = ContentIdeaUsage::query()
-            ->where('business_id', $businessId)
+            ->where('content_idea_usages.business_id', $businessId)
             ->join('content_ideas', 'content_idea_usages.content_idea_id', '=', 'content_ideas.id')
             ->select('content_ideas.category', DB::raw('COUNT(*) as count'))
             ->groupBy('content_ideas.category')
