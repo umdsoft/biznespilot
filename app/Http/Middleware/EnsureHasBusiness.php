@@ -70,10 +70,13 @@ class EnsureHasBusiness
         // Set business context
         $this->setBusinessContext($userContext);
 
-        // Skip onboarding check for now (will be re-enabled after AI integration)
-        // if ($userContext['needs_onboarding'] && !$this->isOnboardingRoute($request)) {
-        //     return redirect()->route('onboarding.index');
-        // }
+        // Subscription tekshirish — trial tugagan bo'lsa subscription sahifasiga yo'naltirish
+        if (! $this->isSubscriptionExemptRoute($request) && $userContext['business_id']) {
+            if (! $this->hasActiveSubscription($userContext['business_id'])) {
+                return redirect()->route('business.subscription.index')
+                    ->with('warning', 'Sinov davri tugadi. Davom etish uchun tarif tanlang.');
+            }
+        }
 
         return $next($request);
     }
@@ -146,6 +149,38 @@ class EnsureHasBusiness
                $request->is('integrations/*/auth-url') ||
                $request->is('integrations/*/callback') ||
                $request->is('business/notifications*'); // Allow notifications for all departments
+    }
+
+    /**
+     * Check if route is exempt from subscription check
+     */
+    private function isSubscriptionExemptRoute(Request $request): bool
+    {
+        return $request->is('business/subscription*') ||
+               $request->is('business/settings*') ||
+               $request->is('welcome*') ||
+               $request->is('new-business*') ||
+               $request->is('switch-business*') ||
+               $request->is('logout');
+    }
+
+    /**
+     * Check if business has active subscription (cached per request)
+     */
+    private function hasActiveSubscription(string|int $businessId): bool
+    {
+        $cacheKey = "sub_active_{$businessId}";
+
+        if (session()->has($cacheKey)) {
+            return session($cacheKey);
+        }
+
+        $business = Business::find($businessId);
+        $isActive = $business && $business->hasActiveSubscription();
+
+        session([$cacheKey => $isActive]);
+
+        return $isActive;
     }
 
     /**

@@ -45,6 +45,12 @@ return Application::configure(basePath: dirname(__DIR__))
             SetBusinessContext::class,
         ]);
 
+        // Exclude cookies read by JavaScript from encryption
+        $middleware->encryptCookies(except: [
+            'landing_locale',
+            'locale',
+        ]);
+
         // CSRF verification temporarily disabled
         $middleware->validateCsrfTokens(except: [
             '*',

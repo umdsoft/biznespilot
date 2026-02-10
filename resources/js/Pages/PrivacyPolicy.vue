@@ -1,6 +1,6 @@
 <template>
   <LandingLayout v-slot="{ urgencyBarVisible }">
-    <Head title="Maxfiylik siyosati — BiznesPilot" />
+    <Head :title="t.meta_title" />
 
     <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <!-- Hero Header -->
@@ -17,8 +17,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
           </div>
-          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Maxfiylik siyosati</h1>
-          <p class="text-slate-500 text-lg">Oxirgi yangilanish: {{ formattedDate }}</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">{{ t.page_title }}</h1>
+          <p class="text-slate-500 text-lg">{{ t.last_updated }} {{ formattedDate }}</p>
         </div>
       </section>
 
@@ -29,52 +29,36 @@
 
             <!-- 1. Kirish -->
             <div>
-              <SectionHeading number="1" title="Kirish" color="blue" />
+              <SectionHeading number="1" :title="t.section1.title" color="blue" />
               <p class="text-slate-700 leading-relaxed mb-4">
-                BiznesPilot — O'zbekistonning yagona Biznes Operatsion Tizimi ("Biz", "Kompaniya") — Sizning maxfiyligingizni hurmat qiladi va shaxsiy ma'lumotlaringizni himoya qilishga sodiq. Ushbu Maxfiylik siyosati qanday ma'lumotlarni to'plashimiz, ulardan qanday foydalanishimiz va qanday himoya qilishimizni tushuntiradi.
+                {{ t.section1.p1 }}
               </p>
               <p class="text-slate-700 leading-relaxed">
-                Ushbu siyosat O'zbekiston Respublikasining "Shaxsiy ma'lumotlar to'g'risida"gi Qonuni va xalqaro ma'lumotlarni himoya qilish standartlariga muvofiq ishlab chiqilgan.
+                {{ t.section1.p2 }}
               </p>
             </div>
 
             <!-- 2. To'planadigan ma'lumotlar -->
             <div>
-              <SectionHeading number="2" title="To'planadigan ma'lumotlar" color="blue" />
+              <SectionHeading number="2" :title="t.section2.title" color="blue" />
 
               <div class="space-y-6">
                 <div class="bg-slate-50 rounded-2xl p-6">
-                  <h3 class="font-semibold text-slate-900 mb-4">2.1. Siz taqdim etgan ma'lumotlar:</h3>
+                  <h3 class="font-semibold text-slate-900 mb-4">{{ t.section2.subtitle1 }}</h3>
                   <ul class="space-y-3 text-slate-700">
-                    <li class="flex items-start">
+                    <li v-for="(item, idx) in t.section2.items1" :key="idx" class="flex items-start">
                       <CheckCircleIcon class="blue" />
-                      <span><strong>Identifikatsiya ma'lumotlari:</strong> ism, familiya, login, email, telefon raqami</span>
-                    </li>
-                    <li class="flex items-start">
-                      <CheckCircleIcon class="blue" />
-                      <span><strong>Biznes ma'lumotlari:</strong> kompaniya nomi, sohasi, manzili, xodimlar soni</span>
-                    </li>
-                    <li class="flex items-start">
-                      <CheckCircleIcon class="blue" />
-                      <span><strong>Moliyaviy ma'lumotlar:</strong> to'lov ma'lumotlari, tranzaksiya tarixi</span>
+                      <span><strong>{{ item.bold }}</strong> {{ item.text }}</span>
                     </li>
                   </ul>
                 </div>
 
                 <div class="bg-slate-50 rounded-2xl p-6">
-                  <h3 class="font-semibold text-slate-900 mb-4">2.2. Avtomatik to'planadigan ma'lumotlar:</h3>
+                  <h3 class="font-semibold text-slate-900 mb-4">{{ t.section2.subtitle2 }}</h3>
                   <ul class="space-y-3 text-slate-700">
-                    <li class="flex items-start">
+                    <li v-for="(item, idx) in t.section2.items2" :key="idx" class="flex items-start">
                       <CheckCircleIcon class="emerald" />
-                      <span><strong>Qurilma ma'lumotlari:</strong> IP manzil, brauzer turi, operatsion tizim</span>
-                    </li>
-                    <li class="flex items-start">
-                      <CheckCircleIcon class="emerald" />
-                      <span><strong>Foydalanish ma'lumotlari:</strong> tashrif vaqti, ko'rilgan sahifalar</span>
-                    </li>
-                    <li class="flex items-start">
-                      <CheckCircleIcon class="emerald" />
-                      <span><strong>Cookie va tracking:</strong> sessiya ma'lumotlari, preferenslar</span>
+                      <span><strong>{{ item.bold }}</strong> {{ item.text }}</span>
                     </li>
                   </ul>
                 </div>
@@ -83,39 +67,29 @@
 
             <!-- 3. Ma'lumotlardan foydalanish -->
             <div>
-              <SectionHeading number="3" title="Ma'lumotlardan foydalanish" color="blue" />
+              <SectionHeading number="3" :title="t.section3.title" color="blue" />
               <div class="grid md:grid-cols-2 gap-4">
                 <UsageCard
-                  title="Xizmat ko'rsatish"
-                  color="blue"
-                  :items="['Akkauntingizni yaratish va boshqarish', 'Platforma funksiyalarini ta\'minlash', 'Sun\'iy intellekt tahlillarini amalga oshirish']"
-                />
-                <UsageCard
-                  title="Xizmatni yaxshilash"
-                  color="emerald"
-                  :items="['Platformani takomillashtirish', 'Yangi funksiyalar ishlab chiqish', 'Foydalanuvchi tajribasini optimallashtirish']"
-                />
-                <UsageCard
-                  title="Kommunikatsiya"
-                  color="violet"
-                  :items="['Muhim bildirishnomalar yuborish', 'Marketing xabarlari (roziligingiz bilan)', 'Xavfsizlik ogohlantirishlari']"
-                />
-                <UsageCard
-                  title="Huquqiy maqsadlar"
-                  color="amber"
-                  :items="['Qonuniy talablarni bajarish', 'Firibgarlikni oldini olish', 'Nizolarni hal qilish']"
+                  v-for="(card, idx) in t.section3.cards"
+                  :key="idx"
+                  :title="card.title"
+                  :color="usageColors[idx]"
+                  :items="card.items"
                 />
               </div>
             </div>
 
             <!-- 4. Ma'lumotlar xavfsizligi -->
             <div>
-              <SectionHeading number="4" title="Ma'lumotlar xavfsizligi" color="blue" />
+              <SectionHeading number="4" :title="t.section4.title" color="blue" />
               <div class="grid sm:grid-cols-2 gap-4">
-                <SecurityCard title="SSL/TLS Shifrlash" description="256-bit shifrlash bilan himoyalangan" icon="lock" />
-                <SecurityCard title="Xavfsizlik auditi" description="Muntazam tekshiruvlar va testlar" icon="shield" />
-                <SecurityCard title="Kirish nazorati" description="2FA va rol asosida kirish" icon="users" />
-                <SecurityCard title="Zaxira nusxa" description="Kunlik avtomatik backup" icon="database" />
+                <SecurityCard
+                  v-for="(card, idx) in t.section4.cards"
+                  :key="idx"
+                  :title="card.title"
+                  :description="card.description"
+                  :icon="securityIconKeys[idx]"
+                />
               </div>
 
               <div class="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
@@ -127,8 +101,8 @@
                     </svg>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-slate-900 mb-1">Ma'lumotlar O'zbekistonda saqlanadi</h4>
-                    <p class="text-sm text-slate-600">Barcha ma'lumotlaringiz O'zbekistondagi serverlarda saqlanadi. Bu mahalliy qonunchilikka muvofiqlikni va tizimning yuqori tezligini ta'minlaydi.</p>
+                    <h4 class="font-semibold text-slate-900 mb-1">{{ t.section4.info_title }}</h4>
+                    <p class="text-sm text-slate-600">{{ t.section4.info_text }}</p>
                   </div>
                 </div>
               </div>
@@ -136,7 +110,7 @@
 
             <!-- 5. Sizning huquqlaringiz -->
             <div>
-              <SectionHeading number="5" title="Sizning huquqlaringiz" color="blue" />
+              <SectionHeading number="5" :title="t.section5.title" color="blue" />
               <div class="space-y-3">
                 <RightItem v-for="(right, index) in userRights" :key="index" :number="index + 1" :title="right.title" :description="right.description" />
               </div>
@@ -144,23 +118,15 @@
 
             <!-- 6. Sun'iy intellekt -->
             <div>
-              <SectionHeading number="6" title="Sun'iy intellekt va ma'lumotlaringiz" color="blue" />
+              <SectionHeading number="6" :title="t.section6.title" color="blue" />
               <div class="bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-100">
                 <p class="text-slate-700 leading-relaxed mb-4">
-                  BiznesPilot biznes ma'lumotlarini tahlil qilish va tavsiyalar berish uchun Sun'iy intellektdan foydalanadi. Bilishingiz muhim:
+                  {{ t.section6.intro }}
                 </p>
                 <ul class="space-y-3 text-slate-700">
-                  <li class="flex items-start">
+                  <li v-for="(item, idx) in t.section6.items" :key="idx" class="flex items-start">
                     <CheckCircleIcon class="violet" />
-                    <span>Sun'iy intellekt faqat sizning biznesingiz ma'lumotlarini tahlil qiladi va uchinchi shaxslarga uzatmaydi</span>
-                  </li>
-                  <li class="flex items-start">
-                    <CheckCircleIcon class="violet" />
-                    <span>Barcha tavsiyalar faqat sizning ma'lumotlaringiz asosida — biznesni to'liq nazorat qilishingiz uchun</span>
-                  </li>
-                  <li class="flex items-start">
-                    <CheckCircleIcon class="violet" />
-                    <span>Sun'iy intellekt funksiyalarini akkaunt sozlamalarida o'chirishingiz mumkin</span>
+                    <span>{{ item }}</span>
                   </li>
                 </ul>
               </div>
@@ -168,16 +134,16 @@
 
             <!-- 7. Bog'lanish -->
             <div>
-              <SectionHeading number="7" title="Bog'lanish" color="blue" />
+              <SectionHeading number="7" :title="t.section7.title" color="blue" />
               <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-                <p class="text-slate-700 mb-5">Maxfiylik bo'yicha savollar yoki so'rovlar uchun:</p>
+                <p class="text-slate-700 mb-5">{{ t.section7.intro }}</p>
                 <div class="space-y-3">
-                  <ContactItem icon="email" label="Email:" value="privacy@biznespilot.uz" />
-                  <ContactItem icon="phone" label="Telefon:" value="+998 50 504 86 68" />
-                  <ContactItem icon="location" label="Manzil:" value="Toshkent shahri, O'zbekiston" />
+                  <ContactItem icon="email" :label="t.section7.email_label" :value="t.section7.email" />
+                  <ContactItem icon="phone" :label="t.section7.phone_label" :value="t.section7.phone" />
+                  <ContactItem icon="location" :label="t.section7.address_label" :value="t.section7.address" />
                 </div>
                 <p class="mt-5 text-sm text-blue-700 bg-blue-100/50 rounded-xl px-4 py-2.5">
-                  So'rovlar 30 ish kuni ichida ko'rib chiqiladi.
+                  {{ t.section7.notice }}
                 </p>
               </div>
             </div>
@@ -190,7 +156,7 @@
               <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
-              Bosh sahifaga qaytish
+              {{ t.back_link }}
             </Link>
           </div>
         </div>
@@ -203,20 +169,20 @@
 import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
+import { useLandingLocale } from '@/i18n/landing/locale'
+import translations from '@/i18n/landing/privacy-policy'
+
+const { locale, t } = useLandingLocale(translations)
 
 const formattedDate = computed(() => {
   const now = new Date()
   return `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`
 })
 
-const userRights = [
-  { title: 'Kirish huquqi', description: "Siz haqingizda qanday ma'lumotlar to'plangani bilan tanishish" },
-  { title: 'Tuzatish huquqi', description: "Noto'g'ri yoki eskirgan ma'lumotlarni yangilash" },
-  { title: "O'chirish huquqi", description: "Ma'lumotlaringizni o'chirishni so'rash" },
-  { title: 'Cheklash huquqi', description: "Ma'lumotlarni qayta ishlashni cheklash" },
-  { title: "Ko'chirish huquqi", description: "Ma'lumotlaringizni boshqa xizmatga ko'chirish" },
-  { title: "E'tiroz bildirish", description: "Marketing xabarlaridan voz kechish" },
-]
+const userRights = computed(() => t.value.section5.rights)
+
+const usageColors = ['blue', 'emerald', 'violet', 'amber']
+const securityIconKeys = ['lock', 'shield', 'users', 'database']
 
 /* ---- Inline sub-components ---- */
 

@@ -114,7 +114,8 @@
       "Bash(git pull:*)",
       "Bash(git stash:*)",
       "Bash(git ls-tree:*)",
-      "Bash(bash -n:*)"
+      "Bash(bash -n:*)",
+      "Bash(node:*)"
     ]
   }
 }

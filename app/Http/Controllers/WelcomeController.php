@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Http\Middleware\HandleInertiaRequests;
 
 class WelcomeController extends Controller
 {
@@ -175,9 +176,14 @@ class WelcomeController extends Controller
             ]);
         }
 
-        // Redirect directly to business dashboard
-        return redirect()->route('business.dashboard')
-            ->with('success', 'Biznes muvaffaqiyatli yaratildi!');
+        // Cache ni tozalash (yangi subscription ko'rinishi uchun)
+        HandleInertiaRequests::clearSubscriptionCache($business->id);
+        HandleInertiaRequests::clearUserCache(Auth::id());
+        HandleInertiaRequests::clearBusinessCache($business->id);
+
+        // Biznes yaratilgandan keyin tarif sahifasini ko'rsatish
+        return redirect()->route('business.subscription.index')
+            ->with('success', 'Biznes muvaffaqiyatli yaratildi! 14 kunlik bepul sinov davri berildi.');
     }
 
     /**

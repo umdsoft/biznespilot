@@ -41,12 +41,9 @@ class LandingController extends Controller
             $locale = $this->defaultLocale;
         }
 
-        // Store in cookie (30 days)
-        Cookie::queue('landing_locale', $locale, 60 * 24 * 30);
-
-        // Redirect back to the previous page (or landing if no referrer)
+        // Set cookie with httpOnly: false so JavaScript can read it via document.cookie
         return redirect()->back()->withCookie(
-            cookie('landing_locale', $locale, 60 * 24 * 30)
+            cookie('landing_locale', $locale, 60 * 24 * 30, '/', null, null, false)
         );
     }
 

@@ -17,13 +17,13 @@
           <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          AI Powered Modullar
+          {{ t.badge }}
         </div>
         <h2 class="text-4xl lg:text-5xl font-bold text-white mb-6">
-          Biznesingiz uchun <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">kuchli vositalar</span>
+          {{ t.title_1 }}<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">{{ t.title_highlight }}</span>
         </h2>
         <p class="text-xl text-slate-400 max-w-2xl mx-auto">
-          Har bir modul biznesingizni yangi darajaga olib chiqish uchun yaratilgan
+          {{ t.subtitle }}
         </p>
       </div>
 
@@ -60,38 +60,22 @@
                   <div>
                     <div class="inline-flex items-center px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full text-sm text-pink-300 mb-6">
                       <span class="w-2 h-2 bg-pink-400 rounded-full mr-2 animate-pulse"></span>
-                      Instagram Integration
+                      {{ slides[0].badge }}
                     </div>
                     <h3 class="text-3xl lg:text-4xl font-bold text-white mb-6">
-                      Instagram Sotuv Voronkasi
+                      {{ slides[0].title }}
                     </h3>
                     <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                      Instagramdagi har bir follow, like va commentni avtomatik ravishda potentsial mijozga aylantiring. AI sizning ideal mijozingizni aniqlaydi va ularni sotuvga olib boradi.
+                      {{ slides[0].desc }}
                     </p>
                     <ul class="space-y-4">
-                      <li class="flex items-center text-slate-300">
+                      <li v-for="(feat, fi) in slides[0].features" :key="fi" class="flex items-center text-slate-300">
                         <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center mr-4">
                           <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        Avtomatik DM kampaniyalar
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Story va Post engagement tracking
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Lead scoring va segmentatsiya
+                        {{ feat }}
                       </li>
                     </ul>
                   </div>
@@ -174,38 +158,22 @@
                   <div>
                     <div class="inline-flex items-center px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-sm text-emerald-300 mb-6">
                       <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-                      AI Powered
+                      {{ slides[1].badge }}
                     </div>
                     <h3 class="text-3xl lg:text-4xl font-bold text-white mb-6">
-                      AI Sotuv Chatbot
+                      {{ slides[1].title }}
                     </h3>
                     <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                      Sotuv skripti asosida ishlaydi gan AI chatbot. Mijozlarning savollariga 24/7 javob beradi, e'tirozlarni bartaraf etadi va sotuvni yopadi.
+                      {{ slides[1].desc }}
                     </p>
                     <ul class="space-y-4">
-                      <li class="flex items-center text-slate-300">
+                      <li v-for="(feat, fi) in slides[1].features" :key="fi" class="flex items-center text-slate-300">
                         <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-4">
                           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        Sotuv skripti bo'yicha javob beradi
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        E'tirozlarni aqlli qayta ishlaydi
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Operatorga avtomatik uzatish
+                        {{ feat }}
                       </li>
                     </ul>
                   </div>
@@ -296,38 +264,22 @@
                   <div>
                     <div class="inline-flex items-center px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-sm text-blue-300 mb-6">
                       <span class="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
-                      Smart Marketing
+                      {{ slides[2].badge }}
                     </div>
                     <h3 class="text-3xl lg:text-4xl font-bold text-white mb-6">
-                      Marketing Algoritmi
+                      {{ slides[2].title }}
                     </h3>
                     <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                      AI sizning biznesingizga mos marketing strategiyasini ishlab chiqadi. Qaysi kontent, qaysi vaqtda, qaysi auditoriyaga - hammasini avtomatik aniqlaydi.
+                      {{ slides[2].desc }}
                     </p>
                     <ul class="space-y-4">
-                      <li class="flex items-center text-slate-300">
+                      <li v-for="(feat, fi) in slides[2].features" :key="fi" class="flex items-center text-slate-300">
                         <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center mr-4">
                           <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        A/B testing avtomatizatsiya
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Kontent kalendar generatsiyasi
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Optimal posting vaqti tahlili
+                        {{ feat }}
                       </li>
                     </ul>
                   </div>
@@ -436,38 +388,22 @@
                   <div>
                     <div class="inline-flex items-center px-3 py-1 bg-amber-500/20 border border-amber-500/30 rounded-full text-sm text-amber-300 mb-6">
                       <span class="w-2 h-2 bg-amber-400 rounded-full mr-2 animate-pulse"></span>
-                      Call Analytics
+                      {{ slides[3].badge }}
                     </div>
                     <h3 class="text-3xl lg:text-4xl font-bold text-white mb-6">
-                      Call Operatorlar Tahlili
+                      {{ slides[3].title }}
                     </h3>
                     <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                      AI har bir suhbatni tahlil qiladi: operatorning samaradorligini, mijoz qoniqishini va sotuv imkoniyatlarini aniqlaydi. Real-time coaching.
+                      {{ slides[3].desc }}
                     </p>
                     <ul class="space-y-4">
-                      <li class="flex items-center text-slate-300">
+                      <li v-for="(feat, fi) in slides[3].features" :key="fi" class="flex items-center text-slate-300">
                         <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mr-4">
                           <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        Suhbat transkripsiyasi va tahlili
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Sentiment va emotion detection
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Operator performance scoring
+                        {{ feat }}
                       </li>
                     </ul>
                   </div>
@@ -587,38 +523,22 @@
                   <div>
                     <div class="inline-flex items-center px-3 py-1 bg-violet-500/20 border border-violet-500/30 rounded-full text-sm text-violet-300 mb-6">
                       <span class="w-2 h-2 bg-violet-400 rounded-full mr-2 animate-pulse"></span>
-                      Auto Reports
+                      {{ slides[4].badge }}
                     </div>
                     <h3 class="text-3xl lg:text-4xl font-bold text-white mb-6">
-                      Hisobot Moduli
+                      {{ slides[4].title }}
                     </h3>
                     <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                      Kunlik, haftalik va oylik hisobotlar avtomatik tayyorlanadi. PDF, Excel formatlarida yuklab oling yoki to'g'ridan-to'g'ri emailga yuboring.
+                      {{ slides[4].desc }}
                     </p>
                     <ul class="space-y-4">
-                      <li class="flex items-center text-slate-300">
+                      <li v-for="(feat, fi) in slides[4].features" :key="fi" class="flex items-center text-slate-300">
                         <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center mr-4">
                           <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        Avtomatik hisobot generatsiyasi
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Custom dashboardlar yaratish
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Scheduled email delivery
+                        {{ feat }}
                       </li>
                     </ul>
                   </div>
@@ -719,38 +639,22 @@
                   <div>
                     <div class="inline-flex items-center px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-sm text-cyan-300 mb-6">
                       <span class="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></span>
-                      Performance Tracking
+                      {{ slides[5].badge }}
                     </div>
                     <h3 class="text-3xl lg:text-4xl font-bold text-white mb-6">
-                      KPI Moduli
+                      {{ slides[5].title }}
                     </h3>
                     <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                      Biznesingizning asosiy ko'rsatkichlarini real vaqtda kuzating. Maqsadlar qo'ying, progressni tracking qiling va jamoa samaradorligini oshiring.
+                      {{ slides[5].desc }}
                     </p>
                     <ul class="space-y-4">
-                      <li class="flex items-center text-slate-300">
+                      <li v-for="(feat, fi) in slides[5].features" :key="fi" class="flex items-center text-slate-300">
                         <div class="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center mr-4">
                           <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        Real-time KPI dashboardlar
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Goal setting va tracking
-                      </li>
-                      <li class="flex items-center text-slate-300">
-                        <div class="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center mr-4">
-                          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        Team leaderboards va gamification
+                        {{ feat }}
                       </li>
                     </ul>
                   </div>
@@ -867,7 +771,7 @@
             <span
               class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
             >
-              {{ slide.name }}
+              {{ slide?.name }}
             </span>
           </button>
         </div>
@@ -877,26 +781,131 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+const locale = ref(getCookie('landing_locale') || 'uz-latn');
 
 const currentSlide = ref(0);
 const autoplayInterval = ref(null);
 
-const slides = [
-  { name: 'Instagram Voronka' },
-  { name: 'AI Chatbot' },
-  { name: 'Marketing' },
-  { name: 'Call Tahlili' },
-  { name: 'Hisobotlar' },
-  { name: 'KPI' }
-];
+const allContent = {
+  'uz-latn': {
+    badge: 'AI Powered Modullar',
+    title_1: 'Biznesingiz uchun ',
+    title_highlight: 'kuchli vositalar',
+    subtitle: 'Har bir modul biznesingizni yangi darajaga olib chiqish uchun yaratilgan',
+    slides: [
+      {
+        name: 'Instagram Voronka',
+        badge: 'Instagram Integration',
+        title: 'Instagram Sotuv Voronkasi',
+        desc: 'Instagramdagi har bir follow, like va commentni avtomatik ravishda potentsial mijozga aylantiring. AI sizning ideal mijozingizni aniqlaydi va ularni sotuvga olib boradi.',
+        features: ['Avtomatik DM kampaniyalar', 'Story va Post engagement tracking', 'Lead scoring va segmentatsiya'],
+      },
+      {
+        name: 'AI Chatbot',
+        badge: 'AI Powered',
+        title: 'AI Sotuv Chatbot',
+        desc: 'Sotuv skripti asosida ishlaydigan AI chatbot. Mijozlarning savollariga 24/7 javob beradi, e\'tirozlarni bartaraf etadi va sotuvni yopadi.',
+        features: ['Sotuv skripti bo\'yicha javob beradi', 'E\'tirozlarni aqlli qayta ishlaydi', 'Operatorga avtomatik uzatish'],
+      },
+      {
+        name: 'Marketing',
+        badge: 'Smart Marketing',
+        title: 'Marketing Algoritmi',
+        desc: 'AI sizning biznesingizga mos marketing strategiyasini ishlab chiqadi. Qaysi kontent, qaysi vaqtda, qaysi auditoriyaga - hammasini avtomatik aniqlaydi.',
+        features: ['A/B testing avtomatizatsiya', 'Kontent kalendar generatsiyasi', 'Optimal posting vaqti tahlili'],
+      },
+      {
+        name: 'Call Tahlili',
+        badge: 'Call Analytics',
+        title: 'Call Operatorlar Tahlili',
+        desc: 'AI har bir suhbatni tahlil qiladi: operatorning samaradorligini, mijoz qoniqishini va sotuv imkoniyatlarini aniqlaydi. Real-time coaching.',
+        features: ['Suhbat transkripsiyasi va tahlili', 'Sentiment va emotion detection', 'Operator performance scoring'],
+      },
+      {
+        name: 'Hisobotlar',
+        badge: 'Auto Reports',
+        title: 'Hisobot Moduli',
+        desc: 'Kunlik, haftalik va oylik hisobotlar avtomatik tayyorlanadi. PDF, Excel formatlarida yuklab oling yoki to\'g\'ridan-to\'g\'ri emailga yuboring.',
+        features: ['Avtomatik hisobot generatsiyasi', 'Custom dashboardlar yaratish', 'Scheduled email delivery'],
+      },
+      {
+        name: 'KPI',
+        badge: 'Performance Tracking',
+        title: 'KPI Moduli',
+        desc: 'Biznesingizning asosiy ko\'rsatkichlarini real vaqtda kuzating. Maqsadlar qo\'ying, progressni tracking qiling va jamoa samaradorligini oshiring.',
+        features: ['Real-time KPI dashboardlar', 'Goal setting va tracking', 'Team leaderboards va gamification'],
+      },
+    ],
+  },
+  ru: {
+    badge: 'AI Powered Модули',
+    title_1: 'Мощные инструменты ',
+    title_highlight: 'для вашего бизнеса',
+    subtitle: 'Каждый модуль создан для вывода вашего бизнеса на новый уровень',
+    slides: [
+      {
+        name: 'Instagram Воронка',
+        badge: 'Instagram Integration',
+        title: 'Воронка продаж Instagram',
+        desc: 'Автоматически превращайте каждый follow, like и comment в Instagram в потенциального клиента. AI определяет вашего идеального клиента и ведёт его к покупке.',
+        features: ['Автоматические DM-кампании', 'Tracking вовлечённости Stories и Posts', 'Lead scoring и сегментация'],
+      },
+      {
+        name: 'AI Чатбот',
+        badge: 'AI Powered',
+        title: 'AI Чатбот продаж',
+        desc: 'AI-чатбот, работающий по скрипту продаж. Отвечает на вопросы клиентов 24/7, обрабатывает возражения и закрывает сделки.',
+        features: ['Отвечает по скрипту продаж', 'Умная обработка возражений', 'Автоматическая передача оператору'],
+      },
+      {
+        name: 'Маркетинг',
+        badge: 'Smart Marketing',
+        title: 'Маркетинговый алгоритм',
+        desc: 'AI разрабатывает маркетинговую стратегию для вашего бизнеса. Какой контент, в какое время, для какой аудитории — всё определяется автоматически.',
+        features: ['Автоматизация A/B тестирования', 'Генерация контент-календаря', 'Анализ оптимального времени публикаций'],
+      },
+      {
+        name: 'Анализ звонков',
+        badge: 'Call Analytics',
+        title: 'Анализ операторов',
+        desc: 'AI анализирует каждый разговор: определяет эффективность оператора, удовлетворённость клиента и возможности продаж. Коучинг в реальном времени.',
+        features: ['Транскрипция и анализ разговоров', 'Определение тональности и эмоций', 'Оценка эффективности операторов'],
+      },
+      {
+        name: 'Отчёты',
+        badge: 'Auto Reports',
+        title: 'Модуль отчётов',
+        desc: 'Ежедневные, еженедельные и ежемесячные отчёты готовятся автоматически. Скачивайте в PDF, Excel или отправляйте напрямую на email.',
+        features: ['Автоматическая генерация отчётов', 'Создание кастомных дашбордов', 'Отправка по расписанию на email'],
+      },
+      {
+        name: 'KPI',
+        badge: 'Performance Tracking',
+        title: 'Модуль KPI',
+        desc: 'Отслеживайте ключевые показатели бизнеса в реальном времени. Ставьте цели, отслеживайте прогресс и повышайте эффективность команды.',
+        features: ['KPI-дашборды в реальном времени', 'Постановка и отслеживание целей', 'Лидерборды и геймификация команды'],
+      },
+    ],
+  },
+};
+
+const t = computed(() => allContent[locale.value] || allContent['uz-latn']);
+const slides = computed(() => t.value.slides);
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % slides.length;
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length;
 };
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length;
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length;
 };
 
 const goToSlide = (index) => {

@@ -1,6 +1,6 @@
 <template>
   <LandingLayout v-slot="{ urgencyBarVisible }">
-    <Head title="Foydalanish shartlari — BiznesPilot" />
+    <Head :title="t.meta_title" />
 
     <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <!-- Hero Header -->
@@ -17,8 +17,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
           </div>
-          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Foydalanish shartlari</h1>
-          <p class="text-slate-500 text-lg">Oxirgi yangilanish: {{ formattedDate }}</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">{{ t.page_title }}</h1>
+          <p class="text-slate-500 text-lg">{{ t.last_updated }} {{ formattedDate }}</p>
         </div>
       </section>
 
@@ -27,52 +27,48 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 md:p-12 space-y-10">
 
-            <!-- 1. Kirish -->
+            <!-- 1. Kirish / Введение -->
             <div>
-              <SectionHeading number="1" title="Kirish" />
+              <SectionHeading number="1" :title="t.s1.title" />
               <p class="text-slate-700 leading-relaxed mb-4">
-                Ushbu Foydalanish shartlari (keyingi o'rinlarda "Shartlar") BiznesPilot — O'zbekistonning yagona Biznes Operatsion Tizimi
-                (keyingi o'rinlarda "Platforma", "Xizmat" yoki "Biz") bilan Siz (keyingi o'rinlarda "Foydalanuvchi" yoki "Siz")
-                o'rtasidagi huquqiy munosabatlarni tartibga soladi.
+                {{ t.s1.paragraph }}
               </p>
               <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
                 <p class="text-amber-800 text-sm">
-                  <strong>Muhim:</strong> Platformadan foydalanishni boshlash orqali Siz ushbu Shartlarni to'liq o'qib chiqqaningizni va
-                  ularga rozilik bildirishingizni tasdiqlaysiz.
+                  <strong>{{ t.s1.warning_label }}</strong> {{ t.s1.warning_text }}
                 </p>
               </div>
             </div>
 
-            <!-- 2. Biznes Operatsion Tizimi -->
+            <!-- 2. Biznes Operatsion Tizimi / Бизнес Операционная Система -->
             <div>
-              <SectionHeading number="2" title="Biznes Operatsion Tizimi" />
+              <SectionHeading number="2" :title="t.s2.title" />
               <p class="text-slate-700 mb-5">
-                BiznesPilot — bu biznesning barcha bo'limlarini bitta tizimga birlashtiruvchi va tadbirkorlarga to'liq nazorat imkonini beruvchi platforma.
-                Platforma 4 ta asosiy moduldan iborat:
+                {{ t.s2.paragraph }}
               </p>
 
               <div class="grid sm:grid-cols-2 gap-4">
                 <ModuleCard
-                  title="Marketing Boshqaruvi"
-                  description="Mijozlarni boshqarish, reklama, Sun'iy intellekt tahlillari"
+                  :title="t.s2.modules[0].title"
+                  :description="t.s2.modules[0].description"
                   color="blue"
                   icon="chart"
                 />
                 <ModuleCard
-                  title="Sotuv va CRM"
-                  description="Sotuvlarni, mijozlarni va bitimlarni real vaqtda boshqarish"
+                  :title="t.s2.modules[1].title"
+                  :description="t.s2.modules[1].description"
                   color="emerald"
                   icon="currency"
                 />
                 <ModuleCard
-                  title="HR Boshqaruvi"
-                  description="Xodimlar, vazifalar va ish haqini boshqarish"
+                  :title="t.s2.modules[2].title"
+                  :description="t.s2.modules[2].description"
                   color="violet"
                   icon="users"
                 />
                 <ModuleCard
-                  title="Moliya Boshqaruvi"
-                  description="Daromad-xarajatlar, qarzlar, to'lovlar va moliyaviy hisobotlar"
+                  :title="t.s2.modules[3].title"
+                  :description="t.s2.modules[3].description"
                   color="amber"
                   icon="calculator"
                 />
@@ -86,19 +82,19 @@
                     </svg>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-slate-900 mb-1">Sun'iy intellekt</h4>
-                    <p class="text-sm text-slate-600">Barcha modullar Sun'iy intellekt yordamida ishlaydi — u ma'lumotlarni tahlil qiladi, muammolarni oldindan topadi va biznesni to'liq nazorat qilishingiz uchun tavsiyalar beradi.</p>
+                    <h4 class="font-semibold text-slate-900 mb-1">{{ t.s2.ai_title }}</h4>
+                    <p class="text-sm text-slate-600">{{ t.s2.ai_text }}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- 3. Akkaunt va ro'yxatdan o'tish -->
+            <!-- 3. Akkaunt va ro'yxatdan o'tish / Аккаунт и регистрация -->
             <div>
-              <SectionHeading number="3" title="Akkaunt va ro'yxatdan o'tish" />
+              <SectionHeading number="3" :title="t.s3.title" />
               <div class="space-y-4">
                 <div class="bg-slate-50 rounded-2xl p-6">
-                  <h3 class="font-semibold text-slate-900 mb-3">3.1. Platformadan foydalanish uchun Siz:</h3>
+                  <h3 class="font-semibold text-slate-900 mb-3">{{ t.s3.requirements_heading }}</h3>
                   <ul class="space-y-2 text-slate-700">
                     <li v-for="req in requirements" :key="req" class="flex items-start">
                       <span class="w-2 h-2 bg-violet-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
@@ -107,7 +103,7 @@
                   </ul>
                 </div>
                 <div class="bg-slate-50 rounded-2xl p-6">
-                  <h3 class="font-semibold text-slate-900 mb-3">3.2. Siz quyidagilarga mas'ulsiz:</h3>
+                  <h3 class="font-semibold text-slate-900 mb-3">{{ t.s3.responsibilities_heading }}</h3>
                   <ul class="space-y-2 text-slate-700">
                     <li v-for="resp in responsibilities" :key="resp" class="flex items-start">
                       <span class="w-2 h-2 bg-red-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
@@ -118,10 +114,10 @@
               </div>
             </div>
 
-            <!-- 4. Foydalanuvchi majburiyatlari -->
+            <!-- 4. Foydalanuvchi majburiyatlari / Обязательства пользователя -->
             <div>
-              <SectionHeading number="4" title="Foydalanuvchi majburiyatlari" />
-              <p class="text-slate-700 mb-4">Platformadan foydalanishda Siz quyidagilarni bajarmaslikka rozilik bildirasiz:</p>
+              <SectionHeading number="4" :title="t.s4.title" />
+              <p class="text-slate-700 mb-4">{{ t.s4.paragraph }}</p>
               <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
                 <div class="grid sm:grid-cols-2 gap-3">
                   <div v-for="ob in obligations" :key="ob" class="flex items-center">
@@ -134,26 +130,24 @@
               </div>
             </div>
 
-            <!-- 5. Intellektual mulk -->
+            <!-- 5. Intellektual mulk / Интеллектуальная собственность -->
             <div>
-              <SectionHeading number="5" title="Intellektual mulk" />
+              <SectionHeading number="5" :title="t.s5.title" />
               <div class="space-y-4 text-slate-700">
                 <p>
-                  <strong>5.1.</strong> Platforma va uning barcha tarkibiy qismlari (dasturiy ta'minot, dizayn,
-                  logotiplar, Sun'iy intellekt modellari) BiznesPilot ning mutlaq mulki hisoblanadi va mualliflik huquqi bilan himoyalangan.
+                  <strong>{{ t.s5.p1_label }}</strong> {{ t.s5.p1_text }}
                 </p>
                 <p>
-                  <strong>5.2.</strong> Siz Platformaga yuklagan ma'lumotlar ustidan to'liq huquqni saqlab qolasiz,
-                  lekin bizga ularni xizmat ko'rsatish maqsadida ishlatish huquqini berasiz.
+                  <strong>{{ t.s5.p2_label }}</strong> {{ t.s5.p2_text }}
                 </p>
               </div>
             </div>
 
-            <!-- 6. Xizmat mavjudligi -->
+            <!-- 6. Xizmat mavjudligi / Доступность сервиса -->
             <div>
-              <SectionHeading number="6" title="Xizmat mavjudligi" />
+              <SectionHeading number="6" :title="t.s6.title" />
               <p class="text-slate-700 mb-4">
-                Biz Platformaning uzluksiz ishlashini ta'minlashga harakat qilamiz, lekin quyidagi hollarda xizmat vaqtincha to'xtatilishi mumkin:
+                {{ t.s6.paragraph }}
               </p>
               <div class="grid sm:grid-cols-2 gap-3">
                 <div v-for="reason in availabilityReasons" :key="reason" class="flex items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
@@ -163,61 +157,61 @@
                   <span class="text-amber-800 text-sm">{{ reason }}</span>
                 </div>
               </div>
-              <p class="text-slate-500 text-sm mt-4">Rejalashtirilgan texnik ishlar haqida kamida 24 soat oldin xabardor qilamiz.</p>
+              <p class="text-slate-500 text-sm mt-4">{{ t.s6.notice }}</p>
             </div>
 
-            <!-- 7. Javobgarlikni cheklash -->
+            <!-- 7. Javobgarlikni cheklash / Ограничение ответственности -->
             <div>
-              <SectionHeading number="7" title="Javobgarlikni cheklash" />
+              <SectionHeading number="7" :title="t.s7.title" />
               <div class="bg-slate-50 rounded-2xl p-6 space-y-4">
-                <p class="text-slate-700"><strong>7.1.</strong> BiznesPilot quyidagilar uchun javobgar emas:</p>
+                <p class="text-slate-700"><strong>{{ t.s7.p1_label }}</strong> {{ t.s7.p1_text }}</p>
                 <ul class="space-y-2 text-slate-700 ml-4">
-                  <li v-for="l in liabilities" :key="l">• {{ l }}</li>
+                  <li v-for="l in liabilities" :key="l">&#8226; {{ l }}</li>
                 </ul>
                 <p class="text-slate-700">
-                  <strong>7.2.</strong> Bizning umumiy javobgarligimiz Siz tomonidan to'langan oxirgi 12 oylik obuna summasi bilan cheklanadi.
+                  <strong>{{ t.s7.p2_label }}</strong> {{ t.s7.p2_text }}
                 </p>
               </div>
             </div>
 
-            <!-- 8. Shartlarni bekor qilish -->
+            <!-- 8. Shartlarni bekor qilish / Расторжение -->
             <div>
-              <SectionHeading number="8" title="Shartlarni bekor qilish" />
+              <SectionHeading number="8" :title="t.s8.title" />
               <div class="grid md:grid-cols-2 gap-4">
                 <div class="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
-                  <h4 class="font-semibold text-emerald-800 mb-2">Sizning huquqingiz</h4>
-                  <p class="text-emerald-700 text-sm">Siz istalgan vaqtda akkauntingizni o'chirishingiz mumkin.</p>
+                  <h4 class="font-semibold text-emerald-800 mb-2">{{ t.s8.your_right_title }}</h4>
+                  <p class="text-emerald-700 text-sm">{{ t.s8.your_right_text }}</p>
                 </div>
                 <div class="bg-red-50 rounded-2xl p-5 border border-red-100">
-                  <h4 class="font-semibold text-red-800 mb-2">Bizning huquqimiz</h4>
-                  <p class="text-red-700 text-sm mb-2">Quyidagi hollarda akkauntingizni to'xtatishimiz mumkin:</p>
+                  <h4 class="font-semibold text-red-800 mb-2">{{ t.s8.our_right_title }}</h4>
+                  <p class="text-red-700 text-sm mb-2">{{ t.s8.our_right_text }}</p>
                   <ul class="text-red-700 text-sm space-y-1">
-                    <li v-for="r in terminationReasons" :key="r">• {{ r }}</li>
+                    <li v-for="r in terminationReasons" :key="r">&#8226; {{ r }}</li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            <!-- 9. Nizolarni hal qilish -->
+            <!-- 9. Nizolarni hal qilish / Разрешение споров -->
             <div>
-              <SectionHeading number="9" title="Nizolarni hal qilish" />
+              <SectionHeading number="9" :title="t.s9.title" />
               <div class="space-y-3 text-slate-700">
-                <p><strong>9.1.</strong> Barcha nizolar avvalo muzokaralar yo'li bilan hal qilinadi.</p>
-                <p><strong>9.2.</strong> Muzokaralar natija bermaganda, nizolar O'zbekiston Respublikasi qonunchiligiga muvofiq sud tartibida ko'rib chiqiladi.</p>
-                <p><strong>9.3.</strong> Sud joylashuvi: Toshkent shahri.</p>
+                <p><strong>{{ t.s9.p1_label }}</strong> {{ t.s9.p1_text }}</p>
+                <p><strong>{{ t.s9.p2_label }}</strong> {{ t.s9.p2_text }}</p>
+                <p><strong>{{ t.s9.p3_label }}</strong> {{ t.s9.p3_text }}</p>
               </div>
             </div>
 
-            <!-- 10. Bog'lanish -->
+            <!-- 10. Bog'lanish / Контакты -->
             <div>
-              <SectionHeading number="10" title="Bog'lanish" />
+              <SectionHeading number="10" :title="t.s10.title" />
               <div class="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-100">
-                <p class="text-slate-700 mb-5">Savollar yoki takliflar bo'lsa, biz bilan bog'laning:</p>
+                <p class="text-slate-700 mb-5">{{ t.s10.intro }}</p>
                 <div class="space-y-3">
-                  <ContactItem icon="company" label="Kompaniya:" value="BiznesPilot" />
-                  <ContactItem icon="email" label="Email:" value="support@biznespilot.uz" />
-                  <ContactItem icon="phone" label="Telefon:" value="+998 50 504 86 68" />
-                  <ContactItem icon="clock" label="Ish vaqti:" value="Dushanba - Juma, 09:00 - 18:00" />
+                  <ContactItem icon="company" :label="t.s10.company_label" :value="t.s10.company_value" />
+                  <ContactItem icon="email" :label="t.s10.email_label" :value="t.s10.email_value" />
+                  <ContactItem icon="phone" :label="t.s10.phone_label" :value="t.s10.phone_value" />
+                  <ContactItem icon="clock" :label="t.s10.hours_label" :value="t.s10.hours_value" />
                 </div>
               </div>
             </div>
@@ -225,8 +219,7 @@
             <!-- Final Note -->
             <div class="bg-slate-100 rounded-2xl p-5 text-center">
               <p class="text-slate-600 text-sm">
-                Ushbu Shartlar O'zbekiston Respublikasi qonunchiligiga bo'ysunadi va
-                Siz va BiznesPilot o'rtasidagi to'liq kelishuvni ifodalaydi.
+                {{ t.final_note }}
               </p>
             </div>
 
@@ -238,7 +231,7 @@
               <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
-              Bosh sahifaga qaytish
+              {{ t.back_home }}
             </Link>
           </div>
         </div>
@@ -251,55 +244,22 @@
 import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
+import { useLandingLocale } from '@/i18n/landing/locale'
+import translations from '@/i18n/landing/terms'
+
+const { locale, t } = useLandingLocale(translations)
 
 const formattedDate = computed(() => {
   const now = new Date()
   return `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`
 })
 
-const requirements = [
-  "Kamida 18 yoshda bo'lishingiz kerak",
-  "To'g'ri va aniq ma'lumotlarni taqdim etishingiz shart",
-  "Akkauntingiz xavfsizligini ta'minlashingiz lozim",
-  "Parolingizni maxfiy saqlashingiz kerak",
-]
-
-const responsibilities = [
-  "Akkauntingiz orqali amalga oshirilgan barcha harakatlar uchun",
-  "Akkauntga ruxsatsiz kirishni oldini olish uchun",
-  "Har qanday xavfsizlik buzilishi haqida bizni zudlik bilan xabardor qilish uchun",
-]
-
-const obligations = [
-  "Noqonuniy yoki zararli maqsadlarda foydalanish",
-  "Boshqa foydalanuvchilarning huquqlarini buzish",
-  "Viruslar yoki zararli kodlarni tarqatish",
-  "Platformaning normal ishlashiga xalaqit berish",
-  "Ruxsatsiz ma'lumotlarga kirish",
-  "Spam yoki istalmagan xabarlar yuborish",
-  "Soxta ma'lumotlarni tarqatish",
-  "Intellektual mulk huquqlarini buzish",
-]
-
-const availabilityReasons = [
-  "Texnik xizmat ko'rsatish",
-  "Tizimni yangilash",
-  "Texnik nosozliklar",
-  "Fors-major holatlari",
-]
-
-const liabilities = [
-  "Foydalanuvchi harakatlari natijasida yuzaga kelgan zararlar",
-  "Uchinchi tomon xizmatlari bilan bog'liq muammolar",
-  "Internet ulanishi yoki qurilma nosozliklari",
-  "Biznes qarorlari natijasida yuzaga kelgan yo'qotishlar",
-]
-
-const terminationReasons = [
-  "Shartlarni buzganingizda",
-  "Noqonuniy faoliyat aniqlanganda",
-  "To'lovlarni amalga oshirmaganda",
-]
+const requirements = computed(() => t.value.s3.requirements)
+const responsibilities = computed(() => t.value.s3.responsibilities)
+const obligations = computed(() => t.value.s4.obligations)
+const availabilityReasons = computed(() => t.value.s6.reasons)
+const liabilities = computed(() => t.value.s7.liabilities)
+const terminationReasons = computed(() => t.value.s8.termination_reasons)
 
 /* ---- Inline sub-components ---- */
 

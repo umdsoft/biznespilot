@@ -272,6 +272,9 @@
         </div>
       </header>
 
+      <!-- Trial Banner -->
+      <TrialBanner />
+
       <!-- Page Content -->
       <main :class="config.mainClass">
         <div :class="config.contentClass">
@@ -296,6 +299,7 @@ import FeedbackWidget from '@/components/FeedbackWidget.vue';
 import NotificationDropdown from '@/components/NotificationDropdown.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import UpgradeModal from '@/components/UpgradeModal.vue';
+import TrialBanner from '@/components/TrialBanner.vue';
 import { useI18n } from '@/i18n';
 import axios from 'axios';
 

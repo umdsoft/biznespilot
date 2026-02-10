@@ -103,6 +103,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useI18n } from '@/i18n';
+
+const { locale } = useI18n();
 
 const props = defineProps({
   autoplayInterval: {
@@ -118,80 +121,34 @@ const progressWidth = ref(0);
 let autoplayTimer = null;
 let progressTimer = null;
 
-const testimonials = [
-  {
-    id: 1,
-    name: 'Aziz Karimov',
-    avatar: 'AK',
-    text: 'BiznesPilot AI bizning sotuvlarimizni 3 oyda 40% ga oshirdi! AI tahlillari juda aniq va foydali.',
-    rating: 5,
-    metric: 'Sotuvlar 40% oshdi',
-  },
-  {
-    id: 2,
-    name: 'Malika Rahimova',
-    avatar: 'MR',
-    text: 'Instagram avtomatizatsiyasi orqali kuniga 50+ mijoz bilan bog\'lanishni yo\'lga qo\'ydik. Vaqtni tejash ajoyib!',
-    rating: 5,
-    metric: 'Kuniga 50+ yangi mijoz',
-  },
-  {
-    id: 3,
-    name: 'Bobur Toshmatov',
-    avatar: 'BT',
-    text: 'CRM tizimi orqali mijozlarni boshqarish ancha osonlashdi. Hozir har bir mijozni kuzatib boramiz.',
-    rating: 5,
-    metric: 'Mijoz qaytishi 60% oshdi',
-  },
-  {
-    id: 4,
-    name: 'Dilnoza Azimova',
-    avatar: 'DA',
-    text: 'AI chatbot mijozlarimga 24/7 javob beradi. Men endi faqat muhim ishlar bilan shug\'ullanaman.',
-    rating: 5,
-    metric: '24/7 avtomatik javob',
-  },
-  {
-    id: 5,
-    name: 'Jasur Alimov',
-    avatar: 'JA',
-    text: 'Raqobatchilar tahlili funksiyasi juda foydali. Bozordagi o\'zgarishlarni darhol ko\'rib turamiz.',
-    rating: 4,
-    metric: 'Bozor ulushi 25% oshdi',
-  },
-  {
-    id: 6,
-    name: 'Nodira Umarova',
-    avatar: 'NU',
-    text: 'Marketing kampaniyalarini rejalashtirish endi juda oson. AI tavsiyalari doim to\'g\'ri chiqadi!',
-    rating: 5,
-    metric: 'ROI 300% oshdi',
-  },
-  {
-    id: 7,
-    name: 'Sherzod Qodirov',
-    avatar: 'ShQ',
-    text: 'Hisobotlar va tahlillar real vaqtda ko\'rinadi. Endi qarorlarni ma\'lumotlarga asoslanib qabul qilamiz.',
-    rating: 5,
-    metric: 'Qaror qabul qilish 50% tezlashdi',
-  },
-  {
-    id: 8,
-    name: 'Anvar Rahmonov',
-    avatar: 'AR',
-    text: 'Telegram bot orqali bemorlar bilan aloqa o\'rnatish juda qulay. Navbatga yozilish avtomatlashtirildi.',
-    rating: 5,
-    metric: 'Navbat samaradorligi 70% oshdi',
-  },
-  {
-    id: 9,
-    name: 'Kamola Sodiqova',
-    avatar: 'KS',
-    text: 'Kichik biznes uchun ideal platforma! Narxi hamyonbop, funksiyalari esa professional darajada.',
-    rating: 5,
-    metric: 'Oylik foyda 2x oshdi',
-  },
-];
+const allTestimonials = {
+  'uz-latn': [
+    { id: 1, name: 'Aziz Karimov', avatar: 'AK', text: 'BiznesPilot AI bizning sotuvlarimizni 3 oyda 40% ga oshirdi! AI tahlillari juda aniq va foydali.', rating: 5, metric: 'Sotuvlar 40% oshdi' },
+    { id: 2, name: 'Malika Rahimova', avatar: 'MR', text: 'Instagram avtomatizatsiyasi orqali kuniga 50+ mijoz bilan bog\'lanishni yo\'lga qo\'ydik. Vaqtni tejash ajoyib!', rating: 5, metric: 'Kuniga 50+ yangi mijoz' },
+    { id: 3, name: 'Bobur Toshmatov', avatar: 'BT', text: 'CRM tizimi orqali mijozlarni boshqarish ancha osonlashdi. Hozir har bir mijozni kuzatib boramiz.', rating: 5, metric: 'Mijoz qaytishi 60% oshdi' },
+    { id: 4, name: 'Dilnoza Azimova', avatar: 'DA', text: 'AI chatbot mijozlarimga 24/7 javob beradi. Men endi faqat muhim ishlar bilan shug\'ullanaman.', rating: 5, metric: '24/7 avtomatik javob' },
+    { id: 5, name: 'Jasur Alimov', avatar: 'JA', text: 'Raqobatchilar tahlili funksiyasi juda foydali. Bozordagi o\'zgarishlarni darhol ko\'rib turamiz.', rating: 4, metric: 'Bozor ulushi 25% oshdi' },
+    { id: 6, name: 'Nodira Umarova', avatar: 'NU', text: 'Marketing kampaniyalarini rejalashtirish endi juda oson. AI tavsiyalari doim to\'g\'ri chiqadi!', rating: 5, metric: 'ROI 300% oshdi' },
+    { id: 7, name: 'Sherzod Qodirov', avatar: 'ShQ', text: 'Hisobotlar va tahlillar real vaqtda ko\'rinadi. Endi qarorlarni ma\'lumotlarga asoslanib qabul qilamiz.', rating: 5, metric: 'Qaror qabul qilish 50% tezlashdi' },
+    { id: 8, name: 'Anvar Rahmonov', avatar: 'AR', text: 'Telegram bot orqali bemorlar bilan aloqa o\'rnatish juda qulay. Navbatga yozilish avtomatlashtirildi.', rating: 5, metric: 'Navbat samaradorligi 70% oshdi' },
+    { id: 9, name: 'Kamola Sodiqova', avatar: 'KS', text: 'Kichik biznes uchun ideal platforma! Narxi hamyonbop, funksiyalari esa professional darajada.', rating: 5, metric: 'Oylik foyda 2x oshdi' },
+  ],
+  ru: [
+    { id: 1, name: 'Aziz Karimov', avatar: 'AK', text: 'BiznesPilot AI увеличил наши продажи на 40% за 3 месяца! AI-аналитика очень точная и полезная.', rating: 5, metric: 'Продажи выросли на 40%' },
+    { id: 2, name: 'Malika Rahimova', avatar: 'MR', text: 'Через автоматизацию Instagram наладили связь с 50+ клиентами в день. Экономия времени потрясающая!', rating: 5, metric: '50+ новых клиентов в день' },
+    { id: 3, name: 'Bobur Toshmatov', avatar: 'BT', text: 'Управление клиентами через CRM стало намного проще. Теперь отслеживаем каждого клиента.', rating: 5, metric: 'Возврат клиентов вырос на 60%' },
+    { id: 4, name: 'Dilnoza Azimova', avatar: 'DA', text: 'AI-чатбот отвечает моим клиентам 24/7. Теперь я занимаюсь только важными делами.', rating: 5, metric: 'Автоответ 24/7' },
+    { id: 5, name: 'Jasur Alimov', avatar: 'JA', text: 'Функция анализа конкурентов очень полезна. Мы сразу видим изменения на рынке.', rating: 4, metric: 'Доля рынка выросла на 25%' },
+    { id: 6, name: 'Nodira Umarova', avatar: 'NU', text: 'Планирование маркетинговых кампаний стало очень простым. Рекомендации AI всегда точные!', rating: 5, metric: 'ROI вырос на 300%' },
+    { id: 7, name: 'Sherzod Qodirov', avatar: 'ShQ', text: 'Отчёты и аналитика видны в реальном времени. Теперь принимаем решения на основе данных.', rating: 5, metric: 'Принятие решений ускорилось на 50%' },
+    { id: 8, name: 'Anvar Rahmonov', avatar: 'AR', text: 'Связь с пациентами через Telegram-бот очень удобна. Запись на приём полностью автоматизирована.', rating: 5, metric: 'Эффективность очереди выросла на 70%' },
+    { id: 9, name: 'Kamola Sodiqova', avatar: 'KS', text: 'Идеальная платформа для малого бизнеса! Цена доступная, а функционал профессиональный.', rating: 5, metric: 'Месячная прибыль выросла в 2 раза' },
+  ],
+};
+
+const testimonials = computed(() => {
+  return allTestimonials[locale.value] || allTestimonials['uz-latn'];
+});
 
 const avatarColors = [
   'bg-emerald-500 text-white',
@@ -206,7 +163,7 @@ const avatarColors = [
   'bg-amber-500 text-white',
 ];
 
-const currentTestimonial = computed(() => testimonials[currentIndex.value]);
+const currentTestimonial = computed(() => testimonials.value[currentIndex.value]);
 
 function changeSlide(newIndex) {
   if (isAnimating.value) return;
@@ -222,7 +179,7 @@ function changeSlide(newIndex) {
 }
 
 function nextSlide() {
-  const newIndex = (currentIndex.value + 1) % testimonials.length;
+  const newIndex = (currentIndex.value + 1) % testimonials.value.length;
   changeSlide(newIndex);
 }
 

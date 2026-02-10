@@ -93,6 +93,24 @@ class DashboardController extends Controller
             fn () => $this->getSubscriptionStatus($currentBusiness)
         );
 
+        // Recent activities - lightweight (5 items, cached 5 min)
+        $recentActivities = Cache::remember(
+            "dashboard_activities_{$currentBusiness->id}",
+            300,
+            fn () => ActivityLog::with('user:id,name')
+                ->where('business_id', $currentBusiness->id)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
+                ->map(fn ($activity) => [
+                    'id' => $activity->id,
+                    'description' => $activity->description,
+                    'type' => $activity->type,
+                    'created_at' => $activity->created_at->diffForHumans(),
+                    'user_name' => $activity->user->name ?? 'System',
+                ])
+        );
+
         return Inertia::render('Business/Dashboard', [
             // LAZY LOAD flags - frontend will fetch via API
             'lazyLoad' => true,
@@ -103,8 +121,8 @@ class DashboardController extends Controller
             'salesTrend' => null,
             'revenueForecast' => null,
             'aiInsights' => null,
-            'recentActivities' => null,
             // Lightweight cached data - loaded immediately
+            'recentActivities' => $recentActivities,
             'moduleStats' => $moduleStats,
             'activeAlertsCount' => $activeAlertsCount,
             'currentBusiness' => [

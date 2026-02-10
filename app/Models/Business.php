@@ -394,11 +394,11 @@ class Business extends Model
     {
         return $this->subscriptions()
             ->with('plan')
+            ->whereIn('status', ['active', 'trialing'])
             ->where(function ($query) {
-                $query->where('status', 'active')
-                    ->whereDate('ends_at', '>=', now())
+                $query->whereDate('ends_at', '>=', now())
                     ->orWhere(function ($q) {
-                        $q->where('status', 'trial')
+                        $q->where('status', 'trialing')
                             ->whereDate('trial_ends_at', '>=', now());
                     });
             })
@@ -419,7 +419,7 @@ class Business extends Model
     public function isOnTrial(): bool
     {
         return $this->subscriptions()
-            ->where('status', 'trial')
+            ->where('status', 'trialing')
             ->whereDate('trial_ends_at', '>=', now())
             ->exists();
     }
@@ -502,11 +502,11 @@ class Business extends Model
             return null;
         }
 
-        if ($subscription->status === 'trial') {
-            return now()->diffInDays($subscription->trial_ends_at, false);
+        if ($subscription->status === 'trialing') {
+            return (int) ceil(now()->floatDiffInDays($subscription->trial_ends_at, false));
         }
 
-        return now()->diffInDays($subscription->ends_at, false);
+        return (int) ceil(now()->floatDiffInDays($subscription->ends_at, false));
     }
 
     // ==================== ALGORITHM RELATIONSHIPS ====================

@@ -1,263 +1,223 @@
 <template>
   <BusinessLayout :title="t('nav.dashboard')">
-    <!-- Trial Banner (sinov davri haqida ogohlantirish) -->
-    <TrialBanner />
 
-    <!-- Telegram Connect Banner (for users without linked Telegram) -->
-    <TelegramConnectBanner />
-
-    <!-- Welcome Section with Subscription Widget -->
-    <div :class="['grid grid-cols-1 gap-6 mb-8', isTrial ? '' : 'lg:grid-cols-4']">
-      <!-- Welcome -->
-      <div :class="isTrial ? '' : 'lg:col-span-3'">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {{ t('dashboard.welcome') }}, {{ $page.props.auth?.user?.name }}!
-            </h2>
-            <p class="mt-2 text-gray-600 dark:text-gray-400 flex items-center">
-              <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span class="font-medium">{{ currentBusiness?.name }}</span>
-            </p>
-          </div>
-          <div class="flex gap-3">
-            <Link
-              :href="route('business.sales.index')"
-              class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg text-sm font-medium text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:shadow-xl"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              {{ t('common.leads') }}
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <!-- Subscription Widget (Trial holatda yashiriladi) -->
-      <div v-if="!isTrial" class="lg:col-span-1">
-        <SubscriptionWidget :subscription-status="subscriptionStatus" />
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Leads Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-          </div>
-          <p class="text-purple-100 text-sm font-medium mb-1">{{ t('dashboard.total_leads') }}</p>
-          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
-          <p v-else class="text-white text-3xl font-bold">{{ formatNumber(stats.total_leads) }}</p>
-        </div>
-      </div>
-
-      <!-- Customers Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-          </div>
-          <p class="text-green-100 text-sm font-medium mb-1">{{ t('dashboard.customers') }}</p>
-          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
-          <p v-else class="text-white text-3xl font-bold">{{ formatNumber(stats.total_customers) }}</p>
-        </div>
-      </div>
-
-      <!-- Revenue Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <p class="text-blue-100 text-sm font-medium mb-1">{{ t('dashboard.revenue_30d') }}</p>
-          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
-          <p v-else class="text-white text-3xl font-bold">{{ formatCurrency(stats.total_revenue) }}</p>
-        </div>
-      </div>
-
-      <!-- Conversion Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-          </div>
-          <p class="text-orange-100 text-sm font-medium mb-1">{{ t('dashboard.conversion') }}</p>
-          <p v-if="isLoading" class="text-white text-3xl font-bold animate-pulse">---</p>
-          <p v-else class="text-white text-3xl font-bold">{{ stats.conversion_rate }}%</p>
+    <!-- Welcome Section -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ t('dashboard.welcome') }}, {{ $page.props.auth?.user?.name }}!
+          </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <BuildingOfficeIcon class="w-4 h-4" />
+            <span class="font-medium text-gray-700 dark:text-gray-300">{{ currentBusiness?.name }}</span>
+            <span class="text-gray-300 dark:text-gray-600">|</span>
+            <span>{{ todayDate }}</span>
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-      <!-- CAC -->
-      <Card :title="t('dashboard.cac')">
-        <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ formatCurrency(kpis.cac) }}</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.cac_desc') }}</p>
-          <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            <span class="font-medium">{{ t('dashboard.benchmark') }}:</span> {{ t('dashboard.cac_benchmark') }}
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <!-- Leads -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+            <UsersIcon class="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.total_leads') }}</span>
         </div>
-      </Card>
+        <p v-if="isLoading" class="text-2xl font-bold text-gray-900 dark:text-gray-100 animate-pulse">---</p>
+        <p v-else class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(stats.total_leads) }}</p>
+      </div>
 
-      <!-- CLV -->
-      <Card :title="t('dashboard.clv')">
-        <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ formatCurrency(kpis.clv) }}</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.clv_desc') }}</p>
-          <div class="mt-3 flex items-center">
-            <span class="text-xs font-medium mr-2 text-gray-600 dark:text-gray-400">LTV/CAC Ratio:</span>
-            <span
-              class="px-2 py-1 rounded text-xs font-medium"
-              :class="{
-                'bg-blue-100 text-blue-700': ltvCacBenchmark.color === 'blue',
-                'bg-green-100 text-green-700': ltvCacBenchmark.color === 'green',
-                'bg-yellow-100 text-yellow-700': ltvCacBenchmark.color === 'yellow',
-                'bg-red-100 text-red-700': ltvCacBenchmark.color === 'red',
-              }"
-            >
-              {{ kpis.ltv_cac_ratio }}x - {{ ltvCacBenchmark.label }}
-            </span>
+      <!-- Customers -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+            <UserIcon class="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.customers') }}</span>
         </div>
-      </Card>
+        <p v-if="isLoading" class="text-2xl font-bold text-gray-900 dark:text-gray-100 animate-pulse">---</p>
+        <p v-else class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(stats.total_customers) }}</p>
+      </div>
 
-      <!-- ROAS -->
-      <Card :title="t('dashboard.roas')">
-        <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.roas }}x</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.roas_desc') }}</p>
-          <div class="mt-3 flex items-center">
-            <span
-              class="px-2 py-1 rounded text-xs font-medium"
-              :class="{
-                'bg-blue-100 text-blue-700': roasBenchmark.color === 'blue',
-                'bg-green-100 text-green-700': roasBenchmark.color === 'green',
-                'bg-yellow-100 text-yellow-700': roasBenchmark.color === 'yellow',
-                'bg-orange-100 text-orange-700': roasBenchmark.color === 'orange',
-                'bg-red-100 text-red-700': roasBenchmark.color === 'red',
-              }"
-            >
-              {{ roasBenchmark.label }}
-            </span>
+      <!-- Revenue -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+            <BanknotesIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.revenue_30d') }}</span>
         </div>
-      </Card>
+        <p v-if="isLoading" class="text-2xl font-bold text-gray-900 dark:text-gray-100 animate-pulse">---</p>
+        <p v-else class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(stats.total_revenue) }}</p>
+      </div>
 
-      <!-- ROI -->
-      <Card :title="t('dashboard.roi')">
-        <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.roi }}%</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.roi_desc') }}</p>
-          <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            <span class="font-medium">Target:</span>
-            <span :class="kpis.roi >= 100 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-              {{ kpis.roi >= 100 ? '✓' : '✗' }} > 100%
-            </span>
+      <!-- Conversion -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+            <ChartBarIcon class="w-5 h-5 text-orange-600 dark:text-orange-400" />
           </div>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.conversion') }}</span>
         </div>
-      </Card>
-
-      <!-- Churn Rate -->
-      <Card :title="t('dashboard.churn_rate')">
-        <div class="flex flex-col">
-          <div class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ kpis.churn_rate }}%</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('dashboard.churn_desc') }}</p>
-          <div class="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            <span class="font-medium">{{ t('dashboard.benchmark') }}:</span>
-            <span :class="kpis.churn_rate < 5 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-              {{ kpis.churn_rate < 5 ? '✓ ' + t('dashboard.good') : '✗ ' + t('dashboard.high') }} (&lt; 5%)
-            </span>
-          </div>
-        </div>
-      </Card>
-
-      <!-- Module Stats -->
-      <Card :title="t('dashboard.module_stats')">
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.ideal_customers') }}:</span>
-            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.dream_buyers }}</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.marketing_channels') }}:</span>
-            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.marketing_channels }}</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.active_offers') }}:</span>
-            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.active_offers }}</span>
-          </div>
-        </div>
-      </Card>
+        <p v-if="isLoading" class="text-2xl font-bold text-gray-900 dark:text-gray-100 animate-pulse">---</p>
+        <p v-else class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.conversion_rate }}%</p>
+      </div>
     </div>
 
-    <!-- Sales Trend Chart -->
-    <Card :title="t('dashboard.sales_trend')">
+    <!-- Quick Actions -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t('dashboard.quick_actions') }}</h3>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Link
+          v-for="action in quickActions"
+          :key="action.href"
+          :href="action.href"
+          class="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all text-center group"
+        >
+          <div :class="action.bgClass" class="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <component :is="action.icon" :class="action.iconClass" class="w-5 h-5" />
+          </div>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ action.label }}</span>
+        </Link>
+      </div>
+    </div>
+
+    <!-- Two Column Layout: Activity + Business Status -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+      <!-- Left: Recent Activity -->
+      <div class="lg:col-span-2">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t('dashboard.recent_activity') }}</h3>
+          </div>
+          <div class="p-5">
+            <div v-if="recentActivities.length > 0" class="space-y-4">
+              <div
+                v-for="activity in recentActivities"
+                :key="activity.id"
+                class="flex items-start gap-3"
+              >
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                     :class="getActivityColor(activity.type)">
+                  <component :is="getActivityIcon(activity.type)" class="w-4 h-4" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-gray-900 dark:text-gray-100">{{ activity.description }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ activity.user_name }} &middot; {{ activity.created_at }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-8">
+              <ClockIcon class="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+              <p class="text-sm text-gray-400 dark:text-gray-500">{{ t('dashboard.no_activity') }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Business Status -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- Module Stats -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t('dashboard.business_status') }}</h3>
+          </div>
+          <div class="p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UserGroupIcon class="w-4 h-4 text-purple-500" />
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.ideal_customers') }}</span>
+              </div>
+              <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.dream_buyers }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <MegaphoneIcon class="w-4 h-4 text-blue-500" />
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.marketing_channels') }}</span>
+              </div>
+              <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.marketing_channels }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <TagIcon class="w-4 h-4 text-green-500" />
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('dashboard.active_offers') }}</span>
+              </div>
+              <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ moduleStats.active_offers }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscription Widget (hidden during trial — TrialBanner handles it) -->
+        <SubscriptionWidget v-if="!isTrial" :subscription-status="subscriptionStatus" />
+      </div>
+    </div>
+
+    <!-- Sales Trend -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t('dashboard.sales_trend') }}</h3>
+      </div>
       <div v-if="salesTrend?.length > 0" class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.date') }}</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.sales') }}</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.revenue') }}</th>
+        <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-gray-700/50">
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.date') }}</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.sales') }}</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('dashboard.revenue') }}</th>
             </tr>
           </thead>
-          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="item in salesTrend" :key="item.date">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ formatDate(item.date) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ item.count }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ formatCurrency(item.revenue) }}</td>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+            <tr v-for="item in salesTrend" :key="item.date" class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+              <td class="px-5 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ formatDate(item.date) }}</td>
+              <td class="px-5 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ item.count }}</td>
+              <td class="px-5 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ formatCurrency(item.revenue) }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-else class="text-center py-12 text-gray-400">
-        <svg class="w-12 h-12 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <p>{{ t('dashboard.no_sales') }}</p>
+      <div v-else class="text-center py-10">
+        <ChartBarIcon class="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+        <p class="text-sm text-gray-400 dark:text-gray-500">{{ t('dashboard.no_sales') }}</p>
       </div>
-    </Card>
+    </div>
+
   </BusinessLayout>
 </template>
 
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import Card from '@/components/Card.vue';
-import TrialBanner from '@/components/Dashboard/TrialBanner.vue';
-import TelegramConnectBanner from '@/components/Dashboard/TelegramConnectBanner.vue';
 import SubscriptionWidget from '@/components/Dashboard/SubscriptionWidget.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
 import { formatNumber, formatFullCurrency, formatDateFull } from '@/utils/formatting';
+import {
+  UsersIcon,
+  UserIcon,
+  UserGroupIcon,
+  BanknotesIcon,
+  ChartBarIcon,
+  MegaphoneIcon,
+  CalendarIcon,
+  PresentationChartLineIcon,
+  CogIcon,
+  TagIcon,
+  ClockIcon,
+  BuildingOfficeIcon,
+  DocumentPlusIcon,
+  BoltIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+} from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
 
@@ -281,50 +241,102 @@ const props = defineProps({
 const isLoading = ref(false);
 const loadedData = ref({
   stats: null,
-  kpis: null,
-  roasBenchmark: null,
-  ltvCacBenchmark: null,
   salesTrend: null,
-  moduleStats: null,
-  revenueForecast: null,
-  aiInsights: null,
-  recentActivities: null,
 });
 
-// Default values for benchmarks and objects
-const defaultRoasBenchmark = { color: 'blue', label: 'Yuklanmoqda...' };
-const defaultLtvCacBenchmark = { color: 'blue', label: 'Yuklanmoqda...' };
-const defaultKpis = {
-  cac: 0,
-  clv: 0,
-  ltv_cac_ratio: 0,
-  roas: 0,
-  roi: 0,
-  payback_period: 0,
-  churn_rate: 0,
-  nps: 0,
-  mrr: 0,
-  arr: 0,
-};
+// Default values
 const defaultModuleStats = {
   dream_buyers: 0,
   marketing_channels: 0,
   active_offers: 0,
 };
 
-// Computed properties - use loaded data or props with defaults
-// Trial holatida SubscriptionWidget yashiriladi (TrialBanner allaqachon ko'rsatadi)
+// Computed properties
 const isTrial = computed(() => props.subscriptionStatus?.is_trial === true);
 
 const stats = computed(() => loadedData.value.stats || props.stats || { total_leads: 0, total_customers: 0, total_revenue: 0, conversion_rate: 0 });
-const kpis = computed(() => loadedData.value.kpis || props.kpis || defaultKpis);
-const roasBenchmark = computed(() => loadedData.value.roasBenchmark || props.roasBenchmark || defaultRoasBenchmark);
-const ltvCacBenchmark = computed(() => loadedData.value.ltvCacBenchmark || props.ltvCacBenchmark || defaultLtvCacBenchmark);
 const salesTrend = computed(() => loadedData.value.salesTrend || props.salesTrend || []);
-const moduleStats = computed(() => loadedData.value.moduleStats || props.moduleStats || defaultModuleStats);
-const revenueForecast = computed(() => loadedData.value.revenueForecast || props.revenueForecast || []);
-const aiInsights = computed(() => loadedData.value.aiInsights || props.aiInsights || []);
-const recentActivities = computed(() => loadedData.value.recentActivities || props.recentActivities || []);
+const moduleStats = computed(() => props.moduleStats || defaultModuleStats);
+const recentActivities = computed(() => props.recentActivities || []);
+const subscriptionStatus = computed(() => props.subscriptionStatus);
+
+// Today's date formatted
+const todayDate = computed(() => {
+  const now = new Date();
+  return now.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' });
+});
+
+// Quick actions
+const quickActions = computed(() => [
+  {
+    href: '/business/sales',
+    label: t('dashboard.go_to_leads'),
+    icon: PresentationChartLineIcon,
+    bgClass: 'bg-purple-100 dark:bg-purple-900/30',
+    iconClass: 'text-purple-600 dark:text-purple-400',
+  },
+  {
+    href: '/business/marketing',
+    label: t('dashboard.go_to_marketing'),
+    icon: MegaphoneIcon,
+    bgClass: 'bg-blue-100 dark:bg-blue-900/30',
+    iconClass: 'text-blue-600 dark:text-blue-400',
+  },
+  {
+    href: '/business/marketing/content',
+    label: t('dashboard.go_to_content'),
+    icon: CalendarIcon,
+    bgClass: 'bg-green-100 dark:bg-green-900/30',
+    iconClass: 'text-green-600 dark:text-green-400',
+  },
+  {
+    href: '/business/analytics',
+    label: t('dashboard.go_to_analytics'),
+    icon: ChartBarIcon,
+    bgClass: 'bg-orange-100 dark:bg-orange-900/30',
+    iconClass: 'text-orange-600 dark:text-orange-400',
+  },
+  {
+    href: '/business/kpi',
+    label: t('dashboard.go_to_kpi'),
+    icon: BoltIcon,
+    bgClass: 'bg-red-100 dark:bg-red-900/30',
+    iconClass: 'text-red-600 dark:text-red-400',
+  },
+  {
+    href: '/business/settings',
+    label: t('dashboard.go_to_settings'),
+    icon: CogIcon,
+    bgClass: 'bg-gray-100 dark:bg-gray-700',
+    iconClass: 'text-gray-600 dark:text-gray-400',
+  },
+]);
+
+// Activity type icon mapping
+const getActivityIcon = (type) => {
+  const map = {
+    lead_created: DocumentPlusIcon,
+    lead_updated: UsersIcon,
+    lead_won: CheckCircleIcon,
+    lead_lost: ExclamationCircleIcon,
+    offer_created: TagIcon,
+    task_completed: CheckCircleIcon,
+  };
+  return map[type] || BoltIcon;
+};
+
+// Activity type color mapping
+const getActivityColor = (type) => {
+  const map = {
+    lead_created: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    lead_updated: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+    lead_won: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+    lead_lost: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+    offer_created: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+    task_completed: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+  };
+  return map[type] || 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400';
+};
 
 // Fetch data lazily after component mounts
 const fetchDashboardData = async () => {
@@ -336,14 +348,7 @@ const fetchDashboardData = async () => {
     if (response.data) {
       loadedData.value = {
         stats: response.data.stats,
-        kpis: response.data.kpis,
-        roasBenchmark: response.data.roasBenchmark,
-        ltvCacBenchmark: response.data.ltvCacBenchmark,
         salesTrend: response.data.salesTrend,
-        moduleStats: response.data.moduleStats,
-        revenueForecast: response.data.revenueForecast,
-        aiInsights: response.data.aiInsights,
-        recentActivities: response.data.recentActivities,
       };
     }
   } catch (error) {
@@ -359,13 +364,13 @@ onMounted(() => {
   }
 });
 
-// formatCurrency funksiyasi valyuta bilan
+// formatCurrency
 const formatCurrency = (value) => {
   if (!value) return '0 ' + t('common.currency');
   return formatFullCurrency(value, t('common.currency'));
 };
 
-// formatDate - to'liq sana formati
+// formatDate
 const formatDate = (dateString) => {
   return formatDateFull(dateString);
 };

@@ -59,7 +59,7 @@ class CheckSubscription
 
         // Trial tugash ogohlantirishi (3 kun qolganida)
         if ($subscription->status === 'trialing' && $subscription->trial_ends_at) {
-            $daysRemaining = now()->diffInDays($subscription->trial_ends_at, false);
+            $daysRemaining = (int) ceil(now()->floatDiffInDays($subscription->trial_ends_at, false));
             if ($daysRemaining <= 3 && $daysRemaining >= 0) {
                 $request->headers->set('X-Trial-Warning', "Trial {$daysRemaining} kunda tugaydi");
             }

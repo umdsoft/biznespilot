@@ -2,6 +2,49 @@
   <BusinessLayout title="Tarif va To'lov">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
+      <!-- Welcome Banner (for new businesses with trial) -->
+      <div
+        v-if="$page.props.flash?.success && currentSubscription.is_trial"
+        class="mb-6 mx-auto max-w-2xl p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+      >
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">
+              Tabriklaymiz! 14 kunlik bepul sinov davri berildi.
+            </h3>
+            <p class="mt-1 text-sm text-green-700 dark:text-green-400">
+              Barcha imkoniyatlarni sinab ko'ring. Hoziroq tarif tanlasangiz ham yoki sinov davri tugagach ham to'lashingiz mumkin.
+            </p>
+            <Link
+              href="/business"
+              class="inline-flex items-center mt-2 text-sm font-medium text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100"
+            >
+              Bosh sahifaga o'tish &rarr;
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expired Subscription Warning -->
+      <div
+        v-if="!currentSubscription.has_subscription"
+        class="mb-6 mx-auto max-w-2xl p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+      >
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <p class="text-sm font-medium text-red-800 dark:text-red-300">
+            Sinov davri tugadi. Platformadan foydalanish uchun tariflardan birini tanlang.
+          </p>
+        </div>
+      </div>
+
       <!-- Header -->
       <div class="text-center mb-8">
         <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
@@ -277,7 +320,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 
 const props = defineProps({

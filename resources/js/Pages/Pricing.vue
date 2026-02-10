@@ -14,7 +14,7 @@
             <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white">S</div>
             <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white">M</div>
           </div>
-          <span class="text-sm font-medium text-gray-700">500+ kompaniya bizga ishonadi</span>
+          <span class="text-sm font-medium text-gray-700">{{ t.hero.social_proof }}</span>
           <div class="flex items-center text-amber-500">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             <span class="text-sm font-bold ml-1">4.9</span>
@@ -22,12 +22,12 @@
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
-          Biznesingiz uchun <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">to'g'ri tarif</span>ni tanlang
+          {{ t.hero.title_before }}<span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">{{ t.hero.title_highlight }}</span>{{ t.hero.title_after }}
         </h1>
 
         <p class="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Yashirin to'lovlar yo'q. Istalgan vaqt bekor qilish mumkin.
-          <span class="text-blue-600 font-semibold">14 kun bepul sinab ko'ring!</span>
+          {{ t.hero.subtitle }}
+          <span class="text-blue-600 font-semibold">{{ t.hero.subtitle_highlight }}</span>
         </p>
 
         <!-- Billing Toggle -->
@@ -37,14 +37,14 @@
             class="relative px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-300"
             :class="!isYearly ? 'bg-white text-gray-900 shadow-lg' : 'text-gray-500 hover:text-gray-700'"
           >
-            Oylik to'lov
+            {{ t.hero.billing_monthly }}
           </button>
           <button
             @click="isYearly = true"
             class="relative px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-2"
             :class="isYearly ? 'bg-white text-gray-900 shadow-lg' : 'text-gray-500 hover:text-gray-700'"
           >
-            Yillik to'lov
+            {{ t.hero.billing_yearly }}
             <span class="px-2 py-0.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
               -20%
             </span>
@@ -56,11 +56,11 @@
           <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
           </svg>
-          <span>Karta talab qilinmaydi</span>
+          <span>{{ t.hero.badge_no_card }}</span>
           <span class="text-gray-300">|</span>
-          <span>30 kunlik kafolat</span>
+          <span>{{ t.hero.badge_guarantee }}</span>
           <span class="text-gray-300">|</span>
-          <span>24/7 yordam</span>
+          <span>{{ t.hero.badge_support }}</span>
         </div>
       </div>
     </section>
@@ -70,7 +70,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5 items-start">
 
-          <!-- ============ PLAN 1: START (Anchor - arzon lekin cheklangan) ============ -->
+          <!-- ============ PLAN 1: START (Anchor) ============ -->
           <div class="relative group">
             <div class="h-full bg-white rounded-3xl border-2 border-gray-100 p-6 lg:p-8 transition-all duration-300 hover:border-gray-200 hover:shadow-lg flex flex-col opacity-90">
               <div class="flex items-center gap-3 mb-6">
@@ -80,17 +80,17 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-gray-900">Start</h3>
-                  <p class="text-sm text-gray-400">Sinab ko'rish uchun</p>
+                  <h3 class="text-xl font-bold text-gray-900">{{ t.plans.start.name }}</h3>
+                  <p class="text-sm text-gray-400">{{ t.plans.start.description }}</p>
                 </div>
               </div>
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
                   <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(299000)) }}</span>
-                  <span class="text-sm text-gray-400 font-medium">so'm/oy</span>
+                  <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
-                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">Yillik: {{ formatPrice(getPrice(299000) * 12) }} so'm</p>
+                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(getPrice(299000) * 12) }} {{ t.price.yearly_suffix }}</p>
               </div>
 
               <ul class="space-y-3 mb-8 flex-1">
@@ -106,17 +106,17 @@
               <div class="mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
                 <p class="text-xs text-amber-700 font-medium text-center">
                   <svg class="w-3.5 h-3.5 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                  Faqat 2 xodim va 1 filial
+                  {{ t.plans.start.badge }}
                 </p>
               </div>
 
               <button @click="selectPlan('start')" class="w-full py-3.5 px-6 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all text-sm">
-                Boshlash
+                {{ t.plans.start.button }}
               </button>
             </div>
           </div>
 
-          <!-- ============ PLAN 2: STANDARD (Decoy - Business'ga yaqin narx, kam imkoniyat) ============ -->
+          <!-- ============ PLAN 2: STANDARD (Decoy) ============ -->
           <div class="relative group">
             <div class="h-full bg-white rounded-3xl border-2 border-gray-100 p-6 lg:p-8 transition-all duration-300 hover:border-emerald-200 hover:shadow-lg flex flex-col">
               <div class="flex items-center gap-3 mb-6">
@@ -126,17 +126,17 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-gray-900">Standard</h3>
-                  <p class="text-sm text-gray-500">O'sish uchun</p>
+                  <h3 class="text-xl font-bold text-gray-900">{{ t.plans.standard.name }}</h3>
+                  <p class="text-sm text-gray-500">{{ t.plans.standard.description }}</p>
                 </div>
               </div>
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
                   <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(599000)) }}</span>
-                  <span class="text-sm text-gray-400 font-medium">so'm/oy</span>
+                  <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
-                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">Yillik: {{ formatPrice(getPrice(599000) * 12) }} so'm</p>
+                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(getPrice(599000) * 12) }} {{ t.price.yearly_suffix }}</p>
               </div>
 
               <ul class="space-y-3 mb-8 flex-1">
@@ -148,21 +148,21 @@
                 </li>
               </ul>
 
-              <!-- Decoy hint - shows Business is better value -->
+              <!-- Decoy hint -->
               <div class="mb-4 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl">
                 <p class="text-xs text-blue-600 font-medium text-center">
-                  +200,000 so'm'ga 2x ko'p imkoniyat
+                  {{ t.plans.standard.decoy_hint }}
                   <svg class="w-3.5 h-3.5 inline ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                 </p>
               </div>
 
               <button @click="selectPlan('standard')" class="w-full py-3.5 px-6 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all text-sm">
-                Tanlash
+                {{ t.plans.standard.button }}
               </button>
             </div>
           </div>
 
-          <!-- ============ PLAN 3: BUSINESS (The HERO - 10% kattaroq, glow, pulsating CTA) ============ -->
+          <!-- ============ PLAN 3: BUSINESS (The HERO) ============ -->
           <div class="relative group xl:-mt-6 xl:mb-6">
             <!-- Animated glow effect -->
             <div class="absolute -inset-1 bg-gradient-to-b from-purple-500 via-violet-500 to-indigo-600 rounded-[28px] opacity-100 blur-[2px] animate-glow"></div>
@@ -172,7 +172,7 @@
               <div class="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
                 <span class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white text-sm font-extrabold rounded-full shadow-xl shadow-purple-500/40 animate-badge-pulse">
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"/></svg>
-                  ENG XARIDORGIR
+                  {{ t.plans.business.popular_badge }}
                 </span>
               </div>
 
@@ -183,26 +183,26 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-2xl font-extrabold text-gray-900">Business</h3>
-                  <p class="text-sm text-purple-600 font-medium">Eng ko'p tanlanadi</p>
+                  <h3 class="text-2xl font-extrabold text-gray-900">{{ t.plans.business.name }}</h3>
+                  <p class="text-sm text-purple-600 font-medium">{{ t.plans.business.description }}</p>
                 </div>
               </div>
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
                   <span class="text-4xl lg:text-5xl font-black text-gray-900">{{ formatPrice(getPrice(799000)) }}</span>
-                  <span class="text-sm text-gray-400 font-medium">so'm/oy</span>
+                  <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
                 <p v-if="isYearly" class="text-sm text-green-600 font-semibold mt-1">
                   <svg class="w-4 h-4 inline mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                  Yillik: {{ formatPrice(getPrice(799000) * 12) }} so'm — 1,918,000 tejaysiz!
+                  {{ t.price.yearly_label }} {{ formatPrice(getPrice(799000) * 12) }} {{ t.price.yearly_suffix }} — 1,918,000 {{ t.price.yearly_savings }}
                 </p>
-                <p v-else class="text-sm text-purple-600 font-semibold mt-1">Kuniga atigi {{ formatPrice(Math.round(799000 / 30)) }} so'm</p>
+                <p v-else class="text-sm text-purple-600 font-semibold mt-1">{{ t.price.per_day }} {{ formatPrice(Math.round(799000 / 30)) }} {{ t.price.yearly_suffix }}</p>
 
                 <!-- Value anchor: per employee -->
                 <div class="mt-3 px-3 py-2 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100">
                   <p class="text-xs text-purple-700 font-medium">
-                    Har bir xodim uchun faqat <span class="font-bold text-purple-900">{{ formatPrice(Math.round(getPrice(799000) / 10)) }} so'm/oy</span>
+                    {{ t.price.per_employee }} <span class="font-bold text-purple-900">{{ formatPrice(Math.round(getPrice(799000) / 10)) }} {{ t.price.per_month }}</span>
                   </p>
                 </div>
               </div>
@@ -218,14 +218,14 @@
 
               <!-- Pulsating CTA -->
               <button @click="selectPlan('business')" class="w-full py-4.5 px-6 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white font-extrabold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 hover:-translate-y-0.5 active:scale-[0.98] text-lg animate-cta-pulse">
-                14 Kun BEPUL Boshlash
+                {{ t.plans.business.button }}
                 <svg class="w-5 h-5 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
               </button>
-              <p class="text-center text-xs text-gray-400 mt-3">Karta talab qilinmaydi. Xavfsiz.</p>
+              <p class="text-center text-xs text-gray-400 mt-3">{{ t.plans.business.card_note }}</p>
             </div>
           </div>
 
-          <!-- ============ PLAN 4: PREMIUM (Ceiling - Business'ni arzon ko'rsatadi) ============ -->
+          <!-- ============ PLAN 4: PREMIUM (Ceiling) ============ -->
           <div class="relative group">
             <div class="absolute -inset-[2px] bg-gradient-to-b from-amber-400 via-orange-500 to-amber-500 rounded-[26px] opacity-100"></div>
 
@@ -234,7 +234,7 @@
               <div class="absolute -top-4 left-1/2 -translate-x-1/2">
                 <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg shadow-amber-500/30">
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd" /></svg>
-                  VIP PREMIUM
+                  {{ t.plans.premium.vip_badge }}
                 </span>
               </div>
 
@@ -245,18 +245,18 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-gray-900">Premium</h3>
-                  <p class="text-sm text-amber-600 font-medium">Katta jamoalar uchun</p>
+                  <h3 class="text-xl font-bold text-gray-900">{{ t.plans.premium.name }}</h3>
+                  <p class="text-sm text-amber-600 font-medium">{{ t.plans.premium.description }}</p>
                 </div>
               </div>
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
                   <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(1499000)) }}</span>
-                  <span class="text-sm text-gray-400 font-medium">so'm/oy</span>
+                  <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
-                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">Yillik: {{ formatPrice(getPrice(1499000) * 12) }} so'm</p>
-                <p v-else class="text-sm text-amber-600 font-medium mt-1">Maxsus yechim kerakmi?</p>
+                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(getPrice(1499000) * 12) }} {{ t.price.yearly_suffix }}</p>
+                <p v-else class="text-sm text-amber-600 font-medium mt-1">{{ t.plans.premium.custom_hint }}</p>
               </div>
 
               <ul class="space-y-3 mb-8 flex-1">
@@ -269,10 +269,10 @@
               </ul>
 
               <button @click="selectPlan('premium')" class="w-full py-3.5 px-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/25 hover:shadow-xl text-sm">
-                Premium olish
+                {{ t.plans.premium.button }}
               </button>
               <a href="https://t.me/biznespilot_support" target="_blank" class="mt-3 text-center text-xs text-amber-600 hover:text-amber-700 font-medium transition-colors block">
-                yoki konsultatsiya olish
+                {{ t.plans.premium.consult_link }}
               </a>
             </div>
           </div>
@@ -286,19 +286,19 @@
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-gray-300"></div>
-            <span class="text-gray-500">Start: 2 xodim</span>
+            <span class="text-gray-500">{{ t.comparison_strip.start }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-            <span class="text-gray-600">Standard: 5 xodim</span>
+            <span class="text-gray-600">{{ t.comparison_strip.standard }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-violet-500 ring-2 ring-purple-300"></div>
-            <span class="text-purple-700 font-bold">Business: 10 xodim + HR Bot</span>
+            <span class="text-purple-700 font-bold">{{ t.comparison_strip.business }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-            <span class="text-gray-600">Premium: 15 xodim + Anti-Fraud</span>
+            <span class="text-gray-600">{{ t.comparison_strip.premium }}</span>
           </div>
         </div>
       </div>
@@ -323,25 +323,24 @@
 
             <div class="text-center lg:text-left">
               <h3 class="text-2xl lg:text-3xl font-extrabold text-gray-900 mb-3">
-                30 Kunlik Pulni Qaytarish Kafolati
+                {{ t.guarantee.title }}
               </h3>
               <p class="text-gray-600 text-lg leading-relaxed mb-6">
-                Agar BiznesPilot sizga mos kelmasa — <span class="font-bold text-green-700">30 kun ichida to'liq pulni qaytaramiz</span>.
-                Hech qanday savol yo'q, hech qanday murakkablik yo'q. Shunchaki Telegram orqali yozing — xolos.
+                {{ t.guarantee.text_before }}<span class="font-bold text-green-700">{{ t.guarantee.text_bold }}</span>{{ t.guarantee.text_after }}
               </p>
 
               <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                 <div class="flex items-center gap-2 text-sm text-gray-600">
                   <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                  Shart-sharoitsiz
+                  {{ t.guarantee.badge_no_conditions }}
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-600">
                   <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                  24 soat ichida qaytarish
+                  {{ t.guarantee.badge_24h }}
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-600">
                   <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                  Telegram orqali ariza
+                  {{ t.guarantee.badge_telegram }}
                 </div>
               </div>
             </div>
@@ -354,9 +353,9 @@
     <section class="py-16 lg:py-20 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold mb-4">Batafsil taqqoslash</span>
-          <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Barcha imkoniyatlarni solishtiring</h2>
-          <p class="text-lg text-gray-600">Har bir tarifda nimalar bor — batafsil jadval</p>
+          <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold mb-4">{{ t.comparison.badge }}</span>
+          <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{{ t.comparison.title }}</h2>
+          <p class="text-lg text-gray-600">{{ t.comparison.subtitle }}</p>
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
@@ -367,7 +366,7 @@
         <div class="mt-8 text-center">
           <button @click="selectPlan('business')" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-violet-700 transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98]">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"/></svg>
-            Business tarifini 14 kun BEPUL sinash
+            {{ t.comparison.cta_button }}
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
           </button>
         </div>
@@ -378,8 +377,8 @@
     <section class="py-16 lg:py-20 bg-white">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <span class="inline-block px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-4">Muvaffaqiyatli mijozlar</span>
-          <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Ular nima uchun Business tarifini tanladi?</h2>
+          <span class="inline-block px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-4">{{ t.testimonials.badge }}</span>
+          <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{{ t.testimonials.title }}</h2>
         </div>
 
         <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
@@ -397,7 +396,7 @@
             </div>
             <div class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-semibold">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              Business tarifi foydalanuvchisi
+              {{ t.testimonials.user_badge }}
             </div>
           </div>
         </div>
@@ -408,8 +407,8 @@
     <section class="py-16 lg:py-20 bg-gray-50" id="faq">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <span class="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold mb-4">Savollar</span>
-          <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Ko'p so'raladigan savollar</h2>
+          <span class="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold mb-4">{{ t.faq.badge }}</span>
+          <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{{ t.faq.title }}</h2>
         </div>
 
         <div class="space-y-4">
@@ -438,21 +437,21 @@
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-8">
           <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-          <span class="text-white/90 text-sm font-medium">Hozir 500+ kompaniya foydalanmoqda</span>
+          <span class="text-white/90 text-sm font-medium">{{ t.cta.live_badge }}</span>
         </div>
 
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-          Hali ham ikkilanayapsizmi?
+          {{ t.cta.title }}
           <br class="hidden sm:block" />
-          <span class="text-purple-200">14 kun bepul sinab ko'ring</span>
+          <span class="text-purple-200">{{ t.cta.title_highlight }}</span>
         </h2>
         <p class="text-xl text-purple-200 mb-10 max-w-2xl mx-auto">
-          Karta talab qilinmaydi. Xavf yo'q. 30 kunlik pulni qaytarish kafolati.
+          {{ t.cta.subtitle }}
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button @click="selectPlan('business')" class="inline-flex items-center px-10 py-5 bg-white text-purple-700 text-lg font-extrabold rounded-xl hover:bg-purple-50 transition-all shadow-2xl shadow-black/20 hover:shadow-3xl transform hover:-translate-y-1 active:scale-[0.98]">
-            <span>Business tarifini boshlash</span>
+            <span>{{ t.cta.button_primary }}</span>
             <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -461,7 +460,7 @@
             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
               <path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
             </svg>
-            Konsultatsiya olish
+            {{ t.cta.button_secondary }}
           </a>
         </div>
 
@@ -471,20 +470,20 @@
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
             </svg>
-            <span>30 kunlik kafolat</span>
+            <span>{{ t.cta.trust_guarantee }}</span>
           </div>
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
               <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
             </svg>
-            <span>Click & Payme</span>
+            <span>{{ t.cta.trust_payment }}</span>
           </div>
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
             </svg>
-            <span>24/7 yordam</span>
+            <span>{{ t.cta.trust_support }}</span>
           </div>
         </div>
       </div>
@@ -494,10 +493,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import LandingLayout from '@/layouts/LandingLayout.vue';
 import ComparisonTable from '@/components/pricing/ComparisonTable.vue';
+import { useLandingLocale } from '@/i18n/landing/locale';
+import translations from '@/i18n/landing/pricing';
+
+const { locale, t } = useLandingLocale(translations);
 
 const isYearly = ref(true); // Default to yearly (better for conversions)
 const openFaq = ref(null);
@@ -524,106 +527,29 @@ const plans = [
   { id: 'premium', name: 'Premium', monthlyPrice: 1499000 }
 ];
 
-// Feature lists per plan — designed for psychology
-const startFeatures = [
-  '2 ta xodim',
-  '1 ta filial',
-  'Instagram + Telegram bot',
-  '500 ta lid/oy',
-  '60 daqiqa Call Center AI',
-  'Asosiy CRM',
-];
+// Feature lists per plan — computed from translations
+const startFeatures = computed(() => t.value.features.start);
+const standardFeatures = computed(() => t.value.features.standard);
+const businessFeatures = computed(() => t.value.features.business);
+const premiumFeatures = computed(() => t.value.features.premium);
 
-const standardFeatures = [
-  '5 ta xodim',
-  '1 ta filial',
-  'Flow Builder (Vizual)',
-  '2,000 ta lid/oy',
-  '150 daqiqa Call Center AI',
-  'HR vazifalar',
-];
+// Testimonials - Business plan focused (computed from translations)
+const testimonials = computed(() => {
+  const bgClasses = [
+    'bg-gradient-to-br from-purple-500 to-pink-500',
+    'bg-gradient-to-br from-blue-500 to-indigo-500',
+    'bg-gradient-to-br from-emerald-500 to-teal-500',
+  ];
+  const initials = ['JR', 'AS', 'NK'];
+  return t.value.testimonials.items.map((item, i) => ({
+    ...item,
+    initials: initials[i],
+    bgClass: bgClasses[i],
+  }));
+});
 
-const businessFeatures = [
-  { text: '10 ta xodim', hot: false },
-  { text: '2 ta filial', hot: false },
-  { text: 'HR Bot + Marketing ROI', hot: true },
-  { text: '10,000 ta lid/oy', hot: true },
-  { text: '400 daqiqa Call Center AI', hot: false },
-  { text: 'Flow Builder (Vizual)', hot: false },
-  { text: '3 ta Instagram akkaunt', hot: true },
-  { text: '8 soat ichida javob', hot: false },
-];
-
-const premiumFeatures = [
-  '15 ta xodim',
-  '5 ta filial',
-  'AI Bot + Anti-Fraud SMS',
-  'Cheksiz lid',
-  '1,000 daqiqa Call Center AI',
-  'Shaxsiy menejer',
-  '10 ta Instagram akkaunt',
-  '2 soat ichida javob',
-];
-
-// Testimonials - Business plan focused
-const testimonials = [
-  {
-    text: 'Business tarifida HR Bot bilan yangi xodimlarni 50% tezroq topamiz. Vaqtimiz tejaldi, sifat oshdi!',
-    name: 'Jasur Rahimov',
-    role: 'HR Manager',
-    initials: 'JR',
-    bgClass: 'bg-gradient-to-br from-purple-500 to-pink-500',
-  },
-  {
-    text: 'Instagram so\'rovlarini 3x tezroq qayta ishlay boshladik. 10 ta xodim uchun Business tarifi eng ideal narx!',
-    name: 'Aziz Soliyev',
-    role: 'CEO',
-    initials: 'AS',
-    bgClass: 'bg-gradient-to-br from-blue-500 to-indigo-500',
-  },
-  {
-    text: 'Call Center AI juda foydali! 400 daqiqa har bir qo\'ng\'iroqni tahlil qilish uchun yetarli.',
-    name: 'Nodira Karimova',
-    role: 'Marketing Director',
-    initials: 'NK',
-    bgClass: 'bg-gradient-to-br from-emerald-500 to-teal-500',
-  },
-];
-
-const faqs = [
-  {
-    question: '14 kunlik bepul sinov davri qanday ishlaydi?',
-    answer: 'Ro\'yxatdan o\'tishingiz bilanoq 14 kun bepul sinov boshlanadi. Karta talab qilinmaydi. Sinov tugagach, davom etishni xohlasangiz to\'lovni amalga oshirasiz. Xohlamasangiz — hech narsa to\'lamaysiz.'
-  },
-  {
-    question: '30 kunlik pulni qaytarish kafolati haqiqatmi?',
-    answer: 'Ha, 100% haqiqat. To\'lovdan keyin 30 kun ichida tizim sizga mos kelmasa — Telegram orqali yozing va biz 24 soat ichida to\'liq pulni qaytaramiz. Hech qanday savol yo\'q.'
-  },
-  {
-    question: 'Tarif o\'zgartirsa bo\'ladimi?',
-    answer: 'Istalgan vaqt yuqoriroq tarifga o\'tishingiz mumkin. To\'langan summa proporsional hisoblanadi. Pastroq tarifga o\'tish esa keyingi to\'lov davridan boshlab amalga oshadi.'
-  },
-  {
-    question: 'To\'lov turlari qanday?',
-    answer: 'Click, Payme, bank o\'tkazmasi va naqd to\'lov qabul qilamiz. Korporativ mijozlar uchun shartnoma va schet-faktura tayyorlaymiz.'
-  },
-  {
-    question: 'Botni o\'zim sozlay olamanmi?',
-    answer: 'Ha, albatta! BiznesPilot\'da oddiy drag-and-drop Flow Builder mavjud. Hech qanday dasturlash bilimi talab qilinmaydi. Video qo\'llanmalar va Telegram support ham bor.'
-  },
-  {
-    question: 'Ma\'lumotlarim xavfsizmi?',
-    answer: 'Ha, biz SSL shifrlash, kunlik backup va serverlarimiz Yevropa data-centerlarida joylashgan. GDPR talablariga muvofiq ishlaymiz.'
-  },
-  {
-    question: 'Call Center AI daqiqalari tugasa nima bo\'ladi?',
-    answer: 'Daqiqalar tugagandan so\'ng, qo\'shimcha daqiqalar sotib olishingiz yoki keyingi oyga kutishingiz mumkin — limitlar avtomatik yangilanadi.'
-  },
-  {
-    question: 'Qaysi tarifni tanlashim kerak?',
-    answer: 'Ko\'pchilik mijozlarimiz Business tarifini tanlaydi — 10 ta xodim, HR Bot, Marketing ROI va 10,000 ta lid imkoniyati ko\'p bizneslar uchun ideal. Kichik jamoa bo\'lsa Start, katta jamoa uchun Premium tavsiya etamiz.'
-  }
-];
+// FAQ items (computed from translations)
+const faqs = computed(() => t.value.faq.items);
 
 const toggleFaq = (index) => {
   openFaq.value = openFaq.value === index ? null : index;

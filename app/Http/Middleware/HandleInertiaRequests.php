@@ -278,7 +278,7 @@ class HandleInertiaRequests extends Middleware
                     'status' => $subscription->status,
                     'ends_at' => $subscription->ends_at?->toISOString(),
                     'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
-                    'days_remaining' => (int) max(0, now()->diffInDays($effectiveEndDate, false)),
+                    'days_remaining' => (int) max(0, ceil(now()->floatDiffInDays($effectiveEndDate, false))),
                     'is_trial' => $subscription->status === 'trialing',
                 ];
 

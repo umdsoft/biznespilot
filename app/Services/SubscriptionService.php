@@ -774,7 +774,7 @@ class SubscriptionService
         $effectiveEndDate = ($subscription->status === 'trialing' && $subscription->trial_ends_at)
             ? $subscription->trial_ends_at
             : $subscription->ends_at;
-        $daysRemaining = (int) now()->diffInDays($effectiveEndDate, false);
+        $daysRemaining = (int) ceil(now()->floatDiffInDays($effectiveEndDate, false));
 
         return [
             'has_subscription' => true,

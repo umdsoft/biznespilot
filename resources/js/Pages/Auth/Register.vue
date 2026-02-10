@@ -130,7 +130,7 @@
             <!-- Login Field -->
             <div>
               <label for="login" class="block text-sm font-medium text-gray-700 mb-1">
-                {{ t('auth.login') }} <span class="text-red-500">*</span>
+                Login <span class="text-red-500">*</span>
               </label>
               <input
                 id="login"

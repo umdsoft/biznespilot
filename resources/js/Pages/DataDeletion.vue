@@ -1,6 +1,6 @@
 <template>
   <LandingLayout v-slot="{ urgencyBarVisible }">
-    <Head title="Ma'lumotlarni o'chirish — BiznesPilot" />
+    <Head :title="t.meta_title" />
 
     <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <!-- Hero Header -->
@@ -17,8 +17,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
             </svg>
           </div>
-          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Ma'lumotlarni o'chirish</h1>
-          <p class="text-slate-500 text-lg">Foydalanuvchi ma'lumotlarini o'chirish bo'yicha ko'rsatmalar</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">{{ t.page_title }}</h1>
+          <p class="text-slate-500 text-lg">{{ t.page_subtitle }}</p>
         </div>
       </section>
 
@@ -31,10 +31,10 @@
             <div>
               <div class="flex items-center mb-4">
                 <span class="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-lg font-bold text-sm mr-3">1</span>
-                <h2 class="text-xl font-bold text-slate-900">Umumiy ma'lumot</h2>
+                <h2 class="text-xl font-bold text-slate-900">{{ t.section1.title }}</h2>
               </div>
               <p class="text-slate-700 leading-relaxed">
-                BiznesPilot foydalanuvchilarning shaxsiy ma'lumotlarini himoya qilishga sodiq. Siz istalgan vaqtda o'z ma'lumotlaringizni o'chirishni so'rashingiz mumkin. Biz O'zbekiston Respublikasining "Shaxsiy ma'lumotlar to'g'risida"gi Qonuniga muvofiq ish olib boramiz.
+                {{ t.section1.text }}
               </p>
             </div>
 
@@ -42,27 +42,23 @@
             <div>
               <div class="flex items-center mb-4">
                 <span class="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-lg font-bold text-sm mr-3">2</span>
-                <h2 class="text-xl font-bold text-slate-900">Ma'lumotlarni o'chirish usullari</h2>
+                <h2 class="text-xl font-bold text-slate-900">{{ t.section2.title }}</h2>
               </div>
 
               <div class="space-y-6">
                 <!-- Usul 1 -->
                 <div class="bg-slate-50 rounded-2xl p-6">
-                  <h3 class="font-semibold text-slate-900 mb-3">2.1. Dastur orqali o'chirish</h3>
+                  <h3 class="font-semibold text-slate-900 mb-3">{{ t.section2.method1_title }}</h3>
                   <ol class="space-y-2 text-slate-700 list-decimal list-inside">
-                    <li>BiznesPilot hisobingizga kiring</li>
-                    <li><strong>Sozlamalar</strong> bo'limiga o'ting</li>
-                    <li><strong>"Hisobni o'chirish"</strong> tugmasini bosing</li>
-                    <li>Tasdiqlash uchun parolingizni kiriting</li>
-                    <li>Barcha ma'lumotlaringiz 30 kun ichida to'liq o'chiriladi</li>
+                    <li v-for="(step, i) in t.section2.method1_steps" :key="i">{{ step }}</li>
                   </ol>
                 </div>
 
                 <!-- Usul 2 -->
                 <div class="bg-slate-50 rounded-2xl p-6">
-                  <h3 class="font-semibold text-slate-900 mb-3">2.2. Email orqali so'rov yuborish</h3>
+                  <h3 class="font-semibold text-slate-900 mb-3">{{ t.section2.method2_title }}</h3>
                   <p class="text-slate-700 mb-3">
-                    Quyidagi email manziliga ma'lumotlarni o'chirish so'rovini yuboring:
+                    {{ t.section2.method2_text }}
                   </p>
                   <a href="mailto:support@biznespilot.uz" class="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 rounded-xl font-medium hover:bg-red-100 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +67,7 @@
                     support@biznespilot.uz
                   </a>
                   <p class="text-slate-600 text-sm mt-3">
-                    So'rovingizda ro'yxatdan o'tgan email manzilingiz va to'liq ismingizni ko'rsating.
+                    {{ t.section2.method2_note }}
                   </p>
                 </div>
               </div>
@@ -81,47 +77,17 @@
             <div>
               <div class="flex items-center mb-4">
                 <span class="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-lg font-bold text-sm mr-3">3</span>
-                <h2 class="text-xl font-bold text-slate-900">O'chiriladigan ma'lumotlar</h2>
+                <h2 class="text-xl font-bold text-slate-900">{{ t.section3.title }}</h2>
               </div>
               <p class="text-slate-700 leading-relaxed mb-4">
-                So'rov tasdiqlangandan so'ng quyidagi ma'lumotlar to'liq o'chiriladi:
+                {{ t.section3.intro }}
               </p>
               <ul class="space-y-3 text-slate-700">
-                <li class="flex items-start">
+                <li v-for="(item, i) in t.section3.items" :key="i" class="flex items-start">
                   <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                   </svg>
-                  <span>Shaxsiy ma'lumotlar (ism, email, telefon raqami)</span>
-                </li>
-                <li class="flex items-start">
-                  <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                  <span>Biznes ma'lumotlari va sozlamalari</span>
-                </li>
-                <li class="flex items-start">
-                  <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                  <span>Facebook/Instagram integratsiya tokenlari</span>
-                </li>
-                <li class="flex items-start">
-                  <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                  <span>Chat tarixi va chatbot sozlamalari</span>
-                </li>
-                <li class="flex items-start">
-                  <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                  <span>To'lov tarixi va tranzaksiya ma'lumotlari</span>
-                </li>
-                <li class="flex items-start">
-                  <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                  <span>Yuklangan fayllar va media kontentlar</span>
+                  <span>{{ item }}</span>
                 </li>
               </ul>
             </div>
@@ -130,7 +96,7 @@
             <div>
               <div class="flex items-center mb-4">
                 <span class="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-lg font-bold text-sm mr-3">4</span>
-                <h2 class="text-xl font-bold text-slate-900">O'chirish muddati</h2>
+                <h2 class="text-xl font-bold text-slate-900">{{ t.section4.title }}</h2>
               </div>
               <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6">
                 <div class="flex items-start">
@@ -138,11 +104,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
                   <div>
-                    <p class="text-slate-800 font-medium mb-2">So'rov qabul qilingandan so'ng:</p>
+                    <p class="text-slate-800 font-medium mb-2">{{ t.section4.intro }}</p>
                     <ul class="text-slate-700 space-y-1">
-                      <li>Ma'lumotlar <strong>30 kun</strong> ichida to'liq o'chiriladi</li>
-                      <li>Shu muddat ichida so'rovni bekor qilish imkoniyati mavjud</li>
-                      <li>O'chirish yakunlangandan so'ng ma'lumotlarni qayta tiklash imkonsiz</li>
+                      <li v-for="(item, i) in t.section4.items" :key="i">{{ item }}</li>
                     </ul>
                   </div>
                 </div>
@@ -153,18 +117,18 @@
             <div>
               <div class="flex items-center mb-4">
                 <span class="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-lg font-bold text-sm mr-3">5</span>
-                <h2 class="text-xl font-bold text-slate-900">Bog'lanish</h2>
+                <h2 class="text-xl font-bold text-slate-900">{{ t.section5.title }}</h2>
               </div>
               <p class="text-slate-700 leading-relaxed mb-4">
-                Ma'lumotlarni o'chirish bo'yicha savollaringiz bo'lsa, biz bilan bog'laning:
+                {{ t.section5.text }}
               </p>
               <div class="grid sm:grid-cols-2 gap-4">
                 <div class="bg-slate-50 rounded-2xl p-5">
-                  <p class="text-sm text-slate-500 mb-1">Email</p>
+                  <p class="text-sm text-slate-500 mb-1">{{ t.section5.email_label }}</p>
                   <a href="mailto:support@biznespilot.uz" class="text-red-600 font-medium hover:text-red-700">support@biznespilot.uz</a>
                 </div>
                 <div class="bg-slate-50 rounded-2xl p-5">
-                  <p class="text-sm text-slate-500 mb-1">Telegram</p>
+                  <p class="text-sm text-slate-500 mb-1">{{ t.section5.telegram_label }}</p>
                   <a href="https://t.me/biznespilot" target="_blank" class="text-red-600 font-medium hover:text-red-700">@biznespilot</a>
                 </div>
               </div>
@@ -178,7 +142,7 @@
               <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
-              Bosh sahifaga qaytish
+              {{ t.back_link }}
             </Link>
           </div>
         </div>
@@ -190,4 +154,8 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
+import { useLandingLocale } from '@/i18n/landing/locale'
+import translations from '@/i18n/landing/data-deletion'
+
+const { locale, t } = useLandingLocale(translations)
 </script>
