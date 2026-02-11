@@ -5,6 +5,7 @@ namespace App\Services\ContentAI;
 use App\Models\ContentGeneration;
 use App\Models\ContentStyleGuide;
 use App\Models\ContentTemplate;
+use App\Models\Offer;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -38,12 +39,14 @@ class ContentGeneratorService
         string $contentType = 'post',
         string $purpose = 'engage',
         ?string $targetChannel = null,
-        ?string $additionalPrompt = null
+        ?string $additionalPrompt = null,
+        ?string $offerId = null
     ): ContentGeneration {
         // Generation record yaratish
         $generation = ContentGeneration::create([
             'business_id' => $businessId,
             'user_id' => $userId,
+            'offer_id' => $offerId,
             'topic' => $topic,
             'prompt' => $additionalPrompt,
             'content_type' => $contentType,
@@ -57,6 +60,9 @@ class ContentGeneratorService
             // Style guide olish
             $styleGuide = ContentStyleGuide::getOrCreate($businessId);
 
+            // Offer yuklash
+            $offer = $offerId ? Offer::with('components')->find($offerId) : null;
+
             // Namuna postlarni topish
             $referenceTemplates = $this->findReferenceTemplates($businessId, $purpose, $targetChannel);
 
@@ -68,7 +74,8 @@ class ContentGeneratorService
                 $purpose,
                 $targetChannel,
                 $referenceTemplates,
-                $additionalPrompt
+                $additionalPrompt,
+                $offer
             );
 
             // AI dan javob olish
@@ -282,13 +289,16 @@ PROMPT;
         string $purpose,
         ?string $channel,
         $referenceTemplates,
-        ?string $additionalPrompt
+        ?string $additionalPrompt,
+        ?Offer $offer = null
     ): string {
         $styleContext = $styleGuide->buildPromptContext();
 
         $channelGuidelines = $this->getChannelGuidelines($channel);
 
         $purposeGuidelines = $this->getPurposeGuidelines($purpose);
+
+        $offerContext = $offer ? $this->buildOfferContext($offer) : '';
 
         $examples = '';
         foreach ($referenceTemplates as $template) {
@@ -299,6 +309,8 @@ PROMPT;
 Sen professional marketing kontent yozuvchisisisan. Quyidagi ko'rsatmalarga asoslanib {$contentType} yozib ber.
 
 {$styleContext}
+
+{$offerContext}
 
 MAVZU: {$topic}
 
@@ -323,6 +335,71 @@ Faqat kontent yoz, boshqa izoh kerak emas.
 PROMPT;
 
         return $prompt;
+    }
+
+    /**
+     * Offer kontekstini AI prompt uchun formatlash
+     */
+    protected function buildOfferContext(Offer $offer): string
+    {
+        $context = "TAKLIF MA'LUMOTLARI (bu taklifni postda targ'ib qiling):\n";
+        $context .= "Nomi: {$offer->name}\n";
+
+        if ($offer->core_offer) {
+            $context .= "Asosiy taklif: {$offer->core_offer}\n";
+        }
+
+        if ($offer->value_proposition) {
+            $context .= "Qiymat: {$offer->value_proposition}\n";
+        }
+
+        if ($offer->target_audience) {
+            $context .= "Maqsadli auditoriya: {$offer->target_audience}\n";
+        }
+
+        if ($offer->pricing) {
+            $priceText = number_format((float) $offer->pricing, 0, ',', ' ');
+            $context .= "Narx: {$priceText} so'm ({$offer->pricing_model})\n";
+        }
+
+        if ($offer->total_value && $offer->total_value > ($offer->pricing ?? 0)) {
+            $valueText = number_format((float) $offer->total_value, 0, ',', ' ');
+            $context .= "Umumiy qiymat: {$valueText} so'm\n";
+        }
+
+        if ($offer->guarantee_type) {
+            $context .= "Kafolat: {$offer->guarantee_type}";
+            if ($offer->guarantee_terms) {
+                $context .= " - {$offer->guarantee_terms}";
+            }
+            if ($offer->guarantee_period_days) {
+                $context .= " ({$offer->guarantee_period_days} kun)";
+            }
+            $context .= "\n";
+        }
+
+        if ($offer->components && $offer->components->count() > 0) {
+            $context .= "Bonuslar:\n";
+            foreach ($offer->components as $component) {
+                $context .= "- {$component->name}";
+                if ($component->value) {
+                    $context .= " (" . number_format((float) $component->value, 0, ',', ' ') . " so'm qiymat)";
+                }
+                $context .= "\n";
+            }
+        }
+
+        if ($offer->scarcity) {
+            $context .= "Kamlik: {$offer->scarcity}\n";
+        }
+
+        if ($offer->urgency) {
+            $context .= "Shoshilinchlik: {$offer->urgency}\n";
+        }
+
+        $context .= "\nTaklifning asosiy jihatlarini postda aks ettiring. Narx, kafolat, bonuslar va cheklovlarni ta'kidlang.\n";
+
+        return $context;
     }
 
     /**

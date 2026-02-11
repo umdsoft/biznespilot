@@ -1,5 +1,5 @@
 <template>
-  <MarketingLayout title="Content AI">
+  <component :is="layoutComponent" title="Content AI">
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
@@ -87,6 +87,26 @@
           </h3>
 
           <form @submit.prevent="generateContent" class="space-y-6">
+            <!-- Offer Selector -->
+            <div v-if="activeOffers?.length > 0">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Taklif asosida yaratish (ixtiyoriy)
+              </label>
+              <select
+                v-model="form.offer_id"
+                @change="handleOfferSelect"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Taklifsiz yaratish</option>
+                <option v-for="offer in activeOffers" :key="offer.id" :value="offer.id">
+                  {{ offer.name }}{{ offer.pricing ? ` — ${formatPrice(offer.pricing)} so'm` : '' }}
+                </option>
+              </select>
+              <p v-if="form.offer_id" class="mt-1 text-xs text-purple-600 dark:text-purple-400">
+                AI taklif ma'lumotlari asosida promosion kontent yaratadi
+              </p>
+            </div>
+
             <!-- Topic -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -367,12 +387,14 @@
         </div>
       </div>
     </div>
-  </MarketingLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import BaseLayout from '@/layouts/BaseLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import {
   SparklesIcon,
@@ -400,6 +422,13 @@ const props = defineProps({
   styleGuide: Object,
   recentGenerations: Array,
   topTemplates: Array,
+  activeOffers: { type: Array, default: () => [] },
+  panelType: { type: String, default: 'business' },
+});
+
+const layoutComponent = computed(() => {
+  const layouts = { business: BusinessLayout, marketing: MarketingLayout };
+  return layouts[props.panelType] || BaseLayout;
 });
 
 const form = ref({
@@ -409,6 +438,7 @@ const form = ref({
   target_channel: '',
   additional_prompt: '',
   variations_count: 1,
+  offer_id: '',
 });
 
 const generating = ref(false);
@@ -470,6 +500,20 @@ const loadGeneration = (gen) => {
   };
   activeVariation.value = 0;
   rating.value = gen.rating || 0;
+};
+
+const handleOfferSelect = () => {
+  if (form.value.offer_id) {
+    const selected = props.activeOffers?.find(o => o.id === form.value.offer_id);
+    if (selected) {
+      form.value.topic = selected.name;
+      form.value.purpose = 'sell';
+    }
+  }
+};
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('uz-UZ').format(price);
 };
 
 const formatDate = (date) => {

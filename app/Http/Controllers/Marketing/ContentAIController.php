@@ -7,9 +7,11 @@ use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\ContentGeneration;
 use App\Models\ContentStyleGuide;
 use App\Models\ContentTemplate;
+use App\Models\Offer;
 use App\Services\ContentAI\ContentAnalyzerService;
 use App\Services\ContentAI\ContentGeneratorService;
 use App\Services\ContentAI\ContentStyleGuideService;
+use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -20,7 +22,8 @@ class ContentAIController extends Controller
     public function __construct(
         protected ContentGeneratorService $generator,
         protected ContentStyleGuideService $styleGuideService,
-        protected ContentAnalyzerService $analyzer
+        protected ContentAnalyzerService $analyzer,
+        protected PlanLimitService $planLimitService
     ) {}
 
     /**
@@ -64,15 +67,23 @@ class ContentAIController extends Controller
             ->limit(5)
             ->get();
 
+        // Active offers for dropdown
+        $activeOffers = Offer::where('business_id', $businessId)
+            ->active()
+            ->select('id', 'name', 'core_offer', 'value_proposition', 'pricing', 'pricing_model')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Marketing/ContentAI/Index', [
             'styleGuide' => $styleGuide,
             'stats' => $stats,
             'recentGenerations' => $recentGenerations,
             'topTemplates' => $topTemplates,
+            'activeOffers' => $activeOffers,
             'tones' => ContentStyleGuide::TONES,
             'languageStyles' => ContentStyleGuide::LANGUAGE_STYLES,
             'ctaStyles' => ContentStyleGuide::CTA_STYLES,
-            'panelType' => 'marketing',
+            'panelType' => 'business',
         ]);
     }
 
@@ -86,12 +97,22 @@ class ContentAIController extends Controller
             return back()->with('error', 'Biznes topilmadi');
         }
 
+        // AI so'rovlar limitini tekshirish
+        if ($this->planLimitService->hasReachedLimit($business, 'ai_requests')) {
+            $message = 'Oylik AI so\'rovlar limiti tugadi. Tarifni yangilang.';
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $message], 403);
+            }
+            return back()->with('error', $message);
+        }
+
         $validated = $request->validate([
             'topic' => 'required|string|max:500',
             'content_type' => 'required|in:post,story,reel,ad,carousel,article',
             'purpose' => 'required|in:educate,inspire,sell,engage,announce,entertain',
             'target_channel' => 'nullable|in:instagram,telegram,facebook,tiktok',
             'additional_prompt' => 'nullable|string|max:1000',
+            'offer_id' => 'nullable|uuid|exists:offers,id',
         ]);
 
         $generation = $this->generator->generate(
@@ -101,11 +122,24 @@ class ContentAIController extends Controller
             $validated['content_type'],
             $validated['purpose'],
             $validated['target_channel'],
-            $validated['additional_prompt'] ?? null
+            $validated['additional_prompt'] ?? null,
+            $validated['offer_id'] ?? null
         );
 
+        // Muvaffaqiyatli bo'lsa cache tozalash
+        if ($generation->status === 'completed') {
+            \Illuminate\Support\Facades\Cache::forget("business_{$business->id}_ai_requests_" . now()->format('Y_m'));
+        }
+
         if ($generation->status === 'failed') {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $generation->error_message], 422);
+            }
             return back()->with('error', 'Kontent generatsiya qilinmadi: ' . $generation->error_message);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['generation' => $generation]);
         }
 
         return back()->with([
@@ -223,7 +257,7 @@ class ContentAIController extends Controller
             'tones' => ContentStyleGuide::TONES,
             'languageStyles' => ContentStyleGuide::LANGUAGE_STYLES,
             'ctaStyles' => ContentStyleGuide::CTA_STYLES,
-            'panelType' => 'marketing',
+            'panelType' => 'business',
         ]);
     }
 
@@ -310,7 +344,7 @@ class ContentAIController extends Controller
                 'purpose' => $request->purpose,
                 'top_only' => $request->top_only,
             ],
-            'panelType' => 'marketing',
+            'panelType' => 'business',
         ]);
     }
 
@@ -408,7 +442,7 @@ class ContentAIController extends Controller
             'generations' => $generations,
             'monthlyStats' => $monthlyStats,
             'statuses' => ContentGeneration::STATUSES,
-            'panelType' => 'marketing',
+            'panelType' => 'business',
         ]);
     }
 

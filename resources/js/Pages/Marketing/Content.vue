@@ -7,13 +7,16 @@ import { useI18n } from '@/i18n';
 const { t } = useI18n();
 
 defineProps({
-    posts: { type: Array, default: () => [] }
+    posts: { type: Array, default: () => [] },
+    activeOffers: { type: Array, default: () => [] },
+    aiRemaining: { type: [Number, null], default: null },
+    painPoints: { type: Array, default: () => [] },
 });
 </script>
 
 <template>
     <MarketingLayout :title="t('nav.content_plan')">
         <Head :title="t('nav.content_plan')" />
-        <ContentIndex :posts="posts" panel-type="marketing" />
+        <ContentIndex :posts="posts" :active-offers="activeOffers" :ai-remaining="aiRemaining" :pain-points="painPoints" panel-type="marketing" />
     </MarketingLayout>
 </template>

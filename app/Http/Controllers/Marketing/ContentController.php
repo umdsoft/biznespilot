@@ -5,7 +5,12 @@ namespace App\Http\Controllers\Marketing;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\ContentPost;
+use App\Models\ContentPostLink;
+use App\Models\DreamBuyer;
+use App\Models\Offer;
+use App\Models\PainPointContentMap;
 use App\Services\ContentStrategyService;
+use App\Services\PlanLimitService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -18,7 +23,8 @@ class ContentController extends Controller
     protected int $cacheTTL = 300;
 
     public function __construct(
-        protected ContentStrategyService $contentService
+        protected ContentStrategyService $contentService,
+        protected PlanLimitService $planLimitService
     ) {}
 
     public function index(Request $request)
@@ -47,7 +53,7 @@ class ContentController extends Controller
         }
 
         $contents = $query->orderBy('scheduled_at', 'desc')
-            ->with('creator')
+            ->with(['creator', 'links'])
             ->get()
             ->map(function ($post) {
                 return [
@@ -67,6 +73,21 @@ class ContentController extends Controller
                     'comments' => $post->comments ?? 0,
                     'shares' => $post->shares ?? 0,
                     'hashtags' => $post->hashtags ?? [],
+                    'links' => $post->links->map(fn ($link) => [
+                        'id' => $link->id,
+                        'platform' => $link->platform,
+                        'external_url' => $link->external_url,
+                        'views' => $link->views,
+                        'likes' => $link->likes,
+                        'comments' => $link->comments,
+                        'shares' => $link->shares,
+                        'saves' => $link->saves,
+                        'forwards' => $link->forwards,
+                        'reach' => $link->reach,
+                        'engagement_rate' => (float) $link->engagement_rate,
+                        'synced_at' => $link->synced_at?->format('d.m H:i'),
+                        'sync_status' => $link->sync_status,
+                    ])->keyBy('platform'),
                 ];
             });
 
@@ -81,10 +102,65 @@ class ContentController extends Controller
                 ->where('status', 'draft')->count(),
         ];
 
+        $activeOffers = Offer::where('business_id', $business->id)
+            ->active()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $aiRemaining = $this->planLimitService->getRemainingQuota($business, 'ai_requests');
+
+        // Mijoz muammolari — PainPointContentMap + DreamBuyer dan
+        $painPoints = PainPointContentMap::where('business_id', $business->id)
+            ->active()
+            ->orderByDesc('relevance_score')
+            ->limit(20)
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'category' => $p->pain_point_category,
+                'category_label' => PainPointContentMap::CATEGORIES[$p->pain_point_category] ?? $p->pain_point_category,
+                'text' => $p->pain_point_text,
+                'topics' => $p->suggested_topics ?? [],
+                'hooks' => $p->suggested_hooks ?? [],
+                'content_types' => $p->suggested_content_types ?? [],
+            ]);
+
+        // DreamBuyer dan qo'shimcha muammolar (agar PainPointContentMap bo'sh bo'lsa)
+        if ($painPoints->isEmpty()) {
+            $dreamBuyer = DreamBuyer::where('business_id', $business->id)->first();
+            if ($dreamBuyer) {
+                $rawPains = collect();
+                if ($dreamBuyer->frustrations) {
+                    foreach (array_filter(preg_split('/[\n,;]+/', $dreamBuyer->frustrations)) as $text) {
+                        $rawPains->push(['category' => 'frustrations', 'category_label' => 'Muammolar', 'text' => trim($text)]);
+                    }
+                }
+                if ($dreamBuyer->fears) {
+                    foreach (array_filter(preg_split('/[\n,;]+/', $dreamBuyer->fears)) as $text) {
+                        $rawPains->push(['category' => 'fears', 'category_label' => "Qo'rquvlar", 'text' => trim($text)]);
+                    }
+                }
+                if ($dreamBuyer->pain_points) {
+                    foreach (array_filter(preg_split('/[\n,;]+/', $dreamBuyer->pain_points)) as $text) {
+                        $rawPains->push(['category' => 'frustrations', 'category_label' => 'Muammolar', 'text' => trim($text)]);
+                    }
+                }
+                $painPoints = $rawPains->filter(fn ($p) => strlen($p['text']) > 3)
+                    ->unique('text')
+                    ->take(15)
+                    ->values()
+                    ->map(fn ($p, $i) => array_merge($p, ['id' => 'db_' . $i, 'topics' => [], 'hooks' => [], 'content_types' => []]));
+            }
+        }
+
         return Inertia::render('Marketing/Content', [
             'posts' => $contents,
             'stats' => $stats,
             'filters' => $request->only(['status', 'platform', 'search']),
+            'activeOffers' => $activeOffers,
+            'aiRemaining' => $aiRemaining,
+            'painPoints' => $painPoints,
         ]);
     }
 
@@ -107,17 +183,34 @@ class ContentController extends Controller
             'status' => ['required', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
             'hashtags' => ['nullable', 'array'],
+            'platform_links' => ['nullable', 'array'],
+            'platform_links.*.platform' => ['required', 'string'],
+            'platform_links.*.external_url' => ['nullable', 'string', 'max:500'],
         ]);
+
+        $platformLinks = $validated['platform_links'] ?? [];
+        unset($validated['platform_links']);
 
         $validated['business_id'] = $business->id;
         $validated['user_id'] = auth()->id();
 
-        // Handle multiple platforms - store as JSON array
         if (is_array($validated['platform'])) {
             $validated['platform'] = json_encode($validated['platform']);
         }
 
-        ContentPost::create($validated);
+        $post = ContentPost::create($validated);
+
+        // Platforma linklarini saqlash
+        foreach ($platformLinks as $link) {
+            if (!empty($link['external_url'])) {
+                ContentPostLink::create([
+                    'content_post_id' => $post->id,
+                    'business_id' => $business->id,
+                    'platform' => $link['platform'],
+                    'external_url' => $link['external_url'],
+                ]);
+            }
+        }
 
         return redirect()->back()
             ->with('success', 'Kontent muvaffaqiyatli qo\'shildi!');
@@ -230,14 +323,38 @@ class ContentController extends Controller
             'status' => ['nullable', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
             'hashtags' => ['nullable', 'array'],
+            'platform_links' => ['nullable', 'array'],
+            'platform_links.*.platform' => ['required', 'string'],
+            'platform_links.*.external_url' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // Handle multiple platforms - store as JSON array
+        $platformLinks = $validated['platform_links'] ?? [];
+        unset($validated['platform_links']);
+
         if (isset($validated['platform']) && is_array($validated['platform'])) {
             $validated['platform'] = json_encode($validated['platform']);
         }
 
         $content->update($validated);
+
+        // Platforma linklarini yangilash
+        foreach ($platformLinks as $link) {
+            if (!empty($link['external_url'])) {
+                ContentPostLink::updateOrCreate(
+                    ['content_post_id' => $content->id, 'platform' => $link['platform']],
+                    [
+                        'business_id' => $business->id,
+                        'external_url' => $link['external_url'],
+                        'sync_status' => 'pending',
+                    ]
+                );
+            } else {
+                // URL o'chirilgan — linkni ham o'chirish
+                ContentPostLink::where('content_post_id', $content->id)
+                    ->where('platform', $link['platform'])
+                    ->delete();
+            }
+        }
 
         return redirect()->back()
             ->with('success', 'Kontent yangilandi');
@@ -259,6 +376,185 @@ class ContentController extends Controller
 
         return redirect()->route('marketing.content.index')
             ->with('success', 'Kontent o\'chirildi');
+    }
+
+    public function syncStats($id)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (!$business) {
+            return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        $post = ContentPost::where('business_id', $business->id)
+            ->where('id', $id)
+            ->with('links')
+            ->firstOrFail();
+
+        $results = [];
+        foreach ($post->links as $link) {
+            if (!$link->external_url) continue;
+
+            try {
+                $p = strtolower($link->platform);
+                if ($p === 'instagram') {
+                    $results[$link->platform] = $this->syncInstagramLink($link, $business);
+                } elseif ($p === 'telegram') {
+                    $results[$link->platform] = $this->syncTelegramLink($link, $business);
+                }
+            } catch (\Exception $e) {
+                $link->update(['sync_status' => 'failed']);
+                $results[$link->platform] = ['error' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'results' => $results,
+            'links' => $post->fresh()->links->map(fn ($l) => [
+                'platform' => $l->platform,
+                'views' => $l->views,
+                'likes' => $l->likes,
+                'comments' => $l->comments,
+                'shares' => $l->shares,
+                'saves' => $l->saves,
+                'forwards' => $l->forwards,
+                'engagement_rate' => (float) $l->engagement_rate,
+                'synced_at' => $l->synced_at?->format('d.m H:i'),
+                'sync_status' => $l->sync_status,
+            ])->keyBy('platform'),
+        ]);
+    }
+
+    protected function syncInstagramLink(ContentPostLink $link, $business): array
+    {
+        $igAccount = \App\Models\InstagramAccount::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$igAccount || !$igAccount->access_token) {
+            return ['error' => 'Instagram akkaunt ulanmagan'];
+        }
+
+        // URL dan media ID ajratish
+        $mediaId = $link->external_id;
+        if (!$mediaId && $link->external_url) {
+            // Permalink dan oEmbed orqali media_id olish
+            $mediaId = $this->resolveInstagramMediaId($link->external_url, $igAccount->access_token);
+        }
+
+        if (!$mediaId) {
+            return ['error' => 'Media ID aniqlanmadi'];
+        }
+
+        // Graph API dan statistika olish
+        $response = \Illuminate\Support\Facades\Http::get("https://graph.facebook.com/v24.0/{$mediaId}", [
+            'fields' => 'like_count,comments_count,timestamp',
+            'access_token' => $igAccount->access_token,
+        ]);
+
+        if (!$response->ok()) {
+            return ['error' => 'IG API xatosi: ' . $response->status()];
+        }
+
+        $data = $response->json();
+
+        // Insights (reach, saves, shares) — business account uchun
+        $insights = [];
+        $insightsResponse = \Illuminate\Support\Facades\Http::get("https://graph.facebook.com/v24.0/{$mediaId}/insights", [
+            'metric' => 'reach,saved,shares',
+            'access_token' => $igAccount->access_token,
+        ]);
+        if ($insightsResponse->ok()) {
+            foreach ($insightsResponse->json('data', []) as $metric) {
+                $insights[$metric['name']] = $metric['values'][0]['value'] ?? 0;
+            }
+        }
+
+        $likes = $data['like_count'] ?? 0;
+        $comments = $data['comments_count'] ?? 0;
+        $reach = $insights['reach'] ?? 0;
+        $saves = $insights['saved'] ?? 0;
+        $shares = $insights['shares'] ?? 0;
+        $total = $likes + $comments + $saves + $shares;
+        $er = $reach > 0 ? round(($total / $reach) * 100, 4) : 0;
+
+        $link->update([
+            'external_id' => $mediaId,
+            'likes' => $likes,
+            'comments' => $comments,
+            'reach' => $reach,
+            'saves' => $saves,
+            'shares' => $shares,
+            'engagement_rate' => $er,
+            'sync_status' => 'synced',
+            'synced_at' => now(),
+        ]);
+
+        return ['synced' => true];
+    }
+
+    protected function resolveInstagramMediaId(string $url, string $accessToken): ?string
+    {
+        // oEmbed API orqali permalink → media_id
+        $response = \Illuminate\Support\Facades\Http::get('https://graph.facebook.com/v24.0/instagram_oembed', [
+            'url' => $url,
+            'access_token' => $accessToken,
+        ]);
+
+        if ($response->ok() && $mediaId = $response->json('media_id')) {
+            return $mediaId;
+        }
+
+        return null;
+    }
+
+    protected function syncTelegramLink(ContentPostLink $link, $business): array
+    {
+        // Telegram link dan channel va message_id ajratish
+        // Format: https://t.me/channelname/123
+        if (!preg_match('#t\.me/([^/]+)/(\d+)#', $link->external_url, $matches)) {
+            return ['error' => 'Telegram link formati noto\'g\'ri'];
+        }
+
+        $channelUsername = $matches[1];
+        $messageId = (int) $matches[2];
+
+        // Bot tokenni topish
+        $bot = \App\Models\TelegramBot::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$bot || !$bot->bot_token) {
+            return ['error' => 'Telegram bot ulanmagan'];
+        }
+
+        // forwardMessage trick — xabar haqida ma'lumot olish
+        // Telegram Bot API da to'g'ridan-to'g'ri message stats olish imkoni cheklangan
+        // getChat + getChatMembersCount orqali channel info olish mumkin
+        $chatResponse = \Illuminate\Support\Facades\Http::get("https://api.telegram.org/bot{$bot->bot_token}/getChat", [
+            'chat_id' => '@' . $channelUsername,
+        ]);
+
+        $views = 0;
+        $forwards = 0;
+
+        if ($chatResponse->ok()) {
+            // Kanal info
+            $chatData = $chatResponse->json('result', []);
+
+            // copyMessage orqali xabar ma'lumotini olishga harakat
+            // Hozircha faqat statusni yangilaymiz — Telegram API da post views cheklangan
+            $link->update([
+                'external_id' => $messageId,
+                'sync_status' => 'synced',
+                'synced_at' => now(),
+            ]);
+
+            return ['synced' => true, 'note' => 'Telegram API views cheklangan'];
+        }
+
+        return ['error' => 'Telegram API xatosi'];
     }
 
     public function publish($id)

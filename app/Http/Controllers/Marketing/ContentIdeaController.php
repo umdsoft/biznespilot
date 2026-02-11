@@ -59,7 +59,7 @@ class ContentIdeaController extends Controller
             'contentTypes' => ContentIdea::CONTENT_TYPES,
             'purposes' => ContentIdea::PURPOSES,
             'seasons' => ContentIdea::SEASONS,
-            'panelType' => 'marketing',
+            'panelType' => 'business',
         ]);
     }
 

@@ -417,9 +417,15 @@ class PlanLimitService
      */
     protected function getAiRequestsCount(Business $business): int
     {
-        // TODO: Implement when AI usage tracking is added
-        // For now return 0
-        return 0;
+        return (int) Cache::remember(
+            "business_{$business->id}_ai_requests_" . now()->format('Y_m'),
+            300,
+            fn () => \App\Models\ContentGeneration::where('business_id', $business->id)
+                ->where('status', 'completed')
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->count()
+        );
     }
 
     /**

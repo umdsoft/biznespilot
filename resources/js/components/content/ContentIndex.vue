@@ -97,6 +97,37 @@
             </div>
         </div>
 
+        <!-- Analytics Summary (published posts with links) -->
+        <div v-if="analyticsStats.totalViews > 0 || analyticsStats.linkedPosts > 0" class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800/30">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Kanal analitikasi
+                </h3>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ analyticsStats.linkedPosts }} ta post ulangan</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white/60 dark:bg-gray-800/60 rounded-lg p-3">
+                    <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase">Jami ko'rishlar</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatNumber(analyticsStats.totalViews) }}</p>
+                </div>
+                <div class="bg-white/60 dark:bg-gray-800/60 rounded-lg p-3">
+                    <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase">Jami layklar</p>
+                    <p class="text-lg font-bold text-pink-600 dark:text-pink-400">{{ formatNumber(analyticsStats.totalLikes) }}</p>
+                </div>
+                <div class="bg-white/60 dark:bg-gray-800/60 rounded-lg p-3">
+                    <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase">O'rtacha ER</p>
+                    <p class="text-lg font-bold" :class="analyticsStats.avgER >= 5 ? 'text-emerald-600 dark:text-emerald-400' : analyticsStats.avgER >= 3 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'">{{ analyticsStats.avgER.toFixed(1) }}%</p>
+                </div>
+                <div class="bg-white/60 dark:bg-gray-800/60 rounded-lg p-3">
+                    <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase">Jami izohlar</p>
+                    <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(analyticsStats.totalComments) }}</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Filters -->
         <div class="flex flex-wrap items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
             <!-- Status Filter -->
@@ -333,13 +364,19 @@
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{{ post.content }}</p>
                             <!-- Stats for published posts -->
-                            <div v-if="post.status === 'published' && hasStats(post)" class="flex items-center gap-3 mt-2 text-xs">
-                                <span v-if="getPostViews(post)" class="flex items-center text-gray-500">👁️ {{ formatNumber(getPostViews(post)) }}</span>
-                                <span v-if="getPostLikes(post)" class="flex items-center text-pink-500">❤️ {{ formatNumber(getPostLikes(post)) }}</span>
-                                <span v-if="getPostComments(post)" class="flex items-center text-blue-500">💬 {{ formatNumber(getPostComments(post)) }}</span>
-                                <span v-if="getEngagementRate(post) > 0" :class="getEngagementRateClass(post)">
-                                    ER: {{ getEngagementRate(post).toFixed(1) }}%
-                                </span>
+                            <div v-if="post.status === 'published' && (hasStats(post) || hasLinks(post))" class="mt-2 space-y-0.5">
+                                <template v-for="(link, platform) in getPostLinks(post)" :key="'cal-stat-' + platform">
+                                    <div v-if="link.views || link.likes" class="flex items-center gap-2 text-xs">
+                                        <component :is="getPlatformIcon(platform)" class="w-3 h-3" :class="getPlatformIconClass(platform)" />
+                                        <span v-if="link.views" class="text-gray-500">{{ formatNumber(link.views) }}</span>
+                                        <span v-if="link.likes" class="text-pink-500">{{ formatNumber(link.likes) }}</span>
+                                        <span v-if="link.engagement_rate > 0" :class="link.engagement_rate >= 5 ? 'text-emerald-600 font-semibold' : 'text-gray-400'">{{ parseFloat(link.engagement_rate).toFixed(1) }}%</span>
+                                    </div>
+                                </template>
+                                <div v-if="!hasLinks(post) && hasStats(post)" class="flex items-center gap-3 text-xs">
+                                    <span v-if="getPostViews(post)" class="text-gray-500">{{ formatNumber(getPostViews(post)) }}</span>
+                                    <span v-if="getPostLikes(post)" class="text-pink-500">{{ formatNumber(getPostLikes(post)) }}</span>
+                                </div>
                             </div>
                         </div>
                         <div class="flex items-center gap-1 ml-2">
@@ -452,36 +489,44 @@
                                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">-</span>
                             </td>
                             <td class="px-4 py-3">
-                                <div v-if="post.status === 'published' && hasStats(post)" class="space-y-1">
-                                    <!-- Instagram link badge -->
-                                    <div v-if="post.has_instagram_link || post.instagram_link" class="flex items-center gap-1 mb-1">
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 text-pink-700 dark:text-pink-300">
-                                            <svg class="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+                                <div v-if="post.status === 'published' && (hasStats(post) || hasLinks(post))" class="space-y-1">
+                                    <!-- Per-platform stats -->
+                                    <template v-for="(link, platform) in getPostLinks(post)" :key="'stat-' + platform">
+                                        <div v-if="link.views || link.likes || link.comments || link.forwards" class="flex items-center gap-1.5 text-[11px]">
+                                            <component :is="getPlatformIcon(platform)" class="w-3 h-3 flex-shrink-0" :class="getPlatformIconClass(platform)" />
+                                            <span v-if="link.views" class="text-gray-500 dark:text-gray-400">{{ formatNumber(link.views) }}</span>
+                                            <span v-if="link.likes" class="text-pink-500">{{ formatNumber(link.likes) }}</span>
+                                            <span v-if="link.comments" class="text-blue-500">{{ formatNumber(link.comments) }}</span>
+                                            <span v-if="link.forwards" class="text-sky-500">{{ formatNumber(link.forwards) }}fwd</span>
+                                            <span v-if="link.engagement_rate > 0" :class="link.engagement_rate >= 5 ? 'text-emerald-600 font-semibold' : link.engagement_rate >= 3 ? 'text-blue-600' : 'text-gray-400'">
+                                                {{ parseFloat(link.engagement_rate).toFixed(1) }}%
+                                            </span>
+                                        </div>
+                                        <div v-else-if="link.external_url" class="flex items-center gap-1.5 text-[11px] text-gray-400">
+                                            <component :is="getPlatformIcon(platform)" class="w-3 h-3 flex-shrink-0" :class="getPlatformIconClass(platform)" />
+                                            <span>Kutilmoqda...</span>
+                                        </div>
+                                    </template>
+                                    <!-- Fallback to direct stats if no links -->
+                                    <div v-if="!hasLinks(post) && hasStats(post)" class="flex items-center gap-2 text-xs">
+                                        <span v-if="getPostViews(post)" class="text-gray-500 dark:text-gray-400">{{ formatNumber(getPostViews(post)) }}</span>
+                                        <span v-if="getPostLikes(post)" class="text-pink-500">{{ formatNumber(getPostLikes(post)) }}</span>
+                                        <span v-if="getPostComments(post)" class="text-blue-500">{{ formatNumber(getPostComments(post)) }}</span>
+                                    </div>
+                                    <!-- Top performer + sync -->
+                                    <div class="flex items-center gap-1">
+                                        <span v-if="isTopPerformer(post)" class="text-orange-500 text-xs" title="Top Performer">🔥</span>
+                                        <button
+                                            v-if="hasLinks(post)"
+                                            @click.stop="syncPost(post.id)"
+                                            :disabled="syncingPostId === post.id"
+                                            class="p-0.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                            title="Sinxronlash"
+                                        >
+                                            <svg class="w-3.5 h-3.5" :class="{ 'animate-spin': syncingPostId === post.id }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                             </svg>
-                                            Linked
-                                        </span>
-                                        <!-- Top performer badge -->
-                                        <span v-if="isTopPerformer(post)" class="text-orange-500" title="Top Performer">🔥</span>
-                                    </div>
-                                    <!-- Stats row -->
-                                    <div class="flex items-center gap-2 text-xs">
-                                        <span v-if="getPostViews(post)" class="flex items-center text-gray-500 dark:text-gray-400" title="Ko'rishlar">
-                                            👁️ {{ formatNumber(getPostViews(post)) }}
-                                        </span>
-                                        <span v-if="getPostLikes(post)" class="flex items-center text-pink-500" title="Layklar">
-                                            ❤️ {{ formatNumber(getPostLikes(post)) }}
-                                        </span>
-                                        <span v-if="getPostComments(post)" class="flex items-center text-blue-500" title="Izohlar">
-                                            💬 {{ formatNumber(getPostComments(post)) }}
-                                        </span>
-                                    </div>
-                                    <!-- Engagement rate -->
-                                    <div v-if="getEngagementRate(post) > 0" class="flex items-center gap-1 text-[10px]">
-                                        <span class="text-gray-400">ER:</span>
-                                        <span :class="getEngagementRateClass(post)">
-                                            {{ getEngagementRate(post).toFixed(1) }}%
-                                        </span>
+                                        </button>
                                     </div>
                                 </div>
                                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">-</span>
@@ -578,11 +623,90 @@
                             </svg>
                         </button>
                     </div>
-                    <form @submit.prevent="submitPost" class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+                    <form @submit.prevent="submitPost" class="flex flex-col max-h-[80vh]">
+                      <div class="p-6 space-y-5 overflow-y-auto flex-1">
                         <!-- Title -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.title') }}</label>
                             <input v-model="postForm.title" type="text" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.title_placeholder')" />
+                        </div>
+
+                        <!-- Muammo tanlash -->
+                        <div v-if="painPoints.length > 0">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Mijoz muammosi</label>
+                            <select v-model="selectedPainPointId" @change="handlePainPointSelect" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                <option value="">Muammosiz yaratish</option>
+                                <optgroup v-for="group in painPointGroups" :key="group.category" :label="group.label">
+                                    <option v-for="p in group.items" :key="p.id" :value="p.id">{{ p.text }}</option>
+                                </optgroup>
+                            </select>
+                            <!-- Tanlangan muammo haqida qo'shimcha ma'lumot -->
+                            <div v-if="selectedPainPoint" class="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                <p class="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">{{ selectedPainPoint.category_label }}</p>
+                                <p class="text-sm text-amber-900 dark:text-amber-100">{{ selectedPainPoint.text }}</p>
+                                <div v-if="selectedPainPoint.hooks?.length" class="mt-2 space-y-1">
+                                    <p class="text-xs text-amber-600 dark:text-amber-400">Boshlash g'oyalari:</p>
+                                    <button v-for="(hook, i) in selectedPainPoint.hooks.slice(0, 2)" :key="i" type="button" @click="useHook(hook)" class="block w-full text-left text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-amber-200 dark:border-amber-700 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+                                        {{ hook }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Generation Panel -->
+                        <div v-if="!editingPost" class="rounded-xl border-2 transition-all" :class="showAiPanel ? 'border-purple-300 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20' : 'border-dashed border-gray-300 dark:border-gray-600'">
+                            <button v-if="!showAiPanel" type="button" @click="showAiPanel = true" :disabled="aiRemaining === 0" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all" :class="aiRemaining === 0 ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20'">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                                {{ aiRemaining === 0 ? 'AI limiti tugadi' : 'AI bilan yaratish' }}
+                                <span v-if="aiRemaining !== null && aiRemaining > 0" class="text-xs text-purple-500 dark:text-purple-400">({{ aiRemaining }} ta qoldi)</span>
+                            </button>
+                            <div v-else class="p-4 space-y-3">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h4 class="text-sm font-semibold text-purple-800 dark:text-purple-200 flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                                        AI Kontent Yaratish
+                                        <span v-if="aiRemaining !== null" class="text-xs font-normal text-purple-500 dark:text-purple-400">({{ aiRemaining }} ta qoldi)</span>
+                                    </h4>
+                                    <button type="button" @click="showAiPanel = false" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                                <!-- Offer select -->
+                                <div v-if="activeOffers.length > 0">
+                                    <select v-model="aiForm.offer_id" @change="handleAiOfferSelect" class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                        <option value="">Taklifsiz yaratish</option>
+                                        <option v-for="offer in activeOffers" :key="offer.id" :value="offer.id">{{ offer.name }}</option>
+                                    </select>
+                                </div>
+                                <!-- Topic -->
+                                <input v-model="aiForm.topic" type="text" class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Mavzu yoki g'oya kiriting..." />
+                                <!-- Purpose + Channel -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <select v-model="aiForm.purpose" class="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                        <option value="engage">Jalb qilish</option>
+                                        <option value="educate">O'rgatish</option>
+                                        <option value="sell">Sotish</option>
+                                        <option value="inspire">Ilhomlantirish</option>
+                                        <option value="announce">E'lon qilish</option>
+                                        <option value="entertain">Ko'ngil ochish</option>
+                                    </select>
+                                    <select v-model="aiForm.target_channel" class="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                        <option value="">Umumiy</option>
+                                        <option value="instagram">Instagram</option>
+                                        <option value="telegram">Telegram</option>
+                                        <option value="facebook">Facebook</option>
+                                        <option value="tiktok">TikTok</option>
+                                    </select>
+                                </div>
+                                <!-- Error -->
+                                <p v-if="aiError" class="text-xs text-red-600 dark:text-red-400">{{ aiError }}</p>
+                                <!-- Generate button -->
+                                <button type="button" @click="generateAiContent" :disabled="!aiForm.topic || aiGenerating" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg shadow-md shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg v-if="aiGenerating" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                                    {{ aiGenerating ? 'Yaratilmoqda...' : 'AI bilan yaratish' }}
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Content -->
@@ -669,8 +793,29 @@
                             <input v-model="hashtagInput" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.hashtags_placeholder')" />
                         </div>
 
-                        <!-- Actions -->
-                        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <!-- Platform Links (for published posts) -->
+                        <div v-if="postForm.status === 'published' && postForm.platforms.length > 0">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Platforma linklari</label>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Post joylashtirilgan URL manzillarni kiriting (statistikani sinxronlash uchun)</p>
+                            <div class="space-y-2">
+                                <div v-for="platform in postForm.platforms" :key="'link-' + platform" class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1.5 min-w-[120px] px-2.5 py-2 rounded-lg" :class="getPlatformBgClass(platform)">
+                                        <component :is="getPlatformIcon(platform)" class="w-3.5 h-3.5" :class="getPlatformIconClass(platform)" />
+                                        <span class="text-xs font-medium" :class="getPlatformIconClass(platform)">{{ platform }}</span>
+                                    </div>
+                                    <input
+                                        v-model="postForm.platform_links[platform]"
+                                        type="url"
+                                        class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        :placeholder="platform === 'Instagram' ? 'https://instagram.com/p/...' : platform === 'Telegram' ? 'https://t.me/channel/123' : 'https://...'"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                      </div>
+                      <!-- Actions (sticky at bottom) -->
+                      <div class="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
                             <button type="button" @click="closeCreateModal" class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors">
                                 {{ t('common.cancel') }}
                             </button>
@@ -678,7 +823,7 @@
                                 <span v-if="isSubmitting">{{ t('common.saving') }}...</span>
                                 <span v-else>{{ editingPost ? t('common.update') : t('common.save') }}</span>
                             </button>
-                        </div>
+                      </div>
                     </form>
                 </div>
             </div>
@@ -732,6 +877,64 @@
                         <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Kontent</h4>
                         <div class="p-4 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
                             <p class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{{ viewingPost.content }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Platform Analytics -->
+                    <div v-if="viewingPost.status === 'published' && viewingPost.links && Object.keys(viewingPost.links).length > 0" class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kanal statistikasi</h4>
+                            <button
+                                @click="syncPost(viewingPost.id)"
+                                :disabled="syncingPostId === viewingPost.id"
+                                class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                            >
+                                <svg class="w-3.5 h-3.5" :class="{ 'animate-spin': syncingPostId === viewingPost.id }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                {{ syncingPostId === viewingPost.id ? 'Sinxronlanmoqda...' : 'Sinxronlash' }}
+                            </button>
+                        </div>
+                        <div v-for="(link, platform) in viewingPost.links" :key="'detail-' + platform" class="p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <component :is="getPlatformIcon(platform)" class="w-4 h-4" :class="getPlatformIconClass(platform)" />
+                                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ platform }}</span>
+                                </div>
+                                <div v-if="link.synced_at" class="text-[10px] text-gray-400 dark:text-gray-500">{{ link.synced_at }}</div>
+                                <div v-else class="text-[10px] text-amber-500">Sinxronlanmagan</div>
+                            </div>
+                            <a v-if="link.external_url" :href="link.external_url" target="_blank" class="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 truncate block mb-2" @click.stop>{{ link.external_url }}</a>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="text-center">
+                                    <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatNumber(link.views || 0) }}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Ko'rishlar</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-lg font-bold text-pink-600 dark:text-pink-400">{{ formatNumber(link.likes || 0) }}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Layklar</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(link.comments || 0) }}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Izohlar</p>
+                                </div>
+                                <div v-if="link.shares" class="text-center">
+                                    <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ formatNumber(link.shares) }}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Ulashishlar</p>
+                                </div>
+                                <div v-if="link.saves" class="text-center">
+                                    <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ formatNumber(link.saves) }}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Saqlanganlar</p>
+                                </div>
+                                <div v-if="link.forwards" class="text-center">
+                                    <p class="text-lg font-bold text-sky-600 dark:text-sky-400">{{ formatNumber(link.forwards) }}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Forward</p>
+                                </div>
+                            </div>
+                            <div v-if="link.engagement_rate > 0" class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Engagement Rate</span>
+                                <span class="text-sm font-bold" :class="link.engagement_rate >= 5 ? 'text-emerald-600 dark:text-emerald-400' : link.engagement_rate >= 3 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'">{{ parseFloat(link.engagement_rate).toFixed(2) }}%</span>
+                            </div>
                         </div>
                     </div>
 
@@ -893,10 +1096,14 @@
 <script setup>
 import { ref, computed, h } from 'vue'
 import { router } from '@inertiajs/vue3'
+import axios from 'axios'
 import { useI18n } from '@/i18n'
 
 const props = defineProps({
     posts: { type: Array, default: () => [] },
+    activeOffers: { type: Array, default: () => [] },
+    aiRemaining: { type: [Number, null], default: null },
+    painPoints: { type: Array, default: () => [] },
     panelType: { type: String, default: 'business', validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v) }
 })
 
@@ -999,7 +1206,7 @@ const selectDay = (day) => { selectedDay.value = selectedDay.value?.fullDate ===
 const selectedDayPosts = computed(() => selectedDay.value ? getPostsForDay(selectedDay.value.fullDate) : [])
 const formatSelectedDate = computed(() => { if (!selectedDay.value) return ''; const [year, month, dayNum] = selectedDay.value.fullDate.split('-'); return `${parseInt(dayNum)} ${monthNames.value[parseInt(month) - 1]} ${year}` })
 
-const postForm = ref({ title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [] })
+const postForm = ref({ title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [], platform_links: {} })
 const minDate = computed(() => new Date().toISOString().split('T')[0])
 
 const statusTabs = computed(() => [
@@ -1044,6 +1251,25 @@ const contentTypeFilters = computed(() => [
 ])
 
 const isPostOverdue = (post) => { if (post.status !== 'scheduled' || !post.scheduled_at) return false; const now = new Date(); let scheduledDate = post.scheduled_at.includes('T') ? new Date(post.scheduled_at) : new Date(post.scheduled_at.replace(' ', 'T')); return scheduledDate < now }
+
+// Analytics summary
+const analyticsStats = computed(() => {
+    let totalViews = 0, totalLikes = 0, totalComments = 0, linkedPosts = 0
+    const rates = []
+    props.posts.filter(p => p.status === 'published' && p.links).forEach(post => {
+        const links = post.links || {}
+        if (Object.keys(links).length === 0) return
+        linkedPosts++
+        Object.values(links).forEach(l => {
+            totalViews += (l.views || 0)
+            totalLikes += (l.likes || 0)
+            totalComments += (l.comments || 0)
+            if (l.engagement_rate > 0) rates.push(parseFloat(l.engagement_rate))
+        })
+    })
+    const avgER = rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : 0
+    return { totalViews, totalLikes, totalComments, linkedPosts, avgER }
+})
 
 const draftCount = computed(() => props.posts.filter(p => p.status === 'draft').length)
 const scheduledCount = computed(() => props.posts.filter(p => p.status === 'scheduled' && !isPostOverdue(p)).length)
@@ -1110,31 +1336,53 @@ const getStatusDotClass = (status, post = null) => { if (post && isPostOverdue(p
 
 const formatDate = (dateStr) => { if (!dateStr) return ''; const date = new Date(dateStr); return date.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 const formatTime = (dateStr) => { if (!dateStr) return ''; const date = new Date(dateStr); return date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) }
-const hasStats = (post) => getPostViews(post) || getPostLikes(post) || getPostComments(post) || post.shares
+const hasStats = (post) => getPostViews(post) || getPostLikes(post) || getPostComments(post) || post.shares || hasLinks(post)
 const formatNumber = (num) => { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num?.toString() || '0' }
 
-// Instagram stats helpers
-const getPostViews = (post) => post.instagram_link?.views ?? post.views ?? 0
-const getPostLikes = (post) => post.instagram_link?.likes ?? post.likes ?? 0
-const getPostComments = (post) => post.instagram_link?.comments ?? post.comments ?? 0
-const getPostShares = (post) => post.instagram_link?.shares ?? post.shares ?? 0
-const getPostSaves = (post) => post.instagram_link?.saves ?? post.saves ?? 0
+// Platform links stats helpers
+const getPostLinks = (post) => post.links || {}
+const getLinkStats = (post, platform) => getPostLinks(post)[platform] || null
+const getTotalStat = (post, field) => {
+    const links = getPostLinks(post)
+    let total = 0
+    Object.values(links).forEach(l => { total += (l[field] || 0) })
+    return total || (post[field] ?? 0)
+}
+const getPostViews = (post) => getTotalStat(post, 'views')
+const getPostLikes = (post) => getTotalStat(post, 'likes')
+const getPostComments = (post) => getTotalStat(post, 'comments')
+const getPostShares = (post) => getTotalStat(post, 'shares')
+const getPostSaves = (post) => getTotalStat(post, 'saves')
+const getPostForwards = (post) => getTotalStat(post, 'forwards')
 const getEngagementRate = (post) => {
-    if (post.instagram_link?.engagement_rate) return parseFloat(post.instagram_link.engagement_rate)
+    const links = getPostLinks(post)
+    const rates = Object.values(links).map(l => parseFloat(l.engagement_rate || 0)).filter(r => r > 0)
+    if (rates.length) return rates.reduce((a, b) => a + b, 0) / rates.length
     if (post.engagement_rate) return parseFloat(post.engagement_rate)
     return 0
 }
-const isTopPerformer = (post) => {
-    if (post.instagram_link?.is_top_performer) return true
-    if (post.is_top_performer) return true
-    return getEngagementRate(post) >= 5
-}
+const hasLinks = (post) => Object.keys(getPostLinks(post)).length > 0
+const isTopPerformer = (post) => getEngagementRate(post) >= 5
 const getEngagementRateClass = (post) => {
     const rate = getEngagementRate(post)
     if (rate >= 5) return 'text-emerald-600 dark:text-emerald-400 font-semibold'
     if (rate >= 3) return 'text-blue-600 dark:text-blue-400'
     if (rate >= 1) return 'text-gray-600 dark:text-gray-400'
     return 'text-gray-400 dark:text-gray-500'
+}
+// Sync state
+const syncingPostId = ref(null)
+const syncPost = async (postId) => {
+    syncingPostId.value = postId
+    try {
+        const prefix = props.panelType === 'business' ? 'business.marketing' : props.panelType
+        await axios.post(route(`${prefix}.content.sync-stats`, postId), {}, { headers: { Accept: 'application/json' } })
+        router.reload({ only: ['posts'], preserveScroll: true })
+    } catch (e) {
+        console.error('Sync error:', e)
+    } finally {
+        syncingPostId.value = null
+    }
 }
 
 // Status actions for detail panel
@@ -1169,10 +1417,103 @@ const changeStatus = (postId, newStatus) => {
     })
 }
 
+// Pain point state
+const selectedPainPointId = ref('')
+const selectedPainPoint = computed(() => {
+    if (!selectedPainPointId.value) return null
+    return props.painPoints.find(p => p.id === selectedPainPointId.value) || null
+})
+const painPointGroups = computed(() => {
+    const groups = {}
+    props.painPoints.forEach(p => {
+        const key = p.category
+        if (!groups[key]) groups[key] = { category: key, label: p.category_label, items: [] }
+        groups[key].items.push(p)
+    })
+    return Object.values(groups)
+})
+const handlePainPointSelect = () => {
+    const p = selectedPainPoint.value
+    if (p) {
+        // AI topicga muammo textini qo'yish
+        aiForm.value.topic = p.text
+        // Agar taklif qilingan topic bo'lsa, birinchisini ishlatish
+        if (p.topics?.length && !postForm.value.title) {
+            postForm.value.title = p.topics[0]
+        }
+        // Muammo uchun maqsadni educate qilish
+        aiForm.value.purpose = 'educate'
+    }
+}
+const useHook = (hook) => {
+    // Hook ni kontent boshiga qo'shish
+    if (postForm.value.content) {
+        postForm.value.content = hook + '\n\n' + postForm.value.content
+    } else {
+        postForm.value.content = hook + '\n\n'
+    }
+}
+
+// AI Generation state
+const showAiPanel = ref(false)
+const aiGenerating = ref(false)
+const aiError = ref('')
+const aiForm = ref({ topic: '', purpose: 'engage', target_channel: '', offer_id: '' })
+
+const handleAiOfferSelect = () => {
+    if (aiForm.value.offer_id) {
+        const selected = props.activeOffers?.find(o => o.id === aiForm.value.offer_id)
+        if (selected) {
+            aiForm.value.topic = selected.name
+            aiForm.value.purpose = 'sell'
+        }
+    }
+}
+
+const generateAiContent = async () => {
+    if (!aiForm.value.topic) return
+    aiGenerating.value = true
+    aiError.value = ''
+    try {
+        // Muammo kontekstini qo'shish
+        let additionalPrompt = null
+        const pain = selectedPainPoint.value
+        if (pain) {
+            additionalPrompt = `Mijoz muammosi: ${pain.text}`
+            if (pain.hooks?.length) additionalPrompt += `\nBoshlash uchun hook: ${pain.hooks[0]}`
+        }
+
+        const response = await axios.post(route('business.marketing.content-ai.generate'), {
+            topic: aiForm.value.topic,
+            content_type: 'post',
+            purpose: aiForm.value.purpose,
+            target_channel: aiForm.value.target_channel || null,
+            offer_id: aiForm.value.offer_id || null,
+            additional_prompt: additionalPrompt,
+        }, { headers: { Accept: 'application/json' } })
+
+        const gen = response.data.generation
+        if (!postForm.value.title) postForm.value.title = aiForm.value.topic
+        postForm.value.content = gen.generated_content || ''
+        // Map AI purpose → content_type
+        const purposeMap = { sell: 'promotional', educate: 'educational', inspire: 'inspirational', engage: 'entertaining', announce: 'promotional', entertain: 'entertaining' }
+        if (!postForm.value.content_type) postForm.value.content_type = purposeMap[aiForm.value.purpose] || ''
+        showAiPanel.value = false
+    } catch (e) {
+        aiError.value = e.response?.data?.error || e.response?.data?.message || 'Xatolik yuz berdi'
+    } finally {
+        aiGenerating.value = false
+    }
+}
+
 const openCreateModal = () => {
     editingPost.value = null
-    postForm.value = { title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [] }
+    postForm.value = { title: '', content: '', platforms: [], content_type: '', format: '', status: 'draft', scheduled_date: '', scheduled_time: '', scheduled_at: null, hashtags: [], platform_links: {} }
     hashtagInput.value = ''
+    selectedPainPointId.value = ''
+    showAiPanel.value = false
+    aiForm.value = { topic: '', purpose: 'engage', target_channel: '', offer_id: '' }
+    aiError.value = ''
     showCreateModal.value = true
 }
 
@@ -1198,6 +1539,14 @@ const openEditModal = (post) => {
     if (typeof hashtags === 'string') { try { hashtags = JSON.parse(hashtags) } catch (e) { hashtags = [] } }
     if (!Array.isArray(hashtags)) hashtags = []
 
+    // Parse platform links from existing links data
+    const platformLinks = {}
+    if (post.links) {
+        Object.entries(post.links).forEach(([platform, link]) => {
+            platformLinks[platform] = link.external_url || ''
+        })
+    }
+
     postForm.value = {
         title: post.title || '',
         content: post.content || '',
@@ -1209,6 +1558,7 @@ const openEditModal = (post) => {
         scheduled_time: scheduledTime,
         scheduled_at: post.scheduled_at || null,
         hashtags: hashtags,
+        platform_links: platformLinks,
     }
     hashtagInput.value = hashtags.join(', ')
     showCreateModal.value = true
@@ -1225,7 +1575,11 @@ const submitPost = () => {
     if (hashtagInput.value) postForm.value.hashtags = hashtagInput.value.split(',').map(t => t.trim()).filter(t => t)
     if (postForm.value.status === 'scheduled' && postForm.value.scheduled_date && postForm.value.scheduled_time) postForm.value.scheduled_at = `${postForm.value.scheduled_date} ${postForm.value.scheduled_time}`
     else if (postForm.value.status !== 'scheduled') postForm.value.scheduled_at = null
-    const formData = { ...postForm.value, platform: postForm.value.platforms, type: postForm.value.format }
+    // Build platform_links array for backend
+    const platformLinksArray = postForm.value.platforms
+        .filter(p => postForm.value.platform_links[p])
+        .map(p => ({ platform: p, external_url: postForm.value.platform_links[p] }))
+    const formData = { ...postForm.value, platform: postForm.value.platforms, type: postForm.value.format, platform_links: platformLinksArray }
 
     if (editingPost.value) {
         // Update existing post

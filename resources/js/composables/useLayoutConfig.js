@@ -116,8 +116,7 @@ export const businessLayoutConfig = {
       items: [
         { href: '/business', label: 'Bosh sahifa', labelKey: 'nav.dashboard', icon: HomeIcon, exact: true },
         { href: '/business/marketing', label: 'Marketing', labelKey: 'nav.marketing', icon: MegaphoneIcon, activeMatch: (url) => url.startsWith('/business/marketing') && !url.startsWith('/business/marketing/content') },
-        { href: '/business/marketing/content', label: 'Kontent Reja', labelKey: 'nav.content_plan', icon: CalendarIcon, activeMatch: (url) => url.startsWith('/business/marketing/content') && !url.startsWith('/business/marketing/content-ai') },
-        { href: '/business/marketing/content-ai/smart-plan', label: 'Smart Reja', icon: SparklesIcon, activeMatch: (url) => url.startsWith('/business/marketing/content-ai/smart-plan') },
+        { href: '/business/marketing/content', label: 'Kontent Reja', labelKey: 'nav.content_plan', icon: CalendarIcon, activeMatch: (url) => url.startsWith('/business/marketing/content') },
         { href: '/business/inbox', label: 'Yagona Inbox', labelKey: 'nav.inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
       ]
     },
@@ -419,8 +418,7 @@ export const marketingLayoutConfig = {
         { href: '/marketing', label: 'Marketing Markazi', icon: HomeIcon, exact: true },
         { href: '/marketing/dashboard', label: 'Bosh sahifa', icon: ChartBarIcon },
         { href: '/marketing/campaigns', label: 'Kampaniyalar', icon: PresentationChartLineIcon },
-        { href: '/marketing/content', label: 'Kontent Reja', icon: CalendarIcon, activeMatch: (url) => url.startsWith('/marketing/content') && !url.startsWith('/marketing/content-ai') },
-        { href: '/business/marketing/content-ai/smart-plan', label: 'Smart Reja', icon: SparklesIcon, activeMatch: (url) => url.startsWith('/business/marketing/content-ai/smart-plan') },
+        { href: '/marketing/content', label: 'Kontent Reja', icon: CalendarIcon, activeMatch: (url) => url.startsWith('/marketing/content') },
         { href: '/marketing/channels', label: 'Kanallar', icon: UsersIcon },
       ]
     },

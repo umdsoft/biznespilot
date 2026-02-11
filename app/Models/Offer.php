@@ -186,4 +186,9 @@ class Offer extends Model
     {
         return $query->where('status', 'draft');
     }
+
+    public function contentGenerations(): HasMany
+    {
+        return $this->hasMany(ContentGeneration::class);
+    }
 }

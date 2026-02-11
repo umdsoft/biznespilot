@@ -1,5 +1,5 @@
 <template>
-  <MarketingLayout title="Style Guide">
+  <component :is="layoutComponent" title="Style Guide">
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
@@ -329,12 +329,14 @@ Mahsulot yangiliklari"
         </div>
       </div>
     </div>
-  </MarketingLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import BaseLayout from '@/layouts/BaseLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import {
   ArrowLeftIcon,
@@ -356,6 +358,12 @@ const props = defineProps({
       cost: 0,
     }),
   },
+  panelType: { type: String, default: 'business' },
+});
+
+const layoutComponent = computed(() => {
+  const layouts = { business: BusinessLayout, marketing: MarketingLayout };
+  return layouts[props.panelType] || BaseLayout;
 });
 
 const form = ref({

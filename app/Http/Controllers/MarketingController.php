@@ -256,20 +256,36 @@ class MarketingController extends Controller
             'platform.*' => ['string', 'max:100'],
             'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
             'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
-            'type' => ['nullable', 'string'], // Legacy field
+            'type' => ['nullable', 'string'],
             'status' => ['required', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
             'hashtags' => ['nullable', 'array'],
+            'platform_links' => ['nullable', 'array'],
+            'platform_links.*.platform' => ['required', 'string'],
+            'platform_links.*.external_url' => ['nullable', 'string', 'max:500'],
         ]);
+
+        $platformLinks = $validated['platform_links'] ?? [];
+        unset($validated['platform_links']);
 
         $validated['business_id'] = $currentBusiness->id;
 
-        // Handle multiple platforms - store as JSON array
         if (is_array($validated['platform'])) {
             $validated['platform'] = json_encode($validated['platform']);
         }
 
-        ContentPost::create($validated);
+        $post = ContentPost::create($validated);
+
+        foreach ($platformLinks as $link) {
+            if (!empty($link['external_url'])) {
+                \App\Models\ContentPostLink::create([
+                    'content_post_id' => $post->id,
+                    'business_id' => $currentBusiness->id,
+                    'platform' => $link['platform'],
+                    'external_url' => $link['external_url'],
+                ]);
+            }
+        }
 
         return redirect()->back()
             ->with('success', 'Kontent muvaffaqiyatli qo\'shildi!');
@@ -383,15 +399,31 @@ class MarketingController extends Controller
             'status' => ['required', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
             'hashtags' => ['nullable', 'array'],
-            'external_url' => ['nullable', 'url'],
+            'platform_links' => ['nullable', 'array'],
+            'platform_links.*.platform' => ['required', 'string'],
+            'platform_links.*.external_url' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // Handle multiple platforms
+        $platformLinks = $validated['platform_links'] ?? [];
+        unset($validated['platform_links']);
+
         if (is_array($validated['platform'])) {
             $validated['platform'] = json_encode($validated['platform']);
         }
 
         $content->update($validated);
+
+        foreach ($platformLinks as $link) {
+            if (!empty($link['external_url'])) {
+                \App\Models\ContentPostLink::updateOrCreate(
+                    ['content_post_id' => $content->id, 'platform' => $link['platform']],
+                    ['business_id' => $currentBusiness->id, 'external_url' => $link['external_url'], 'sync_status' => 'pending']
+                );
+            } else {
+                \App\Models\ContentPostLink::where('content_post_id', $content->id)
+                    ->where('platform', $link['platform'])->delete();
+            }
+        }
 
         return redirect()->back()
             ->with('success', 'Kontent muvaffaqiyatli yangilandi!');

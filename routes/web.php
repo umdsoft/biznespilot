@@ -434,6 +434,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/content/{content}/edit', [MarketingController::class, 'editContent'])->name('content.edit');
         Route::put('/content/{content}', [MarketingController::class, 'updateContent'])->name('content.update');
         Route::delete('/content/{content}', [MarketingController::class, 'deleteContent'])->name('content.destroy');
+        Route::post('/content/{content}/sync-stats', [App\Http\Controllers\Marketing\ContentController::class, 'syncStats'])->name('content.sync-stats');
 
         // Marketing KPI routes
         Route::prefix('kpi')->name('kpi.')->group(function () {
@@ -1766,6 +1767,7 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::post('/{content}/schedule', [App\Http\Controllers\Marketing\ContentController::class, 'schedule'])->name('schedule');
         Route::post('/{content}/metrics', [App\Http\Controllers\Marketing\ContentController::class, 'updateMetrics'])->name('metrics');
         Route::post('/{content}/generate-ai', [App\Http\Controllers\Marketing\ContentController::class, 'generateAI'])->name('generate-ai');
+        Route::post('/{content}/sync-stats', [App\Http\Controllers\Marketing\ContentController::class, 'syncStats'])->name('sync-stats');
     });
 
     // Analytics - Using Shared AnalyticsController

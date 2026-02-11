@@ -15,6 +15,7 @@ class ContentGeneration extends Model
     protected $fillable = [
         'business_id',
         'user_id',
+        'offer_id',
         'topic',
         'prompt',
         'content_type',
@@ -98,6 +99,11 @@ class ContentGeneration extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(Offer::class);
     }
 
     /**

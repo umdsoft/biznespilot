@@ -1,5 +1,5 @@
 <template>
-  <MarketingLayout title="Kontent Shablonlari">
+  <component :is="layoutComponent" title="Kontent Shablonlari">
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
@@ -347,12 +347,14 @@
         </div>
       </div>
     </div>
-  </MarketingLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import BaseLayout from '@/layouts/BaseLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import {
   ArrowLeftIcon,
@@ -369,6 +371,12 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  panelType: { type: String, default: 'business' },
+});
+
+const layoutComponent = computed(() => {
+  const layouts = { business: BusinessLayout, marketing: MarketingLayout };
+  return layouts[props.panelType] || BaseLayout;
 });
 
 const showAddModal = ref(false);

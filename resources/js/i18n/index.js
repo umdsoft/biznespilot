@@ -10592,10 +10592,11 @@ export function t(key, replacements = {}) {
         return key;
     }
 
-    // Replace placeholders
+    // Replace placeholders (:placeholder and {placeholder} formats)
     let result = value;
     for (const [placeholder, replacement] of Object.entries(replacements)) {
         result = result.replace(new RegExp(`:${placeholder}`, 'g'), String(replacement));
+        result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(replacement));
     }
 
     return result;

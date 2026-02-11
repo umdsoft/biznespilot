@@ -97,8 +97,12 @@ const expandedSections = ref({
     psychology: false,
     nlp: false,
     script: false,
+    gatekeeper: false,
+    coldcall: false,
     objections: false,
+    negotiation: false,
     closing: false,
+    upsell: false,
     followup: false,
 });
 
@@ -133,10 +137,11 @@ const collapseAll = () => {
 
 // Stats
 const stats = [
-    { value: '50+', label: 'Texnika', icon: '⚡' },
+    { value: '90+', label: 'Texnika', icon: '⚡' },
     { value: '15', label: "E'tiroz", icon: '🛡️' },
     { value: '12', label: 'Yopish usuli', icon: '🎯' },
-    { value: '8', label: 'Metodologiya', icon: '📚' },
+    { value: '9', label: 'Metodologiya', icon: '📚' },
+    { value: '6', label: 'Muzokara', icon: '💰' },
     { value: '6', label: 'Bosqich', icon: '📋' },
 ];
 
@@ -244,6 +249,19 @@ const methodologies = [
             { letter: '4', title: 'Commitment Questions', desc: 'Majburiyat olish savollari' },
             { letter: '5', title: 'Basic Issue Questions', desc: 'Asosiy muammolarni aniqlash' },
         ]
+    },
+    {
+        name: 'BANT QUALIFICATION',
+        origin: 'IBM, Classic Framework',
+        icon: '🎯',
+        color: 'blue',
+        steps: [
+            { letter: 'B', title: 'BUDGET (Byudjet)', desc: '"Bu yo\'nalish uchun byudjet ajratilganmi?"' },
+            { letter: 'A', title: 'AUTHORITY (Vakolat)', desc: '"Yakuniy qarorni kim qabul qiladi?"' },
+            { letter: 'N', title: 'NEED (Ehtiyoj)', desc: '"Bu muammo qanchalik dolzarb?"' },
+            { letter: 'T', title: 'TIMELINE (Muddat)', desc: '"Qachon boshlashni rejalashtiraysiz?"' },
+        ],
+        keyPoint: '4 tadan 3 tasi "ha" = Kvalifikatsiya o\'tdi. 2 ta yoki kamroq = Nurturing kerak'
     },
 ];
 
@@ -681,6 +699,387 @@ const buyingSignals = [
     { icon: '⚠️', text: '"Material jo\'nating"', meaning: 'Follow-up rejalashtiring', positive: false },
 ];
 
+// Gatekeeper Bypass Scripts
+const gatekeeperScripts = [
+    {
+        name: 'AUTHORITY APPROACH',
+        icon: '👔',
+        script: `Assalomu alaykum! Men [ISMINGIZ], [KOMPANIYA] bo'lim boshlig'i.
+[DIREKTOR ISMI] bilan muhim masala bo'yicha gaplashishim kerak.
+Ulashtirib yuboring, iltimos.`,
+        tip: 'Ishonchli, rasmiy ovoz tonusida gapiring. Ikkilanmang.',
+    },
+    {
+        name: 'REFERRAL APPROACH',
+        icon: '🤝',
+        script: `Assalomu alaykum! [TANISH ISMI] tavsiya qildi –
+[DIREKTOR ISMI] bilan bog'lanishim kerak edi.
+Hozir gaplasha oladimi?`,
+        tip: 'Agar haqiqiy referral bo\'lsa – eng kuchli usul. 70%+ o\'tish',
+    },
+    {
+        name: 'CURIOSITY APPROACH',
+        icon: '🔍',
+        script: `Assalomu alaykum! Men [KOMPANIYA]dan.
+[DIREKTOR ISMI]ga juda muhim ma'lumot bor –
+kompaniyangiz uchun foydali. Ulashtirsangiz?`,
+        tip: 'Qiziqtirish orqali o\'tish – "nima ekan?" degan fikr hosil qiling',
+    },
+    {
+        name: 'FRIENDLY APPROACH',
+        icon: '😊',
+        script: `Assalomu alaykum! Men [ISMINGIZ].
+Kechirasiz, sizning ismingiz nima? [ISM], juda yaxshi!
+[DIREKTOR] bilan qisqa gaplashmoqchi edim –
+2 daqiqa vaqtini olmayman.`,
+        tip: 'Avval sekretar bilan do\'stlashing – ular ham odam',
+    },
+    {
+        name: 'EMAIL FOLLOW-UP',
+        icon: '📧',
+        script: `Assalomu alaykum! Men [ISMINGIZ], [KOMPANIYA]dan.
+[DIREKTOR ISMI]ga email yuborgandim –
+shu haqida qisqa gaplashmoqchi edim.`,
+        tip: 'Avval email yuborib, keyin qo\'ng\'iroq qiling – legitimlik oshadi',
+    },
+    {
+        name: 'DIRECT BYPASS',
+        icon: '⚡',
+        script: `Assalomu alaykum! Sotuv bo'limini ulashtirib yuboring, iltimos.
+yoki
+Assalomu alaykum! Direktsiya raqami nechida?`,
+        tip: 'Ba\'zan eng oddiy usul eng samarali – ishonch bilan gapiring',
+    },
+];
+
+// Cold Call Opening Variations
+const coldCallOpenings = [
+    {
+        name: 'PERMISSION OPENER',
+        type: 'B2B',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ], [KOMPANIYA]dan.
+30 sekund vaqtingizni olsam – sizga foydali bo'lishi mumkin.
+Gapiraveraymi?`,
+        why: 'Ruxsat so\'rash – hurmat va ishonch yaratadi',
+    },
+    {
+        name: 'REFERRAL OPENER',
+        type: 'B2B',
+        script: `Assalomu alaykum, [ISM]! [TANISH ISMI] sizni tavsiya qildi.
+U aytdiki, siz [SOHA] bo'yicha juda professional ekansiz.
+Bir masala bor – 2 daqiqa?`,
+        why: 'Referral = eng yuqori konversiya (40-60%)',
+    },
+    {
+        name: 'VALUE FIRST OPENER',
+        type: 'Universal',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ].
+Sizning sohangizda ishlayotgan kompaniyalarga
+oyiga [NATIJA – masalan: 30% ko'proq mijoz] olishga yordam beraman.
+Bu sizni qiziqtiradimi?`,
+        why: 'Darhol qiymat ko\'rsatish – e\'tiborni jalb qiladi',
+    },
+    {
+        name: 'PROBLEM OPENER',
+        type: 'B2B',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ], [KOMPANIYA]dan.
+Ko'pchilik [SOHA] rahbarlari [MUAMMO]dan shikoyat qiladi.
+Bu sizda ham bormi?`,
+        why: 'Umumiy muammoni aytish – mijoz o\'zini tushunilgan his qiladi',
+    },
+    {
+        name: 'CURIOSITY OPENER',
+        type: 'Universal',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ].
+Sizga bitta g'alati savol bersam bo'ladimi?
+[KUTISH]
+Agar oylik daromadingizni 2× oshirish mumkin bo'lsa –
+3 daqiqa tinglaysizmi?`,
+        why: 'Pattern interrupt – kutilmagan savol e\'tiborni jalb qiladi',
+    },
+    {
+        name: 'EVENT OPENER',
+        type: 'B2B',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ].
+Sizning kompaniyangiz haqida [YANGILIK/VOQEA] ko'rdim –
+ajoyib natija! Shu mavzuda bir taklifim bor edi.`,
+        why: 'Shaxsiylashtirilgan yondashuv – "men sizni bilaman"',
+    },
+];
+
+// Negotiation Techniques
+const negotiationTechniques = [
+    {
+        number: 1,
+        name: 'BRACKETING',
+        icon: '📊',
+        desc: 'Narx oralig\'ini aniqlash',
+        script: `Mijoz: "Qimmat!"
+Siz: "Qancha narx sizga mos keladi?"
+[JAVOB]
+"Demak, [X] va [Y] orasidami?
+Keling [Z] variantni ko'raylik – bu sizga mos!"`,
+        keyPoint: 'Avval mijozdan raqam oling – keyin o\'rtaga chiqing',
+    },
+    {
+        number: 2,
+        name: 'NIBBLE',
+        icon: '🍪',
+        desc: 'Kichik qo\'shimchalar so\'rash',
+        script: `"Ajoyib, kelishdik!
+Aytgancha... bonus sifatida [KICHIK NARSA] ham
+qo'shib bersangiz?"`,
+        keyPoint: 'Asosiy kelishuv bo\'lgandan KEYIN qo\'shimcha so\'rang',
+    },
+    {
+        number: 3,
+        name: 'TRADE-OFF',
+        icon: '⚖️',
+        desc: 'Almashish – biror narsa olib, biror narsa berish',
+        script: `Mijoz: "Chegirma bering!"
+Siz: "Chegirma qilsam – shartlar:
+• 1 yillik shartnoma
+• Oldindan to'lov
+• Yoki kichikroq paket
+Qaysi biri sizga mos?"`,
+        keyPoint: 'Hech qachon bepul chegirma bermang – doimo almashish',
+    },
+    {
+        number: 4,
+        name: 'FLINCH',
+        icon: '😲',
+        desc: 'Hayratlanish reaktsiyasi',
+        script: `Mijoz: "Bu 5 mln turadi."
+Siz: [Hayratlanib] "5 mln?! Voy-voy!
+Buni qanday asoslaysiz?
+Keling, boshqa variantlarni ko'raylik."`,
+        keyPoint: 'Har doim birinchi narxga "hayratlanish" ko\'rsating',
+    },
+    {
+        number: 5,
+        name: 'DEADLINE',
+        icon: '⏰',
+        desc: 'Muddatli taklif',
+        script: `"Bu maxsus narx faqat [SANA]gacha.
+Keyingi haftadan boshlab [X]% qimmatroq.
+Bugun qaror qilsangiz – [BONUS] ham qo'shaman."`,
+        keyPoint: 'Haqiqiy deadline qo\'ying – yolg\'on deadline ishlamaydi',
+    },
+    {
+        number: 6,
+        name: 'GOOD COP / BAD COP',
+        icon: '👥',
+        desc: 'Rahbar va menejer o\'yini',
+        script: `"Shaxsan men sizga chegirma berar edim...
+Lekin rahbariyat ruxsat bermaydi.
+Ammo... agar bugun imzolasangiz –
+rahbariyatdan maxsus ruxsat so'rayman."`,
+        keyPoint: 'Siz "do\'st" siz, rahbar "qattiq" – klassik taktika',
+    },
+];
+
+// Voicemail Scripts
+const voicemailScripts = [
+    {
+        name: 'QISQA VA ANIQ',
+        duration: '20 sek',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ], [KOMPANIYA]dan.
+Sizga [FOYDA] haqida muhim ma'lumot bor.
+[TELEFON RAQAM]ga qayta qo'ng'iroq qiling
+yoki men ertaga qo'ng'iroq qilaman.`,
+    },
+    {
+        name: 'QIZIQTIRISH',
+        duration: '25 sek',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ].
+Sizning sohangizda ishlayotgan 3 ta kompaniyaga
+oyiga [NATIJA] olishga yordam berdik.
+Bu sizni qiziqtiradimi? [RAQAM]ga qo'ng'iroq qiling.`,
+    },
+    {
+        name: 'REFERRAL VOICEMAIL',
+        duration: '20 sek',
+        script: `Assalomu alaykum, [ISM]! [TANISH ISMI] tavsiya qildi.
+Siz bilan gaplashmoqchi edim – [MAVZU] haqida.
+[RAQAM]ga qo'ng'iroq qiling yoki javob yozing.`,
+    },
+    {
+        name: 'FOLLOW-UP VOICEMAIL',
+        duration: '15 sek',
+        script: `Assalomu alaykum, [ISM]! Men [ISMINGIZ], oldingi qo'ng'iroqdan.
+Material yuborib qo'ydim – ko'rib chiqdingizmi?
+[RAQAM]ga javob bering, iltimos.`,
+    },
+];
+
+// SMS/Email Follow-up Templates
+const followupTemplates = [
+    {
+        type: 'sms',
+        name: 'Birinchi kontaktdan keyin',
+        icon: '💬',
+        template: `[ISM], assalomu alaykum! Men [ISMINGIZ], [KOMPANIYA]dan.
+Gaplashganimizdan xursandman.
+Material: [LINK]
+Savol bo'lsa – yozing!`,
+    },
+    {
+        type: 'sms',
+        name: 'Follow-up (2-kun)',
+        icon: '💬',
+        template: `[ISM], salom! Men [ISMINGIZ].
+Material ko'rib chiqdingizmi?
+Qo'shimcha savol bo'lsa – men shu yerdaman.`,
+    },
+    {
+        type: 'sms',
+        name: 'Urgency SMS',
+        icon: '💬',
+        template: `[ISM], salom! [ISMINGIZ], [KOMPANIYA].
+Maxsus taklif: [TAKLIF] – faqat [SANA]gacha!
+Qiziqsangiz – javob yozing.`,
+    },
+    {
+        type: 'email',
+        name: 'Gaplashgandan keyin',
+        icon: '📧',
+        template: `Mavzu: [ISM], bugungi suhbatimiz bo'yicha
+
+Assalomu alaykum, [ISM]!
+
+Bugun gaplashganimizdan xursandman.
+Siz aytgan [MUAMMO] bo'yicha quyidagilarni tayyorladim:
+
+• [Material 1]
+• [Material 2]
+• [Case study]
+
+Savol bo'lsa – javob yozing yoki [RAQAM]ga qo'ng'iroq qiling.
+
+Hurmat bilan,
+[ISMINGIZ], [KOMPANIYA]`,
+    },
+    {
+        type: 'email',
+        name: 'Javob bermagan mijozga',
+        icon: '📧',
+        template: `Mavzu: [ISM], bir narsani unutdim
+
+Assalomu alaykum, [ISM]!
+
+O'tgan gaplashuvimizda aytishni unutdim:
+[QIZIQARLI FAKT yoki YANGILIK]
+
+Bu sizga foydali bo'lishi mumkin.
+3 daqiqa gaplashsak – qachon qulay?
+
+Hurmat bilan,
+[ISMINGIZ]`,
+    },
+    {
+        type: 'email',
+        name: 'So\'nggi urinish',
+        icon: '📧',
+        template: `Mavzu: [ISM], oxirgi savol
+
+Assalomu alaykum, [ISM]!
+
+Bir necha marta bog'lanishga harakat qildim.
+Tushunaman – band ekansiz.
+
+Bitta savol: bu mavzu hali ham sizni qiziqtiradimi?
+"Ha" yoki "Yo'q" – javobingiz kifoya.
+
+Hurmat bilan,
+[ISMINGIZ]`,
+    },
+];
+
+// Upsell & Cross-sell Techniques
+const upsellTechniques = [
+    {
+        name: 'BUNDLE OFFER',
+        icon: '📦',
+        desc: 'Paketli taklif – birgalikda arzon',
+        script: `"Aytgancha, [ASOSIY MAHSULOT] bilan birga
+[QO'SHIMCHA] olsangiz – 20% tejaysiz.
+Ko'pchilik mijozlarimiz shu paketni tanlaydi."`,
+        when: 'Mijoz asosiy mahsulotga rozi bo\'lganda',
+    },
+    {
+        name: 'PREMIUM UPGRADE',
+        icon: '⭐',
+        desc: 'Yuqori paketga ko\'tarish',
+        script: `"Standart paket ajoyib.
+Lekin Premium da [QO'SHIMCHA FOYDA] ham bor.
+Farqi faqat [X] so'm – bu [TAQQOSLASH] narxida."`,
+        when: 'Taqqoslash natijasi aniq foyda ko\'rsatganda',
+    },
+    {
+        name: 'SUCCESS STORY UPSELL',
+        icon: '📈',
+        desc: 'Muvaffaqiyat hikoyasi orqali',
+        script: `"Aytgancha, [KOMPANIYA X] avval shu paketdan boshlagan.
+3 oydan keyin Premium ga o'tdi va [NATIJA].
+Siz ham boshlashingiz mumkin."`,
+        when: 'Mijoz allaqachon xaridga tayyor',
+    },
+    {
+        name: 'TRIAL UPGRADE',
+        icon: '🎁',
+        desc: 'Bepul sinov orqali yuqori paket',
+        script: `"Sizga maxsus taklif:
+Premium ni 14 kun bepul sinab ko'ring.
+Yoqsa – davom etasiz. Yoqmasa – Standard ga qaytasiz.
+Risk nol!"`,
+        when: 'Mijoz Premium narxidan qo\'rqayotganda',
+    },
+    {
+        name: 'SEASONAL OFFER',
+        icon: '🎯',
+        desc: 'Mavsumiy maxsus taklif',
+        script: `"Hozir maxsus aksiya:
+[MAHSULOT] + [BONUS 1] + [BONUS 2]
+Hammasi birgalikda – faqat [NARX].
+Bu taklif [SANA]gacha!"`,
+        when: 'Bayram, aksiya, yoki maxsus sana oldidan',
+    },
+];
+
+// Referral Scripts
+const referralScripts = [
+    {
+        name: 'DIRECT ASK',
+        icon: '🤝',
+        script: `"[ISM], bizning xizmatimizdan mamnunmisiz? [Ha]
+Ajoyib! Sizning tanishlaringiz orasida ham
+shu muammoga duch kelganlar bormi?
+Ularni tavsiya qilsangiz – sizga [BONUS] bilan minnatdor bo'lardim."`,
+        when: 'Mijoz qoniqish bildirganidan KEYIN',
+        tip: 'Xizmatdan rozi mijozdan darhol so\'rang',
+    },
+    {
+        name: 'RECIPROCITY ASK',
+        icon: '🎁',
+        script: `"[ISM], sizga katta rahmat!
+Aytgancha, sizga ham foydali taklif:
+Har bir tavsiya uchun [BONUS/CHEGIRMA].
+Kimga yordam qila olishimni bilasizmi?"`,
+        when: 'Shartnoma imzolangandan keyin',
+        tip: 'Avval qiymat bering – keyin tavsiya so\'rang',
+    },
+    {
+        name: 'PASSIVE REFERRAL',
+        icon: '📱',
+        script: `"[ISM], bizning yangi materialimiz chiqdi:
+[MATERIAL NOMI]
+Bu sizning sohangiz uchun juda foydali.
+Tanishlaringizga ham ulashing – ularga ham foydali bo'ladi."`,
+        when: 'Doimiy mijozlar bilan munosabat davomida',
+        tip: 'Foydali kontent orqali tabiiy tarqatish',
+    },
+];
+
 // Script Steps
 const scriptSteps = [
     {
@@ -836,10 +1235,43 @@ const filteredClosingTechniques = computed(() => {
     );
 });
 
+// Filter negotiation techniques
+const filteredNegotiationTechniques = computed(() => {
+    if (!searchQuery.value) return negotiationTechniques;
+    const query = searchQuery.value.toLowerCase();
+    return negotiationTechniques.filter(t =>
+        t.name.toLowerCase().includes(query) ||
+        t.desc.toLowerCase().includes(query) ||
+        t.script.toLowerCase().includes(query)
+    );
+});
+
+// Filter gatekeeper scripts
+const filteredGatekeeperScripts = computed(() => {
+    if (!searchQuery.value) return gatekeeperScripts;
+    const query = searchQuery.value.toLowerCase();
+    return gatekeeperScripts.filter(g =>
+        g.name.toLowerCase().includes(query) ||
+        g.script.toLowerCase().includes(query) ||
+        g.tip.toLowerCase().includes(query)
+    );
+});
+
+// Filter cold call openings
+const filteredColdCallOpenings = computed(() => {
+    if (!searchQuery.value) return coldCallOpenings;
+    const query = searchQuery.value.toLowerCase();
+    return coldCallOpenings.filter(c =>
+        c.name.toLowerCase().includes(query) ||
+        c.script.toLowerCase().includes(query) ||
+        c.why.toLowerCase().includes(query)
+    );
+});
+
 // Search result count
 const searchResultCount = computed(() => {
     if (!searchQuery.value) return null;
-    return filteredObjections.value.length + filteredMethodologies.value.length + filteredClosingTechniques.value.length;
+    return filteredObjections.value.length + filteredMethodologies.value.length + filteredClosingTechniques.value.length + filteredNegotiationTechniques.value.length + filteredGatekeeperScripts.value.length + filteredColdCallOpenings.value.length;
 });
 
 // Current practice objection
@@ -965,22 +1397,30 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
                     <PrinterIcon class="w-4 h-4" />
                     Chop etish
                 </button>
-                <div class="hidden md:flex gap-2 ml-2 border-l border-gray-200 dark:border-gray-600 pl-4">
-                    <button @click="expandedSections.methods = true; expandedSections.psychology = false; expandedSections.nlp = false; expandedSections.script = false; expandedSections.objections = false; expandedSections.closing = false; expandedSections.followup = false;"
-                            class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
-                        📚 Metodlar
-                    </button>
+                <div class="hidden md:flex gap-2 ml-2 border-l border-gray-200 dark:border-gray-600 pl-4 flex-wrap">
                     <button @click="expandedSections.script = true"
                             class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
                         📋 6-Bosqich
+                    </button>
+                    <button @click="expandedSections.gatekeeper = true"
+                            class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
+                        🚪 Qo'riqchi
                     </button>
                     <button @click="expandedSections.objections = true"
                             class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
                         🛡️ E'tirozlar
                     </button>
+                    <button @click="expandedSections.negotiation = true"
+                            class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
+                        💰 Muzokara
+                    </button>
                     <button @click="expandedSections.closing = true"
                             class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
                         🎯 Yopish
+                    </button>
+                    <button @click="expandedSections.upsell = true"
+                            class="px-3 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-sm font-medium transition-colors">
+                        📈 Upsell
                     </button>
                 </div>
             </div>
@@ -1158,6 +1598,164 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
             </div>
         </section>
 
+        <!-- GATEKEEPER BYPASS -->
+        <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
+            <div @click="toggleSection('gatekeeper')"
+                 class="flex items-center gap-4 p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700">
+                <div class="w-14 h-14 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg">
+                    🚪
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">SEKRETAR / QO'RIQCHIDAN O'TISH</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Qaror qiluvchiga yetib borish texnikalari</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-3 py-1 rounded-full text-sm font-medium">
+                        6 ta texnika
+                    </span>
+                    <component :is="expandedSections.gatekeeper ? ChevronUpIcon : ChevronDownIcon" class="w-6 h-6 text-gray-400" />
+                </div>
+            </div>
+
+            <div v-show="expandedSections.gatekeeper" class="p-6">
+                <div v-if="filteredGatekeeperScripts.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <span class="text-4xl block mb-2">🔍</span>
+                    Hech qanday natija topilmadi
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="gk in filteredGatekeeperScripts" :key="gk.name"
+                         class="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden hover:shadow-lg transition-all group">
+                        <div class="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-4 font-bold flex items-center gap-2">
+                            <span class="text-xl">{{ gk.icon }}</span>
+                            {{ gk.name }}
+                        </div>
+                        <div class="p-4">
+                            <div class="relative group/gk">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-4 text-gray-200 text-sm whitespace-pre-line mb-3 font-mono leading-relaxed">{{ gk.script }}</div>
+                                <button @click="copyToClipboard(gk.script, gk.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/gk:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
+                            </div>
+                            <div class="flex items-start gap-2 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 p-3 rounded-lg text-sm">
+                                <LightBulbIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                {{ gk.tip }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Rule -->
+                <div class="mt-6 bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 rounded-xl p-5">
+                    <h4 class="text-rose-700 dark:text-rose-400 font-bold flex items-center gap-2 mb-2">
+                        <LightBulbIcon class="w-5 h-5" />
+                        MUHIM QOIDALAR
+                    </h4>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        <strong>1.</strong> Hech qachon "sotuvchiman" demang – "hamkor" yoki "maslahatchi" deng.<br>
+                        <strong>2.</strong> Sekretar ismini bilib oling va eslab qoling – keyingi qo'ng'iroqda ishlating.<br>
+                        <strong>3.</strong> Direktorning to'liq ism-familiyasini avvaldan bilib oling.<br>
+                        <strong>4.</strong> Eng yaxshi vaqt: 8:00-9:00 yoki 17:30-18:30 – sekretar yo'q payt.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SOVUQ QO'NG'IROQ OCHILISHI -->
+        <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
+            <div @click="toggleSection('coldcall')"
+                 class="flex items-center gap-4 p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700">
+                <div class="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg">
+                    📞
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">SOVUQ QO'NG'IROQ OCHILISHI</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">6 ta tasdiqlangan opening – har xil vaziyat uchun</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 px-3 py-1 rounded-full text-sm font-medium">
+                        6 ta opening
+                    </span>
+                    <component :is="expandedSections.coldcall ? ChevronUpIcon : ChevronDownIcon" class="w-6 h-6 text-gray-400" />
+                </div>
+            </div>
+
+            <div v-show="expandedSections.coldcall" class="p-6">
+                <div v-if="filteredColdCallOpenings.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <span class="text-4xl block mb-2">🔍</span>
+                    Hech qanday natija topilmadi
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div v-for="opening in filteredColdCallOpenings" :key="opening.name"
+                         class="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden hover:shadow-lg transition-all group">
+                        <div class="bg-gradient-to-r from-sky-500 to-blue-500 text-white p-4 flex items-center justify-between">
+                            <span class="font-bold flex items-center gap-2">
+                                <PhoneIcon class="w-5 h-5" />
+                                {{ opening.name }}
+                            </span>
+                            <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-medium">{{ opening.type }}</span>
+                        </div>
+                        <div class="p-4">
+                            <div class="relative group/cc">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-4 text-gray-200 text-sm whitespace-pre-line mb-3 font-mono leading-relaxed">{{ opening.script }}</div>
+                                <button @click="copyToClipboard(opening.script, opening.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/cc:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
+                            </div>
+                            <div class="flex items-start gap-2 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 p-3 rounded-lg text-sm">
+                                <LightBulbIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                {{ opening.why }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voicemail Section -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-bold text-sky-600 dark:text-sky-400 mb-4 flex items-center gap-2">
+                        📱 OVOZLI XABAR SHABLONLARI (Voicemail)
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div v-for="vm in voicemailScripts" :key="vm.name"
+                             class="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl p-4 hover:shadow-md transition-all group">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="font-bold text-sky-700 dark:text-sky-400">{{ vm.name }}</span>
+                                <span class="text-gray-400 dark:text-gray-500 text-xs flex items-center gap-1">
+                                    <ClockIcon class="w-3 h-3" />
+                                    {{ vm.duration }}
+                                </span>
+                            </div>
+                            <div class="relative group/vm">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-3 text-gray-200 text-sm whitespace-pre-line font-mono leading-relaxed">{{ vm.script }}</div>
+                                <button @click="copyToClipboard(vm.script, vm.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/vm:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Rule -->
+                <div class="mt-6 bg-sky-100 dark:bg-sky-900/30 border-2 border-sky-300 dark:border-sky-700 rounded-xl p-5">
+                    <h4 class="text-sky-700 dark:text-sky-400 font-bold flex items-center gap-2 mb-2">
+                        <LightBulbIcon class="w-5 h-5" />
+                        SOVUQ QO'NG'IROQ QOIDALARI
+                    </h4>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        <strong>1.</strong> Birinchi 10 sekund – eng muhim. Qiziqish yaratmasangiz, yopadilar.<br>
+                        <strong>2.</strong> Tabassum bilan gapiring – ovoz tonusidan seziladi.<br>
+                        <strong>3.</strong> Skript yodlang, lekin tabiiy gapiring – robot bo'lmang.<br>
+                        <strong>4.</strong> "Yo'q" = keyingi mijoz. 100 ta qo'ng'iroqdan 10-15 ta uchrashuv = normal.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- METODOLOGIYALAR -->
         <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
             <div @click="toggleSection('methods')"
@@ -1171,7 +1769,7 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full text-sm font-medium">
-                        8 ta metodologiya
+                        9 ta metodologiya
                     </span>
                     <component :is="expandedSections.methods ? ChevronUpIcon : ChevronDownIcon" class="w-6 h-6 text-gray-400" />
                 </div>
@@ -1459,6 +2057,78 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
             </div>
         </section>
 
+        <!-- NARX MUZOKARA TEXNIKALARI -->
+        <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
+            <div @click="toggleSection('negotiation')"
+                 class="flex items-center gap-4 p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700">
+                <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg">
+                    💰
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">NARX MUZOKARA TEXNIKALARI</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Narxni himoya qilish va chegirma bermasdan sotish</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 px-3 py-1 rounded-full text-sm font-medium">
+                        6 ta taktika
+                    </span>
+                    <component :is="expandedSections.negotiation ? ChevronUpIcon : ChevronDownIcon" class="w-6 h-6 text-gray-400" />
+                </div>
+            </div>
+
+            <div v-show="expandedSections.negotiation" class="p-6">
+                <div v-if="filteredNegotiationTechniques.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <span class="text-4xl block mb-2">🔍</span>
+                    Hech qanday natija topilmadi
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="tech in filteredNegotiationTechniques" :key="tech.number"
+                         class="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden hover:shadow-lg transition-all group">
+                        <div class="bg-gradient-to-r from-yellow-500 to-amber-500 text-white p-4 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg">
+                                {{ tech.number }}
+                            </div>
+                            <div>
+                                <div class="font-bold flex items-center gap-2">
+                                    <span>{{ tech.icon }}</span>
+                                    {{ tech.name }}
+                                </div>
+                                <div class="text-yellow-100 text-xs">{{ tech.desc }}</div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="relative group/neg">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-4 text-gray-200 text-sm whitespace-pre-line mb-3 font-mono leading-relaxed">{{ tech.script }}</div>
+                                <button @click="copyToClipboard(tech.script, tech.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/neg:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
+                            </div>
+                            <div class="flex items-start gap-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 p-3 rounded-lg text-sm">
+                                <LightBulbIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                {{ tech.keyPoint }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Rule -->
+                <div class="mt-6 bg-yellow-100 dark:bg-yellow-900/30 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-5">
+                    <h4 class="text-yellow-700 dark:text-yellow-400 font-bold flex items-center gap-2 mb-2">
+                        <LightBulbIcon class="w-5 h-5" />
+                        MUZOKARA OLTIN QOIDALARI
+                    </h4>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        <strong>1.</strong> Hech qachon birinchi narxni aytmang – avval qiymatni ko'rsating.<br>
+                        <strong>2.</strong> "Qimmat" – bu faqat "qiymatni tushunmadim" degani.<br>
+                        <strong>3.</strong> Chegirma – faqat almashish. Bepul hech narsa bermang.<br>
+                        <strong>4.</strong> Raqamdan avval foydani ayting: "50 mln tejaysiz" keyin "10 mln narx".
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- YOPISH TEXNIKALARI -->
         <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
             <div @click="toggleSection('closing')"
@@ -1526,6 +2196,101 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
             </div>
         </section>
 
+        <!-- UPSELL, CROSS-SELL & REFERRAL -->
+        <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
+            <div @click="toggleSection('upsell')"
+                 class="flex items-center gap-4 p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700">
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg">
+                    📈
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">UPSELL, CROSS-SELL & TAVSIYA</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Har bir mijozdan maksimal daromad olish texnikalari</p>
+                </div>
+                <component :is="expandedSections.upsell ? ChevronUpIcon : ChevronDownIcon" class="w-6 h-6 text-gray-400" />
+            </div>
+
+            <div v-show="expandedSections.upsell" class="p-6">
+                <!-- Upsell/Cross-sell -->
+                <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-2">
+                    📈 UPSELL & CROSS-SELL TEXNIKALARI
+                </h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    <div v-for="tech in upsellTechniques" :key="tech.name"
+                         class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden hover:shadow-lg transition-all group">
+                        <div class="p-4 border-b border-indigo-200 dark:border-indigo-800">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xl">{{ tech.icon }}</span>
+                                <span class="font-bold text-indigo-700 dark:text-indigo-400">{{ tech.name }}</span>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">{{ tech.desc }}</p>
+                        </div>
+                        <div class="p-4">
+                            <div class="relative group/up">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-3 text-gray-200 text-sm whitespace-pre-line mb-3 font-mono leading-relaxed">{{ tech.script }}</div>
+                                <button @click="copyToClipboard(tech.script, tech.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/up:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-sm">
+                                <ClockIcon class="w-4 h-4" />
+                                {{ tech.when }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Scripts -->
+                <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-2">
+                    🤝 TAVSIYA OLISH SKRIPTLARI (Referral)
+                </h3>
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div v-for="ref in referralScripts" :key="ref.name"
+                         class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden hover:shadow-lg transition-all group">
+                        <div class="p-4 border-b border-indigo-200 dark:border-indigo-800">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xl">{{ ref.icon }}</span>
+                                <span class="font-bold text-indigo-700 dark:text-indigo-400">{{ ref.name }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs">
+                                <ClockIcon class="w-3 h-3" />
+                                {{ ref.when }}
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="relative group/ref">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-3 text-gray-200 text-sm whitespace-pre-line mb-3 font-mono leading-relaxed">{{ ref.script }}</div>
+                                <button @click="copyToClipboard(ref.script, ref.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/ref:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
+                            </div>
+                            <div class="flex items-start gap-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 p-3 rounded-lg text-sm">
+                                <LightBulbIcon class="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                {{ ref.tip }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Rule -->
+                <div class="bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-300 dark:border-indigo-700 rounded-xl p-5">
+                    <h4 class="text-indigo-700 dark:text-indigo-400 font-bold flex items-center gap-2 mb-2">
+                        <LightBulbIcon class="w-5 h-5" />
+                        UPSELL OLTIN QOIDASI
+                    </h4>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        <strong>Yangi mijoz topish = 5-7x qimmatroq</strong> mavjud mijozga sotishdan.<br>
+                        Har bir qoniqgan mijoz = 3-5 ta tavsiya = bepul yangi mijozlar.<br><br>
+                        <strong>Ketma-ketlik:</strong> Sotish → Qondirish → Upsell → Referral so'rash → Takrorlash
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- FOLLOW-UP -->
         <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl mb-6 overflow-hidden print:break-inside-avoid">
             <div @click="toggleSection('followup')"
@@ -1541,7 +2306,7 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
             </div>
 
             <div v-show="expandedSections.followup" class="p-6">
-                <div class="grid md:grid-cols-3 gap-6">
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
                     <!-- BITIM BO'LDI -->
                     <div class="border-2 border-emerald-500 rounded-xl overflow-hidden shadow-lg">
                         <div class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-4 flex items-center gap-2 font-bold">
@@ -1570,6 +2335,10 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
                                     <span class="bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">7-kun</span>
                                     <span class="text-sm text-gray-700 dark:text-gray-300">📞 Qoniqish tekshiruvi</span>
                                 </div>
+                                <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                    <span class="bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">14-kun</span>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">🤝 Referral so'rash</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1590,6 +2359,10 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
                                 <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
                                     <span class="bg-orange-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">0-kun</span>
                                     <span class="text-sm text-gray-700 dark:text-gray-300">📧 Material + Taklifnoma</span>
+                                </div>
+                                <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
+                                    <span class="bg-orange-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">1-kun</span>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">💬 SMS: "Material yuborildi"</span>
                                 </div>
                                 <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
                                     <span class="bg-orange-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">2-kun</span>
@@ -1621,17 +2394,56 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
                             </div>
                             <div class="space-y-2">
                                 <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-200 dark:border-red-800">
+                                    <span class="bg-gray-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">7-kun</span>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">📧 Foydali material yuborish</span>
+                                </div>
+                                <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-200 dark:border-red-800">
                                     <span class="bg-gray-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">30-kun</span>
                                     <span class="text-sm text-gray-700 dark:text-gray-300">📧 Foydali kontent</span>
                                 </div>
                                 <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-200 dark:border-red-800">
                                     <span class="bg-gray-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">60-kun</span>
-                                    <span class="text-sm text-gray-700 dark:text-gray-300">📧 Yangilik/Case study</span>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">📧 Yangilik / Case study</span>
                                 </div>
                                 <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-200 dark:border-red-800">
                                     <span class="bg-gray-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">90-kun</span>
                                     <span class="text-sm text-gray-700 dark:text-gray-300">📞 Qayta qo'ng'iroq (1-bosqichdan)</span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMS & Email Templates -->
+                <h3 class="text-lg font-bold text-violet-600 dark:text-violet-400 mb-4 flex items-center gap-2">
+                    📨 SMS & EMAIL SHABLONLARI
+                </h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="tmpl in followupTemplates" :key="tmpl.name"
+                         :class="[
+                             'border rounded-xl overflow-hidden hover:shadow-lg transition-all group',
+                             tmpl.type === 'sms'
+                                 ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800'
+                                 : 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800'
+                         ]">
+                        <div :class="[
+                            'p-3 font-bold text-white flex items-center gap-2 text-sm',
+                            tmpl.type === 'sms'
+                                ? 'bg-gradient-to-r from-teal-500 to-emerald-500'
+                                : 'bg-gradient-to-r from-violet-500 to-purple-500'
+                        ]">
+                            <span>{{ tmpl.icon }}</span>
+                            <span>{{ tmpl.name }}</span>
+                            <span class="ml-auto bg-white/20 px-2 py-0.5 rounded text-xs uppercase">{{ tmpl.type }}</span>
+                        </div>
+                        <div class="p-4">
+                            <div class="relative group/tmpl">
+                                <div class="bg-gray-900 dark:bg-black rounded-lg p-3 text-gray-200 text-sm whitespace-pre-line font-mono leading-relaxed">{{ tmpl.template }}</div>
+                                <button @click="copyToClipboard(tmpl.template, tmpl.name)"
+                                        class="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg opacity-0 group-hover/tmpl:opacity-100 transition-opacity"
+                                        title="Nusxalash">
+                                    <ClipboardDocumentIcon class="w-4 h-4 text-gray-300" />
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1645,13 +2457,13 @@ const currentPracticeObjection = computed(() => objections[currentPracticeIndex.
 
             <div class="bg-white/60 dark:bg-gray-800/60 rounded-xl p-6 mb-6 shadow-inner">
                 <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 text-sm md:text-base">
-                    <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">METODOLOGIYA</span>
+                    <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">SKRIPT</span>
                     <span class="text-amber-500 font-bold text-xl">+</span>
                     <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">PSIXOLOGIYA</span>
                     <span class="text-amber-500 font-bold text-xl">+</span>
-                    <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">NLP</span>
+                    <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">MUZOKARA</span>
                     <span class="text-amber-500 font-bold text-xl">+</span>
-                    <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">SKRIPT</span>
+                    <span class="bg-amber-100 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg font-medium">FOLLOW-UP</span>
                     <span class="text-amber-500 font-bold text-xl">=</span>
                     <span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-lg font-bold shadow">BITIM</span>
                 </div>

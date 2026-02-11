@@ -567,6 +567,20 @@ Schedule::job(new \App\Jobs\SyncContentPerformanceJob)
     ->withoutOverlapping();
 
 // ==========================================
+// CONTENT POST LINKS SYNC (Kontent Reja analitikasi)
+// ==========================================
+
+// Content Post Links Sync - Har 6 soatda
+// Kontent Rejadagi postlarning platforma statistikalarini sinxronlaydi
+// Instagram Graph API va Telegram Bot API orqali
+Schedule::job(new \App\Jobs\SyncContentPostLinksJob)
+    ->everySixHours()
+    ->timezone('Asia/Tashkent')
+    ->name('sync-content-post-links')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// ==========================================
 // HR ENGAGEMENT & RETENTION SCHEDULED JOBS
 // ==========================================
 
