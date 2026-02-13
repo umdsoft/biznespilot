@@ -20,8 +20,8 @@ class ClaudeAIService
 {
     private string $apiKey;
     private string $apiUrl = 'https://api.anthropic.com/v1/messages';
-    private string $defaultModel = 'claude-3-haiku-20240307'; // Cost-effective model
-    private string $premiumModel = 'claude-sonnet-4-20250514'; // For complex tasks
+    private string $defaultModel = 'claude-haiku-4-5-20251001'; // Cost-effective model
+    private string $premiumModel = 'claude-sonnet-4-5-20250929'; // For complex tasks
     private int $defaultMaxTokens = 1024;
     private float $defaultTemperature = 0.7;
 

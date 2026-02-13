@@ -27,10 +27,12 @@ use Illuminate\Support\Facades\Log;
  * │  - ContentPerformanceFeedback → oldingi natijalar (SQL)        │
  * ├─────────────────────────────────────────────────────────────────┤
  * │  3-QATLAM: AI boyitish (ixtiyoriy, opsional)                  │
- * │  - LLM orqali tavsif boyitish (kelgusida)                     │
+ * │  - ContentAIEnrichmentService → Claude AI orqali boyitish     │
+ * │  - Kuchli hooklar, ssenariylar, captionlar                    │
+ * │  - AI ishlamasa algoritmik kontent o'zgarmaydi                │
  * └─────────────────────────────────────────────────────────────────┘
  *
- * Hozirgi holat: 1-qatlam + 2-qatlam = 100% ichki algoritm
+ * Hozirgi holat: 1-qatlam + 2-qatlam + 3-qatlam = gibrid algoritm + AI
  */
 class ContentPlanEngine
 {
@@ -40,6 +42,7 @@ class ContentPlanEngine
         private InstagramAlgorithmEngine $igEngine,
         private ContentPerformanceFeedback $feedback,
         private IndustryContentLibrary $industryLibrary,
+        private ContentAIEnrichmentService $aiEnrichment,
     ) {}
 
     /**
@@ -99,7 +102,8 @@ class ContentPlanEngine
             });
 
             // === TARIX SAQLASH ===
-            $algorithmBreakdown = $this->buildAlgorithmBreakdown($sources, $scoredTopics, $igSchedule);
+            $aiEnrichedCount = collect($weeklyItems)->filter(fn ($item) => ($item['ai_suggestions']['is_ai_generated'] ?? false))->count();
+            $algorithmBreakdown = $this->buildAlgorithmBreakdown($sources, $scoredTopics, $igSchedule, $aiEnrichedCount);
 
             $planGeneration = ContentPlanGeneration::create([
                 'business_id' => $businessId,
@@ -412,6 +416,8 @@ class ContentPlanEngine
         ?WeeklyPlan $weeklyPlan
     ): array {
         $items = [];
+        $aiCallCount = 0;
+        $maxAiCalls = 4; // Tezlik uchun: bitta plan da max 4 ta post AI bilan boyitiladi
         $schedule = $igSchedule['schedule'] ?? [];
         $topicIndex = 0;
         $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -451,11 +457,53 @@ class ContentPlanEngine
                 // GIBRID description yaratish
                 $description = $this->buildHybridDescription($topic, $igTips, $industryCode);
 
+                // 3-QATLAM: AI boyitish (ixtiyoriy, cheklangan)
+                $aiContent = null;
+                if ($aiCallCount < $maxAiCalls) {
+                    $aiContent = $this->aiEnrichment->enrichContentItem(
+                        $topic, $contentType, $purpose, $igTips, $business
+                    );
+                    $aiCallCount++;
+                }
+
+                // AI muvaffaqiyatli bo'lsa — captionni almashtirish
+                if ($aiContent && ! empty($aiContent['caption'])) {
+                    $description = $aiContent['caption'];
+                }
+
                 // GIBRID hashtags
                 $hashtags = $this->buildHybridHashtags($topic, $industryCode);
 
                 // Source tracking — qayerdan kelgani
                 $sourceInfo = $this->buildSourceInfo($topic);
+
+                // AI suggestions tuzish
+                $aiSuggestions = [
+                    'is_ai_generated' => $aiContent !== null,
+                    'generation_method' => $aiContent ? 'hybrid_algorithm_plus_ai' : 'hybrid_algorithm',
+                    'source' => $sourceInfo['source'],
+                    'source_label' => $sourceInfo['label'],
+                    'source_details' => $sourceInfo['details'],
+                    'confidence' => $sourceInfo['confidence'],
+                    'hooks' => array_slice($topic['hooks'] ?? [], 0, 3),
+                    'content_tips' => $igTips['content_type_tips'] ?? [],
+                    'caption_rules' => $igTips['caption_rules'] ?? [],
+                    'cta_suggestions' => $igTips['cta_suggestions'] ?? [],
+                    'algorithm_signals' => $igTips['algorithm_signals'] ?? [],
+                    'niche_score' => $topic['niche_score'] ?? 0,
+                    'pain_text' => $topic['pain_text'] ?? null,
+                    'total_score' => $topic['total_score'] ?? 0,
+                    'goal' => $this->mapPurposeToGoal($purpose),
+                    'priority' => $this->calculatePriority($topic),
+                ];
+
+                // AI ma'lumotlarini qo'shish
+                if ($aiContent) {
+                    $aiSuggestions['ai_hooks'] = $aiContent['hooks'];
+                    $aiSuggestions['ai_caption'] = $aiContent['caption'];
+                    $aiSuggestions['ai_script'] = $aiContent['script'];
+                    $aiSuggestions['ai_cta'] = $aiContent['cta'];
+                }
 
                 $items[] = [
                     'title' => $topic['topic'],
@@ -466,24 +514,7 @@ class ContentPlanEngine
                     'platform' => 'Instagram',
                     'scheduled_at' => $date->toDateString().' '.$time.':00',
                     'hashtags' => $hashtags,
-                    'ai_suggestions' => [
-                        'is_ai_generated' => false,
-                        'generation_method' => 'hybrid_algorithm',
-                        'source' => $sourceInfo['source'],
-                        'source_label' => $sourceInfo['label'],
-                        'source_details' => $sourceInfo['details'],
-                        'confidence' => $sourceInfo['confidence'],
-                        'hooks' => array_slice($topic['hooks'] ?? [], 0, 3),
-                        'content_tips' => $igTips['content_type_tips'] ?? [],
-                        'caption_rules' => $igTips['caption_rules'] ?? [],
-                        'cta_suggestions' => $igTips['cta_suggestions'] ?? [],
-                        'algorithm_signals' => $igTips['algorithm_signals'] ?? [],
-                        'niche_score' => $topic['niche_score'] ?? 0,
-                        'pain_text' => $topic['pain_text'] ?? null,
-                        'total_score' => $topic['total_score'] ?? 0,
-                        'goal' => $this->mapPurposeToGoal($purpose),
-                        'priority' => $this->calculatePriority($topic),
-                    ],
+                    'ai_suggestions' => $aiSuggestions,
                 ];
 
                 $topicIndex++;
@@ -654,7 +685,7 @@ class ContentPlanEngine
     /**
      * Algorithm breakdown (tarix uchun)
      */
-    private function buildAlgorithmBreakdown(array $sources, array $scoredTopics, array $igSchedule): array
+    private function buildAlgorithmBreakdown(array $sources, array $scoredTopics, array $igSchedule, int $aiEnrichedCount = 0): array
     {
         $sourceDistribution = [
             'niche_learning' => 0,
@@ -671,7 +702,7 @@ class ContentPlanEngine
         }
 
         return [
-            'mode' => 'hybrid_algorithm',
+            'mode' => $aiEnrichedCount > 0 ? 'hybrid_algorithm_plus_ai' : 'hybrid_algorithm',
             'niche_topics_count' => count($sources['niche_topics']),
             'pain_points_count' => count($sources['pain_topics']),
             'library_topics_count' => count($sources['library_topics']),
@@ -679,7 +710,8 @@ class ContentPlanEngine
             'past_performance_available' => ! empty($sources['past_performance']),
             'scoring_weights' => $this->getScoringWeights(),
             'source_distribution' => $sourceDistribution,
-            'ai_used' => false,
+            'ai_used' => $aiEnrichedCount > 0,
+            'ai_enriched_count' => $aiEnrichedCount,
         ];
     }
 

@@ -948,7 +948,13 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Smart Tavsiyalar</h4>
+                                    <div class="flex items-center gap-1.5">
+                                        <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Smart Tavsiyalar</h4>
+                                        <span v-if="viewingPost.ai_suggestions.is_ai_generated" class="px-1.5 py-0.5 text-[10px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 rounded-full flex items-center gap-0.5">
+                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                            AI
+                                        </span>
+                                    </div>
                                     <p class="text-[10px] text-gray-400 dark:text-gray-500">{{ viewingPost.ai_suggestions.source_label || 'Ichki algoritm' }}</p>
                                 </div>
                             </div>
@@ -969,12 +975,57 @@
                             </div>
                         </div>
 
-                        <!-- Hooks -->
-                        <div v-if="viewingPost.ai_suggestions.hooks?.length" class="space-y-2">
+                        <!-- AI Hooklar (AI bilan boyitilgan bo'lsa) -->
+                        <div v-if="viewingPost.ai_suggestions.ai_hooks?.length" class="space-y-2">
+                            <p class="text-xs font-medium text-violet-600 dark:text-violet-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                AI hooklar
+                            </p>
+                            <div v-for="(hook, i) in viewingPost.ai_suggestions.ai_hooks" :key="'ai-hook-'+i" class="flex items-start gap-2 p-3 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/40 rounded-xl">
+                                <span class="text-violet-400 font-bold text-sm mt-0.5">{{ i + 1 }}.</span>
+                                <p class="text-sm text-violet-800 dark:text-violet-200 italic">{{ hook }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Oddiy hooklar (AI bo'lmasa) -->
+                        <div v-else-if="viewingPost.ai_suggestions.hooks?.length" class="space-y-2">
                             <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Boshlash uchun g'oyalar</p>
                             <div v-for="(hook, i) in viewingPost.ai_suggestions.hooks" :key="'hook-'+i" class="flex items-start gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl">
                                 <span class="text-emerald-500 font-bold text-sm mt-0.5">"</span>
                                 <p class="text-sm text-emerald-800 dark:text-emerald-200 italic">{{ hook }}</p>
+                            </div>
+                        </div>
+
+                        <!-- AI Ssenariy -->
+                        <div v-if="viewingPost.ai_suggestions.ai_script" class="space-y-2">
+                            <p class="text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                Ssenariy
+                            </p>
+                            <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl">
+                                <p class="text-sm text-amber-800 dark:text-amber-200 whitespace-pre-line">{{ viewingPost.ai_suggestions.ai_script }}</p>
+                            </div>
+                        </div>
+
+                        <!-- AI post yozuvi -->
+                        <div v-if="viewingPost.ai_suggestions.ai_caption && viewingPost.ai_suggestions.is_ai_generated" class="space-y-2">
+                            <p class="text-xs font-medium text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                Post yozuvi
+                            </p>
+                            <div class="p-3 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800/40 rounded-xl">
+                                <p class="text-sm text-sky-800 dark:text-sky-200 whitespace-pre-line">{{ viewingPost.ai_suggestions.ai_caption }}</p>
+                            </div>
+                        </div>
+
+                        <!-- AI CTA -->
+                        <div v-if="viewingPost.ai_suggestions.ai_cta" class="space-y-2">
+                            <p class="text-xs font-medium text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                Harakatga chaqiruv
+                            </p>
+                            <div class="p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 rounded-xl">
+                                <p class="text-sm text-rose-800 dark:text-rose-200 italic">"{{ viewingPost.ai_suggestions.ai_cta }}"</p>
                             </div>
                         </div>
 

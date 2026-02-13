@@ -138,6 +138,10 @@
               <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span class="text-xs px-2 py-0.5 rounded-full font-medium" :class="typeColors[item.type] || 'bg-gray-100 text-gray-700'">{{ typeLabels[item.type] || item.type }}</span>
                 <span class="text-xs px-2 py-0.5 rounded-full" :class="purposeColors[item.purpose] || 'bg-gray-100 text-gray-600'">{{ purposeLabels[item.purpose] || item.purpose }}</span>
+                <span v-if="item.is_ai_generated" class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-medium flex items-center gap-1">
+                  <SparklesIcon class="w-3 h-3" />
+                  AI
+                </span>
                 <span class="text-xs text-gray-400">{{ item.time }}</span>
               </div>
               <p class="font-medium text-gray-900 dark:text-white mb-1">{{ item.topic }}</p>
@@ -170,10 +174,51 @@
         >
           <div v-if="expandedItem === item.order" class="px-5 pb-5 border-t border-gray-100 dark:border-gray-700 pt-4 overflow-hidden">
             <div class="pl-20 space-y-3">
-              <!-- Hook -->
-              <div v-if="item.hook" class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
+              <!-- AI Hooklar (AI bilan boyitilgan bo'lsa) -->
+              <div v-if="item.ai_hooks?.length" class="bg-violet-50 dark:bg-violet-900/20 rounded-lg p-3">
+                <p class="text-xs font-medium text-violet-800 dark:text-violet-300 mb-2 flex items-center gap-1">
+                  <SparklesIcon class="w-3.5 h-3.5" />
+                  AI hooklar (boshlash uchun g'oyalar):
+                </p>
+                <div class="space-y-1.5">
+                  <p v-for="(hook, hi) in item.ai_hooks" :key="hi" class="text-sm text-violet-700 dark:text-violet-400 flex items-start gap-2">
+                    <span class="text-violet-400 dark:text-violet-500 font-bold mt-0.5">{{ hi + 1 }}.</span>
+                    <span class="italic">"{{ hook }}"</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Oddiy hook (AI bo'lmasa) -->
+              <div v-else-if="item.hook" class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
                 <p class="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-1">Boshlash uchun g'oya:</p>
                 <p class="text-sm text-emerald-700 dark:text-emerald-400 italic">"{{ item.hook }}"</p>
+              </div>
+
+              <!-- AI Ssenariy (reel/carousel uchun) -->
+              <div v-if="item.ai_script" class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                <p class="text-xs font-medium text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1">
+                  <SparklesIcon class="w-3.5 h-3.5" />
+                  Ssenariy:
+                </p>
+                <p class="text-sm text-amber-700 dark:text-amber-400 whitespace-pre-line">{{ item.ai_script }}</p>
+              </div>
+
+              <!-- AI yozuv matni -->
+              <div v-if="item.ai_caption && item.is_ai_generated" class="bg-sky-50 dark:bg-sky-900/20 rounded-lg p-3">
+                <p class="text-xs font-medium text-sky-800 dark:text-sky-300 mb-2 flex items-center gap-1">
+                  <SparklesIcon class="w-3.5 h-3.5" />
+                  Post yozuvi:
+                </p>
+                <p class="text-sm text-sky-700 dark:text-sky-400 whitespace-pre-line">{{ item.ai_caption }}</p>
+              </div>
+
+              <!-- AI CTA -->
+              <div v-if="item.ai_cta" class="bg-rose-50 dark:bg-rose-900/20 rounded-lg p-3">
+                <p class="text-xs font-medium text-rose-800 dark:text-rose-300 mb-1 flex items-center gap-1">
+                  <SparklesIcon class="w-3.5 h-3.5" />
+                  Harakatga chaqiruv:
+                </p>
+                <p class="text-sm text-rose-700 dark:text-rose-400 italic">"{{ item.ai_cta }}"</p>
               </div>
 
               <!-- Muammo va Natija -->
@@ -259,6 +304,7 @@ import {
   ChartBarIcon,
   LightBulbIcon,
   ChevronDownIcon,
+  SparklesIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
