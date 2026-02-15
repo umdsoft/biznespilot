@@ -291,6 +291,7 @@ class Lead extends Model
         'business_id',
         'source_id',
         'campaign_id',
+        'content_post_id',
         'marketing_channel_id',
         'assigned_to',
         'name',
@@ -406,6 +407,14 @@ class Lead extends Model
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
+    }
+
+    /**
+     * Get the content post that generated this lead.
+     */
+    public function contentPost(): BelongsTo
+    {
+        return $this->belongsTo(ContentPost::class);
     }
 
     /**

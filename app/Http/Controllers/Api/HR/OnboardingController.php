@@ -31,7 +31,7 @@ class OnboardingController extends Controller
      */
     public function index(Request $request, string $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -200,7 +200,7 @@ class OnboardingController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -445,7 +445,7 @@ class OnboardingController extends Controller
      */
     public function statistics(Request $request, string $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,

@@ -9,7 +9,9 @@ use App\Models\ContentPostLink;
 use App\Models\DreamBuyer;
 use App\Models\Offer;
 use App\Models\PainPointContentMap;
+use App\Services\ContentAI\IndustryContentLibrary;
 use App\Services\ContentStrategyService;
+use App\Services\KPI\BusinessCategoryMapper;
 use App\Services\PlanLimitService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -154,6 +156,16 @@ class ContentController extends Controller
             }
         }
 
+        // Industry topic suggestions (from IndustryContentLibrary)
+        $industry = BusinessCategoryMapper::detectIndustry($business);
+        $industryTopics = IndustryContentLibrary::getIndustryLibrary($industry);
+        $topicSuggestions = collect($industryTopics)->map(fn ($t) => [
+            'topic' => $t['topic'],
+            'category' => $t['category'] ?? '',
+            'content_type' => $t['content_type'] ?? 'post',
+            'hooks' => array_slice($t['hooks'] ?? [], 0, 2),
+        ])->values()->all();
+
         return Inertia::render('Marketing/Content', [
             'posts' => $contents,
             'stats' => $stats,
@@ -161,6 +173,7 @@ class ContentController extends Controller
             'activeOffers' => $activeOffers,
             'aiRemaining' => $aiRemaining,
             'painPoints' => $painPoints,
+            'topicSuggestions' => $topicSuggestions,
         ]);
     }
 

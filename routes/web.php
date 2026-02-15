@@ -446,6 +446,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::prefix('content-ai')->name('content-ai.')->group(function () {
             Route::get('/', [App\Http\Controllers\Marketing\ContentAIController::class, 'index'])->name('index');
             Route::post('/generate', [App\Http\Controllers\Marketing\ContentAIController::class, 'generate'])->name('generate');
+            Route::post('/generate-ideas', [App\Http\Controllers\Marketing\ContentAIController::class, 'generateIdeas'])->name('generate-ideas');
             Route::post('/generate-variations', [App\Http\Controllers\Marketing\ContentAIController::class, 'generateVariations'])->name('generate-variations');
             Route::post('/rewrite', [App\Http\Controllers\Marketing\ContentAIController::class, 'rewrite'])->name('rewrite');
             Route::post('/generate-hashtags', [App\Http\Controllers\Marketing\ContentAIController::class, 'generateHashtags'])->name('generate-hashtags');
@@ -642,9 +643,11 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/funnel', [AnalyticsController::class, 'funnel'])->name('funnel');
         Route::get('/performance', [AnalyticsController::class, 'performance'])->name('performance');
         Route::get('/revenue', [AnalyticsController::class, 'revenue'])->name('revenue');
+        Route::get('/content-funnel', [AnalyticsController::class, 'contentFunnel'])->name('content-funnel');
 
         // Lazy Loading API Endpoints
         Route::get('/api/initial', [AnalyticsController::class, 'getInitialData'])->name('api.initial');
+        Route::get('/api/content-funnel', [AnalyticsController::class, 'getContentFunnelData'])->name('api.content-funnel');
         Route::get('/api/funnel-page', [AnalyticsController::class, 'getFunnelPageData'])->name('api.funnel-page');
         Route::get('/api/performance-page', [AnalyticsController::class, 'getPerformancePageData'])->name('api.performance-page');
         Route::get('/api/revenue-page', [AnalyticsController::class, 'getRevenuePageData'])->name('api.revenue-page');

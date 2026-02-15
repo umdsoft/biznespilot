@@ -114,7 +114,7 @@ class FacebookService
             $until = $date->copy()->endOfDay()->timestamp;
 
             // Fetch page insights
-            $response = Http::get($this->apiBaseUrl."/{$pageId}/insights", [
+            $response = Http::timeout(30)->get($this->apiBaseUrl."/{$pageId}/insights", [
                 'metric' => implode(',', [
                     'page_fans',
                     'page_followers_count',
@@ -153,7 +153,7 @@ class FacebookService
             }
 
             // Get current page info for likes and followers count
-            $pageResponse = Http::get($this->apiBaseUrl."/{$pageId}", [
+            $pageResponse = Http::timeout(30)->get($this->apiBaseUrl."/{$pageId}", [
                 'fields' => 'fan_count,followers_count',
                 'access_token' => $accessToken,
             ]);
@@ -194,7 +194,7 @@ class FacebookService
             $until = $date->copy()->endOfDay()->timestamp;
 
             // Get posts published on the specified date
-            $postsResponse = Http::get($this->apiBaseUrl."/{$pageId}/posts", [
+            $postsResponse = Http::timeout(30)->get($this->apiBaseUrl."/{$pageId}/posts", [
                 'fields' => 'id,created_time,message,shares',
                 'since' => $since,
                 'until' => $until,
@@ -220,7 +220,7 @@ class FacebookService
                 $postId = $post['id'];
 
                 // Get post insights
-                $postInsightsResponse = Http::get($this->apiBaseUrl."/{$postId}/insights", [
+                $postInsightsResponse = Http::timeout(30)->get($this->apiBaseUrl."/{$postId}/insights", [
                     'metric' => 'post_impressions,post_impressions_unique,post_engaged_users',
                     'access_token' => $accessToken,
                 ]);
@@ -240,7 +240,7 @@ class FacebookService
                 }
 
                 // Get post reactions
-                $reactionsResponse = Http::get($this->apiBaseUrl."/{$postId}", [
+                $reactionsResponse = Http::timeout(30)->get($this->apiBaseUrl."/{$postId}", [
                     'fields' => 'likes.summary(true),comments.summary(true),reactions.summary(true)',
                     'access_token' => $accessToken,
                 ]);
@@ -285,7 +285,7 @@ class FacebookService
             $until = $date->copy()->endOfDay()->timestamp;
 
             // Get videos published on the specified date
-            $videosResponse = Http::get($this->apiBaseUrl."/{$pageId}/videos", [
+            $videosResponse = Http::timeout(30)->get($this->apiBaseUrl."/{$pageId}/videos", [
                 'fields' => 'id,created_time',
                 'since' => $since,
                 'until' => $until,
@@ -310,7 +310,7 @@ class FacebookService
                 $videoId = $video['id'];
 
                 // Get video insights
-                $videoInsightsResponse = Http::get($this->apiBaseUrl."/{$videoId}/video_insights", [
+                $videoInsightsResponse = Http::timeout(30)->get($this->apiBaseUrl."/{$videoId}/video_insights", [
                     'metric' => 'total_video_views,total_video_views_unique,total_video_avg_time_watched',
                     'access_token' => $accessToken,
                 ]);
@@ -361,7 +361,7 @@ class FacebookService
             $since = $date->copy()->startOfDay()->timestamp;
             $until = $date->copy()->endOfDay()->timestamp;
 
-            $response = Http::get($this->apiBaseUrl."/{$pageId}/insights", [
+            $response = Http::timeout(30)->get($this->apiBaseUrl."/{$pageId}/insights", [
                 'metric' => implode(',', [
                     'page_total_actions',
                     'page_cta_clicks_logged_in_total',
@@ -418,7 +418,7 @@ class FacebookService
     {
         try {
             // Check token validity
-            $response = Http::get($this->apiBaseUrl.'/debug_token', [
+            $response = Http::timeout(30)->get($this->apiBaseUrl.'/debug_token', [
                 'input_token' => $accessToken,
                 'access_token' => $accessToken,
             ]);
@@ -452,7 +452,7 @@ class FacebookService
     public function exchangeForLongLivedToken(string $shortLivedToken): ?string
     {
         try {
-            $response = Http::get($this->apiBaseUrl.'/oauth/access_token', [
+            $response = Http::timeout(30)->get($this->apiBaseUrl.'/oauth/access_token', [
                 'grant_type' => 'fb_exchange_token',
                 'client_id' => config('services.facebook.client_id'),
                 'client_secret' => config('services.facebook.client_secret'),
@@ -483,6 +483,7 @@ class FacebookService
     {
         $synced = 0;
         $currentDate = $startDate->copy();
+        $dayCount = 0;
 
         while ($currentDate->lte($endDate)) {
             $metric = $this->syncMetrics($channel, $currentDate);
@@ -490,6 +491,12 @@ class FacebookService
                 $synced++;
             }
             $currentDate->addDay();
+            $dayCount++;
+
+            // Memory cleanup every 30 days (VPS 2GB RAM protection)
+            if ($dayCount % 30 === 0) {
+                gc_collect_cycles();
+            }
         }
 
         return $synced;
@@ -571,7 +578,7 @@ class FacebookService
 
         try {
             do {
-                $response = Http::get($url, $params);
+                $response = Http::timeout(30)->get($url, $params);
 
                 if (!$response->successful()) {
                     Log::error('Failed to fetch ad accounts', [
@@ -631,7 +638,7 @@ class FacebookService
 
         try {
             do {
-                $response = Http::get($url, $params);
+                $response = Http::timeout(30)->get($url, $params);
 
                 if (!$response->successful()) {
                     Log::error('Failed to fetch pages', [
@@ -680,7 +687,7 @@ class FacebookService
             // Add 'act_' prefix if not present
             $fullAccountId = str_starts_with($accountId, 'act_') ? $accountId : 'act_' . $accountId;
 
-            $response = Http::get($this->apiBaseUrl . '/' . $fullAccountId, [
+            $response = Http::timeout(30)->get($this->apiBaseUrl . '/' . $fullAccountId, [
                 'fields' => 'id,name,account_id,currency,timezone_name,account_status,business_name,funding_source_details',
                 'access_token' => $accessToken,
             ]);
@@ -719,7 +726,7 @@ class FacebookService
     public function getInstagramAccountDetails(string $accessToken, string $igUserId): ?array
     {
         try {
-            $response = Http::get($this->apiBaseUrl . '/' . $igUserId, [
+            $response = Http::timeout(30)->get($this->apiBaseUrl . '/' . $igUserId, [
                 'fields' => 'id,username,name,profile_picture_url,followers_count,follows_count,media_count,biography,website',
                 'access_token' => $accessToken,
             ]);
@@ -748,7 +755,7 @@ class FacebookService
     public function getPageDetails(string $accessToken, string $pageId): ?array
     {
         try {
-            $response = Http::get($this->apiBaseUrl . '/' . $pageId, [
+            $response = Http::timeout(30)->get($this->apiBaseUrl . '/' . $pageId, [
                 'fields' => 'id,name,username,category,fan_count,access_token,about,cover,picture',
                 'access_token' => $accessToken,
             ]);
@@ -893,7 +900,7 @@ class FacebookService
 
         try {
             do {
-                $response = Http::get($url, $params);
+                $response = Http::timeout(30)->get($url, $params);
 
                 if (!$response->successful()) {
                     Log::error('Failed to fetch ad insights', [
@@ -986,7 +993,7 @@ class FacebookService
 
         try {
             do {
-                $response = Http::get($url, $params);
+                $response = Http::timeout(30)->get($url, $params);
 
                 if (!$response->successful()) {
                     Log::error('Failed to fetch Instagram media', [

@@ -147,7 +147,7 @@ class KpiDailyDataController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business) {
             return response()->json([
                 'success' => false,
@@ -237,7 +237,7 @@ class KpiDailyDataController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business) {
             return response()->json([
                 'success' => false,
@@ -594,7 +594,7 @@ class KpiDailyDataController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business) {
             return response()->json([
                 'success' => false,
@@ -630,7 +630,7 @@ class KpiDailyDataController extends Controller
         FacebookKpiSyncService $facebookSync,
         PosKpiSyncService $posSync
     ): JsonResponse {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business) {
             return response()->json([
                 'success' => false,

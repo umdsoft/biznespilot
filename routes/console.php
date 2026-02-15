@@ -704,6 +704,19 @@ Schedule::job(new \App\Jobs\GenerateDailyBriefJob)
     ->onOneServer();
 
 // ==========================================
+// WEEKLY ANALYTICS REPORT SCHEDULED JOB
+// ==========================================
+
+// Weekly Analytics - Har dushanba ertalab 08:00 da
+// Barcha bizneslar uchun haftalik analitika hisobotini yaratadi
+// AI tahlil va Telegram bildirishnoma bilan
+Schedule::command('analytics:weekly --with-ai --with-notify --notify-channels=telegram')
+    ->weeklyOn(1, '08:00')
+    ->timezone('Asia/Tashkent')
+    ->name('weekly-analytics-report')
+    ->onOneServer();
+
+// ==========================================
 // STAGNANT TASKS ALERT (TELEGRAM) SCHEDULED JOBS
 // ==========================================
 

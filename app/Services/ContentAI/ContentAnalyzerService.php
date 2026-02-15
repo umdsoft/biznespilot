@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class ContentAnalyzerService
 {
     protected string $apiKey;
-    protected string $model = 'claude-3-haiku-20240307';
+    protected string $model = 'claude-haiku-4-5-20251001';
     protected string $apiUrl = 'https://api.anthropic.com/v1/messages';
 
     public function __construct()

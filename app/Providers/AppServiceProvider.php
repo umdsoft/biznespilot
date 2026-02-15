@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Business;
 use App\Models\CallLog;
 use App\Models\ContentGeneration;
+use App\Models\ContentPost;
 use App\Models\Customer;
 use App\Models\CustdevResponse;
 use App\Models\Lead;
@@ -20,6 +21,7 @@ use App\Models\FlightRisk;
 use App\Observers\BusinessObserver;
 use App\Observers\CallLogObserver;
 use App\Observers\ContentGenerationObserver;
+use App\Observers\ContentPostObserver;
 use App\Observers\CustomerObserver;
 use App\Observers\CustdevResponseObserver;
 use App\Observers\LeadObserver;
@@ -92,6 +94,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Content AI observer (Generation → Idea metrics sinxronlash)
         ContentGeneration::observe(ContentGenerationObserver::class);
+
+        // ContentPost → ContentIdea (har bir saqlangan kontent avtomatik g'oyalar bankiga tushadi)
+        ContentPost::observe(ContentPostObserver::class);
 
         // Cross-module attribution observers (Marketing ↔ Sales ↔ Finance)
         Sale::observe(SaleObserver::class);

@@ -193,6 +193,10 @@ class CallLog extends Model
      */
     public function getFormattedDurationAttribute(): string
     {
+        if (! $this->duration) {
+            return '00:00';
+        }
+
         $minutes = floor($this->duration / 60);
         $seconds = $this->duration % 60;
 

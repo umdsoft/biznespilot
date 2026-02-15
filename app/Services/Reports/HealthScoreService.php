@@ -139,11 +139,11 @@ class HealthScoreService
 
     protected function getScoreColor(int $score): string
     {
-        if ($score >= 80) return 'green';
-        if ($score >= 60) return 'blue';
-        if ($score >= 40) return 'yellow';
-        if ($score >= 20) return 'orange';
+        if ($score >= 80) return 'excellent';
+        if ($score >= 60) return 'good';
+        if ($score >= 40) return 'average';
+        if ($score >= 20) return 'poor';
 
-        return 'red';
+        return 'poor';
     }
 }

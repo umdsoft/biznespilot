@@ -42,7 +42,7 @@ class PlanSeeder extends Seeder
                     'extra_call_price' => 0,
                     'chatbot_channels' => 1,
                     'telegram_bots' => 1,
-                    'ai_requests' => 100,
+                    'ai_requests' => 15,
                     'storage_mb' => 200,
                 ],
                 'features' => [

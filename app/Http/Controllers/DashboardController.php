@@ -312,15 +312,21 @@ class DashboardController extends Controller
         $business = $this->getCurrentBusiness();
         $user = Auth::user();
 
+        $widgetIds = collect($request->widgets)->pluck('id')->toArray();
+        $widgets = DashboardWidget::where('business_id', $business->id)
+            ->where('user_id', $user->id)
+            ->whereIn('id', $widgetIds)
+            ->get()
+            ->keyBy('id');
+
         foreach ($request->widgets as $widgetData) {
-            DashboardWidget::where('id', $widgetData['id'])
-                ->where('business_id', $business->id)
-                ->where('user_id', $user->id)
-                ->update([
+            if ($widget = $widgets->get($widgetData['id'])) {
+                $widget->update([
                     'sort_order' => $widgetData['sort_order'],
                     'is_visible' => $widgetData['is_visible'],
                     'settings' => $widgetData['settings'] ?? [],
                 ]);
+            }
         }
 
         return response()->json(['success' => true]);

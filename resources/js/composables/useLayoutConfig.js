@@ -135,6 +135,7 @@ export const businessLayoutConfig = {
       titleKey: 'nav.analytics_section',
       items: [
         { href: '/business/analytics', label: 'Analitika', labelKey: 'nav.analytics', icon: ChartBarIcon },
+        { href: '/business/analytics/content-funnel', label: 'Kontent Funnel', icon: ChartPieIcon },
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
         { href: '/business/calls', label: 'Qo\'ng\'iroq Tahlili', labelKey: 'nav.call_center', icon: SparklesIcon },
         { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasCurrentBusiness;
+use App\Services\ContentFunnelService;
 use App\Services\ExportService;
 use App\Services\SalesAnalyticsService;
 use Illuminate\Http\Request;
@@ -17,14 +18,18 @@ class AnalyticsController extends Controller
 
     protected ExportService $exportService;
 
+    protected ContentFunnelService $contentFunnelService;
+
     protected int $cacheTTL = 300; // 5 minutes
 
     public function __construct(
         SalesAnalyticsService $analyticsService,
-        ExportService $exportService
+        ExportService $exportService,
+        ContentFunnelService $contentFunnelService
     ) {
         $this->analyticsService = $analyticsService;
         $this->exportService = $exportService;
+        $this->contentFunnelService = $contentFunnelService;
     }
 
     /**
@@ -663,6 +668,55 @@ class AnalyticsController extends Controller
 
         $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
             return $this->analyticsService->getBusinessInsights($currentBusiness->id, $filters);
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Content Funnel page - Kontent → Daromad
+     */
+    public function contentFunnel(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return redirect()->route('business.index');
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+
+        return Inertia::render('Business/Analytics/ContentFunnel', [
+            'filters' => $filters,
+            'lazyLoad' => true,
+        ]);
+    }
+
+    /**
+     * API: Content Funnel data
+     */
+    public function getContentFunnelData(Request $request)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+
+        if (! $currentBusiness) {
+            return response()->json(['error' => 'Business not found'], 404);
+        }
+
+        $filters = $request->only(['date_from', 'date_to']);
+        $filterKey = md5(json_encode($filters));
+        $cacheKey = "content_funnel_{$currentBusiness->id}_{$filterKey}";
+
+        $data = Cache::remember($cacheKey, $this->cacheTTL, function () use ($currentBusiness, $filters) {
+            $funnelData = $this->contentFunnelService->getContentToRevenueFunnel($currentBusiness->id, $filters);
+
+            return [
+                'funnel' => $funnelData,
+                'ranking' => $this->contentFunnelService->getContentPerformanceRanking($currentBusiness->id, $filters),
+                'by_type' => $this->contentFunnelService->getConversionByContentType($currentBusiness->id, $filters),
+                'trend' => $this->contentFunnelService->getWeeklyTrend($currentBusiness->id),
+                'insights' => $this->contentFunnelService->getBottleneckInsights($funnelData),
+            ];
         });
 
         return response()->json($data);

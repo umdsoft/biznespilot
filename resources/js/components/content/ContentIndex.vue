@@ -599,12 +599,13 @@
         </div>
     </div>
 
-    <!-- Create/Edit Modal -->
+    <!-- Create/Edit Modal (Two-column layout) -->
     <Teleport to="body">
         <div v-if="showCreateModal" class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
                 <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="closeCreateModal"></div>
-                <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden transform transition-all">
+                <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-7xl mx-auto overflow-hidden transform transition-all">
+                    <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="p-2 rounded-xl" :class="editingPost ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-indigo-100 dark:bg-indigo-900/40'">
@@ -617,209 +618,448 @@
                             </div>
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ editingPost ? t('content.modal.edit_title') : t('content.modal.create_title') }}</h3>
                         </div>
-                        <button @click="closeCreateModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <button @click="closeCreateModal" class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    <form @submit.prevent="submitPost" class="flex flex-col max-h-[80vh]">
-                      <div class="p-6 space-y-5 overflow-y-auto flex-1">
-                        <!-- Title -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.title') }}</label>
-                            <input v-model="postForm.title" type="text" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.title_placeholder')" />
-                        </div>
 
-                        <!-- Muammo tanlash -->
-                        <div v-if="painPoints.length > 0">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Mijoz muammosi</label>
-                            <select v-model="selectedPainPointId" @change="handlePainPointSelect" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                <option value="">Muammosiz yaratish</option>
-                                <optgroup v-for="group in painPointGroups" :key="group.category" :label="group.label">
-                                    <option v-for="p in group.items" :key="p.id" :value="p.id">{{ p.text }}</option>
-                                </optgroup>
-                            </select>
-                            <!-- Tanlangan muammo haqida qo'shimcha ma'lumot -->
-                            <div v-if="selectedPainPoint" class="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                <p class="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">{{ selectedPainPoint.category_label }}</p>
-                                <p class="text-sm text-amber-900 dark:text-amber-100">{{ selectedPainPoint.text }}</p>
-                                <div v-if="selectedPainPoint.hooks?.length" class="mt-2 space-y-1">
-                                    <p class="text-xs text-amber-600 dark:text-amber-400">Boshlash g'oyalari:</p>
-                                    <button v-for="(hook, i) in selectedPainPoint.hooks.slice(0, 2)" :key="i" type="button" @click="useHook(hook)" class="block w-full text-left text-xs px-2 py-1 bg-white dark:bg-gray-700 rounded border border-amber-200 dark:border-amber-700 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
-                                        {{ hook }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AI Generation Panel -->
-                        <div v-if="!editingPost" class="rounded-xl border-2 transition-all" :class="showAiPanel ? 'border-purple-300 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20' : 'border-dashed border-gray-300 dark:border-gray-600'">
-                            <button v-if="!showAiPanel" type="button" @click="showAiPanel = true" :disabled="aiRemaining === 0" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all" :class="aiRemaining === 0 ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20'">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
-                                {{ aiRemaining === 0 ? 'AI limiti tugadi' : 'AI bilan yaratish' }}
-                                <span v-if="aiRemaining !== null && aiRemaining > 0" class="text-xs text-purple-500 dark:text-purple-400">({{ aiRemaining }} ta qoldi)</span>
-                            </button>
-                            <div v-else class="p-4 space-y-3">
-                                <div class="flex items-center justify-between mb-1">
-                                    <h4 class="text-sm font-semibold text-purple-800 dark:text-purple-200 flex items-center gap-1.5">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-                                        AI Kontent Yaratish
-                                        <span v-if="aiRemaining !== null" class="text-xs font-normal text-purple-500 dark:text-purple-400">({{ aiRemaining }} ta qoldi)</span>
-                                    </h4>
-                                    <button type="button" @click="showAiPanel = false" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                    </button>
-                                </div>
-                                <!-- Offer select -->
-                                <div v-if="activeOffers.length > 0">
-                                    <select v-model="aiForm.offer_id" @change="handleAiOfferSelect" class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                        <option value="">Taklifsiz yaratish</option>
-                                        <option v-for="offer in activeOffers" :key="offer.id" :value="offer.id">{{ offer.name }}</option>
-                                    </select>
-                                </div>
-                                <!-- Topic -->
-                                <input v-model="aiForm.topic" type="text" class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Mavzu yoki g'oya kiriting..." />
-                                <!-- Purpose + Channel -->
-                                <div class="grid grid-cols-2 gap-2">
-                                    <select v-model="aiForm.purpose" class="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                        <option value="engage">Jalb qilish</option>
-                                        <option value="educate">O'rgatish</option>
-                                        <option value="sell">Sotish</option>
-                                        <option value="inspire">Ilhomlantirish</option>
-                                        <option value="announce">E'lon qilish</option>
-                                        <option value="entertain">Ko'ngil ochish</option>
-                                    </select>
-                                    <select v-model="aiForm.target_channel" class="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                        <option value="">Umumiy</option>
-                                        <option value="instagram">Instagram</option>
-                                        <option value="telegram">Telegram</option>
-                                        <option value="facebook">Facebook</option>
-                                        <option value="tiktok">TikTok</option>
-                                    </select>
-                                </div>
-                                <!-- Error -->
-                                <p v-if="aiError" class="text-xs text-red-600 dark:text-red-400">{{ aiError }}</p>
-                                <!-- Generate button -->
-                                <button type="button" @click="generateAiContent" :disabled="!aiForm.topic || aiGenerating" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg shadow-md shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <svg v-if="aiGenerating" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-                                    {{ aiGenerating ? 'Yaratilmoqda...' : 'AI bilan yaratish' }}
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Content -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.content_text') }}</label>
-                            <textarea v-model="postForm.content" rows="4" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" :placeholder="t('content.form.content_placeholder')"></textarea>
-                        </div>
-
-                        <!-- Platforms -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.platforms') }}</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ t('content.form.platforms_hint') }}</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="platform in availablePlatforms"
-                                    :key="platform.value"
-                                    type="button"
-                                    @click="togglePlatform(platform.value)"
-                                    class="flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all"
-                                    :class="postForm.platforms.includes(platform.value)
-                                        ? platform.selectedClass + ' text-white'
-                                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'"
-                                >
-                                    <component :is="platform.icon" class="w-4 h-4" :class="postForm.platforms.includes(platform.value) ? 'text-white' : platform.iconClass" />
-                                    <span class="text-sm font-medium" :class="postForm.platforms.includes(platform.value) ? 'text-white' : 'text-gray-700 dark:text-gray-300'">{{ platform.label }}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Content Type -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.content_type') }}</label>
-                            <select v-model="postForm.content_type" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                <option value="">{{ t('common.select') }}</option>
-                                <option value="educational">{{ t('content.type.educational_full') }}</option>
-                                <option value="entertaining">{{ t('content.type.entertaining_full') }}</option>
-                                <option value="inspirational">{{ t('content.type.inspirational_full') }}</option>
-                                <option value="promotional">{{ t('content.type.promotional_full') }}</option>
-                                <option value="behind_scenes">{{ t('content.type.behind_scenes_full') }}</option>
-                            </select>
-                        </div>
-
-                        <!-- Format and Status -->
-                        <div class="grid grid-cols-2 gap-4">
+                    <form @submit.prevent="submitPost" class="flex flex-col" style="max-height: calc(100vh - 120px)">
+                      <div class="flex flex-1 overflow-hidden">
+                        <!-- LEFT COLUMN: Form -->
+                        <div class="w-1/2 p-5 space-y-4 overflow-y-auto border-r border-gray-200 dark:border-gray-700">
+                            <!-- Title -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.format') }}</label>
-                                <select v-model="postForm.format" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                    <option value="">{{ t('common.select') }}</option>
-                                    <option value="short_video">{{ t('content.format.short_video') }}</option>
-                                    <option value="long_video">{{ t('content.format.long_video') }}</option>
-                                    <option value="carousel">{{ t('content.format.carousel') }}</option>
-                                    <option value="single_image">{{ t('content.format.single_image') }}</option>
-                                    <option value="story">{{ t('content.format.story') }}</option>
-                                    <option value="text_post">{{ t('content.format.text_post') }}</option>
-                                    <option value="live">{{ t('content.format.live') }}</option>
-                                    <option value="poll">{{ t('content.format.poll') }}</option>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.title') }}</label>
+                                <input v-model="postForm.title" type="text" required class="w-full px-3.5 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.title_placeholder')" />
+                            </div>
+
+                            <!-- Muammo tanlash -->
+                            <div v-if="painPoints.length > 0">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mijoz muammosi</label>
+                                <select v-model="selectedPainPointId" @change="handlePainPointSelect" class="w-full px-3.5 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                    <option value="">Muammosiz yaratish</option>
+                                    <optgroup v-for="group in painPointGroups" :key="group.category" :label="group.label">
+                                        <option v-for="p in group.items" :key="p.id" :value="p.id">{{ p.text }}</option>
+                                    </optgroup>
                                 </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.status') }}</label>
-                                <select v-model="postForm.status" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                    <option value="draft">{{ t('content.status.draft') }}</option>
-                                    <option value="scheduled">{{ t('content.status.scheduled') }}</option>
-                                    <option value="published">{{ t('content.status.published') }}</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Scheduled Date & Time -->
-                        <div v-if="postForm.status === 'scheduled'" class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.date') }}</label>
-                                <input v-model="postForm.scheduled_date" type="date" :min="minDate" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.time') }}</label>
-                                <input v-model="postForm.scheduled_time" type="time" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
-                            </div>
-                        </div>
-
-                        <!-- Hashtags -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ t('content.form.hashtags') }}</label>
-                            <input v-model="hashtagInput" type="text" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.hashtags_placeholder')" />
-                        </div>
-
-                        <!-- Platform Links (for published posts) -->
-                        <div v-if="postForm.status === 'published' && postForm.platforms.length > 0">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Platforma linklari</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Post joylashtirilgan URL manzillarni kiriting (statistikani sinxronlash uchun)</p>
-                            <div class="space-y-2">
-                                <div v-for="platform in postForm.platforms" :key="'link-' + platform" class="flex items-center gap-2">
-                                    <div class="flex items-center gap-1.5 min-w-[120px] px-2.5 py-2 rounded-lg" :class="getPlatformBgClass(platform)">
-                                        <component :is="getPlatformIcon(platform)" class="w-3.5 h-3.5" :class="getPlatformIconClass(platform)" />
-                                        <span class="text-xs font-medium" :class="getPlatformIconClass(platform)">{{ platform }}</span>
+                                <div v-if="selectedPainPoint" class="mt-2 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                    <p class="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">{{ selectedPainPoint.category_label }}</p>
+                                    <p class="text-xs text-amber-900 dark:text-amber-100">{{ selectedPainPoint.text }}</p>
+                                    <div v-if="selectedPainPoint.hooks?.length" class="mt-1.5 flex flex-wrap gap-1">
+                                        <button v-for="(hook, i) in selectedPainPoint.hooks.slice(0, 2)" :key="i" type="button" @click="useHook(hook)" class="text-[11px] px-2 py-0.5 bg-white dark:bg-gray-700 rounded border border-amber-200 dark:border-amber-700 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+                                            {{ hook }}
+                                        </button>
                                     </div>
-                                    <input
-                                        v-model="postForm.platform_links[platform]"
-                                        type="url"
-                                        class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                        :placeholder="platform === 'Instagram' ? 'https://instagram.com/p/...' : platform === 'Telegram' ? 'https://t.me/channel/123' : 'https://...'"
-                                    />
+                                </div>
+                            </div>
+
+                            <!-- AI Generation Panel -->
+                            <div v-if="!editingPost" class="rounded-xl border-2 transition-all overflow-hidden" :class="showAiPanel ? 'border-purple-300 dark:border-purple-700 bg-gradient-to-br from-purple-50 via-indigo-50 to-violet-50 dark:from-purple-900/20 dark:via-indigo-900/20 dark:to-violet-900/20' : 'border-dashed border-gray-300 dark:border-gray-600'">
+                                <button v-if="!showAiPanel" type="button" @click="showAiPanel = true" :disabled="aiRemaining === 0" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all" :class="aiRemaining === 0 ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20'">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                                    {{ aiRemaining === 0 ? 'AI limiti tugadi' : 'AI bilan kontent yaratish' }}
+                                    <span v-if="aiRemaining !== null && aiRemaining > 0" class="text-xs bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">{{ aiRemaining }} ta qoldi</span>
+                                </button>
+                                <div v-else class="p-3.5 space-y-3">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-sm font-semibold text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                                            <div class="p-1 bg-purple-200 dark:bg-purple-800 rounded-lg">
+                                                <svg class="w-3.5 h-3.5 text-purple-700 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                                            </div>
+                                            AI Kontent
+                                            <span v-if="aiRemaining !== null" class="text-[11px] font-normal bg-purple-200/60 dark:bg-purple-800/60 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded-full">{{ aiRemaining }} ta</span>
+                                        </h4>
+                                        <div class="flex items-center gap-1">
+                                            <!-- Step indicator -->
+                                            <div class="flex items-center gap-0.5 mr-2">
+                                                <div class="w-2 h-2 rounded-full" :class="aiStep === 1 ? 'bg-purple-600' : 'bg-purple-300 dark:bg-purple-700'"></div>
+                                                <div class="w-4 h-0.5 bg-purple-200 dark:bg-purple-700"></div>
+                                                <div class="w-2 h-2 rounded-full" :class="aiStep === 2 ? 'bg-purple-600' : 'bg-purple-300 dark:bg-purple-700'"></div>
+                                            </div>
+                                            <button type="button" @click="showAiPanel = false; aiStep = 1; aiIdeas = []; selectedIdea = null" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- ====== BOSQICH 1: G'oya tanlash ====== -->
+                                    <template v-if="aiStep === 1">
+                                        <!-- Offer select -->
+                                        <div v-if="activeOffers.length > 0">
+                                            <select v-model="aiForm.offer_id" @change="handleAiOfferSelect" class="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                                <option value="">Taklifsiz yaratish</option>
+                                                <option v-for="offer in activeOffers" :key="offer.id" :value="offer.id">{{ offer.name }}</option>
+                                            </select>
+                                        </div>
+                                        <!-- Content Type chips -->
+                                        <div>
+                                            <label class="block text-[11px] font-medium text-purple-600 dark:text-purple-400 mb-1">Kontent turi</label>
+                                            <div class="flex flex-wrap gap-1">
+                                                <button v-for="ct in aiContentTypes" :key="ct.value" type="button" @click="aiForm.content_type = ct.value" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md border transition-all" :class="aiForm.content_type === ct.value ? 'bg-purple-600 text-white border-purple-600' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-purple-200 dark:border-purple-700 hover:border-purple-400'">
+                                                    <span>{{ ct.icon }}</span>
+                                                    <span>{{ ct.label }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Purpose chips -->
+                                        <div>
+                                            <label class="block text-[11px] font-medium text-purple-600 dark:text-purple-400 mb-1">Maqsad</label>
+                                            <div class="flex flex-wrap gap-1">
+                                                <button v-for="p in aiPurposes" :key="p.value" type="button" @click="aiForm.purpose = p.value" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md border transition-all" :class="aiForm.purpose === p.value ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-purple-200 dark:border-purple-700 hover:border-indigo-400'">
+                                                    <span>{{ p.icon }}</span>
+                                                    <span>{{ p.label }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Channel -->
+                                        <select v-model="aiForm.target_channel" class="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                            <option value="">Umumiy (barcha kanallar)</option>
+                                            <option value="instagram">Instagram</option>
+                                            <option value="telegram">Telegram</option>
+                                            <option value="facebook">Facebook</option>
+                                            <option value="tiktok">TikTok</option>
+                                        </select>
+                                        <!-- Error -->
+                                        <p v-if="aiError" class="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg">{{ aiError }}</p>
+                                        <!-- Generate Ideas button -->
+                                        <button type="button" @click="generateAiIdeas" :disabled="aiIdeasLoading" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-600 hover:from-purple-700 hover:via-indigo-700 hover:to-violet-700 rounded-xl shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                            <svg v-if="aiIdeasLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
+                                            {{ aiIdeasLoading ? "G'oyalar yaratilmoqda..." : "10 ta g'oya yaratish" }}
+                                        </button>
+                                        <!-- Ideas list -->
+                                        <div v-if="aiIdeas.length > 0" class="space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
+                                            <div class="flex items-center justify-between">
+                                                <p class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+                                                    G'oyani tanlang:
+                                                    <span v-if="aiIdeasFromCache" class="ml-1 text-[10px] font-normal text-emerald-600 dark:text-emerald-400">({{ aiIdeasCachedTotal }} ta saqlangan)</span>
+                                                </p>
+                                                <button type="button" @click="generateAiIdeas(true)" :disabled="aiIdeasLoading" class="text-[10px] font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-0.5 transition-colors disabled:opacity-50">
+                                                    <svg class="w-3 h-3" :class="{ 'animate-spin': aiIdeasLoading }" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                                                    Yangi g'oyalar
+                                                </button>
+                                            </div>
+                                            <button v-for="(idea, idx) in aiIdeas" :key="idea.id || idx" type="button" @click="selectIdea(idea)" class="w-full text-left p-2.5 rounded-lg border transition-all hover:shadow-sm group" :class="selectedIdea?.id === idea.id ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 shadow-sm' : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-gray-700'">
+                                                <div class="flex items-start gap-2">
+                                                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 text-[11px] font-bold flex items-center justify-center mt-0.5">{{ idx + 1 }}</span>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-[13px] font-medium text-gray-900 dark:text-white leading-tight">{{ idea.topic }}</p>
+                                                        <p v-if="idea.hook" class="text-[11px] text-purple-600 dark:text-purple-400 mt-0.5 leading-tight italic">"{{ idea.hook }}"</p>
+                                                        <p v-if="idea.angle" class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{{ idea.angle }}</p>
+                                                    </div>
+                                                    <svg class="w-4 h-4 flex-shrink-0 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <!-- Manual topic divider -->
+                                        <div v-if="aiIdeas.length === 0" class="relative">
+                                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-purple-200 dark:border-purple-700"></div></div>
+                                            <div class="relative flex justify-center"><span class="px-2 text-[10px] text-purple-400 dark:text-purple-500 bg-purple-50 dark:bg-gray-800 uppercase">yoki</span></div>
+                                        </div>
+                                        <!-- Manual topic input -->
+                                        <div v-if="aiIdeas.length === 0">
+                                            <input v-model="aiForm.topic" type="text" class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="O'zingiz mavzu yozing..." />
+                                            <div v-if="topicSuggestions.length > 0 && !aiForm.topic" class="mt-1.5">
+                                                <p class="text-[10px] font-medium text-purple-500 dark:text-purple-400 uppercase mb-1">Tavsiyalar:</p>
+                                                <div class="flex flex-wrap gap-1">
+                                                    <button v-for="(suggestion, idx) in topicSuggestions.slice(0, 6)" :key="idx" type="button" @click="selectTopicSuggestion(suggestion)" class="px-2 py-0.5 text-[11px] bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors truncate max-w-[160px]" :title="suggestion.topic">
+                                                        {{ suggestion.topic }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <!-- Direct generate button (manual topic) -->
+                                            <button v-if="aiForm.topic" type="button" @click="aiStep = 2" class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                                Keyingi qadam
+                                            </button>
+                                        </div>
+                                    </template>
+
+                                    <!-- ====== BOSQICH 2: Senariy yaratish ====== -->
+                                    <template v-if="aiStep === 2">
+                                        <!-- Selected idea card -->
+                                        <div class="p-2.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-[11px] font-semibold text-purple-500 dark:text-purple-400 uppercase">Tanlangan g'oya</p>
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{{ aiForm.topic }}</p>
+                                                    <p v-if="selectedIdea?.hook" class="text-[11px] text-purple-600 dark:text-purple-400 mt-0.5 italic">"{{ selectedIdea.hook }}"</p>
+                                                    <p v-if="selectedIdea?.angle" class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{{ selectedIdea.angle }}</p>
+                                                </div>
+                                                <button type="button" @click="backToIdeas" class="flex-shrink-0 p-1 text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-800 rounded-lg transition-colors" title="Orqaga">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" /></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Current settings summary -->
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="px-2 py-0.5 text-[10px] font-medium bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded-full">{{ aiContentTypes.find(c => c.value === aiForm.content_type)?.icon }} {{ aiContentTypes.find(c => c.value === aiForm.content_type)?.label }}</span>
+                                            <span class="px-2 py-0.5 text-[10px] font-medium bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 rounded-full">{{ aiPurposes.find(p => p.value === aiForm.purpose)?.icon }} {{ aiPurposes.find(p => p.value === aiForm.purpose)?.label }}</span>
+                                            <span v-if="aiForm.target_channel" class="px-2 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full">{{ aiForm.target_channel }}</span>
+                                        </div>
+                                        <!-- Additional prompt -->
+                                        <div>
+                                            <label class="block text-[11px] font-medium text-purple-600 dark:text-purple-400 mb-1">Qo'shimcha ko'rsatma (ixtiyoriy)</label>
+                                            <textarea v-model="aiForm.additional_prompt" rows="2" class="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" placeholder="Masalan: Yosh onalar uchun yozilsin..."></textarea>
+                                        </div>
+                                        <!-- Error -->
+                                        <p v-if="aiError" class="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg">{{ aiError }}</p>
+                                        <!-- Generate content button -->
+                                        <button type="button" @click="generateAiContent" :disabled="!aiForm.topic || aiGenerating" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-600 hover:from-purple-700 hover:via-indigo-700 hover:to-violet-700 rounded-xl shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                                            <svg v-if="aiGenerating" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                                            {{ aiGenerating ? 'Senariy yaratmoqda...' : 'AI bilan senariy yaratish' }}
+                                        </button>
+                                        <!-- Progress indicator -->
+                                        <div v-if="aiGenerating && aiProgressText" class="flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                                            <div class="flex gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 0ms"></span>
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 150ms"></span>
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 300ms"></span>
+                                            </div>
+                                            <span class="text-xs text-indigo-600 dark:text-indigo-400 transition-all">{{ aiProgressText }}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Content textarea -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.content_text') }}</label>
+                                <textarea v-model="postForm.content" rows="5" class="w-full px-3.5 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none" :placeholder="t('content.form.content_placeholder')"></textarea>
+                            </div>
+
+                            <!-- Platforms -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.platforms') }}</label>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button v-for="platform in availablePlatforms" :key="platform.value" type="button" @click="togglePlatform(platform.value)" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border-2 transition-all text-xs" :class="postForm.platforms.includes(platform.value) ? platform.selectedClass + ' text-white' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'">
+                                        <component :is="platform.icon" class="w-3.5 h-3.5" :class="postForm.platforms.includes(platform.value) ? 'text-white' : platform.iconClass" />
+                                        <span class="font-medium" :class="postForm.platforms.includes(platform.value) ? 'text-white' : 'text-gray-700 dark:text-gray-300'">{{ platform.label }}</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Content Type + Format + Status — compact row -->
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.content_type') }}</label>
+                                    <select v-model="postForm.content_type" class="w-full px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                        <option value="">{{ t('common.select') }}</option>
+                                        <option value="educational">{{ t('content.type.educational_full') }}</option>
+                                        <option value="entertaining">{{ t('content.type.entertaining_full') }}</option>
+                                        <option value="inspirational">{{ t('content.type.inspirational_full') }}</option>
+                                        <option value="promotional">{{ t('content.type.promotional_full') }}</option>
+                                        <option value="behind_scenes">{{ t('content.type.behind_scenes_full') }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.format') }}</label>
+                                    <select v-model="postForm.format" class="w-full px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                        <option value="">{{ t('common.select') }}</option>
+                                        <option value="short_video">{{ t('content.format.short_video') }}</option>
+                                        <option value="long_video">{{ t('content.format.long_video') }}</option>
+                                        <option value="carousel">{{ t('content.format.carousel') }}</option>
+                                        <option value="single_image">{{ t('content.format.single_image') }}</option>
+                                        <option value="story">{{ t('content.format.story') }}</option>
+                                        <option value="text_post">{{ t('content.format.text_post') }}</option>
+                                        <option value="live">{{ t('content.format.live') }}</option>
+                                        <option value="poll">{{ t('content.format.poll') }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.status') }}</label>
+                                    <select v-model="postForm.status" class="w-full px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                        <option value="draft">{{ t('content.status.draft') }}</option>
+                                        <option value="scheduled">{{ t('content.status.scheduled') }}</option>
+                                        <option value="published">{{ t('content.status.published') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Scheduled Date & Time -->
+                            <div v-if="postForm.status === 'scheduled'" class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.date') }}</label>
+                                    <input v-model="postForm.scheduled_date" type="date" :min="minDate" required class="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.time') }}</label>
+                                    <input v-model="postForm.scheduled_time" type="time" required class="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                                </div>
+                            </div>
+
+                            <!-- Hashtags -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('content.form.hashtags') }}</label>
+                                <input v-model="hashtagInput" type="text" class="w-full px-3.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="t('content.form.hashtags_placeholder')" />
+                            </div>
+
+                            <!-- Platform Links (for published posts) -->
+                            <div v-if="postForm.status === 'published' && postForm.platforms.length > 0">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Platforma linklari</label>
+                                <div class="space-y-1.5">
+                                    <div v-for="platform in postForm.platforms" :key="'link-' + platform" class="flex items-center gap-2">
+                                        <div class="flex items-center gap-1 min-w-[100px] px-2 py-1.5 rounded-lg" :class="getPlatformBgClass(platform)">
+                                            <component :is="getPlatformIcon(platform)" class="w-3 h-3" :class="getPlatformIconClass(platform)" />
+                                            <span class="text-[11px] font-medium" :class="getPlatformIconClass(platform)">{{ platform }}</span>
+                                        </div>
+                                        <input v-model="postForm.platform_links[platform]" type="url" class="flex-1 px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" :placeholder="platform === 'Instagram' ? 'https://instagram.com/p/...' : platform === 'Telegram' ? 'https://t.me/channel/123' : 'https://...'" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- RIGHT COLUMN: Live Preview -->
+                        <div class="w-1/2 bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+                            <!-- Preview Header -->
+                            <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 flex items-center justify-between flex-shrink-0">
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    Kontent ko'rinishi
+                                </h4>
+                                <div v-if="postForm.content" class="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
+                                    <span>{{ postForm.content.length }} belgi</span>
+                                    <span>~{{ Math.ceil(postForm.content.length / 200) }} daqiqa o'qish</span>
+                                </div>
+                            </div>
+
+                            <!-- Preview Content -->
+                            <div class="flex-1 overflow-y-auto p-5">
+                                <!-- Empty state -->
+                                <div v-if="!postForm.content && !postForm.title" class="flex flex-col items-center justify-center h-full text-center">
+                                    <div class="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4">
+                                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Kontent yozing yoki AI bilan yarating</p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Chap tarafda matn kiriting — bu yerda ko'rinadi</p>
+                                </div>
+
+                                <!-- Content preview -->
+                                <div v-else class="space-y-4">
+                                    <!-- Post card preview -->
+                                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                                        <!-- Post header -->
+                                        <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">B</div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ postForm.title || 'Post sarlavhasi' }}</p>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <span v-for="p in postForm.platforms" :key="'prev-' + p" class="text-[10px] font-medium text-gray-500 dark:text-gray-400">{{ p }}</span>
+                                                    <span v-if="postForm.status" class="text-[10px] px-1.5 py-0.5 rounded-full" :class="postForm.status === 'published' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : postForm.status === 'scheduled' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'">{{ postForm.status }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Post content -->
+                                        <div class="px-4 py-4">
+                                            <div class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-line break-words">{{ postForm.content }}</div>
+                                        </div>
+
+                                        <!-- Hashtags -->
+                                        <div v-if="hashtagInput" class="px-4 pb-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span v-for="tag in hashtagInput.split(/[\s,]+/).filter(t => t)" :key="tag" class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">{{ tag.startsWith('#') ? tag : '#' + tag }}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Post footer -->
+                                        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+                                            <div class="flex items-center gap-4 text-gray-400 dark:text-gray-500">
+                                                <button type="button" class="flex items-center gap-1 hover:text-red-500 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                                </button>
+                                                <button type="button" class="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                                </button>
+                                                <button type="button" class="flex items-center gap-1 hover:text-green-500 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                                                </button>
+                                            </div>
+                                            <button type="button" class="text-gray-400 dark:text-gray-500 hover:text-yellow-500 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- AI Rating -->
+                                    <div v-if="lastGenerationId && postForm.content" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">AI kontent sifati qanday?</span>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" @click="rateAiContent('good')" :disabled="aiRatingSubmitted" class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all" :class="aiRating === 'good' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-900/20'">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                                                    Yaxshi
+                                                </button>
+                                                <button type="button" @click="rateAiContent('bad')" :disabled="aiRatingSubmitted" class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all" :class="aiRating === 'bad' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" /></svg>
+                                                    Yomon
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p v-if="aiRatingSubmitted" class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">Rahmat! Fikringiz AI ni yaxshilashga yordam beradi.</p>
+                                    </div>
+
+                                    <!-- Content Analysis -->
+                                    <div v-if="postForm.content" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                                        <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Kontent tahlili</h5>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <!-- Hook check -->
+                                            <div class="flex items-start gap-2 p-2 rounded-lg" :class="contentAnalysis.hasHook ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20'">
+                                                <svg v-if="contentAnalysis.hasHook" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                <svg v-else class="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                                <div>
+                                                    <p class="text-[11px] font-semibold" :class="contentAnalysis.hasHook ? 'text-emerald-800 dark:text-emerald-300' : 'text-red-800 dark:text-red-300'">Hook</p>
+                                                    <p class="text-[10px]" :class="contentAnalysis.hasHook ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">{{ contentAnalysis.hasHook ? 'Kuchli boshlanish bor' : 'Savol/statistika bilan boshlang' }}</p>
+                                                </div>
+                                            </div>
+                                            <!-- CTA check -->
+                                            <div class="flex items-start gap-2 p-2 rounded-lg" :class="contentAnalysis.hasCTA ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-amber-50 dark:bg-amber-900/20'">
+                                                <svg v-if="contentAnalysis.hasCTA" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                <svg v-else class="w-4 h-4 text-amber-500 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                                <div>
+                                                    <p class="text-[11px] font-semibold" :class="contentAnalysis.hasCTA ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300'">CTA</p>
+                                                    <p class="text-[10px]" :class="contentAnalysis.hasCTA ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'">{{ contentAnalysis.hasCTA ? 'Harakat chaqiruvi bor' : 'CTA qo\'shing' }}</p>
+                                                </div>
+                                            </div>
+                                            <!-- Emoji check -->
+                                            <div class="flex items-start gap-2 p-2 rounded-lg" :class="contentAnalysis.emojiCount > 0 ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-50 dark:bg-gray-800'">
+                                                <span class="text-sm mt-0.5">{{ contentAnalysis.emojiCount > 0 ? '😊' : '😐' }}</span>
+                                                <div>
+                                                    <p class="text-[11px] font-semibold text-gray-800 dark:text-gray-300">Emoji</p>
+                                                    <p class="text-[10px] text-gray-600 dark:text-gray-400">{{ contentAnalysis.emojiCount }} ta ishlatilgan</p>
+                                                </div>
+                                            </div>
+                                            <!-- Length check -->
+                                            <div class="flex items-start gap-2 p-2 rounded-lg" :class="contentAnalysis.lengthStatus === 'good' ? 'bg-emerald-50 dark:bg-emerald-900/20' : contentAnalysis.lengthStatus === 'short' ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-red-50 dark:bg-red-900/20'">
+                                                <span class="text-sm mt-0.5">{{ contentAnalysis.lengthStatus === 'good' ? '📏' : contentAnalysis.lengthStatus === 'short' ? '📐' : '📜' }}</span>
+                                                <div>
+                                                    <p class="text-[11px] font-semibold text-gray-800 dark:text-gray-300">Uzunlik</p>
+                                                    <p class="text-[10px] text-gray-600 dark:text-gray-400">{{ contentAnalysis.lengthLabel }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Paragraph count -->
+                                        <div class="flex items-center gap-4 pt-2 border-t border-gray-100 dark:border-gray-700 text-[11px] text-gray-500 dark:text-gray-400">
+                                            <span>{{ contentAnalysis.paragraphCount }} paragraf</span>
+                                            <span>{{ contentAnalysis.lineCount }} qator</span>
+                                            <span>{{ contentAnalysis.wordCount }} so'z</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                       </div>
-                      <!-- Actions (sticky at bottom) -->
-                      <div class="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-                            <button type="button" @click="closeCreateModal" class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-colors">
+
+                      <!-- Actions (sticky at bottom, full width) -->
+                      <div class="flex items-center justify-end space-x-3 px-6 py-3.5 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+                            <button type="button" @click="closeCreateModal" class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-medium transition-colors">
                                 {{ t('common.cancel') }}
                             </button>
-                            <button type="submit" :disabled="isSubmitting" class="px-5 py-2.5 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-50" :class="editingPost ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25 hover:shadow-amber-500/40' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/40'">
+                            <button type="submit" :disabled="isSubmitting" class="px-5 py-2 text-white text-sm font-medium rounded-xl shadow-lg transition-all disabled:opacity-50" :class="editingPost ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25 hover:shadow-amber-500/40' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25 hover:shadow-indigo-500/40'">
                                 <span v-if="isSubmitting">{{ t('common.saving') }}...</span>
                                 <span v-else>{{ editingPost ? t('common.update') : t('common.save') }}</span>
                             </button>
@@ -1155,6 +1395,7 @@ const props = defineProps({
     activeOffers: { type: Array, default: () => [] },
     aiRemaining: { type: [Number, null], default: null },
     painPoints: { type: Array, default: () => [] },
+    topicSuggestions: { type: Array, default: () => [] },
     panelType: { type: String, default: 'business', validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v) }
 })
 
@@ -1509,7 +1750,21 @@ const useHook = (hook) => {
 const showAiPanel = ref(false)
 const aiGenerating = ref(false)
 const aiError = ref('')
-const aiForm = ref({ topic: '', purpose: 'engage', target_channel: '', offer_id: '' })
+const aiForm = ref({ topic: '', purpose: 'engage', target_channel: '', offer_id: '', content_type: 'post', additional_prompt: '' })
+const showAdvancedAi = ref(false)
+
+// Two-step AI flow state
+const aiStep = ref(1) // 1 = g'oya tanlash, 2 = senariy yaratish
+const aiIdeas = ref([]) // 10 ta g'oya
+const aiIdeasLoading = ref(false)
+const selectedIdea = ref(null) // tanlangan g'oya
+const aiIdeasFromCache = ref(false) // DB dan olinganmi?
+const aiIdeasCachedTotal = ref(0) // DB da umumiy nechta g'oya bor
+const lastGenerationId = ref(null) // oxirgi AI generation ID
+const aiRating = ref(null) // 'good' | 'bad' | null
+const aiRatingSubmitted = ref(false)
+const aiProgressText = ref('')
+let aiProgressTimer = null
 
 const handleAiOfferSelect = () => {
     if (aiForm.value.offer_id) {
@@ -1517,45 +1772,208 @@ const handleAiOfferSelect = () => {
         if (selected) {
             aiForm.value.topic = selected.name
             aiForm.value.purpose = 'sell'
+            aiForm.value.content_type = 'ad'
         }
     }
+}
+
+const selectTopicSuggestion = (suggestion) => {
+    aiForm.value.topic = suggestion.topic
+    if (suggestion.content_type) aiForm.value.content_type = suggestion.content_type
+}
+
+// AI content type options
+const aiContentTypes = [
+    { value: 'post', label: 'Post', icon: '📝' },
+    { value: 'story', label: 'Story', icon: '📱' },
+    { value: 'reel', label: 'Reel/Video', icon: '🎬' },
+    { value: 'ad', label: 'Reklama', icon: '📢' },
+    { value: 'carousel', label: 'Karusel', icon: '🖼️' },
+    { value: 'article', label: 'Maqola', icon: '📰' },
+]
+
+// AI purpose options with icons
+const aiPurposes = [
+    { value: 'engage', label: 'Jalb qilish', icon: '💬' },
+    { value: 'educate', label: "O'rgatish", icon: '🎓' },
+    { value: 'sell', label: 'Sotish', icon: '💰' },
+    { value: 'inspire', label: 'Ilhomlantirish', icon: '✨' },
+    { value: 'announce', label: "E'lon qilish", icon: '📣' },
+    { value: 'entertain', label: "Ko'ngil ochish", icon: '🎭' },
+]
+
+const generateAiIdeas = async (forceNew = false) => {
+    aiIdeasLoading.value = true
+    aiError.value = ''
+    aiIdeas.value = []
+    selectedIdea.value = null
+    aiIdeasFromCache.value = false
+    try {
+        const response = await axios.post(route('business.marketing.content-ai.generate-ideas'), {
+            content_type: aiForm.value.content_type || 'post',
+            purpose: aiForm.value.purpose,
+            target_channel: aiForm.value.target_channel || null,
+            offer_id: aiForm.value.offer_id || null,
+            force_new: forceNew,
+        }, { headers: { Accept: 'application/json' } })
+        aiIdeas.value = response.data.ideas || []
+        aiIdeasFromCache.value = response.data.from_cache || false
+        aiIdeasCachedTotal.value = response.data.cached_total || 0
+    } catch (e) {
+        aiError.value = e.response?.data?.error || e.response?.data?.message || "G'oyalar yaratilmadi"
+    } finally {
+        aiIdeasLoading.value = false
+    }
+}
+
+const selectIdea = (idea) => {
+    selectedIdea.value = idea
+    aiForm.value.topic = idea.topic
+    aiStep.value = 2
+}
+
+const backToIdeas = () => {
+    aiStep.value = 1
+    selectedIdea.value = null
+    aiForm.value.topic = ''
 }
 
 const generateAiContent = async () => {
     if (!aiForm.value.topic) return
     aiGenerating.value = true
     aiError.value = ''
+    startAiProgress()
     try {
-        // Muammo kontekstini qo'shish
-        let additionalPrompt = null
+        // Muammo va g'oya kontekstini qo'shish
+        let additionalPrompt = aiForm.value.additional_prompt || ''
         const pain = selectedPainPoint.value
         if (pain) {
-            additionalPrompt = `Mijoz muammosi: ${pain.text}`
+            const painContext = `Mijoz muammosi: ${pain.text}`
+            additionalPrompt = additionalPrompt ? `${painContext}\n${additionalPrompt}` : painContext
             if (pain.hooks?.length) additionalPrompt += `\nBoshlash uchun hook: ${pain.hooks[0]}`
+        }
+        // Tanlangan g'oya konteksti
+        if (selectedIdea.value) {
+            const ideaCtx = []
+            if (selectedIdea.value.hook) ideaCtx.push(`Hook: ${selectedIdea.value.hook}`)
+            if (selectedIdea.value.angle) ideaCtx.push(`Yondashuv: ${selectedIdea.value.angle}`)
+            if (ideaCtx.length) additionalPrompt = additionalPrompt ? `${additionalPrompt}\n${ideaCtx.join('\n')}` : ideaCtx.join('\n')
         }
 
         const response = await axios.post(route('business.marketing.content-ai.generate'), {
             topic: aiForm.value.topic,
-            content_type: 'post',
+            content_type: aiForm.value.content_type || 'post',
             purpose: aiForm.value.purpose,
             target_channel: aiForm.value.target_channel || null,
             offer_id: aiForm.value.offer_id || null,
-            additional_prompt: additionalPrompt,
+            additional_prompt: additionalPrompt || null,
         }, { headers: { Accept: 'application/json' } })
 
         const gen = response.data.generation
+        lastGenerationId.value = gen.id
+        aiRating.value = null
+        aiRatingSubmitted.value = false
         if (!postForm.value.title) postForm.value.title = aiForm.value.topic
         postForm.value.content = gen.generated_content || ''
         // Map AI purpose → content_type
         const purposeMap = { sell: 'promotional', educate: 'educational', inspire: 'inspirational', engage: 'entertaining', announce: 'promotional', entertain: 'entertaining' }
         if (!postForm.value.content_type) postForm.value.content_type = purposeMap[aiForm.value.purpose] || ''
         showAiPanel.value = false
+        aiStep.value = 1
+        aiIdeas.value = []
+        selectedIdea.value = null
     } catch (e) {
         aiError.value = e.response?.data?.error || e.response?.data?.message || 'Xatolik yuz berdi'
     } finally {
+        stopAiProgress()
         aiGenerating.value = false
     }
 }
+
+// AI progress animation
+const startAiProgress = () => {
+    const steps = [
+        'Biznes profilni tahlil qilmoqda...',
+        'Kontent strategiyasini tuzmoqda...',
+        'Marketing formulani tanlmoqda...',
+        'Hook yozmoqda...',
+        'Hikoya yaratmoqda...',
+        'CTA tayyorlamoqda...',
+        'Yakuniy tekshiruv...',
+    ]
+    let i = 0
+    aiProgressText.value = steps[0]
+    aiProgressTimer = setInterval(() => {
+        i++
+        if (i < steps.length) {
+            aiProgressText.value = steps[i]
+        }
+    }, 3000)
+}
+
+const stopAiProgress = () => {
+    if (aiProgressTimer) {
+        clearInterval(aiProgressTimer)
+        aiProgressTimer = null
+    }
+    aiProgressText.value = ''
+}
+
+// AI quality rating
+const rateAiContent = async (rating) => {
+    if (!lastGenerationId.value || aiRatingSubmitted.value) return
+    aiRating.value = rating
+    try {
+        await axios.post(route('business.marketing.content-ai.history.rate', lastGenerationId.value), {
+            rating: rating,
+        }, { headers: { Accept: 'application/json' } })
+        aiRatingSubmitted.value = true
+    } catch (e) {
+        // Xato bo'lsa ham UI da ko'rsatib qo'yamiz
+        aiRatingSubmitted.value = true
+    }
+}
+
+// Content analysis for preview
+const contentAnalysis = computed(() => {
+    const content = postForm.value.content || ''
+    const firstLine = content.split('\n')[0] || ''
+
+    // Hook detection: savol (?) yoki hayratlanarli boshlanish
+    const hasHook = firstLine.includes('?') || firstLine.includes('!') || /^\d/.test(firstLine) || /^[«"']/.test(firstLine) || firstLine.length > 10
+
+    // CTA detection
+    const lower = content.toLowerCase()
+    const hasCTA = ['yozing', 'bosing', 'qo\'ng\'iroq', 'ulashing', 'saqlang', 'obuna', 'kiriting', 'yuboring', 'kuring', 'ko\'ring', 'belgilang', 'tag', 'dm', 'link', 'bio', 'havolani', 'hozir', 'bugun'].some(w => lower.includes(w))
+
+    // Emoji count
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F000}-\u{1F02F}\u{200D}\u{20E3}\u{FE0F}\u{E0020}-\u{E007F}]/gu
+    const emojiCount = (content.match(emojiRegex) || []).length
+
+    // Length status
+    const len = content.length
+    let lengthStatus = 'good'
+    let lengthLabel = `${len} belgi — yaxshi`
+    if (len < 100) { lengthStatus = 'short'; lengthLabel = `${len} belgi — juda qisqa` }
+    else if (len > 2200) { lengthStatus = 'long'; lengthLabel = `${len} belgi — juda uzun` }
+    else if (len < 200) { lengthStatus = 'short'; lengthLabel = `${len} belgi — qisqa` }
+
+    // Word/paragraph/line count
+    const lines = content.split('\n')
+    const paragraphs = content.split(/\n\s*\n/)
+    const words = content.trim().split(/\s+/).filter(w => w.length > 0)
+
+    return {
+        hasHook,
+        hasCTA,
+        emojiCount,
+        lengthStatus,
+        lengthLabel,
+        paragraphCount: paragraphs.filter(p => p.trim()).length,
+        lineCount: lines.filter(l => l.trim()).length,
+        wordCount: words.length,
+    }
+})
 
 const openCreateModal = () => {
     editingPost.value = null
@@ -1563,8 +1981,15 @@ const openCreateModal = () => {
     hashtagInput.value = ''
     selectedPainPointId.value = ''
     showAiPanel.value = false
-    aiForm.value = { topic: '', purpose: 'engage', target_channel: '', offer_id: '' }
+    aiForm.value = { topic: '', purpose: 'engage', target_channel: '', offer_id: '', content_type: 'post', additional_prompt: '' }
     aiError.value = ''
+    showAdvancedAi.value = false
+    aiStep.value = 1
+    aiIdeas.value = []
+    selectedIdea.value = null
+    aiIdeasLoading.value = false
+    aiIdeasFromCache.value = false
+    aiIdeasCachedTotal.value = 0
     showCreateModal.value = true
 }
 
@@ -1636,15 +2061,15 @@ const submitPost = () => {
         // Update existing post
         router.put(route(panelConfig.value.updateRoute, editingPost.value.id), formData, {
             preserveScroll: true,
-            onSuccess: () => { closeCreateModal(); isSubmitting.value = false },
-            onError: () => { isSubmitting.value = false }
+            onSuccess: () => { closeCreateModal() },
+            onFinish: () => { isSubmitting.value = false }
         })
     } else {
         // Create new post
         router.post(route(panelConfig.value.storeRoute), formData, {
             preserveScroll: true,
-            onSuccess: () => { closeCreateModal(); isSubmitting.value = false },
-            onError: () => { isSubmitting.value = false }
+            onSuccess: () => { closeCreateModal() },
+            onFinish: () => { isSubmitting.value = false }
         })
     }
 }
