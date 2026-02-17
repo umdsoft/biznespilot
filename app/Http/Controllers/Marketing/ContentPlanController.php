@@ -79,10 +79,14 @@ class ContentPlanController extends Controller
             $business, $nicheTopics, $painPointRecommendations, $igSchedule, $performanceSummary
         );
 
+        // Oxirgi rejaning algorithm breakdown ma'lumoti
+        $latestBreakdown = $recentPlans->first()?->algorithm_breakdown ?? [];
+
         return Inertia::render('Marketing/ContentAI/SmartPlan', [
             'recommendations' => $recommendations,
             'igSchedule' => $igSchedule,
             'performanceSummary' => $performanceSummary,
+            'algorithmBreakdown' => $latestBreakdown,
             'recentPlans' => $recentPlans,
             'business' => [
                 'id' => $business->id,

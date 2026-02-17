@@ -45,7 +45,7 @@
     </Transition>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
       <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
         <p class="text-xs text-gray-500 dark:text-gray-400">Tavsiyalar</p>
         <p class="text-2xl font-bold text-emerald-600">{{ recommendations.length }}</p>
@@ -61,6 +61,14 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
         <p class="text-xs text-gray-500 dark:text-gray-400">Joylashtirish vaqti</p>
         <p class="text-2xl font-bold text-pink-600">{{ bestPostTime }}</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-500 dark:text-gray-400">Takroriy exclude</p>
+        <p class="text-2xl font-bold" :class="excludedCount > 0 ? 'text-red-500' : 'text-gray-400'">{{ excludedCount }}</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-500 dark:text-gray-400">Pattern topildi</p>
+        <p class="text-2xl font-bold" :class="patternsCount > 0 ? 'text-violet-600' : 'text-gray-400'">{{ patternsCount }}</p>
       </div>
     </div>
 
@@ -318,6 +326,7 @@ const props = defineProps({
   recommendations: { type: Array, default: () => [] },
   igSchedule: { type: Object, default: () => ({}) },
   performanceSummary: { type: Object, default: () => ({}) },
+  algorithmBreakdown: { type: Object, default: () => ({}) },
   recentPlans: { type: Array, default: () => [] },
   business: { type: Object, default: null },
   panelType: { type: String, default: 'business' },
@@ -345,6 +354,8 @@ const bestPostTime = computed(() => {
   const hours = props.igSchedule?.best_times?.best_hours;
   return hours?.length ? String(hours[0].hour).padStart(2, '0') + ':00' : '19:00';
 });
+const excludedCount = computed(() => props.algorithmBreakdown?.topics_excluded ?? 0);
+const patternsCount = computed(() => Object.keys(props.algorithmBreakdown?.success_patterns ?? {}).length);
 
 // Colors & labels
 const sourceColors = {

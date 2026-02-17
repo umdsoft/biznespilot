@@ -8,6 +8,7 @@ use App\Models\ContentPlanGeneration;
 use App\Models\WeeklyPlan;
 use App\Services\KPI\BusinessCategoryMapper;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -36,6 +37,8 @@ use Illuminate\Support\Facades\Log;
  */
 class ContentPlanEngine
 {
+    private int $freshnessExcludedCount = 0;
+
     public function __construct(
         private CrossBusinessLearningService $crossBusiness,
         private SurveyContentBridge $surveyBridge,
@@ -76,6 +79,7 @@ class ContentPlanEngine
 
             // === HAFTALIK SLOTLARGA TAQSIMLASH ===
             $igSchedule = $sources['ig_schedule'];
+            $successPatterns = $sources['success_patterns'] ?? [];
             $weeklyItems = $this->distributeTopicsToSlots(
                 $scoredTopics,
                 $igSchedule,
@@ -83,7 +87,8 @@ class ContentPlanEngine
                 $industryCode,
                 $start,
                 $end,
-                $weeklyPlan
+                $weeklyPlan,
+                $successPatterns
             );
 
             // === SAQLASH ===
@@ -159,6 +164,9 @@ class ContentPlanEngine
         $painTopics = $this->collectPainPointTopics($businessId);
         $pastPerformance = $this->feedback->getPerformanceSummary($businessId);
 
+        // Muvaffaqiyat patternlari (qaysi format+purpose eng yaxshi ishlagan)
+        $successPatterns = $this->analyzeSuccessPatterns($businessId);
+
         return [
             // Qatlam 1 — algoritmik (har doim bor)
             'library_topics' => $libraryTopics,
@@ -167,6 +175,7 @@ class ContentPlanEngine
             'niche_topics' => $nicheTopics,
             'pain_topics' => $painTopics,
             'past_performance' => $pastPerformance,
+            'success_patterns' => $successPatterns,
         ];
     }
 
@@ -301,12 +310,32 @@ class ContentPlanEngine
             }
         }
 
-        // Past performance bonus
+        // Past performance bonus (×500 — engagement 0.04 = 20 ball)
         if (! empty($pastPerformance['top_themes'])) {
+            $avgOverallEngagement = $pastPerformance['avg_engagement'] ?? 0;
+
             foreach ($pastPerformance['top_themes'] as $theme => $data) {
                 foreach ($allTopics as $key => &$topic) {
                     if (str_contains($key, mb_strtolower($theme))) {
-                        $topic['performance_score'] = min(($data['avg_engagement'] ?? 0) * 5, $weights['performance']);
+                        $engagementScore = min(($data['avg_engagement'] ?? 0) * 500, $weights['performance']);
+
+                        // Format match bonus: agar eng yaxshi format bilan mos kelsa → +5
+                        $bestFormat = $data['best_format'] ?? null;
+                        if ($bestFormat && ($topic['content_type'] ?? '') === $bestFormat) {
+                            $engagementScore = min($engagementScore + 5, $weights['performance'] + 5);
+                        }
+
+                        $topic['performance_score'] = $engagementScore;
+                    }
+                }
+                unset($topic);
+            }
+
+            // Minimum baseline: agar umumiy engagement > 5% → hamma topicga kamida 10 ball
+            if ($avgOverallEngagement > 0.05) {
+                foreach ($allTopics as &$topic) {
+                    if ($topic['performance_score'] < 10) {
+                        $topic['performance_score'] = 10;
                     }
                 }
                 unset($topic);
@@ -392,36 +421,122 @@ class ContentPlanEngine
     }
 
     /**
-     * Yaqinda joylangan mavzularni chetga surish (takrorlanishning oldini olish)
+     * Yaqinda ishlatilgan mavzularni AQLLI filtrlash (3-darajali)
+     *
+     * 95%+ o'xshashlik → EXCLUDE (hard remove)
+     * 70-95% o'xshashlik → -50 ball penalty
+     * 50-70% o'xshashlik → -30 ball penalty
      */
     private function applyFreshnessFilter(array $topics, string $businessId): array
     {
-        // Oxirgi 14 kunda joylangan mavzular
+        // 1) Oxirgi 30 kundagi joylangan mavzular
         $recentTitles = ContentPost::withoutGlobalScope('business')
             ->where('business_id', $businessId)
-            ->where('created_at', '>=', now()->subDays(14))
+            ->where('created_at', '>=', now()->subDays(30))
             ->pluck('title')
-            ->map(fn ($t) => mb_strtolower($t))
+            ->map(fn ($t) => mb_strtolower(trim($t)))
+            ->filter()
+            ->unique()
             ->toArray();
 
-        if (empty($recentTitles)) {
+        // 2) Oldingi rejalardagi mavzular (content_plan_generations)
+        $previousPlanTopics = ContentPlanGeneration::where('business_id', $businessId)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->whereNotNull('niche_scores_used')
+            ->pluck('niche_scores_used')
+            ->flatten()
+            ->map(fn ($item) => mb_strtolower(is_array($item) ? ($item['topic'] ?? '') : (string) $item))
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        $allRecent = array_unique(array_merge($recentTitles, $previousPlanTopics));
+
+        if (empty($allRecent)) {
             return $topics;
         }
 
+        $excludedCount = 0;
+
         foreach ($topics as $key => &$topic) {
             $topicLower = mb_strtolower($topic['topic']);
-            foreach ($recentTitles as $recentTitle) {
-                // Agar o'xshash mavzu yaqinda ishlatilgan bo'lsa — ballni pasaytirish
-                if ($topicLower === $recentTitle || str_contains($topicLower, $recentTitle) || str_contains($recentTitle, $topicLower)) {
-                    $topic['total_score'] = max($topic['total_score'] - 30, 5);
-                    $topic['freshness_penalty'] = true;
-                    break;
+            $maxSimilarity = 0;
+
+            foreach ($allRecent as $recentTitle) {
+                $similarity = $this->calculateStringSimilarity($topicLower, $recentTitle);
+                $maxSimilarity = max($maxSimilarity, $similarity);
+
+                if ($maxSimilarity >= 0.95) {
+                    break; // Allaqachon exclude — boshqa tekshirish shart emas
                 }
+            }
+
+            if ($maxSimilarity >= 0.95) {
+                // HARD EXCLUDE — aynan shu mavzu oldin qilingan
+                unset($topics[$key]);
+                $excludedCount++;
+            } elseif ($maxSimilarity >= 0.70) {
+                // Juda o'xshash — kuchli penalty
+                $topic['total_score'] = max($topic['total_score'] - 50, 5);
+                $topic['freshness_penalty'] = 50;
+                $topic['similarity'] = round($maxSimilarity * 100);
+            } elseif ($maxSimilarity >= 0.50) {
+                // Biroz o'xshash — yengil penalty
+                $topic['total_score'] = max($topic['total_score'] - 30, 5);
+                $topic['freshness_penalty'] = 30;
+                $topic['similarity'] = round($maxSimilarity * 100);
             }
         }
         unset($topic);
 
-        return $topics;
+        // Tracking uchun — nechta exclude qilinganini saqlash
+        $this->freshnessExcludedCount = $excludedCount;
+
+        return array_values($topics);
+    }
+
+    /**
+     * Ikki matn orasidagi o'xshashlikni hisoblash (0.0 — 1.0)
+     * Levenshtein distance + token overlap kombinatsiyasi
+     */
+    private function calculateStringSimilarity(string $a, string $b): float
+    {
+        if ($a === $b) {
+            return 1.0;
+        }
+
+        if (empty($a) || empty($b)) {
+            return 0.0;
+        }
+
+        // 1) Normalized Levenshtein (qisqa matnlar uchun yaxshi)
+        $maxLen = max(mb_strlen($a), mb_strlen($b));
+        $levenshtein = levenshtein(
+            mb_substr($a, 0, 255),
+            mb_substr($b, 0, 255)
+        );
+        $levenshteinSim = 1 - ($levenshtein / $maxLen);
+
+        // 2) Token overlap (uzun matnlar uchun yaxshi)
+        $tokensA = array_filter(explode(' ', $a));
+        $tokensB = array_filter(explode(' ', $b));
+
+        if (empty($tokensA) || empty($tokensB)) {
+            return max(0, $levenshteinSim);
+        }
+
+        $intersection = count(array_intersect($tokensA, $tokensB));
+        $union = count(array_unique(array_merge($tokensA, $tokensB)));
+        $jaccardSim = $union > 0 ? $intersection / $union : 0;
+
+        // 3) Substring check — bir matn ikkinchisining ichida bo'lsa
+        $substringBonus = 0;
+        if (str_contains($a, $b) || str_contains($b, $a)) {
+            $substringBonus = 0.3;
+        }
+
+        // Oxirgi natija: 50% levenshtein + 30% jaccard + 20% substring
+        return min(1.0, ($levenshteinSim * 0.5) + ($jaccardSim * 0.3) + $substringBonus);
     }
 
     /**
@@ -434,16 +549,33 @@ class ContentPlanEngine
         string $industryCode,
         Carbon $start,
         Carbon $end,
-        ?WeeklyPlan $weeklyPlan
+        ?WeeklyPlan $weeklyPlan,
+        array $successPatterns = []
     ): array {
+        // Success pattern multiplier qo'llash
+        if (! empty($successPatterns)) {
+            foreach ($scoredTopics as &$topic) {
+                $patternKey = ($topic['content_type'] ?? 'post') . '+' . ($topic['category'] ?? 'educational');
+                if (isset($successPatterns[$patternKey])) {
+                    $topic['total_score'] = round($topic['total_score'] * $successPatterns[$patternKey], 2);
+                    $topic['success_multiplier'] = $successPatterns[$patternKey];
+                }
+            }
+            unset($topic);
+
+            // Qayta saralash
+            usort($scoredTopics, fn ($a, $b) => $b['total_score'] <=> $a['total_score']);
+        }
+
         $items = [];
         $aiCallCount = 0;
-        $maxAiCalls = 4; // Tezlik uchun: bitta plan da max 4 ta post AI bilan boyitiladi
+        $maxAiCalls = 4;
         $schedule = $igSchedule['schedule'] ?? [];
         $topicIndex = 0;
         $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         $defaultTypes = ['reel', 'carousel', 'post', 'story', 'reel', 'post', 'carousel'];
-        $usedCategories = []; // Hafta ichida bir xil category takrorlanmasin
+        $usedCategories = [];
+        $usedFormats = []; // Format xilma-xilligini kuzatish
 
         // Platform taqsimlash: 60% Instagram, 40% Telegram (aralash)
         $platformPool = ['instagram', 'instagram', 'instagram', 'telegram', 'telegram', 'instagram', 'telegram'];
@@ -475,6 +607,15 @@ class ContentPlanEngine
                 $time = $slot['time'] ?? '18:00';
 
                 $usedCategories[] = $topic['category'];
+                $usedFormats[] = $contentType;
+
+                // Format xilma-xilligi: agar 5+ slot to'lgan va hali 3 xil format yo'q — formatni almashtirish
+                if (count($usedFormats) >= 5 && count(array_unique($usedFormats)) < 3) {
+                    $missingFormats = array_diff(['reel', 'carousel', 'post', 'story'], array_unique($usedFormats));
+                    if (! empty($missingFormats)) {
+                        $contentType = reset($missingFormats);
+                    }
+                }
 
                 // IG algorithm tips
                 $igTips = $this->igEngine->getContentOptimizationTips($contentType, $purpose);
@@ -566,8 +707,12 @@ class ContentPlanEngine
     }
 
     /**
-     * Keyingi mavzuni tanlash (diversifikatsiya bilan)
-     * Bir xil category ketma-ket kelmasligi uchun
+     * Keyingi mavzuni tanlash (kuchaytirilgan diversifikatsiya)
+     *
+     * Qoidalar:
+     * - Bir xil purpose hafta ichida MAX 2 marta
+     * - Kamida 3 xil format ishlatilsin
+     * - Oxirgi 2 ta bilan bir xil category bo'lmasin
      */
     private function pickNextTopic(array $scoredTopics, int &$index, array $usedCategories): ?array
     {
@@ -576,29 +721,83 @@ class ContentPlanEngine
             return null;
         }
 
-        // Oxirgi 2 ta ishlatilgan category ni tekshirish
+        // Purpose counter — har bir purpose necha marta ishlatilgan
+        $purposeCount = array_count_values($usedCategories);
         $recentCategories = array_slice($usedCategories, -2);
+        $maxPerPurpose = 2;
+
         $attempts = 0;
         $maxAttempts = $totalTopics;
+        $bestFallback = null;
 
         while ($attempts < $maxAttempts) {
             $currentIndex = ($index + $attempts) % $totalTopics;
             $topic = $scoredTopics[$currentIndex];
+            $category = $topic['category'] ?? 'educational';
 
-            // Agar oxirgi 2 tasi bilan bir xil bo'lmasa — tanlash
-            if (! in_array($topic['category'], $recentCategories) || $attempts >= $totalTopics - 1) {
+            $purposeOk = ($purposeCount[$category] ?? 0) < $maxPerPurpose;
+            $recentOk = ! in_array($category, $recentCategories);
+
+            if ($purposeOk && $recentOk) {
                 $index = $currentIndex + 1;
-
                 return $topic;
+            }
+
+            // Faqat purpose cheklovi o'tsa, fallback sifatida saqlash
+            if ($purposeOk && $bestFallback === null) {
+                $bestFallback = ['topic' => $topic, 'index' => $currentIndex];
             }
 
             $attempts++;
         }
 
-        // Fallback: birinchi topicni olish
-        $index++;
+        // Fallback 1: purpose ok, lekin recent bilan bir xil
+        if ($bestFallback !== null) {
+            $index = $bestFallback['index'] + 1;
+            return $bestFallback['topic'];
+        }
 
-        return $scoredTopics[0] ?? null;
+        // Fallback 2: alternativ mavzu topishga harakat
+        $alternative = $this->findAlternativeTopic($scoredTopics, $purposeCount, $maxPerPurpose);
+        if ($alternative !== null) {
+            $index++;
+            return $alternative;
+        }
+
+        // Oxirgi chora: keyingi topicni olish
+        $currentIndex = $index % $totalTopics;
+        $index++;
+        return $scoredTopics[$currentIndex];
+    }
+
+    /**
+     * Alternativ mavzu topish — purpose limiti to'lganda,
+     * eng kam ishlatilgan purpose dan mavzu tanlash
+     */
+    private function findAlternativeTopic(array $scoredTopics, array $purposeCount, int $maxPerPurpose): ?array
+    {
+        // Eng kam ishlatilgan purpose larni topish
+        $allPurposes = ['educational', 'promotional', 'engagement', 'behind_scenes', 'testimonial'];
+        $availablePurposes = [];
+
+        foreach ($allPurposes as $purpose) {
+            if (($purposeCount[$purpose] ?? 0) < $maxPerPurpose) {
+                $availablePurposes[] = $purpose;
+            }
+        }
+
+        if (empty($availablePurposes)) {
+            return null;
+        }
+
+        // Mavjud purpose lardagi eng yuqori balli topicni topish
+        foreach ($scoredTopics as $topic) {
+            if (in_array($topic['category'] ?? '', $availablePurposes)) {
+                return $topic;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -754,6 +953,10 @@ class ContentPlanEngine
             'source_distribution' => $sourceDistribution,
             'ai_used' => $aiEnrichedCount > 0,
             'ai_enriched_count' => $aiEnrichedCount,
+            // Yangi: Smart Freshness + Success Patterns + Diversity
+            'topics_excluded' => $this->freshnessExcludedCount,
+            'success_patterns' => $sources['success_patterns'] ?? [],
+            'diversity_rules' => ['max_per_purpose' => 2, 'min_formats' => 3],
         ];
     }
 
@@ -773,6 +976,78 @@ class ContentPlanEngine
     private function collectPainPointTopics(string $businessId): array
     {
         return $this->surveyBridge->getContentRecommendationsFromPainPoints($businessId, 15);
+    }
+
+    /**
+     * Muvaffaqiyat patternlarini tahlil qilish
+     *
+     * Oxirgi 60 kundagi published postlarni tahlil qilib,
+     * qaysi format+purpose kombinatsiya eng yaxshi natija berganini aniqlaydi.
+     *
+     * @return array<string, float> ['carousel+educational' => 1.8, 'reel+promotional' => 1.5, ...]
+     */
+    private function analyzeSuccessPatterns(string $businessId): array
+    {
+        return Cache::remember(
+            "success_patterns:{$businessId}",
+            21600, // 6 soat
+            function () use ($businessId) {
+                $posts = ContentPost::withoutGlobalScope('business')
+                    ->where('business_id', $businessId)
+                    ->where('status', 'published')
+                    ->where('created_at', '>=', now()->subDays(60))
+                    ->whereNotNull('metrics')
+                    ->select(['format', 'content_type', 'metrics'])
+                    ->get();
+
+                if ($posts->count() < 10) {
+                    return [];
+                }
+
+                // Har bir post uchun engagement rate hisoblash
+                $postRates = $posts->map(function ($post) {
+                    $metrics = is_array($post->metrics) ? $post->metrics : [];
+                    $likes = $metrics['likes'] ?? 0;
+                    $comments = $metrics['comments'] ?? 0;
+                    $shares = $metrics['shares'] ?? 0;
+                    $views = $metrics['views'] ?? $metrics['reach'] ?? 1;
+
+                    return [
+                        'key' => ($post->format ?? 'post') . '+' . ($post->content_type ?? 'educational'),
+                        'engagement' => $views > 0 ? ($likes + $comments + $shares) / $views : 0,
+                    ];
+                });
+
+                // Top 20% threshold
+                $sortedRates = $postRates->pluck('engagement')->sort()->values();
+                $threshold = $sortedRates->get((int) floor($sortedRates->count() * 0.8), 0);
+
+                if ($threshold <= 0) {
+                    return [];
+                }
+
+                // Har bir format+purpose uchun frequency hisoblash
+                $totalCounts = $postRates->countBy('key');
+                $topCounts = $postRates->filter(fn ($p) => $p['engagement'] >= $threshold)->countBy('key');
+
+                // Multiplier: top20%_frequency / overall_frequency
+                $patterns = [];
+                foreach ($topCounts as $key => $topCount) {
+                    $total = $totalCounts->get($key, 1);
+                    $topRatio = $topCount / max($topCount + ($total - $topCount), 1);
+                    $overallRatio = $total / $posts->count();
+                    $multiplier = $overallRatio > 0 ? $topRatio / $overallRatio : 1.0;
+
+                    if ($multiplier > 1.1) {
+                        $patterns[$key] = round(min($multiplier, 3.0), 2); // Max 3x
+                    }
+                }
+
+                arsort($patterns);
+
+                return array_slice($patterns, 0, 5, true);
+            }
+        );
     }
 
     private function resolveIndustryCode(Business $business): string
