@@ -669,9 +669,9 @@ class SubscriptionService
     protected function calculateProratedCredit(Subscription $subscription): float
     {
         $totalDays = $subscription->starts_at->diffInDays($subscription->ends_at);
-        $remainingDays = now()->diffInDays($subscription->ends_at);
+        $remainingDays = now()->diffInDays($subscription->ends_at, false);
 
-        if ($totalDays <= 0) {
+        if ($totalDays <= 0 || $remainingDays <= 0) {
             return 0;
         }
 

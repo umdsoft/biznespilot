@@ -13,6 +13,7 @@ use App\Services\ContentAI\ContentGeneratorService;
 use App\Services\ContentAI\ContentStyleGuideService;
 use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ContentAIController extends Controller
@@ -111,7 +112,7 @@ class ContentAIController extends Controller
             'content_type' => 'required|in:post,story,reel,ad,carousel,article',
             'purpose' => 'required|in:educate,inspire,sell,engage,announce,entertain',
             'target_channel' => 'nullable|in:instagram,telegram,facebook,tiktok',
-            'additional_prompt' => 'nullable|string|max:1000',
+            'additional_prompt' => 'nullable|string|max:500',
             'offer_id' => 'nullable|uuid|exists:offers,id',
         ]);
 
@@ -132,10 +133,11 @@ class ContentAIController extends Controller
         }
 
         if ($generation->status === 'failed') {
+            $errorMsg = $generation->error_message ?: 'Kontent yaratishda xatolik yuz berdi.';
             if ($request->wantsJson()) {
-                return response()->json(['error' => $generation->error_message], 422);
+                return response()->json(['error' => $errorMsg], 422);
             }
-            return back()->with('error', 'Kontent generatsiya qilinmadi: ' . $generation->error_message);
+            return back()->with('error', $errorMsg);
         }
 
         if ($request->wantsJson()) {
@@ -146,6 +148,66 @@ class ContentAIController extends Controller
             'success' => 'Kontent muvaffaqiyatli yaratildi!',
             'generation' => $generation,
         ]);
+    }
+
+    /**
+     * Generate 10 content ideas (DB cache + AI fallback)
+     *
+     * force_new=true bo'lsa har doim AI chaqiriladi
+     * force_new=false bo'lsa avval DB dan tekshiriladi (token tejash)
+     */
+    public function generateIdeas(Request $request)
+    {
+        $business = $this->getCurrentBusiness();
+        if (!$business) {
+            return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        $validated = $request->validate([
+            'content_type' => 'required|in:post,story,reel,ad,carousel,article',
+            'purpose' => 'required|in:educate,inspire,sell,engage,announce,entertain',
+            'target_channel' => 'nullable|in:instagram,telegram,facebook,tiktok',
+            'offer_id' => 'nullable|uuid|exists:offers,id',
+            'force_new' => 'nullable|boolean',
+        ]);
+
+        $forceNew = $validated['force_new'] ?? false;
+
+        // AI limit faqat yangi generatsiya uchun tekshiriladi (cache dan olsa limit sarflanmaydi)
+        if ($forceNew && $this->planLimitService->hasReachedLimit($business, 'ai_requests')) {
+            return response()->json(['error' => 'Oylik AI so\'rovlar limiti tugadi. Tarifni yangilang.'], 403);
+        }
+
+        try {
+            $result = $this->generator->generateIdeas(
+                $business->id,
+                auth()->id(),
+                $validated['content_type'],
+                $validated['purpose'],
+                $validated['target_channel'] ?? null,
+                $validated['offer_id'] ?? null,
+                $forceNew
+            );
+
+            // Cache dan olgan bo'lsa limit sarflanmaydi
+            if (!($result['from_cache'] ?? false)) {
+                \Illuminate\Support\Facades\Cache::forget("business_{$business->id}_ai_requests_" . now()->format('Y_m'));
+            }
+
+            return response()->json([
+                'ideas' => $result['ideas'],
+                'from_cache' => $result['from_cache'] ?? false,
+                'cached_total' => $result['cached_total'] ?? 0,
+                'tokens' => $result['tokens'],
+            ]);
+
+        } catch (\RuntimeException $e) {
+            // User-friendly xabar (service dan)
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            Log::error('ContentAIController: Ideas failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'G\'oyalar yaratishda xatolik. Qayta urinib ko\'ring.'], 500);
+        }
     }
 
     /**

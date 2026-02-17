@@ -308,7 +308,7 @@ class BillingTransaction extends Model
      */
     public function getAmountInTiyin(): int
     {
-        return (int) ($this->amount * 100);
+        return (int) round($this->amount * 100);
     }
 
     /**

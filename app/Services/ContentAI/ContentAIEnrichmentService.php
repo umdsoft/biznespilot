@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Log;
 class ContentAIEnrichmentService
 {
     /**
-     * Viral hook texnikalari — har bir hook boshqacha bo'lishi uchun
+     * Viral hook texnikalari — har bir hook boshqacha bo'lishi uchun (Instagram)
      */
     private const HOOK_TECHNIQUES = [
         'shock_number' => "Hayratlanarli raqam yoki statistika bilan boshlash. Misol: '93% biznes egalari shu xatoni qiladi'",
@@ -36,6 +36,17 @@ class ContentAIEnrichmentService
         'secret_reveal' => "Sir ochish. Misol: 'Hech kim aytmaydigan haqiqat...' yoki 'Bu sirni bilganlar 2x ko'proq sotadi'",
         'direct_question' => "To'g'ridan-to'g'ri savol. Misol: 'Siz ham shu xatoni qilyapsizmi?' yoki 'Bu muammoni bilasizmi?'",
         'bold_statement' => "Keskin da'vo. Misol: 'Bu usulni bilmasangiz, raqobatchilaringizdan doim orqada qolasiz'",
+    ];
+
+    /**
+     * Telegram hook texnikalari — kanal uchun moslashtirilgan
+     */
+    private const TELEGRAM_HOOK_TECHNIQUES = [
+        'bold_question' => "**Bold** sarlavha savol bilan. Misol: '**Nima uchun 90% startap 1 yilda yopilib ketadi?**'",
+        'list_promise' => "Ro'yxat va'dasi bilan boshlash. Misol: '**5 ta usul — 3-chisi eng kuchli** Oxirigacha o'qing...'",
+        'contrarian' => "Umumiy fikrga qarshi chiqish. Misol: '**Reklama qilmang.** Ha, to'g'ri o'qidingiz. Va mana nima uchun...'",
+        'data_hook' => "Raqam + kontekst. Misol: '**347 ta biznes shu usulda 2x o'sdi.** Barchasi 1 ta oddiy o'zgarish bilan...'",
+        'story_open' => "Hikoya ochish. Misol: 'Kecha bir mijozim yozdi: \"Natijani ko'rib hayratda qoldim...\"'",
     ];
 
     /**
@@ -113,6 +124,7 @@ class ContentAIEnrichmentService
         string $purpose,
         array $igTips,
         Business $business,
+        string $platform = 'instagram',
     ): ?array {
         if (! $this->claude->isAvailable()) {
             return null;
@@ -120,7 +132,7 @@ class ContentAIEnrichmentService
 
         $industryName = $business->industryRelation?->name_uz ?? $business->category ?? 'Umumiy biznes';
         $industryCode = $business->industry_code ?? 'default';
-        $cacheKey = $this->buildCacheKey($topic['topic'], $industryName, $contentType, $purpose);
+        $cacheKey = $this->buildCacheKey($topic['topic'], $industryName, $contentType, $purpose, $platform);
 
         $cached = Cache::get($cacheKey);
         if ($cached) {
@@ -131,10 +143,10 @@ class ContentAIEnrichmentService
             // DreamBuyer kontekstini olish (cache bilan)
             $dreamBuyerContext = $this->getDreamBuyerContext($business->id);
 
-            $systemPrompt = $this->buildSystemPrompt($business, $industryName, $industryCode, $purpose);
+            $systemPrompt = $this->buildSystemPrompt($business, $industryName, $industryCode, $purpose, $platform);
             $userPrompt = $this->buildUserPrompt(
                 $topic, $contentType, $purpose,
-                $business, $industryName, $dreamBuyerContext
+                $business, $industryName, $dreamBuyerContext, $platform
             );
 
             $response = $this->claude->complete(
@@ -221,20 +233,49 @@ class ContentAIEnrichmentService
         return $context;
     }
 
-    private function buildSystemPrompt(Business $business, string $industryName, string $industryCode, string $purpose): string
+    private function buildSystemPrompt(Business $business, string $industryName, string $industryCode, string $purpose, string $platform = 'instagram'): string
     {
         $businessName = $business->name ?? 'Biznes';
         $industryTone = self::INDUSTRY_TONE[$industryCode] ?? self::INDUSTRY_TONE['service'];
         $emotions = self::EMOTION_MAP[$purpose] ?? self::EMOTION_MAP['educational'];
         $emotionsStr = implode(', ', $emotions);
 
+        $isTelegram = $platform === 'telegram';
+
+        $hookSource = $isTelegram ? self::TELEGRAM_HOOK_TECHNIQUES : self::HOOK_TECHNIQUES;
         $hookTechniques = '';
-        foreach (self::HOOK_TECHNIQUES as $desc) {
+        foreach ($hookSource as $desc) {
             $hookTechniques .= "- {$desc}\n";
         }
 
+        $platformIdentity = $isTelegram
+            ? "Sen O'zbekistondagi eng kuchli Telegram kontent strategi. 300+ kanalni o'stirgansan. Har bir post reaction va forward olishi SHART."
+            : "Sen O'zbekistondagi eng kuchli Instagram kontent yaratuvchisan. 500+ biznesga viral kontent yaratgansan. Har bir postning maqsadi — odam scrollni to'xtatib, oxirigacha o'qib, harakatga o'tishi.";
+
+        $platformRules = $isTelegram
+            ? <<<'RULES'
+TELEGRAM QOIDALARI:
+1. **Bold** sarlavha SHART — birinchi ko'rganida diqqat tortsin
+2. Uzunlik: 300-800 so'z (Telegram o'quvchilari chuqur kontentni yoqtiradi)
+3. Hashtag QOYMANG — Telegram da hashtag professional emas va foydasiz
+4. Emoji MINIMAL — faqat sarlavha va muhim nuqtalarda (1-3 ta max)
+5. Ro'yxat formati yaxshi ishlaydi: raqamli yoki • bilan
+6. Post oxirida reaction bait: "Foydali bo'lsa — 👍" / "Kim rozi — 🔥"
+7. Forward trigger: "Do'stlaringizga yuboring — foydali bo'ladi"
+8. CTA: "Kanalga obuna bo'ling" yoki konkret harakat
+RULES
+            : <<<'RULES'
+INSTAGRAM QOIDALARI:
+1. Har 2-3 qatorda bo'sh qator qo'y (o'qish oson bo'lsin)
+2. Caption uzunligi: 150-300 so'z
+3. Qisqa gaplar ishlatish — har biri alohida fikr
+4. Emoji ishlatish mumkin, lekin 3-4 tadan ko'p emas
+5. Hooklar JUDA kuchli bo'lsin — odam 0.5 soniyada to'xtashi SHART
+6. CTA aniq va bitta bo'lsin — odam nima qilishini bilsin
+RULES;
+
         return <<<EOT
-Sen O'zbekistondagi eng kuchli Instagram kontent yaratuvchisan. 500+ biznesga viral kontent yaratgansan. Har bir postning maqsadi — odam scrollni to'xtatib, oxirigacha o'qib, harakatga o'tishi.
+{$platformIdentity}
 
 BREND: "{$businessName}" | SOHA: {$industryName}
 
@@ -252,9 +293,8 @@ MUHIM QOIDALAR:
 1. FAQAT O'zbek Lotin alifbosida yoz (a-z, o', g', sh, ch)
 2. Oddiy, sodda tilda yoz — bolaga tushuntirganday. Texnik terminlar ISHLATMA
 3. Har bir gap emotsiya bersin — odam o'qib "ha, menga ham shunday!" desin
-4. Caption uzunligi: 150-300 so'z. Qisqa gap ishlatish. Har 2-3 qatorda bo'sh qator
-5. Hooklar JUDA kuchli bo'lsin — odam 0.5 soniyada to'xtashi SHART
-6. CTA aniq va bitta bo'lsin — odam nima qilishini bilsin
+
+{$platformRules}
 
 JAVOB FORMATI — faqat JSON, boshqa hech narsa yozma:
 {
@@ -273,17 +313,26 @@ EOT;
         Business $business,
         string $industryName,
         array $dreamBuyerContext,
+        string $platform = 'instagram',
     ): string {
         $topicName = $topic['topic'];
         $painText = $topic['pain_text'] ?? null;
         $existingHooks = $topic['hooks'] ?? [];
 
-        $formatLabel = match ($contentType) {
-            'reel' => 'Qisqa video (Reel, 15-30 sekund)',
-            'carousel' => 'Slaydli post (Carousel, 5-7 slayd)',
-            'story' => 'Hikoya (Story, interaktiv)',
-            default => 'Post (rasm + yozuv)',
-        };
+        $isTelegram = $platform === 'telegram';
+
+        $formatLabel = $isTelegram
+            ? match ($contentType) {
+                'thread' => 'Telegram seriya (5 qismli thread)',
+                'poll' => 'Telegram so\'rovnoma (reaction poll)',
+                default => 'Telegram kanal post (uzun format)',
+            }
+            : match ($contentType) {
+                'reel' => 'Qisqa video (Reel, 15-30 sekund)',
+                'carousel' => 'Slaydli post (Carousel, 5-7 slayd)',
+                'story' => 'Hikoya (Story, interaktiv)',
+                default => 'Post (rasm + yozuv)',
+            };
 
         $purposeLabel = match ($purpose) {
             'educational' => "O'rgatish — odam yangi narsa o'rgansin va 'buni bilmasdim!' desin",
@@ -369,13 +418,91 @@ EOT;
         }
 
         // Format-specific ko'rsatmalar
-        $prompt .= $this->getFormatInstructions($contentType);
+        $prompt .= $this->getFormatInstructions($contentType, $platform);
 
         return $prompt;
     }
 
-    private function getFormatInstructions(string $contentType): string
+    private function getFormatInstructions(string $contentType, string $platform = 'instagram'): string
     {
+        // Telegram-specific formatlar
+        if ($platform === 'telegram') {
+            return match ($contentType) {
+                'thread' => <<<EOT
+
+=== TELEGRAM SERIYA FORMATI (5 qism) ===
+5 qismli seriya yoz. Har bir qism alohida post sifatida chiqadi.
+
+QISM 1/5 — HOOK + VA'DA:
+**Bold sarlavha** — diqqatni tort
+Va'da: "Oxirigacha o'qisangiz — ... ni bilib olasiz"
+"🧵 1/5 — Seriyani saqlang"
+
+QISM 2/5 — MUAMMO:
+Muammoni chuqur tasvirla — o'quvchi "ha, men ham shunday!" desin
+Aniq misollar va holatlar keltir
+
+QISM 3/5 — ASOSIY QIYMAT:
+Eng muhim ma'lumot yoki maslahat
+Bu joy eng KO'P qiymat beradigan qism bo'lsin
+
+QISM 4/5 — AMALIY QADAM:
+Konkret harakat: "Bugundan boshlang: ..."
+Misol yoki formula ber
+
+QISM 5/5 — XULOSA + CTA:
+Qisqa xulosa (3-4 jumla)
+"Foydali bo'lsa — 👍 bosing"
+"Do'stlaringizga ham yuboring"
+"Kanalga obuna: @kanal"
+
+"script" maydoniga 5 qismli reja yoz. "caption" ga 1-qism matnini yoz.
+EOT,
+                'poll' => <<<EOT
+
+=== TELEGRAM SO'ROVNOMA FORMATI ===
+Qiziqarli so'rovnoma/viktorina formati:
+
+**Bold sarlavha** — savol yoki provokatsiya
+Kontekst: 2-3 jumla — nima uchun bu savol muhim
+
+Variantlar (reaction bilan javob):
+👍 — 1-variant
+🔥 — 2-variant
+❤️ — 3-variant
+🤔 — 4-variant (ixtiyoriy)
+
+Post oxirida: "Reaction bosing va izohda SABABINI yozing"
+
+"script" maydonini null qoldir. "caption" ga to'liq post matnini yoz.
+EOT,
+                default => <<<EOT
+
+=== TELEGRAM POST FORMATI ===
+To'liq Telegram kanal postini yoz. Tuzilishi:
+
+**Bold sarlavha** — 1-2 qator, HOOK
+
+Asosiy matn — 300-800 so'z:
+• Muammo yoki mavzu tavsifi
+• Foydali ma'lumot (ro'yxat yoki qadam-baqadam)
+• Misollar va dalillar
+
+Xulosa — 2-3 jumla
+
+Reaction bait: "Foydali bo'lsa — 👍 | Kim rozi — 🔥"
+Forward trigger: "Do'stlaringizga ham yuboring"
+
+MUHIM:
+- **Bold** muhim so'zlar uchun, _italic_ ta'kidlash uchun
+- Hashtag QOYMANG
+- Emoji minimal (1-3 ta, faqat sarlavha va nuqtalarda)
+- "script" maydonini null qoldir
+EOT,
+            };
+        }
+
+        // Instagram formatlar
         return match ($contentType) {
             'reel' => <<<EOT
 
@@ -536,8 +663,8 @@ EOT,
         ];
     }
 
-    private function buildCacheKey(string $topic, string $industry, string $contentType, string $purpose): string
+    private function buildCacheKey(string $topic, string $industry, string $contentType, string $purpose, string $platform = 'instagram'): string
     {
-        return 'ai_enrich:' . md5("{$topic}|{$industry}|{$contentType}|{$purpose}");
+        return 'ai_enrich:' . md5("{$topic}|{$industry}|{$contentType}|{$purpose}|{$platform}");
     }
 }

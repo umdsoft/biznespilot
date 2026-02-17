@@ -99,7 +99,7 @@ class ReportGeneratorService
                 'recommendations' => $insightsData['recommendations'],
                 'comparisons' => $comparisons,
                 'anomalies' => $trends['anomalies'] ?? [],
-                'health_score' => $healthScore['score'],
+                'health_score' => $healthScore['overall_score'],
                 'health_breakdown' => $healthScore['breakdown'],
                 'content_text' => $contentText,
                 'content_html' => $contentHtml,
@@ -321,13 +321,14 @@ class ReportGeneratorService
         $lines[] = '';
 
         // Health Score
+        $score = $healthScore['overall_score'] ?? 0;
         $healthEmoji = match (true) {
-            $healthScore['score'] >= 80 => '🟢',
-            $healthScore['score'] >= 60 => '🔵',
-            $healthScore['score'] >= 40 => '🟡',
+            $score >= 80 => '🟢',
+            $score >= 60 => '🔵',
+            $score >= 40 => '🟡',
             default => '🔴',
         };
-        $lines[] = "{$healthEmoji} *Salomatlik balli: {$healthScore['score']}/100* ({$healthScore['label']})";
+        $lines[] = "{$healthEmoji} *Salomatlik balli: {$score}/100* ({$healthScore['label']})";
         $lines[] = '';
 
         // Key Metrics
@@ -358,9 +359,12 @@ class ReportGeneratorService
         // Top Insights
         $insights = array_slice($insightsData['insights'] ?? [], 0, 5);
         if (! empty($insights)) {
+            $priorityIcons = ['success' => '✅', 'warning' => '⚠️', 'danger' => '🔴', 'info' => '💡'];
             $lines[] = '💡 *Asosiy tushunchalar:*';
             foreach ($insights as $insight) {
-                $lines[] = "{$insight['icon']} {$insight['message']}";
+                $icon = $priorityIcons[$insight['priority'] ?? 'info'] ?? '💡';
+                $lines[] = "{$icon} *{$insight['title']}*";
+                $lines[] = "   {$insight['description']}";
             }
             $lines[] = '';
         }
@@ -369,8 +373,9 @@ class ReportGeneratorService
         $recommendations = array_slice($insightsData['recommendations'] ?? [], 0, 3);
         if (! empty($recommendations)) {
             $lines[] = '✅ *Tavsiyalar:*';
-            foreach ($recommendations as $rec) {
-                $lines[] = "{$rec['icon']} *{$rec['title']}*";
+            foreach ($recommendations as $i => $rec) {
+                $num = $i + 1;
+                $lines[] = "{$num}. *{$rec['title']}*";
                 $lines[] = "   {$rec['description']}";
             }
             $lines[] = '';
@@ -445,7 +450,7 @@ class ReportGeneratorService
         <p class="period">📅 {$metrics['period']['start']} - {$metrics['period']['end']}</p>
 
         <div class="health-score">
-            <div class="score {$healthScore['color']}">{$healthScore['score']}</div>
+            <div class="score {$healthScore['color']}">{$healthScore['overall_score']}</div>
             <div>
                 <div style="font-weight: bold;">Salomatlik balli</div>
                 <div style="color: #666;">{$healthScore['label']}</div>
@@ -484,9 +489,11 @@ HTML;
         // Add insights
         $insights = array_slice($insightsData['insights'] ?? [], 0, 5);
         if (! empty($insights)) {
+            $priorityMap = ['success' => 'positive', 'warning' => 'warning', 'danger' => 'negative', 'info' => 'neutral'];
             $html .= '<h2>💡 Tushunchalar</h2>';
             foreach ($insights as $insight) {
-                $html .= "<div class=\"insight {$insight['type']}\">{$insight['icon']} {$insight['message']}</div>";
+                $cssClass = $priorityMap[$insight['priority'] ?? 'info'] ?? 'neutral';
+                $html .= "<div class=\"insight {$cssClass}\"><strong>{$insight['title']}</strong><br>{$insight['description']}</div>";
             }
         }
 
@@ -497,7 +504,7 @@ HTML;
             foreach ($recommendations as $rec) {
                 $html .= <<<HTML
             <div class="recommendation">
-                <div class="rec-title">{$rec['icon']} {$rec['title']}</div>
+                <div class="rec-title">{$rec['title']}</div>
                 <div class="rec-desc">{$rec['description']}</div>
             </div>
 HTML;

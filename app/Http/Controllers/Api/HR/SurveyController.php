@@ -33,7 +33,7 @@ class SurveyController extends Controller
      */
     public function index(Request $request, string $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -162,7 +162,7 @@ class SurveyController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -211,7 +211,7 @@ class SurveyController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -496,7 +496,7 @@ class SurveyController extends Controller
      */
     protected function processEngagementSurvey(HRSurvey $survey, array $answers, User $user, string $businessId): void
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) return;
 
         $questions = $survey->questions ?? [];
@@ -697,7 +697,7 @@ class SurveyController extends Controller
      */
     public function statistics(Request $request, string $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,

@@ -139,7 +139,8 @@ class BusinessController extends Controller
         }
 
         // Check if user has permission to edit
-        $userRole = $business->users()->where('user_id', Auth::id())->first()->pivot->role;
+        $businessUser = $business->users()->where('user_id', Auth::id())->first();
+        $userRole = $businessUser?->pivot?->role;
         if (! in_array($userRole, ['owner', 'admin'])) {
             abort(403, 'Sizda ushbu biznesni tahrirlash huquqi yo\'q.');
         }
@@ -171,7 +172,8 @@ class BusinessController extends Controller
         }
 
         // Check if user has permission to edit
-        $userRole = $business->users()->where('user_id', Auth::id())->first()->pivot->role;
+        $businessUser = $business->users()->where('user_id', Auth::id())->first();
+        $userRole = $businessUser?->pivot?->role;
         if (! in_array($userRole, ['owner', 'admin'])) {
             abort(403, 'Sizda ushbu biznesni tahrirlash huquqi yo\'q.');
         }
@@ -205,7 +207,8 @@ class BusinessController extends Controller
         }
 
         // Only owner can delete business
-        $userRole = $business->users()->where('user_id', Auth::id())->first()->pivot->role;
+        $businessUser = $business->users()->where('user_id', Auth::id())->first();
+        $userRole = $businessUser?->pivot?->role;
         if ($userRole !== 'owner') {
             abort(403, 'Faqat biznes egasi biznesni o\'chira oladi.');
         }

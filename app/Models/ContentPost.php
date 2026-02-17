@@ -7,6 +7,7 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContentPost extends Model
@@ -77,5 +78,15 @@ class ContentPost extends Model
     public function linkForPlatform(string $platform): ?ContentPostLink
     {
         return $this->links->firstWhere('platform', $platform);
+    }
+
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
+
+    public function sales(): HasManyThrough
+    {
+        return $this->hasManyThrough(Sale::class, Lead::class);
     }
 }

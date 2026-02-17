@@ -396,6 +396,7 @@ class InstagramService
     {
         $synced = 0;
         $currentDate = $startDate->copy();
+        $dayCount = 0;
 
         while ($currentDate->lte($endDate)) {
             $metric = $this->syncMetrics($channel, $currentDate);
@@ -403,6 +404,12 @@ class InstagramService
                 $synced++;
             }
             $currentDate->addDay();
+            $dayCount++;
+
+            // Memory cleanup every 30 days (VPS 2GB RAM protection)
+            if ($dayCount % 30 === 0) {
+                gc_collect_cycles();
+            }
         }
 
         return $synced;

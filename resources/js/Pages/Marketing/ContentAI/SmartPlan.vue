@@ -138,6 +138,13 @@
               <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span class="text-xs px-2 py-0.5 rounded-full font-medium" :class="typeColors[item.type] || 'bg-gray-100 text-gray-700'">{{ typeLabels[item.type] || item.type }}</span>
                 <span class="text-xs px-2 py-0.5 rounded-full" :class="purposeColors[item.purpose] || 'bg-gray-100 text-gray-600'">{{ purposeLabels[item.purpose] || item.purpose }}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                  :class="platformColors[item.platform?.toLowerCase()] || platformColors.instagram">
+                  {{ platformLabels[item.platform?.toLowerCase()] || 'Instagram' }}
+                </span>
+                <span v-if="item.seasonal_event" class="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 font-medium">
+                  {{ item.seasonal_event }}
+                </span>
                 <span v-if="item.is_ai_generated" class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-medium flex items-center gap-1">
                   <SparklesIcon class="w-3 h-3" />
                   AI
@@ -348,6 +355,7 @@ const sourceColors = {
   performance: 'bg-cyan-600',
   algorithm: 'bg-cyan-500',
   template: 'bg-gray-500',
+  seasonal: 'bg-orange-600',
 };
 const sourceLabels = {
   niche: 'Soha tahlili',
@@ -357,6 +365,7 @@ const sourceLabels = {
   performance: 'Natijalar tahlili',
   algorithm: 'Ichki algoritm',
   template: 'Ichki shablon',
+  seasonal: 'Mavsumiy kontent',
 };
 
 const typeColors = {
@@ -371,6 +380,8 @@ const typeLabels = {
   carousel: 'Slaydli post',
   post: 'Post',
   story: 'Hikoya',
+  thread: 'Seriya',
+  poll: "So'rovnoma",
 };
 
 const purposeColors = {

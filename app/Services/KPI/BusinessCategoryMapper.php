@@ -90,6 +90,23 @@ class BusinessCategoryMapper
             'sport' => 'fitness',
             'yoga' => 'fitness',
             'studio' => 'fitness',
+
+            // Education variants
+            'education' => 'education',
+            'ta\'lim' => 'education',
+            'talim' => 'education',
+            'o\'quv markaz' => 'education',
+            'oquv markaz' => 'education',
+            'kurs' => 'education',
+            'courses' => 'education',
+            'training' => 'education',
+            'training center' => 'education',
+            'academy' => 'education',
+            'akademiya' => 'education',
+            'school' => 'education',
+            'maktab' => 'education',
+            'online kurs' => 'education',
+            'coaching' => 'education',
         ];
 
         // Check direct mapping
@@ -113,6 +130,13 @@ class BusinessCategoryMapper
             'salon' => 'beauty',
             'sport' => 'fitness',
             'fitnes' => 'fitness',
+            'talim' => 'education',
+            'ta\'lim' => 'education',
+            'kurs' => 'education',
+            'oquv' => 'education',
+            'academ' => 'education',
+            'coach' => 'education',
+            'training' => 'education',
         ];
 
         foreach ($partialMapping as $keyword => $industryCode) {
@@ -138,6 +162,7 @@ class BusinessCategoryMapper
             'saas' => 'SaaS / Dasturiy Ta\'minot',
             'beauty' => 'Go\'zallik Saloni',
             'fitness' => 'Fitnes / Sport Zal',
+            'education' => 'Ta\'lim / O\'quv Markaz',
             'default' => 'Umumiy Biznes',
         ];
 
@@ -192,6 +217,12 @@ class BusinessCategoryMapper
                 'icon' => '💪',
                 'kpi_count' => 9,
             ],
+            [
+                'code' => 'education',
+                'name' => 'Ta\'lim / O\'quv Markaz',
+                'icon' => '🎓',
+                'kpi_count' => 9,
+            ],
         ];
     }
 
@@ -232,6 +263,7 @@ class BusinessCategoryMapper
             'saas' => '💻',
             'beauty' => '💄',
             'fitness' => '💪',
+            'education' => '🎓',
             'default' => '📊',
         ];
 

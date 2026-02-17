@@ -285,8 +285,8 @@ EOT;
         ->post($this->apiUrl, $payload);
 
         if (!$response->successful()) {
-            $errorBody = $response->json();
-            $errorMessage = $errorBody['error']['message'] ?? $response->body();
+            $errorBody = $response->json() ?? [];
+            $errorMessage = $errorBody['error']['message'] ?? ($errorBody['message'] ?? $response->body());
 
             Log::error('ClaudeAIService: API request failed', [
                 'status' => $response->status(),

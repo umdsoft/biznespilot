@@ -201,10 +201,31 @@ class ContentPlanEngine
             $weights
         );
 
-        // === 3) Birlashtirish va dublikatlarni olib tashlash ===
+        // === 3) Mavsumiy mavzular ===
+        $seasonalTopics = app(SeasonalContentService::class)->getRelevantTopics($industryCode, now(), 3);
+        foreach ($seasonalTopics as $st) {
+            $key = mb_strtolower($st['topic']);
+            // Mavsumiy mavzularni yuqori ball bilan qo'shish (80)
+            $dataTopics[$key] = [
+                'topic' => $st['topic'],
+                'category' => 'promotional',
+                'content_type' => 'post',
+                'source' => 'seasonal',
+                'source_label' => 'Mavsumiy kontent',
+                'seasonal_event' => $st['seasonal_event'],
+                'niche_score' => 0,
+                'pain_score' => 0,
+                'performance_score' => 0,
+                'trend_bonus' => 10,
+                'total_score' => $st['total_score'] ?? 80,
+                'hooks' => $st['hooks'] ?? [],
+            ];
+        }
+
+        // === 4) Birlashtirish va dublikatlarni olib tashlash ===
         $merged = $this->mergeTopicSources($dataTopics, $libraryTopics);
 
-        // === 4) Yaqinda ishlatilganlarni chetga surish (freshness) ===
+        // === 5) Yaqinda ishlatilganlarni chetga surish (freshness) ===
         $merged = $this->applyFreshnessFilter($merged, $businessId);
 
         // Ball bo'yicha saralash
@@ -424,6 +445,10 @@ class ContentPlanEngine
         $defaultTypes = ['reel', 'carousel', 'post', 'story', 'reel', 'post', 'carousel'];
         $usedCategories = []; // Hafta ichida bir xil category takrorlanmasin
 
+        // Platform taqsimlash: 60% Instagram, 40% Telegram (aralash)
+        $platformPool = ['instagram', 'instagram', 'instagram', 'telegram', 'telegram', 'instagram', 'telegram'];
+        $platformIndex = 0;
+
         foreach ($days as $dayIndex => $day) {
             $date = $start->copy()->addDays($dayIndex);
 
@@ -457,11 +482,26 @@ class ContentPlanEngine
                 // GIBRID description yaratish
                 $description = $this->buildHybridDescription($topic, $igTips, $industryCode);
 
+                // Platform aniqlash
+                $platform = $topic['source'] === 'seasonal'
+                    ? 'instagram'  // Mavsumiy kontent Instagram da yaxshiroq ishlaydi
+                    : ($platformPool[$platformIndex % count($platformPool)] ?? 'instagram');
+                $platformIndex++;
+
+                // Telegram da content type moslash
+                if ($platform === 'telegram') {
+                    $contentType = match ($contentType) {
+                        'reel', 'story' => 'post',   // Telegram da reel/story yo'q
+                        'carousel' => 'thread',        // Carousel → thread seriya
+                        default => $contentType,
+                    };
+                }
+
                 // 3-QATLAM: AI boyitish (ixtiyoriy, cheklangan)
                 $aiContent = null;
                 if ($aiCallCount < $maxAiCalls) {
                     $aiContent = $this->aiEnrichment->enrichContentItem(
-                        $topic, $contentType, $purpose, $igTips, $business
+                        $topic, $contentType, $purpose, $igTips, $business, $platform
                     );
                     $aiCallCount++;
                 }
@@ -471,8 +511,8 @@ class ContentPlanEngine
                     $description = $aiContent['caption'];
                 }
 
-                // GIBRID hashtags
-                $hashtags = $this->buildHybridHashtags($topic, $industryCode);
+                // GIBRID hashtags (Telegram uchun bo'sh)
+                $hashtags = $platform === 'telegram' ? [] : $this->buildHybridHashtags($topic, $industryCode);
 
                 // Source tracking — qayerdan kelgani
                 $sourceInfo = $this->buildSourceInfo($topic);
@@ -511,9 +551,10 @@ class ContentPlanEngine
                     'content_type' => $this->mapCategoryToContentType($purpose),
                     'format' => $this->mapContentTypeToFormat($contentType),
                     'type' => $this->mapContentTypeToFormat($contentType),
-                    'platform' => 'Instagram',
+                    'platform' => ucfirst($platform),
                     'scheduled_at' => $date->toDateString().' '.$time.':00',
                     'hashtags' => $hashtags,
+                    'seasonal_event' => $topic['seasonal_event'] ?? null,
                     'ai_suggestions' => $aiSuggestions,
                 ];
 
@@ -692,6 +733,7 @@ class ContentPlanEngine
             'pain_point' => 0,
             'niche_and_pain' => 0,
             'algorithm' => 0,
+            'seasonal' => 0,
         ];
 
         foreach ($scoredTopics as $topic) {

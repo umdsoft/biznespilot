@@ -40,4 +40,9 @@ class Campaign extends Model
     {
         return $this->hasMany(CampaignMessage::class);
     }
+
+    public function channel(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(MarketingChannel::class, 'channel_id');
+    }
 }

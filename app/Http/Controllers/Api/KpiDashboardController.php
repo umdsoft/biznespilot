@@ -27,7 +27,7 @@ class KpiDashboardController extends Controller
      */
     public function getOverview(Request $request, int $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
@@ -123,7 +123,7 @@ class KpiDashboardController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
@@ -227,7 +227,7 @@ class KpiDashboardController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,
@@ -344,7 +344,7 @@ class KpiDashboardController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (! $business || ! $business->kpiConfiguration) {
             return response()->json([
                 'success' => false,

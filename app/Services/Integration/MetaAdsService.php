@@ -684,12 +684,12 @@ class MetaAdsService
     public function getPageLeadForms(string $pageId, string $pageAccessToken): array
     {
         try {
-            $response = $this->client->get(
-                "/{$pageId}/leadgen_forms",
-                ['access_token' => $pageAccessToken, 'fields' => 'id,name,status,leads_count']
-            );
+            $response = Http::get("{$this->baseUrl}/{$pageId}/leadgen_forms", [
+                'access_token' => $pageAccessToken,
+                'fields' => 'id,name,status,leads_count',
+            ]);
 
-            return $response->getDecodedBody()['data'] ?? [];
+            return $response->json('data', []);
         } catch (\Exception $e) {
             \Log::warning('Error fetching lead forms', ['page_id' => $pageId, 'error' => $e->getMessage()]);
 

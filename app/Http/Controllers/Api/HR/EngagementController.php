@@ -30,7 +30,7 @@ class EngagementController extends Controller
      */
     public function index(Request $request, string $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -91,7 +91,7 @@ class EngagementController extends Controller
      */
     public function show(Request $request, string $businessId, string $userId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -177,7 +177,7 @@ class EngagementController extends Controller
             ], 422);
         }
 
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -228,7 +228,7 @@ class EngagementController extends Controller
      */
     public function statistics(Request $request, string $businessId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,
@@ -327,7 +327,7 @@ class EngagementController extends Controller
      */
     public function recalculate(Request $request, string $businessId, string $userId): JsonResponse
     {
-        $business = Business::find($businessId);
+        $business = auth()->user()->businesses()->findOrFail($businessId);
         if (!$business) {
             return response()->json([
                 'success' => false,

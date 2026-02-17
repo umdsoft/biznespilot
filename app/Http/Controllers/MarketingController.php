@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContentPost;
+use App\Models\DreamBuyer;
 use App\Models\MarketingChannel;
 use App\Models\MarketingSpend;
+use App\Models\Offer;
+use App\Models\PainPointContentMap;
+use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -213,6 +217,7 @@ class MarketingController extends Controller
 
         $posts = ContentPost::where('business_id', $currentBusiness->id)
             ->latest('scheduled_at')
+            ->with('links')
             ->get()
             ->map(function ($post) {
                 return [
@@ -226,17 +231,89 @@ class MarketingController extends Controller
                     'status' => $post->status,
                     'scheduled_at' => $post->scheduled_at?->format('Y-m-d H:i'),
                     'published_at' => $post->published_at?->format('d.m.Y H:i'),
-                    'views' => $post->views,
-                    'likes' => $post->likes,
-                    'comments' => $post->comments,
-                    'shares' => $post->shares,
-                    'hashtags' => $post->hashtags,
+                    'views' => $post->views ?? 0,
+                    'likes' => $post->likes ?? 0,
+                    'comments' => $post->comments ?? 0,
+                    'shares' => $post->shares ?? 0,
+                    'hashtags' => $post->hashtags ?? [],
                     'ai_suggestions' => $post->ai_suggestions,
+                    'links' => $post->links->map(fn ($link) => [
+                        'id' => $link->id,
+                        'platform' => $link->platform,
+                        'external_url' => $link->external_url,
+                        'views' => $link->views,
+                        'likes' => $link->likes,
+                        'comments' => $link->comments,
+                        'shares' => $link->shares,
+                        'saves' => $link->saves,
+                        'forwards' => $link->forwards,
+                        'reach' => $link->reach,
+                        'engagement_rate' => (float) $link->engagement_rate,
+                        'synced_at' => $link->synced_at?->format('d.m H:i'),
+                        'sync_status' => $link->sync_status,
+                    ])->keyBy('platform'),
                 ];
             });
 
+        // Active offers
+        $activeOffers = Offer::where('business_id', $currentBusiness->id)
+            ->active()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        // AI remaining
+        $planLimitService = app(PlanLimitService::class);
+        $aiRemaining = $planLimitService->getRemainingQuota($currentBusiness, 'ai_requests');
+
+        // Pain points
+        $painPoints = PainPointContentMap::where('business_id', $currentBusiness->id)
+            ->active()
+            ->orderByDesc('relevance_score')
+            ->limit(20)
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'category' => $p->pain_point_category,
+                'category_label' => PainPointContentMap::CATEGORIES[$p->pain_point_category] ?? $p->pain_point_category,
+                'text' => $p->pain_point_text,
+                'topics' => $p->suggested_topics ?? [],
+                'hooks' => $p->suggested_hooks ?? [],
+                'content_types' => $p->suggested_content_types ?? [],
+            ]);
+
+        if ($painPoints->isEmpty()) {
+            $dreamBuyer = DreamBuyer::where('business_id', $currentBusiness->id)->first();
+            if ($dreamBuyer) {
+                $rawPains = collect();
+                if ($dreamBuyer->frustrations) {
+                    foreach (array_filter(preg_split('/[\n,;]+/', $dreamBuyer->frustrations)) as $text) {
+                        $rawPains->push(['category' => 'frustrations', 'category_label' => 'Muammolar', 'text' => trim($text)]);
+                    }
+                }
+                if ($dreamBuyer->fears) {
+                    foreach (array_filter(preg_split('/[\n,;]+/', $dreamBuyer->fears)) as $text) {
+                        $rawPains->push(['category' => 'fears', 'category_label' => "Qo'rquvlar", 'text' => trim($text)]);
+                    }
+                }
+                if ($dreamBuyer->pain_points) {
+                    foreach (array_filter(preg_split('/[\n,;]+/', $dreamBuyer->pain_points)) as $text) {
+                        $rawPains->push(['category' => 'frustrations', 'category_label' => 'Muammolar', 'text' => trim($text)]);
+                    }
+                }
+                $painPoints = $rawPains->filter(fn ($p) => strlen($p['text']) > 3)
+                    ->unique('text')
+                    ->take(15)
+                    ->values()
+                    ->map(fn ($p, $i) => array_merge($p, ['id' => 'db_' . $i, 'topics' => [], 'hooks' => [], 'content_types' => []]));
+            }
+        }
+
         return Inertia::render('Business/Marketing/Content', [
             'posts' => $posts,
+            'activeOffers' => $activeOffers,
+            'aiRemaining' => $aiRemaining,
+            'painPoints' => $painPoints,
         ]);
     }
 
@@ -254,8 +331,8 @@ class MarketingController extends Controller
             'content' => ['required', 'string'],
             'platform' => ['required', 'array', 'min:1'],
             'platform.*' => ['string', 'max:100'],
-            'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
-            'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
+            'content_type' => ['nullable', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
+            'format' => ['nullable', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
             'type' => ['nullable', 'string'],
             'status' => ['required', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
@@ -269,6 +346,17 @@ class MarketingController extends Controller
         unset($validated['platform_links']);
 
         $validated['business_id'] = $currentBusiness->id;
+
+        // Set defaults for fields that DB requires NOT NULL
+        if (empty($validated['content_type'])) {
+            $validated['content_type'] = 'educational';
+        }
+        if (empty($validated['format'])) {
+            $validated['format'] = 'text_post';
+        }
+        if (empty($validated['type'])) {
+            $validated['type'] = $validated['format'];
+        }
 
         if (is_array($validated['platform'])) {
             $validated['platform'] = json_encode($validated['platform']);
@@ -394,8 +482,8 @@ class MarketingController extends Controller
             'content' => ['required', 'string'],
             'platform' => ['required', 'array', 'min:1'],
             'platform.*' => ['string', 'max:100'],
-            'content_type' => ['required', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
-            'format' => ['required', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
+            'content_type' => ['nullable', 'in:educational,entertaining,inspirational,promotional,behind_scenes,ugc'],
+            'format' => ['nullable', 'in:short_video,long_video,carousel,single_image,story,text_post,live,poll'],
             'status' => ['required', 'in:draft,scheduled,published'],
             'scheduled_at' => ['nullable', 'date'],
             'hashtags' => ['nullable', 'array'],
@@ -406,6 +494,14 @@ class MarketingController extends Controller
 
         $platformLinks = $validated['platform_links'] ?? [];
         unset($validated['platform_links']);
+
+        // Set defaults for fields that DB requires NOT NULL
+        if (empty($validated['content_type'])) {
+            $validated['content_type'] = $content->content_type ?? 'educational';
+        }
+        if (empty($validated['format'])) {
+            $validated['format'] = $content->format ?? 'text_post';
+        }
 
         if (is_array($validated['platform'])) {
             $validated['platform'] = json_encode($validated['platform']);

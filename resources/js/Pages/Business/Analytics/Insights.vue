@@ -52,21 +52,21 @@ const getInsightIcon = (icon) => {
 
 const getInsightColor = (type) => {
     const colors = {
-        'success': 'bg-green-50 border-green-200 text-green-800',
-        'warning': 'bg-yellow-50 border-yellow-200 text-yellow-800',
-        'danger': 'bg-red-50 border-red-200 text-red-800',
-        'info': 'bg-blue-50 border-blue-200 text-blue-800',
+        'success': 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
+        'warning': 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
+        'danger': 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200',
+        'info': 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
     }
     return colors[type] || colors['info']
 }
 
 const getRecommendationLabel = (rec) => {
     const labels = {
-        'scale_up': { text: 'Byudjetni oshiring', color: 'bg-green-100 text-green-800' },
-        'maintain': { text: 'Davom eting', color: 'bg-blue-100 text-blue-800' },
-        'optimize': { text: 'Optimizatsiya qiling', color: 'bg-yellow-100 text-yellow-800' },
-        'test_more': { text: 'Ko\'proq test qiling', color: 'bg-gray-100 text-gray-800' },
-        'reduce': { text: 'Kamaytiring', color: 'bg-red-100 text-red-800' },
+        'scale_up': { text: 'Byudjetni oshiring', color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200' },
+        'maintain': { text: 'Davom eting', color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200' },
+        'optimize': { text: 'Optimizatsiya qiling', color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200' },
+        'test_more': { text: 'Ko\'proq test qiling', color: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200' },
+        'reduce': { text: 'Kamaytiring', color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' },
     }
     return labels[rec] || labels['maintain']
 }
@@ -79,19 +79,19 @@ const getRecommendationLabel = (rec) => {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Header -->
             <div class="mb-8">
-                <h1 class="text-2xl font-bold text-gray-900">Biznes Insaytlar</h1>
-                <p class="mt-1 text-sm text-gray-500">Biznesingiz holati haqida muhim ma'lumotlar</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Biznes Insaytlar</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Biznesingiz holati haqida muhim ma'lumotlar</p>
             </div>
 
             <!-- Date Filter -->
             <div class="mb-6 flex gap-4 items-end">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Boshlanish</label>
-                    <input type="date" v-model="dateFrom" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Boshlanish</label>
+                    <input type="date" v-model="dateFrom" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Tugash</label>
-                    <input type="date" v-model="dateTo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tugash</label>
+                    <input type="date" v-model="dateTo" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
                 </div>
                 <button @click="fetchData" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                     Yangilash
@@ -106,7 +106,7 @@ const getRecommendationLabel = (rec) => {
             <template v-else-if="data">
                 <!-- Key Insights -->
                 <div class="mb-8">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Asosiy Topilmalar</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Asosiy Topilmalar</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div
                             v-for="insight in data.insights"
@@ -130,44 +130,44 @@ const getRecommendationLabel = (rec) => {
 
                 <!-- Quick Stats -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <p class="text-sm text-gray-500">Jami daromad</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ formatNumber(data.metrics?.total_revenue) }} so'm</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Jami daromad</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(data.metrics?.total_revenue) }} so'm</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <p class="text-sm text-gray-500">Konversiya</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ data.metrics?.conversion_rate }}%</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Konversiya</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ data.metrics?.conversion_rate }}%</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <p class="text-sm text-gray-500">Yo'qotilgan qiymat</p>
-                        <p class="text-2xl font-bold text-red-600">{{ formatNumber(data.lost_deals?.summary?.total_value_lost) }} so'm</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Yo'qotilgan qiymat</p>
+                        <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ formatNumber(data.lost_deals?.summary?.total_value_lost) }} so'm</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <p class="text-sm text-gray-500">Operatorlar</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ data.operators?.team_stats?.total_operators }}</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Operatorlar</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ data.operators?.team_stats?.total_operators }}</p>
                     </div>
                 </div>
 
                 <!-- Top Operators -->
-                <div class="bg-white rounded-lg shadow mb-8">
-                    <div class="px-4 py-5 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Eng yaxshi operatorlar</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+                    <div class="px-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Eng yaxshi operatorlar</h3>
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <div v-for="(op, index) in data.operators?.top_performers" :key="op.user_id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div v-for="(op, index) in data.operators?.top_performers" :key="op.user_id" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                                 <div class="flex items-center gap-3">
-                                    <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full" :class="index === 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-200 text-gray-600'">
+                                    <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full" :class="index === 0 ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'">
                                         {{ index + 1 }}
                                     </span>
                                     <div>
-                                        <p class="font-medium text-gray-900">{{ op.user_name }}</p>
-                                        <p class="text-sm text-gray-500">{{ op.total_leads }} lid, {{ op.won_leads }} yutilgan</p>
+                                        <p class="font-medium text-gray-900 dark:text-gray-100">{{ op.user_name }}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ op.total_leads }} lid, {{ op.won_leads }} yutilgan</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold text-green-600">{{ op.conversion_rate }}%</p>
-                                    <p class="text-sm text-gray-500">{{ formatNumber(op.total_revenue) }} so'm</p>
+                                    <p class="font-bold text-green-600 dark:text-green-400">{{ op.conversion_rate }}%</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ formatNumber(op.total_revenue) }} so'm</p>
                                 </div>
                             </div>
                         </div>
@@ -175,29 +175,29 @@ const getRecommendationLabel = (rec) => {
                 </div>
 
                 <!-- Channel ROI -->
-                <div class="bg-white rounded-lg shadow mb-8">
-                    <div class="px-4 py-5 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Marketing kanallar ROI</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+                    <div class="px-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Marketing kanallar ROI</h3>
                     </div>
                     <div class="p-4 overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Kanal</th>
-                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Lidlar</th>
-                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Daromad</th>
-                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Xarajat</th>
-                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">ROI</th>
-                                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Tavsiya</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Kanal</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Lidlar</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Daromad</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Xarajat</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ROI</th>
+                                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tavsiya</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <tr v-for="channel in data.channels?.channels" :key="channel.channel_id">
-                                    <td class="px-4 py-3 text-sm text-gray-900">{{ channel.channel_name }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600 text-right">{{ channel.total_leads }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600 text-right">{{ formatNumber(channel.revenue) }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600 text-right">{{ formatNumber(channel.spend) }}</td>
-                                    <td class="px-4 py-3 text-sm text-right" :class="channel.roi > 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold'">
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr v-for="channel in data.channels?.channels" :key="channel.channel_id" class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ channel.channel_name }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 text-right">{{ channel.total_leads }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 text-right">{{ formatNumber(channel.revenue) }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 text-right">{{ formatNumber(channel.spend) }}</td>
+                                    <td class="px-4 py-3 text-sm text-right font-bold" :class="channel.roi > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
                                         {{ channel.roi }}%
                                     </td>
                                     <td class="px-4 py-3 text-center">
@@ -212,19 +212,19 @@ const getRecommendationLabel = (rec) => {
                 </div>
 
                 <!-- Lost Deals by Reason -->
-                <div class="bg-white rounded-lg shadow">
-                    <div class="px-4 py-5 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Yo'qotish sabablari</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                    <div class="px-4 py-5 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Yo'qotish sabablari</h3>
                     </div>
                     <div class="p-4">
                         <div class="space-y-3">
                             <div v-for="reason in data.lost_deals?.by_reason" :key="reason.reason" class="flex items-center">
                                 <div class="flex-1">
                                     <div class="flex justify-between mb-1">
-                                        <span class="text-sm text-gray-700">{{ reason.reason_label }}</span>
-                                        <span class="text-sm text-gray-500">{{ reason.count }} ({{ reason.percentage }}%)</span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ reason.reason_label }}</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ reason.count }} ({{ reason.percentage }}%)</span>
                                     </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                         <div class="bg-red-500 h-2 rounded-full" :style="{ width: reason.percentage + '%' }"></div>
                                     </div>
                                 </div>

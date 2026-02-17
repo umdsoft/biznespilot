@@ -173,14 +173,6 @@ class Sale extends Model
         return $query->whereBetween('closed_at', [$from, $to]);
     }
 
-    /**
-     * Scope: Completed sales only.
-     */
-    public function scopeCompleted(Builder $query): Builder
-    {
-        return $query->where('status', 'completed');
-    }
-
     // ==========================================
     // HELPER METHODS
     // ==========================================
