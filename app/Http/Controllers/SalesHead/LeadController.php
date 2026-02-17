@@ -167,15 +167,20 @@ class LeadController extends Controller
         $cacheKey = "lead_stats_{$business->id}";
         $stats = Cache::remember($cacheKey, 30, function () use ($business) {
             // Single optimized query with aggregations
+            $sNew = Lead::STATUS_NEW;
+            $sQualified = Lead::STATUS_QUALIFIED;
+            $sWon = Lead::STATUS_WON;
+            $sLost = Lead::STATUS_LOST;
+
             $result = Lead::where('business_id', $business->id)
-                ->selectRaw('
+                ->selectRaw("
                     COUNT(*) as total_leads,
-                    SUM(CASE WHEN status = "new" THEN 1 ELSE 0 END) as new_leads,
-                    SUM(CASE WHEN status = "qualified" THEN 1 ELSE 0 END) as qualified_leads,
-                    SUM(CASE WHEN status = "won" THEN 1 ELSE 0 END) as won_deals,
-                    SUM(CASE WHEN status NOT IN ("won", "lost") THEN COALESCE(estimated_value, 0) ELSE 0 END) as pipeline_value,
-                    SUM(CASE WHEN status = "won" THEN COALESCE(estimated_value, 0) ELSE 0 END) as total_value
-                ')
+                    SUM(CASE WHEN status = '{$sNew}' THEN 1 ELSE 0 END) as new_leads,
+                    SUM(CASE WHEN status = '{$sQualified}' THEN 1 ELSE 0 END) as qualified_leads,
+                    SUM(CASE WHEN status = '{$sWon}' THEN 1 ELSE 0 END) as won_deals,
+                    SUM(CASE WHEN status NOT IN ('{$sWon}', '{$sLost}') THEN COALESCE(estimated_value, 0) ELSE 0 END) as pipeline_value,
+                    SUM(CASE WHEN status = '{$sWon}' THEN COALESCE(estimated_value, 0) ELSE 0 END) as total_value
+                ")
                 ->first();
 
             return [
@@ -245,7 +250,7 @@ class LeadController extends Controller
         ]);
 
         $validated['business_id'] = $business->id;
-        $validated['status'] = 'new';
+        $validated['status'] = Lead::STATUS_NEW;
         $validated['score'] = 50; // Default score
 
         Lead::create($validated);
@@ -559,7 +564,7 @@ class LeadController extends Controller
         ]);
 
         $lead->update([
-            'status' => 'lost',
+            'status' => Lead::STATUS_LOST,
             'lost_reason' => $validated['lost_reason'],
             'lost_reason_details' => $validated['lost_reason_details'] ?? null,
         ]);
@@ -570,7 +575,7 @@ class LeadController extends Controller
             LeadActivity::TYPE_STATUS_CHANGED,
             'Yo\'qotildi deb belgilandi',
             'Sabab: '.$validated['lost_reason'].($validated['lost_reason_details'] ? ' - '.$validated['lost_reason_details'] : ''),
-            ['old_status' => $oldStatus, 'new_status' => 'lost', 'lost_reason' => $validated['lost_reason']]
+            ['old_status' => $oldStatus, 'new_status' => Lead::STATUS_LOST, 'lost_reason' => $validated['lost_reason']]
         );
 
         return response()->json([

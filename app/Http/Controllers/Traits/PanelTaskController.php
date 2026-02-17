@@ -7,6 +7,7 @@ use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 trait PanelTaskController
 {
@@ -16,12 +17,41 @@ trait PanelTaskController
 
     abstract protected function getRoutePrefix(): string;
 
+    /**
+     * Base query for tasks — override for panel-specific scoping
+     */
+    protected function getBaseTaskQuery($business)
+    {
+        return Task::where('business_id', $business->id);
+    }
+
+    /**
+     * Leads query for task modal — override for panel-specific scoping
+     */
+    protected function getLeadsQuery($business)
+    {
+        return Lead::where('business_id', $business->id)
+            ->whereNotIn('status', Lead::TERMINAL_STATUSES)
+            ->select('id', 'name', 'phone')
+            ->orderBy('name');
+    }
+
+    /**
+     * Authorization check for task management — override for stricter access
+     */
+    protected function canManageTask(Task $task): bool
+    {
+        $business = $this->getCurrentBusiness();
+
+        return $business && $task->business_id === $business->id;
+    }
+
     public function index(Request $request)
     {
         $business = $this->getCurrentBusiness();
 
         if (! $business) {
-            return inertia($this->getViewPrefix().'/Tasks/Index', [
+            return Inertia::render($this->getViewPrefix().'/Tasks/Index', [
                 'tasks' => [
                     'overdue' => [],
                     'today' => [],
@@ -45,28 +75,43 @@ trait PanelTaskController
             ]);
         }
 
-        $today = Carbon::today();
-        $tomorrow = Carbon::tomorrow();
-        $weekEnd = Carbon::now()->endOfWeek();
+        $now = now();
+        $endOfWeek = $now->copy()->addWeek()->endOfDay();
 
-        // Get all active tasks
-        $allTasks = Task::where('business_id', $business->id)
-            ->where('status', '!=', 'completed')
-            ->with(['assignedUser', 'lead'])
+        $allTasks = $this->getBaseTaskQuery($business)
+            ->with(['lead:id,name,phone', 'assignedUser:id,name'])
             ->orderBy('due_date', 'asc')
             ->get();
 
-        // Get completed tasks (last 7 days)
-        $completedTasks = Task::where('business_id', $business->id)
-            ->where('status', 'completed')
-            ->where('completed_at', '>=', now()->subDays(7))
-            ->with(['assignedUser', 'lead'])
-            ->orderBy('completed_at', 'desc')
-            ->limit(20)
-            ->get();
+        $grouped = $this->groupTasks($allTasks, $now, $endOfWeek);
 
-        // Group tasks by due date category
-        $groupedTasks = [
+        $stats = [
+            'total' => count($grouped['overdue']) + count($grouped['today']) + count($grouped['tomorrow']) + count($grouped['this_week']) + count($grouped['later']),
+            'overdue' => count($grouped['overdue']),
+            'today' => count($grouped['today']),
+            'tomorrow' => count($grouped['tomorrow']),
+            'this_week' => count($grouped['this_week']),
+            'completed' => count($grouped['completed']),
+        ];
+
+        $leads = $this->getLeadsQuery($business)->get();
+
+        return Inertia::render($this->getViewPrefix().'/Tasks/Index', [
+            'tasks' => $grouped,
+            'stats' => $stats,
+            'leads' => $leads,
+            'types' => $this->getTaskTypes(),
+            'priorities' => $this->getTaskPriorities(),
+            'statuses' => $this->getTaskStatuses(),
+        ]);
+    }
+
+    /**
+     * Group tasks by time period
+     */
+    protected function groupTasks($allTasks, $now, $endOfWeek): array
+    {
+        $grouped = [
             'overdue' => [],
             'today' => [],
             'tomorrow' => [],
@@ -78,105 +123,49 @@ trait PanelTaskController
         foreach ($allTasks as $task) {
             $taskData = $this->formatTask($task);
 
-            if (! $task->due_date) {
-                $groupedTasks['later'][] = $taskData;
-            } elseif ($task->due_date->lt($today)) {
-                $groupedTasks['overdue'][] = $taskData;
-            } elseif ($task->due_date->isSameDay($today)) {
-                $groupedTasks['today'][] = $taskData;
-            } elseif ($task->due_date->isSameDay($tomorrow)) {
-                $groupedTasks['tomorrow'][] = $taskData;
-            } elseif ($task->due_date->lte($weekEnd)) {
-                $groupedTasks['this_week'][] = $taskData;
+            if ($task->status === 'completed') {
+                $grouped['completed'][] = $taskData;
+            } elseif ($task->due_date && $task->due_date->lt($now)) {
+                $grouped['overdue'][] = $taskData;
+            } elseif ($task->due_date && $task->due_date->isToday()) {
+                $grouped['today'][] = $taskData;
+            } elseif ($task->due_date && $task->due_date->isTomorrow()) {
+                $grouped['tomorrow'][] = $taskData;
+            } elseif ($task->due_date && $task->due_date->lte($endOfWeek)) {
+                $grouped['this_week'][] = $taskData;
             } else {
-                $groupedTasks['later'][] = $taskData;
+                $grouped['later'][] = $taskData;
             }
         }
 
-        foreach ($completedTasks as $task) {
-            $groupedTasks['completed'][] = $this->formatTask($task);
-        }
-
-        // Calculate stats
-        $stats = [
-            'total' => $allTasks->count(),
-            'overdue' => count($groupedTasks['overdue']),
-            'today' => count($groupedTasks['today']),
-            'tomorrow' => count($groupedTasks['tomorrow']),
-            'this_week' => count($groupedTasks['this_week']),
-            'completed' => $completedTasks->count(),
-        ];
-
-        // Get leads for task creation
-        $leads = Lead::where('business_id', $business->id)
-            ->whereNotIn('status', ['won', 'lost'])
-            ->orderBy('name')
-            ->get()
-            ->map(fn ($lead) => [
-                'id' => $lead->id,
-                'name' => $lead->name,
-                'phone' => $lead->phone,
-            ]);
-
-        return inertia($this->getViewPrefix().'/Tasks/Index', [
-            'tasks' => $groupedTasks,
-            'stats' => $stats,
-            'leads' => $leads,
-            'types' => $this->getTaskTypes(),
-            'priorities' => $this->getTaskPriorities(),
-            'statuses' => $this->getTaskStatuses(),
-        ]);
+        return $grouped;
     }
 
     protected function formatTask($task): array
     {
-        $typeLabels = [
-            'call' => 'Qo\'ng\'iroq',
-            'meeting' => 'Uchrashuv',
-            'task' => 'Vazifa',
-            'follow_up' => 'Qayta aloqa',
-            'email' => 'Email',
-            'other' => 'Boshqa',
-        ];
-
-        $priorityLabels = [
-            'urgent' => 'Shoshilinch',
-            'high' => 'Yuqori',
-            'medium' => 'O\'rta',
-            'low' => 'Past',
-        ];
-
-        $dueDateHuman = '';
-        $dueDateFull = '';
-
-        if ($task->due_date) {
-            $dueDateHuman = $task->due_date->format('d-M H:i');
-            $dueDateFull = $task->due_date->format('d.m.Y H:i');
-        }
-
         return [
             'id' => $task->id,
             'title' => $task->title,
             'description' => $task->description,
-            'type' => $task->type ?? 'task',
-            'type_label' => $typeLabels[$task->type ?? 'task'] ?? 'Vazifa',
-            'priority' => $task->priority ?? 'medium',
-            'priority_label' => $priorityLabels[$task->priority ?? 'medium'] ?? 'O\'rta',
+            'type' => $task->type,
+            'type_label' => $task->type_label,
+            'priority' => $task->priority,
+            'priority_label' => $task->priority_label,
             'status' => $task->status,
+            'status_label' => $task->status_label,
             'due_date' => $task->due_date?->format('Y-m-d H:i'),
-            'due_date_human' => $dueDateHuman,
-            'due_date_full' => $dueDateFull,
+            'due_date_human' => $task->due_date?->format('H:i') ?? '',
+            'due_date_full' => $task->due_date?->format('d.m.Y H:i') ?? '',
+            'is_overdue' => $task->status === 'pending' && $task->due_date && $task->due_date->lt(now()),
+            'completed_at' => $task->completed_at?->format('Y-m-d H:i'),
+            'result' => $task->result,
+            'lead' => $task->lead,
+            'assigned_user' => $task->assignedUser,
             'assignee' => $task->assignedUser ? [
                 'id' => $task->assignedUser->id,
                 'name' => $task->assignedUser->name,
             ] : null,
-            'lead' => $task->lead ? [
-                'id' => $task->lead->id,
-                'name' => $task->lead->name,
-                'phone' => $task->lead->phone ?? null,
-            ] : null,
-            'completed_at' => $task->completed_at?->format('Y-m-d H:i'),
-            'created_at' => $task->created_at->format('Y-m-d H:i'),
+            'created_at' => $task->created_at->format('d.m.Y H:i'),
         ];
     }
 
@@ -215,28 +204,57 @@ trait PanelTaskController
     {
         $business = $this->getCurrentBusiness();
 
+        if (! $business) {
+            return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'type' => 'nullable|in:call,meeting,email,task,follow_up,other',
+            'priority' => 'required|in:low,normal,medium,high,urgent',
             'due_date' => 'nullable|date',
-            'priority' => 'required|in:low,medium,high,urgent',
+            'due_time' => 'nullable|string',
+            'reminder_at' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
             'lead_id' => 'nullable|exists:leads,id',
-            'type' => 'nullable|in:call,meeting,email,task,follow_up,other',
         ]);
 
-        Task::create([
+        $dueDate = $validated['due_date'] ?? now()->toDateString();
+        if (! empty($validated['due_time'])) {
+            $dueDate .= ' '.$validated['due_time'];
+        }
+
+        $priority = $validated['priority'];
+        if ($priority === 'normal') {
+            $priority = 'medium';
+        }
+
+        $assignedTo = $validated['assigned_to'] ?? Auth::id();
+
+        $task = Task::create([
             'business_id' => $business->id,
             'user_id' => Auth::id(),
+            'assigned_to' => $assignedTo,
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'due_date' => $validated['due_date'] ?? now(),
-            'priority' => $validated['priority'],
-            'assigned_to' => $validated['assigned_to'] ?? null,
-            'lead_id' => $validated['lead_id'] ?? null,
             'type' => $validated['type'] ?? 'task',
+            'priority' => $priority,
+            'due_date' => $dueDate,
+            'reminder_at' => $validated['reminder_at'] ?? null,
+            'lead_id' => $validated['lead_id'] ?? null,
             'status' => 'pending',
         ]);
+
+        $task->load(['lead:id,name,phone', 'assignedUser:id,name']);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vazifa yaratildi',
+                'task' => $task,
+            ]);
+        }
 
         return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa yaratildi');
@@ -246,22 +264,69 @@ trait PanelTaskController
     {
         $task = Task::findOrFail($id);
 
+        if (! $this->canManageTask($task)) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'status' => 'sometimes|in:pending,in_progress,completed',
-            'priority' => 'sometimes|in:low,medium,high',
+            'description' => 'nullable|string',
+            'type' => 'sometimes|in:call,meeting,email,task,follow_up,other',
+            'priority' => 'sometimes|in:low,normal,medium,high,urgent',
+            'status' => 'sometimes|in:pending,in_progress,completed,cancelled',
+            'due_date' => 'sometimes|date',
+            'due_time' => 'nullable|string',
+            'reminder_at' => 'nullable|date',
+            'assigned_to' => 'nullable|exists:users,id',
+            'result' => 'nullable|string',
         ]);
 
+        if (isset($validated['due_date']) && ! empty($validated['due_time'])) {
+            $validated['due_date'] .= ' '.$validated['due_time'];
+        }
+        unset($validated['due_time']);
+
+        if (isset($validated['priority']) && $validated['priority'] === 'normal') {
+            $validated['priority'] = 'medium';
+        }
+
+        if (isset($validated['status']) && $validated['status'] === 'completed' && $task->status !== 'completed') {
+            $validated['completed_at'] = now();
+        }
+
         $task->update($validated);
+        $task->load(['lead:id,name,phone', 'assignedUser:id,name']);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vazifa yangilandi',
+                'task' => $task,
+            ]);
+        }
 
         return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa yangilandi');
     }
 
-    public function complete($id)
+    public function complete(Request $request, $id)
     {
         $task = Task::findOrFail($id);
-        $task->update(['status' => 'completed', 'completed_at' => now()]);
+
+        if (! $this->canManageTask($task)) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $result = $request->get('result');
+        $task->markAsCompleted($result);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vazifa bajarildi',
+                'task' => $task,
+            ]);
+        }
 
         return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa bajarildi');
@@ -269,7 +334,20 @@ trait PanelTaskController
 
     public function destroy($id)
     {
-        Task::findOrFail($id)->delete();
+        $task = Task::findOrFail($id);
+
+        if (! $this->canManageTask($task)) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $task->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vazifa o\'chirildi',
+            ]);
+        }
 
         return redirect()->route($this->getRoutePrefix().'.tasks.index')
             ->with('success', 'Vazifa o\'chirildi');

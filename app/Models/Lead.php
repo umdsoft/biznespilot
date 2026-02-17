@@ -18,6 +18,47 @@ class Lead extends Model
 {
     use BelongsToBusiness, HasFactory, HasUuid, SoftDeletes;
 
+    // ==========================================
+    // STATUS KONSTANTALARI
+    // ==========================================
+
+    /**
+     * Default pipeline status sluglari.
+     * Eslatma: Har bir biznesda PipelineStage orqali boshqa statuslar ham bo'lishi mumkin.
+     * Bu konstantalar faqat business logic da ko'p ishlatiladigan umumiy statuslar uchun.
+     */
+    public const STATUS_NEW = 'new';
+
+    public const STATUS_CONTACTED = 'contacted';
+
+    public const STATUS_QUALIFIED = 'qualified';
+
+    public const STATUS_PROPOSAL = 'proposal';
+
+    public const STATUS_NEGOTIATION = 'negotiation';
+
+    public const STATUS_WON = 'won';
+
+    public const STATUS_LOST = 'lost';
+
+    /**
+     * Terminal statuslar — lead pipeline dan chiqadi
+     */
+    public const TERMINAL_STATUSES = [self::STATUS_WON, self::STATUS_LOST];
+
+    /**
+     * Default pipeline statuslari (tartib bo'yicha)
+     */
+    public const DEFAULT_STATUSES = [
+        self::STATUS_NEW,
+        self::STATUS_CONTACTED,
+        self::STATUS_QUALIFIED,
+        self::STATUS_PROPOSAL,
+        self::STATUS_NEGOTIATION,
+        self::STATUS_WON,
+        self::STATUS_LOST,
+    ];
+
     /**
      * Yo'qotilgan lid sabablari
      */
@@ -896,7 +937,23 @@ class Lead extends Model
      */
     public function isWon(): bool
     {
-        return $this->status === 'won';
+        return $this->status === self::STATUS_WON;
+    }
+
+    /**
+     * Check if lead is lost.
+     */
+    public function isLost(): bool
+    {
+        return $this->status === self::STATUS_LOST;
+    }
+
+    /**
+     * Check if lead is in terminal status (won or lost).
+     */
+    public function isTerminal(): bool
+    {
+        return in_array($this->status, self::TERMINAL_STATUSES);
     }
 
     /**

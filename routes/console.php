@@ -3,17 +3,10 @@
 use App\Jobs\AggregateMonthlyKpisJob;
 use App\Jobs\AggregateWeeklyKpisJob;
 use App\Jobs\AnomalyDetectionJob;
-use App\Jobs\ChurnPreventionJob;
 use App\Jobs\CustomerSegmentationJob;
-use App\Jobs\DailyBusinessDiagnosticJob;
 use App\Jobs\Marketing\CalculateMarketingKpiSnapshotsJob;
-use App\Jobs\SocialMediaSyncJob;
-use App\Jobs\SyncAllChannelsMetrics;
 use App\Jobs\SyncDailyKpisFromIntegrationsJob;
-use App\Jobs\SyncInstagramDataJob;
-use App\Jobs\SyncMetaInsightsJob;
 use App\Models\Business;
-use App\Models\Integration;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -22,96 +15,95 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// ==========================================
+// [FB/IG] DISABLED — Meta review kutilmoqda
+// Meta tasdiqlagandan keyin quyidagi 5 ta jobni qayta yoqish kerak
+// ==========================================
+
 // Schedule marketing metrics sync daily at 2:00 AM
-Schedule::job(new SyncAllChannelsMetrics)
-    ->dailyAt('02:00')
-    ->timezone('Asia/Tashkent')
-    ->name('sync-marketing-metrics')
-    ->onOneServer();
+// Schedule::job(new SyncAllChannelsMetrics)
+//     ->dailyAt('02:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-marketing-metrics')
+//     ->onOneServer();
 
 // Schedule Meta Ads sync every 2 hours for all connected businesses
-Schedule::call(function () {
-    $integrations = Integration::where('type', 'meta_ads')
-        ->where('status', 'connected')
-        ->get();
-
-    foreach ($integrations as $integration) {
-        SyncMetaInsightsJob::dispatch($integration->business_id, false); // incremental sync
-    }
-})->everyTwoHours()
-    ->timezone('Asia/Tashkent')
-    ->name('sync-meta-ads-incremental')
-    ->onOneServer();
+// Schedule::call(function () {
+//     $integrations = Integration::where('type', 'meta_ads')
+//         ->where('status', 'connected')
+//         ->get();
+//     foreach ($integrations as $integration) {
+//         SyncMetaInsightsJob::dispatch($integration->business_id, false)->onQueue('integrations');
+//     }
+// })->everyTwoHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-meta-ads-incremental')
+//     ->onOneServer();
 
 // Schedule Instagram sync every 2 hours for all connected businesses
-Schedule::call(function () {
-    $integrations = Integration::where('type', 'meta_ads')
-        ->where('status', 'connected')
-        ->get();
-
-    foreach ($integrations as $integration) {
-        SyncInstagramDataJob::dispatch($integration->business_id, false); // incremental sync
-    }
-})->everyTwoHours()
-    ->timezone('Asia/Tashkent')
-    ->name('sync-instagram-incremental')
-    ->onOneServer()
-    ->after(function () {
-        // Run 5 minutes after Meta sync to avoid API rate limits
-    });
+// Schedule::call(function () {
+//     $integrations = Integration::where('type', 'meta_ads')
+//         ->where('status', 'connected')
+//         ->get();
+//     foreach ($integrations as $integration) {
+//         SyncInstagramDataJob::dispatch($integration->business_id, false)->onQueue('integrations');
+//     }
+// })->everyTwoHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-instagram-incremental')
+//     ->onOneServer();
 
 // Full sync daily at 1:00 AM for Meta Ads (12 months data refresh)
-Schedule::call(function () {
-    $integrations = Integration::where('type', 'meta_ads')
-        ->where('status', 'connected')
-        ->get();
-
-    foreach ($integrations as $integration) {
-        SyncMetaInsightsJob::dispatch($integration->business_id, true); // full sync
-    }
-})->dailyAt('01:00')
-    ->timezone('Asia/Tashkent')
-    ->name('sync-meta-ads-full')
-    ->onOneServer();
+// Schedule::call(function () {
+//     $integrations = Integration::where('type', 'meta_ads')
+//         ->where('status', 'connected')
+//         ->get();
+//     foreach ($integrations as $integration) {
+//         SyncMetaInsightsJob::dispatch($integration->business_id, true)->onQueue('integrations');
+//     }
+// })->dailyAt('01:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-meta-ads-full')
+//     ->onOneServer();
 
 // Full sync daily at 01:30 AM for Instagram
-Schedule::call(function () {
-    $integrations = Integration::where('type', 'meta_ads')
-        ->where('status', 'connected')
-        ->get();
-
-    foreach ($integrations as $integration) {
-        SyncInstagramDataJob::dispatch($integration->business_id, true); // full sync
-    }
-})->dailyAt('01:30')
-    ->timezone('Asia/Tashkent')
-    ->name('sync-instagram-full')
-    ->onOneServer();
+// Schedule::call(function () {
+//     $integrations = Integration::where('type', 'meta_ads')
+//         ->where('status', 'connected')
+//         ->get();
+//     foreach ($integrations as $integration) {
+//         SyncInstagramDataJob::dispatch($integration->business_id, true)->onQueue('integrations');
+//     }
+// })->dailyAt('01:30')
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-instagram-full')
+//     ->onOneServer();
 
 // ==========================================
 // AI-FREE ALGORITHM SCHEDULED JOBS
 // ==========================================
 
-// Daily Business Diagnostic - Har kuni ertalab 6:00
-Schedule::call(function () {
-    Business::where('status', 'active')->chunk(100, function ($businesses) {
-        foreach ($businesses as $business) {
-            DailyBusinessDiagnosticJob::dispatch($business);
-        }
-    });
-})->dailyAt('06:00')
-    ->timezone('Asia/Tashkent')
-    ->name('daily-business-diagnostic')
-    ->onOneServer();
+// Daily Business Diagnostic - DISABLED (diagnostic_reports jadvali olib tashlandi)
+// AiDiagnostic modelga o'tkazilgach qayta yoqiladi
+// Schedule::call(function () {
+//     Business::where('status', 'active')->chunk(100, function ($businesses) {
+//         foreach ($businesses as $business) {
+//             DailyBusinessDiagnosticJob::dispatch($business);
+//         }
+//     });
+// })->dailyAt('06:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('daily-business-diagnostic')
+//     ->onOneServer();
 
-// Anomaly Detection - Har soatda
+// Anomaly Detection - Har 4 soatda (optimallashtirish: 24/kun → 6/kun)
 Schedule::call(function () {
     Business::where('status', 'active')->chunk(100, function ($businesses) {
         foreach ($businesses as $business) {
-            AnomalyDetectionJob::dispatch($business);
+            AnomalyDetectionJob::dispatch($business)->onQueue('analytics');
         }
     });
-})->hourly()
+})->everyFourHours()
     ->timezone('Asia/Tashkent')
     ->name('anomaly-detection')
     ->onOneServer();
@@ -120,7 +112,7 @@ Schedule::call(function () {
 Schedule::call(function () {
     Business::where('status', 'active')->chunk(100, function ($businesses) {
         foreach ($businesses as $business) {
-            CustomerSegmentationJob::dispatch($business);
+            CustomerSegmentationJob::dispatch($business)->onQueue('analytics');
         }
     });
 })->weeklyOn(1, '08:00') // 1 = Monday
@@ -128,31 +120,42 @@ Schedule::call(function () {
     ->name('customer-segmentation')
     ->onOneServer();
 
-// Churn Prevention - Har kuni 10:00
-Schedule::call(function () {
-    Business::where('status', 'active')->chunk(100, function ($businesses) {
-        foreach ($businesses as $business) {
-            ChurnPreventionJob::dispatch($business);
-        }
-    });
-})->dailyAt('10:00')
+// [MERGED] Churn Prevention → ChurnAnalysisPipelineJob ga birlashtirildi
+// Pipeline: CalculateChurnRiskJob → ChurnPreventionJob (ketma-ket)
+// Schedule::call(function () {
+//     Business::where('status', 'active')->chunk(100, function ($businesses) {
+//         foreach ($businesses as $business) {
+//             ChurnPreventionJob::dispatch($business)->onQueue('analytics');
+//         }
+//     });
+// })->dailyAt('10:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('churn-prevention')
+//     ->onOneServer();
+
+// Churn Analysis Pipeline - Har kuni 07:00 da
+// 1) CalculateChurnRiskJob — churn xavfini hisoblash
+// 2) ChurnPreventionJob — xavfli mijozlar uchun retention harakatlar
+Schedule::job((new \App\Jobs\ChurnAnalysisPipelineJob)->onQueue('analytics'))
+    ->dailyAt('07:00')
     ->timezone('Asia/Tashkent')
-    ->name('churn-prevention')
+    ->name('churn-analysis-pipeline')
     ->onOneServer();
 
+// [FB/IG] DISABLED — Meta review kutilmoqda
 // Social Media Sync - Har 6 soatda
-Schedule::call(function () {
-    Business::where('status', 'active')
-        ->whereHas('instagramAccounts')
-        ->chunk(100, function ($businesses) {
-            foreach ($businesses as $business) {
-                SocialMediaSyncJob::dispatch($business);
-            }
-        });
-})->everySixHours()
-    ->timezone('Asia/Tashkent')
-    ->name('social-media-sync')
-    ->onOneServer();
+// Schedule::call(function () {
+//     Business::where('status', 'active')
+//         ->whereHas('instagramAccounts')
+//         ->chunk(100, function ($businesses) {
+//             foreach ($businesses as $business) {
+//                 SocialMediaSyncJob::dispatch($business)->onQueue('integrations');
+//             }
+//         });
+// })->everySixHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('social-media-sync')
+//     ->onOneServer();
 
 // ==========================================
 // KPI SYSTEM SCHEDULED JOBS
@@ -163,7 +166,7 @@ Schedule::call(function () {
 Schedule::call(function () {
     // Yesterday's data is synced because today's data might not be complete yet
     SyncDailyKpisFromIntegrationsJob::dispatch(null, null)
-        ->onQueue('kpi-sync');
+        ->onQueue('analytics');
 })->dailyAt('05:00')
     ->timezone('Asia/Tashkent')
     ->name('sync-kpis-from-integrations')
@@ -173,7 +176,7 @@ Schedule::call(function () {
 // Haftalik aggregatsiyani bajaradi
 Schedule::call(function () {
     AggregateWeeklyKpisJob::dispatch(null, null)
-        ->onQueue('kpi-aggregation');
+        ->onQueue('analytics');
 })->weeklyOn(1, '07:00') // Monday at 7:00 AM
     ->timezone('Asia/Tashkent')
     ->name('aggregate-weekly-kpis')
@@ -183,7 +186,7 @@ Schedule::call(function () {
 // Oylik aggregatsiyani bajaradi
 Schedule::call(function () {
     AggregateMonthlyKpisJob::dispatch(null, null, null)
-        ->onQueue('kpi-aggregation');
+        ->onQueue('analytics');
 })->monthlyOn(1, '08:00') // 1st day of month at 8:00 AM
     ->timezone('Asia/Tashkent')
     ->name('aggregate-monthly-kpis')
@@ -243,18 +246,29 @@ Schedule::job(new \App\Jobs\Marketing\UpdateMarketingUserKpisJob(null, 'monthly'
     ->name('marketing-user-kpi-monthly')
     ->onOneServer();
 
-// Marketing Alertlarni tekshirish - Har soatda
-// CPL, ROAS, Budget va boshqa anomaliyalarni aniqlaydi
-Schedule::job(new \App\Jobs\Marketing\CheckMarketingAlertsJob)
-    ->hourly()
-    ->timezone('Asia/Tashkent')
-    ->name('marketing-check-alerts')
-    ->onOneServer();
+// [MERGED] Marketing Alerts → UnifiedMarketingAlertsJob ga birlashtirildi
+// Schedule::job((new \App\Jobs\Marketing\CheckMarketingAlertsJob)->onQueue('analytics'))
+//     ->everyTwoHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('marketing-check-alerts')
+//     ->onOneServer();
 
-// Marketing Leaderboard yangilash - Har 30 daqiqada
-// Haftalik reyting taxtasini real-time yangilaydi
-Schedule::job(new \App\Jobs\Marketing\UpdateMarketingLeaderboardsJob(null, 'weekly'))
-    ->everyThirtyMinutes()
+// Unified Marketing Alerts - Har 2 soatda
+// 3 ta alert jobni birlashtiradi:
+// 1. CheckMarketingAlertsJob (CPL, ROAS, Budget anomaliyalar)
+// 2. kpi:check-alerts (KPI rule-based alertlar)
+// 3. CheckCampaignPerformanceJob (Meta/Google Ads kampaniya samaradorligi)
+Schedule::job((new \App\Jobs\Marketing\UnifiedMarketingAlertsJob)->onQueue('analytics'))
+    ->everyTwoHours()
+    ->timezone('Asia/Tashkent')
+    ->name('unified-marketing-alerts')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// Marketing Leaderboard yangilash - Har 2 soatda (optimallashtirish: 48/kun → 12/kun)
+// Haftalik reyting taxtasini yangilaydi
+Schedule::job((new \App\Jobs\Marketing\UpdateMarketingLeaderboardsJob(null, 'weekly'))->onQueue('analytics'))
+    ->everyTwoHours()
     ->timezone('Asia/Tashkent')
     ->name('marketing-leaderboard-weekly')
     ->onOneServer()
@@ -279,10 +293,10 @@ Schedule::job(new \App\Jobs\Marketing\CalculateMarketingBonusesJob)
 // COMPETITOR MONITORING SCHEDULED JOBS
 // ==========================================
 
-// Competitor Monitoring - Har soatda auto_monitor yoqilgan raqobatchilarni kuzatish
+// Competitor Monitoring - Har 6 soatda (optimallashtirish: 24/kun → 4/kun)
 // check_frequency_hours sozlamasiga qarab ishga tushadi
-Schedule::job(new \App\Jobs\ScrapeCompetitorData)
-    ->hourly()
+Schedule::job((new \App\Jobs\ScrapeCompetitorData)->onQueue('integrations'))
+    ->everySixHours()
     ->timezone('Asia/Tashkent')
     ->name('competitor-monitoring')
     ->onOneServer();
@@ -291,10 +305,12 @@ Schedule::job(new \App\Jobs\ScrapeCompetitorData)
 // PBX/VoIP CALL SYNC SCHEDULED JOBS
 // ==========================================
 
-// PBX Calls Sync - Har 15 daqiqada barcha ulangan PBX/VoIP xizmatlaridan qo'ng'iroqlarni sinxronlaydi
+// PBX Calls Sync - Har soatda (webhook fallback)
+// Webhook asosiy mexanizm — bu faqat o'tkazib yuborilgan qo'ng'iroqlarni ushlash uchun
 // OnlinePBX, SipUni va boshqa VoIP xizmatlari uchun ishlaydi
+// Avvalgi: everyFifteenMinutes (96/kun) → hourly (24/kun) = 75% tejash
 Schedule::command('pbx:sync-calls --days=1 --link-orphans')
-    ->everyFifteenMinutes()
+    ->hourly()
     ->timezone('Asia/Tashkent')
     ->name('sync-pbx-calls')
     ->onOneServer()
@@ -323,28 +339,15 @@ Schedule::command('todos:generate-recurring')
 // WEEKLY ANALYTICS (AI-POWERED) SCHEDULED JOBS
 // ==========================================
 
-// Haftalik Analitika - Har dushanba 07:30 da
-// Barcha bizneslar uchun haftalik hisobotlarni yaratadi
-Schedule::command('analytics:weekly')
+// Haftalik Analitika Pipeline - Har dushanba 07:30 da
+// 3 ta alohida command 1 ta pipeline ga birlashtirildi:
+// 1) Haftalik hisobotlar yaratish
+// 2) AI tahlil (--with-ai)
+// 3) Xabarnomalar yuborish (--with-notify)
+Schedule::command('analytics:weekly --with-ai --with-notify --notify-channels=mail,telegram')
     ->weeklyOn(1, '07:30') // Monday at 7:30 AM
     ->timezone('Asia/Tashkent')
-    ->name('weekly-analytics-report')
-    ->onOneServer();
-
-// Haftalik AI Tahlil - Har dushanba 08:00 da
-// Yaratilgan hisobotlar uchun AI tahlil qiladi
-Schedule::command('analytics:weekly --with-ai')
-    ->weeklyOn(1, '08:00') // Monday at 8:00 AM
-    ->timezone('Asia/Tashkent')
-    ->name('weekly-analytics-ai')
-    ->onOneServer();
-
-// Haftalik Analitika Xabarnomalar - Har dushanba 09:00 da
-// Biznes egalariga haftalik hisobot xabarnomalarini yuboradi (Email va Telegram)
-Schedule::command('analytics:weekly --with-notify --notify-channels=mail,telegram')
-    ->weeklyOn(1, '09:00') // Monday at 9:00 AM
-    ->timezone('Asia/Tashkent')
-    ->name('weekly-analytics-notify')
+    ->name('weekly-analytics-pipeline')
     ->onOneServer();
 
 // Haftalik Maqsadlar Yangilash - Har kuni 23:00 da
@@ -384,10 +387,10 @@ Schedule::job(new \App\Jobs\Sales\AggregatePeriodKpisJob('monthly'))
     ->name('sales-monthly-kpi-aggregation')
     ->onOneServer();
 
-// Auto-Jarimalarni tekshirish - Har soatda
+// Auto-Jarimalarni tekshirish - Har 4 soatda (optimallashtirish: 24/kun → 6/kun)
 // Muddati o'tgan warninglarni jarimaga aylantiradi
-Schedule::job(new \App\Jobs\Sales\CheckAutoPenaltiesJob)
-    ->hourly()
+Schedule::job((new \App\Jobs\Sales\CheckAutoPenaltiesJob)->onQueue('analytics'))
+    ->everyFourHours()
     ->timezone('Asia/Tashkent')
     ->name('sales-check-auto-penalties')
     ->onOneServer();
@@ -400,10 +403,10 @@ Schedule::job(new \App\Jobs\Sales\CalculateMonthlyBonusesJob)
     ->name('sales-monthly-bonuses')
     ->onOneServer();
 
-// Leaderboardni yangilash - Har 15 daqiqada
-// Kunlik reyting taxtasini real-time yangilaydi
-Schedule::job(new \App\Jobs\Sales\UpdateLeaderboardsJob(null, 'daily'))
-    ->everyFifteenMinutes()
+// Leaderboardni yangilash - Har 30 daqiqada (optimallashtirish: 96/kun → 48/kun)
+// Kunlik reyting taxtasini yangilaydi
+Schedule::job((new \App\Jobs\Sales\UpdateLeaderboardsJob(null, 'daily'))->onQueue('analytics'))
+    ->everyThirtyMinutes()
     ->timezone('Asia/Tashkent')
     ->name('sales-update-leaderboard')
     ->onOneServer()
@@ -464,7 +467,7 @@ Schedule::job(new \App\Jobs\Sales\CheckPipelineBottlenecksJob)
 // Content Templates tahlil qilish - Har kuni 03:00 da
 // Tahlil qilinmagan yoki eskirgan shablonlarni AI bilan tahlil qiladi
 // va biznes uchun Style Guide yangilaydi
-Schedule::job(new \App\Jobs\Marketing\AnalyzeContentTemplatesJob)
+Schedule::job((new \App\Jobs\Marketing\AnalyzeContentTemplatesJob)->onQueue('low'))
     ->dailyAt('03:00')
     ->timezone('Asia/Tashkent')
     ->name('content-ai-analyze-templates')
@@ -480,31 +483,28 @@ Schedule::job(new \App\Jobs\Marketing\ImportSuccessfulPostsJob)
 
 // G'oyalar Quality Score ni qayta hisoblash - Har hafta dushanba 02:00 da
 // Barcha g'oyalarning quality score ni yangilaydi va past sifatlilarni arxivlaydi
-Schedule::job(new \App\Jobs\Marketing\RecalculateIdeaQualityScoresJob)
+Schedule::job((new \App\Jobs\Marketing\RecalculateIdeaQualityScoresJob)->onQueue('low'))
     ->weeklyOn(1, '02:00')
     ->timezone('Asia/Tashkent')
     ->name('content-ai-recalculate-scores')
     ->onOneServer();
 
-// Kampaniya samaradorligini tekshirish - Har 4 soatda
-// Budget, CPR, CTR va boshqa metrikalarni tekshirib, alertlar yuboradi
-Schedule::job(new \App\Jobs\Marketing\CheckCampaignPerformanceJob)
-    ->everyFourHours()
-    ->timezone('Asia/Tashkent')
-    ->name('marketing-check-campaign-performance')
-    ->onOneServer();
+// [MERGED] Campaign Performance → UnifiedMarketingAlertsJob ga birlashtirildi
+// Schedule::job(new \App\Jobs\Marketing\CheckCampaignPerformanceJob)
+//     ->everyFourHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('marketing-check-campaign-performance')
+//     ->onOneServer();
 
 // ==========================================
 // CROSS-MODULE ATTRIBUTION SCHEDULED JOBS
 // ==========================================
 
-// Churn Risk hisoblash - Har kuni 07:00 da
-// Barcha customerlar uchun churn xavfini hisoblaydi va alertlar yuboradi
-Schedule::job(new \App\Jobs\Marketing\CalculateChurnRiskJob)
-    ->dailyAt('07:00')
-    ->timezone('Asia/Tashkent')
-    ->name('calculate-churn-risk')
-    ->onOneServer();
+// [MERGED] Churn Risk + Prevention → ChurnAnalysisPipelineJob ga birlashtirildi
+// Pipeline: 1) CalculateChurnRiskJob 2) ChurnPreventionJob (ketma-ket)
+// Schedule::job(new \App\Jobs\Marketing\CalculateChurnRiskJob)
+//     ->dailyAt('07:00')
+//     ->onOneServer();
 
 // Conversion Reconciliation - Har kuni 06:00 da
 // Meta/Google konversiyalarini haqiqiy sotuvlar bilan solishtiradi
@@ -520,76 +520,76 @@ Schedule::job(new \App\Jobs\Marketing\ReconcileConversionsJob(null, \Carbon\Carb
 
 // Data Cleanup - Har kuni tunda 03:00 da
 // Eski notification, log, temp fayllarni tozalaydi
-Schedule::job(new \App\Jobs\System\DataCleanupJob)
+Schedule::job((new \App\Jobs\System\DataCleanupJob)->onQueue('low'))
     ->dailyAt('03:00')
     ->timezone('Asia/Tashkent')
     ->name('system-data-cleanup')
     ->onOneServer();
 
-// Session Cleanup - Har kuni tunda 03:30 da
-// Eskirgan sessiyalarni bazadan tozalaydi (24 soatdan eski)
-Schedule::call(function () {
-    \Illuminate\Support\Facades\DB::table('sessions')
-        ->where('last_activity', '<', now()->subHours(24)->timestamp)
-        ->delete();
-})->dailyAt('03:30')
-    ->timezone('Asia/Tashkent')
-    ->name('session-cleanup')
-    ->onOneServer();
+// [REMOVED] Session Cleanup — Redis da kerak emas (TTL bilan o'zi expire bo'ladi)
+// SESSION_DRIVER=redis bo'lganda sessions jadvali ishlatilmaydi
+// Schedule::call(function () {
+//     \Illuminate\Support\Facades\DB::table('sessions')
+//         ->where('last_activity', '<', now()->subHours(24)->timestamp)
+//         ->delete();
+// })->dailyAt('03:30')
+//     ->timezone('Asia/Tashkent')
+//     ->name('session-cleanup')
+//     ->onOneServer();
 
 // ==========================================
 // TOKEN HEALTH MONITOR (Self-Healing System)
 // ==========================================
 
+// [FB/IG] DISABLED — Meta review kutilmoqda
 // Token Health Check - Har kuni tunda 03:00 da
 // Barcha Facebook/Instagram tokenlarni tekshiradi
-// Eskirayotganlarni avtomatik yangilaydi (7 kundan kam qolsa)
-// Muammoli tokenlar uchun adminni Telegram orqali ogohlantiradi
-Schedule::job(new \App\Jobs\CheckAllTokensJob)
-    ->dailyAt('03:00')
-    ->timezone('Asia/Tashkent')
-    ->name('token-health-check')
-    ->onOneServer()
-    ->withoutOverlapping();
+// Schedule::job((new \App\Jobs\CheckAllTokensJob)->onQueue('integrations'))
+//     ->dailyAt('03:00')
+//     ->timezone('Asia/Tashkent')
+//     ->name('token-health-check')
+//     ->onOneServer()
+//     ->withoutOverlapping();
 
 // ==========================================
 // INSTAGRAM CONTENT PERFORMANCE SYNC
 // ==========================================
 
+// [FB/IG] DISABLED — Meta review kutilmoqda
 // Instagram Content Performance Sync - Har 6 soatda
-// Instagram postlar statistikalarini sinxronlaydi (reach, engagement, saves)
-// Top performerlarni aniqlaydi va content calendar bilan bog'laydi
-Schedule::job(new \App\Jobs\SyncContentPerformanceJob)
-    ->everySixHours()
-    ->timezone('Asia/Tashkent')
-    ->name('sync-content-performance')
-    ->onOneServer()
-    ->withoutOverlapping();
+// Schedule::job((new \App\Jobs\SyncContentPerformanceJob)->onQueue('integrations'))
+//     ->everySixHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-content-performance')
+//     ->onOneServer()
+//     ->withoutOverlapping();
 
 // ==========================================
 // CONTENT POST LINKS SYNC (Kontent Reja analitikasi)
 // ==========================================
 
+// [FB/IG] DISABLED — Meta review kutilmoqda
 // Content Post Links Sync - Har 6 soatda
-// Kontent Rejadagi postlarning platforma statistikalarini sinxronlaydi
-// Instagram Graph API va Telegram Bot API orqali
-Schedule::job(new \App\Jobs\SyncContentPostLinksJob)
-    ->everySixHours()
-    ->timezone('Asia/Tashkent')
-    ->name('sync-content-post-links')
-    ->onOneServer()
-    ->withoutOverlapping();
+// Schedule::job((new \App\Jobs\SyncContentPostLinksJob)->onQueue('integrations'))
+//     ->everySixHours()
+//     ->timezone('Asia/Tashkent')
+//     ->name('sync-content-post-links')
+//     ->onOneServer()
+//     ->withoutOverlapping();
 
 // ==========================================
 // HR ENGAGEMENT & RETENTION SCHEDULED JOBS
 // ==========================================
 
-// HR Engagement Scores - Har kuni 05:00 da
-// Barcha hodimlar uchun engagement ballini hisoblaydi (Gallup Q12 asosida)
-Schedule::job(new \App\Jobs\HR\CalculateEngagementScoresJob)
+// HR Daily Pipeline - Har kuni 05:00 da
+// 3 ta kunlik HR vazifani ketma-ket bajaradi:
+// 1. CalculateEngagementScoresJob (Gallup Q12 engagement ballari)
+// 2. CheckWorkAnniversariesJob (ish yilliklari tekshirish)
+// 3. SendOnboardingRemindersJob (onboarding eslatmalari)
+Schedule::job(new \App\Jobs\HR\HrDailyPipelineJob)
     ->dailyAt('05:00')
     ->timezone('Asia/Tashkent')
-    ->name('hr-calculate-engagement')
+    ->name('hr-daily-pipeline')
     ->onOneServer();
 
 // HR Flight Risk hisoblash - Har hafta dushanba 06:00 da
@@ -598,22 +598,6 @@ Schedule::job(new \App\Jobs\HR\CalculateFlightRiskJob)
     ->weeklyOn(1, '06:00') // Monday at 6:00 AM
     ->timezone('Asia/Tashkent')
     ->name('hr-calculate-flight-risk')
-    ->onOneServer();
-
-// HR Onboarding Reminders - Har kuni 08:00 da
-// Onboarding vazifalari eslatmalarini yuboradi va milestonelarni tekshiradi
-Schedule::job(new \App\Jobs\HR\SendOnboardingRemindersJob)
-    ->dailyAt('08:00')
-    ->timezone('Asia/Tashkent')
-    ->name('hr-onboarding-reminders')
-    ->onOneServer();
-
-// HR Work Anniversaries - Har kuni 07:00 da
-// Ish yilliklarini tekshiradi va tabriklar yuboradi
-Schedule::job(new \App\Jobs\HR\CheckWorkAnniversariesJob)
-    ->dailyAt('07:00')
-    ->timezone('Asia/Tashkent')
-    ->name('hr-work-anniversaries')
     ->onOneServer();
 
 // HR Turnover Report - Har oyning 3-kuni 08:00 da
@@ -628,9 +612,9 @@ Schedule::job(new \App\Jobs\HR\GenerateTurnoverReportJob)
 // TELEPHONY - UTEL/OnlinePBX SYNC JOBS
 // ==========================================
 
-// UTEL Call History Sync - Har 3 daqiqada
-// Barcha faol UTEL hisoblaridan qo'ng'iroqlar tarixini sinxronlaydi
-// Mavjud qo'ng'iroqlar uchun ham lead bog'lash va missed calls tozalashni tekshiradi
+// UTEL Call History Sync - Har soatda (webhook fallback)
+// Webhook asosiy mexanizm — bu faqat o'tkazib yuborilgan qo'ng'iroqlarni ushlash uchun
+// Avvalgi: everyThreeMinutes (480/kun) → hourly (24/kun) = 95% tejash
 Schedule::call(function () {
     $accounts = \App\Models\UtelAccount::where('is_active', true)->get();
 
@@ -650,45 +634,44 @@ Schedule::call(function () {
             ]);
         }
     }
-})->everyThreeMinutes()
+})->hourly()
     ->timezone('Asia/Tashkent')
     ->name('utel-call-sync')
     ->onOneServer()
     ->withoutOverlapping();
 
-// OnlinePBX Call History Sync - Har 5 daqiqada
-Schedule::call(function () {
-    $accounts = \App\Models\PbxAccount::where('is_active', true)
-        ->where('provider', 'onlinepbx')
-        ->get();
-
-    foreach ($accounts as $account) {
-        try {
-            $service = app(\App\Services\OnlinePbxService::class)->setAccount($account);
-            $service->syncCallHistory(now()->subHours(1), now());
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('OnlinePBX sync failed', [
-                'account_id' => $account->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-})->everyFiveMinutes()
-    ->timezone('Asia/Tashkent')
-    ->name('onlinepbx-call-sync')
-    ->onOneServer();
+// [REMOVED] OnlinePBX inline polling — pbx:sync-calls command orqali qoplanadi
+// Webhook asosiy mexanizm, pbx:sync-calls soatlik fallback sifatida ishlaydi
+// Schedule::call(function () {
+//     $accounts = \App\Models\PbxAccount::where('is_active', true)
+//         ->where('provider', 'onlinepbx')
+//         ->get();
+//     foreach ($accounts as $account) {
+//         try {
+//             $service = app(\App\Services\OnlinePbxService::class)->setAccount($account);
+//             $service->syncCallHistory(now()->subHours(1), now());
+//         } catch (\Exception $e) {
+//             \Illuminate\Support\Facades\Log::error('OnlinePBX sync failed', [
+//                 'account_id' => $account->id,
+//                 'error' => $e->getMessage(),
+//             ]);
+//         }
+//     }
+// })->everyFiveMinutes()
+//     ->timezone('Asia/Tashkent')
+//     ->name('onlinepbx-call-sync')
+//     ->onOneServer();
 
 // ==========================================
 // KPI ALERT SYSTEM SCHEDULED JOBS
 // ==========================================
 
-// KPI Alerts Check - Har soatda
-// Barcha bizneslar uchun KPI alertlarini tekshiradi va bildirishnomalar yuboradi
-Schedule::command('kpi:check-alerts')
-    ->hourly()
-    ->timezone('Asia/Tashkent')
-    ->name('kpi-check-alerts')
-    ->onOneServer();
+// [MERGED] KPI Alerts → UnifiedMarketingAlertsJob ga birlashtirildi
+// Schedule::command('kpi:check-alerts')
+//     ->hourly()
+//     ->timezone('Asia/Tashkent')
+//     ->name('kpi-check-alerts')
+//     ->onOneServer();
 
 // ==========================================
 // DAILY BRIEF (TELEGRAM) SCHEDULED JOBS
@@ -707,11 +690,10 @@ Schedule::job(new \App\Jobs\GenerateDailyBriefJob)
 // STAGNANT TASKS ALERT (TELEGRAM) SCHEDULED JOBS
 // ==========================================
 
-// Check Stagnant Tasks - Har soatda
-// Muddati 1 soatdan ortiq o'tgan vazifalarni tekshiradi
-// va biznes egalariga Telegram orqali eslatma yuboradi
+// Check Stagnant Tasks - Har 3 soatda (optimallashtirish: 24/kun → 8/kun)
+// Muddati o'tgan vazifalarni tekshiradi va Telegram orqali eslatma yuboradi
 Schedule::job(new \App\Jobs\CheckStagnantTasksJob)
-    ->hourly()
+    ->cron('0 */3 * * *')
     ->timezone('Asia/Tashkent')
     ->name('check-stagnant-tasks')
     ->onOneServer();

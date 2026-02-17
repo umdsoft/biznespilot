@@ -15,9 +15,9 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\ChannelAnalyticsController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ChatbotManagementController;
-use App\Http\Controllers\CompetitorController;
+use App\Http\Controllers\Shared\CompetitorController;
 use App\Http\Controllers\ContentCalendarController;
-use App\Http\Controllers\CustdevController;
+use App\Http\Controllers\Shared\CustdevController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\FeedbackController;
@@ -357,46 +357,46 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
     // Competitors routes - Full features with Monitoring & Alerts
     Route::prefix('competitors')->name('competitors.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
-        Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
-        Route::get('/search-global', [App\Http\Controllers\Marketing\CompetitorController::class, 'searchGlobal'])->name('search-global');
-        Route::get('/global/{id}', [App\Http\Controllers\Marketing\CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
-        Route::get('/create', [App\Http\Controllers\Marketing\CompetitorController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'store'])->name('store');
+        Route::get('/', [CompetitorController::class, 'index'])->name('index');
+        Route::get('/dashboard', [CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/search-global', [CompetitorController::class, 'searchGlobal'])->name('search-global');
+        Route::get('/global/{id}', [CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
+        Route::get('/create', [CompetitorController::class, 'create'])->name('create');
+        Route::post('/', [CompetitorController::class, 'store'])->name('store');
 
         // Alerts management
-        Route::get('/alerts', [App\Http\Controllers\Marketing\CompetitorController::class, 'alerts'])->name('alerts');
-        Route::post('/alerts/{alert}/read', [App\Http\Controllers\Marketing\CompetitorController::class, 'markAlertRead'])->name('alerts.read');
-        Route::post('/alerts/{alert}/archive', [App\Http\Controllers\Marketing\CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
+        Route::get('/alerts', [CompetitorController::class, 'alerts'])->name('alerts');
+        Route::post('/alerts/{alert}/read', [CompetitorController::class, 'markAlertRead'])->name('alerts.read');
+        Route::post('/alerts/{alert}/archive', [CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
 
         // Lazy Loading API Endpoints
-        Route::get('/api/insights', [App\Http\Controllers\Marketing\CompetitorController::class, 'getInsights'])->name('api.insights');
-        Route::get('/api/dashboard-data', [App\Http\Controllers\Marketing\CompetitorController::class, 'getDashboardData'])->name('api.dashboard-data');
+        Route::get('/api/insights', [CompetitorController::class, 'getInsights'])->name('api.insights');
+        Route::get('/api/dashboard-data', [CompetitorController::class, 'getDashboardData'])->name('api.dashboard-data');
 
-        Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
-        Route::get('/{competitor}/edit', [App\Http\Controllers\Marketing\CompetitorController::class, 'edit'])->name('edit');
-        Route::put('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'update'])->name('update');
-        Route::delete('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'destroy'])->name('destroy');
+        Route::get('/{competitor}', [CompetitorController::class, 'show'])->name('show');
+        Route::get('/{competitor}/edit', [CompetitorController::class, 'edit'])->name('edit');
+        Route::put('/{competitor}', [CompetitorController::class, 'update'])->name('update');
+        Route::delete('/{competitor}', [CompetitorController::class, 'destroy'])->name('destroy');
 
         // Monitoring & Metrics
-        Route::post('/{competitor}/metrics', [App\Http\Controllers\Marketing\CompetitorController::class, 'recordMetrics'])->name('metrics.record');
-        Route::post('/{competitor}/monitor', [App\Http\Controllers\Marketing\CompetitorController::class, 'monitor'])->name('monitor');
+        Route::post('/{competitor}/metrics', [CompetitorController::class, 'recordMetrics'])->name('metrics.record');
+        Route::post('/{competitor}/monitor', [CompetitorController::class, 'monitor'])->name('monitor');
 
         // Competitor SWOT
-        Route::post('/{competitor}/swot/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
-        Route::put('/{competitor}/swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
-        Route::post('/{competitor}/generate-swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateSwot'])->name('generate-swot');
+        Route::post('/{competitor}/swot/generate', [CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
+        Route::put('/{competitor}/swot', [CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
+        Route::post('/{competitor}/generate-swot', [CompetitorController::class, 'generateSwot'])->name('generate-swot');
 
         // Marketing Intelligence API routes
-        Route::post('/{competitor}/products', [App\Http\Controllers\Marketing\CompetitorController::class, 'addProduct'])->name('products.store');
-        Route::delete('/{competitor}/products/{product}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteProduct'])->name('products.destroy');
-        Route::post('/{competitor}/ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'addAd'])->name('ads.store');
-        Route::delete('/{competitor}/ads/{ad}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteAd'])->name('ads.destroy');
-        Route::post('/{competitor}/review-sources', [App\Http\Controllers\Marketing\CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
-        Route::delete('/{competitor}/review-sources/{source}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
-        Route::post('/{competitor}/analyze-content', [App\Http\Controllers\Marketing\CompetitorController::class, 'analyzeContent'])->name('content.analyze');
-        Route::post('/{competitor}/scan-ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanAds'])->name('ads.scan');
-        Route::post('/{competitor}/scan-reviews', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanReviews'])->name('reviews.scan');
+        Route::post('/{competitor}/products', [CompetitorController::class, 'addProduct'])->name('products.store');
+        Route::delete('/{competitor}/products/{product}', [CompetitorController::class, 'deleteProduct'])->name('products.destroy');
+        Route::post('/{competitor}/ads', [CompetitorController::class, 'addAd'])->name('ads.store');
+        Route::delete('/{competitor}/ads/{ad}', [CompetitorController::class, 'deleteAd'])->name('ads.destroy');
+        Route::post('/{competitor}/review-sources', [CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
+        Route::delete('/{competitor}/review-sources/{source}', [CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
+        Route::post('/{competitor}/analyze-content', [CompetitorController::class, 'analyzeContent'])->name('content.analyze');
+        Route::post('/{competitor}/scan-ads', [CompetitorController::class, 'scanAds'])->name('ads.scan');
+        Route::post('/{competitor}/scan-reviews', [CompetitorController::class, 'scanReviews'])->name('reviews.scan');
     });
 
     // Strategy Planning routes
@@ -1499,9 +1499,9 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
 
     // Unified Inbox
     Route::prefix('inbox')->name('inbox.')->group(function () {
-        Route::get('/', [App\Http\Controllers\SalesHead\InboxController::class, 'index'])->name('index');
-        Route::get('/{conversation}', [App\Http\Controllers\SalesHead\InboxController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [App\Http\Controllers\SalesHead\InboxController::class, 'sendMessage'])->name('send');
+        Route::get('/', [App\Http\Controllers\Shared\InboxController::class, 'index'])->name('index');
+        Route::get('/{conversation}', [App\Http\Controllers\Shared\InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [App\Http\Controllers\Shared\InboxController::class, 'sendMessage'])->name('send');
     });
 
     // Performance Tracking
@@ -1846,68 +1846,68 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
 
     // TADQIQOT - CustDev So'rovnoma
     Route::prefix('custdev')->name('custdev.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\CustdevController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\Marketing\CustdevController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Marketing\CustdevController::class, 'store'])->name('store');
-        Route::get('/{custdev}', [App\Http\Controllers\Marketing\CustdevController::class, 'show'])->name('show');
-        Route::get('/{custdev}/edit', [App\Http\Controllers\Marketing\CustdevController::class, 'edit'])->name('edit');
-        Route::put('/{custdev}', [App\Http\Controllers\Marketing\CustdevController::class, 'update'])->name('update');
-        Route::delete('/{custdev}', [App\Http\Controllers\Marketing\CustdevController::class, 'destroy'])->name('destroy');
-        Route::post('/{custdev}/toggle-status', [App\Http\Controllers\Marketing\CustdevController::class, 'toggleStatus'])->name('toggle-status');
-        Route::get('/{custdev}/results', [App\Http\Controllers\Marketing\CustdevController::class, 'results'])->name('results');
-        Route::get('/{custdev}/export', [App\Http\Controllers\Marketing\CustdevController::class, 'export'])->name('export');
-        Route::post('/{custdev}/sync-dream-buyer', [App\Http\Controllers\Marketing\CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
+        Route::get('/', [CustdevController::class, 'index'])->name('index');
+        Route::get('/create', [CustdevController::class, 'create'])->name('create');
+        Route::post('/', [CustdevController::class, 'store'])->name('store');
+        Route::get('/{custdev}', [CustdevController::class, 'show'])->name('show');
+        Route::get('/{custdev}/edit', [CustdevController::class, 'edit'])->name('edit');
+        Route::put('/{custdev}', [CustdevController::class, 'update'])->name('update');
+        Route::delete('/{custdev}', [CustdevController::class, 'destroy'])->name('destroy');
+        Route::post('/{custdev}/toggle-status', [CustdevController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{custdev}/results', [CustdevController::class, 'results'])->name('results');
+        Route::get('/{custdev}/export', [CustdevController::class, 'export'])->name('export');
+        Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
     // Raqobatchilar - Full features with Monitoring & Alerts
     Route::prefix('competitors')->name('competitors.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'index'])->name('index');
-        Route::get('/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'dashboard'])->name('dashboard');
-        Route::get('/search-global', [App\Http\Controllers\Marketing\CompetitorController::class, 'searchGlobal'])->name('search-global');
-        Route::get('/global/{id}', [App\Http\Controllers\Marketing\CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
-        Route::get('/create', [App\Http\Controllers\Marketing\CompetitorController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'store'])->name('store');
+        Route::get('/', [CompetitorController::class, 'index'])->name('index');
+        Route::get('/dashboard', [CompetitorController::class, 'dashboard'])->name('dashboard');
+        Route::get('/search-global', [CompetitorController::class, 'searchGlobal'])->name('search-global');
+        Route::get('/global/{id}', [CompetitorController::class, 'getGlobalCompetitor'])->name('global.show');
+        Route::get('/create', [CompetitorController::class, 'create'])->name('create');
+        Route::post('/', [CompetitorController::class, 'store'])->name('store');
 
         // Alerts management
-        Route::get('/alerts', [App\Http\Controllers\Marketing\CompetitorController::class, 'alerts'])->name('alerts');
-        Route::post('/alerts/{alert}/read', [App\Http\Controllers\Marketing\CompetitorController::class, 'markAlertRead'])->name('alerts.read');
-        Route::post('/alerts/{alert}/archive', [App\Http\Controllers\Marketing\CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
+        Route::get('/alerts', [CompetitorController::class, 'alerts'])->name('alerts');
+        Route::post('/alerts/{alert}/read', [CompetitorController::class, 'markAlertRead'])->name('alerts.read');
+        Route::post('/alerts/{alert}/archive', [CompetitorController::class, 'archiveAlert'])->name('alerts.archive');
 
         // Lazy Loading API Endpoints
-        Route::get('/api/insights', [App\Http\Controllers\Marketing\CompetitorController::class, 'getInsights'])->name('api.insights');
-        Route::get('/api/dashboard', [App\Http\Controllers\Marketing\CompetitorController::class, 'getDashboardData'])->name('api.dashboard');
+        Route::get('/api/insights', [CompetitorController::class, 'getInsights'])->name('api.insights');
+        Route::get('/api/dashboard', [CompetitorController::class, 'getDashboardData'])->name('api.dashboard');
 
-        Route::get('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'show'])->name('show');
-        Route::get('/{competitor}/edit', [App\Http\Controllers\Marketing\CompetitorController::class, 'edit'])->name('edit');
-        Route::put('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'update'])->name('update');
-        Route::delete('/{competitor}', [App\Http\Controllers\Marketing\CompetitorController::class, 'destroy'])->name('destroy');
+        Route::get('/{competitor}', [CompetitorController::class, 'show'])->name('show');
+        Route::get('/{competitor}/edit', [CompetitorController::class, 'edit'])->name('edit');
+        Route::put('/{competitor}', [CompetitorController::class, 'update'])->name('update');
+        Route::delete('/{competitor}', [CompetitorController::class, 'destroy'])->name('destroy');
 
         // Monitoring & Metrics
-        Route::post('/{competitor}/metrics', [App\Http\Controllers\Marketing\CompetitorController::class, 'recordMetrics'])->name('metrics.record');
-        Route::post('/{competitor}/monitor', [App\Http\Controllers\Marketing\CompetitorController::class, 'monitor'])->name('monitor');
+        Route::post('/{competitor}/metrics', [CompetitorController::class, 'recordMetrics'])->name('metrics.record');
+        Route::post('/{competitor}/monitor', [CompetitorController::class, 'monitor'])->name('monitor');
 
         // Competitor SWOT
-        Route::post('/{competitor}/swot/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
-        Route::put('/{competitor}/swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
-        Route::post('/{competitor}/generate-swot', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateSwot'])->name('generate-swot');
+        Route::post('/{competitor}/swot/generate', [CompetitorController::class, 'generateCompetitorSwot'])->name('swot.generate');
+        Route::put('/{competitor}/swot', [CompetitorController::class, 'saveCompetitorSwot'])->name('swot.save');
+        Route::post('/{competitor}/generate-swot', [CompetitorController::class, 'generateSwot'])->name('generate-swot');
 
         // Marketing Intelligence API routes
-        Route::post('/{competitor}/products', [App\Http\Controllers\Marketing\CompetitorController::class, 'addProduct'])->name('products.store');
-        Route::delete('/{competitor}/products/{product}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteProduct'])->name('products.destroy');
-        Route::post('/{competitor}/ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'addAd'])->name('ads.store');
-        Route::delete('/{competitor}/ads/{ad}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteAd'])->name('ads.destroy');
-        Route::post('/{competitor}/review-sources', [App\Http\Controllers\Marketing\CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
-        Route::delete('/{competitor}/review-sources/{source}', [App\Http\Controllers\Marketing\CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
-        Route::post('/{competitor}/analyze-content', [App\Http\Controllers\Marketing\CompetitorController::class, 'analyzeContent'])->name('content.analyze');
-        Route::post('/{competitor}/scan-ads', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanAds'])->name('ads.scan');
-        Route::post('/{competitor}/scan-reviews', [App\Http\Controllers\Marketing\CompetitorController::class, 'scanReviews'])->name('reviews.scan');
+        Route::post('/{competitor}/products', [CompetitorController::class, 'addProduct'])->name('products.store');
+        Route::delete('/{competitor}/products/{product}', [CompetitorController::class, 'deleteProduct'])->name('products.destroy');
+        Route::post('/{competitor}/ads', [CompetitorController::class, 'addAd'])->name('ads.store');
+        Route::delete('/{competitor}/ads/{ad}', [CompetitorController::class, 'deleteAd'])->name('ads.destroy');
+        Route::post('/{competitor}/review-sources', [CompetitorController::class, 'addReviewSource'])->name('review-sources.store');
+        Route::delete('/{competitor}/review-sources/{source}', [CompetitorController::class, 'deleteReviewSource'])->name('review-sources.destroy');
+        Route::post('/{competitor}/analyze-content', [CompetitorController::class, 'analyzeContent'])->name('content.analyze');
+        Route::post('/{competitor}/scan-ads', [CompetitorController::class, 'scanAds'])->name('ads.scan');
+        Route::post('/{competitor}/scan-reviews', [CompetitorController::class, 'scanReviews'])->name('reviews.scan');
     });
 
     // SWOT Tahlil
     Route::prefix('swot')->name('swot.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'swotIndex'])->name('index');
-        Route::post('/generate', [App\Http\Controllers\Marketing\CompetitorController::class, 'generateBusinessSwot'])->name('generate');
-        Route::put('/', [App\Http\Controllers\Marketing\CompetitorController::class, 'saveBusinessSwot'])->name('save');
+        Route::get('/', [CompetitorController::class, 'swotIndex'])->name('index');
+        Route::post('/generate', [CompetitorController::class, 'generateBusinessSwot'])->name('generate');
+        Route::put('/', [CompetitorController::class, 'saveBusinessSwot'])->name('save');
     });
 
     // Competitor Insights - AI Tavsiyalar (Shared Controller)
@@ -2471,9 +2471,9 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
 
     // Unified Inbox
     Route::prefix('inbox')->name('inbox.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Operator\InboxController::class, 'index'])->name('index');
-        Route::get('/{conversation}', [App\Http\Controllers\Operator\InboxController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [App\Http\Controllers\Operator\InboxController::class, 'sendMessage'])->name('send');
+        Route::get('/', [App\Http\Controllers\Shared\InboxController::class, 'index'])->name('index');
+        Route::get('/{conversation}', [App\Http\Controllers\Shared\InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [App\Http\Controllers\Shared\InboxController::class, 'sendMessage'])->name('send');
     });
 
     // My KPI - using SalesKpiController's myKpi method

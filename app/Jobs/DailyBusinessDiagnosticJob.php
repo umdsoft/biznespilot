@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\AiDiagnostic;
 use App\Models\Business;
-use App\Models\DiagnosticReport;
 use App\Services\Algorithm\DiagnosticAlgorithmService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +11,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * Daily Business Diagnostic Job
@@ -58,31 +57,28 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
                 throw new \Exception('Diagnostic failed: '.($result['error'] ?? 'Unknown error'));
             }
 
-            // Save report to database
-            $report = DiagnosticReport::create([
+            // Save diagnostic to database (AiDiagnostic v2 schema)
+            $diagnostic = AiDiagnostic::create([
                 'business_id' => $this->business->id,
+                'type' => 'full',
+                'status' => 'completed',
+                'input_data' => ['source' => 'daily_scheduled'],
+                'results' => $result['algorithm_results'] ?? [],
                 'overall_score' => $result['overall_score'],
-                'health_score' => $result['algorithm_results']['health_score']['score'] ?? 0,
-                'dream_buyer_score' => $result['algorithm_results']['dream_buyer']['score'] ?? 0,
-                'value_equation_score' => $result['algorithm_results']['value_equation']['score'] ?? 0,
-                'money_loss_total' => $result['algorithm_results']['money_loss']['total_loss'] ?? 0,
-                'churn_risk' => $result['algorithm_results']['churn_risk']['risk_level'] ?? 'low',
-                'critical_issues_count' => $this->countCriticalIssues($result),
-                'recommendations' => json_encode($result['prioritized_actions']),
-                'full_report' => json_encode($result),
-                'generated_at' => now(),
+                'recommendations' => $result['prioritized_actions'] ?? [],
+                'completed_at' => now(),
             ]);
 
             // Check for critical issues
             $criticalIssues = $this->extractCriticalIssues($result);
 
             if (! empty($criticalIssues)) {
-                $this->sendCriticalAlert($criticalIssues, $report);
+                $this->sendCriticalAlert($criticalIssues, $diagnostic);
             }
 
             // Send daily summary if enabled
             if ($this->business->settings['daily_summary_email'] ?? false) {
-                $this->sendDailySummary($result, $report);
+                $this->sendDailySummary($result, $diagnostic);
             }
 
             Log::info('Daily diagnostic completed successfully', [
@@ -175,7 +171,7 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
     /**
      * Send critical alert
      */
-    protected function sendCriticalAlert(array $issues, DiagnosticReport $report): void
+    protected function sendCriticalAlert(array $issues, AiDiagnostic $diagnostic): void
     {
         // TODO: Implement notification sending
         Log::warning('Critical issues detected', [
@@ -191,7 +187,7 @@ class DailyBusinessDiagnosticJob implements ShouldQueue
     /**
      * Send daily summary email
      */
-    protected function sendDailySummary(array $result, DiagnosticReport $report): void
+    protected function sendDailySummary(array $result, AiDiagnostic $diagnostic): void
     {
         // TODO: Implement daily summary email
         Log::info('Daily summary prepared', [

@@ -111,13 +111,29 @@ class LeadController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
+        $sNew = Lead::STATUS_NEW;
+        $sQualified = Lead::STATUS_QUALIFIED;
+        $sWon = Lead::STATUS_WON;
+        $sLost = Lead::STATUS_LOST;
+
+        $raw = Lead::where('business_id', $business->id)
+            ->where('assigned_to', $userId)
+            ->selectRaw("
+                COUNT(*) as total_leads,
+                SUM(CASE WHEN status = '{$sNew}' THEN 1 ELSE 0 END) as new_leads,
+                SUM(CASE WHEN status = '{$sQualified}' THEN 1 ELSE 0 END) as qualified_leads,
+                SUM(CASE WHEN status NOT IN ('{$sWon}','{$sLost}') THEN COALESCE(estimated_value,0) ELSE 0 END) as pipeline_value,
+                SUM(CASE WHEN status = '{$sWon}' THEN 1 ELSE 0 END) as won_deals,
+                SUM(CASE WHEN status = '{$sWon}' THEN COALESCE(estimated_value,0) ELSE 0 END) as total_value
+            ")->first();
+
         $stats = [
-            'total_leads' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->count(),
-            'new_leads' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'new')->count(),
-            'qualified_leads' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'qualified')->count(),
-            'pipeline_value' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->whereNotIn('status', ['converted', 'lost'])->sum('value'),
-            'won_deals' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'converted')->count(),
-            'total_value' => Lead::where('business_id', $business->id)->where('assigned_to', $userId)->where('status', 'converted')->sum('value'),
+            'total_leads' => (int) ($raw->total_leads ?? 0),
+            'new_leads' => (int) ($raw->new_leads ?? 0),
+            'qualified_leads' => (int) ($raw->qualified_leads ?? 0),
+            'pipeline_value' => (float) ($raw->pipeline_value ?? 0),
+            'won_deals' => (int) ($raw->won_deals ?? 0),
+            'total_value' => (float) ($raw->total_value ?? 0),
         ];
 
         return response()->json($stats);

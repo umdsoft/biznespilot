@@ -66,22 +66,59 @@ return new class extends Migration
             $table->unique(['business_id', 'year', 'month']);
         });
 
-        // Weekly Plans
+        // Weekly Plans (konsolidatsiya: ADD migratsiya birlashtirilib)
         Schema::create('weekly_plans', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->uuid('uuid')->nullable();
             $table->uuid('business_id');
             $table->uuid('monthly_plan_id')->nullable();
+            $table->integer('year')->nullable();
+            $table->integer('week_number')->nullable();
+            $table->integer('month')->nullable();
+            $table->integer('week_of_month')->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->string('title')->nullable();
             $table->date('week_start');
             $table->date('week_end');
             $table->json('priorities')->nullable();
+            $table->text('notes')->nullable();
+            $table->json('goals')->nullable();
             $table->json('tasks')->nullable();
             $table->json('content_schedule')->nullable();
             $table->string('status', 20)->default('draft');
+            $table->string('weekly_focus')->nullable();
+            $table->json('monday')->nullable();
+            $table->json('tuesday')->nullable();
+            $table->json('wednesday')->nullable();
+            $table->json('thursday')->nullable();
+            $table->json('friday')->nullable();
+            $table->json('saturday')->nullable();
+            $table->json('sunday')->nullable();
+            $table->integer('total_tasks')->default(0);
+            $table->integer('completed_tasks')->default(0);
+            $table->json('content_items')->nullable();
+            $table->integer('posts_planned')->default(0);
+            $table->integer('posts_published')->default(0);
+            $table->decimal('revenue_target', 14, 2)->nullable();
+            $table->decimal('spend_budget', 14, 2)->nullable();
+            $table->integer('lead_target')->nullable();
+            $table->integer('engagement_target')->nullable();
+            $table->json('marketing_activities')->nullable();
+            $table->json('sales_activities')->nullable();
+            $table->json('meetings')->nullable();
+            $table->json('ai_suggestions')->nullable();
+            $table->json('ai_content_ideas')->nullable();
+            $table->json('actual_results')->nullable();
+            $table->integer('completion_percent')->default(0);
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
             $table->timestamps();
 
             $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
             $table->foreign('monthly_plan_id')->references('id')->on('monthly_plans')->onDelete('set null');
             $table->unique(['business_id', 'week_start']);
+            $table->index(['business_id', 'year', 'week_number'], 'weekly_plans_business_year_week_index');
         });
 
         // Content Calendar
@@ -106,24 +143,54 @@ return new class extends Migration
             $table->index('status');
         });
 
-        // Budget Allocations
+        // Budget Allocations (konsolidatsiya: ADD migratsiya birlashtirilib)
         Schema::create('budget_allocations', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->uuid('uuid')->nullable();
             $table->uuid('business_id');
+            $table->string('period_type', 20)->nullable();
             $table->uuid('annual_strategy_id')->nullable();
             $table->uuid('quarterly_plan_id')->nullable();
             $table->uuid('monthly_plan_id')->nullable();
+            $table->uuid('weekly_plan_id')->nullable();
             $table->string('category', 50);
             $table->string('subcategory', 50)->nullable();
+            $table->string('channel', 50)->nullable();
+            $table->string('campaign')->nullable();
+            $table->decimal('planned_budget', 14, 2)->default(0);
             $table->decimal('allocated_amount', 14, 2)->default(0);
             $table->decimal('spent_amount', 14, 2)->default(0);
+            $table->decimal('allocation_percent', 5, 2)->nullable();
+            $table->decimal('remaining_amount', 14, 2)->default(0);
+            $table->decimal('expected_roi', 8, 2)->nullable();
+            $table->decimal('actual_roi', 8, 2)->nullable();
+            $table->integer('expected_leads')->default(0);
+            $table->integer('actual_leads')->default(0);
+            $table->decimal('expected_revenue', 14, 2)->default(0);
+            $table->decimal('actual_revenue', 14, 2)->default(0);
+            $table->decimal('cost_per_lead', 14, 2)->nullable();
+            $table->decimal('cost_per_acquisition', 14, 2)->nullable();
             $table->string('period', 20);
             $table->integer('year');
             $table->integer('period_number');
+            $table->integer('quarter')->nullable();
+            $table->integer('month')->nullable();
+            $table->integer('week')->nullable();
+            $table->string('status', 20)->default('planned');
+            $table->boolean('overspend_alert')->default(false);
+            $table->decimal('overspend_threshold_percent', 5, 2)->default(100);
+            $table->text('description')->nullable();
+            $table->text('notes')->nullable();
+            $table->json('history')->nullable();
+            $table->uuid('approved_by')->nullable();
+            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
 
             $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
             $table->index(['business_id', 'period', 'year']);
+            $table->index('period_type');
+            $table->index(['business_id', 'period_type', 'year'], 'budget_allocations_business_period_year_index');
+            $table->index(['business_id', 'period_type', 'year', 'month'], 'budget_allocations_business_period_year_month_index');
         });
 
         // Strategy Templates

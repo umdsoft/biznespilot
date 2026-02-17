@@ -6,7 +6,6 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AiDiagnostic extends Model
 {
@@ -51,12 +50,6 @@ class AiDiagnostic extends Model
         'completed' => 'Tugallangan',
         'failed' => 'Xatolik',
     ];
-
-    // Relationships
-    public function reports(): HasMany
-    {
-        return $this->hasMany(DiagnosticReport::class, 'diagnostic_id');
-    }
 
     // Scopes
     public function scopeCompleted($query)

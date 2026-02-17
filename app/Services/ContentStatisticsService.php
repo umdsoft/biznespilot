@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\DB;
  */
 class ContentStatisticsService
 {
-    protected int $cacheTTL = 300; // 5 daqiqa
-
     /**
      * Get content statistics for a business
      */
@@ -23,7 +21,7 @@ class ContentStatisticsService
         $startDate = $startDate ?? Carbon::now()->subDays(30);
         $cacheKey = "content_stats_{$businessId}_{$startDate->format('Y-m-d')}";
 
-        return Cache::remember($cacheKey, $this->cacheTTL, function () use ($businessId) {
+        return Cache::remember($cacheKey, 300, function () use ($businessId) {
             $stats = DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->selectRaw('
@@ -64,7 +62,7 @@ class ContentStatisticsService
      */
     public function getSocialStats(string $businessId): array
     {
-        return Cache::remember("social_stats_{$businessId}", $this->cacheTTL, function () use ($businessId) {
+        return Cache::remember("social_stats_{$businessId}", 360, function () use ($businessId) {
             $stats = DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->where('status', 'published')
@@ -101,7 +99,7 @@ class ContentStatisticsService
      */
     public function getContentByPlatform(string $businessId): array
     {
-        return Cache::remember("content_by_platform_{$businessId}", $this->cacheTTL, function () use ($businessId) {
+        return Cache::remember("content_by_platform_{$businessId}", 420, function () use ($businessId) {
             return DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->where('status', 'published')
@@ -149,7 +147,7 @@ class ContentStatisticsService
     {
         $startDate = Carbon::now()->subDays($days);
 
-        return Cache::remember("content_trends_{$businessId}_{$days}", $this->cacheTTL, function () use ($businessId, $startDate) {
+        return Cache::remember("content_trends_{$businessId}_{$days}", 480, function () use ($businessId, $startDate) {
             return DB::table('content_calendar')
                 ->where('business_id', $businessId)
                 ->where('status', 'published')
@@ -180,15 +178,13 @@ class ContentStatisticsService
      */
     public function clearCache(string $businessId): void
     {
-        $patterns = [
-            "content_stats_{$businessId}*",
-            "social_stats_{$businessId}",
-            "content_by_platform_{$businessId}",
-            "content_trends_{$businessId}*",
-        ];
+        $today = Carbon::now()->subDays(30)->format('Y-m-d');
 
-        foreach ($patterns as $pattern) {
-            Cache::forget($pattern);
-        }
+        Cache::forget("content_stats_{$businessId}_{$today}");
+        Cache::forget("social_stats_{$businessId}");
+        Cache::forget("content_by_platform_{$businessId}");
+        Cache::forget("content_trends_{$businessId}_30");
+        Cache::forget("content_trends_{$businessId}_7");
+        Cache::forget("content_trends_{$businessId}_90");
     }
 }

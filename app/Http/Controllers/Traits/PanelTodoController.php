@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Traits;
 
 use App\Models\Todo;
+use App\Models\TodoTemplate;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 trait PanelTodoController
 {
@@ -16,12 +18,21 @@ trait PanelTodoController
 
     abstract protected function getRoutePrefix(): string;
 
+    /**
+     * Base query for todos — override for panel-specific scoping
+     */
+    protected function getBaseQuery($business)
+    {
+        return Todo::where('business_id', $business->id)
+            ->whereNull('parent_id');
+    }
+
     public function index(Request $request)
     {
         $business = $this->getCurrentBusiness();
 
         if (! $business) {
-            return inertia($this->getViewPrefix().'/Todos/Index', [
+            return Inertia::render($this->getViewPrefix().'/Todos/Index', [
                 'todos' => [
                     'overdue' => [],
                     'today' => [],
@@ -44,39 +55,61 @@ trait PanelTodoController
             ]);
         }
 
-        $today = Carbon::today();
-        $tomorrow = Carbon::tomorrow();
-        $weekEnd = Carbon::now()->endOfWeek();
-
         $filter = $request->get('filter', 'all');
         $statusFilter = $request->get('status', 'active');
 
-        // Build base query
-        $query = Todo::where('business_id', $business->id)
-            ->with(['subtasks', 'assignees.user', 'assignee'])
-            ->orderBy('due_date', 'asc')
-            ->orderBy('priority', 'desc');
+        $query = $this->getBaseQuery($business)
+            ->with(['subtasks', 'assignees.user', 'assignee', 'recurrence'])
+            ->orderBy('order')
+            ->orderBy('due_date');
 
-        // Apply filter
-        if ($filter === 'personal') {
-            $query->where('type', 'personal');
-        } elseif ($filter === 'team') {
-            $query->where('type', 'team');
-        } elseif ($filter === 'process') {
-            $query->where('type', 'process');
+        if ($filter !== 'all') {
+            $query->where('type', $filter);
         }
 
-        // Apply status filter
         if ($statusFilter === 'active') {
-            $query->where('status', '!=', 'completed');
+            $query->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS]);
         } elseif ($statusFilter === 'completed') {
-            $query->where('status', 'completed');
+            $query->where('status', Todo::STATUS_COMPLETED);
         }
 
         $allTodos = $query->get();
+        $grouped = $this->groupTodosByPeriod($allTodos);
+        $stats = $this->getTodoStats($business);
 
-        // Group todos by due date category
-        $groupedTodos = [
+        $teamMembers = $business->teamMembers()
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->pivot->role ?? 'member',
+            ]);
+
+        $templates = TodoTemplate::where('business_id', $business->id)
+            ->active()
+            ->withCount('items')
+            ->get();
+
+        return Inertia::render($this->getViewPrefix().'/Todos/Index', [
+            'todos' => $grouped,
+            'stats' => $stats,
+            'teamMembers' => $teamMembers,
+            'templates' => $templates,
+            'types' => $this->getTodoTypes(),
+            'priorities' => $this->getTodoPriorities(),
+            'statuses' => $this->getTodoStatuses(),
+            'filter' => $filter,
+            'statusFilter' => $statusFilter,
+        ]);
+    }
+
+    /**
+     * Group todos by time period — override for custom grouping
+     */
+    protected function groupTodosByPeriod($todos): array
+    {
+        $now = now();
+        $grouped = [
             'overdue' => [],
             'today' => [],
             'tomorrow' => [],
@@ -84,59 +117,53 @@ trait PanelTodoController
             'later' => [],
         ];
 
-        foreach ($allTodos as $todo) {
+        foreach ($todos as $todo) {
             $todoData = $this->formatTodo($todo);
 
-            if ($todo->status === 'completed') {
-                // Skip completed in active view, but they'll show in 'completed' status filter
-                if ($statusFilter !== 'active') {
-                    $groupedTodos['later'][] = $todoData;
-                }
+            if (! $todo->due_date) {
+                $grouped['later'][] = $todoData;
 
                 continue;
             }
 
-            if (! $todo->due_date) {
-                $groupedTodos['later'][] = $todoData;
-            } elseif ($todo->due_date->lt($today)) {
-                $groupedTodos['overdue'][] = $todoData;
-            } elseif ($todo->due_date->isSameDay($today)) {
-                $groupedTodos['today'][] = $todoData;
-            } elseif ($todo->due_date->isSameDay($tomorrow)) {
-                $groupedTodos['tomorrow'][] = $todoData;
-            } elseif ($todo->due_date->lte($weekEnd)) {
-                $groupedTodos['this_week'][] = $todoData;
+            $dueDate = $todo->due_date->startOfDay();
+
+            if ($dueDate < $now->copy()->startOfDay()) {
+                $grouped['overdue'][] = $todoData;
+            } elseif ($dueDate->isSameDay($now)) {
+                $grouped['today'][] = $todoData;
+            } elseif ($dueDate->isSameDay($now->copy()->addDay())) {
+                $grouped['tomorrow'][] = $todoData;
+            } elseif ($dueDate <= $now->copy()->endOfWeek()) {
+                $grouped['this_week'][] = $todoData;
             } else {
-                $groupedTodos['later'][] = $todoData;
+                $grouped['later'][] = $todoData;
             }
         }
 
-        // Calculate stats
-        $stats = [
-            'total' => $allTodos->where('status', '!=', 'completed')->count(),
-            'overdue' => count($groupedTodos['overdue']),
-            'completed_today' => Todo::where('business_id', $business->id)
-                ->where('status', 'completed')
-                ->whereDate('completed_at', $today)
+        return $grouped;
+    }
+
+    /**
+     * Calculate todo stats — override for panel-specific stats
+     */
+    protected function getTodoStats($business): array
+    {
+        $baseQuery = fn () => $this->getBaseQuery($business);
+
+        return [
+            'total' => $baseQuery()
+                ->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS])
+                ->count(),
+            'overdue' => $baseQuery()
+                ->whereIn('status', [Todo::STATUS_PENDING, Todo::STATUS_IN_PROGRESS])
+                ->where('due_date', '<', now()->startOfDay())
+                ->count(),
+            'completed_today' => $baseQuery()
+                ->where('status', Todo::STATUS_COMPLETED)
+                ->whereDate('completed_at', today())
                 ->count(),
         ];
-
-        // Get team members for assigning
-        $teamMembers = User::whereHas('teamBusinesses', function ($q) use ($business) {
-            $q->where('businesses.id', $business->id);
-        })->select('id', 'name', 'email')->get();
-
-        return inertia($this->getViewPrefix().'/Todos/Index', [
-            'todos' => $groupedTodos,
-            'stats' => $stats,
-            'teamMembers' => $teamMembers,
-            'templates' => [],
-            'types' => $this->getTodoTypes(),
-            'priorities' => $this->getTodoPriorities(),
-            'statuses' => $this->getTodoStatuses(),
-            'filter' => $filter,
-            'statusFilter' => $statusFilter,
-        ]);
     }
 
     protected function formatTodo($todo): array
@@ -154,12 +181,10 @@ trait PanelTodoController
             'low' => 'Past',
         ];
 
-        // Calculate subtasks progress
         $subtasksCount = $todo->subtasks->count();
         $completedSubtasksCount = $todo->subtasks->where('is_completed', true)->count();
         $progress = $subtasksCount > 0 ? round(($completedSubtasksCount / $subtasksCount) * 100) : 0;
 
-        // Calculate team progress for team todos
         $teamProgress = 0;
         $assigneesCount = 0;
         $completedAssigneesCount = 0;
@@ -169,11 +194,10 @@ trait PanelTodoController
             $teamProgress = $assigneesCount > 0 ? round(($completedAssigneesCount / $assigneesCount) * 100) : 0;
         }
 
-        // Format due date
         $dueDateFormatted = null;
         $isOverdue = false;
         if ($todo->due_date) {
-            $isOverdue = $todo->due_date->lt(Carbon::today()) && $todo->status !== 'completed';
+            $isOverdue = $todo->due_date->lt(Carbon::today()) && $todo->status !== Todo::STATUS_COMPLETED;
             if ($todo->due_time) {
                 $dueDateFormatted = $todo->due_date->format('d.m').' '.$todo->due_time;
             } else {
@@ -255,61 +279,69 @@ trait PanelTodoController
 
     public function show($id)
     {
-        $todo = Todo::with(['subtasks', 'assignees.user', 'assignee', 'comments.user'])
+        $business = $this->getCurrentBusiness();
+        $todo = Todo::with(['subtasks', 'assignees.user', 'assignee', 'recurrence'])
             ->findOrFail($id);
 
-        return response()->json([
-            'todo' => $this->formatTodo($todo),
-        ]);
-    }
-
-    public function toggle($id)
-    {
-        $todo = Todo::findOrFail($id);
-        $newStatus = $todo->status === 'completed' ? 'pending' : 'completed';
-        $todo->update([
-            'status' => $newStatus,
-            'completed_at' => $newStatus === 'completed' ? now() : null,
-        ]);
-
-        if (request()->wantsJson()) {
-            return response()->json([
-                'todo' => $this->formatTodo($todo->fresh(['subtasks', 'assignees.user', 'assignee'])),
-            ]);
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
-        return redirect()->route($this->getRoutePrefix().'.todos.index');
+        return response()->json([
+            'success' => true,
+            'todo' => $this->formatTodo($todo),
+        ]);
     }
 
     public function store(Request $request)
     {
         $business = $this->getCurrentBusiness();
 
+        if (! $business) {
+            return back()->with('error', 'Biznes topilmadi');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'nullable|in:personal,team,process',
+            'priority' => 'nullable|in:urgent,high,medium,low',
             'due_date' => 'nullable|date',
             'due_time' => 'nullable|string',
-            'priority' => 'nullable|in:urgent,high,medium,low',
+            'assigned_to' => 'nullable|exists:users,id',
             'assignee_ids' => 'nullable|array',
             'assignee_ids.*' => 'exists:users,id',
+            'subtasks' => 'nullable|array',
+            'subtasks.*.title' => 'required|string|max:255',
+            'tags' => 'nullable|array',
         ]);
 
         $todo = Todo::create([
             'business_id' => $business->id,
             'user_id' => Auth::id(),
+            'created_by' => Auth::id(),
+            'assigned_to' => $validated['assigned_to'] ?? Auth::id(),
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'type' => $validated['type'] ?? 'personal',
+            'priority' => $validated['priority'] ?? 'medium',
             'due_date' => $validated['due_date'] ?? null,
             'due_time' => $validated['due_time'] ?? null,
-            'priority' => $validated['priority'] ?? 'medium',
-            'status' => 'pending',
+            'tags' => $validated['tags'] ?? [],
+            'status' => Todo::STATUS_PENDING,
+            'order' => Todo::where('business_id', $business->id)->max('order') + 1,
         ]);
 
-        // Attach assignees for team todos
-        if (isset($validated['assignee_ids']) && $validated['type'] === 'team') {
+        if (! empty($validated['subtasks'])) {
+            foreach ($validated['subtasks'] as $subtaskData) {
+                $todo->subtasks()->create([
+                    'title' => $subtaskData['title'],
+                    'is_completed' => false,
+                ]);
+            }
+        }
+
+        if (isset($validated['assignee_ids']) && ($validated['type'] ?? 'personal') === 'team') {
             foreach ($validated['assignee_ids'] as $userId) {
                 $todo->assignees()->create([
                     'user_id' => $userId,
@@ -318,10 +350,12 @@ trait PanelTodoController
             }
         }
 
+        $todo->load(['subtasks', 'assignees.user', 'assignee']);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'todo' => $this->formatTodo($todo->fresh(['subtasks', 'assignees.user', 'assignee'])),
+                'todo' => $this->formatTodo($todo),
             ]);
         }
 
@@ -331,24 +365,55 @@ trait PanelTodoController
 
     public function update(Request $request, $id)
     {
+        $business = $this->getCurrentBusiness();
         $todo = Todo::findOrFail($id);
+
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'nullable|in:personal,team,process',
+            'type' => 'sometimes|in:personal,team,process',
+            'priority' => 'nullable|in:urgent,high,medium,low',
+            'status' => 'sometimes|in:pending,in_progress,completed,cancelled',
             'due_date' => 'nullable|date',
             'due_time' => 'nullable|string',
-            'priority' => 'nullable|in:urgent,high,medium,low',
-            'status' => 'nullable|in:pending,in_progress,completed',
+            'assigned_to' => 'nullable|exists:users,id',
+            'assignee_ids' => 'nullable|array',
+            'assignee_ids.*' => 'exists:users,id',
+            'tags' => 'nullable|array',
         ]);
 
+        if (isset($validated['status'])) {
+            if ($validated['status'] === Todo::STATUS_COMPLETED && $todo->status !== Todo::STATUS_COMPLETED) {
+                $validated['completed_at'] = now();
+            } elseif ($validated['status'] !== Todo::STATUS_COMPLETED) {
+                $validated['completed_at'] = null;
+            }
+        }
+
+        if (array_key_exists('assignee_ids', $validated)) {
+            $todo->assignees()->delete();
+            if (! empty($validated['assignee_ids'])) {
+                foreach ($validated['assignee_ids'] as $userId) {
+                    $todo->assignees()->create([
+                        'user_id' => $userId,
+                        'is_completed' => false,
+                    ]);
+                }
+            }
+            unset($validated['assignee_ids']);
+        }
+
         $todo->update($validated);
+        $todo->load(['subtasks', 'assignees.user', 'assignee', 'recurrence']);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'todo' => $this->formatTodo($todo->fresh(['subtasks', 'assignees.user', 'assignee'])),
+                'todo' => $this->formatTodo($todo),
             ]);
         }
 
@@ -358,7 +423,13 @@ trait PanelTodoController
 
     public function destroy($id)
     {
+        $business = $this->getCurrentBusiness();
         $todo = Todo::findOrFail($id);
+
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
         $todo->delete();
 
         if (request()->wantsJson()) {
@@ -369,9 +440,114 @@ trait PanelTodoController
             ->with('success', 'Vazifa o\'chirildi');
     }
 
-    public function storeSubtask(Request $request, $todoId)
+    public function toggleComplete($id)
     {
+        $business = $this->getCurrentBusiness();
+        $todo = Todo::findOrFail($id);
+
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        if ($todo->is_team_task) {
+            $todo->toggleUserCompletion();
+        } else {
+            if ($todo->status === Todo::STATUS_COMPLETED) {
+                $todo->update([
+                    'status' => Todo::STATUS_PENDING,
+                    'completed_at' => null,
+                ]);
+            } else {
+                $todo->update([
+                    'status' => Todo::STATUS_COMPLETED,
+                    'completed_at' => now(),
+                ]);
+            }
+        }
+
+        $todo->load(['subtasks', 'assignees.user', 'assignee', 'recurrence']);
+        $todo->refresh();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'todo' => $this->formatTodo($todo),
+            ]);
+        }
+
+        return redirect()->route($this->getRoutePrefix().'.todos.index')
+            ->with('success', 'Vazifa holati o\'zgartirildi');
+    }
+
+    /**
+     * Backward compat alias — Marketing routes use 'toggle'
+     */
+    public function toggle($id)
+    {
+        return $this->toggleComplete($id);
+    }
+
+    public function toggleUserComplete(Request $request, $id)
+    {
+        $business = $this->getCurrentBusiness();
+        $todo = Todo::findOrFail($id);
+
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
+        $assignee = $todo->assignees()->where('user_id', Auth::id())->first();
+
+        if ($assignee) {
+            $assignee->update([
+                'completed' => ! $assignee->completed,
+                'completed_at' => ! $assignee->completed ? now() : null,
+            ]);
+
+            $allCompleted = $todo->assignees()->where('completed', false)->count() === 0;
+            if ($allCompleted && $todo->assignees()->count() > 0) {
+                $todo->update([
+                    'status' => Todo::STATUS_COMPLETED,
+                    'completed_at' => now(),
+                ]);
+            }
+        }
+
+        $todo->load(['subtasks', 'assignees.user', 'assignee']);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'todo' => $this->formatTodo($todo),
+            ]);
+        }
+
+        return back()->with('success', 'Vazifa holati o\'zgartirildi');
+    }
+
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'todos' => 'required|array',
+            'todos.*.id' => 'required|exists:todos,id',
+            'todos.*.order' => 'required|integer',
+        ]);
+
+        foreach ($validated['todos'] as $item) {
+            Todo::where('id', $item['id'])->update(['order' => $item['order']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function addSubtask(Request $request, $todoId)
+    {
+        $business = $this->getCurrentBusiness();
         $todo = Todo::findOrFail($todoId);
+
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -387,14 +563,28 @@ trait PanelTodoController
             'subtask' => [
                 'id' => $subtask->id,
                 'title' => $subtask->title,
-                'is_completed' => $subtask->is_completed,
+                'is_completed' => $subtask->is_completed ?? false,
             ],
         ]);
     }
 
+    /**
+     * Backward compat alias — Marketing routes use 'storeSubtask'
+     */
+    public function storeSubtask(Request $request, $todoId)
+    {
+        return $this->addSubtask($request, $todoId);
+    }
+
     public function toggleSubtask($todoId, $subtaskId)
     {
+        $business = $this->getCurrentBusiness();
         $todo = Todo::findOrFail($todoId);
+
+        if ($business && $todo->business_id !== $business->id) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+
         $subtask = $todo->subtasks()->findOrFail($subtaskId);
         $subtask->update(['is_completed' => ! $subtask->is_completed]);
 

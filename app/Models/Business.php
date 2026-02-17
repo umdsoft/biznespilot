@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Business extends Model
 {
@@ -85,9 +86,15 @@ class Business extends Model
      */
     public function getOnboardingPercentAttribute(): int
     {
-        $progress = $this->onboardingProgress()->first();
+        if ($this->relationLoaded('onboardingProgress')) {
+            return (int) ($this->onboardingProgress?->phase_1_completion_percent ?? 0);
+        }
 
-        return $progress ? (int) $progress->phase_1_completion_percent : 0;
+        return (int) Cache::remember(
+            "onboarding_pct:{$this->id}",
+            3600,
+            fn () => $this->onboardingProgress()->value('phase_1_completion_percent') ?? 0
+        );
     }
 
     /**

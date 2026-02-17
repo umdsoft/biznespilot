@@ -138,10 +138,11 @@ if [ ! -f "${DEPLOY_PATH}/.env" ]; then
         log_warning "Database ma'lumotlarini qo'lda yozing: nano ${DEPLOY_PATH}/.env"
     fi
 
-    # Cache va Queue driverlarini Redis ga sozlash
+    # Cache, Session va Queue driverlarini Redis ga sozlash
     sed -i 's/^CACHE_STORE=.*/CACHE_STORE=redis/' ${DEPLOY_PATH}/.env
+    sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=redis/' ${DEPLOY_PATH}/.env
     sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/' ${DEPLOY_PATH}/.env
-    log_success "CACHE_STORE=redis, QUEUE_CONNECTION=redis sozlandi"
+    log_success "CACHE_STORE=redis, SESSION_DRIVER=redis, QUEUE_CONNECTION=redis sozlandi"
 
     # App key generatsiya
     php artisan key:generate --force

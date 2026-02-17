@@ -175,14 +175,18 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        // Content Posts
+        // Content Posts (konsolidatsiya: 5 ta ALTER migratsiya birlashtirilib)
         Schema::create('content_posts', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('business_id');
+            $table->uuid('user_id')->nullable();
             $table->uuid('channel_id')->nullable();
+            $table->text('platform')->nullable();
             $table->string('title')->nullable();
             $table->text('content');
             $table->string('type', 50)->default('post');
+            $table->string('content_type', 50)->nullable();
+            $table->string('format', 50)->nullable();
             $table->string('status', 20)->default('draft');
             $table->json('media')->nullable();
             $table->json('tags')->nullable();
@@ -192,7 +196,13 @@ return new class extends Migration
             $table->integer('likes')->default(0);
             $table->integer('comments')->default(0);
             $table->integer('shares')->default(0);
+            $table->string('external_id')->nullable();
+            $table->string('external_url')->nullable();
+            $table->json('ai_suggestions')->nullable();
+            $table->json('metrics')->nullable();
+            $table->json('hashtags')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
             $table->foreign('channel_id')->references('id')->on('marketing_channels')->onDelete('set null');
@@ -200,6 +210,8 @@ return new class extends Migration
             $table->index('business_id');
             $table->index('status');
             $table->index('scheduled_at');
+            $table->index('content_type');
+            $table->index('format');
         });
     }
 

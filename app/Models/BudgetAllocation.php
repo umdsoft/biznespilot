@@ -28,7 +28,7 @@ class BudgetAllocation extends Model
         'channel',
         'campaign',
         'planned_budget',
-        'allocated_budget',
+        'allocated_amount',
         'spent_amount',
         'remaining_amount',
         'allocation_percent',
@@ -53,7 +53,7 @@ class BudgetAllocation extends Model
     protected $casts = [
         'history' => 'array',
         'planned_budget' => 'decimal:2',
-        'allocated_budget' => 'decimal:2',
+        'allocated_amount' => 'decimal:2',
         'spent_amount' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
         'allocation_percent' => 'decimal:2',
@@ -100,10 +100,10 @@ class BudgetAllocation extends Model
 
         static::saving(function ($model) {
             // Auto-calculate remaining
-            $model->remaining_amount = ($model->allocated_budget ?? $model->planned_budget) - $model->spent_amount;
+            $model->remaining_amount = ($model->allocated_amount ?? $model->planned_budget) - $model->spent_amount;
 
             // Check overspend
-            $budget = $model->allocated_budget ?? $model->planned_budget;
+            $budget = $model->allocated_amount ?? $model->planned_budget;
             if ($budget > 0) {
                 $spentPercent = ($model->spent_amount / $budget) * 100;
                 $model->overspend_alert = $spentPercent >= ($model->overspend_threshold_percent ?? 100);
@@ -199,7 +199,7 @@ class BudgetAllocation extends Model
 
     public function getSpentPercent(): float
     {
-        $budget = $this->allocated_budget ?? $this->planned_budget;
+        $budget = $this->allocated_amount ?? $this->planned_budget;
         if ($budget == 0) {
             return 0;
         }
@@ -225,7 +225,7 @@ class BudgetAllocation extends Model
 
     public function isOverBudget(): bool
     {
-        return $this->spent_amount > ($this->allocated_budget ?? $this->planned_budget);
+        return $this->spent_amount > ($this->allocated_amount ?? $this->planned_budget);
     }
 
     public function approve(?int $userId = null): void
@@ -241,7 +241,7 @@ class BudgetAllocation extends Model
     {
         $this->update([
             'status' => 'active',
-            'allocated_budget' => $this->allocated_budget ?? $this->planned_budget,
+            'allocated_amount' => $this->allocated_amount ?? $this->planned_budget,
         ]);
     }
 
