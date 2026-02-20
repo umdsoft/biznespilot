@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
+use App\Jobs\VideoContent\ProcessVideoContentJob;
 use App\Models\ContentGeneration;
 use App\Models\ContentStyleGuide;
 use App\Models\ContentTemplate;
 use App\Models\Offer;
+use App\Models\VideoContentRequest;
 use App\Services\ContentAI\ContentAnalyzerService;
 use App\Services\ContentAI\ContentGeneratorService;
 use App\Services\ContentAI\ContentStyleGuideService;
@@ -551,5 +553,105 @@ class ContentAIController extends Controller
         ];
 
         return response()->json($suggestions);
+    }
+
+    /**
+     * Video to Content — sahifa
+     */
+    public function videoToContent()
+    {
+        $business = $this->getCurrentBusiness();
+        if (! $business) {
+            return redirect()->route('login');
+        }
+
+        $recentRequests = VideoContentRequest::where('business_id', $business->id)
+            ->with('contentGeneration')
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+
+        return Inertia::render('Marketing/ContentAI/VideoToContent', [
+            'recentRequests' => $recentRequests,
+            'panelType' => 'business',
+        ]);
+    }
+
+    /**
+     * Video to Content — submit video URL
+     */
+    public function submitVideo(Request $request)
+    {
+        $business = $this->getCurrentBusiness();
+        if (! $business) {
+            return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        // AI limit tekshirish
+        if ($this->planLimitService->hasReachedLimit($business, 'ai_requests')) {
+            return response()->json([
+                'error' => 'Oylik AI so\'rovlar limiti tugadi. Tarifni yangilang.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'video_url' => 'required|url|max:2000',
+            'content_type' => 'nullable|in:post,story,reel,ad,carousel',
+            'purpose' => 'nullable|in:educate,inspire,sell,engage,announce,entertain',
+            'target_channel' => 'nullable|in:instagram,telegram,youtube',
+        ]);
+
+        $platform = VideoContentRequest::detectPlatform($validated['video_url']);
+
+        $videoRequest = VideoContentRequest::create([
+            'business_id' => $business->id,
+            'user_id' => auth()->id(),
+            'video_url' => $validated['video_url'],
+            'platform' => $platform,
+            'content_type' => $validated['content_type'] ?? 'post',
+            'purpose' => $validated['purpose'] ?? 'engage',
+            'target_channel' => $validated['target_channel'] ?? 'instagram',
+            'status' => 'pending',
+        ]);
+
+        // Queue ga yuborish
+        ProcessVideoContentJob::dispatch($videoRequest);
+
+        Log::info('Video content request created', [
+            'request_id' => $videoRequest->id,
+            'business_id' => $business->id,
+            'url' => $validated['video_url'],
+            'platform' => $platform,
+        ]);
+
+        return response()->json([
+            'request' => $videoRequest,
+            'message' => 'Video qabul qilindi. Kontent tayyorlanmoqda...',
+        ]);
+    }
+
+    /**
+     * Video to Content — status tekshirish
+     */
+    public function videoStatus(string $business, string $requestId)
+    {
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return response()->json(['error' => 'Biznes topilmadi'], 404);
+        }
+
+        $videoRequest = VideoContentRequest::where('id', $requestId)
+            ->where('business_id', $currentBusiness->id)
+            ->with('contentGeneration')
+            ->first();
+
+        if (! $videoRequest) {
+            return response()->json(['error' => 'So\'rov topilmadi'], 404);
+        }
+
+        return response()->json([
+            'request' => $videoRequest,
+            'status_label' => VideoContentRequest::STATUSES[$videoRequest->status] ?? $videoRequest->status,
+        ]);
     }
 }

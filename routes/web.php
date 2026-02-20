@@ -490,6 +490,13 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
                 Route::post('/sync-performance', [App\Http\Controllers\Marketing\ContentPlanController::class, 'syncPerformance'])->name('sync-performance');
                 Route::get('/history', [App\Http\Controllers\Marketing\ContentPlanController::class, 'history'])->name('history');
             });
+
+            // Video to Content (Video → Kontent)
+            Route::prefix('video-content')->name('video-content.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Marketing\ContentAIController::class, 'videoToContent'])->name('index');
+                Route::post('/submit', [App\Http\Controllers\Marketing\ContentAIController::class, 'submitVideo'])->name('submit');
+                Route::get('/{requestId}/status', [App\Http\Controllers\Marketing\ContentAIController::class, 'videoStatus'])->name('status');
+            });
         });
     });
 
