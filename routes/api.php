@@ -627,3 +627,64 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
         });
     });
 });
+
+// ========== MINI APP STORE API ==========
+// Telegram Mini App do'kon API'lari
+// Store route model binding: {store:slug} orqali TelegramStore topiladi
+Route::prefix('miniapp/v1/{store:slug}')->group(function () {
+    // Public (autentifikatsiya shart emas)
+    Route::get('/info', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'info']);
+    Route::get('/categories', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'categories']);
+    Route::get('/delivery-zones', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'deliveryZones']);
+
+    // Unified Catalog API (barcha bot turlari uchun)
+    Route::get('/catalog', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'index']);
+    Route::get('/catalog/search', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'search']);
+    Route::get('/catalog/featured', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'featured']);
+    Route::get('/catalog/filters', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'filterOptions']);
+    Route::get('/catalog/{slug}', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'show']);
+
+    // Legacy product routes (backward compat)
+    Route::get('/featured', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'featured']);
+    Route::get('/products', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'index']);
+    Route::get('/products/search', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'search']);
+    Route::get('/products/{product:slug}', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'show']);
+
+    // Authenticated (Telegram initData talab qilinadi)
+    Route::middleware('miniapp.auth')->group(function () {
+        Route::post('/auth', [\App\Http\Controllers\Api\MiniApp\AuthController::class, 'authenticate']);
+        Route::get('/cart', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'index']);
+        Route::post('/cart', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'addItem']);
+        Route::put('/cart/{item}', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'updateItem']);
+        Route::delete('/cart/{item}', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'removeItem']);
+        Route::post('/cart/promo', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'applyPromo']);
+        Route::post('/checkout', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'checkout']);
+        Route::get('/orders', [\App\Http\Controllers\Api\MiniApp\OrderController::class, 'index']);
+        Route::get('/orders/{order:order_number}', [\App\Http\Controllers\Api\MiniApp\OrderController::class, 'show']);
+
+        // ========== MINI APP ADMIN (Telegram ichidan boshqarish) ==========
+        // Do'kon egasi/admini uchun boshqaruv paneli
+        // Admin tekshiruvi controller ichida amalga oshiriladi (isStoreAdmin)
+        Route::prefix('admin')->group(function () {
+            Route::get('/dashboard', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'dashboard']);
+            Route::get('/orders', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'orders']);
+            Route::get('/orders/{order}', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'orderDetail']);
+            Route::post('/orders/{order}/status', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'updateOrderStatus']);
+            Route::get('/catalog', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'catalog']);
+            Route::post('/catalog/{id}/toggle', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'toggleCatalogItem']);
+            Route::get('/stats', [\App\Http\Controllers\Api\MiniApp\MiniAppAdminController::class, 'stats']);
+        });
+    });
+});
+
+// ========== STORE TELEGRAM BOT WEBHOOK ==========
+// Telegram bot webhook (do'kon uchun)
+Route::post('/webhooks/store-bot/{store}', [\App\Http\Controllers\Api\MiniApp\StoreTelegramWebhookController::class, 'handle']);
+
+// ========== STORE PAYMENT WEBHOOKS ==========
+// To'lov tizimlari webhook'lari (autentifikatsiya yo'q - imzo orqali tekshiriladi)
+Route::prefix('store-webhooks')->middleware('throttle:billing-webhooks')->group(function () {
+    Route::post('/payme/{store}', [\App\Http\Controllers\Api\MiniApp\StorePaymeWebhookController::class, 'handle']);
+    Route::post('/click/{store}/prepare', [\App\Http\Controllers\Api\MiniApp\StoreClickWebhookController::class, 'prepare']);
+    Route::post('/click/{store}/complete', [\App\Http\Controllers\Api\MiniApp\StoreClickWebhookController::class, 'complete']);
+});

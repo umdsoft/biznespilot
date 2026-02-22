@@ -26,7 +26,7 @@
 
           <div class="flex items-center gap-4">
             <Link
-              :href="getRoute('telegram-funnels.create')"
+              :href="getRoute('store.setup.wizard')"
               class="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg shadow-blue-900/20"
             >
               <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,7 +125,7 @@
         </p>
 
         <Link
-          :href="getRoute('telegram-funnels.create')"
+          :href="getRoute('store.setup.wizard')"
           class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5"
         >
           <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

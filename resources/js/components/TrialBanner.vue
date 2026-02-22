@@ -8,13 +8,10 @@
         <component :is="bannerIcon" class="w-5 h-5 flex-shrink-0" />
         <p class="text-sm font-medium truncate">
           <template v-if="isExpired">
-            Sinov davri tugadi. Davom etish uchun tarif tanlang.
-          </template>
-          <template v-else-if="daysRemaining <= 3">
-            Sinov davri {{ daysRemaining }} kunda tugaydi! Tarifni hozir tanlang.
+            {{ isTrial ? 'Sinov davri' : 'Obuna muddati' }} tugadi. Davom etish uchun tarif tanlang.
           </template>
           <template v-else>
-            Sinov davri: <strong>{{ daysRemaining }} kun</strong> qoldi.
+            {{ isTrial ? 'Sinov davri' : 'Obuna muddati' }} {{ daysRemaining }} kunda tugaydi! Tarifni hozir tanlang.
           </template>
         </p>
       </div>
@@ -78,8 +75,10 @@ const showBanner = computed(() => {
   // Obuna umuman yo'q — tugagan
   if (hasNoSubscription.value) return true;
 
-  // Faqat trial da ko'rsatish
-  return isTrial.value;
+  // Faqat 3 kun yoki kamroq qolganda ko'rsatish (trial va pullik uchun ham)
+  if (daysRemaining.value <= 3) return true;
+
+  return false;
 });
 
 const bannerClass = computed(() => {

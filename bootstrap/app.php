@@ -12,6 +12,7 @@ use App\Http\Middleware\ForceHttps;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HRMiddleware;
 use App\Http\Middleware\MarketingMiddleware;
+use App\Http\Middleware\MiniAppAuth;
 use App\Http\Middleware\OperatorMiddleware;
 use App\Http\Middleware\PaymeBasicAuth;
 use App\Http\Middleware\SalesHeadMiddleware;
@@ -80,6 +81,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             // Billing middleware
             'payme.auth' => PaymeBasicAuth::class,
+            // Mini App (Telegram Store) middleware
+            'miniapp.auth' => MiniAppAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

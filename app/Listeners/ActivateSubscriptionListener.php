@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\PaymentSuccessEvent;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Subscription;
 use App\Services\SubscriptionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -65,6 +66,9 @@ class ActivateSubscriptionListener implements ShouldQueue
             $transaction->update([
                 'subscription_id' => $subscription->id,
             ]);
+
+            // 2.5. Redis subscription cache ni tozalash (session bu yerda mavjud emas)
+            HandleInertiaRequests::clearSubscriptionCache($business->id);
 
             // 3. Foydalanuvchiga xabar yuborish
             $this->notifyUser($business, $plan, $transaction);

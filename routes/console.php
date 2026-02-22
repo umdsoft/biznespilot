@@ -762,6 +762,26 @@ Schedule::job(new \App\Jobs\Marketing\ProcessContentFeedbackJob)
     ->withoutOverlapping();
 
 // ==========================================
+// TELEGRAM STORE JOBS
+// ==========================================
+
+// Muddati o'tgan buyurtmalarni avtomatik bekor qilish - Har soatda
+Schedule::job(new \App\Jobs\Store\AutoCancelExpiredOrdersJob)
+    ->hourly()
+    ->timezone('Asia/Tashkent')
+    ->name('store-auto-cancel-orders')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// Do'kon kunlik analitika - Har kuni 01:00 da
+Schedule::job(new \App\Jobs\Store\UpdateStoreAnalyticsJob)
+    ->dailyAt('01:00')
+    ->timezone('Asia/Tashkent')
+    ->name('store-daily-analytics')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// ==========================================
 // TRENDSEE - HYBRID INTELLIGENCE ENGINE JOBS
 // ==========================================
 // [MVP] DISABLED - Focus on core CRM features

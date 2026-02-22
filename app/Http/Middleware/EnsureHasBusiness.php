@@ -165,22 +165,16 @@ class EnsureHasBusiness
     }
 
     /**
-     * Check if business has active subscription (cached per request)
+     * Check if business has active subscription.
+     * No caching — single indexed query is fast enough.
+     * Session caching is dangerous here because ActivateSubscriptionListener
+     * runs in a queue worker and cannot clear session values.
      */
     private function hasActiveSubscription(string|int $businessId): bool
     {
-        $cacheKey = "sub_active_{$businessId}";
-
-        if (session()->has($cacheKey)) {
-            return session($cacheKey);
-        }
-
         $business = Business::find($businessId);
-        $isActive = $business && $business->hasActiveSubscription();
 
-        session([$cacheKey => $isActive]);
-
-        return $isActive;
+        return $business && $business->hasActiveSubscription();
     }
 
     /**

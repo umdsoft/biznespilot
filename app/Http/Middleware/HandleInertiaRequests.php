@@ -306,9 +306,15 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Clear subscription cache when plan changes.
+     * Clears both Redis cache and session cache.
      */
     public static function clearSubscriptionCache(string|int $businessId): void
     {
         Cache::forget("subscription_data_{$businessId}");
+
+        // Also clear session cache if available (not available in queue workers)
+        if (session()->isStarted()) {
+            session()->forget("sub_active_{$businessId}");
+        }
     }
 }

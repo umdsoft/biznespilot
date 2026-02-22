@@ -45,11 +45,11 @@ class TelegramBotManagementController extends Controller
     }
 
     /**
-     * Show bot creation form
+     * Redirect to store setup wizard for bot creation
      */
-    public function create(): InertiaResponse
+    public function create()
     {
-        return Inertia::render('Business/Telegram/Bots/Create');
+        return redirect()->route('business.store.setup.wizard');
     }
 
     /**

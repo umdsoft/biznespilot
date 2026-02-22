@@ -1283,6 +1283,63 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/success', [\App\Http\Controllers\Business\BillingController::class, 'success'])->name('success');
         Route::get('/history', [\App\Http\Controllers\Business\BillingController::class, 'history'])->name('history');
     });
+
+    // ========== Store Management (Telegram Mini App Do'kon) ==========
+    Route::prefix('store')->name('store.')->group(function () {
+        // Setup Wizard
+        Route::get('/setup', [App\Http\Controllers\Business\StoreSetupController::class, 'wizard'])->name('setup.wizard');
+        Route::post('/setup', [App\Http\Controllers\Business\StoreSetupController::class, 'storeSetup'])->name('setup.store');
+        Route::post('/setup/connect-bot', [App\Http\Controllers\Business\StoreSetupController::class, 'connectBot'])->name('setup.connect-bot');
+        Route::post('/setup/payment', [App\Http\Controllers\Business\StoreSetupController::class, 'configurePayment'])->name('setup.payment');
+        Route::post('/setup/activate', [App\Http\Controllers\Business\StoreSetupController::class, 'activate'])->name('setup.activate');
+
+        // Dashboard
+        Route::get('/dashboard', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'dashboard'])->name('dashboard');
+
+        // Unified Catalog (barcha bot turlari uchun — products, services, menu items, etc.)
+        Route::prefix('catalog')->name('catalog.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Business\StoreCatalogController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\Business\StoreCatalogController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\Business\StoreCatalogController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [App\Http\Controllers\Business\StoreCatalogController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [App\Http\Controllers\Business\StoreCatalogController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\Business\StoreCatalogController::class, 'destroy'])->name('destroy');
+        });
+
+        // Products (backward compat — eski routelar saqlanadi)
+        Route::resource('products', App\Http\Controllers\Business\StoreProductController::class);
+        Route::post('/products/{product}/images', [App\Http\Controllers\Business\StoreProductController::class, 'uploadImage'])->name('products.upload-image');
+        Route::delete('/products/images/{image}', [App\Http\Controllers\Business\StoreProductController::class, 'deleteImage'])->name('products.delete-image');
+        Route::post('/products/reorder', [App\Http\Controllers\Business\StoreProductController::class, 'reorder'])->name('products.reorder');
+
+        // Categories
+        Route::resource('categories', App\Http\Controllers\Business\StoreCategoryController::class)->except(['create', 'show', 'edit']);
+        Route::post('/categories/reorder', [App\Http\Controllers\Business\StoreCategoryController::class, 'reorder'])->name('categories.reorder');
+
+        // Orders
+        Route::get('/orders', [App\Http\Controllers\Business\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [App\Http\Controllers\Business\StoreOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{order}/status', [App\Http\Controllers\Business\StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::get('/orders-export', [App\Http\Controllers\Business\StoreOrderController::class, 'export'])->name('orders.export');
+
+        // Customers
+        Route::get('/customers', [App\Http\Controllers\Business\StoreCustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/{customer}', [App\Http\Controllers\Business\StoreCustomerController::class, 'show'])->name('customers.show');
+
+        // Promo Codes
+        Route::resource('promo-codes', App\Http\Controllers\Business\StorePromoCodeController::class)->except(['create', 'show', 'edit']);
+        Route::post('/promo-codes/{promoCode}/toggle', [App\Http\Controllers\Business\StorePromoCodeController::class, 'toggleStatus'])->name('promo-codes.toggle');
+
+        // Analytics
+        Route::get('/analytics/sales', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'salesReport'])->name('analytics.sales');
+        Route::get('/analytics/products', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'productReport'])->name('analytics.products');
+
+        // Settings
+        Route::get('/settings', [App\Http\Controllers\Business\StoreSettingsController::class, 'index'])->name('settings');
+        Route::put('/settings', [App\Http\Controllers\Business\StoreSettingsController::class, 'update'])->name('settings.update');
+        Route::put('/settings/theme', [App\Http\Controllers\Business\StoreSettingsController::class, 'updateTheme'])->name('settings.theme');
+        Route::put('/settings/delivery-zones', [App\Http\Controllers\Business\StoreSettingsController::class, 'updateDeliveryZones'])->name('settings.delivery-zones');
+    });
 });
 
 // Admin Panel Routes (Platform Management)
@@ -1736,6 +1793,30 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
             'currentBusiness' => auth()->user()?->currentBusiness,
         ]);
     })->name('sales-analytics');
+
+    // ========== Store — SalesHead access (buyurtma, mijoz, katalog, analitika) ==========
+    Route::prefix('store')->name('store.')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'dashboard'])->name('dashboard');
+
+        // Orders
+        Route::get('/orders', [App\Http\Controllers\Business\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [App\Http\Controllers\Business\StoreOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{order}/status', [App\Http\Controllers\Business\StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::get('/orders-export', [App\Http\Controllers\Business\StoreOrderController::class, 'export'])->name('orders.export');
+
+        // Customers
+        Route::get('/customers', [App\Http\Controllers\Business\StoreCustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/{customer}', [App\Http\Controllers\Business\StoreCustomerController::class, 'show'])->name('customers.show');
+
+        // Catalog (read-only)
+        Route::get('/catalog', [App\Http\Controllers\Business\StoreCatalogController::class, 'index'])->name('catalog.index');
+        Route::get('/catalog/{id}/edit', [App\Http\Controllers\Business\StoreCatalogController::class, 'edit'])->name('catalog.edit');
+
+        // Analytics
+        Route::get('/analytics/sales', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'salesReport'])->name('analytics.sales');
+        Route::get('/analytics/products', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'productReport'])->name('analytics.products');
+    });
 });
 
 // ==============================================
@@ -2541,4 +2622,34 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
         Route::get('/', [App\Http\Controllers\Sales\MyDayController::class, 'index'])->name('index');
         Route::get('/stats', [App\Http\Controllers\Sales\MyDayController::class, 'stats'])->name('stats');
     });
+
+    // ========== Store — Operator access (buyurtma va mijozlar boshqaruvi) ==========
+    Route::prefix('store')->name('store.')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [App\Http\Controllers\Business\StoreAnalyticsController::class, 'dashboard'])->name('dashboard');
+
+        // Orders
+        Route::get('/orders', [App\Http\Controllers\Business\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [App\Http\Controllers\Business\StoreOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{order}/status', [App\Http\Controllers\Business\StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::get('/orders-export', [App\Http\Controllers\Business\StoreOrderController::class, 'export'])->name('orders.export');
+
+        // Customers
+        Route::get('/customers', [App\Http\Controllers\Business\StoreCustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/{customer}', [App\Http\Controllers\Business\StoreCustomerController::class, 'show'])->name('customers.show');
+
+        // Catalog (read-only)
+        Route::get('/catalog', [App\Http\Controllers\Business\StoreCatalogController::class, 'index'])->name('catalog.index');
+        Route::get('/catalog/{id}/edit', [App\Http\Controllers\Business\StoreCatalogController::class, 'edit'])->name('catalog.edit');
+    });
 });
+
+// ========== MINI APP STORE (Public, no auth) ==========
+Route::get('/miniapp/{storeSlug}', function ($storeSlug) {
+    $store = \App\Models\Store\TelegramStore::where('slug', $storeSlug)->where('is_active', true)->firstOrFail();
+    return view('miniapp', [
+        'storeName' => $store->name,
+        'storeSlug' => $store->slug,
+        'apiUrl' => url('/api/miniapp/v1/' . $store->slug),
+    ]);
+})->name('miniapp.show');

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TelegramBot extends Model
 {
@@ -100,6 +101,11 @@ class TelegramBot extends Model
     public function dailyStats(): HasMany
     {
         return $this->hasMany(TelegramDailyStat::class);
+    }
+
+    public function store(): HasOne
+    {
+        return $this->hasOne(Store\TelegramStore::class);
     }
 
     // Scopes

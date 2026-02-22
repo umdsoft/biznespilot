@@ -12,6 +12,7 @@ use App\Models\Lead;
 use App\Models\MarketingSpend;
 use App\Models\Order;
 use App\Models\Sale;
+use App\Models\Store\StoreOrder;
 use App\Models\Task;
 use App\Models\AttendanceRecord;
 use App\Models\LeaveRequest;
@@ -28,6 +29,7 @@ use App\Observers\LeadObserver;
 use App\Observers\MarketingSpendObserver;
 use App\Observers\OrderObserver;
 use App\Observers\SaleObserver;
+use App\Observers\StoreOrderObserver;
 use App\Observers\TaskObserver;
 use App\Observers\HR\AttendanceRecordObserver;
 use App\Observers\HR\LeaveRequestObserver;
@@ -102,6 +104,9 @@ class AppServiceProvider extends ServiceProvider
         Sale::observe(SaleObserver::class);
         Customer::observe(CustomerObserver::class);
         Order::observe(OrderObserver::class);
+
+        // Store order → Lead pipeline (Telegram Mini App buyurtmalari → avtomatik Lead yaratish)
+        StoreOrder::observe(StoreOrderObserver::class);
 
         // Pipeline automation event subscriber
         Event::subscribe(PipelineAutomationListener::class);
