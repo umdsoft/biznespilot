@@ -383,7 +383,15 @@ const submitVideo = async () => {
   try {
     const response = await axios.post(route('business.marketing.content-ai.video-content.submit'), form.value);
     currentRequest.value = response.data.request;
-    startPolling(currentRequest.value.id);
+
+    // Sync dispatch tugagan bo'lsa — polling kerak emas
+    if (['completed', 'failed'].includes(response.data.request.status)) {
+      if (response.data.request.status === 'completed' && response.data.request.content_generation) {
+        generatedContent.value = response.data.request.content_generation;
+      }
+    } else {
+      startPolling(currentRequest.value.id);
+    }
   } catch (error) {
     const msg = error.response?.data?.error || error.response?.data?.message || error.message;
     alert('Xatolik: ' + msg);
@@ -396,7 +404,7 @@ const startPolling = (requestId) => {
   stopPolling();
   pollInterval = setInterval(async () => {
     try {
-      const response = await axios.get(route('business.marketing.content-ai.video-content.status', requestId));
+      const response = await axios.get(route('business.marketing.content-ai.video-content.status', { requestId }));
       currentRequest.value = response.data.request;
 
       if (['completed', 'failed'].includes(response.data.request.status)) {

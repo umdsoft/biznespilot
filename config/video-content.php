@@ -8,6 +8,7 @@ return [
     */
     'extractor' => [
         'binary' => env('YTDLP_BINARY', 'yt-dlp'),
+        'ffmpeg_location' => env('FFMPEG_LOCATION'),
         'timeout' => 120, // seconds
         'max_duration' => 1800, // 30 minutes max
         'audio_format' => 'mp3',

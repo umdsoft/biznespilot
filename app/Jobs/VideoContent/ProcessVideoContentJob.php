@@ -55,8 +55,15 @@ class ProcessVideoContentJob implements ShouldQueue
             $audioPath = $extractResult['audio_path'];
             $metadata = $extractResult['metadata'];
 
+            // UTF-8 tozalash (yt-dlp ba'zan noto'g'ri belgilar qaytaradi)
+            $videoTitle = $metadata['title'] ?? $this->request->video_title;
+            if ($videoTitle) {
+                $videoTitle = mb_convert_encoding($videoTitle, 'UTF-8', 'UTF-8');
+                $videoTitle = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $videoTitle);
+            }
+
             $this->request->update([
-                'video_title' => $metadata['title'] ?? $this->request->video_title,
+                'video_title' => $videoTitle,
                 'video_duration' => $metadata['duration'] ?? null,
                 'thumbnail_url' => $metadata['thumbnail'] ?? null,
             ]);
@@ -68,8 +75,12 @@ class ProcessVideoContentJob implements ShouldQueue
 
             $transcriptResult = $sttService->transcribe($audioPath);
 
+            // UTF-8 tozalash (Whisper ba'zan noto'g'ri belgilar qaytaradi)
+            $cleanTranscript = mb_convert_encoding($transcriptResult['text'], 'UTF-8', 'UTF-8');
+            $cleanTranscript = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $cleanTranscript);
+
             $this->request->update([
-                'transcript' => $transcriptResult['text'],
+                'transcript' => $cleanTranscript,
                 'stt_cost' => $transcriptResult['cost'],
                 'stt_model' => $transcriptResult['model'],
             ]);
@@ -84,7 +95,7 @@ class ProcessVideoContentJob implements ShouldQueue
             Log::info('Analyzing video transcript', ['request_id' => $this->request->id]);
 
             $analysisResult = $analysisService->analyze(
-                $transcriptResult['text'],
+                $cleanTranscript,
                 $this->request->video_title,
                 $this->request->video_duration ?? 0
             );
@@ -142,10 +153,14 @@ class ProcessVideoContentJob implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
+            // UTF-8 safe error message
+            $safeMsg = @iconv('UTF-8', 'UTF-8//IGNORE', $e->getMessage()) ?: 'Unknown error';
+            $safeMsg = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $safeMsg);
+            $safeMsg = mb_substr($safeMsg, 0, 500);
+
             Log::error('Video content job failed', [
                 'request_id' => $this->request->id,
-                'error' => $e->getMessage(),
-                'trace' => mb_substr($e->getTraceAsString(), 0, 500),
+                'error' => $safeMsg,
             ]);
 
             // Cleanup on failure
@@ -153,9 +168,9 @@ class ProcessVideoContentJob implements ShouldQueue
                 $extractor->cleanup($audioPath);
             }
 
-            $this->request->markFailed($e->getMessage());
+            $this->request->markFailed($safeMsg);
 
-            throw $e;
+            throw new \RuntimeException($safeMsg, 0, $e);
         }
     }
 

@@ -129,4 +129,23 @@ class VideoContentRequest extends Model
 
         return null;
     }
+
+    /**
+     * Override toArray — json roundtrip bilan UTF-8 100% tozalanadi
+     */
+    public function toArray(): array
+    {
+        $data = parent::toArray();
+
+        // json_encode → json_decode roundtrip — eng ishonchli UTF-8 tozalash
+        $json = json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        if ($json !== false) {
+            $clean = json_decode($json, true);
+            if (is_array($clean)) {
+                return $clean;
+            }
+        }
+
+        return $data;
+    }
 }

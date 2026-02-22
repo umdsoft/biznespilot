@@ -20,6 +20,8 @@ class VideoExtractorService
 
     protected string $tempPath;
 
+    protected ?string $ffmpegPath;
+
     public function __construct()
     {
         $config = config('video-content.extractor');
@@ -29,6 +31,25 @@ class VideoExtractorService
         $this->audioFormat = $config['audio_format'] ?? 'mp3';
         $this->audioQuality = $config['audio_quality'] ?? '64k';
         $this->tempPath = storage_path('app/' . config('video-content.storage.temp_path', 'video-content/temp'));
+        $this->ffmpegPath = $config['ffmpeg_location'] ?? null;
+    }
+
+    /**
+     * Run yt-dlp process with correct environment (TEMP dir for PyInstaller)
+     */
+    protected function runProcess(array $cmd, int $timeout = null): \Illuminate\Contracts\Process\ProcessResult
+    {
+        $tempDir = sys_get_temp_dir();
+
+        return Process::timeout($timeout ?? $this->timeout)
+            ->env([
+                'TEMP' => $tempDir,
+                'TMP' => $tempDir,
+                'TMPDIR' => $tempDir,
+                'PATH' => getenv('PATH') ?: '',
+                'SYSTEMROOT' => getenv('SYSTEMROOT') ?: 'C:\Windows',
+            ])
+            ->run($cmd);
     }
 
     /**
@@ -67,7 +88,7 @@ class VideoExtractorService
             'duration' => $duration,
         ]);
 
-        $result = Process::timeout($this->timeout)->run([
+        $cmd = [
             $this->binary,
             '--extract-audio',
             '--audio-format', $this->audioFormat,
@@ -75,8 +96,16 @@ class VideoExtractorService
             '--output', $outputFile,
             '--no-playlist',
             '--no-warnings',
-            $videoUrl,
-        ]);
+        ];
+
+        if ($this->ffmpegPath) {
+            $cmd[] = '--ffmpeg-location';
+            $cmd[] = $this->ffmpegPath;
+        }
+
+        $cmd[] = $videoUrl;
+
+        $result = $this->runProcess($cmd);
 
         if (! $result->successful()) {
             $error = $result->errorOutput();
@@ -112,14 +141,14 @@ class VideoExtractorService
      */
     public function getMetadata(string $videoUrl): array
     {
-        $result = Process::timeout(30)->run([
+        $result = $this->runProcess([
             $this->binary,
             '--dump-json',
             '--no-download',
             '--no-playlist',
             '--no-warnings',
             $videoUrl,
-        ]);
+        ], 30);
 
         if (! $result->successful()) {
             $error = $result->errorOutput();
@@ -161,7 +190,7 @@ class VideoExtractorService
     public function isAvailable(): bool
     {
         try {
-            $result = Process::timeout(5)->run([$this->binary, '--version']);
+            $result = $this->runProcess([$this->binary, '--version'], 5);
 
             return $result->successful();
         } catch (\Exception $e) {
@@ -175,7 +204,7 @@ class VideoExtractorService
     public function getVersion(): ?string
     {
         try {
-            $result = Process::timeout(5)->run([$this->binary, '--version']);
+            $result = $this->runProcess([$this->binary, '--version'], 5);
 
             return $result->successful() ? trim($result->output()) : null;
         } catch (\Exception $e) {
@@ -214,7 +243,7 @@ class VideoExtractorService
         if (str_contains($error, 'Video unavailable') || str_contains($error, 'Private video')) {
             return 'Video mavjud emas yoki yopiq (private).';
         }
-        if (str_contains($error, 'Sign in to confirm') || str_contains($error, 'age')) {
+        if (str_contains($error, 'Sign in to confirm') || str_contains($error, 'age restriction') || str_contains($error, 'age-restricted')) {
             return 'Video kirish talab qiladi (age restriction).';
         }
         if (str_contains($error, 'HTTP Error 403') || str_contains($error, 'HTTP Error 404')) {

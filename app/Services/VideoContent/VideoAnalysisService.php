@@ -170,7 +170,9 @@ PROMPT;
 
     protected function parseResponse(string $content): array
     {
-        $content = trim($content);
+        // UTF-8 tozalash (transkriptdagi noto'g'ri belgilar Claude javobiga o'tishi mumkin)
+        $content = mb_convert_encoding(trim($content), 'UTF-8', 'UTF-8');
+        $content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $content);
 
         // Extract JSON from markdown code blocks
         if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $content, $matches)) {
@@ -182,6 +184,11 @@ PROMPT;
         $content = preg_replace('/[^}]*$/', '', $content);
 
         $result = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Fallback: JSON_INVALID_UTF8_SUBSTITUTE bilan qayta urinish
+            $result = json_decode($content, true, 512, JSON_INVALID_UTF8_SUBSTITUTE);
+        }
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::warning('Failed to parse video analysis JSON', [

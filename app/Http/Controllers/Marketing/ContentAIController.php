@@ -614,8 +614,27 @@ class ContentAIController extends Controller
             'status' => 'pending',
         ]);
 
-        // Queue ga yuborish
-        ProcessVideoContentJob::dispatch($videoRequest);
+        // Queue ga yuborish (local = sync, production = async)
+        if (app()->environment('local')) {
+            set_time_limit(300); // Sync job 5 daqiqagacha davom qilishi mumkin
+            try {
+                ProcessVideoContentJob::dispatchSync($videoRequest);
+            } catch (\Exception $e) {
+                Log::error('Video content sync job failed', [
+                    'request_id' => $videoRequest->id,
+                    'error' => mb_substr($e->getMessage(), 0, 500),
+                ]);
+                // Job o'zi markFailed qiladi, lekin ehtiyot uchun
+                $videoRequest->refresh();
+                if ($videoRequest->status !== 'failed') {
+                    $videoRequest->markFailed(mb_substr($e->getMessage(), 0, 500));
+                }
+            }
+            $videoRequest->refresh();
+            $videoRequest->load('contentGeneration');
+        } else {
+            ProcessVideoContentJob::dispatch($videoRequest);
+        }
 
         Log::info('Video content request created', [
             'request_id' => $videoRequest->id,
@@ -624,16 +643,18 @@ class ContentAIController extends Controller
             'platform' => $platform,
         ]);
 
-        return response()->json([
-            'request' => $videoRequest,
-            'message' => 'Video qabul qilindi. Kontent tayyorlanmoqda...',
+        return $this->safeJsonResponse([
+            'request' => $videoRequest->toArray(),
+            'message' => $videoRequest->status === 'failed'
+                ? 'Xatolik: ' . ($videoRequest->error_message ?? 'Noma\'lum xato')
+                : 'Video qabul qilindi. Kontent tayyorlanmoqda...',
         ]);
     }
 
     /**
      * Video to Content — status tekshirish
      */
-    public function videoStatus(string $business, string $requestId)
+    public function videoStatus(string $requestId)
     {
         $currentBusiness = $this->getCurrentBusiness();
         if (! $currentBusiness) {
@@ -649,9 +670,28 @@ class ContentAIController extends Controller
             return response()->json(['error' => 'So\'rov topilmadi'], 404);
         }
 
-        return response()->json([
-            'request' => $videoRequest,
+        return $this->safeJsonResponse([
+            'request' => $videoRequest->toArray(),
             'status_label' => VideoContentRequest::STATUSES[$videoRequest->status] ?? $videoRequest->status,
         ]);
+    }
+
+    /**
+     * Safe JSON response — json_encode/decode roundtrip tozalaydi
+     * Bu eng ishonchli usul: json_encode o'zi barcha noto'g'ri UTF-8 ni almashtiradi
+     */
+    protected function safeJsonResponse(array $data, int $status = 200)
+    {
+        $json = json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+
+        if ($json === false) {
+            Log::error('safeJsonResponse: json_encode completely failed', [
+                'error' => json_last_error_msg(),
+            ]);
+
+            return response()->json(['error' => 'Response serialization xatosi'], 500);
+        }
+
+        return response($json, $status)->header('Content-Type', 'application/json');
     }
 }

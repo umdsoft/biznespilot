@@ -116,7 +116,10 @@
       "Bash(git ls-tree:*)",
       "Bash(bash -n:*)",
       "Bash(node:*)",
-      "Bash(comm:*)"
+      "Bash(comm:*)",
+      "Bash(nslookup:*)",
+      "Bash(yt-dlp:*)",
+      "Bash(\"d:/marketing startap/biznespilot/storage/app/yt-dlp.exe\" --version)"
     ]
   }
 }
