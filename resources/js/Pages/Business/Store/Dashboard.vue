@@ -71,6 +71,75 @@
         </div>
       </div>
 
+      <!-- Quick Navigation -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Link
+          :href="route('business.store.categories.index')"
+          class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
+        >
+          <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <FolderIcon class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Kategoriyalar</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Ochish →</p>
+        </Link>
+
+        <Link
+          :href="route('business.store.catalog.index')"
+          class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
+        >
+          <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <CubeIcon class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Katalog</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Ochish →</p>
+        </Link>
+
+        <Link
+          :href="route('business.store.orders.index')"
+          class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
+        >
+          <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <ShoppingCartIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Buyurtmalar</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Ochish →</p>
+        </Link>
+
+        <Link
+          :href="route('business.store.customers.index')"
+          class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
+        >
+          <div class="w-10 h-10 bg-violet-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <UsersIcon class="w-5 h-5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Mijozlar</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Ochish →</p>
+        </Link>
+
+        <Link
+          :href="route('business.store.promo-codes.index')"
+          class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
+        >
+          <div class="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <TagIcon class="w-5 h-5 text-pink-600 dark:text-pink-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Promo kodlar</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Ochish →</p>
+        </Link>
+
+        <Link
+          :href="route('business.store.settings')"
+          class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
+        >
+          <div class="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <CogIcon class="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          </div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Sozlamalar</p>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Ochish →</p>
+        </Link>
+      </div>
+
       <!-- Charts & Tables -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -221,6 +290,9 @@ import {
   ChartBarIcon,
   CubeIcon,
   PlusIcon,
+  FolderIcon,
+  TagIcon,
+  CogIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({

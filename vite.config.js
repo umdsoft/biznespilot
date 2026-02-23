@@ -34,6 +34,7 @@ export default defineConfig({
     build: {
         // Enable source maps for debugging (disable in production for smaller bundles)
         sourcemap: false,
+        emptyOutDir: false,
         // Chunk size warning limit (in KB)
         chunkSizeWarningLimit: 500,
         rollupOptions: {

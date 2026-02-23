@@ -94,11 +94,11 @@ const maxWidthClass = computed(() => {
 
 <template>
     <dialog
-        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+        class="z-50 m-0 p-0 border-none min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
         ref="dialog"
     >
         <div
-            class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
+            class="fixed inset-0 z-50 overflow-y-auto"
             scroll-region
         >
             <Transition
@@ -114,31 +114,32 @@ const maxWidthClass = computed(() => {
                     class="fixed inset-0 transform transition-all"
                     @click="close"
                 >
-                    <div class="absolute inset-0 bg-gray-500 opacity-75" />
+                    <div class="absolute inset-0 bg-gray-500/75 dark:bg-black/60" />
                 </div>
             </Transition>
 
-            <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-                <div
-                    v-show="isVisible"
-                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full"
-                    :class="maxWidthClass"
+            <div class="relative z-10 flex min-h-full items-center justify-center p-4 sm:p-6" @click.self="close">
+                <Transition
+                    enter-active-class="ease-out duration-300"
+                    enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+                    leave-active-class="ease-in duration-200"
+                    leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+                    leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
+                    <div
+                        v-show="isVisible"
+                        class="w-full transform overflow-hidden rounded-xl bg-white dark:bg-slate-800 shadow-2xl transition-all sm:mx-auto"
+                        :class="maxWidthClass"
+                    >
                     <!-- Header with title -->
-                    <div v-if="title" class="px-6 py-4 border-b border-gray-200">
+                    <div v-if="title" class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+                            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ title }}</h3>
                             <button
                                 v-if="closeable"
                                 type="button"
-                                class="text-gray-400 hover:text-gray-600 transition-colors"
+                                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                                 @click="close"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,11 +155,12 @@ const maxWidthClass = computed(() => {
                     </div>
 
                     <!-- Footer slot -->
-                    <div v-if="$slots.footer" class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+                    <div v-if="$slots.footer" class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex justify-end">
                         <slot name="footer" />
                     </div>
-                </div>
-            </Transition>
+                    </div>
+                </Transition>
+            </div>
         </div>
     </dialog>
 </template>

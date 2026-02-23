@@ -66,14 +66,15 @@ class StoreSetupService
             ]);
         }
 
-        // Set up webhook
-        $webhookUrl = url("/api/webhooks/store-bot/{$store->id}");
-        $webhookSecret = Str::random(32);
+        // Set up webhook (use funnel endpoint — single handler for all bot types)
+        $baseUrl = config('app.url');
+        $webhookUrl = "{$baseUrl}/webhooks/telegram-funnel/{$bot->id}";
+        $webhookSecret = $bot->webhook_secret ?: bin2hex(random_bytes(32));
 
         $webhookResponse = Http::post("https://api.telegram.org/bot{$botToken}/setWebhook", [
             'url' => $webhookUrl,
             'secret_token' => $webhookSecret,
-            'allowed_updates' => ['message', 'callback_query', 'pre_checkout_query'],
+            'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
         ]);
 
         if ($webhookResponse->successful()) {
@@ -84,7 +85,7 @@ class StoreSetupService
         }
 
         // Set WebApp menu button
-        $miniAppUrl = $store->getMiniAppUrl();
+        $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
         Http::post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
             'menu_button' => [
                 'type' => 'web_app',

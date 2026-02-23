@@ -57,7 +57,7 @@ class ProductResource extends JsonResource
                         'sku' => $v->sku,
                         'price' => (float) $v->price,
                         'stock_quantity' => $this->when($this->track_stock, $v->stock_quantity),
-                        'in_stock' => $v->isInStock(),
+                        'in_stock' => $this->track_stock ? $v->stock_quantity > 0 : true,
                         'attributes' => $v->attributes,
                     ]);
                 }

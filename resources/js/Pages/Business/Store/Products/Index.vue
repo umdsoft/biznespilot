@@ -210,12 +210,20 @@
                   </button>
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap text-right">
-                  <Link
-                    :href="route('business.store.products.edit', product.id)"
-                    class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
-                  >
-                    Tahrirlash
-                  </Link>
+                  <div class="flex items-center justify-end gap-3">
+                    <Link
+                      :href="route('business.store.products.edit', product.id)"
+                      class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
+                    >
+                      Tahrirlash
+                    </Link>
+                    <button
+                      @click="confirmDelete(product)"
+                      class="text-sm text-red-500 hover:text-red-600 dark:text-red-400 font-medium"
+                    >
+                      O'chirish
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -273,7 +281,7 @@ const props = defineProps({
 const search = ref(props.filters?.search || '');
 const selectedCategory = ref(props.filters?.category || '');
 const selectedStatus = ref(props.filters?.status || '');
-const viewMode = ref('grid');
+const viewMode = ref('table');
 
 let searchTimeout = null;
 
@@ -306,5 +314,13 @@ const toggleActive = (product) => {
     preserveScroll: true,
     preserveState: true,
   });
+};
+
+const confirmDelete = (product) => {
+  if (confirm(`"${product.name}" mahsulotini o'chirmoqchimisiz?`)) {
+    router.delete(route('business.store.products.destroy', product.id), {
+      preserveScroll: true,
+    });
+  }
 };
 </script>

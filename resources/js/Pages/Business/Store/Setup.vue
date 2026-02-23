@@ -1,15 +1,15 @@
 <template>
-  <Head title="Do'kon sozlash" />
-  <BusinessLayout title="Do'kon sozlash">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  <Head title="Telegram Bot sozlash" />
+  <BusinessLayout title="Telegram Bot sozlash">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
       <!-- Header -->
       <div class="mb-6 sm:mb-8">
         <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
-          Do'kon sozlash
+          Telegram Bot sozlash
         </h1>
         <p class="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-          Telegram Mini App do'koningizni 5 bosqichda sozlang
+          Telegram botingizni 4 bosqichda sozlang va ishga tushiring
         </p>
       </div>
 
@@ -110,14 +110,14 @@
                   <BuildingStorefrontIcon class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">Do'kon ma'lumotlari</h2>
+                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">Bot ma'lumotlari</h2>
                   <p class="text-sm text-slate-500 dark:text-slate-400">Asosiy ma'lumotlarni kiriting</p>
                 </div>
               </div>
 
               <div class="space-y-5">
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Do'kon nomi *</label>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bot nomi *</label>
                   <input
                     v-model="storeForm.name"
                     type="text"
@@ -132,7 +132,7 @@
                   <textarea
                     v-model="storeForm.description"
                     rows="3"
-                    placeholder="Do'koningiz haqida qisqacha ma'lumot"
+                    placeholder="Botingiz haqida qisqacha ma'lumot"
                     class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
                   ></textarea>
                   <p v-if="storeForm.errors.description" class="mt-1 text-sm text-red-500">{{ storeForm.errors.description }}</p>
@@ -171,7 +171,7 @@
                 </div>
                 <div>
                   <h2 class="text-lg font-bold text-slate-900 dark:text-white">Telegram bot ulash</h2>
-                  <p class="text-sm text-slate-500 dark:text-slate-400">Botni do'konga ulang</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Telegram bot tokenini kiriting</p>
                 </div>
               </div>
 
@@ -221,105 +221,14 @@
               </div>
             </div>
 
-            <!-- Step 4: Payment Settings -->
-            <div v-else-if="currentStep === 4" key="step-payment">
-              <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center">
-                  <CreditCardIcon class="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">To'lov sozlamalari</h2>
-                  <p class="text-sm text-slate-500 dark:text-slate-400">To'lov tizimini ulang</p>
-                </div>
-              </div>
-
-              <!-- Existing Payment Accounts -->
-              <div v-if="paymentAccounts && paymentAccounts.length > 0" class="mb-6">
-                <h4 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Ulangan to'lov tizimlari:</h4>
-                <div class="space-y-3">
-                  <div
-                    v-for="account in paymentAccounts"
-                    :key="account.id"
-                    class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600"
-                  >
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <CreditCardIcon class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div>
-                        <p class="text-sm font-semibold text-slate-900 dark:text-white capitalize">{{ account.provider }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ account.merchant_id ? 'Merchant: ' + account.merchant_id : 'Sozlangan' }}</p>
-                      </div>
-                    </div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                      :class="account.is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-600 dark:text-slate-300'"
-                    >
-                      {{ account.is_active ? 'Faol' : 'Nofaol' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Add New Payment -->
-              <div class="space-y-5">
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">To'lov tizimi *</label>
-                  <div class="grid grid-cols-2 gap-3">
-                    <button
-                      @click="paymentForm.provider = 'payme'"
-                      class="p-4 rounded-xl border-2 transition-all text-center"
-                      :class="paymentForm.provider === 'payme'
-                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'"
-                    >
-                      <div class="text-lg font-bold text-slate-900 dark:text-white">Payme</div>
-                      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Eng mashhur to'lov tizimi</p>
-                    </button>
-                    <button
-                      @click="paymentForm.provider = 'click'"
-                      class="p-4 rounded-xl border-2 transition-all text-center"
-                      :class="paymentForm.provider === 'click'
-                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'"
-                    >
-                      <div class="text-lg font-bold text-slate-900 dark:text-white">Click</div>
-                      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Tez va qulay to'lov</p>
-                    </button>
-                  </div>
-                </div>
-
-                <div v-if="paymentForm.provider">
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Merchant ID *</label>
-                  <input
-                    v-model="paymentForm.merchant_id"
-                    type="text"
-                    placeholder="Merchant ID kiriting"
-                    class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
-                  />
-                  <p v-if="paymentForm.errors.merchant_id" class="mt-1 text-sm text-red-500">{{ paymentForm.errors.merchant_id }}</p>
-                </div>
-
-                <div v-if="paymentForm.provider">
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Secret Key *</label>
-                  <input
-                    v-model="paymentForm.secret_key"
-                    type="password"
-                    placeholder="Secret key kiriting"
-                    class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
-                  />
-                  <p v-if="paymentForm.errors.secret_key" class="mt-1 text-sm text-red-500">{{ paymentForm.errors.secret_key }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 5: Activate -->
-            <div v-else-if="currentStep === 5" key="step-activate">
+            <!-- Step 4: Activate -->
+            <div v-else-if="currentStep === 4" key="step-activate">
               <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center">
                   <RocketLaunchIcon class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">Do'konni faollashtirish</h2>
+                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">Botni faollashtirish</h2>
                   <p class="text-sm text-slate-500 dark:text-slate-400">Barcha sozlamalarni tekshiring va faollashtiring</p>
                 </div>
               </div>
@@ -336,7 +245,7 @@
 
                 <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30">
                   <div class="flex items-center justify-between mb-1.5">
-                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white">Do'kon ma'lumotlari</h4>
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white">Bot ma'lumotlari</h4>
                     <button @click="goToStep(2)" class="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium">Tahrirlash</button>
                   </div>
                   <div class="text-sm text-slate-600 dark:text-slate-400 space-y-0.5">
@@ -362,22 +271,6 @@
                   </div>
                 </div>
 
-                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30">
-                  <div class="flex items-center justify-between mb-1.5">
-                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white">To'lov tizimi</h4>
-                    <button @click="goToStep(4)" class="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium">Tahrirlash</button>
-                  </div>
-                  <div class="text-sm">
-                    <p v-if="paymentAccounts && paymentAccounts.length > 0" class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircleIcon class="w-4 h-4" />
-                      {{ paymentAccounts.length }} ta to'lov tizimi ulangan
-                    </p>
-                    <p v-else class="text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                      <ExclamationTriangleIcon class="w-4 h-4" />
-                      To'lov tizimi ulanmagan (ixtiyoriy)
-                    </p>
-                  </div>
-                </div>
               </div>
 
               <!-- Activate Button -->
@@ -388,10 +281,10 @@
                   class="inline-flex items-center gap-2.5 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base"
                 >
                   <RocketLaunchIcon class="w-5 h-5" />
-                  <span>Do'konni faollashtirish</span>
+                  <span>Botni faollashtirish</span>
                 </button>
                 <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                  Faollashtirilgandan so'ng, do'kon Telegram Mini App orqali ochiladi
+                  Faollashtirilgandan so'ng, bot Telegram orqali ishga tushadi
                 </p>
               </div>
             </div>
@@ -412,7 +305,7 @@
           <div v-else></div>
 
           <button
-            v-if="currentStep < 5"
+            v-if="currentStep < 4"
             @click="nextStep"
             :disabled="!canProceed"
             class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -433,7 +326,6 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
   BuildingStorefrontIcon,
   ChatBubbleLeftRightIcon,
-  CreditCardIcon,
   RocketLaunchIcon,
   SparklesIcon,
   CheckIcon,
@@ -447,7 +339,6 @@ const props = defineProps({
   step: { type: Number, default: 1 },
   store: { type: Object, default: null },
   bot: { type: Object, default: null },
-  paymentAccounts: { type: Array, default: () => [] },
   botTypes: { type: Array, default: () => [] },
   preSelectedType: { type: String, default: null },
 });
@@ -457,22 +348,12 @@ const activating = ref(false);
 const selectedBotType = ref(props.preSelectedType || props.store?.store_type || 'ecommerce');
 const enabledFeatures = ref(props.store?.enabled_features || []);
 
-// Bot turlari to'lov talab qilmaydigan (faqat so'rov/e'lon asosida ishlaydi)
-const noPaymentTypes = ['realestate', 'auto', 'ondemand'];
-const needsPayment = computed(() => !noPaymentTypes.includes(selectedBotType.value));
-
-const allSteps = [
+const steps = [
   { id: 1, title: 'Bot turi', description: 'Bot turini tanlang', icon: SparklesIcon },
-  { id: 2, title: "Do'kon ma'lumotlari", description: 'Asosiy sozlamalar', icon: BuildingStorefrontIcon },
+  { id: 2, title: "Bot ma'lumotlari", description: 'Asosiy sozlamalar', icon: BuildingStorefrontIcon },
   { id: 3, title: 'Telegram bot', description: 'Botni ulash', icon: ChatBubbleLeftRightIcon },
-  { id: 4, title: "To'lov tizimi", description: "To'lov sozlamalari", icon: CreditCardIcon },
-  { id: 5, title: 'Faollashtirish', description: "Do'konni ochish", icon: RocketLaunchIcon },
+  { id: 4, title: 'Faollashtirish', description: "Botni ishga tushirish", icon: RocketLaunchIcon },
 ];
-
-const steps = computed(() => {
-  if (needsPayment.value) return allSteps;
-  return allSteps.filter(s => s.id !== 4);
-});
 
 const storeForm = useForm({
   name: props.store?.name || '',
@@ -488,26 +369,19 @@ const botForm = useForm({
   bot_token: '',
 });
 
-const paymentForm = useForm({
-  provider: '',
-  merchant_id: '',
-  secret_key: '',
-});
-
 const currentStepInfo = computed(() => {
-  return allSteps.find(s => s.id === currentStep.value) || allSteps[0];
+  return steps.find(s => s.id === currentStep.value) || steps[0];
 });
 
 const canProceed = computed(() => {
   if (currentStep.value === 1) return !!selectedBotType.value;
   if (currentStep.value === 2) return !!storeForm.name && !!storeForm.phone;
   if (currentStep.value === 3) return true;
-  if (currentStep.value === 4) return true;
   return true;
 });
 
 const goToStep = (stepId) => {
-  if (stepId <= currentStep.value && (stepId !== 4 || needsPayment.value)) {
+  if (stepId <= currentStep.value) {
     currentStep.value = stepId;
   }
 };
@@ -525,25 +399,12 @@ const nextStep = () => {
       },
     });
   } else if (currentStep.value === 3) {
-    currentStep.value = needsPayment.value ? 4 : 5;
-  } else if (currentStep.value === 4) {
-    if (paymentForm.provider && paymentForm.merchant_id) {
-      paymentForm.post(route('business.store.setup.payment'), {
-        preserveScroll: true,
-        onSuccess: () => {
-          currentStep.value = 5;
-        },
-      });
-    } else {
-      currentStep.value = 5;
-    }
+    currentStep.value = 4;
   }
 };
 
 const prevStep = () => {
-  if (currentStep.value === 5 && !needsPayment.value) {
-    currentStep.value = 3;
-  } else if (currentStep.value > 1) {
+  if (currentStep.value > 1) {
     currentStep.value--;
   }
 };
@@ -552,7 +413,7 @@ const verifyBot = () => {
   botForm.post(route('business.store.setup.connect-bot'), {
     preserveScroll: true,
     onSuccess: () => {
-      currentStep.value = needsPayment.value ? 4 : 5;
+      currentStep.value = 4;
     },
   });
 };

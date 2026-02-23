@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen" :style="themeStyles">
+    <div class="min-h-screen pb-16" :style="themeStyles">
         <router-view v-slot="{ Component, route }">
             <transition :name="transitionName" mode="out-in">
                 <component :is="Component" :key="route.path" />
@@ -73,22 +73,22 @@ onMounted(async () => {
 .slide-left-leave-active,
 .slide-right-enter-active,
 .slide-right-leave-active {
-    transition: transform 0.25s ease, opacity 0.25s ease;
+    transition: transform 0.15s ease, opacity 0.15s ease;
 }
 .slide-left-enter-from {
-    transform: translateX(30px);
+    transform: translateX(20px);
     opacity: 0;
 }
 .slide-left-leave-to {
-    transform: translateX(-30px);
+    transform: translateX(-20px);
     opacity: 0;
 }
 .slide-right-enter-from {
-    transform: translateX(-30px);
+    transform: translateX(-20px);
     opacity: 0;
 }
 .slide-right-leave-to {
-    transform: translateX(30px);
+    transform: translateX(20px);
     opacity: 0;
 }
 </style>

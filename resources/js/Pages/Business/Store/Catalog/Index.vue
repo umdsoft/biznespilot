@@ -92,8 +92,8 @@
           <Link :href="route('business.store.catalog.edit', item.id)" class="block">
             <div class="aspect-square bg-slate-100 dark:bg-slate-700 relative overflow-hidden">
               <img
-                v-if="item.image"
-                :src="item.image"
+                v-if="item.primary_image?.image_url"
+                :src="item.primary_image?.image_url"
                 :alt="item.name"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -163,7 +163,7 @@
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-700">
-                      <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" />
+                      <img v-if="item.primary_image?.image_url" :src="item.primary_image?.image_url" :alt="item.name" class="w-full h-full object-cover" />
                       <div v-else class="w-full h-full flex items-center justify-center">
                         <PhotoIcon class="w-5 h-5 text-slate-400" />
                       </div>
@@ -194,12 +194,20 @@
                   </button>
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap text-right">
-                  <Link
-                    :href="route('business.store.catalog.edit', item.id)"
-                    class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
-                  >
-                    Tahrirlash
-                  </Link>
+                  <div class="flex items-center justify-end gap-3">
+                    <Link
+                      :href="route('business.store.catalog.edit', item.id)"
+                      class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
+                    >
+                      Tahrirlash
+                    </Link>
+                    <button
+                      @click="confirmDelete(item)"
+                      class="text-sm text-red-500 hover:text-red-600 dark:text-red-400 font-medium"
+                    >
+                      O'chirish
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -259,7 +267,7 @@ const props = defineProps({
 const search = ref(props.filters?.search || '');
 const selectedCategory = ref(props.filters?.category || '');
 const selectedStatus = ref(props.filters?.status || '');
-const viewMode = ref('grid');
+const viewMode = ref('table');
 
 let searchTimeout = null;
 
@@ -292,5 +300,13 @@ const toggleActive = (item) => {
     preserveScroll: true,
     preserveState: true,
   });
+};
+
+const confirmDelete = (item) => {
+  if (confirm(`"${item.name}" ni o'chirmoqchimisiz?`)) {
+    router.delete(route('business.store.catalog.destroy', item.id), {
+      preserveScroll: true,
+    });
+  }
 };
 </script>

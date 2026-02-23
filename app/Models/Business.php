@@ -242,6 +242,14 @@ class Business extends Model
     }
 
     /**
+     * Get the telegram bots for the business.
+     */
+    public function telegramBots(): HasMany
+    {
+        return $this->hasMany(TelegramBot::class);
+    }
+
+    /**
      * Get the chatbot configs for the business.
      */
     public function chatbotConfigs(): HasMany

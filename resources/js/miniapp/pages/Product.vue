@@ -36,6 +36,14 @@
                         </div>
                     </div>
                 </div>
+                <!-- Image counter -->
+                <div
+                    v-if="images.length > 1"
+                    class="absolute top-3 right-3 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                    style="background-color: rgba(0,0,0,0.5); color: #fff"
+                >
+                    {{ currentImage + 1 }}/{{ images.length }}
+                </div>
                 <!-- Image dots -->
                 <div v-if="images.length > 1" class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
                     <span
@@ -58,7 +66,7 @@
 
             <!-- Product Info -->
             <div class="px-4 pt-4">
-                <h1 class="text-lg font-semibold leading-snug" style="color: var(--tg-theme-text-color)">
+                <h1 class="text-lg font-bold leading-snug" style="color: var(--tg-theme-text-color)">
                     {{ product.name }}
                 </h1>
 
@@ -73,6 +81,17 @@
                         style="color: var(--tg-theme-hint-color)"
                     >
                         {{ formatPrice(product.price) }}
+                    </span>
+                </div>
+
+                <!-- Rating -->
+                <div v-if="product.rating" class="mt-1.5 flex items-center gap-1">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="var(--tg-theme-button-color)">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    <span class="text-sm font-medium" style="color: var(--tg-theme-text-color)">{{ product.rating }}</span>
+                    <span v-if="product.reviews_count" class="text-xs" style="color: var(--tg-theme-hint-color)">
+                        ({{ product.reviews_count }} ta baho)
                     </span>
                 </div>
 
@@ -94,13 +113,10 @@
                             v-for="variant in product.variants"
                             :key="variant.id"
                             @click="selectVariant(variant)"
-                            class="rounded-lg border px-3 py-2 text-sm transition-all"
-                            :class="selectedVariant?.id === variant.id
-                                ? 'border-2 font-medium'
-                                : 'border opacity-70'"
+                            class="rounded-lg px-3 py-2 text-sm transition-all tap-active"
                             :style="selectedVariant?.id === variant.id
-                                ? { borderColor: 'var(--tg-theme-button-color)', color: 'var(--tg-theme-button-color)' }
-                                : { borderColor: 'var(--tg-theme-hint-color)', color: 'var(--tg-theme-text-color)' }"
+                                ? { backgroundColor: 'var(--tg-theme-button-color)', color: 'var(--tg-theme-button-text-color)', fontWeight: '600' }
+                                : { backgroundColor: 'var(--tg-theme-secondary-bg-color)', color: 'var(--tg-theme-text-color)' }"
                         >
                             {{ variant.name }}
                             <span v-if="variant.price_diff" class="ml-1 text-xs opacity-70">
@@ -157,7 +173,7 @@
         <!-- Bottom action bar -->
         <div
             v-if="product && product.stock !== 0"
-            class="fixed bottom-0 left-0 right-0 z-20 border-t px-4 py-3"
+            class="fixed bottom-0 left-0 right-0 z-20 border-t px-4 py-3 safe-area-bottom"
             style="background-color: var(--tg-theme-bg-color); border-color: var(--tg-theme-secondary-bg-color)"
         >
             <div class="flex items-center gap-3">
@@ -189,10 +205,18 @@
                 <!-- Add to cart button -->
                 <button
                     @click="addToCart"
-                    class="flex-1 rounded-xl py-3 text-center text-sm font-semibold"
+                    class="flex-1 rounded-xl py-3 text-center text-sm font-semibold tap-active transition-all duration-200"
                     style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color)"
                 >
-                    {{ cartItem ? `Savatda — ${formatPrice(cartItem.quantity * effectivePrice)}` : "Savatga qo'shish" }}
+                    <span v-if="justAdded" class="inline-flex items-center gap-1">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                        Qo'shildi!
+                    </span>
+                    <span v-else>
+                        {{ cartItem ? `Savatda — ${formatPrice(cartItem.quantity * effectivePrice)}` : "Savatga qo'shish" }}
+                    </span>
                 </button>
             </div>
         </div>
@@ -206,6 +230,7 @@ import { useCartStore } from '../stores/cart'
 import { useTelegram } from '../composables/useTelegram'
 import BackButton from '../components/BackButton.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import { formatPrice } from '../utils/formatters'
 
 const props = defineProps({
     slug: { type: String, required: true },
@@ -220,6 +245,7 @@ const loading = ref(true)
 const selectedVariant = ref(null)
 const currentImage = ref(0)
 const showFullDescription = ref(false)
+const justAdded = ref(false)
 
 // Touch handling for carousel
 let touchStartX = 0
@@ -251,11 +277,6 @@ const cartItem = computed(() => {
     )
 })
 
-function formatPrice(price) {
-    if (!price) return "0 so'm"
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so'm"
-}
-
 function selectVariant(variant) {
     selectedVariant.value = variant
     hapticImpact('light')
@@ -265,6 +286,10 @@ function addToCart() {
     if (!product.value) return
     cart.addItem(product.value, 1, selectedVariant.value)
     hapticNotification('success')
+
+    // Show checkmark feedback for 800ms
+    justAdded.value = true
+    setTimeout(() => { justAdded.value = false }, 800)
 }
 
 function incrementQty() {

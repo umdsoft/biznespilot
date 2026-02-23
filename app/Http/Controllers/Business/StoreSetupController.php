@@ -43,28 +43,22 @@ class StoreSetupController extends Controller
 
         $store = $this->getStore();
 
-        // Determine current setup step (5-step wizard)
-        // Step 1: Bot type, Step 2: Store info, Step 3: Bot connection, Step 4: Payment, Step 5: Activation
-        $currentStep = 1; // Bot type selection
+        // Determine current setup step (4-step wizard)
+        // Step 1: Bot type, Step 2: Store info, Step 3: Bot connection, Step 4: Activation
+        $currentStep = 1;
         $completedSteps = [];
 
         if ($store) {
-            $completedSteps[] = 1; // Bot type selected (store exists with store_type)
-            $completedSteps[] = 2; // Store info completed
-            $currentStep = 3; // Bot connection
+            $completedSteps[] = 1;
+            $completedSteps[] = 2;
+            $currentStep = 3;
 
             if ($store->telegram_bot_id) {
                 $completedSteps[] = 3;
-                $currentStep = 4; // Payment settings
-
-                $paymentConfigured = ! empty($store->getSetting('payment_methods'));
-                if ($paymentConfigured) {
-                    $completedSteps[] = 4;
-                    $currentStep = 5; // Activation
-                }
+                $currentStep = 4; // Activation
 
                 if ($store->is_active) {
-                    $completedSteps[] = 5;
+                    $completedSteps[] = 4;
                 }
             }
         }
@@ -237,7 +231,7 @@ class StoreSetupController extends Controller
     }
 
     /**
-     * Activate the store (Step 5)
+     * Activate the store (Step 4)
      */
     public function activate()
     {
@@ -250,7 +244,7 @@ class StoreSetupController extends Controller
         $store = $this->getStore();
 
         if (! $store) {
-            return back()->with('error', 'Avval do\'kon yarating.');
+            return back()->with('error', 'Avval bot yarating.');
         }
 
         if (! $store->telegram_bot_id) {
@@ -260,10 +254,10 @@ class StoreSetupController extends Controller
         $activated = $this->storeSetupService->activateStore($store);
 
         if (! $activated) {
-            return back()->with('error', 'Do\'konni faollashtirish imkoni bo\'lmadi. Barcha sozlamalarni tekshiring.');
+            return back()->with('error', 'Botni faollashtirish imkoni bo\'lmadi. Barcha sozlamalarni tekshiring.');
         }
 
-        return redirect()->route('business.store.setup.wizard')
-            ->with('success', 'Do\'kon muvaffaqiyatli faollashtirildi! Mini App orqali mijozlar xarid qilishlari mumkin.');
+        return redirect()->route('business.telegram-funnels.index')
+            ->with('success', 'Telegram bot muvaffaqiyatli faollashtirildi!');
     }
 }

@@ -4,15 +4,15 @@
 
         <!-- Header -->
         <div class="sticky top-0 z-10 px-4 py-3" style="background-color: var(--tg-theme-bg-color)">
-            <h1 class="text-lg font-semibold" style="color: var(--tg-theme-text-color)">
+            <h1 class="text-lg font-bold" style="color: var(--tg-theme-text-color)">
                 Buyurtma berish
             </h1>
         </div>
 
         <div class="px-4 space-y-4">
             <!-- Contact Info -->
-            <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+            <div class="rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <h2 class="mb-3 text-[13px] font-bold" style="color: var(--tg-theme-text-color)">
                     Aloqa ma'lumotlari
                 </h2>
 
@@ -44,8 +44,8 @@
             </div>
 
             <!-- Delivery Address -->
-            <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+            <div class="rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <h2 class="mb-3 text-[13px] font-bold" style="color: var(--tg-theme-text-color)">
                     Yetkazib berish manzili
                 </h2>
 
@@ -94,8 +94,8 @@
             </div>
 
             <!-- Delivery Type -->
-            <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+            <div class="rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <h2 class="mb-3 text-[13px] font-bold" style="color: var(--tg-theme-text-color)">
                     Yetkazib berish usuli
                 </h2>
                 <div class="space-y-2">
@@ -131,8 +131,8 @@
             </div>
 
             <!-- Payment Method -->
-            <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+            <div class="rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <h2 class="mb-3 text-[13px] font-bold" style="color: var(--tg-theme-text-color)">
                     To'lov usuli
                 </h2>
                 <div class="space-y-2">
@@ -158,8 +158,8 @@
             </div>
 
             <!-- Comment -->
-            <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+            <div class="rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <h2 class="mb-3 text-[13px] font-bold" style="color: var(--tg-theme-text-color)">
                     Izoh
                 </h2>
                 <textarea
@@ -172,8 +172,8 @@
             </div>
 
             <!-- Order Summary -->
-            <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+            <div class="rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <h2 class="mb-3 text-[13px] font-bold" style="color: var(--tg-theme-text-color)">
                     Buyurtma xulosasi
                 </h2>
                 <div class="space-y-1.5 text-sm">
@@ -208,7 +208,7 @@
 
         <!-- Submit button -->
         <div
-            class="fixed bottom-0 left-0 right-0 z-20 border-t px-4 py-3"
+            class="fixed bottom-0 left-0 right-0 z-20 border-t px-4 py-3 safe-area-bottom"
             style="background-color: var(--tg-theme-bg-color); border-color: var(--tg-theme-secondary-bg-color)"
         >
             <button
@@ -232,6 +232,7 @@ import { useUserStore } from '../stores/user'
 import { useOrderStore } from '../stores/order'
 import { useTelegram } from '../composables/useTelegram'
 import BackButton from '../components/BackButton.vue'
+import { formatPrice } from '../utils/formatters'
 
 const router = useRouter()
 const cart = useCartStore()
@@ -268,11 +269,6 @@ const deliveryPrice = computed(() => {
     const dt = deliveryTypes.find((d) => d.value === form.delivery_type)
     return dt?.price || 0
 })
-
-function formatPrice(price) {
-    if (!price) return "0 so'm"
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so'm"
-}
 
 function selectAddress(addr) {
     selectedAddressId.value = addr.id

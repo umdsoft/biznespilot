@@ -66,10 +66,10 @@
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Narx (so'm) *</label>
               <input
-                v-model.number="form.price"
-                type="number"
-                min="0"
-                step="100"
+                :value="formatPrice(form.price)"
+                @input="onPriceInput($event, 'price')"
+                type="text"
+                inputmode="numeric"
                 placeholder="0"
                 class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
               />
@@ -79,10 +79,10 @@
             <div v-if="botConfig?.has_compare_price !== false">
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Taqqoslash narxi</label>
               <input
-                v-model.number="form.compare_price"
-                type="number"
-                min="0"
-                step="100"
+                :value="formatPrice(form.compare_price)"
+                @input="onPriceInput($event, 'compare_price')"
+                type="text"
+                inputmode="numeric"
                 placeholder="Eski narx"
                 class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
               />
@@ -190,10 +190,10 @@
           </Link>
           <button
             type="submit"
-            :disabled="form.processing"
+            :disabled="isSubmitting"
             class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg v-if="form.processing" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <svg v-if="isSubmitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -206,8 +206,8 @@
 </template>
 
 <script setup>
-import { ref, computed, defineAsyncComponent } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref, computed, nextTick, defineAsyncComponent } from 'vue';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
   ArrowLeftIcon,
@@ -218,14 +218,18 @@ import {
 const props = defineProps({
   item: { type: Object, default: null },
   categories: { type: Array, default: () => [] },
-  images: { type: Array, default: () => [] },
   botType: { type: String, default: 'ecommerce' },
   botConfig: { type: Object, default: () => ({}) },
 });
 
 const isEditing = computed(() => !!props.item);
 const isDragging = ref(false);
-const existingImages = ref(props.images ? [...props.images] : []);
+const isSubmitting = ref(false);
+const existingImages = ref(
+  props.item?.images
+    ? props.item.images.map(img => ({ id: img.id, url: img.image_url, is_primary: img.is_primary }))
+    : []
+);
 const newImagePreviews = ref([]);
 const newImageFiles = ref([]);
 
@@ -244,18 +248,35 @@ const typeFieldsMap = {
 
 const typeFieldsComponent = computed(() => typeFieldsMap[props.botType] || null);
 
+const removedImageIds = ref([]);
+
 const form = useForm({
   name: props.item?.name || '',
   description: props.item?.description || '',
   price: props.item?.price || null,
   compare_price: props.item?.compare_price || null,
-  category_id: props.item?.category_id || '',
+  category_id: props.item?.category?.id || props.item?.category_id || '',
   is_featured: props.item?.is_featured || false,
-  images: [],
-  removed_images: [],
-  // Type-specific fields will be added via extra_fields
   ...getTypeDefaults(),
 });
+
+const formatPrice = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
+
+const onPriceInput = (event, field) => {
+  const input = event.target;
+  const cursorPos = input.selectionStart;
+  const oldLen = input.value.length;
+  const raw = input.value.replace(/\s/g, '').replace(/\D/g, '');
+  form[field] = raw ? parseInt(raw, 10) : null;
+  nextTick(() => {
+    const newLen = input.value.length;
+    const newPos = Math.max(0, cursorPos + (newLen - oldLen));
+    input.setSelectionRange(newPos, newPos);
+  });
+};
 
 function getTypeDefaults() {
   const item = props.item || {};
@@ -372,7 +393,7 @@ const processFiles = (files) => {
 
 const removeExistingImage = (index) => {
   const removed = existingImages.value.splice(index, 1);
-  if (removed[0]?.id) form.removed_images.push(removed[0].id);
+  if (removed[0]?.id) removedImageIds.value.push(removed[0].id);
 };
 
 const removeNewImage = (index) => {
@@ -380,47 +401,47 @@ const removeNewImage = (index) => {
   newImageFiles.value.splice(index, 1);
 };
 
-const submitForm = () => {
-  const formData = new FormData();
+const buildFormData = () => {
+  const fd = new FormData();
+  if (isEditing.value) fd.append('_method', 'PUT');
 
-  // Universal fields
-  formData.append('name', form.name);
-  formData.append('description', form.description || '');
-  formData.append('price', form.price || 0);
-  formData.append('compare_price', form.compare_price || '');
-  formData.append('category_id', form.category_id || '');
-  formData.append('is_featured', form.is_featured ? '1' : '0');
-
-  // Type-specific fields
-  const typeDefaults = getTypeDefaults();
-  Object.keys(typeDefaults).forEach(key => {
-    const val = form[key];
-    if (val !== undefined && val !== null) {
-      if (Array.isArray(val) || typeof val === 'object') {
-        formData.append(key, JSON.stringify(val));
-      } else if (typeof val === 'boolean') {
-        formData.append(key, val ? '1' : '0');
-      } else {
-        formData.append(key, val);
-      }
+  // Oddiy fieldlar
+  const data = form.data();
+  for (const [key, val] of Object.entries(data)) {
+    if (val === null || val === undefined || val === '') continue;
+    if (Array.isArray(val)) {
+      // Array fieldlarni JSON sifatida yuborish
+      fd.append(key, JSON.stringify(val));
+    } else if (typeof val === 'boolean') {
+      fd.append(key, val ? '1' : '0');
+    } else {
+      fd.append(key, val);
     }
-  });
-
-  // Images
-  form.removed_images.forEach((id, i) => formData.append(`removed_images[${i}]`, id));
-  newImageFiles.value.forEach((file, i) => formData.append(`images[${i}]`, file));
-
-  if (isEditing.value) {
-    formData.append('_method', 'PUT');
-    form.post(route('business.store.catalog.update', props.item.id), {
-      data: formData,
-      forceFormData: true,
-    });
-  } else {
-    form.post(route('business.store.catalog.store'), {
-      data: formData,
-      forceFormData: true,
-    });
   }
+
+  // Rasmlar — File obyektlar
+  newImageFiles.value.forEach(file => fd.append('images[]', file));
+
+  // O'chirilgan rasmlar
+  removedImageIds.value.forEach(id => fd.append('removed_images[]', id));
+
+  return fd;
+};
+
+const submitForm = () => {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
+
+  const url = isEditing.value
+    ? route('business.store.catalog.update', props.item.id)
+    : route('business.store.catalog.store');
+
+  router.post(url, buildFormData(), {
+    onError: (errors) => {
+      form.clearErrors();
+      for (const [k, v] of Object.entries(errors)) form.setError(k, v);
+    },
+    onFinish: () => { isSubmitting.value = false; },
+  });
 };
 </script>

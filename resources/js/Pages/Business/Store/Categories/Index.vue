@@ -5,9 +5,17 @@
 
       <!-- Header -->
       <div class="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Kategoriyalar</h1>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Mahsulot kategoriyalarini boshqaring</p>
+        <div class="flex items-center gap-3">
+          <Link
+            :href="route('business.store.dashboard')"
+            class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+          >
+            <ArrowLeftIcon class="w-4 h-4" />
+          </Link>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Kategoriyalar</h1>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Mahsulot kategoriyalarini boshqaring</p>
+          </div>
         </div>
         <button
           @click="openModal(null)"
@@ -240,11 +248,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick } from 'vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref, reactive, nextTick, watch } from 'vue';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Modal from '@/components/Modal.vue';
 import {
+  ArrowLeftIcon,
   PlusIcon,
   PencilIcon,
   TrashIcon,
@@ -258,6 +267,11 @@ const props = defineProps({
 });
 
 const localCategories = ref(JSON.parse(JSON.stringify(props.categories)));
+
+watch(() => props.categories, (newVal) => {
+  localCategories.value = JSON.parse(JSON.stringify(newVal));
+}, { deep: true });
+
 const expanded = reactive({});
 const showModal = ref(false);
 const showDeleteModal = ref(false);

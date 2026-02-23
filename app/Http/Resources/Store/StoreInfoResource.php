@@ -18,12 +18,13 @@ class StoreInfoResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'store_type' => $this->store_type,
             'description' => $this->description,
             'logo_url' => $this->logo_url,
             'banner_url' => $this->banner_url,
             'phone' => $this->phone,
             'address' => $this->address,
-            'currency' => $this->currency ?? 'UZS',
+            'currency' => $this->currency ?? "so'm",
             'is_active' => $this->is_active,
             'theme' => [
                 'primary_color' => $this->getThemeColor('primary_color', '#2563eb'),
@@ -41,6 +42,46 @@ class StoreInfoResource extends JsonResource
                 'payment_methods' => $this->getSetting('payment_methods', ['cash']),
                 'working_hours' => $this->getSetting('working_hours'),
             ],
+            'categories' => $this->when(
+                $this->relationLoaded('categories'),
+                fn () => $this->categories
+                    ->where('is_active', true)
+                    ->sortBy('sort_order')
+                    ->values()
+                    ->map(fn ($cat) => [
+                        'id' => $cat->id,
+                        'name' => $cat->name,
+                        'slug' => $cat->slug,
+                        'icon' => $cat->image_url,
+                        'emoji' => null,
+                        'products_count' => $cat->products()->where('is_active', true)->count(),
+                    ]),
+                []
+            ),
+            'featured_products' => $this->when(
+                $this->relationLoaded('products'),
+                fn () => $this->products
+                    ->where('is_active', true)
+                    ->where('is_featured', true)
+                    ->sortBy('sort_order')
+                    ->values()
+                    ->take(20)
+                    ->map(fn ($p) => [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'slug' => $p->slug,
+                        // ProductCard kutadi: price = asl narx, sale_price = chegirmali narx
+                        'price' => $p->compare_price ? (float) $p->compare_price : (float) $p->price,
+                        'sale_price' => $p->compare_price ? (float) $p->price : null,
+                        'image' => $p->relationLoaded('primaryImage')
+                            ? $p->primaryImage?->image_url
+                            : ($p->relationLoaded('images') ? $p->images->first()?->image_url : null),
+                        'stock' => $p->track_stock ? $p->stock_quantity : 99,
+                        'in_stock' => $p->isInStock(),
+                    ]),
+                []
+            ),
+            'banners' => [],
             'stats' => [
                 'products_count' => $this->when(
                     $this->relationLoaded('products'),

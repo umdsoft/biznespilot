@@ -9,6 +9,7 @@ use App\Http\Resources\Store\CatalogResourceFactory;
 use App\Models\Store\TelegramStore;
 use App\Services\Store\BotTypeRegistry;
 use App\Services\Store\Catalog\CatalogServiceFactory;
+use App\Services\Store\StoreProductService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -18,7 +19,8 @@ class StoreCatalogController extends Controller
 
     public function __construct(
         protected CatalogServiceFactory $catalogFactory,
-        protected BotTypeRegistry $registry
+        protected BotTypeRegistry $registry,
+        protected StoreProductService $productService
     ) {}
 
     protected function getStore(): ?TelegramStore
@@ -82,11 +84,22 @@ class StoreCatalogController extends Controller
             return back()->with('error', 'Do\'kon topilmadi.');
         }
 
-        $catalogService = $this->catalogFactory->make($store->store_type);
-        $item = $catalogService->create($store, $request->all());
+        $request->validate([
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
 
-        return $this->storeRedirect('catalog.edit', [$item->id])
-            ->with('success', $store->getCatalogLabelSingular() . ' yaratildi.');
+        $catalogService = $this->catalogFactory->make($store->store_type);
+        $item = $catalogService->create($store, $request->except(['images', 'removed_images']));
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $file) {
+                $this->productService->uploadImage($item, $file, $index === 0);
+            }
+        }
+
+        return $this->storeRedirect('catalog.index')
+            ->with('success', $store->getCatalogLabelSingular() . ' muvaffaqiyatli yaratildi.');
     }
 
     public function edit(string $id)
@@ -107,9 +120,10 @@ class StoreCatalogController extends Controller
         }
 
         $resourceClass = CatalogResourceFactory::make($botType);
+        $resource = new $resourceClass($item);
 
         return Inertia::render('Business/Store/Catalog/Form', [
-            'item' => new $resourceClass($item),
+            'item' => $resource->resolve(request()),
             'botType' => $botType,
             'botConfig' => $this->registry->getConfig($botType),
             'categories' => $store->categories()->active()->orderBy('sort_order')->get(['id', 'name', 'parent_id']),
@@ -126,6 +140,13 @@ class StoreCatalogController extends Controller
             return back()->with('error', 'Do\'kon topilmadi.');
         }
 
+        $request->validate([
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'removed_images' => 'nullable|array',
+            'removed_images.*' => 'string',
+        ]);
+
         $catalogService = $this->catalogFactory->make($store->store_type);
         $item = $catalogService->show($store, $id);
 
@@ -133,10 +154,53 @@ class StoreCatalogController extends Controller
             return back()->with('error', 'Topilmadi.');
         }
 
-        $catalogService->update($item, $request->all());
+        $catalogService->update($item, $request->except(['images', 'removed_images']));
 
-        return $this->storeRedirect('catalog.edit', [$id])
-            ->with('success', 'Yangilandi.');
+        // O'chirilgan rasmlarni yo'q qilish
+        if ($request->filled('removed_images')) {
+            foreach ($request->removed_images as $imageId) {
+                $image = $item->images()->find($imageId);
+                if ($image) {
+                    $this->productService->deleteImage($image);
+                }
+            }
+            // Agar primary rasm o'chirilgan bo'lsa, birinchisini primary qilish
+            $item->load('images');
+            if ($item->images->count() > 0 && !$item->images->where('is_primary', true)->count()) {
+                $item->images->first()->update(['is_primary' => true]);
+            }
+        }
+
+        // Yangi rasmlarni yuklash
+        if ($request->hasFile('images')) {
+            $hasPrimary = $item->images()->where('is_primary', true)->exists();
+            foreach ($request->file('images') as $index => $file) {
+                $this->productService->uploadImage($item, $file, !$hasPrimary && $index === 0);
+            }
+        }
+
+        return $this->storeRedirect('catalog.index')
+            ->with('success', 'Muvaffaqiyatli saqlandi.');
+    }
+
+    public function toggleActive(string $id)
+    {
+        $store = $this->getStore();
+
+        if (! $store) {
+            return back()->with('error', 'Do\'kon topilmadi.');
+        }
+
+        $catalogService = $this->catalogFactory->make($store->store_type);
+        $item = $catalogService->show($store, $id);
+
+        if (! $item) {
+            return back()->with('error', 'Topilmadi.');
+        }
+
+        $item->update(['is_active' => ! $item->is_active]);
+
+        return back()->with('success', $item->is_active ? 'Faollashtirildi.' : 'Nofaollashtirildi.');
     }
 
     public function destroy(string $id)

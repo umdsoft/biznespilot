@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Exceptions\IntegrationAbuseException;
 use App\Http\Controllers\Controller;
+use App\Models\Store\TelegramStore;
 use App\Models\TelegramBot;
 use App\Services\IntegrationGuardService;
 use App\Services\Telegram\TelegramApiService;
@@ -23,6 +24,7 @@ class TelegramBotManagementController extends Controller
         $business = $request->user()->currentBusiness;
 
         $bots = TelegramBot::where('business_id', $business->id)
+            ->with('store')
             ->withCount(['users', 'funnels', 'conversations'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -37,10 +39,24 @@ class TelegramBotManagementController extends Controller
                 'funnels_count' => $bot->funnels_count,
                 'conversations_count' => $bot->conversations_count,
                 'created_at' => $bot->created_at->format('d.m.Y'),
+                'has_store' => $bot->store !== null,
+                'store_name' => $bot->store?->name,
             ]);
+
+        // Bot limit ma'lumotlari
+        $currentPlan = $business->currentPlan();
+        $botLimit = $currentPlan ? $currentPlan->getLimit('telegram_bots') : 1;
+        $botCount = TelegramBot::where('business_id', $business->id)->count();
 
         return Inertia::render('Business/Telegram/Bots/Index', [
             'bots' => $bots,
+            'botLimit' => [
+                'current' => $botCount,
+                'max' => $botLimit,
+                'unlimited' => $currentPlan ? $currentPlan->isLimitUnlimited('telegram_bots') : false,
+                'can_add' => $business->canAdd('telegram_bots'),
+                'plan_name' => $currentPlan ? $currentPlan->name : 'Trial',
+            ],
         ]);
     }
 
@@ -62,6 +78,19 @@ class TelegramBotManagementController extends Controller
         ]);
 
         $business = $request->user()->currentBusiness;
+
+        // Tarif bo'yicha bot limit tekshiruvi
+        if (! $business->canAdd('telegram_bots')) {
+            $currentPlan = $business->currentPlan();
+            $planName = $currentPlan ? $currentPlan->name : 'Trial';
+
+            return response()->json([
+                'success' => false,
+                'message' => "Sizning \"{$planName}\" tarifingizda bot limiti tugagan. Tarif rejangizni oshiring.",
+                'error_code' => 'LIMIT_REACHED',
+                'upgrade_required' => true,
+            ], 403);
+        }
 
         // Verify bot token with Telegram API
         $tempBot = new TelegramBot(['bot_token' => $request->bot_token]);
@@ -165,6 +194,9 @@ class TelegramBotManagementController extends Controller
                 'name' => $f->name,
             ]);
 
+        // Get connected store/mini app
+        $store = TelegramStore::where('telegram_bot_id', $bot->id)->first();
+
         return Inertia::render('Business/Telegram/Bots/Show', [
             'bot' => [
                 'id' => $bot->id,
@@ -186,6 +218,15 @@ class TelegramBotManagementController extends Controller
             ],
             'funnels' => $funnels,
             'recentStats' => $recentStats,
+            'store' => $store ? [
+                'id' => $store->id,
+                'name' => $store->name,
+                'store_type' => $store->store_type,
+                'is_active' => $store->is_active,
+                'mini_app_url' => $store->getMiniAppUrl(),
+                'products_count' => $store->getActiveCatalogItemsCount(),
+                'catalog_label' => $store->getCatalogLabel(),
+            ] : null,
         ]);
     }
 

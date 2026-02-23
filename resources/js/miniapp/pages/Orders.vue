@@ -1,17 +1,17 @@
 <template>
-    <div class="pb-20">
+    <div class="pb-24">
         <BackButton />
 
         <!-- Header -->
         <div class="sticky top-0 z-10 px-4 py-3" style="background-color: var(--tg-theme-bg-color)">
-            <h1 class="text-lg font-semibold" style="color: var(--tg-theme-text-color)">
+            <h1 class="text-lg font-bold" style="color: var(--tg-theme-text-color)">
                 Buyurtmalar
             </h1>
         </div>
 
         <!-- Loading -->
-        <div v-if="orderStore.loading && orderStore.orders.length === 0" class="flex items-center justify-center py-20">
-            <LoadingSpinner />
+        <div v-if="orderStore.loading && orderStore.orders.length === 0" class="px-4 pt-2">
+            <SkeletonLoader type="order" :count="3" />
         </div>
 
         <!-- Empty -->
@@ -38,7 +38,7 @@
         <div v-else class="px-4">
             <!-- Active orders -->
             <div v-if="orderStore.activeOrders.length" class="mb-4">
-                <h2 class="mb-2 text-xs font-semibold uppercase tracking-wider" style="color: var(--tg-theme-hint-color)">
+                <h2 class="mb-2 text-sm font-semibold" style="color: var(--tg-theme-hint-color)">
                     Faol buyurtmalar
                 </h2>
                 <div class="space-y-2">
@@ -46,7 +46,7 @@
                         v-for="order in orderStore.activeOrders"
                         :key="order.id"
                         @click="goToOrder(order.order_number)"
-                        class="w-full rounded-xl p-3 text-left"
+                        class="w-full rounded-2xl p-3.5 text-left tap-active"
                         style="background-color: var(--tg-theme-secondary-bg-color)"
                     >
                         <div class="flex items-center justify-between">
@@ -68,7 +68,26 @@
                                 {{ formatPrice(order.total) }}
                             </span>
                         </div>
-                        <div v-if="order.items_count" class="mt-1">
+                        <!-- Product thumbnails -->
+                        <div v-if="order.items?.length" class="mt-2 flex items-center gap-1.5">
+                            <div
+                                v-for="(item, idx) in order.items.slice(0, 3)"
+                                :key="idx"
+                                class="h-7 w-7 overflow-hidden rounded-md"
+                                style="background-color: var(--tg-theme-bg-color)"
+                            >
+                                <img v-if="item.image" :src="item.image" :alt="item.name" class="h-full w-full object-cover" />
+                                <span v-else class="flex h-full w-full items-center justify-center text-xs">📦</span>
+                            </div>
+                            <span
+                                v-if="order.items.length > 3"
+                                class="text-[10px] font-medium"
+                                style="color: var(--tg-theme-hint-color)"
+                            >
+                                +{{ order.items.length - 3 }}
+                            </span>
+                        </div>
+                        <div v-else-if="order.items_count" class="mt-1">
                             <span class="text-xs" style="color: var(--tg-theme-hint-color)">
                                 {{ order.items_count }} ta mahsulot
                             </span>
@@ -79,7 +98,7 @@
 
             <!-- Completed orders -->
             <div v-if="orderStore.completedOrders.length">
-                <h2 class="mb-2 text-xs font-semibold uppercase tracking-wider" style="color: var(--tg-theme-hint-color)">
+                <h2 class="mb-2 text-sm font-semibold" style="color: var(--tg-theme-hint-color)">
                     Yakunlangan buyurtmalar
                 </h2>
                 <div class="space-y-2">
@@ -87,7 +106,7 @@
                         v-for="order in orderStore.completedOrders"
                         :key="order.id"
                         @click="goToOrder(order.order_number)"
-                        class="w-full rounded-xl p-3 text-left"
+                        class="w-full rounded-2xl p-3.5 text-left tap-active"
                         style="background-color: var(--tg-theme-secondary-bg-color)"
                     >
                         <div class="flex items-center justify-between">
@@ -107,6 +126,25 @@
                             </span>
                             <span class="text-sm font-medium" style="color: var(--tg-theme-text-color)">
                                 {{ formatPrice(order.total) }}
+                            </span>
+                        </div>
+                        <!-- Product thumbnails -->
+                        <div v-if="order.items?.length" class="mt-2 flex items-center gap-1.5">
+                            <div
+                                v-for="(item, idx) in order.items.slice(0, 3)"
+                                :key="idx"
+                                class="h-7 w-7 overflow-hidden rounded-md"
+                                style="background-color: var(--tg-theme-bg-color)"
+                            >
+                                <img v-if="item.image" :src="item.image" :alt="item.name" class="h-full w-full object-cover" />
+                                <span v-else class="flex h-full w-full items-center justify-center text-xs">📦</span>
+                            </div>
+                            <span
+                                v-if="order.items.length > 3"
+                                class="text-[10px] font-medium"
+                                style="color: var(--tg-theme-hint-color)"
+                            >
+                                +{{ order.items.length - 3 }}
                             </span>
                         </div>
                     </button>
@@ -126,8 +164,10 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '../stores/order'
 import { useTelegram } from '../composables/useTelegram'
+import SkeletonLoader from '../components/SkeletonLoader.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import BackButton from '../components/BackButton.vue'
+import { formatPrice } from '../utils/formatters'
 
 const router = useRouter()
 const orderStore = useOrderStore()
@@ -135,11 +175,6 @@ const { hapticImpact } = useTelegram()
 
 const loadMoreRef = ref(null)
 let observer = null
-
-function formatPrice(price) {
-    if (!price) return "0 so'm"
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so'm"
-}
 
 function formatDate(dateStr) {
     if (!dateStr) return ''

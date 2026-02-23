@@ -28,24 +28,24 @@ export const useStoreInfo = defineStore('storeInfo', () => {
         loading.value = true
         error.value = null
         try {
-            const data = await get('/store')
+            const response = await get('/info')
+            const data = response.data || response
             name.value = data.name || ''
             slug.value = storeSlug
-            logo.value = data.logo || ''
+            logo.value = data.logo_url || data.logo || ''
             description.value = data.description || ''
             phone.value = data.phone || ''
             address.value = data.address || ''
-            workingHours.value = data.working_hours || ''
+            workingHours.value = data.working_hours || data.settings?.working_hours || ''
             currency.value = data.currency || "so'm"
             deliveryInfo.value = data.delivery_info || ''
-            minOrderAmount.value = data.min_order_amount || 0
+            minOrderAmount.value = data.settings?.min_order_amount || data.min_order_amount || 0
             categories.value = data.categories || []
             featuredProducts.value = data.featured_products || []
             banners.value = data.banners || []
             storeType.value = data.store_type || 'ecommerce'
         } catch (err) {
             error.value = err.message || "Do'kon ma'lumotlarini yuklashda xatolik"
-            console.error('[MiniApp] Store fetch error:', err)
         } finally {
             loading.value = false
         }
@@ -60,9 +60,24 @@ export const useStoreInfo = defineStore('storeInfo', () => {
         }
     }
 
-    async function fetchCategoryProducts(categoryId, page = 1) {
+    async function fetchCategoryProducts(categoryId, page = 1, filters = {}) {
         try {
-            const data = await get(`/categories/${categoryId}/products`, { page })
+            const params = { category_id: categoryId, page }
+
+            if (filters.sort) {
+                const sortMap = {
+                    price_asc: { sort_by: 'price', sort_dir: 'asc' },
+                    price_desc: { sort_by: 'price', sort_dir: 'desc' },
+                    newest: { sort_by: 'created_at', sort_dir: 'desc' },
+                    name_asc: { sort_by: 'name', sort_dir: 'asc' },
+                }
+                if (sortMap[filters.sort]) Object.assign(params, sortMap[filters.sort])
+            }
+            if (filters.min_price) params.min_price = filters.min_price
+            if (filters.max_price) params.max_price = filters.max_price
+            if (filters.in_stock) params.in_stock = filters.in_stock
+
+            const data = await get('/products', params)
             return data
         } catch (err) {
             console.error('[MiniApp] Category products fetch error:', err)

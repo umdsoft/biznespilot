@@ -44,8 +44,9 @@ class StoreCategoryController extends Controller
         }
 
         $categories = StoreCategory::where('store_id', $store->id)
-            ->with(['parent', 'children' => function ($q) {
-                $q->ordered();
+            ->whereNull('parent_id')
+            ->with(['children' => function ($q) {
+                $q->withCount('products')->ordered();
             }])
             ->withCount('products')
             ->ordered()
@@ -53,15 +54,21 @@ class StoreCategoryController extends Controller
             ->map(fn ($category) => [
                 'id' => $category->id,
                 'name' => $category->name,
+                'description' => $category->description,
                 'slug' => $category->slug,
+                'color' => $category->color,
                 'image_url' => $category->image_url,
                 'sort_order' => $category->sort_order,
                 'is_active' => $category->is_active,
                 'parent_id' => $category->parent_id,
-                'parent' => $category->parent ? [
-                    'id' => $category->parent->id,
-                    'name' => $category->parent->name,
-                ] : null,
+                'children' => $category->children->map(fn ($child) => [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'description' => $child->description,
+                    'color' => $child->color,
+                    'parent_id' => $child->parent_id,
+                    'products_count' => $child->products_count ?? 0,
+                ]),
                 'children_count' => $category->children->count(),
                 'products_count' => $category->products_count,
                 'created_at' => $category->created_at?->format('d.m.Y'),
@@ -100,6 +107,8 @@ class StoreCategoryController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'color' => 'nullable|string|max:7',
             'parent_id' => 'nullable|exists:store_categories,id',
             'image_url' => 'nullable|string|url|max:500',
             'is_active' => 'boolean',
@@ -122,7 +131,9 @@ class StoreCategoryController extends Controller
             'store_id' => $store->id,
             'parent_id' => $validated['parent_id'] ?? null,
             'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
             'slug' => Str::slug($validated['name']) . '-' . Str::random(4),
+            'color' => $validated['color'] ?? null,
             'image_url' => $validated['image_url'] ?? null,
             'sort_order' => $maxSortOrder + 1,
             'is_active' => $validated['is_active'] ?? true,
@@ -153,6 +164,8 @@ class StoreCategoryController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'color' => 'nullable|string|max:7',
             'parent_id' => 'nullable|exists:store_categories,id',
             'image_url' => 'nullable|string|url|max:500',
             'is_active' => 'boolean',
@@ -185,6 +198,8 @@ class StoreCategoryController extends Controller
 
         $updateData = [
             'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'color' => $validated['color'] ?? $category->color,
             'parent_id' => $validated['parent_id'] ?? null,
             'image_url' => $validated['image_url'] ?? $category->image_url,
             'is_active' => $validated['is_active'] ?? $category->is_active,

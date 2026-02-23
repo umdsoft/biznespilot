@@ -197,7 +197,9 @@ class StoreProductController extends Controller
             'variants.*.sku' => 'nullable|string|max:100',
             'variants.*.price' => 'required_with:variants|numeric|min:0',
             'variants.*.stock_quantity' => 'nullable|integer|min:0',
-            'variants.*.attributes' => 'nullable|array',
+            'variants.*.attributes' => 'nullable',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         // Validate category belongs to this store
@@ -213,7 +215,14 @@ class StoreProductController extends Controller
 
         $product = $this->productService->createProduct($store, $validated);
 
-        return $this->storeRedirect('products.edit', [$product->id])
+        // Upload images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $file) {
+                $this->productService->uploadImage($product, $file, $index === 0);
+            }
+        }
+
+        return $this->storeRedirect('products.index')
             ->with('success', 'Mahsulot muvaffaqiyatli yaratildi.');
     }
 
@@ -385,6 +394,10 @@ class StoreProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'metadata' => 'nullable|array',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'removed_images' => 'nullable|array',
+            'removed_images.*' => 'string',
         ]);
 
         // Validate category belongs to this store
@@ -400,7 +413,33 @@ class StoreProductController extends Controller
 
         $this->productService->updateProduct($product, $validated);
 
-        return $this->storeRedirect('products.edit', [$id])
+        // Remove deleted images
+        if (! empty($validated['removed_images'])) {
+            foreach ($validated['removed_images'] as $imageId) {
+                $image = StoreProductImage::where('product_id', $product->id)->find($imageId);
+                if ($image) {
+                    $wasPrimary = $image->is_primary;
+                    $this->productService->deleteImage($image);
+
+                    if ($wasPrimary) {
+                        $nextImage = StoreProductImage::where('product_id', $product->id)
+                            ->orderBy('sort_order')
+                            ->first();
+                        $nextImage?->update(['is_primary' => true]);
+                    }
+                }
+            }
+        }
+
+        // Upload new images
+        if ($request->hasFile('images')) {
+            $hasPrimary = $product->images()->where('is_primary', true)->exists();
+            foreach ($request->file('images') as $index => $file) {
+                $this->productService->uploadImage($product, $file, ! $hasPrimary && $index === 0);
+            }
+        }
+
+        return $this->storeRedirect('products.index')
             ->with('success', 'Mahsulot muvaffaqiyatli yangilandi.');
     }
 
@@ -511,6 +550,29 @@ class StoreProductController extends Controller
         }
 
         return back()->with('success', 'Rasm o\'chirildi.');
+    }
+
+    /**
+     * Toggle product active status
+     */
+    public function toggleActive(string $id)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (! $business) {
+            return redirect()->route('login');
+        }
+
+        $store = $this->getStore();
+
+        if (! $store) {
+            return back()->with('error', 'Do\'kon topilmadi.');
+        }
+
+        $product = StoreProduct::where('store_id', $store->id)->findOrFail($id);
+        $product->update(['is_active' => ! $product->is_active]);
+
+        return back()->with('success', $product->is_active ? 'Mahsulot faollashtirildi.' : 'Mahsulot nofaollashtirildi.');
     }
 
     /**

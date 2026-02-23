@@ -407,9 +407,7 @@ class PlanLimitService
      */
     protected function getTelegramBotsCount(Business $business): int
     {
-        return $business->chatbotConfigs()
-            ->where('platform', 'telegram')
-            ->count();
+        return \App\Models\TelegramBot::where('business_id', $business->id)->count();
     }
 
     /**

@@ -15,23 +15,29 @@ class ProductListResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $imageUrl = $this->when(
+            $this->relationLoaded('primaryImage'),
+            fn () => $this->primaryImage?->image_url
+        );
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'price' => (float) $this->price,
+            // ProductCard format: price = original, sale_price = discounted
+            'price' => $this->compare_price ? (float) $this->compare_price : (float) $this->price,
+            'sale_price' => $this->compare_price ? (float) $this->price : null,
             'compare_price' => $this->compare_price ? (float) $this->compare_price : null,
             'discount_percent' => $this->getDiscountPercent(),
             'has_discount' => $this->hasDiscount(),
-            'primary_image' => $this->when(
-                $this->relationLoaded('primaryImage'),
-                fn () => $this->primaryImage?->image_url
-            ),
+            'image' => $imageUrl,
+            'primary_image' => $imageUrl,
             'category_name' => $this->when(
                 $this->relationLoaded('category'),
                 fn () => $this->category?->name
             ),
             'category_id' => $this->category_id,
+            'stock' => $this->track_stock ? $this->stock_quantity : 99,
             'in_stock' => $this->isInStock(),
             'is_featured' => $this->is_featured,
             'rating' => $this->when(

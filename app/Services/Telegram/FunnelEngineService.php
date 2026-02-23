@@ -14,6 +14,7 @@ use App\Models\TelegramMessage;
 use App\Models\TelegramTrigger;
 use App\Models\TelegramUser;
 use App\Models\TelegramUserState;
+use App\Models\Store\TelegramStore;
 use App\Services\SubscriptionGate;
 use Illuminate\Support\Facades\Log;
 
@@ -211,6 +212,13 @@ class FunnelEngineService
                 break;
 
             default:
+                // Handle menu callbacks from /start inline keyboard
+                if (str_starts_with($callbackData, 'menu_')) {
+                    $this->handleMenuCallback($callbackData, $chatId, $callbackQueryId);
+                    $answerCallback = false; // handled internally
+                    break;
+                }
+
                 // Check triggers for callback data
                 $trigger = $this->findCallbackTrigger($callbackData);
                 if ($trigger) {
@@ -340,22 +348,135 @@ class FunnelEngineService
             return;
         }
 
-        // Send welcome message with contact request if enabled (fallback)
-        $welcomeMessage = $this->bot->getWelcomeMessage();
-        $requestContact = $this->bot->getSettingValue('request_contact_on_start', true);
+        // Professional /start flow — yangi yoki qaytgan foydalanuvchi
+        $store = TelegramStore::where('telegram_bot_id', $this->bot->id)
+            ->where('is_active', true)
+            ->first();
 
-        if ($requestContact && ! $this->user->phone) {
-            // Send welcome with contact request keyboard
-            $keyboard = TelegramApiService::buildReplyKeyboard(
-                [[TelegramApiService::buildContactButton('📱 Telefon raqamni yuborish')]],
-                true,
-                true,
-                'Telefon raqamingizni yuboring'
-            );
-            $this->api->sendMessage($chatId, $welcomeMessage."\n\n📲 Davom etish uchun telefon raqamingizni yuboring:", $keyboard);
+        $botName = $this->bot->bot_first_name ?: $this->bot->bot_username;
+        $userName = $this->user->first_name ?: '';
+        $isNewUser = ! $this->user->first_interaction_at
+            || $this->user->first_interaction_at->diffInMinutes(now()) < 2;
+
+        // Welcome text
+        if ($isNewUser) {
+            $text = "👋 Assalomu alaykum" . ($userName ? ", <b>{$userName}</b>" : '') . "!\n\n";
+            $text .= "🤖 <b>{$botName}</b> ga xush kelibsiz!\n";
+            if ($store) {
+                $text .= "\n🛍 <b>{$store->name}</b> — sizning shaxsiy do'koningiz.\n";
+                if ($store->description) {
+                    $text .= "{$store->description}\n";
+                }
+            }
+            $text .= "\nQuyidagi menyudan kerakli bo'limni tanlang:";
         } else {
-            $this->api->sendMessage($chatId, $welcomeMessage);
+            $text = "👋 Qaytganingiz bilan" . ($userName ? ", <b>{$userName}</b>" : '') . "!\n\n";
+            $text .= "Quyidagi menyudan kerakli bo'limni tanlang:";
         }
+
+        // Inline keyboard menu
+        $buttons = [];
+
+        if ($store) {
+            $miniAppUrl = config('app.url') . "/miniapp/{$store->slug}";
+            $buttons[] = [
+                ['text' => '🛒 Katalog', 'web_app' => ['url' => $miniAppUrl]],
+            ];
+            $buttons[] = [
+                ['text' => '🏷 Aksiyalar', 'callback_data' => 'menu_deals'],
+                ['text' => '📦 Buyurtmalarim', 'callback_data' => 'menu_orders'],
+            ];
+        }
+
+        $buttons[] = [
+            ['text' => '📞 Bog\'lanish', 'callback_data' => 'menu_contact'],
+            ['text' => 'ℹ️ Biz haqimizda', 'callback_data' => 'menu_about'],
+        ];
+
+        $keyboard = ['inline_keyboard' => $buttons];
+        $this->api->sendMessage($chatId, $text, $keyboard, 'HTML');
+    }
+
+    /**
+     * Handle menu callback from /start inline keyboard
+     */
+    public function handleMenuCallback(string $action, int $chatId, string $callbackQueryId): void
+    {
+        $store = TelegramStore::where('telegram_bot_id', $this->bot->id)
+            ->where('is_active', true)
+            ->first();
+
+        $botName = $this->bot->bot_first_name ?: $this->bot->bot_username;
+        $business = $this->bot->business;
+
+        switch ($action) {
+            case 'menu_deals':
+                $text = "🏷 <b>Aksiyalar va maxsus takliflar</b>\n\n";
+                $text .= "Hozircha faol aksiyalar yo'q.\nYangi aksiyalar haqida birinchi bo'lib xabar olish uchun kuzatib boring!";
+                $keyboard = ['inline_keyboard' => [
+                    [['text' => '◀️ Asosiy menyu', 'callback_data' => 'menu_main']],
+                ]];
+                $this->api->sendMessage($chatId, $text, $keyboard, 'HTML');
+                break;
+
+            case 'menu_orders':
+                $text = "📦 <b>Buyurtmalarim</b>\n\n";
+                $text .= "Buyurtmalaringizni do'kon orqali ko'rishingiz mumkin.";
+                $buttons = [];
+                if ($store) {
+                    $miniAppUrl = config('app.url') . "/miniapp/{$store->slug}";
+                    $buttons[] = [['text' => '🛒 Do\'konni ochish', 'web_app' => ['url' => $miniAppUrl]]];
+                }
+                $buttons[] = [['text' => '◀️ Asosiy menyu', 'callback_data' => 'menu_main']];
+                $this->api->sendMessage($chatId, $text, ['inline_keyboard' => $buttons], 'HTML');
+                break;
+
+            case 'menu_contact':
+                $text = "📞 <b>Bog'lanish</b>\n\n";
+                if ($business) {
+                    if ($business->phone) {
+                        $text .= "📱 Telefon: {$business->phone}\n";
+                    }
+                    if ($business->email) {
+                        $text .= "📧 Email: {$business->email}\n";
+                    }
+                    if ($business->address) {
+                        $text .= "📍 Manzil: {$business->address}\n";
+                    }
+                    if ($business->website) {
+                        $text .= "🌐 Sayt: {$business->website}\n";
+                    }
+                }
+                if ($text === "📞 <b>Bog'lanish</b>\n\n") {
+                    $text .= "Bog'lanish ma'lumotlari tez orada qo'shiladi.";
+                }
+                $keyboard = ['inline_keyboard' => [
+                    [['text' => '◀️ Asosiy menyu', 'callback_data' => 'menu_main']],
+                ]];
+                $this->api->sendMessage($chatId, $text, $keyboard, 'HTML');
+                break;
+
+            case 'menu_about':
+                $text = "ℹ️ <b>Biz haqimizda</b>\n\n";
+                $text .= "<b>{$botName}</b>";
+                if ($business && $business->description) {
+                    $text .= "\n\n{$business->description}";
+                } elseif ($store && $store->description) {
+                    $text .= "\n\n{$store->description}";
+                }
+                $keyboard = ['inline_keyboard' => [
+                    [['text' => '◀️ Asosiy menyu', 'callback_data' => 'menu_main']],
+                ]];
+                $this->api->sendMessage($chatId, $text, $keyboard, 'HTML');
+                break;
+
+            case 'menu_main':
+                // Re-send the /start menu
+                $this->handleStartCommand(null);
+                break;
+        }
+
+        $this->api->answerCallbackQuery($callbackQueryId);
     }
 
     /**

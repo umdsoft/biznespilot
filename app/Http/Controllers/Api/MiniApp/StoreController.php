@@ -22,11 +22,14 @@ class StoreController extends Controller
      */
     public function info(TelegramStore $store): JsonResponse
     {
-        $store->load(['categories' => function ($q) {
-            $q->active();
-        }, 'products' => function ($q) {
-            $q->active();
-        }]);
+        $store->load([
+            'categories' => function ($q) {
+                $q->active()->ordered();
+            },
+            'products' => function ($q) {
+                $q->active()->with('primaryImage');
+            },
+        ]);
 
         return response()->json([
             'success' => true,

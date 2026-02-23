@@ -10,6 +10,10 @@ defineProps({
   bots: {
     type: Array,
     default: () => []
+  },
+  botLimit: {
+    type: Object,
+    default: null
   }
 })
 </script>
@@ -17,6 +21,6 @@ defineProps({
 <template>
   <BusinessLayout :title="t('telegram.bots')">
     <Head :title="t('telegram.bots')" />
-    <TelegramBotsIndex :bots="bots" panel-type="business" />
+    <TelegramBotsIndex :bots="bots" :bot-limit="botLimit" panel-type="business" />
   </BusinessLayout>
 </template>

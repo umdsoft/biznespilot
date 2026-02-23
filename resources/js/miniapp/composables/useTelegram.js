@@ -1,6 +1,6 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { shallowRef, ref, computed, onMounted, onUnmounted } from 'vue'
 
-const webapp = ref(null)
+const webapp = shallowRef(null)
 const isReady = ref(false)
 const themeParams = ref({})
 

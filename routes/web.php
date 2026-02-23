@@ -1303,11 +1303,13 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
             Route::post('/', [App\Http\Controllers\Business\StoreCatalogController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [App\Http\Controllers\Business\StoreCatalogController::class, 'edit'])->name('edit');
             Route::put('/{id}', [App\Http\Controllers\Business\StoreCatalogController::class, 'update'])->name('update');
+            Route::put('/{id}/toggle-active', [App\Http\Controllers\Business\StoreCatalogController::class, 'toggleActive'])->name('toggle-active');
             Route::delete('/{id}', [App\Http\Controllers\Business\StoreCatalogController::class, 'destroy'])->name('destroy');
         });
 
         // Products (backward compat — eski routelar saqlanadi)
         Route::resource('products', App\Http\Controllers\Business\StoreProductController::class);
+        Route::put('/products/{product}/toggle-active', [App\Http\Controllers\Business\StoreProductController::class, 'toggleActive'])->name('products.toggle-active');
         Route::post('/products/{product}/images', [App\Http\Controllers\Business\StoreProductController::class, 'uploadImage'])->name('products.upload-image');
         Route::delete('/products/images/{image}', [App\Http\Controllers\Business\StoreProductController::class, 'deleteImage'])->name('products.delete-image');
         Route::post('/products/reorder', [App\Http\Controllers\Business\StoreProductController::class, 'reorder'])->name('products.reorder');
@@ -2644,12 +2646,17 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     });
 });
 
+// Mini App test page (debug)
+Route::get('/miniapp-test', function () {
+    return response('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Test</title><script src="https://telegram.org/js/telegram-web-app.js"></script></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#f0f0f0"><div style="text-align:center"><h1>Mini App ishlayapti!</h1><p id="info">Yuklanmoqda...</p><script>var tg=window.Telegram&&window.Telegram.WebApp;if(tg){tg.ready();tg.expand();document.getElementById("info").textContent="User: "+(tg.initDataUnsafe&&tg.initDataUnsafe.user?tg.initDataUnsafe.user.first_name:"unknown")+", Platform: "+tg.platform}else{document.getElementById("info").textContent="Telegram WebApp SDK topilmadi"}</script></div></body></html>');
+})->name('miniapp.test');
+
 // ========== MINI APP STORE (Public, no auth) ==========
 Route::get('/miniapp/{storeSlug}', function ($storeSlug) {
     $store = \App\Models\Store\TelegramStore::where('slug', $storeSlug)->where('is_active', true)->firstOrFail();
     return view('miniapp', [
         'storeName' => $store->name,
         'storeSlug' => $store->slug,
-        'apiUrl' => url('/api/miniapp/v1/' . $store->slug),
+        'apiUrl' => config('app.url') . '/api/miniapp/v1/' . $store->slug,
     ]);
 })->name('miniapp.show');
