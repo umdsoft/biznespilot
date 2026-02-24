@@ -1,6 +1,6 @@
 <template>
   <Head title="Do'kon - Boshqaruv paneli" />
-  <BusinessLayout title="Do'kon">
+  <component :is="layoutComponent" title="Do'kon">
     <div class="space-y-6">
 
       <!-- Header -->
@@ -11,14 +11,15 @@
         </div>
         <div class="flex items-center gap-3">
           <Link
-            :href="route('business.store.orders.index')"
+            :href="storeRoute('orders.index')"
             class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             <ClipboardDocumentListIcon class="w-4 h-4" />
             Buyurtmalar
           </Link>
           <Link
-            :href="route('business.store.products.create')"
+            v-if="isBusinessPanel"
+            :href="storeRoute('products.create')"
             class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
           >
             <PlusIcon class="w-4 h-4" />
@@ -106,8 +107,8 @@
       <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
         <Link
           v-for="nav in quickLinks"
-          :key="nav.route"
-          :href="route(nav.route)"
+          :key="nav.suffix"
+          :href="storeRoute(nav.suffix)"
           class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 sm:p-4 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center"
         >
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mx-auto mb-2" :class="nav.bgColor">
@@ -293,7 +294,7 @@
               </span>
             </div>
             <Link
-              :href="route('business.store.orders.index', { status: 'pending' })"
+              :href="storeRoute('orders.index', { status: 'pending' })"
               class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
             >
               Barchasi
@@ -305,7 +306,7 @@
               v-for="order in pendingOrders.slice(0, 5)"
               :key="order.id"
               class="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
-              @click="router.visit(route('business.store.orders.show', order.id))"
+              @click="router.visit(storeRoute('orders.show', order.id))"
             >
               <div class="flex items-start justify-between gap-3">
                 <div class="flex-1 min-w-0">
@@ -340,7 +341,7 @@
           <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <h3 class="text-base font-semibold text-slate-900 dark:text-white">Oxirgi buyurtmalar</h3>
             <Link
-              :href="route('business.store.orders.index')"
+              :href="storeRoute('orders.index')"
               class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
             >
               Barchasi
@@ -352,7 +353,7 @@
               v-for="order in recentOrders.slice(0, 5)"
               :key="order.id"
               class="px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer flex items-center gap-3"
-              @click="router.visit(route('business.store.orders.show', order.id))"
+              @click="router.visit(storeRoute('orders.show', order.id))"
             >
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
@@ -381,13 +382,13 @@
         </div>
       </div>
     </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useStorePanel } from '@/composables/useStorePanel';
 import {
   BanknotesIcon,
   ShoppingCartIcon,
@@ -417,7 +418,10 @@ const props = defineProps({
   chartData: { type: Array, default: () => [] },
   statusDistribution: { type: Object, default: () => ({}) },
   storeHealth: { type: Object, default: () => ({}) },
+  panelType: { type: String, default: 'business' },
 });
+
+const { layoutComponent, storeRoute, isBusinessPanel } = useStorePanel(props.panelType);
 
 // Period management
 const activePeriod = ref('today');
@@ -440,14 +444,15 @@ const periodCompareLabel = computed(() => {
 });
 
 // Quick nav links
-const quickLinks = [
-  { route: 'business.store.categories.index', label: 'Kategoriyalar', icon: FolderIcon, bgColor: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600 dark:text-amber-400' },
-  { route: 'business.store.catalog.index', label: 'Katalog', icon: CubeIcon, bgColor: 'bg-emerald-100 dark:bg-emerald-900/30', iconColor: 'text-emerald-600 dark:text-emerald-400' },
-  { route: 'business.store.orders.index', label: 'Buyurtmalar', icon: ShoppingCartIcon, bgColor: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
-  { route: 'business.store.customers.index', label: 'Mijozlar', icon: UsersIcon, bgColor: 'bg-violet-100 dark:bg-violet-900/30', iconColor: 'text-violet-600 dark:text-violet-400' },
-  { route: 'business.store.promo-codes.index', label: 'Promo kodlar', icon: TagIcon, bgColor: 'bg-pink-100 dark:bg-pink-900/30', iconColor: 'text-pink-600 dark:text-pink-400' },
-  { route: 'business.store.settings', label: 'Sozlamalar', icon: CogIcon, bgColor: 'bg-slate-100 dark:bg-slate-700', iconColor: 'text-slate-600 dark:text-slate-400' },
+const allQuickLinks = [
+  { suffix: 'categories.index', label: 'Kategoriyalar', icon: FolderIcon, bgColor: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600 dark:text-amber-400', businessOnly: true },
+  { suffix: 'catalog.index', label: 'Katalog', icon: CubeIcon, bgColor: 'bg-emerald-100 dark:bg-emerald-900/30', iconColor: 'text-emerald-600 dark:text-emerald-400' },
+  { suffix: 'orders.index', label: 'Buyurtmalar', icon: ShoppingCartIcon, bgColor: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
+  { suffix: 'customers.index', label: 'Mijozlar', icon: UsersIcon, bgColor: 'bg-violet-100 dark:bg-violet-900/30', iconColor: 'text-violet-600 dark:text-violet-400' },
+  { suffix: 'promo-codes.index', label: 'Promo kodlar', icon: TagIcon, bgColor: 'bg-pink-100 dark:bg-pink-900/30', iconColor: 'text-pink-600 dark:text-pink-400', businessOnly: true },
+  { suffix: 'settings', label: 'Sozlamalar', icon: CogIcon, bgColor: 'bg-slate-100 dark:bg-slate-700', iconColor: 'text-slate-600 dark:text-slate-400', businessOnly: true },
 ];
+const quickLinks = computed(() => allQuickLinks.filter(l => !l.businessOnly || isBusinessPanel));
 
 // Chart configuration
 const svgWidth = 600;

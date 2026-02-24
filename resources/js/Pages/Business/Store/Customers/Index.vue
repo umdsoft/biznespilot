@@ -1,6 +1,6 @@
 <template>
   <Head title="Mijozlar" />
-  <BusinessLayout title="Mijozlar">
+  <component :is="layoutComponent" title="Mijozlar">
     <div class="space-y-6">
 
       <!-- Header -->
@@ -45,7 +45,7 @@
                 v-for="customer in customers.data"
                 :key="customer.id"
                 class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
-                @click="router.visit(route('business.store.customers.show', customer.id))"
+                @click="router.visit(storeRoute('customers.show', customer.id))"
               >
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-3">
@@ -100,13 +100,13 @@
         :total="customers.total"
       />
     </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useStorePanel } from '@/composables/useStorePanel';
 import Pagination from '@/components/Pagination.vue';
 import {
   MagnifyingGlassIcon,
@@ -116,7 +116,10 @@ import {
 const props = defineProps({
   customers: { type: Object, default: () => ({ data: [], links: [] }) },
   filters: { type: Object, default: () => ({}) },
+  panelType: { type: String, default: 'business' },
 });
+
+const { layoutComponent, storeRoute } = useStorePanel(props.panelType);
 
 const search = ref(props.filters?.search || '');
 
@@ -161,7 +164,7 @@ const getAvatarColor = (name) => {
 const debouncedSearch = () => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    router.get(route('business.store.customers.index'), {
+    router.get(storeRoute('customers.index'), {
       search: search.value || undefined,
     }, {
       preserveState: true,

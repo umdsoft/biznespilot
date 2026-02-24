@@ -2,6 +2,7 @@
 
 namespace App\Models\Store;
 
+use App\Traits\NormalizesImageUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StoreCategory extends Model
 {
-    use HasUuids;
+    use HasUuids, NormalizesImageUrl;
 
     protected $fillable = [
         'store_id',

@@ -28,12 +28,21 @@ class MiniAppCatalogController extends Controller
 
     public function show(TelegramStore $store, string $slug)
     {
+        $catalogService = $this->catalogFactory->make($store->store_type);
         $modelClass = $store->getCatalogModelClass();
 
-        $item = $modelClass::where('store_id', $store->id)
+        $query = $modelClass::where('store_id', $store->id)
             ->where('slug', $slug)
-            ->where('is_active', true)
-            ->firstOrFail();
+            ->where('is_active', true);
+
+        // Eager-load relations based on store type
+        if ($store->store_type === 'course') {
+            $query->with(['category', 'lessons']);
+        } elseif (method_exists($modelClass, 'category')) {
+            $query->with(['category']);
+        }
+
+        $item = $query->firstOrFail();
 
         $resourceClass = CatalogResourceFactory::make($store->store_type);
 

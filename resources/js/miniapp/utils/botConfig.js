@@ -25,6 +25,12 @@ export const botTabConfig = {
         { name: 'search', route: 'search', label: 'Qidirish', icon: 'search' },
         { name: 'requests', route: 'my-requests', label: "So'rovlar", icon: 'orders' },
     ],
+    course: [
+        { name: 'home', route: 'home', label: 'Kurslar', icon: 'home' },
+        { name: 'search', route: 'search', label: 'Qidirish', icon: 'search' },
+        { name: 'cart', route: 'cart', label: 'Savat', icon: 'cart' },
+        { name: 'orders', route: 'orders', label: 'Buyurtmalar', icon: 'orders' },
+    ],
 }
 
 export const botAccentColors = {
@@ -32,6 +38,7 @@ export const botAccentColors = {
     delivery: '#F97316',
     queue: '#8B5CF6',
     service: '#0EA5E9',
+    course: '#8B5CF6',
 }
 
 // Route names where bottom nav is shown (per bot type)
@@ -40,6 +47,7 @@ export const botBottomNavRoutes = {
     delivery: ['home', 'search', 'cart', 'orders', 'order-detail', 'category'],
     queue: ['home', 'my-bookings', 'booking-detail'],
     service: ['home', 'search', 'my-requests', 'request-detail'],
+    course: ['home', 'search', 'cart', 'orders', 'order-detail', 'category', 'course-detail'],
 }
 
 // Active route groups for tab highlighting

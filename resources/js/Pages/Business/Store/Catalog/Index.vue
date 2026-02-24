@@ -1,6 +1,6 @@
 <template>
   <Head :title="botConfig?.catalog_label || 'Katalog'" />
-  <BusinessLayout :title="botConfig?.catalog_label || 'Katalog'">
+  <component :is="layoutComponent" :title="botConfig?.catalog_label || 'Katalog'">
     <div class="space-y-6">
 
       <!-- Header -->
@@ -12,7 +12,8 @@
           </p>
         </div>
         <Link
-          :href="route('business.store.catalog.create')"
+          v-if="isBusinessPanel"
+          :href="storeRoute('catalog.create')"
           class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
         >
           <PlusIcon class="w-4 h-4" />
@@ -89,7 +90,7 @@
           :key="item.id"
           class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow group"
         >
-          <Link :href="route('business.store.catalog.edit', item.id)" class="block">
+          <Link :href="storeRoute('catalog.edit', item.id)" class="block">
             <div class="aspect-square bg-slate-100 dark:bg-slate-700 relative overflow-hidden">
               <img
                 v-if="item.primary_image?.image_url"
@@ -110,7 +111,7 @@
           </Link>
 
           <div class="p-3">
-            <Link :href="route('business.store.catalog.edit', item.id)">
+            <Link :href="storeRoute('catalog.edit', item.id)">
               <h3 class="text-sm font-medium text-slate-900 dark:text-white truncate hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 {{ item.name }}
               </h3>
@@ -151,7 +152,7 @@
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Kategoriya</th>
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Narx</th>
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Holat</th>
-                <th class="px-5 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Amallar</th>
+                <th v-if="isBusinessPanel" class="px-5 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Amallar</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -169,7 +170,7 @@
                       </div>
                     </div>
                     <div class="min-w-0">
-                      <Link :href="route('business.store.catalog.edit', item.id)" class="text-sm font-medium text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 truncate block">
+                      <Link :href="storeRoute('catalog.edit', item.id)" class="text-sm font-medium text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 truncate block">
                         {{ item.name }}
                       </Link>
                     </div>
@@ -193,10 +194,10 @@
                     />
                   </button>
                 </td>
-                <td class="px-5 py-3 whitespace-nowrap text-right">
+                <td v-if="isBusinessPanel" class="px-5 py-3 whitespace-nowrap text-right">
                   <div class="flex items-center justify-end gap-3">
                     <Link
-                      :href="route('business.store.catalog.edit', item.id)"
+                      :href="storeRoute('catalog.edit', item.id)"
                       class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
                     >
                       Tahrirlash
@@ -219,9 +220,10 @@
       <div v-if="items?.data && items.data.length === 0" class="text-center py-16">
         <CubeIcon class="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
         <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">{{ botConfig?.catalog_label || 'Elementlar' }} yo'q</h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Birinchi {{ botConfig?.catalog_label_singular || 'element' }}ni qo'shing</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">{{ isBusinessPanel ? `Birinchi ${botConfig?.catalog_label_singular || 'element'}ni qo'shing` : `Hozircha ${botConfig?.catalog_label || 'elementlar'} yo'q` }}</p>
         <Link
-          :href="route('business.store.catalog.create')"
+          v-if="isBusinessPanel"
+          :href="storeRoute('catalog.create')"
           class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
         >
           <PlusIcon class="w-4 h-4" />
@@ -238,13 +240,13 @@
         :total="items.total"
       />
     </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useStorePanel } from '@/composables/useStorePanel';
 import Pagination from '@/components/Pagination.vue';
 import {
   PlusIcon,
@@ -262,7 +264,10 @@ const props = defineProps({
   filters: { type: Object, default: () => ({}) },
   botType: { type: String, default: 'ecommerce' },
   botConfig: { type: Object, default: () => ({}) },
+  panelType: { type: String, default: 'business' },
 });
+
+const { layoutComponent, storeRoute, isBusinessPanel } = useStorePanel(props.panelType);
 
 const search = ref(props.filters?.search || '');
 const selectedCategory = ref(props.filters?.category || '');
@@ -284,7 +289,7 @@ const debouncedSearch = () => {
 };
 
 const applyFilters = () => {
-  router.get(route('business.store.catalog.index'), {
+  router.get(storeRoute('catalog.index'), {
     search: search.value || undefined,
     category: selectedCategory.value || undefined,
     status: selectedStatus.value || undefined,
@@ -296,7 +301,7 @@ const applyFilters = () => {
 };
 
 const toggleActive = (item) => {
-  router.put(route('business.store.catalog.toggle-active', item.id), {}, {
+  router.put(storeRoute('catalog.toggle-active', item.id), {}, {
     preserveScroll: true,
     preserveState: true,
   });
@@ -304,7 +309,7 @@ const toggleActive = (item) => {
 
 const confirmDelete = (item) => {
   if (confirm(`"${item.name}" ni o'chirmoqchimisiz?`)) {
-    router.delete(route('business.store.catalog.destroy', item.id), {
+    router.delete(storeRoute('catalog.destroy', item.id), {
       preserveScroll: true,
     });
   }

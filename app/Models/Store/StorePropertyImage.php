@@ -2,13 +2,14 @@
 
 namespace App\Models\Store;
 
+use App\Traits\NormalizesImageUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StorePropertyImage extends Model
 {
-    use HasUuids;
+    use HasUuids, NormalizesImageUrl;
 
     protected $table = 'store_property_images';
 

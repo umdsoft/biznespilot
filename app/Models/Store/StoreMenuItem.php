@@ -4,6 +4,7 @@ namespace App\Models\Store;
 
 use App\Contracts\Store\CatalogableInterface;
 use App\Traits\HasPolymorphicCatalog;
+use App\Traits\NormalizesImageUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StoreMenuItem extends Model implements CatalogableInterface
 {
-    use HasPolymorphicCatalog, HasUuids;
+    use HasPolymorphicCatalog, HasUuids, NormalizesImageUrl;
 
     protected $table = 'store_menu_items';
 

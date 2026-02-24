@@ -1,6 +1,6 @@
 <template>
   <Head title="Buyurtmalar" />
-  <BusinessLayout title="Buyurtmalar">
+  <component :is="layoutComponent" title="Buyurtmalar">
     <div class="space-y-6">
 
       <!-- Header -->
@@ -87,7 +87,7 @@
               >
                 <td class="px-5 py-3 whitespace-nowrap">
                   <Link
-                    :href="route('business.store.orders.show', order.id)"
+                    :href="storeRoute('orders.show', order.id)"
                     class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
                   >
                     #{{ order.order_number }}
@@ -150,13 +150,13 @@
         :total="orders.total"
       />
     </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useStorePanel } from '@/composables/useStorePanel';
 import Pagination from '@/components/Pagination.vue';
 import {
   ArrowDownTrayIcon,
@@ -167,7 +167,10 @@ const props = defineProps({
   orders: { type: Object, default: () => ({ data: [], links: [] }) },
   filters: { type: Object, default: () => ({}) },
   stats: { type: Object, default: () => ({}) },
+  panelType: { type: String, default: 'business' },
 });
+
+const { layoutComponent, storeRoute } = useStorePanel(props.panelType);
 
 const currentStatus = ref(props.filters?.status || '');
 const exporting = ref(false);
@@ -208,7 +211,7 @@ const formatDate = (dateString) => {
 
 const filterByStatus = (status) => {
   currentStatus.value = status;
-  router.get(route('business.store.orders.index'), {
+  router.get(storeRoute('orders.index'), {
     status: status || undefined,
   }, {
     preserveState: true,
@@ -243,7 +246,7 @@ const availableStatuses = (currentOrderStatus) => {
 
 const updateStatus = (order, newStatus) => {
   if (newStatus === order.status) return;
-  router.post(route('business.store.orders.update-status', order.id), {
+  router.post(storeRoute('orders.update-status', order.id), {
     status: newStatus,
   }, {
     preserveScroll: true,
@@ -253,7 +256,7 @@ const updateStatus = (order, newStatus) => {
 
 const exportOrders = () => {
   exporting.value = true;
-  window.location.href = route('business.store.orders.export', {
+  window.location.href = storeRoute('orders.export', {
     status: currentStatus.value || undefined,
   });
   setTimeout(() => {

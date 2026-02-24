@@ -6,6 +6,12 @@ use InvalidArgumentException;
 
 class BotTypeRegistry
 {
+    /**
+     * Bot types that have full MiniApp frontend implementation.
+     * Only these are shown in the setup wizard.
+     */
+    public const IMPLEMENTED_TYPES = ['ecommerce', 'service', 'delivery', 'queue', 'course'];
+
     protected array $config;
 
     public function __construct()
@@ -75,7 +81,9 @@ class BotTypeRegistry
 
     public function getAllTypesForSelect(): array
     {
-        return static::buildTypesForSelect($this->config);
+        $implemented = array_intersect_key($this->config, array_flip(static::IMPLEMENTED_TYPES));
+
+        return static::buildTypesForSelect($implemented);
     }
 
     /**
@@ -86,8 +94,9 @@ class BotTypeRegistry
     public static function allTypesForSelect(): array
     {
         $config = config('store_bot_types', []);
+        $implemented = array_intersect_key($config, array_flip(static::IMPLEMENTED_TYPES));
 
-        return static::buildTypesForSelect($config);
+        return static::buildTypesForSelect($implemented);
     }
 
     /**

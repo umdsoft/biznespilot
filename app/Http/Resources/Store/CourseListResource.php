@@ -18,14 +18,8 @@ class CourseListResource extends JsonResource
             'slug' => $this->slug,
             'price' => (float) $this->price,
             'compare_price' => $this->compare_price ? (float) $this->compare_price : null,
-            'discount_percent' => $this->getDiscountPercent(),
-            'has_discount' => $this->hasDiscount(),
             'image' => $this->image_url,
-            'level' => $this->level,
-            'instructor' => $this->instructor,
-            'duration_hours' => $this->duration_hours,
-            'format' => $this->format,
-            'has_available_spots' => $this->hasAvailableSpots(),
+            'image_url' => $this->image_url,
             'category_name' => $this->when(
                 $this->relationLoaded('category'),
                 fn () => $this->category?->name
@@ -33,6 +27,8 @@ class CourseListResource extends JsonResource
             'category_id' => $this->category_id,
             'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,
+            'catalog_type' => 'course',
+            'attributes' => $this->getCatalogAttributes(),
         ];
     }
 }

@@ -54,6 +54,8 @@ class CourseResource extends JsonResource
                 fn () => $this->lessons->map(fn ($lesson) => [
                     'id' => $lesson->id,
                     'title' => $lesson->title,
+                    'duration_minutes' => $lesson->duration_minutes,
+                    'is_free_preview' => $lesson->is_free_preview,
                     'sort_order' => $lesson->sort_order,
                 ])
             ),

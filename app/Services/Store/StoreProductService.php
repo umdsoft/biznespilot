@@ -88,7 +88,7 @@ class StoreProductService
 
         return StoreProductImage::create([
             'product_id' => $product->id,
-            'image_url' => Storage::disk($disk)->url($filePath),
+            'image_url' => '/storage/' . $filePath,
             'sort_order' => $sortOrder + 1,
             'is_primary' => $isPrimary || $product->images()->count() === 0,
         ]);
@@ -103,7 +103,12 @@ class StoreProductService
     protected function deleteImageFile(string $url): void
     {
         $disk = config('store.upload.disk', 'public');
-        $path = str_replace(Storage::disk($disk)->url(''), '', $url);
+
+        // Extract disk-relative path from both full URLs and relative paths
+        $path = parse_url($url, PHP_URL_PATH);
+        if ($path && str_starts_with($path, '/storage/')) {
+            $path = substr($path, strlen('/storage/'));
+        }
 
         if ($path && Storage::disk($disk)->exists($path)) {
             Storage::disk($disk)->delete($path);

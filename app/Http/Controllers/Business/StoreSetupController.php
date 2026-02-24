@@ -43,40 +43,6 @@ class StoreSetupController extends Controller
 
         $store = $this->getStore();
 
-        // Determine current setup step (4-step wizard)
-        // Step 1: Bot type, Step 2: Store info, Step 3: Bot connection, Step 4: Activation
-        $currentStep = 1;
-        $completedSteps = [];
-
-        if ($store) {
-            $completedSteps[] = 1;
-            $completedSteps[] = 2;
-            $currentStep = 3;
-
-            if ($store->telegram_bot_id) {
-                $completedSteps[] = 3;
-                $currentStep = 4; // Activation
-
-                if ($store->is_active) {
-                    $completedSteps[] = 4;
-                }
-            }
-        }
-
-        // Get connected bot info if available
-        $connectedBot = null;
-        if ($store && $store->telegram_bot_id) {
-            $bot = TelegramBot::find($store->telegram_bot_id);
-            if ($bot) {
-                $connectedBot = [
-                    'id' => $bot->id,
-                    'username' => $bot->bot_username,
-                    'first_name' => $bot->bot_first_name,
-                    'is_active' => $bot->is_active,
-                ];
-            }
-        }
-
         // Query param dan pre-selected bot type (telegram bot create sahifasidan keladi)
         $preSelectedType = $request->query('type');
         $validTypes = array_keys(config('store_bot_types', []));
@@ -84,25 +50,25 @@ class StoreSetupController extends Controller
             $preSelectedType = null;
         }
 
+        // Get existing bots for this business (for step 3 selection)
+        $existingBots = TelegramBot::where('business_id', $business->id)
+            ->select('id', 'bot_username', 'bot_first_name', 'is_active')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($bot) => [
+                'id' => $bot->id,
+                'username' => $bot->bot_username,
+                'first_name' => $bot->bot_first_name,
+                'is_active' => $bot->is_active,
+            ]);
+
+        // Wizard always starts fresh — step 1, empty forms, no completed steps
         return Inertia::render('Business/Store/Setup', [
-            'store' => $store ? [
-                'id' => $store->id,
-                'name' => $store->name,
-                'slug' => $store->slug,
-                'description' => $store->description,
-                'phone' => $store->phone,
-                'address' => $store->address,
-                'currency' => $store->currency,
-                'store_type' => $store->store_type,
-                'enabled_features' => $store->enabled_features,
-                'is_active' => $store->is_active,
-                'settings' => $store->settings,
-                'mini_app_url' => $store->getMiniAppUrl(),
-                'products_count' => $store->getActiveCatalogItemsCount(),
-            ] : null,
-            'bot' => $connectedBot,
-            'step' => $currentStep,
-            'completedSteps' => $completedSteps,
+            'store' => null,
+            'bot' => null,
+            'step' => 1,
+            'completedSteps' => [],
+            'existingBots' => $existingBots,
             'botTypes' => app(BotTypeRegistry::class)->getAllTypesForSelect(),
             'preSelectedType' => $preSelectedType,
             'panelType' => $this->getStorePanelTypeForInertia(),
@@ -110,7 +76,7 @@ class StoreSetupController extends Controller
     }
 
     /**
-     * Create a new store (Step 2 - store info, receives store_type from Step 1)
+     * Create or update a store (Step 2 - store info, receives store_type from Step 1)
      */
     public function storeSetup(Request $request)
     {
@@ -118,12 +84,6 @@ class StoreSetupController extends Controller
 
         if (! $business) {
             return redirect()->route('login');
-        }
-
-        // Check if business already has a store
-        $existingStore = TelegramStore::where('business_id', $business->id)->first();
-        if ($existingStore) {
-            return back()->with('error', 'Bu biznes uchun do\'kon allaqachon yaratilgan.');
         }
 
         $validated = $request->validate([
@@ -136,10 +96,27 @@ class StoreSetupController extends Controller
             'enabled_features' => 'nullable|array',
         ]);
 
-        $store = $this->storeSetupService->createStore($business, $validated);
+        $existingStore = TelegramStore::where('business_id', $business->id)->first();
+
+        if ($existingStore) {
+            // Update existing store
+            $existingStore->update([
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'currency' => $validated['currency'],
+                'store_type' => $validated['store_type'],
+                'enabled_features' => $validated['enabled_features'] ?? [],
+            ]);
+            $message = 'Do\'kon ma\'lumotlari yangilandi.';
+        } else {
+            $this->storeSetupService->createStore($business, $validated);
+            $message = 'Do\'kon muvaffaqiyatli yaratildi. Endi Telegram botni ulang.';
+        }
 
         return redirect()->route('business.store.setup.wizard')
-            ->with('success', 'Do\'kon muvaffaqiyatli yaratildi. Endi Telegram botni ulang.');
+            ->with('success', $message);
     }
 
     /**
@@ -176,6 +153,45 @@ class StoreSetupController extends Controller
 
         return redirect()->route('business.store.setup.wizard')
             ->with('success', $message);
+    }
+
+    /**
+     * Connect an existing Telegram bot to the store (Step 3 — select from list)
+     */
+    public function connectExistingBot(Request $request)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (! $business) {
+            return redirect()->route('login');
+        }
+
+        $store = $this->getStore();
+
+        if (! $store) {
+            return back()->with('error', 'Avval do\'kon yarating.');
+        }
+
+        $validated = $request->validate([
+            'bot_id' => 'required|uuid',
+        ]);
+
+        $bot = TelegramBot::where('business_id', $business->id)
+            ->where('id', $validated['bot_id'])
+            ->first();
+
+        if (! $bot) {
+            return back()->with('error', 'Bot topilmadi.');
+        }
+
+        // Link bot to store
+        $store->update(['telegram_bot_id' => $bot->id]);
+
+        // Set up MiniApp webhook and menu button
+        $this->storeSetupService->setupBotForStore($store, $bot);
+
+        return redirect()->route('business.store.setup.wizard')
+            ->with('success', 'Telegram bot muvaffaqiyatli ulandi.');
     }
 
     /**
@@ -257,7 +273,7 @@ class StoreSetupController extends Controller
             return back()->with('error', 'Botni faollashtirish imkoni bo\'lmadi. Barcha sozlamalarni tekshiring.');
         }
 
-        return redirect()->route('business.telegram-funnels.index')
+        return redirect()->route($this->getStorePanelType() . '.store.dashboard')
             ->with('success', 'Telegram bot muvaffaqiyatli faollashtirildi!');
     }
 }

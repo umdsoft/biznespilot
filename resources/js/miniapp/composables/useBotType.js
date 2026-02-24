@@ -17,7 +17,8 @@ export function useBotType() {
     const isDelivery = computed(() => storeType === 'delivery')
     const isQueue = computed(() => storeType === 'queue')
     const isService = computed(() => storeType === 'service')
-    const hasCart = computed(() => ['ecommerce', 'delivery'].includes(storeType))
+    const isCourse = computed(() => storeType === 'course')
+    const hasCart = computed(() => ['ecommerce', 'delivery', 'course'].includes(storeType))
 
     const bottomTabs = computed(() => botTabConfig[storeType] || botTabConfig.ecommerce)
     const bottomNavRouteNames = computed(() => botBottomNavRoutes[storeType] || botBottomNavRoutes.ecommerce)
@@ -34,6 +35,7 @@ export function useBotType() {
         isDelivery,
         isQueue,
         isService,
+        isCourse,
         hasCart,
         bottomTabs,
         bottomNavRouteNames,

@@ -1,12 +1,12 @@
 <template>
   <Head :title="customer.name" />
-  <BusinessLayout :title="customer.name">
+  <component :is="layoutComponent" :title="customer.name">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
       <!-- Header -->
       <div class="mb-6">
         <Link
-          :href="route('business.store.customers.index')"
+          :href="storeRoute('customers.index')"
           class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors mb-3"
         >
           <ArrowLeftIcon class="w-4 h-4 mr-2" />
@@ -96,7 +96,7 @@
                     v-for="order in ordersList"
                     :key="order.id"
                     class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
-                    @click="router.visit(route('business.store.orders.show', order.id))"
+                    @click="router.visit(storeRoute('orders.show', order.id))"
                   >
                     <td class="px-5 py-3 whitespace-nowrap">
                       <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">#{{ order.order_number }}</span>
@@ -126,13 +126,13 @@
         </div>
       </div>
     </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useStorePanel } from '@/composables/useStorePanel';
 import {
   ArrowLeftIcon,
   PhoneIcon,
@@ -146,7 +146,10 @@ const props = defineProps({
   customer: { type: Object, required: true },
   orders: { type: Object, default: () => ({ data: [] }) },
   orderStats: { type: Object, default: () => ({}) },
+  panelType: { type: String, default: 'business' },
 });
+
+const { layoutComponent, storeRoute } = useStorePanel(props.panelType);
 
 // Orders prop paginated format (data array) yoki oddiy array bo'lishi mumkin
 const ordersList = computed(() => {

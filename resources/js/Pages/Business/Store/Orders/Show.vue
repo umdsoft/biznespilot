@@ -1,12 +1,12 @@
 <template>
   <Head :title="'Buyurtma #' + order.order_number" />
-  <BusinessLayout :title="'Buyurtma #' + order.order_number">
+  <component :is="layoutComponent" :title="'Buyurtma #' + order.order_number">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
       <!-- Header -->
       <div class="mb-6">
         <Link
-          :href="route('business.store.orders.index')"
+          :href="storeRoute('orders.index')"
           class="inline-flex items-center text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors mb-3"
         >
           <ArrowLeftIcon class="w-4 h-4 mr-2" />
@@ -169,7 +169,7 @@
 
               <div v-if="order.customer?.id">
                 <Link
-                  :href="route('business.store.customers.show', order.customer.id)"
+                  :href="storeRoute('customers.show', order.customer.id)"
                   class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
                 >
                   Mijoz profilini ko'rish
@@ -260,13 +260,13 @@
         </div>
       </div>
     </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useStorePanel } from '@/composables/useStorePanel';
 import {
   ArrowLeftIcon,
   UserIcon,
@@ -282,7 +282,10 @@ import {
 
 const props = defineProps({
   order: { type: Object, required: true },
+  panelType: { type: String, default: 'business' },
 });
+
+const { layoutComponent, storeRoute } = useStorePanel(props.panelType);
 
 const updating = ref(false);
 
@@ -342,7 +345,7 @@ const getStatusClass = (status) => statusMap[status]?.class || 'bg-slate-100 tex
 
 const changeStatus = (newStatus) => {
   updating.value = true;
-  router.post(route('business.store.orders.update-status', props.order.id), {
+  router.post(storeRoute('orders.update-status', props.order.id), {
     status: newStatus,
   }, {
     preserveScroll: true,

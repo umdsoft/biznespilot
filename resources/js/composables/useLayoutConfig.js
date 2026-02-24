@@ -37,6 +37,8 @@ import {
   ChartPieIcon,
   SparklesIcon,
   BanknotesIcon,
+  ShoppingCartIcon,
+  CubeIcon,
 } from '@heroicons/vue/24/outline';
 
 // SVG Icons for social platforms
@@ -127,15 +129,12 @@ export const businessLayoutConfig = {
         { href: '/business/sales', label: 'Lidlar', labelKey: 'nav.leads', icon: PresentationChartLineIcon, badgeKey: 'new_leads' },
         { href: '/business/tasks', label: 'Vazifalar', labelKey: 'nav.tasks', icon: ClipboardDocumentListIcon },
         { href: '/business/todos', label: 'Kunlik vazifalar', labelKey: 'nav.daily_tasks', icon: CheckCircleIcon },
-        { href: '/business/lead-forms', label: 'Lead Formalar', labelKey: 'nav.lead_forms', icon: DocumentTextIcon },
       ]
     },
     {
       title: 'Tahlillar',
       titleKey: 'nav.analytics_section',
       items: [
-        { href: '/business/analytics', label: 'Analitika', labelKey: 'nav.analytics', icon: ChartBarIcon },
-        { href: '/business/analytics/content-funnel', label: 'Kontent Funnel', icon: ChartPieIcon },
         { href: '/business/kpi', label: 'KPI Reja', labelKey: 'nav.kpi', icon: PresentationChartLineIcon },
         { href: '/business/calls', label: 'Qo\'ng\'iroq Tahlili', labelKey: 'nav.call_center', icon: SparklesIcon },
         { href: '/business/competitor-insights', label: 'AI Tavsiyalar', labelKey: 'nav.ai_insights', icon: LightBulbIcon },
@@ -148,6 +147,16 @@ export const businessLayoutConfig = {
         { href: '/business/facebook-analysis', label: 'Target Analiz', labelKey: 'nav.target_analysis', icon: FacebookIcon },
         { href: '/integrations/instagram', label: 'Instagram', labelKey: 'nav.instagram', icon: InstagramIcon },
         { href: '/business/telegram-funnels', label: 'Telegram', labelKey: 'nav.telegram', icon: TelegramIcon },
+      ]
+    },
+    {
+      title: "Do'kon",
+      titleKey: 'nav.store_section',
+      items: [
+        { href: '/business/store/dashboard', label: "Do'kon", labelKey: 'nav.store', icon: ShoppingCartIcon },
+        { href: '/business/store/orders', label: 'Buyurtmalar', labelKey: 'nav.store_orders', icon: ClipboardDocumentListIcon, badgeKey: 'store_pending_orders' },
+        { href: '/business/store/customers', label: 'Mijozlar', labelKey: 'nav.store_customers', icon: UsersIcon },
+        { href: '/business/store/catalog', label: 'Katalog', labelKey: 'nav.store_catalog', icon: CubeIcon },
       ]
     },
     {
@@ -232,6 +241,15 @@ export const salesHeadLayoutConfig = {
         { href: '/sales-head/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
         { href: '/sales-head/pipeline-automation', label: 'Pipeline Avtomatizatsiya', icon: ArrowPathIcon },
         { href: '/sales-head/lead-scoring', label: 'Lead Scoring', icon: FireIcon },
+      ]
+    },
+    {
+      title: "Do'kon",
+      items: [
+        { href: '/sales-head/store/dashboard', label: "Do'kon", icon: ShoppingCartIcon },
+        { href: '/sales-head/store/orders', label: 'Buyurtmalar', icon: ClipboardDocumentListIcon, badgeKey: 'store_pending_orders' },
+        { href: '/sales-head/store/customers', label: 'Mijozlar', icon: UsersIcon },
+        { href: '/sales-head/store/catalog', label: 'Katalog', icon: CubeIcon },
       ]
     },
     {
@@ -740,6 +758,14 @@ export const operatorLayoutConfig = {
       title: 'Statistika',
       items: [
         { href: '/operator/kpi', label: 'Mening KPI', icon: PresentationChartLineIcon },
+      ]
+    },
+    {
+      title: "Do'kon",
+      items: [
+        { href: '/operator/store/dashboard', label: "Do'kon", icon: ShoppingCartIcon },
+        { href: '/operator/store/orders', label: 'Buyurtmalar', icon: ClipboardDocumentListIcon, badgeKey: 'store_pending_orders' },
+        { href: '/operator/store/customers', label: 'Mijozlar', icon: UsersIcon },
       ]
     },
     {

@@ -20,31 +20,31 @@
             <div class="flex items-center">
               <button
                 @click="goToStep(s.id)"
-                :disabled="s.id > currentStep"
+                :disabled="!isStepAccessible(s.id)"
                 class="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all duration-300"
                 :class="[
-                  s.id < currentStep
-                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
+                  completedSteps.includes(s.id) && s.id !== currentStep
+                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25 cursor-pointer'
                     : s.id === currentStep
                       ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 ring-4 ring-emerald-100 dark:ring-emerald-900/50'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
                 ]"
               >
                 <component
-                  :is="s.id < currentStep ? CheckIcon : s.icon"
+                  :is="completedSteps.includes(s.id) && s.id !== currentStep ? CheckIcon : s.icon"
                   class="w-5 h-5"
                 />
               </button>
               <div class="ml-3 hidden sm:block">
                 <p
                   class="text-sm font-semibold"
-                  :class="s.id <= currentStep ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"
+                  :class="s.id <= currentStep || completedSteps.includes(s.id) ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"
                 >
                   {{ s.title }}
                 </p>
                 <p
                   class="text-xs"
-                  :class="s.id <= currentStep ? 'text-slate-500 dark:text-slate-400' : 'text-slate-300 dark:text-slate-600'"
+                  :class="s.id <= currentStep || completedSteps.includes(s.id) ? 'text-slate-500 dark:text-slate-400' : 'text-slate-300 dark:text-slate-600'"
                 >
                   {{ s.description }}
                 </p>
@@ -53,7 +53,7 @@
             <div
               v-if="index < steps.length - 1"
               class="flex-1 h-0.5 mx-2 sm:mx-4 rounded-full transition-colors"
-              :class="s.id < currentStep ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'"
+              :class="completedSteps.includes(s.id) ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'"
             ></div>
           </template>
         </div>
@@ -171,33 +171,84 @@
                 </div>
                 <div>
                   <h2 class="text-lg font-bold text-slate-900 dark:text-white">Telegram bot ulash</h2>
-                  <p class="text-sm text-slate-500 dark:text-slate-400">Telegram bot tokenini kiriting</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Mavjud botni tanlang yoki yangi token kiriting</p>
                 </div>
               </div>
 
-              <div v-if="bot" class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-                <div class="flex items-center gap-3">
-                  <CheckCircleIcon class="w-6 h-6 text-emerald-500 flex-shrink-0" />
-                  <div>
-                    <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Bot ulangan</p>
-                    <p class="text-sm text-emerald-600 dark:text-emerald-400">@{{ bot.username }} - {{ bot.first_name }}</p>
+              <!-- Connected bot status -->
+              <div v-if="connectedBot" class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl mb-5">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <CheckCircleIcon class="w-6 h-6 text-emerald-500 flex-shrink-0" />
+                    <div>
+                      <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Bot ulangan</p>
+                      <p class="text-sm text-emerald-600 dark:text-emerald-400">@{{ connectedBot.username }} - {{ connectedBot.first_name }}</p>
+                    </div>
                   </div>
+                  <button @click="connectedBot = null; selectedExistingBot = null" class="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                    Boshqa bot tanlash
+                  </button>
                 </div>
               </div>
 
               <div v-else class="space-y-5">
-                <div class="p-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl">
-                  <h4 class="text-sm font-semibold text-slate-900 dark:text-white mb-2">Bot yaratish qo'llanma:</h4>
-                  <ol class="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-decimal list-inside">
-                    <li>Telegram da @BotFather ga yozing</li>
-                    <li>/newbot buyrug'ini yuboring</li>
-                    <li>Bot nomini va username kiriting</li>
-                    <li>Olingan tokenni pastga joylashtiring</li>
-                  </ol>
+                <!-- Existing bots selection -->
+                <div v-if="existingBots.length > 0">
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Mavjud botlardan tanlang</label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      v-for="eb in existingBots"
+                      :key="eb.id"
+                      @click="selectedExistingBot = eb.id"
+                      type="button"
+                      class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left"
+                      :class="selectedExistingBot === eb.id
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'"
+                    >
+                      <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                        <ChatBubbleLeftRightIcon class="w-5 h-5 text-white" />
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ eb.first_name }}</p>
+                        <p class="text-xs text-blue-500">@{{ eb.username }}</p>
+                      </div>
+                      <CheckCircleIcon v-if="selectedExistingBot === eb.id" class="w-5 h-5 text-emerald-500 ml-auto flex-shrink-0" />
+                    </button>
+                  </div>
+
+                  <button
+                    v-if="selectedExistingBot"
+                    @click="connectExistingBot"
+                    :disabled="connectingBot"
+                    class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg v-if="connectingBot" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Botni ulash</span>
+                  </button>
+
+                  <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200 dark:border-slate-700"></div></div>
+                    <div class="relative flex justify-center"><span class="bg-white dark:bg-slate-800 px-4 text-sm text-slate-400">yoki</span></div>
+                  </div>
                 </div>
 
+                <!-- New bot token input -->
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bot Token *</label>
+                  <div class="p-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl mb-4">
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white mb-2">Yangi bot yaratish:</h4>
+                    <ol class="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-decimal list-inside">
+                      <li>Telegram da @BotFather ga yozing</li>
+                      <li>/newbot buyrug'ini yuboring</li>
+                      <li>Bot nomini va username kiriting</li>
+                      <li>Olingan tokenni pastga joylashtiring</li>
+                    </ol>
+                  </div>
+
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bot Token</label>
                   <input
                     v-model="botForm.bot_token"
                     type="text"
@@ -205,19 +256,19 @@
                     class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors font-mono text-sm"
                   />
                   <p v-if="botForm.errors.bot_token" class="mt-1 text-sm text-red-500">{{ botForm.errors.bot_token }}</p>
-                </div>
 
-                <button
-                  @click="verifyBot"
-                  :disabled="botForm.processing || !botForm.bot_token"
-                  class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg v-if="botForm.processing" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Tekshirish va ulash</span>
-                </button>
+                  <button
+                    @click="verifyBot"
+                    :disabled="botForm.processing || !botForm.bot_token"
+                    class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg v-if="botForm.processing" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Tekshirish va ulash</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -260,9 +311,9 @@
                     <button @click="goToStep(3)" class="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium">Tahrirlash</button>
                   </div>
                   <div class="text-sm">
-                    <p v-if="bot" class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <p v-if="connectedBot" class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                       <CheckCircleIcon class="w-4 h-4" />
-                      @{{ bot.username }} — ulangan
+                      @{{ connectedBot.username }} — ulangan
                     </p>
                     <p v-else class="text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                       <ExclamationTriangleIcon class="w-4 h-4" />
@@ -337,16 +388,22 @@ import {
 
 const props = defineProps({
   step: { type: Number, default: 1 },
+  completedSteps: { type: Array, default: () => [] },
   store: { type: Object, default: null },
   bot: { type: Object, default: null },
+  existingBots: { type: Array, default: () => [] },
   botTypes: { type: Array, default: () => [] },
   preSelectedType: { type: String, default: null },
 });
 
 const currentStep = ref(props.step);
+const completedSteps = ref(props.completedSteps);
 const activating = ref(false);
+const connectingBot = ref(false);
 const selectedBotType = ref(props.preSelectedType || props.store?.store_type || 'ecommerce');
 const enabledFeatures = ref(props.store?.enabled_features || []);
+const selectedExistingBot = ref(null);
+const connectedBot = ref(props.bot);
 
 const steps = [
   { id: 1, title: 'Bot turi', description: 'Bot turini tanlang', icon: SparklesIcon },
@@ -375,13 +432,18 @@ const currentStepInfo = computed(() => {
 
 const canProceed = computed(() => {
   if (currentStep.value === 1) return !!selectedBotType.value;
-  if (currentStep.value === 2) return !!storeForm.name && !!storeForm.phone;
-  if (currentStep.value === 3) return true;
+  if (currentStep.value === 2) return !!storeForm.name;
+  if (currentStep.value === 3) return !!connectedBot.value;
   return true;
 });
 
+const isStepAccessible = (stepId) => {
+  // Can go to current step, any previous step, or any completed step
+  return stepId <= currentStep.value || props.completedSteps.includes(stepId);
+};
+
 const goToStep = (stepId) => {
-  if (stepId <= currentStep.value) {
+  if (isStepAccessible(stepId)) {
     currentStep.value = stepId;
   }
 };
@@ -390,11 +452,13 @@ const nextStep = () => {
   if (currentStep.value === 1) {
     storeForm.store_type = selectedBotType.value;
     storeForm.enabled_features = enabledFeatures.value;
+    if (!completedSteps.value.includes(1)) completedSteps.value.push(1);
     currentStep.value = 2;
   } else if (currentStep.value === 2) {
     storeForm.post(route('business.store.setup.store'), {
       preserveScroll: true,
       onSuccess: () => {
+        if (!completedSteps.value.includes(2)) completedSteps.value.push(2);
         currentStep.value = 3;
       },
     });
@@ -409,10 +473,30 @@ const prevStep = () => {
   }
 };
 
+const connectExistingBot = () => {
+  if (!selectedExistingBot.value) return;
+  connectingBot.value = true;
+  router.post(route('business.store.setup.connect-existing-bot'), {
+    bot_id: selectedExistingBot.value,
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      const bot = props.existingBots.find(b => b.id === selectedExistingBot.value);
+      connectedBot.value = bot || { username: '...', first_name: '...' };
+      if (!completedSteps.value.includes(3)) completedSteps.value.push(3);
+      currentStep.value = 4;
+    },
+    onFinish: () => {
+      connectingBot.value = false;
+    },
+  });
+};
+
 const verifyBot = () => {
   botForm.post(route('business.store.setup.connect-bot'), {
     preserveScroll: true,
     onSuccess: () => {
+      if (!completedSteps.value.includes(3)) completedSteps.value.push(3);
       currentStep.value = 4;
     },
   });

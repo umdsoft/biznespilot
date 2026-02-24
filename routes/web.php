@@ -1290,6 +1290,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/setup', [App\Http\Controllers\Business\StoreSetupController::class, 'wizard'])->name('setup.wizard');
         Route::post('/setup', [App\Http\Controllers\Business\StoreSetupController::class, 'storeSetup'])->name('setup.store');
         Route::post('/setup/connect-bot', [App\Http\Controllers\Business\StoreSetupController::class, 'connectBot'])->name('setup.connect-bot');
+        Route::post('/setup/connect-existing-bot', [App\Http\Controllers\Business\StoreSetupController::class, 'connectExistingBot'])->name('setup.connect-existing-bot');
         Route::post('/setup/payment', [App\Http\Controllers\Business\StoreSetupController::class, 'configurePayment'])->name('setup.payment');
         Route::post('/setup/activate', [App\Http\Controllers\Business\StoreSetupController::class, 'activate'])->name('setup.activate');
 
@@ -2658,6 +2659,6 @@ Route::get('/miniapp/{storeSlug}', function ($storeSlug) {
         'storeName' => $store->name,
         'storeSlug' => $store->slug,
         'storeType' => $store->store_type ?? 'ecommerce',
-        'apiUrl' => config('app.url') . '/api/miniapp/v1/' . $store->slug,
+        'apiUrl' => request()->getSchemeAndHttpHost() . '/api/miniapp/v1/' . $store->slug,
     ]);
 })->name('miniapp.show');

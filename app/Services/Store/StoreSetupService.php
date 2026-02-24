@@ -109,6 +109,55 @@ class StoreSetupService
     }
 
     /**
+     * Set up an existing bot for store (webhook + menu button)
+     */
+    public function setupBotForStore(TelegramStore $store, TelegramBot $bot): void
+    {
+        $botToken = $bot->bot_token;
+
+        if (! $botToken) {
+            return;
+        }
+
+        $baseUrl = config('app.url');
+
+        // Set up webhook if not already set
+        if (! $bot->webhook_url) {
+            $webhookUrl = "{$baseUrl}/webhooks/telegram-funnel/{$bot->id}";
+            $webhookSecret = $bot->webhook_secret ?: bin2hex(random_bytes(32));
+
+            $webhookResponse = Http::post("https://api.telegram.org/bot{$botToken}/setWebhook", [
+                'url' => $webhookUrl,
+                'secret_token' => $webhookSecret,
+                'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
+            ]);
+
+            if ($webhookResponse->successful()) {
+                $bot->update([
+                    'webhook_url' => $webhookUrl,
+                    'webhook_secret' => $webhookSecret,
+                ]);
+            }
+        }
+
+        // Set WebApp menu button
+        $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
+        Http::post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
+            'menu_button' => [
+                'type' => 'web_app',
+                'text' => 'Do\'kon',
+                'web_app' => ['url' => $miniAppUrl],
+            ],
+        ]);
+
+        Log::info('Existing bot connected to store', [
+            'store_id' => $store->id,
+            'bot_id' => $bot->id,
+            'bot_username' => $bot->bot_username,
+        ]);
+    }
+
+    /**
      * Activate the store
      */
     public function activateStore(TelegramStore $store): bool

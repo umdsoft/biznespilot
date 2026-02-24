@@ -32,6 +32,7 @@ const routesByType = {
     delivery: () => import('./routes/delivery'),
     queue: () => import('./routes/queue'),
     service: () => import('./routes/service'),
+    course: () => import('./routes/course'),
 }
 
 export async function createAppRouter() {
