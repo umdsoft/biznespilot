@@ -1,7 +1,7 @@
 <template>
   <Head :title="'Buyurtma #' + order.order_number" />
   <BusinessLayout :title="'Buyurtma #' + order.order_number">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
       <!-- Header -->
       <div class="mb-6">
@@ -87,9 +87,9 @@
                   <span class="text-slate-500 dark:text-slate-400">Yetkazish:</span>
                   <span class="text-slate-700 dark:text-slate-300">{{ formatPrice(order.delivery_fee) }}</span>
                 </div>
-                <div v-if="order.discount" class="flex items-center justify-between text-sm">
+                <div v-if="order.discount_amount" class="flex items-center justify-between text-sm">
                   <span class="text-slate-500 dark:text-slate-400">Chegirma:</span>
-                  <span class="text-emerald-600 dark:text-emerald-400">-{{ formatPrice(order.discount) }}</span>
+                  <span class="text-emerald-600 dark:text-emerald-400">-{{ formatPrice(order.discount_amount) }}</span>
                 </div>
                 <div class="flex items-center justify-between text-base font-bold pt-2 border-t border-slate-200 dark:border-slate-600">
                   <span class="text-slate-900 dark:text-white">Jami:</span>
@@ -123,11 +123,12 @@
 
                   <div class="flex-1 min-w-0 pt-1">
                     <p class="text-sm font-medium text-slate-900 dark:text-white">
-                      {{ getStatusLabel(entry.status) }}
+                      {{ getStatusLabel(entry.to_status) }}
                     </p>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                       {{ formatDateTime(entry.created_at) }}
-                      <span v-if="entry.note"> &middot; {{ entry.note }}</span>
+                      <span v-if="entry.changed_by"> &middot; {{ entry.changed_by }}</span>
+                      <span v-if="entry.comment"> &middot; {{ entry.comment }}</span>
                     </p>
                   </div>
                 </div>
@@ -163,7 +164,7 @@
 
               <div v-if="order.delivery_address" class="flex items-start gap-3 text-sm">
                 <MapPinIcon class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                <span class="text-slate-700 dark:text-slate-300">{{ order.delivery_address }}</span>
+                <span class="text-slate-700 dark:text-slate-300">{{ formattedAddress }}</span>
               </div>
 
               <div v-if="order.customer?.id">
@@ -185,7 +186,7 @@
             <div class="p-5 space-y-3">
               <div class="flex items-center justify-between text-sm">
                 <span class="text-slate-500 dark:text-slate-400">Usul:</span>
-                <span class="font-medium text-slate-900 dark:text-white capitalize">{{ order.payment_method || 'Naqd' }}</span>
+                <span class="font-medium text-slate-900 dark:text-white">{{ getPaymentLabel(order.payment_method) }}</span>
               </div>
               <div class="flex items-center justify-between text-sm">
                 <span class="text-slate-500 dark:text-slate-400">Holat:</span>
@@ -199,7 +200,7 @@
           </div>
 
           <!-- Action Buttons -->
-          <div v-if="order.status !== 'delivered' && order.status !== 'cancelled'" class="space-y-3">
+          <div v-if="!['delivered', 'cancelled', 'refunded'].includes(order.status)" class="space-y-3">
             <button
               v-if="order.status === 'pending'"
               @click="changeStatus('confirmed')"
@@ -211,7 +212,7 @@
             </button>
             <button
               v-if="order.status === 'confirmed'"
-              @click="changeStatus('preparing')"
+              @click="changeStatus('processing')"
               :disabled="updating"
               class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
             >
@@ -219,8 +220,8 @@
               Tayyorlashni boshlash
             </button>
             <button
-              v-if="order.status === 'preparing'"
-              @click="changeStatus('shipping')"
+              v-if="order.status === 'processing'"
+              @click="changeStatus('shipped')"
               :disabled="updating"
               class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
             >
@@ -228,7 +229,7 @@
               Yetkazishga berish
             </button>
             <button
-              v-if="order.status === 'shipping'"
+              v-if="order.status === 'shipped'"
               @click="changeStatus('delivered')"
               :disabled="updating"
               class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
@@ -237,7 +238,7 @@
               Yetkazildi
             </button>
             <button
-              v-if="order.status !== 'shipping'"
+              v-if="['pending', 'confirmed', 'processing'].includes(order.status)"
               @click="changeStatus('cancelled')"
               :disabled="updating"
               class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors disabled:opacity-50"
@@ -263,7 +264,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
@@ -285,6 +286,30 @@ const props = defineProps({
 
 const updating = ref(false);
 
+const formattedAddress = computed(() => {
+  const addr = props.order.delivery_address;
+  if (!addr) return '';
+  if (typeof addr === 'string') return addr;
+  const parts = [];
+  if (addr.city) parts.push(addr.city);
+  if (addr.district) parts.push(addr.district);
+  if (addr.street) parts.push(addr.street);
+  if (addr.apartment) parts.push(`kv. ${addr.apartment}`);
+  if (addr.entrance) parts.push(`${addr.entrance}-kirish`);
+  if (addr.floor) parts.push(`${addr.floor}-qavat`);
+  const address = parts.join(', ');
+  if (addr.comment) return `${address} (${addr.comment})`;
+  return address;
+});
+
+const paymentLabels = {
+  cash: 'Naqd pul',
+  card: 'Plastik karta',
+  click: 'Click',
+  payme: 'Payme',
+};
+const getPaymentLabel = (method) => paymentLabels[method] || method || 'Naqd pul';
+
 const formatPrice = (value) => {
   if (!value && value !== 0) return "0 so'm";
   return new Intl.NumberFormat('uz-UZ').format(value) + " so'm";
@@ -305,10 +330,11 @@ const formatDateTime = (dateString) => {
 const statusMap = {
   pending: { label: 'Kutilmoqda', class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
   confirmed: { label: 'Tasdiqlangan', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  preparing: { label: 'Tayyorlanmoqda', class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
-  shipping: { label: 'Yetkazilmoqda', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  processing: { label: 'Tayyorlanmoqda', class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
+  shipped: { label: 'Yetkazilmoqda', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
   delivered: { label: 'Yetkazildi', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   cancelled: { label: 'Bekor qilingan', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  refunded: { label: 'Qaytarilgan', class: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
 };
 
 const getStatusLabel = (status) => statusMap[status]?.label || status;
@@ -316,7 +342,7 @@ const getStatusClass = (status) => statusMap[status]?.class || 'bg-slate-100 tex
 
 const changeStatus = (newStatus) => {
   updating.value = true;
-  router.put(route('business.store.orders.update-status', props.order.id), {
+  router.post(route('business.store.orders.update-status', props.order.id), {
     status: newStatus,
   }, {
     preserveScroll: true,

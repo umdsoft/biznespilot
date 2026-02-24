@@ -20,9 +20,10 @@ use Symfony\Component\HttpFoundation\Response;
 class MiniAppAuth
 {
     /**
-     * Maximum age of initData in seconds (5 minutes)
+     * Maximum age of initData in seconds (24 hours).
+     * Mini App do'kon uchun user uzoq vaqt browse qilishi mumkin.
      */
-    protected const MAX_AGE_SECONDS = 300;
+    protected const MAX_AGE_SECONDS = 86400;
 
     public function handle(Request $request, Closure $next): Response
     {

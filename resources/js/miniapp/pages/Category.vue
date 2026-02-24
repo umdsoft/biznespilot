@@ -1,62 +1,74 @@
 <template>
-    <div class="pb-24">
+    <div style="padding-bottom: 24px">
         <BackButton />
 
         <!-- Header -->
-        <div class="sticky top-0 z-10 px-4 py-3" style="background-color: var(--tg-theme-bg-color)">
-            <h1 class="text-lg font-bold" style="color: var(--tg-theme-text-color)">
-                {{ categoryName }}
-                <span v-if="totalCount > 0" class="text-sm font-normal" style="color: var(--tg-theme-hint-color)">
-                    ({{ totalCount }})
-                </span>
-            </h1>
-
-            <!-- Sort & Filter buttons -->
-            <div class="mt-2.5 flex gap-2">
-                <button
-                    @click="showSort = true"
-                    class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold tap-active"
-                    :style="{
-                        backgroundColor: currentSort !== 'default' ? 'var(--tg-theme-button-color)' : 'var(--tg-theme-secondary-bg-color)',
-                        color: currentSort !== 'default' ? 'var(--tg-theme-button-text-color)' : 'var(--tg-theme-text-color)',
-                    }"
-                >
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M6 12h12M9 17h6" />
-                    </svg>
-                    Saralash
-                </button>
-                <button
-                    @click="showFilter = true"
-                    class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold tap-active"
-                    :style="{
-                        backgroundColor: activeFilterCount > 0 ? 'var(--tg-theme-button-color)' : 'var(--tg-theme-secondary-bg-color)',
-                        color: activeFilterCount > 0 ? 'var(--tg-theme-button-text-color)' : 'var(--tg-theme-text-color)',
-                    }"
-                >
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-                    </svg>
-                    Filtr
-                    <span
-                        v-if="activeFilterCount > 0"
-                        class="flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold"
-                        style="background-color: var(--tg-theme-button-text-color); color: var(--tg-theme-button-color)"
-                    >
-                        {{ activeFilterCount }}
+        <div class="sticky top-0 z-20 header-blur">
+            <div style="padding: 12px 16px">
+                <h1 style="font-size: 22px; font-weight: 700; color: var(--tg-theme-text-color)">
+                    {{ categoryName }}
+                    <span v-if="totalCount > 0" style="font-size: 15px; font-weight: 400; color: var(--tg-theme-hint-color)">
+                        ({{ totalCount }})
                     </span>
-                </button>
+                </h1>
+
+                <!-- Sort & Filter buttons -->
+                <div class="flex" style="margin-top: 12px; gap: 8px">
+                    <button
+                        @click="showSort = true"
+                        class="flex items-center tap-active"
+                        :style="{
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '12px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            backgroundColor: currentSort !== 'default' ? 'var(--tg-theme-button-color)' : 'var(--tg-theme-secondary-bg-color)',
+                            color: currentSort !== 'default' ? 'var(--tg-theme-button-text-color)' : 'var(--tg-theme-text-color)',
+                        }"
+                    >
+                        <svg style="width: 14px; height: 14px" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M6 12h12M9 17h6" />
+                        </svg>
+                        Saralash
+                    </button>
+                    <button
+                        @click="showFilter = true"
+                        class="flex items-center tap-active"
+                        :style="{
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '12px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            backgroundColor: activeFilterCount > 0 ? 'var(--tg-theme-button-color)' : 'var(--tg-theme-secondary-bg-color)',
+                            color: activeFilterCount > 0 ? 'var(--tg-theme-button-text-color)' : 'var(--tg-theme-text-color)',
+                        }"
+                    >
+                        <svg style="width: 14px; height: 14px" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                        </svg>
+                        Filtr
+                        <span
+                            v-if="activeFilterCount > 0"
+                            class="flex items-center justify-center rounded-full"
+                            style="min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; font-weight: 700; background-color: var(--tg-theme-button-text-color); color: var(--tg-theme-button-color)"
+                        >
+                            {{ activeFilterCount }}
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Loading skeleton -->
-        <div v-if="loading && products.length === 0" class="px-4 pt-2">
+        <div v-if="loading && products.length === 0" style="padding: 8px 16px 0">
             <SkeletonLoader type="card" :count="6" />
         </div>
 
         <!-- Products grid -->
-        <div v-else class="px-4">
-            <div v-if="products.length" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div v-else style="padding: 0 16px">
+            <div v-if="products.length" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px">
                 <ProductCard
                     v-for="product in products"
                     :key="product.id"
@@ -65,26 +77,23 @@
             </div>
 
             <!-- Empty -->
-            <div v-if="!loading && products.length === 0" class="py-16 text-center">
-                <div class="text-3xl mb-3">🔍</div>
-                <p class="text-sm font-medium" style="color: var(--tg-theme-text-color)">
-                    Mahsulot topilmadi
-                </p>
-                <p class="text-xs mt-1" style="color: var(--tg-theme-hint-color)">
-                    Filtr parametrlarini o'zgartirib ko'ring
-                </p>
-                <button
-                    v-if="activeFilterCount > 0 || currentSort !== 'default'"
-                    @click="resetFilters"
-                    class="mt-4 rounded-xl px-5 py-2.5 text-sm font-semibold tap-active"
-                    style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color)"
-                >
-                    Filtrlarni tozalash
-                </button>
+            <div v-if="!loading && products.length === 0" class="empty-state" style="min-height: 40vh">
+                <div class="empty-state-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <p class="empty-state-title">Mahsulot topilmadi</p>
+                <p class="empty-state-desc">Filtr parametrlarini o'zgartirib ko'ring</p>
+                <div v-if="activeFilterCount > 0 || currentSort !== 'default'" class="empty-state-action">
+                    <button @click="resetFilters" class="btn-primary" style="width: auto; height: 44px; padding: 0 24px; font-size: 14px">
+                        Filtrlarni tozalash
+                    </button>
+                </div>
             </div>
 
             <!-- Load more -->
-            <div v-if="hasMore" ref="loadMoreRef" class="flex justify-center py-6">
+            <div v-if="hasMore" ref="loadMoreRef" class="flex justify-center" style="padding: 24px 0">
                 <LoadingSpinner v-if="loading" size="sm" />
             </div>
         </div>
@@ -118,7 +127,6 @@ const page = ref(1)
 const totalCount = ref(0)
 const loadMoreRef = ref(null)
 
-// Sort & Filter state
 const showSort = ref(false)
 const showFilter = ref(false)
 const currentSort = ref('default')

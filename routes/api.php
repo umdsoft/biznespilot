@@ -636,6 +636,8 @@ Route::prefix('miniapp/v1/{store:slug}')->group(function () {
     Route::get('/info', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'info']);
     Route::get('/categories', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'categories']);
     Route::get('/delivery-zones', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'deliveryZones']);
+    Route::get('/regions', [\App\Http\Controllers\Api\MiniApp\RegionController::class, 'regions']);
+    Route::get('/regions/{key}/districts', [\App\Http\Controllers\Api\MiniApp\RegionController::class, 'districts']);
 
     // Unified Catalog API (barcha bot turlari uchun)
     Route::get('/catalog', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'index']);
@@ -653,14 +655,36 @@ Route::prefix('miniapp/v1/{store:slug}')->group(function () {
     // Authenticated (Telegram initData talab qilinadi)
     Route::middleware('miniapp.auth')->group(function () {
         Route::post('/auth', [\App\Http\Controllers\Api\MiniApp\AuthController::class, 'authenticate']);
+        Route::get('/profile', [\App\Http\Controllers\Api\MiniApp\ProfileController::class, 'show']);
+        Route::post('/profile/addresses', [\App\Http\Controllers\Api\MiniApp\ProfileController::class, 'storeAddress']);
+        Route::delete('/profile/addresses/{address}', [\App\Http\Controllers\Api\MiniApp\ProfileController::class, 'deleteAddress']);
+        Route::put('/profile/addresses/{address}/default', [\App\Http\Controllers\Api\MiniApp\ProfileController::class, 'setDefault']);
         Route::get('/cart', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'index']);
         Route::post('/cart', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'addItem']);
         Route::put('/cart/{item}', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'updateItem']);
         Route::delete('/cart/{item}', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'removeItem']);
+        Route::post('/cart/sync', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'sync']);
         Route::post('/cart/promo', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'applyPromo']);
         Route::post('/checkout', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'checkout']);
         Route::get('/orders', [\App\Http\Controllers\Api\MiniApp\OrderController::class, 'index']);
         Route::get('/orders/{order:order_number}', [\App\Http\Controllers\Api\MiniApp\OrderController::class, 'show']);
+
+        // ========== BOOKING API (Queue bot uchun) ==========
+        Route::get('/bookings/slots', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'slots']);
+        Route::get('/bookings', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'index']);
+        Route::post('/bookings', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'store']);
+        Route::get('/bookings/{id}', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'show']);
+        Route::post('/bookings/{id}/cancel', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'cancel']);
+        Route::get('/staff', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'staff']);
+        Route::get('/staff/{id}', [\App\Http\Controllers\Api\MiniApp\BookingController::class, 'staffShow']);
+
+        // ========== SERVICE REQUEST API (Service bot uchun) ==========
+        Route::get('/service-requests', [\App\Http\Controllers\Api\MiniApp\ServiceRequestController::class, 'index']);
+        Route::post('/service-requests', [\App\Http\Controllers\Api\MiniApp\ServiceRequestController::class, 'store']);
+        Route::get('/service-requests/{id}', [\App\Http\Controllers\Api\MiniApp\ServiceRequestController::class, 'show']);
+        Route::post('/service-requests/{id}/cancel', [\App\Http\Controllers\Api\MiniApp\ServiceRequestController::class, 'cancel']);
+        Route::get('/masters', [\App\Http\Controllers\Api\MiniApp\ServiceRequestController::class, 'masters']);
+        Route::get('/masters/{id}', [\App\Http\Controllers\Api\MiniApp\ServiceRequestController::class, 'masterShow']);
 
         // ========== MINI APP ADMIN (Telegram ichidan boshqarish) ==========
         // Do'kon egasi/admini uchun boshqaruv paneli

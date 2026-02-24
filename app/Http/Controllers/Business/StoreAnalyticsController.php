@@ -54,26 +54,37 @@ class StoreAnalyticsController extends Controller
         // This month's stats
         $monthStats = $this->getPeriodStats($store, 'month');
 
-        // Daily analytics for chart (last 30 days)
-        $dailyAnalytics = StoreAnalyticsDaily::where('store_id', $store->id)
-            ->where('date', '>=', now()->subDays(30))
+        // Daily analytics for chart (last 30 days) — from actual orders
+        $dailyOrders = StoreOrder::where('store_id', $store->id)
+            ->where('created_at', '>=', now()->subDays(30)->startOfDay())
+            ->whereNotIn('status', [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED])
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as orders_count'),
+                DB::raw('SUM(total) as revenue')
+            )
+            ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn ($day) => [
-                'date' => $day->date->format('d.m'),
-                'views' => $day->views,
-                'unique_visitors' => $day->unique_visitors,
-                'orders_count' => $day->orders_count,
-                'revenue' => $day->revenue,
-                'avg_order_value' => $day->avg_order_value,
-                'new_customers' => $day->new_customers,
-            ]);
+            ->keyBy('date');
 
-        // Recent orders (last 5)
+        // Fill all 30 days (including days with no orders)
+        $dailyAnalytics = collect();
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $dayData = $dailyOrders->get($date);
+            $dailyAnalytics->push([
+                'date' => now()->subDays($i)->format('d.m'),
+                'orders_count' => $dayData->orders_count ?? 0,
+                'revenue' => (float) ($dayData->revenue ?? 0),
+            ]);
+        }
+
+        // Recent orders (last 10)
         $recentOrders = StoreOrder::where('store_id', $store->id)
-            ->with('customer')
+            ->with(['customer', 'items'])
             ->latest()
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->map(fn ($order) => [
                 'id' => $order->id,
@@ -81,8 +92,36 @@ class StoreAnalyticsController extends Controller
                 'status' => $order->status,
                 'status_label' => $order->getStatusLabel(),
                 'total' => $order->total,
+                'items_count' => $order->items->count(),
                 'customer_name' => $order->customer?->getDisplayName(),
-                'created_at' => $order->created_at?->format('d.m.Y H:i'),
+                'customer_phone' => $order->customer?->phone,
+                'payment_method' => $order->payment_method,
+                'payment_status' => $order->payment_status,
+                'created_at' => $order->created_at?->toISOString(),
+            ]);
+
+        // Pending orders (need attention)
+        $pendingOrders = StoreOrder::where('store_id', $store->id)
+            ->whereIn('status', [StoreOrder::STATUS_PENDING, StoreOrder::STATUS_CONFIRMED])
+            ->with(['customer', 'items'])
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn ($order) => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'status' => $order->status,
+                'status_label' => $order->getStatusLabel(),
+                'total' => $order->total,
+                'items_count' => $order->items->count(),
+                'items_preview' => $order->items->take(3)->map(fn ($item) => [
+                    'name' => $item->product_name,
+                    'quantity' => $item->quantity,
+                ])->toArray(),
+                'customer_name' => $order->customer?->getDisplayName(),
+                'customer_phone' => $order->customer?->phone,
+                'created_at' => $order->created_at?->toISOString(),
+                'minutes_ago' => $order->created_at?->diffInMinutes(now()),
             ]);
 
         // Top products (by order count this month)
@@ -91,7 +130,7 @@ class StoreAnalyticsController extends Controller
             ->join('store_products', 'store_order_items.product_id', '=', 'store_products.id')
             ->where('store_orders.store_id', $store->id)
             ->where('store_orders.created_at', '>=', now()->startOfMonth())
-            ->whereNotIn('store_orders.status', StoreOrder::TERMINAL_STATUSES)
+            ->whereNotIn('store_orders.status', [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED])
             ->select(
                 'store_products.id',
                 'store_products.name',
@@ -127,11 +166,12 @@ class StoreAnalyticsController extends Controller
                 'is_active' => $store->is_active,
                 'mini_app_url' => $store->getMiniAppUrl(),
             ],
-            'todayStats' => $todayStats,
+            'stats' => $todayStats,
             'weekStats' => $weekStats,
             'monthStats' => $monthStats,
-            'dailyAnalytics' => $dailyAnalytics,
+            'chartData' => $dailyAnalytics,
             'recentOrders' => $recentOrders,
+            'pendingOrders' => $pendingOrders,
             'topProducts' => $topProducts,
             'statusDistribution' => $statusDistribution,
             'storeHealth' => [
@@ -354,7 +394,8 @@ class StoreAnalyticsController extends Controller
         };
 
         $orders = $query->get();
-        $paidOrders = $orders->where('payment_status', StoreOrder::PAYMENT_PAID);
+        // Bekor qilingan va qaytarilgan buyurtmalarni chiqarib tashlash
+        $activeOrders = $orders->whereNotIn('status', [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED]);
 
         // Get previous period for comparison
         $prevQuery = StoreOrder::where('store_id', $store->id);
@@ -373,10 +414,10 @@ class StoreAnalyticsController extends Controller
         };
 
         $prevOrders = $prevQuery->get();
-        $prevPaidOrders = $prevOrders->where('payment_status', StoreOrder::PAYMENT_PAID);
+        $prevActiveOrders = $prevOrders->whereNotIn('status', [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED]);
 
-        $currentRevenue = $paidOrders->sum('total');
-        $prevRevenue = $prevPaidOrders->sum('total');
+        $currentRevenue = $activeOrders->sum('total');
+        $prevRevenue = $prevActiveOrders->sum('total');
 
         $revenueChange = $prevRevenue > 0
             ? round((($currentRevenue - $prevRevenue) / $prevRevenue) * 100, 1)
@@ -394,7 +435,7 @@ class StoreAnalyticsController extends Controller
             'orders_change' => $ordersChange,
             'revenue' => $currentRevenue,
             'revenue_change' => $revenueChange,
-            'avg_order_value' => $paidOrders->count() > 0 ? round($paidOrders->avg('total'), 2) : 0,
+            'avg_order_value' => $activeOrders->count() > 0 ? round($activeOrders->avg('total'), 2) : 0,
             'pending_orders' => $orders->where('status', StoreOrder::STATUS_PENDING)->count(),
             'completed_orders' => $orders->where('status', StoreOrder::STATUS_DELIVERED)->count(),
             'cancelled_orders' => $orders->where('status', StoreOrder::STATUS_CANCELLED)->count(),

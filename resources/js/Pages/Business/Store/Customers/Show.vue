@@ -1,7 +1,7 @@
 <template>
   <Head :title="customer.name" />
   <BusinessLayout :title="customer.name">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
       <!-- Header -->
       <div class="mb-6">
@@ -81,7 +81,7 @@
               <h3 class="text-base font-semibold text-slate-900 dark:text-white">Buyurtmalar tarixi</h3>
             </div>
 
-            <div v-if="customer.orders && customer.orders.length > 0" class="overflow-x-auto">
+            <div v-if="ordersList.length > 0" class="overflow-x-auto">
               <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-700">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-700/50">
@@ -93,7 +93,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                   <tr
-                    v-for="order in customer.orders"
+                    v-for="order in ordersList"
                     :key="order.id"
                     class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
                     @click="router.visit(route('business.store.orders.show', order.id))"
@@ -130,6 +130,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
@@ -143,6 +144,15 @@ import {
 
 const props = defineProps({
   customer: { type: Object, required: true },
+  orders: { type: Object, default: () => ({ data: [] }) },
+  orderStats: { type: Object, default: () => ({}) },
+});
+
+// Orders prop paginated format (data array) yoki oddiy array bo'lishi mumkin
+const ordersList = computed(() => {
+  if (Array.isArray(props.orders)) return props.orders;
+  if (props.orders?.data) return props.orders.data;
+  return [];
 });
 
 const formatPrice = (value) => {
@@ -184,10 +194,11 @@ const getAvatarColor = (name) => {
 const statusMap = {
   pending: { label: 'Kutilmoqda', class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
   confirmed: { label: 'Tasdiqlangan', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  preparing: { label: 'Tayyorlanmoqda', class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
-  shipping: { label: 'Yetkazilmoqda', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  processing: { label: 'Tayyorlanmoqda', class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
+  shipped: { label: 'Yetkazilmoqda', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
   delivered: { label: 'Yetkazildi', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   cancelled: { label: 'Bekor qilingan', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  refunded: { label: 'Qaytarilgan', class: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
 };
 
 const getStatusLabel = (status) => statusMap[status]?.label || status;

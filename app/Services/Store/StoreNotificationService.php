@@ -68,10 +68,17 @@ class StoreNotificationService
             default => 'ℹ️',
         };
 
+        $order->loadMissing('items');
+
+        $itemsText = $order->items->map(
+            fn ($item) => "  • {$item->product_name} × {$item->quantity}"
+        )->implode("\n");
+
         $message = "{$statusEmoji} *Buyurtma yangilandi*\n\n"
             . "📋 Buyurtma: #{$order->order_number}\n"
             . "📊 Status: {$order->getStatusLabel()}\n"
-            . "💰 Summa: " . number_format($order->total, 0, '', ' ') . " so'm";
+            . "\n📦 Mahsulotlar:\n{$itemsText}\n"
+            . "\n💰 *Jami: " . number_format($order->total, 0, '', ' ') . " so'm*";
 
         $this->sendMessage($bot, $telegramUser->telegram_id, $message);
     }

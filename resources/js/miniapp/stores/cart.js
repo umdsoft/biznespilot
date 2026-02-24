@@ -35,8 +35,9 @@ export const useCartStore = defineStore('cart', () => {
 
     const subtotal = computed(() => {
         return items.value.reduce((sum, item) => {
-            const price = item.sale_price || item.price
-            return sum + (price * item.quantity)
+            const basePrice = item.sale_price || item.price
+            const modifierPrice = (item.modifiers || []).reduce((s, m) => s + (m.price || 0), 0)
+            return sum + ((basePrice + modifierPrice) * item.quantity)
         }, 0)
     })
 
@@ -51,14 +52,55 @@ export const useCartStore = defineStore('cart', () => {
 
     const isEmpty = computed(() => items.value.length === 0)
 
-    function findItem(productId, variantId = null) {
+    /**
+     * Generate a hash string from modifiers for matching cart items.
+     * Same product with different modifiers = different cart items.
+     */
+    function modifierHash(modifiers) {
+        if (!modifiers || modifiers.length === 0) return ''
+        return modifiers
+            .map(m => `${m.modifier_id}:${m.option_id}`)
+            .sort()
+            .join('|')
+    }
+
+    function findItem(productId, variantId = null, modifiers = null) {
+        const hash = modifierHash(modifiers)
         return items.value.find(
-            (item) => item.product_id === productId && item.variant_id === variantId
+            (item) => item.product_id === productId
+                && item.variant_id === variantId
+                && modifierHash(item.modifiers) === hash
         )
     }
 
-    function addItem(product, quantity = 1, variant = null) {
-        const existing = findItem(product.id, variant?.id || null)
+    function findItemIndex(productId, variantId = null, modifiers = null) {
+        const hash = modifierHash(modifiers)
+        return items.value.findIndex(
+            (item) => item.product_id === productId
+                && item.variant_id === variantId
+                && modifierHash(item.modifiers) === hash
+        )
+    }
+
+    /**
+     * Get unit price for a cart item (base + modifiers).
+     */
+    function getItemUnitPrice(item) {
+        const basePrice = item.sale_price || item.price
+        const modifierPrice = (item.modifiers || []).reduce((s, m) => s + (m.price || 0), 0)
+        return basePrice + modifierPrice
+    }
+
+    /**
+     * Add item to cart.
+     * @param {Object} product - { id, name, price, sale_price?, image, slug, stock? }
+     * @param {number} quantity
+     * @param {Object|null} variant - { id, name }
+     * @param {Array|null} modifiers - [{ modifier_id, modifier_name, option_id, option_name, price }]
+     */
+    function addItem(product, quantity = 1, variant = null, modifiers = null) {
+        const mods = modifiers && modifiers.length > 0 ? modifiers : null
+        const existing = findItem(product.id, variant?.id || null, mods)
 
         if (existing) {
             existing.quantity += quantity
@@ -75,6 +117,7 @@ export const useCartStore = defineStore('cart', () => {
                 quantity,
                 max_quantity: product.stock || 99,
                 slug: product.slug,
+                modifiers: mods || [],
             })
             hapticImpact('medium')
         }
@@ -85,10 +128,8 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
-    function removeItem(productId, variantId = null) {
-        const index = items.value.findIndex(
-            (item) => item.product_id === productId && item.variant_id === variantId
-        )
+    function removeItem(productId, variantId = null, modifiers = null) {
+        const index = findItemIndex(productId, variantId, modifiers)
         if (index > -1) {
             items.value.splice(index, 1)
             hapticImpact('light')
@@ -99,12 +140,12 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
-    function updateQuantity(productId, variantId, quantity) {
-        const item = findItem(productId, variantId)
+    function updateQuantity(productId, variantId, quantity, modifiers = null) {
+        const item = findItem(productId, variantId, modifiers)
         if (!item) return
 
         if (quantity <= 0) {
-            removeItem(productId, variantId)
+            removeItem(productId, variantId, modifiers)
             return
         }
 
@@ -116,20 +157,20 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
-    function incrementQuantity(productId, variantId = null) {
-        const item = findItem(productId, variantId)
+    function incrementQuantity(productId, variantId = null, modifiers = null) {
+        const item = findItem(productId, variantId, modifiers)
         if (item && item.quantity < item.max_quantity) {
             item.quantity++
             hapticImpact('light')
         }
     }
 
-    function decrementQuantity(productId, variantId = null) {
-        const item = findItem(productId, variantId)
+    function decrementQuantity(productId, variantId = null, modifiers = null) {
+        const item = findItem(productId, variantId, modifiers)
         if (!item) return
 
         if (item.quantity <= 1) {
-            removeItem(productId, variantId)
+            removeItem(productId, variantId, modifiers)
         } else {
             item.quantity--
             hapticImpact('light')
@@ -184,8 +225,43 @@ export const useCartStore = defineStore('cart', () => {
                 product_id: item.product_id,
                 variant_id: item.variant_id,
                 quantity: item.quantity,
+                selections: item.modifiers && item.modifiers.length > 0
+                    ? item.modifiers.map(m => ({
+                        modifier_id: m.modifier_id,
+                        modifier_name: m.modifier_name,
+                        option_id: m.option_id,
+                        option_name: m.option_name,
+                        price: m.price,
+                    }))
+                    : null,
             })),
             promo_code: promoApplied.value ? promoCode.value : null,
+        }
+    }
+
+    async function syncToServer() {
+        if (items.value.length === 0) return false
+        try {
+            await post('/cart/sync', {
+                items: items.value.map((item) => ({
+                    product_id: item.product_id,
+                    variant_id: item.variant_id,
+                    quantity: item.quantity,
+                    selections: item.modifiers && item.modifiers.length > 0
+                        ? item.modifiers.map(m => ({
+                            modifier_id: m.modifier_id,
+                            modifier_name: m.modifier_name,
+                            option_id: m.option_id,
+                            option_name: m.option_name,
+                            price: m.price,
+                        }))
+                        : null,
+                })),
+            })
+            return true
+        } catch (err) {
+            console.error('[MiniApp] Cart sync error:', err)
+            return false
         }
     }
 
@@ -201,6 +277,7 @@ export const useCartStore = defineStore('cart', () => {
         discountAmount,
         total,
         isEmpty,
+        getItemUnitPrice,
         addItem,
         removeItem,
         updateQuantity,
@@ -210,5 +287,6 @@ export const useCartStore = defineStore('cart', () => {
         clearPromo,
         clearCart,
         getCartPayload,
+        syncToServer,
     }
 })

@@ -1,218 +1,161 @@
 <template>
-    <div class="pb-24">
-        <BackButton />
-
+    <div :class="cart.isEmpty ? 'pb-nav' : 'pb-nav-sticky'">
         <!-- Header -->
-        <div class="sticky top-0 z-10 px-4 py-3" style="background-color: var(--tg-theme-bg-color)">
-            <div class="flex items-center justify-between">
-                <h1 class="text-lg font-bold" style="color: var(--tg-theme-text-color)">
-                    Savat
-                </h1>
-                <button
-                    v-if="!cart.isEmpty"
-                    @click="clearCartConfirm"
-                    class="text-sm"
-                    style="color: var(--tg-theme-hint-color)"
-                >
-                    Tozalash
-                </button>
+        <div class="sticky top-0 z-20 header-blur">
+            <div style="padding: 12px 16px">
+                <div class="flex items-center justify-between">
+                    <h1 style="font-size: 22px; font-weight: 700; color: var(--tg-theme-text-color)">
+                        🛒 Savat
+                        <span v-if="!cart.isEmpty" style="font-size: 15px; font-weight: 400; color: var(--tg-theme-hint-color)">
+                            ({{ cart.itemCount }})
+                        </span>
+                    </h1>
+                    <button
+                        v-if="!cart.isEmpty"
+                        @click="clearCartConfirm"
+                        class="btn-ghost"
+                        style="color: var(--color-error); font-size: 14px"
+                    >
+                        🗑️ Tozalash
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Empty cart -->
-        <div v-if="cart.isEmpty" class="px-4 py-16 text-center">
-            <svg class="mx-auto h-16 w-16" style="color: var(--tg-theme-hint-color); opacity: 0.3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
-            </svg>
-            <p class="mt-4 text-sm font-medium" style="color: var(--tg-theme-text-color)">
-                Savat bo'sh
-            </p>
-            <p class="mt-1 text-xs" style="color: var(--tg-theme-hint-color)">
-                Mahsulotlarni ko'rib chiqing va savatga qo'shing
-            </p>
-            <button
-                @click="goHome"
-                class="mt-4 rounded-xl px-6 py-2.5 text-sm font-medium"
-                style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color)"
-            >
-                Xarid qilish
-            </button>
+        <div v-if="cart.isEmpty" class="empty-state">
+            <div class="empty-state-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+                </svg>
+            </div>
+            <p class="empty-state-title">Savat bo'sh</p>
+            <p class="empty-state-desc">Mahsulotlarni ko'rib chiqing va savatga qo'shing 🛍️</p>
+            <div class="empty-state-action">
+                <button @click="goHome" class="btn-secondary">Xarid qilish</button>
+            </div>
         </div>
 
-        <!-- Cart items -->
-        <div v-else class="px-4">
-            <div class="space-y-2.5">
-                <div
-                    v-for="item in cart.items"
-                    :key="`${item.product_id}-${item.variant_id}`"
-                    class="flex gap-3 rounded-2xl p-3"
-                    :style="{ backgroundColor: 'var(--tg-theme-secondary-bg-color)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }"
-                >
-                    <!-- Image -->
-                    <div
-                        class="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl"
-                        @click="goToProduct(item.slug)"
-                    >
-                        <img
-                            v-if="item.image"
-                            :src="item.image"
-                            :alt="item.name"
-                            class="h-full w-full object-cover"
-                        />
-                        <div
-                            v-else
-                            class="flex h-full w-full items-center justify-center text-2xl"
-                            style="background-color: var(--tg-theme-bg-color)"
-                        >
-                            📦
-                        </div>
+        <!-- Cart content -->
+        <template v-else>
+            <!-- Order summary (TOP) -->
+            <div style="padding: 0 16px 12px">
+                <div class="order-summary">
+                    <h3 class="section-title" style="margin-bottom: 2px">📋 Buyurtma xulosasi</h3>
+                    <div class="order-summary-row">
+                        <span class="label">🛒 Mahsulotlar ({{ cart.itemCount }})</span>
+                        <span class="value">{{ formatPrice(cart.subtotal) }}</span>
                     </div>
+                    <div v-if="cart.promoApplied" class="order-summary-row">
+                        <span class="label">🏷️ Chegirma</span>
+                        <span style="color: var(--color-success); font-weight: 500">-{{ formatPrice(cart.discountAmount) }}</span>
+                    </div>
+                    <div class="order-summary-total">
+                        <span class="label">💰 Jami</span>
+                        <span class="value">{{ formatPrice(cart.total) }}</span>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Info -->
-                    <div class="flex flex-1 flex-col justify-between">
-                        <div>
-                            <p
-                                class="line-clamp-2 text-sm font-medium leading-tight flex items-start gap-0.5"
-                                style="color: var(--tg-theme-text-color)"
-                                @click="goToProduct(item.slug)"
+            <!-- Cart items -->
+            <div style="padding: 0 16px">
+                <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tg-theme-hint-color); margin-bottom: 12px">
+                    📦 Mahsulotlar
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 12px">
+                    <div
+                        v-for="item in cart.items"
+                        :key="`${item.product_id}-${item.variant_id}`"
+                        class="flex"
+                        style="gap: 14px; padding: 16px; border-radius: 14px; border: 1px solid var(--color-border); background-color: var(--tg-theme-bg-color)"
+                    >
+                        <!-- Image -->
+                        <div
+                            @click="goToProduct(item.slug)"
+                            class="shrink-0 overflow-hidden"
+                            style="width: 72px; height: 72px; border-radius: 10px"
+                        >
+                            <img
+                                v-if="item.image"
+                                :src="item.image"
+                                :alt="item.name"
+                                class="h-full w-full object-cover"
+                            />
+                            <div
+                                v-else
+                                class="flex h-full w-full items-center justify-center"
+                                style="background-color: var(--tg-theme-secondary-bg-color); font-size: 24px"
                             >
-                                <span class="flex-1">{{ item.name }}</span>
-                                <svg class="h-4 w-4 shrink-0 mt-0.5" style="color: var(--tg-theme-hint-color)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                </svg>
-                            </p>
-                            <p v-if="item.variant_name" class="mt-0.5 text-xs" style="color: var(--tg-theme-hint-color)">
-                                {{ item.variant_name }}
-                            </p>
+                                📦
+                            </div>
                         </div>
 
-                        <div class="mt-2 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-bold" style="color: var(--tg-theme-text-color)">
+                        <!-- Info -->
+                        <div class="flex flex-1 flex-col justify-between min-w-0">
+                            <div>
+                                <p
+                                    class="line-clamp-2"
+                                    style="font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--tg-theme-text-color)"
+                                    @click="goToProduct(item.slug)"
+                                >
+                                    {{ item.name }}
+                                </p>
+                                <p v-if="item.variant_name" style="font-size: 13px; color: var(--tg-theme-hint-color); margin-top: 2px">
+                                    {{ item.variant_name }}
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-between" style="margin-top: 8px">
+                                <span style="font-size: 16px; font-weight: 700; color: var(--tg-theme-text-color)">
                                     {{ formatPrice((item.sale_price || item.price) * item.quantity) }}
                                 </span>
-                                <span
-                                    v-if="item.sale_price"
-                                    class="text-xs line-through"
-                                    style="color: var(--tg-theme-hint-color)"
-                                >
-                                    {{ formatPrice(item.price * item.quantity) }}
-                                </span>
-                            </div>
 
-                            <!-- Quantity -->
-                            <div class="flex items-center gap-1.5 rounded-xl px-1.5 py-1" style="background-color: var(--tg-theme-bg-color)">
-                                <button
-                                    @click="cart.decrementQuantity(item.product_id, item.variant_id)"
-                                    class="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
-                                    style="color: var(--tg-theme-text-color)"
-                                >
-                                    {{ item.quantity === 1 ? '🗑' : '-' }}
-                                </button>
-                                <span class="min-w-[18px] text-center text-sm font-semibold" style="color: var(--tg-theme-text-color)">
-                                    {{ item.quantity }}
-                                </span>
-                                <button
-                                    @click="cart.incrementQuantity(item.product_id, item.variant_id)"
-                                    class="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
-                                    style="color: var(--tg-theme-text-color)"
-                                >
-                                    +
-                                </button>
+                                <!-- Quantity -->
+                                <div class="flex items-center" style="gap: 4px">
+                                    <button
+                                        @click="cart.decrementQuantity(item.product_id, item.variant_id)"
+                                        class="qty-btn"
+                                    >
+                                        <span v-if="item.quantity === 1" style="font-size: 14px">🗑</span>
+                                        <span v-else>−</span>
+                                    </button>
+                                    <span class="qty-value">{{ item.quantity }}</span>
+                                    <button
+                                        @click="cart.incrementQuantity(item.product_id, item.variant_id)"
+                                        class="qty-btn"
+                                        style="color: var(--tg-theme-button-color)"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Promo code -->
-            <div class="mt-4">
-                <div
-                    class="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                    style="background-color: var(--tg-theme-secondary-bg-color)"
-                >
-                    <input
-                        v-model="promoInput"
-                        type="text"
-                        placeholder="Promokod"
-                        class="w-full bg-transparent text-sm outline-none"
-                        style="color: var(--tg-theme-text-color)"
-                        :disabled="cart.promoApplied"
-                    />
-                    <button
-                        v-if="!cart.promoApplied"
-                        @click="applyPromo"
-                        :disabled="!promoInput.trim() || cart.loading"
-                        class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
-                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color)"
-                    >
-                        Qo'llash
-                    </button>
-                    <button
-                        v-else
-                        @click="removePromo"
-                        class="shrink-0 text-xs font-medium text-red-500"
-                    >
-                        Bekor qilish
-                    </button>
-                </div>
-                <p v-if="cart.promoError" class="mt-1 px-1 text-xs text-red-500">
-                    {{ cart.promoError }}
-                </p>
-                <p v-if="cart.promoApplied" class="mt-1 px-1 text-xs text-green-600">
-                    Promokod qo'llandi: -{{ formatPrice(cart.discountAmount) }}
-                </p>
+            <!-- Sticky checkout button (above bottom nav) -->
+            <div class="sticky-bottom-bar with-nav">
+                <button @click="goToCheckout" class="btn-primary" style="gap: 8px">
+                    Buyurtma berish — {{ formatPrice(cart.total) }}
+                    <svg style="width: 18px; height: 18px" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
             </div>
-
-            <!-- Summary -->
-            <div class="mt-4 rounded-2xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                <div class="flex justify-between text-sm">
-                    <span style="color: var(--tg-theme-hint-color)">Mahsulotlar ({{ cart.itemCount }})</span>
-                    <span style="color: var(--tg-theme-text-color)">{{ formatPrice(cart.subtotal) }}</span>
-                </div>
-                <div v-if="cart.promoApplied" class="mt-2 flex justify-between text-sm">
-                    <span style="color: var(--tg-theme-hint-color)">Chegirma</span>
-                    <span class="text-green-600">-{{ formatPrice(cart.discountAmount) }}</span>
-                </div>
-                <div class="mt-2 border-t pt-2" style="border-color: var(--tg-theme-bg-color)">
-                    <div class="flex justify-between">
-                        <span class="text-sm font-semibold" style="color: var(--tg-theme-text-color)">Jami</span>
-                        <span class="text-base font-bold" style="color: var(--tg-theme-text-color)">{{ formatPrice(cart.total) }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Checkout button -->
-        <div
-            v-if="!cart.isEmpty"
-            class="fixed bottom-0 left-0 right-0 z-20 border-t px-4 py-3 safe-area-bottom"
-            style="background-color: var(--tg-theme-bg-color); border-color: var(--tg-theme-secondary-bg-color)"
-        >
-            <button
-                @click="goToCheckout"
-                class="w-full rounded-xl py-3.5 text-center text-sm font-semibold tap-active"
-                style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color)"
-            >
-                Buyurtma berish — {{ formatPrice(cart.total) }}
-            </button>
-        </div>
+        </template>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useTelegram } from '../composables/useTelegram'
-import BackButton from '../components/BackButton.vue'
 import { formatPrice } from '../utils/formatters'
 
 const router = useRouter()
 const cart = useCartStore()
 const { hapticImpact, showConfirm } = useTelegram()
-
-const promoInput = ref(cart.promoCode || '')
 
 function goHome() {
     hapticImpact('light')
@@ -235,14 +178,5 @@ async function clearCartConfirm() {
         cart.clearCart()
         hapticImpact('medium')
     }
-}
-
-function applyPromo() {
-    cart.applyPromo(promoInput.value)
-}
-
-function removePromo() {
-    cart.clearPromo()
-    promoInput.value = ''
 }
 </script>

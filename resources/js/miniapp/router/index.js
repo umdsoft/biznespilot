@@ -1,61 +1,13 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { getStoreType } from '../composables/useBotType'
 
-const routes = [
-    {
-        path: '/',
-        name: 'home',
-        component: () => import('../pages/Home.vue'),
-    },
-    {
-        path: '/category/:id',
-        name: 'category',
-        component: () => import('../pages/Category.vue'),
-        props: true,
-    },
-    {
-        path: '/product/:slug',
-        name: 'product',
-        component: () => import('../pages/Product.vue'),
-        props: true,
-    },
-    {
-        path: '/catalog/:slug',
-        name: 'catalog-item',
-        component: () => import('../pages/CatalogItem.vue'),
-        props: true,
-    },
-    {
-        path: '/search',
-        name: 'search',
-        component: () => import('../pages/Search.vue'),
-    },
-    {
-        path: '/cart',
-        name: 'cart',
-        component: () => import('../pages/Cart.vue'),
-    },
-    {
-        path: '/checkout',
-        name: 'checkout',
-        component: () => import('../pages/Checkout.vue'),
-    },
+// Shared routes (barcha bot turlari uchun)
+const sharedRoutes = [
     {
         path: '/payment',
         name: 'payment',
         component: () => import('../pages/Payment.vue'),
     },
-    {
-        path: '/orders',
-        name: 'orders',
-        component: () => import('../pages/Orders.vue'),
-    },
-    {
-        path: '/orders/:number',
-        name: 'order-detail',
-        component: () => import('../pages/OrderDetail.vue'),
-        props: true,
-    },
-    // Admin panel routes (do'kon egasi uchun)
     {
         path: '/admin',
         name: 'admin-dashboard',
@@ -74,13 +26,25 @@ const routes = [
     },
 ]
 
-const router = createRouter({
-    history: createWebHashHistory(),
-    routes,
-    scrollBehavior(to, from, savedPosition) {
-        if (savedPosition) return savedPosition
-        return { top: 0 }
-    },
-})
+// Bot-type-specific route loaders
+const routesByType = {
+    ecommerce: () => import('./routes/ecommerce'),
+    delivery: () => import('./routes/delivery'),
+    queue: () => import('./routes/queue'),
+    service: () => import('./routes/service'),
+}
 
-export default router
+export async function createAppRouter() {
+    const storeType = getStoreType()
+    const loader = routesByType[storeType] || routesByType.ecommerce
+    const { default: typeRoutes } = await loader()
+
+    return createRouter({
+        history: createWebHashHistory(),
+        routes: [...typeRoutes, ...sharedRoutes],
+        scrollBehavior(to, from, savedPosition) {
+            if (savedPosition) return savedPosition
+            return { top: 0 }
+        },
+    })
+}

@@ -47,15 +47,25 @@ class StoreCartService
     /**
      * Add item to cart
      */
-    public function addItem(StoreCart $cart, StoreProduct $product, int $quantity = 1, ?StoreProductVariant $variant = null): StoreCartItem
+    public function addItem(StoreCart $cart, StoreProduct $product, int $quantity = 1, ?StoreProductVariant $variant = null, ?array $selections = null): StoreCartItem
     {
         $price = $variant ? $variant->price : $product->price;
 
-        // Check if item already exists
-        $existingItem = $cart->items()
+        // Build query for matching existing item (including modifier selections)
+        $query = $cart->items()
             ->where('product_id', $product->id)
-            ->where('variant_id', $variant?->id)
-            ->first();
+            ->where('variant_id', $variant?->id);
+
+        if ($selections) {
+            // Match by selections JSON — same product with different modifiers = different items
+            $query->where('selections', json_encode($selections));
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('selections')->orWhere('selections', '[]');
+            });
+        }
+
+        $existingItem = $query->first();
 
         if ($existingItem) {
             $existingItem->update([
@@ -72,6 +82,7 @@ class StoreCartService
             'variant_id' => $variant?->id,
             'quantity' => $quantity,
             'price' => $price,
+            'selections' => $selections,
         ]);
     }
 

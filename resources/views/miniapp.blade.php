@@ -70,7 +70,7 @@
     @endif
 </head>
 <body>
-    <div id="miniapp" data-store-slug="{{ $storeSlug }}" data-api-url="{{ $apiUrl }}">
+    <div id="miniapp" data-store-slug="{{ $storeSlug }}" data-store-type="{{ $storeType ?? 'ecommerce' }}" data-api-url="{{ $apiUrl }}">
         <div class="miniapp-loading">
             <div class="store-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

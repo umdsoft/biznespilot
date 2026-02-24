@@ -176,8 +176,8 @@ const statusTabs = computed(() => [
   { label: 'Barchasi', value: '', count: undefined },
   { label: 'Kutilmoqda', value: 'pending', count: props.stats?.pending },
   { label: 'Tasdiqlangan', value: 'confirmed', count: props.stats?.confirmed },
-  { label: 'Tayyorlanmoqda', value: 'preparing', count: props.stats?.preparing },
-  { label: 'Yetkazilmoqda', value: 'shipping', count: props.stats?.shipping },
+  { label: 'Tayyorlanmoqda', value: 'processing', count: props.stats?.processing },
+  { label: 'Yetkazilmoqda', value: 'shipped', count: props.stats?.shipped },
   { label: 'Yetkazildi', value: 'delivered', count: undefined },
   { label: 'Bekor qilingan', value: 'cancelled', count: undefined },
 ]);
@@ -185,10 +185,11 @@ const statusTabs = computed(() => [
 const statusMap = {
   pending: { label: 'Kutilmoqda', class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
   confirmed: { label: 'Tasdiqlangan', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  preparing: { label: 'Tayyorlanmoqda', class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
-  shipping: { label: 'Yetkazilmoqda', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  processing: { label: 'Tayyorlanmoqda', class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
+  shipped: { label: 'Yetkazilmoqda', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
   delivered: { label: 'Yetkazildi', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   cancelled: { label: 'Bekor qilingan', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  refunded: { label: 'Qaytarilgan', class: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
 };
 
 const getStatusLabel = (status) => statusMap[status]?.label || status;
@@ -225,15 +226,15 @@ const availableStatuses = (currentOrderStatus) => {
     ],
     confirmed: [
       { value: 'confirmed', label: 'Tasdiqlangan' },
-      { value: 'preparing', label: 'Tayyorlash' },
+      { value: 'processing', label: 'Tayyorlash' },
       { value: 'cancelled', label: 'Bekor qilish' },
     ],
-    preparing: [
-      { value: 'preparing', label: 'Tayyorlanmoqda' },
-      { value: 'shipping', label: 'Yetkazishga berish' },
+    processing: [
+      { value: 'processing', label: 'Tayyorlanmoqda' },
+      { value: 'shipped', label: 'Yetkazishga berish' },
     ],
-    shipping: [
-      { value: 'shipping', label: 'Yetkazilmoqda' },
+    shipped: [
+      { value: 'shipped', label: 'Yetkazilmoqda' },
       { value: 'delivered', label: 'Yetkazildi' },
     ],
   };
@@ -242,7 +243,7 @@ const availableStatuses = (currentOrderStatus) => {
 
 const updateStatus = (order, newStatus) => {
   if (newStatus === order.status) return;
-  router.put(route('business.store.orders.update-status', order.id), {
+  router.post(route('business.store.orders.update-status', order.id), {
     status: newStatus,
   }, {
     preserveScroll: true,

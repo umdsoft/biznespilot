@@ -40,18 +40,38 @@ class CheckoutController extends Controller
     public function checkout(Request $request, TelegramStore $store): JsonResponse
     {
         $validated = $request->validate([
+            'customer_name' => 'nullable|string|max:100',
+            'customer_phone' => 'nullable|string|max:30',
             'delivery_address' => 'required|array',
             'delivery_address.street' => 'required|string|max:500',
             'delivery_address.city' => 'nullable|string|max:100',
+            'delivery_address.district' => 'nullable|string|max:100',
             'delivery_address.apartment' => 'nullable|string|max:100',
+            'delivery_address.entrance' => 'nullable|string|max:20',
+            'delivery_address.floor' => 'nullable|string|max:20',
             'delivery_address.comment' => 'nullable|string|max:500',
-            'payment_method' => 'required|in:cash,payme,click',
+            'delivery_address.latitude' => 'nullable|numeric|between:-90,90',
+            'delivery_address.longitude' => 'nullable|numeric|between:-180,180',
+            'delivery_type' => 'nullable|string|in:delivery,pickup',
+            'payment_method' => 'required|in:cash,card,payme,click',
             'notes' => 'nullable|string|max:1000',
             'delivery_zone_id' => 'nullable|uuid',
             'promo_code' => 'nullable|string|max:50',
         ]);
 
         $customer = $request->attributes->get('store_customer');
+
+        // Update customer name/phone if provided
+        $customerUpdate = [];
+        if (! empty($validated['customer_name']) && ! $customer->name) {
+            $customerUpdate['name'] = $validated['customer_name'];
+        }
+        if (! empty($validated['customer_phone'])) {
+            $customerUpdate['phone'] = $validated['customer_phone'];
+        }
+        if ($customerUpdate) {
+            $customer->update($customerUpdate);
+        }
 
         // Get customer's cart with items
         $cart = $this->cartService->getOrCreateCart($store, $customer);
@@ -140,17 +160,28 @@ class CheckoutController extends Controller
             }
         }
 
-        // Prepare order items from cart
-        $orderItems = $cart->items->map(fn ($item) => [
-            'product_id' => $item->product_id,
-            'variant_id' => $item->variant_id,
-            'product_name' => $item->product->name,
-            'variant_name' => $item->variant?->name,
-            'price' => $item->price,
-            'quantity' => $item->quantity,
-            'product' => $item->product,
-            'variant' => $item->variant,
-        ])->toArray();
+        // Prepare order items from cart (include modifier selections in metadata)
+        $orderItems = $cart->items->map(function ($item) {
+            $data = [
+                'product_id' => $item->product_id,
+                'variant_id' => $item->variant_id,
+                'product_name' => $item->product->name,
+                'variant_name' => $item->variant?->name,
+                'price' => $item->price,
+                'quantity' => $item->quantity,
+                'product' => $item->product,
+                'variant' => $item->variant,
+            ];
+
+            // Pass modifier selections for order item metadata
+            if (! empty($item->selections)) {
+                $modifierTotal = collect($item->selections)->sum('price');
+                $data['price'] = $item->price + $modifierTotal;
+                $data['item_metadata'] = ['modifiers' => $item->selections];
+            }
+
+            return $data;
+        })->toArray();
 
         // Create the order
         try {

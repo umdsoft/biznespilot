@@ -58,7 +58,8 @@ export const useOrderStore = defineStore('order', () => {
         error.value = null
         try {
             const data = await get(`/orders/${orderNumber}`)
-            currentOrder.value = data.order || data
+            // Response: { success, data: { ...order fields } }
+            currentOrder.value = data.data || data.order || data
             return currentOrder.value
         } catch (err) {
             error.value = "Buyurtma topilmadi"
@@ -73,13 +74,19 @@ export const useOrderStore = defineStore('order', () => {
         creating.value = true
         error.value = null
         try {
-            const data = await post('/orders', orderData)
-            currentOrder.value = data.order || data
-            return currentOrder.value
+            const data = await post('/checkout', orderData)
+            // Response: { success, message, data: { order: {...}, payment_url: ... } }
+            const order = data.data?.order || data.order || data
+            currentOrder.value = order
+            return {
+                order,
+                payment_url: data.data?.payment_url || data.payment_url || null,
+            }
         } catch (err) {
-            error.value = err.response?.data?.message || "Buyurtma yaratishda xatolik"
             if (err.validationErrors) {
                 error.value = Object.values(err.validationErrors).flat().join(', ')
+            } else {
+                error.value = err.response?.data?.message || "Buyurtma yaratishda xatolik"
             }
             console.error('[MiniApp] Create order error:', err)
             return null
@@ -92,8 +99,8 @@ export const useOrderStore = defineStore('order', () => {
         const labels = {
             pending: 'Kutilmoqda',
             confirmed: 'Tasdiqlangan',
-            preparing: 'Tayyorlanmoqda',
-            shipping: 'Yetkazilmoqda',
+            processing: 'Tayyorlanmoqda',
+            shipped: 'Yetkazilmoqda',
             delivered: 'Yetkazildi',
             cancelled: 'Bekor qilingan',
             refunded: 'Qaytarilgan',
@@ -105,8 +112,8 @@ export const useOrderStore = defineStore('order', () => {
         const colors = {
             pending: 'text-yellow-600 bg-yellow-50',
             confirmed: 'text-blue-600 bg-blue-50',
-            preparing: 'text-indigo-600 bg-indigo-50',
-            shipping: 'text-purple-600 bg-purple-50',
+            processing: 'text-indigo-600 bg-indigo-50',
+            shipped: 'text-purple-600 bg-purple-50',
             delivered: 'text-green-600 bg-green-50',
             cancelled: 'text-red-600 bg-red-50',
             refunded: 'text-gray-600 bg-gray-50',

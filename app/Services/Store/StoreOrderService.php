@@ -46,7 +46,7 @@ class StoreOrderService
 
             // Create order items
             foreach ($items as $item) {
-                $order->items()->create([
+                $orderItemData = [
                     'product_id' => $item['product_id'],
                     'variant_id' => $item['variant_id'] ?? null,
                     'product_name' => $item['product_name'],
@@ -54,7 +54,13 @@ class StoreOrderService
                     'price' => $item['price'],
                     'quantity' => $item['quantity'],
                     'total' => $item['price'] * $item['quantity'],
-                ]);
+                ];
+
+                if (! empty($item['item_metadata'])) {
+                    $orderItemData['item_metadata'] = $item['item_metadata'];
+                }
+
+                $order->items()->create($orderItemData);
 
                 // Decrement stock
                 if (isset($item['product'])) {

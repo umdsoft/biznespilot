@@ -2657,6 +2657,7 @@ Route::get('/miniapp/{storeSlug}', function ($storeSlug) {
     return view('miniapp', [
         'storeName' => $store->name,
         'storeSlug' => $store->slug,
+        'storeType' => $store->store_type ?? 'ecommerce',
         'apiUrl' => config('app.url') . '/api/miniapp/v1/' . $store->slug,
     ]);
 })->name('miniapp.show');

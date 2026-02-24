@@ -140,7 +140,7 @@ class StoreCustomerController extends Controller
                 'total' => $order->total,
                 'items_count' => $order->items->count(),
                 'is_paid' => $order->isPaid(),
-                'created_at' => $order->created_at?->format('d.m.Y H:i'),
+                'created_at' => $order->created_at?->toISOString(),
             ]);
 
         // Customer order statistics
@@ -176,21 +176,53 @@ class StoreCustomerController extends Controller
                 'created_at' => $review->created_at?->format('d.m.Y'),
             ]);
 
+        // Format address from JSON/string
+        $formattedAddress = '';
+        $addr = $customer->address;
+        if ($addr) {
+            if (is_string($addr)) {
+                $decoded = json_decode($addr, true);
+                $addr = $decoded ?: $addr;
+            }
+            if (is_array($addr)) {
+                $parts = array_filter([
+                    $addr['city'] ?? null,
+                    $addr['district'] ?? null,
+                    $addr['street'] ?? null,
+                    isset($addr['apartment']) ? "kv. {$addr['apartment']}" : null,
+                ]);
+                $formattedAddress = implode(', ', $parts);
+                if (! empty($addr['comment'])) {
+                    $formattedAddress .= " ({$addr['comment']})";
+                }
+            } else {
+                $formattedAddress = (string) $addr;
+            }
+        }
+
+        // Calculate real stats from orders (not relying on denormalized counters)
+        $realOrdersCount = StoreOrder::where('store_id', $store->id)
+            ->where('customer_id', $customer->id)
+            ->count();
+        $realTotalSpent = StoreOrder::where('store_id', $store->id)
+            ->where('customer_id', $customer->id)
+            ->whereNotIn('status', [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED])
+            ->sum('total');
+        $realAvgOrder = $realOrdersCount > 0 ? round($realTotalSpent / $realOrdersCount, 2) : 0;
+
         return Inertia::render('Business/Store/Customers/Show', [
             'customer' => [
                 'id' => $customer->id,
                 'name' => $customer->getDisplayName(),
                 'phone' => $customer->phone,
-                'address' => $customer->address,
-                'orders_count' => $customer->orders_count,
-                'total_spent' => $customer->total_spent,
-                'last_order_at' => $customer->last_order_at?->format('d.m.Y H:i'),
-                'telegram_user' => $customer->telegramUser ? [
-                    'username' => $customer->telegramUser->username,
-                    'first_name' => $customer->telegramUser->first_name,
-                    'last_name' => $customer->telegramUser->last_name,
-                ] : null,
-                'created_at' => $customer->created_at?->format('d.m.Y H:i'),
+                'email' => $customer->email,
+                'address' => $formattedAddress,
+                'orders_count' => $realOrdersCount,
+                'total_spent' => $realTotalSpent,
+                'avg_order' => $realAvgOrder,
+                'last_order_at' => $customer->last_order_at?->toISOString(),
+                'telegram_username' => $customer->telegramUser?->username,
+                'created_at' => $customer->created_at?->toISOString(),
             ],
             'orders' => $orders,
             'orderStats' => $orderStats,

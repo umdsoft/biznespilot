@@ -1,15 +1,20 @@
 <template>
-    <div class="pb-24">
+    <div style="padding-bottom: 100px">
         <BackButton />
 
         <!-- Loading -->
-        <div v-if="loading" class="flex items-center justify-center py-20">
+        <div v-if="loading" class="flex items-center justify-center" style="padding: 80px 0">
             <LoadingSpinner />
         </div>
 
         <!-- Not found -->
-        <div v-else-if="!product" class="px-4 py-10 text-center">
-            <p class="text-sm" style="color: var(--tg-theme-hint-color)">Mahsulot topilmadi</p>
+        <div v-else-if="!product" class="empty-state" style="min-height: 40vh">
+            <div class="empty-state-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <p class="empty-state-title">Mahsulot topilmadi</p>
         </div>
 
         <template v-else>
@@ -39,8 +44,8 @@
                 <!-- Image counter -->
                 <div
                     v-if="images.length > 1"
-                    class="absolute top-3 right-3 rounded-full px-2 py-0.5 text-[11px] font-medium"
-                    style="background-color: rgba(0,0,0,0.5); color: #fff"
+                    class="absolute"
+                    style="top: 12px; right: 12px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: rgba(0,0,0,0.5); color: #fff"
                 >
                     {{ currentImage + 1 }}/{{ images.length }}
                 </div>
@@ -49,77 +54,75 @@
                     <span
                         v-for="(_, i) in images"
                         :key="i"
-                        class="h-1.5 rounded-full transition-all duration-200"
-                        :class="i === currentImage ? 'w-4' : 'w-1.5 opacity-50'"
-                        style="background-color: var(--tg-theme-button-color)"
+                        class="rounded-full transition-all duration-200"
+                        :style="{ height: '6px', width: i === currentImage ? '16px' : '6px', opacity: i === currentImage ? 1 : 0.5, backgroundColor: 'var(--tg-theme-button-color)' }"
                     />
                 </div>
                 <!-- Discount badge -->
                 <div
                     v-if="discountPercent > 0"
-                    class="absolute top-3 left-3 rounded-lg px-2 py-1 text-xs font-bold text-white"
-                    style="background-color: #ef4444"
+                    class="absolute"
+                    style="top: 12px; left: 12px; padding: 4px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #fff; background-color: var(--color-error)"
                 >
                     -{{ discountPercent }}%
                 </div>
             </div>
 
             <!-- Product Info -->
-            <div class="px-4 pt-4">
-                <h1 class="text-lg font-bold leading-snug" style="color: var(--tg-theme-text-color)">
+            <div style="padding: 16px">
+                <h1 style="font-size: 20px; font-weight: 700; line-height: 1.3; color: var(--tg-theme-text-color)">
                     {{ product.name }}
                 </h1>
 
                 <!-- Price -->
-                <div class="mt-2 flex items-center gap-2">
-                    <span class="text-xl font-bold" style="color: var(--tg-theme-text-color)">
+                <div class="flex items-center" style="margin-top: 10px; gap: 8px">
+                    <span style="font-size: 22px; font-weight: 700; color: var(--tg-theme-text-color)">
                         {{ formatPrice(effectivePrice) }}
                     </span>
                     <span
                         v-if="product.sale_price"
-                        class="text-sm line-through"
-                        style="color: var(--tg-theme-hint-color)"
+                        style="font-size: 15px; text-decoration: line-through; color: var(--tg-theme-hint-color)"
                     >
                         {{ formatPrice(product.price) }}
                     </span>
                 </div>
 
                 <!-- Rating -->
-                <div v-if="product.rating" class="mt-1.5 flex items-center gap-1">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="var(--tg-theme-button-color)">
+                <div v-if="product.rating" class="flex items-center" style="margin-top: 8px; gap: 4px">
+                    <svg style="width: 16px; height: 16px" viewBox="0 0 20 20" fill="var(--tg-theme-button-color)">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
-                    <span class="text-sm font-medium" style="color: var(--tg-theme-text-color)">{{ product.rating }}</span>
-                    <span v-if="product.reviews_count" class="text-xs" style="color: var(--tg-theme-hint-color)">
+                    <span style="font-size: 14px; font-weight: 500; color: var(--tg-theme-text-color)">{{ product.rating }}</span>
+                    <span v-if="product.reviews_count" style="font-size: 13px; color: var(--tg-theme-hint-color)">
                         ({{ product.reviews_count }} ta baho)
                     </span>
                 </div>
 
                 <!-- Stock -->
-                <p v-if="product.stock !== null && product.stock <= 5 && product.stock > 0" class="mt-1 text-xs text-orange-500">
+                <p v-if="product.stock !== null && product.stock <= 5 && product.stock > 0" style="margin-top: 6px; font-size: 13px; color: var(--color-warning); font-weight: 500">
                     Faqat {{ product.stock }} ta qoldi
                 </p>
-                <p v-if="product.stock === 0" class="mt-1 text-xs text-red-500">
+                <p v-if="product.stock === 0" style="margin-top: 6px; font-size: 13px; color: var(--color-error); font-weight: 500">
                     Tugagan
                 </p>
 
                 <!-- Variants -->
-                <div v-if="product.variants && product.variants.length" class="mt-4">
-                    <p class="mb-2 text-sm font-medium" style="color: var(--tg-theme-text-color)">
+                <div v-if="product.variants && product.variants.length" style="margin-top: 20px">
+                    <p style="font-size: 14px; font-weight: 600; color: var(--tg-theme-text-color); margin-bottom: 10px">
                         {{ product.variant_label || 'Variant' }}
                     </p>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap" style="gap: 8px">
                         <button
                             v-for="variant in product.variants"
                             :key="variant.id"
                             @click="selectVariant(variant)"
-                            class="rounded-lg px-3 py-2 text-sm transition-all tap-active"
+                            class="tap-active"
                             :style="selectedVariant?.id === variant.id
-                                ? { backgroundColor: 'var(--tg-theme-button-color)', color: 'var(--tg-theme-button-text-color)', fontWeight: '600' }
-                                : { backgroundColor: 'var(--tg-theme-secondary-bg-color)', color: 'var(--tg-theme-text-color)' }"
+                                ? { padding: '8px 16px', borderRadius: '10px', backgroundColor: 'var(--tg-theme-button-color)', color: 'var(--tg-theme-button-text-color)', fontSize: '14px', fontWeight: '600', border: 'none' }
+                                : { padding: '8px 16px', borderRadius: '10px', backgroundColor: 'var(--tg-theme-secondary-bg-color)', color: 'var(--tg-theme-text-color)', fontSize: '14px', fontWeight: '500', border: 'none' }"
                         >
                             {{ variant.name }}
-                            <span v-if="variant.price_diff" class="ml-1 text-xs opacity-70">
+                            <span v-if="variant.price_diff" style="margin-left: 4px; opacity: 0.7; font-size: 12px">
                                 +{{ formatPrice(variant.price_diff) }}
                             </span>
                         </button>
@@ -127,43 +130,39 @@
                 </div>
 
                 <!-- Description -->
-                <div v-if="product.description" class="mt-4">
-                    <p class="mb-2 text-sm font-medium" style="color: var(--tg-theme-text-color)">
-                        Tavsif
-                    </p>
+                <div v-if="product.description" style="margin-top: 20px">
+                    <p class="section-title" style="font-size: 15px; margin-bottom: 8px">Tavsif</p>
                     <p
-                        class="text-sm leading-relaxed"
-                        style="color: var(--tg-theme-hint-color)"
                         :class="{ 'line-clamp-4': !showFullDescription }"
+                        style="font-size: 14px; line-height: 1.6; color: var(--tg-theme-hint-color)"
                     >
                         {{ product.description }}
                     </p>
                     <button
                         v-if="product.description.length > 200"
                         @click="showFullDescription = !showFullDescription"
-                        class="mt-1 text-sm font-medium"
-                        style="color: var(--tg-theme-link-color)"
+                        style="margin-top: 6px; font-size: 14px; font-weight: 500; color: var(--tg-theme-link-color); background: none; border: none; padding: 0; cursor: pointer"
                     >
                         {{ showFullDescription ? 'Yopish' : "Ko'proq o'qish" }}
                     </button>
                 </div>
 
                 <!-- Attributes -->
-                <div v-if="product.attributes && product.attributes.length" class="mt-4">
-                    <p class="mb-2 text-sm font-medium" style="color: var(--tg-theme-text-color)">
-                        Xususiyatlar
-                    </p>
-                    <div
-                        class="rounded-xl p-3"
-                        style="background-color: var(--tg-theme-secondary-bg-color)"
-                    >
+                <div v-if="product.attributes && product.attributes.length" style="margin-top: 20px">
+                    <p class="section-title" style="font-size: 15px; margin-bottom: 10px">Xususiyatlar</p>
+                    <div style="padding: 14px; border-radius: 14px; background-color: var(--tg-theme-secondary-bg-color)">
                         <div
-                            v-for="attr in product.attributes"
+                            v-for="(attr, idx) in product.attributes"
                             :key="attr.name"
-                            class="flex justify-between py-1.5 text-sm"
+                            class="flex justify-between"
+                            :style="{
+                                padding: '8px 0',
+                                fontSize: '14px',
+                                borderBottom: idx < product.attributes.length - 1 ? '1px solid var(--color-divider)' : 'none'
+                            }"
                         >
                             <span style="color: var(--tg-theme-hint-color)">{{ attr.name }}</span>
-                            <span class="font-medium" style="color: var(--tg-theme-text-color)">{{ attr.value }}</span>
+                            <span style="font-weight: 500; color: var(--tg-theme-text-color)">{{ attr.value }}</span>
                         </div>
                     </div>
                 </div>
@@ -173,43 +172,24 @@
         <!-- Bottom action bar -->
         <div
             v-if="product && product.stock !== 0"
-            class="fixed bottom-0 left-0 right-0 z-20 border-t px-4 py-3 safe-area-bottom"
-            style="background-color: var(--tg-theme-bg-color); border-color: var(--tg-theme-secondary-bg-color)"
+            class="sticky-bottom-bar"
         >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center" style="gap: 12px">
                 <!-- Quantity controls if in cart -->
                 <div
                     v-if="cartItem"
-                    class="flex items-center gap-3 rounded-xl px-3 py-2"
-                    style="background-color: var(--tg-theme-secondary-bg-color)"
+                    class="flex items-center"
+                    style="gap: 4px"
                 >
-                    <button
-                        @click="decrementQty"
-                        class="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold"
-                        style="color: var(--tg-theme-text-color)"
-                    >
-                        -
-                    </button>
-                    <span class="min-w-[20px] text-center font-semibold" style="color: var(--tg-theme-text-color)">
-                        {{ cartItem.quantity }}
-                    </span>
-                    <button
-                        @click="incrementQty"
-                        class="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold"
-                        style="color: var(--tg-theme-text-color)"
-                    >
-                        +
-                    </button>
+                    <button @click="decrementQty" class="qty-btn">−</button>
+                    <span class="qty-value">{{ cartItem.quantity }}</span>
+                    <button @click="incrementQty" class="qty-btn" style="color: var(--tg-theme-button-color)">+</button>
                 </div>
 
                 <!-- Add to cart button -->
-                <button
-                    @click="addToCart"
-                    class="flex-1 rounded-xl py-3 text-center text-sm font-semibold tap-active transition-all duration-200"
-                    style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color)"
-                >
+                <button @click="addToCart" class="btn-primary" style="flex: 1">
                     <span v-if="justAdded" class="inline-flex items-center gap-1">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <svg style="width: 16px; height: 16px" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                         </svg>
                         Qo'shildi!
@@ -230,6 +210,7 @@ import { useCartStore } from '../stores/cart'
 import { useTelegram } from '../composables/useTelegram'
 import BackButton from '../components/BackButton.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import { useToast } from '../composables/useToast'
 import { formatPrice } from '../utils/formatters'
 
 const props = defineProps({
@@ -239,6 +220,7 @@ const props = defineProps({
 const storeInfo = useStoreInfo()
 const cart = useCartStore()
 const { hapticImpact, hapticNotification } = useTelegram()
+const toast = useToast()
 
 const product = ref(null)
 const loading = ref(true)
@@ -286,8 +268,8 @@ function addToCart() {
     if (!product.value) return
     cart.addItem(product.value, 1, selectedVariant.value)
     hapticNotification('success')
+    toast.success("Savatga qo'shildi")
 
-    // Show checkmark feedback for 800ms
     justAdded.value = true
     setTimeout(() => { justAdded.value = false }, 800)
 }

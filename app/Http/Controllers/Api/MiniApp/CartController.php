@@ -184,6 +184,72 @@ class CartController extends Controller
     }
 
     /**
+     * POST /cart/sync — Sync frontend (localStorage) cart to server.
+     *
+     * Replaces server cart with frontend items.
+     * Body: { items: [{ product_id, variant_id?, quantity }] }
+     */
+    public function sync(Request $request, TelegramStore $store): JsonResponse
+    {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|uuid',
+            'items.*.variant_id' => 'nullable|uuid',
+            'items.*.quantity' => 'required|integer|min:1|max:99',
+            'items.*.selections' => 'nullable|array',
+            'items.*.selections.*.modifier_id' => 'required_with:items.*.selections|uuid',
+            'items.*.selections.*.modifier_name' => 'required_with:items.*.selections|string|max:100',
+            'items.*.selections.*.option_id' => 'required_with:items.*.selections|uuid',
+            'items.*.selections.*.option_name' => 'required_with:items.*.selections|string|max:100',
+            'items.*.selections.*.price' => 'required_with:items.*.selections|numeric|min:0',
+        ]);
+
+        $customer = $request->attributes->get('store_customer');
+        $cart = $this->cartService->getOrCreateCart($store, $customer);
+
+        // Clear existing cart items
+        $cart->items()->delete();
+
+        $skipped = [];
+
+        foreach ($validated['items'] as $itemData) {
+            $product = StoreProduct::where('id', $itemData['product_id'])
+                ->where('store_id', $store->id)
+                ->active()
+                ->first();
+
+            if (! $product || ! $product->isInStock()) {
+                $skipped[] = $itemData['product_id'];
+                continue;
+            }
+
+            $variant = null;
+            if (! empty($itemData['variant_id'])) {
+                $variant = StoreProductVariant::where('id', $itemData['variant_id'])
+                    ->where('product_id', $product->id)
+                    ->where('is_active', true)
+                    ->first();
+
+                if (! $variant || ! $variant->isInStock()) {
+                    $skipped[] = $itemData['product_id'];
+                    continue;
+                }
+            }
+
+            $selections = $itemData['selections'] ?? null;
+            $this->cartService->addItem($cart, $product, $itemData['quantity'], $variant, $selections);
+        }
+
+        $cart->load('items.product.primaryImage', 'items.variant');
+
+        return response()->json([
+            'success' => true,
+            'data' => new CartResource($cart),
+            'skipped' => $skipped,
+        ]);
+    }
+
+    /**
      * POST /cart/promo — Apply promo code.
      *
      * Body: { code }

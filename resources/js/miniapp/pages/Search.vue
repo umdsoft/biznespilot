@@ -1,84 +1,117 @@
 <template>
-    <div class="pb-24">
-        <BackButton />
-
+    <div class="pb-nav">
         <!-- Search header -->
-        <div class="sticky top-0 z-10 px-4 py-2.5" style="background-color: var(--tg-theme-bg-color)">
-            <div
-                class="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5"
-                style="background-color: var(--tg-theme-secondary-bg-color)"
-            >
-                <svg class="h-[18px] w-[18px] shrink-0" style="color: var(--tg-theme-hint-color)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input
-                    ref="searchInput"
-                    v-model="query"
-                    type="text"
-                    placeholder="Mahsulot qidirish..."
-                    class="w-full bg-transparent text-[13px] outline-none"
-                    style="color: var(--tg-theme-text-color)"
-                    @input="onSearchInput"
-                />
-                <button
-                    v-if="query"
-                    @click="clearSearch"
-                    class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full tap-active"
-                    style="background-color: var(--tg-theme-bg-color)"
+        <div class="sticky top-0 z-20 header-blur">
+            <div style="padding: 12px 16px">
+                <div
+                    class="flex items-center"
+                    style="height: 44px; padding: 0 16px 0 40px; border-radius: 12px; background-color: var(--color-bg-tertiary); position: relative"
                 >
-                    <svg class="h-3.5 w-3.5" style="color: var(--tg-theme-hint-color)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    <svg style="width: 18px; height: 18px; color: var(--tg-theme-hint-color); position: absolute; left: 14px; top: 50%; transform: translateY(-50%)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                </button>
+                    <input
+                        ref="searchInput"
+                        v-model="query"
+                        type="text"
+                        placeholder="Mahsulot qidirish..."
+                        class="w-full bg-transparent outline-none"
+                        style="font-size: 14px; color: var(--tg-theme-text-color)"
+                        @input="onSearchInput"
+                    />
+                    <button
+                        v-if="query"
+                        @click="clearSearch"
+                        class="shrink-0 flex items-center justify-center tap-active"
+                        style="width: 28px; height: 28px; border-radius: 50%; background-color: var(--tg-theme-secondary-bg-color)"
+                    >
+                        <svg style="width: 14px; height: 14px; color: var(--tg-theme-hint-color)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Loading -->
-        <div v-if="loading && products.length === 0" class="px-4 pt-2">
+        <div v-if="loading && products.length === 0" style="padding: 8px 16px 0">
             <SkeletonLoader type="card" :count="4" />
         </div>
 
         <!-- Results -->
-        <div v-else class="px-4 pt-2">
-            <!-- Empty query — show recent searches -->
-            <div v-if="!query" class="py-6">
+        <div v-else style="padding: 8px 16px 0">
+            <!-- Empty query — show categories + recent searches -->
+            <div v-if="!query" style="padding-top: 8px">
                 <!-- Recent searches -->
-                <div v-if="recentSearches.length">
-                    <div class="flex items-center justify-between mb-2.5">
-                        <p class="text-xs font-semibold" style="color: var(--tg-theme-hint-color)">So'nggi qidiruvlar</p>
-                        <button @click="clearRecentSearches" class="text-xs tap-active" style="color: var(--tg-theme-hint-color)">Tozalash</button>
+                <div v-if="recentSearches.length" style="margin-bottom: 24px">
+                    <div class="flex items-center justify-between" style="margin-bottom: 12px">
+                        <p class="section-title" style="font-size: 15px">So'nggi qidiruvlar</p>
+                        <button @click="clearRecentSearches" class="btn-ghost" style="font-size: 13px; color: var(--tg-theme-hint-color); padding: 4px 0">Tozalash</button>
                     </div>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap" style="gap: 8px">
                         <button
                             v-for="term in recentSearches"
                             :key="term"
                             @click="searchFromRecent(term)"
-                            class="rounded-lg px-3 py-1.5 text-xs font-medium tap-active"
-                            style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color)"
+                            class="flex items-center tap-active"
+                            style="gap: 6px; padding: 8px 14px; border-radius: 12px; background-color: var(--tg-theme-secondary-bg-color); font-size: 13px; font-weight: 500; color: var(--tg-theme-text-color)"
                         >
+                            <svg style="width: 14px; height: 14px; color: var(--tg-theme-hint-color)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
                             {{ term }}
                         </button>
                     </div>
                 </div>
-                <div v-else class="text-center pt-6">
-                    <svg class="mx-auto h-12 w-12" style="color: var(--tg-theme-hint-color); opacity: 0.3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    <p class="mt-3 text-sm" style="color: var(--tg-theme-hint-color)">
-                        Mahsulot nomini yozing
-                    </p>
+
+                <!-- Browse categories -->
+                <div v-if="storeInfo.categories.length">
+                    <p class="section-title" style="font-size: 15px; margin-bottom: 12px">Kategoriyalar</p>
+                    <div>
+                        <button
+                            v-for="(cat, idx) in storeInfo.categories"
+                            :key="cat.id"
+                            @click="goToCategory(cat.id)"
+                            class="flex w-full items-center tap-active"
+                            style="padding: 14px 0; gap: 14px"
+                            :style="idx < storeInfo.categories.length - 1 ? { borderBottom: '1px solid var(--color-divider)' } : {}"
+                        >
+                            <div class="flex items-center justify-center shrink-0" style="width: 40px; height: 40px; border-radius: 12px; background-color: var(--tg-theme-secondary-bg-color)">
+                                <img v-if="cat.icon" :src="cat.icon" :alt="cat.name" style="width: 22px; height: 22px; object-fit: contain" />
+                                <span v-else style="font-size: 18px">{{ cat.emoji || '📦' }}</span>
+                            </div>
+                            <span class="flex-1 text-left" style="font-size: 15px; font-weight: 500; color: var(--tg-theme-text-color)">{{ cat.name }}</span>
+                            <svg style="width: 18px; height: 18px; color: var(--tg-theme-hint-color)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- No categories, no recent -->
+                <div v-if="!recentSearches.length && !storeInfo.categories.length" class="empty-state" style="min-height: 40vh">
+                    <div class="empty-state-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <p class="empty-state-title">Mahsulot nomini yozing</p>
                 </div>
             </div>
 
             <!-- No results -->
-            <div v-else-if="searched && products.length === 0 && !loading" class="py-10 text-center">
-                <p class="text-sm" style="color: var(--tg-theme-hint-color)">
-                    "{{ query }}" bo'yicha hech narsa topilmadi
-                </p>
+            <div v-else-if="searched && products.length === 0 && !loading" class="empty-state" style="min-height: 40vh">
+                <div class="empty-state-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <p class="empty-state-title">Hech narsa topilmadi</p>
+                <p class="empty-state-desc">"{{ query }}" bo'yicha natija yo'q</p>
             </div>
 
             <!-- Products grid -->
-            <div v-else-if="products.length" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <div v-else-if="products.length" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px">
                 <ProductCard
                     v-for="product in products"
                     :key="product.id"
@@ -87,7 +120,7 @@
             </div>
 
             <!-- Load more -->
-            <div v-if="hasMore" ref="loadMoreRef" class="flex justify-center py-6">
+            <div v-if="hasMore" ref="loadMoreRef" class="flex justify-center" style="padding: 24px 0">
                 <LoadingSpinner v-if="loading" size="sm" />
             </div>
         </div>
@@ -96,13 +129,16 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useStoreInfo } from '../stores/store'
+import { useTelegram } from '../composables/useTelegram'
 import ProductCard from '../components/ProductCard.vue'
 import SkeletonLoader from '../components/SkeletonLoader.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
-import BackButton from '../components/BackButton.vue'
 
+const router = useRouter()
 const storeInfo = useStoreInfo()
+const { hapticImpact } = useTelegram()
 
 const searchInput = ref(null)
 const query = ref('')
@@ -116,7 +152,6 @@ const loadMoreRef = ref(null)
 const RECENT_KEY = 'miniapp_recent_searches'
 const recentSearches = ref([])
 
-// Load recent searches from localStorage
 try {
     const saved = localStorage.getItem(RECENT_KEY)
     if (saved) recentSearches.value = JSON.parse(saved)
@@ -137,6 +172,11 @@ function clearRecentSearches() {
 function searchFromRecent(term) {
     query.value = term
     search(true)
+}
+
+function goToCategory(id) {
+    hapticImpact('light')
+    router.push({ name: 'category', params: { id } })
 }
 
 let debounceTimer = null

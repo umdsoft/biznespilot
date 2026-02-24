@@ -1,37 +1,45 @@
 <template>
-    <div class="pb-20">
+    <div style="padding-bottom: 24px">
         <BackButton />
 
         <!-- Header -->
-        <div class="sticky top-0 z-10 px-4 py-3" style="background-color: var(--tg-theme-bg-color)">
-            <h1 class="text-lg font-semibold" style="color: var(--tg-theme-text-color)">
-                Buyurtma #{{ number }}
-            </h1>
+        <div class="sticky top-0 z-20 header-blur">
+            <div style="padding: 12px 16px">
+                <h1 style="font-size: 18px; font-weight: 700; color: var(--tg-theme-text-color)">
+                    Buyurtma #{{ number }}
+                </h1>
+            </div>
         </div>
 
         <!-- Loading -->
-        <div v-if="orderStore.loading && !order" class="flex items-center justify-center py-20">
+        <div v-if="orderStore.loading && !order" class="flex items-center justify-center" style="padding: 80px 0">
             <LoadingSpinner />
         </div>
 
         <!-- Not found -->
-        <div v-else-if="!order" class="px-4 py-10 text-center">
-            <p class="text-sm" style="color: var(--tg-theme-hint-color)">Buyurtma topilmadi</p>
+        <div v-else-if="!order" class="empty-state" style="min-height: 40vh">
+            <div class="empty-state-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <p class="empty-state-title">Buyurtma topilmadi</p>
         </div>
 
         <template v-else>
-            <div class="px-4 space-y-4">
+            <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 16px">
                 <!-- Status -->
-                <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
+                <div style="padding: 16px; border-radius: 14px; border: 1px solid var(--color-border); background-color: var(--tg-theme-bg-color)">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs" style="color: var(--tg-theme-hint-color)">Holat</p>
-                            <p class="mt-1 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
+                            <p style="font-size: 13px; color: var(--tg-theme-hint-color)">Holat</p>
+                            <p style="font-size: 15px; font-weight: 600; color: var(--tg-theme-text-color); margin-top: 4px">
                                 {{ orderStore.getStatusLabel(order.status) }}
                             </p>
                         </div>
                         <span
-                            class="rounded-full px-3 py-1 text-xs font-medium"
+                            class="rounded-full"
+                            style="padding: 4px 12px; font-size: 12px; font-weight: 600"
                             :class="orderStore.getStatusColor(order.status)"
                         >
                             {{ orderStore.getStatusLabel(order.status) }}
@@ -39,23 +47,24 @@
                     </div>
 
                     <!-- Status Timeline -->
-                    <div v-if="statusTimeline.length" class="mt-4">
+                    <div v-if="statusTimeline.length" style="margin-top: 16px">
                         <div class="relative">
                             <div
                                 v-for="(step, idx) in statusTimeline"
                                 :key="step.status"
-                                class="relative flex gap-3 pb-4 last:pb-0"
+                                class="relative flex" style="gap: 12px; padding-bottom: 16px"
+                                :style="idx === statusTimeline.length - 1 ? { paddingBottom: 0 } : {}"
                             >
                                 <!-- Line -->
                                 <div class="flex flex-col items-center">
                                     <div
-                                        class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                                        class="flex shrink-0 items-center justify-center rounded-full"
                                         :style="{
-                                            backgroundColor: step.completed
+                                            width: '24px',
+                                            height: '24px',
+                                            backgroundColor: step.completed || step.current
                                                 ? 'var(--tg-theme-button-color)'
-                                                : step.current
-                                                    ? 'var(--tg-theme-button-color)'
-                                                    : 'transparent',
+                                                : 'transparent',
                                             border: step.completed || step.current
                                                 ? 'none'
                                                 : '2px solid var(--tg-theme-hint-color)',
@@ -64,22 +73,22 @@
                                     >
                                         <svg
                                             v-if="step.completed"
-                                            class="h-3.5 w-3.5"
-                                            style="color: var(--tg-theme-button-text-color)"
+                                            style="width: 14px; height: 14px; color: var(--tg-theme-button-text-color)"
                                             fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                         >
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                                         </svg>
                                         <div
                                             v-else-if="step.current"
-                                            class="h-2 w-2 rounded-full"
-                                            style="background-color: var(--tg-theme-button-text-color)"
+                                            style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--tg-theme-button-text-color)"
                                         />
                                     </div>
                                     <div
                                         v-if="idx < statusTimeline.length - 1"
-                                        class="mt-1 w-0.5 flex-1"
+                                        class="flex-1"
                                         :style="{
+                                            width: '2px',
+                                            marginTop: '4px',
                                             backgroundColor: step.completed
                                                 ? 'var(--tg-theme-button-color)'
                                                 : 'var(--tg-theme-hint-color)',
@@ -88,10 +97,10 @@
                                     />
                                 </div>
                                 <!-- Text -->
-                                <div class="pt-0.5">
+                                <div style="padding-top: 2px">
                                     <p
-                                        class="text-sm"
                                         :style="{
+                                            fontSize: '14px',
                                             color: step.completed || step.current
                                                 ? 'var(--tg-theme-text-color)'
                                                 : 'var(--tg-theme-hint-color)',
@@ -100,7 +109,7 @@
                                     >
                                         {{ step.label }}
                                     </p>
-                                    <p v-if="step.date" class="mt-0.5 text-xs" style="color: var(--tg-theme-hint-color)">
+                                    <p v-if="step.date" style="font-size: 12px; color: var(--tg-theme-hint-color); margin-top: 2px">
                                         {{ formatDate(step.date) }}
                                     </p>
                                 </div>
@@ -110,43 +119,40 @@
                 </div>
 
                 <!-- Order Items -->
-                <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                    <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
-                        Mahsulotlar
-                    </h2>
-                    <div class="space-y-3">
+                <div style="padding: 16px; border-radius: 14px; border: 1px solid var(--color-border); background-color: var(--tg-theme-bg-color)">
+                    <h2 class="section-title" style="margin-bottom: 12px">Mahsulotlar</h2>
+                    <div style="display: flex; flex-direction: column; gap: 12px">
                         <div
                             v-for="item in order.items"
                             :key="item.id"
-                            class="flex gap-3"
+                            class="flex"
+                            style="gap: 12px"
                         >
-                            <div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg">
+                            <div class="shrink-0 overflow-hidden" style="width: 56px; height: 56px; border-radius: 10px; background-color: var(--tg-theme-secondary-bg-color)">
                                 <img
-                                    v-if="item.image"
-                                    :src="item.image"
-                                    :alt="item.name"
+                                    v-if="item.product_image || item.image"
+                                    :src="item.product_image || item.image"
+                                    :alt="item.product_name || item.name"
                                     class="h-full w-full object-cover"
                                 />
                                 <div
                                     v-else
                                     class="flex h-full w-full items-center justify-center"
-                                    style="background-color: var(--tg-theme-bg-color)"
-                                >
-                                    <span class="text-sm">📦</span>
-                                </div>
+                                    style="font-size: 14px"
+                                >📦</div>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-medium leading-tight" style="color: var(--tg-theme-text-color)">
-                                    {{ item.name }}
+                                <p style="font-size: 14px; font-weight: 500; line-height: 1.3; color: var(--tg-theme-text-color)">
+                                    {{ item.product_name || item.name }}
                                 </p>
-                                <p v-if="item.variant_name" class="mt-0.5 text-xs" style="color: var(--tg-theme-hint-color)">
+                                <p v-if="item.variant_name" style="font-size: 13px; color: var(--tg-theme-hint-color); margin-top: 2px">
                                     {{ item.variant_name }}
                                 </p>
-                                <div class="mt-1 flex items-center justify-between">
-                                    <span class="text-xs" style="color: var(--tg-theme-hint-color)">
+                                <div class="flex items-center justify-between" style="margin-top: 6px">
+                                    <span style="font-size: 13px; color: var(--tg-theme-hint-color)">
                                         {{ item.quantity }} x {{ formatPrice(item.price) }}
                                     </span>
-                                    <span class="text-sm font-medium" style="color: var(--tg-theme-text-color)">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--tg-theme-text-color)">
                                         {{ formatPrice(item.quantity * item.price) }}
                                     </span>
                                 </div>
@@ -156,24 +162,22 @@
                 </div>
 
                 <!-- Delivery Info -->
-                <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                    <h2 class="mb-3 text-sm font-semibold" style="color: var(--tg-theme-text-color)">
-                        Yetkazib berish
-                    </h2>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
+                <div style="padding: 16px; border-radius: 14px; border: 1px solid var(--color-border); background-color: var(--tg-theme-bg-color)">
+                    <h2 class="section-title" style="margin-bottom: 12px">Yetkazib berish</h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px">
+                        <div class="flex justify-between" style="font-size: 14px">
                             <span style="color: var(--tg-theme-hint-color)">Usul</span>
                             <span style="color: var(--tg-theme-text-color)">
                                 {{ order.delivery_type === 'pickup' ? 'Olib ketish' : 'Yetkazib berish' }}
                             </span>
                         </div>
-                        <div v-if="order.address" class="flex justify-between">
+                        <div v-if="formattedAddress" class="flex justify-between" style="font-size: 14px">
                             <span style="color: var(--tg-theme-hint-color)">Manzil</span>
-                            <span class="max-w-[60%] text-right" style="color: var(--tg-theme-text-color)">
-                                {{ order.address }}
+                            <span class="text-right" style="color: var(--tg-theme-text-color); max-width: 60%">
+                                {{ formattedAddress }}
                             </span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between" style="font-size: 14px">
                             <span style="color: var(--tg-theme-hint-color)">To'lov</span>
                             <span style="color: var(--tg-theme-text-color)">{{ paymentLabel }}</span>
                         </div>
@@ -181,36 +185,30 @@
                 </div>
 
                 <!-- Total -->
-                <div class="rounded-xl p-4" style="background-color: var(--tg-theme-secondary-bg-color)">
-                    <div class="space-y-1.5 text-sm">
-                        <div class="flex justify-between">
-                            <span style="color: var(--tg-theme-hint-color)">Mahsulotlar</span>
-                            <span style="color: var(--tg-theme-text-color)">{{ formatPrice(order.subtotal) }}</span>
-                        </div>
-                        <div v-if="order.discount" class="flex justify-between">
-                            <span style="color: var(--tg-theme-hint-color)">Chegirma</span>
-                            <span class="text-green-600">-{{ formatPrice(order.discount) }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span style="color: var(--tg-theme-hint-color)">Yetkazib berish</span>
-                            <span style="color: var(--tg-theme-text-color)">
-                                {{ order.delivery_fee > 0 ? formatPrice(order.delivery_fee) : 'Bepul' }}
-                            </span>
-                        </div>
-                        <div class="border-t pt-2 mt-2" style="border-color: var(--tg-theme-bg-color)">
-                            <div class="flex justify-between">
-                                <span class="font-semibold" style="color: var(--tg-theme-text-color)">Jami</span>
-                                <span class="text-base font-bold" style="color: var(--tg-theme-text-color)">
-                                    {{ formatPrice(order.total) }}
-                                </span>
-                            </div>
-                        </div>
+                <div class="order-summary">
+                    <div class="order-summary-row" style="padding: 6px 0">
+                        <span class="label">Mahsulotlar</span>
+                        <span class="value">{{ formatPrice(order.subtotal) }}</span>
+                    </div>
+                    <div v-if="order.discount_amount" class="order-summary-row" style="padding: 6px 0">
+                        <span class="label">Chegirma</span>
+                        <span style="color: var(--color-success); font-weight: 500">-{{ formatPrice(order.discount_amount) }}</span>
+                    </div>
+                    <div class="order-summary-row" style="padding: 6px 0">
+                        <span class="label">Yetkazib berish</span>
+                        <span class="value">
+                            {{ order.delivery_fee > 0 ? formatPrice(order.delivery_fee) : 'Bepul' }}
+                        </span>
+                    </div>
+                    <div class="order-summary-total">
+                        <span class="label">Jami</span>
+                        <span class="value">{{ formatPrice(order.total) }}</span>
                     </div>
                 </div>
 
                 <!-- Contact support -->
-                <div class="text-center pb-4">
-                    <p class="text-xs" style="color: var(--tg-theme-hint-color)">
+                <div class="text-center" style="padding-bottom: 8px">
+                    <p style="font-size: 13px; color: var(--tg-theme-hint-color)">
                         Savol bo'lsa, do'kon bilan bog'laning
                     </p>
                 </div>
@@ -235,8 +233,8 @@ const order = ref(null)
 const allStatuses = [
     { status: 'pending', label: 'Qabul qilindi' },
     { status: 'confirmed', label: 'Tasdiqlangan' },
-    { status: 'preparing', label: 'Tayyorlanmoqda' },
-    { status: 'shipping', label: 'Yetkazilmoqda' },
+    { status: 'processing', label: 'Tayyorlanmoqda' },
+    { status: 'shipped', label: 'Yetkazilmoqda' },
     { status: 'delivered', label: 'Yetkazildi' },
 ]
 
@@ -258,14 +256,28 @@ const statusTimeline = computed(() => {
     }
 
     const currentIdx = allStatuses.findIndex((s) => s.status === currentStatus)
-    const history = order.value.status_history || {}
+    // status_history is an array of { from_status, to_status, created_at }
+    const historyArr = order.value.status_history || []
+    const historyMap = {}
+    historyArr.forEach((h) => {
+        if (h.to_status) historyMap[h.to_status] = h.created_at
+    })
 
     return allStatuses.map((step, idx) => ({
         ...step,
         completed: idx < currentIdx,
         current: idx === currentIdx,
-        date: history[step.status] || (idx === currentIdx ? order.value.updated_at : null),
+        date: historyMap[step.status] || (idx === currentIdx ? order.value.updated_at : null),
     }))
+})
+
+const formattedAddress = computed(() => {
+    if (!order.value) return ''
+    const addr = order.value.delivery_address
+    if (!addr) return ''
+    // delivery_address can be string or object
+    if (typeof addr === 'string') return addr
+    return [addr.city, addr.district, addr.street].filter(Boolean).join(', ')
 })
 
 const paymentLabel = computed(() => {

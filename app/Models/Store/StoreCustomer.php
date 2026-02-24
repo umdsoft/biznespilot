@@ -51,6 +51,11 @@ class StoreCustomer extends Model
         return $this->hasMany(StoreReview::class, 'customer_id');
     }
 
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(StoreCustomerAddress::class, 'customer_id');
+    }
+
     public function getDisplayName(): string
     {
         if ($this->name) {
