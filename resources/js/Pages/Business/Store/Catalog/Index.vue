@@ -120,7 +120,17 @@
               <p class="text-sm font-bold text-slate-900 dark:text-white">{{ formatPrice(item.price) }}</p>
               <!-- Type-specific badge -->
               <span v-if="item.duration_minutes" class="text-xs text-slate-500">{{ item.duration_minutes }} min</span>
-              <span v-else-if="item.stock_quantity != null" class="text-xs text-slate-500">{{ item.stock_quantity }} dona</span>
+              <span
+                v-else-if="item.stock_quantity != null"
+                class="text-xs font-medium"
+                :class="item.stock_quantity === 0
+                  ? 'text-red-500'
+                  : item.stock_quantity <= 5
+                    ? 'text-amber-500'
+                    : 'text-slate-500'"
+              >
+                {{ item.stock_quantity === 0 ? 'Tugagan' : item.stock_quantity + ' dona' }}
+              </span>
             </div>
 
             <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
@@ -151,6 +161,7 @@
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">{{ botConfig?.catalog_label_singular || 'Element' }}</th>
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Kategoriya</th>
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Narx</th>
+                <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Qoldiq</th>
                 <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Holat</th>
                 <th v-if="isBusinessPanel" class="px-5 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Amallar</th>
               </tr>
@@ -181,6 +192,23 @@
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap">
                   <span class="text-sm font-medium text-slate-900 dark:text-white">{{ formatPrice(item.price) }}</span>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap">
+                  <template v-if="item.stock_quantity != null">
+                    <span
+                      class="inline-flex items-center gap-1 text-sm font-medium"
+                      :class="item.stock_quantity === 0
+                        ? 'text-red-500 dark:text-red-400'
+                        : item.stock_quantity <= 5
+                          ? 'text-amber-500 dark:text-amber-400'
+                          : 'text-slate-600 dark:text-slate-400'"
+                    >
+                      <span v-if="item.stock_quantity === 0">Tugagan</span>
+                      <span v-else>{{ item.stock_quantity }} dona</span>
+                      <span v-if="item.stock_quantity > 0 && item.stock_quantity <= 5" class="text-xs">(oz)</span>
+                    </span>
+                  </template>
+                  <span v-else class="text-sm text-slate-400">—</span>
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap">
                   <button

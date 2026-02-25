@@ -88,8 +88,13 @@
                   <span class="text-slate-700 dark:text-slate-300">{{ formatPrice(order.delivery_fee) }}</span>
                 </div>
                 <div v-if="order.discount_amount" class="flex items-center justify-between text-sm">
-                  <span class="text-slate-500 dark:text-slate-400">Chegirma:</span>
-                  <span class="text-emerald-600 dark:text-emerald-400">-{{ formatPrice(order.discount_amount) }}</span>
+                  <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    Chegirma
+                    <span v-if="order.promo_code" class="font-mono text-xs bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 px-1.5 py-0.5 rounded text-emerald-700 dark:text-emerald-400 tracking-wide">
+                      {{ order.promo_code }}
+                    </span>
+                  </span>
+                  <span class="text-emerald-600 dark:text-emerald-400 font-medium">-{{ formatPrice(order.discount_amount) }}</span>
                 </div>
                 <div class="flex items-center justify-between text-base font-bold pt-2 border-t border-slate-200 dark:border-slate-600">
                   <span class="text-slate-900 dark:text-white">Jami:</span>
