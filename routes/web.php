@@ -1321,6 +1321,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
 
         // Orders
         Route::get('/orders', [App\Http\Controllers\Business\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/pending-count', [App\Http\Controllers\Business\StoreOrderController::class, 'pendingCount'])->name('orders.pending-count');
         Route::get('/orders/{order}', [App\Http\Controllers\Business\StoreOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/status', [App\Http\Controllers\Business\StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
         Route::get('/orders-export', [App\Http\Controllers\Business\StoreOrderController::class, 'export'])->name('orders.export');
@@ -1804,6 +1805,7 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
 
         // Orders
         Route::get('/orders', [App\Http\Controllers\Business\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/pending-count', [App\Http\Controllers\Business\StoreOrderController::class, 'pendingCount'])->name('orders.pending-count');
         Route::get('/orders/{order}', [App\Http\Controllers\Business\StoreOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/status', [App\Http\Controllers\Business\StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
         Route::get('/orders-export', [App\Http\Controllers\Business\StoreOrderController::class, 'export'])->name('orders.export');
@@ -2633,6 +2635,7 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
 
         // Orders
         Route::get('/orders', [App\Http\Controllers\Business\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/pending-count', [App\Http\Controllers\Business\StoreOrderController::class, 'pendingCount'])->name('orders.pending-count');
         Route::get('/orders/{order}', [App\Http\Controllers\Business\StoreOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/status', [App\Http\Controllers\Business\StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
         Route::get('/orders-export', [App\Http\Controllers\Business\StoreOrderController::class, 'export'])->name('orders.export');

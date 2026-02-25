@@ -7,6 +7,7 @@ use App\Http\Resources\Store\CartResource;
 use App\Models\Store\StoreCartItem;
 use App\Models\Store\StoreProduct;
 use App\Models\Store\StoreProductVariant;
+use App\Models\Store\StorePromoCode;
 use App\Models\Store\TelegramStore;
 use App\Services\Store\StoreCartService;
 use Illuminate\Http\JsonResponse;
@@ -252,30 +253,90 @@ class CartController extends Controller
     /**
      * POST /cart/promo — Apply promo code.
      *
-     * Body: { code }
+     * Body: { code, items?: [{product_id, variant_id?, quantity}] }
+     *
+     * MiniApp foydalanuvchilari localStorage-based cart ishlatadi.
+     * DB cart sync qilinmagan bo'lishi mumkin, shuning uchun
+     * subtotal client tomonidan yuborilgan items dan hisoblanadi
+     * (narxlar DB dan olinadi — xavfsizlik uchun).
      */
     public function applyPromo(Request $request, TelegramStore $store): JsonResponse
     {
         $validated = $request->validate([
             'code' => 'required|string|max:50',
+            'items' => 'nullable|array',
+            'items.*.product_id' => 'nullable|uuid',
+            'items.*.variant_id' => 'nullable|uuid',
+            'items.*.quantity' => 'nullable|integer|min:1|max:99',
         ]);
 
-        $customer = $request->attributes->get('store_customer');
-        $cart = $this->cartService->getOrCreateCart($store, $customer);
+        // Calculate subtotal from client-sent items (prices fetched from DB for security)
+        $subtotal = 0;
+        $hasItems = false;
 
-        if ($cart->items->isEmpty()) {
+        foreach ($validated['items'] ?? [] as $itemData) {
+            if (empty($itemData['product_id'])) {
+                continue;
+            }
+
+            $product = StoreProduct::where('id', $itemData['product_id'])
+                ->where('store_id', $store->id)
+                ->active()
+                ->first();
+
+            if (! $product) {
+                continue;
+            }
+
+            $price = $product->price;
+
+            if (! empty($itemData['variant_id'])) {
+                $variant = StoreProductVariant::where('id', $itemData['variant_id'])
+                    ->where('product_id', $product->id)
+                    ->first();
+                if ($variant) {
+                    $price = $variant->price;
+                }
+            }
+
+            $subtotal += $price * ($itemData['quantity'] ?? 1);
+            $hasItems = true;
+        }
+
+        if (! $hasItems) {
             return response()->json([
                 'success' => false,
                 'message' => 'Savat bo\'sh',
             ], 422);
         }
 
-        $result = $this->cartService->applyPromoCode($cart, $validated['code']);
+        // Find promo code
+        $promo = StorePromoCode::where('store_id', $store->id)
+            ->where('code', strtoupper(trim($validated['code'])))
+            ->first();
 
-        if (! $result['success']) {
+        if (! $promo) {
             return response()->json([
                 'success' => false,
-                'message' => $result['error'],
+                'message' => 'Promo kod topilmadi',
+            ], 422);
+        }
+
+        if (! $promo->isValid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Promo kod muddati o\'tgan yoki faol emas',
+            ], 422);
+        }
+
+        $discount = $promo->calculateDiscount($subtotal);
+
+        if ($discount <= 0) {
+            $minAmount = number_format($promo->min_order_amount ?? 0, 0, '.', ' ');
+
+            return response()->json([
+                'success' => false,
+                'message' => "Minimal buyurtma summasi: {$minAmount} so'm",
             ], 422);
         }
 
@@ -283,12 +344,12 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Promo kod qo\'llanildi',
             'data' => [
-                'promo_code' => $result['promo']->code,
-                'discount_type' => $result['promo']->type,
-                'discount_value' => (float) $result['promo']->value,
-                'discount_amount' => (float) $result['discount'],
-                'subtotal' => (float) $result['subtotal'],
-                'total' => (float) $result['total'],
+                'promo_code' => $promo->code,
+                'discount_type' => $promo->type,
+                'discount_value' => (float) $promo->value,
+                'discount_amount' => (float) $discount,
+                'subtotal' => (float) $subtotal,
+                'total' => (float) max(0, $subtotal - $discount),
             ],
         ]);
     }

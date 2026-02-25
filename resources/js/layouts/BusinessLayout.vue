@@ -51,6 +51,13 @@
           >
             {{ todoStats.overdue > 99 ? '99+' : todoStats.overdue }}
           </span>
+          <!-- Pending Orders Badge -->
+          <span
+            v-if="item.href === '/business/store/orders' && pendingOrdersCount > 0"
+            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+          >
+            {{ pendingOrdersCount > 99 ? '99+' : pendingOrdersCount }}
+          </span>
         </NavLink>
       </template>
     </template>
@@ -151,12 +158,14 @@ const inboxUnreadCount = ref(0);
 const newLeadsCount = ref(0);
 const taskStats = ref({ total: 0, overdue: 0 });
 const todoStats = ref({ total: 0, overdue: 0 });
+const pendingOrdersCount = ref(0);
 
 // Polling intervals
 let inboxPollingInterval = null;
 let leadsPollingInterval = null;
 let taskPollingInterval = null;
 let todoPollingInterval = null;
+let ordersPollingInterval = null;
 
 // Fetch functions
 const fetchInboxUnreadCount = async () => {
@@ -223,17 +232,30 @@ const fetchTodoStats = async () => {
   }
 };
 
+const fetchPendingOrdersCount = async () => {
+  try {
+    const response = await axios.get('/business/store/orders/pending-count');
+    if (response.data?.count !== undefined) {
+      pendingOrdersCount.value = response.data.count;
+    }
+  } catch (error) {
+    // Silently fail - store may not be set up
+  }
+};
+
 // Start polling
 const startPolling = () => {
   fetchInboxUnreadCount();
   fetchNewLeadsCount();
   fetchTaskStats();
   fetchTodoStats();
+  fetchPendingOrdersCount();
 
   inboxPollingInterval = setInterval(fetchInboxUnreadCount, 10000);
   leadsPollingInterval = setInterval(fetchNewLeadsCount, 15000);
   taskPollingInterval = setInterval(fetchTaskStats, 10000);
   todoPollingInterval = setInterval(fetchTodoStats, 30000);
+  ordersPollingInterval = setInterval(fetchPendingOrdersCount, 20000);
 };
 
 // Stop polling
@@ -242,6 +264,7 @@ const stopPolling = () => {
   if (leadsPollingInterval) clearInterval(leadsPollingInterval);
   if (taskPollingInterval) clearInterval(taskPollingInterval);
   if (todoPollingInterval) clearInterval(todoPollingInterval);
+  if (ordersPollingInterval) clearInterval(ordersPollingInterval);
 };
 
 // Check if nav item is active

@@ -22,7 +22,7 @@
 
       <!-- Promo Codes Table -->
       <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div v-if="promoCodes.data && promoCodes.data.length > 0" class="overflow-x-auto">
+        <div v-if="promoCodes && promoCodes.length > 0" class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-700">
             <thead>
               <tr class="bg-slate-50 dark:bg-slate-700/50">
@@ -37,7 +37,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
               <tr
-                v-for="promo in promoCodes.data"
+                v-for="promo in promoCodes"
                 :key="promo.id"
                 class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
               >
@@ -130,14 +130,10 @@
         </div>
       </div>
 
-      <!-- Pagination -->
-      <Pagination
-        v-if="promoCodes.links && promoCodes.links.length > 3"
-        :links="promoCodes.links"
-        :from="promoCodes.from"
-        :to="promoCodes.to"
-        :total="promoCodes.total"
-      />
+      <!-- Promo codes count -->
+      <p v-if="promoCodes && promoCodes.length > 0" class="text-sm text-slate-500 dark:text-slate-400">
+        Jami: {{ promoCodes.length }} ta promo kod
+      </p>
 
       <!-- Add/Edit Modal -->
       <Modal v-model="showModal" :title="editingPromo ? 'Promo kodni tahrirlash' : 'Yangi promo kod'" max-width="lg">
@@ -194,7 +190,7 @@
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Min. buyurtma summasi (so'm)</label>
               <input
-                v-model.number="promoForm.min_amount"
+                v-model.number="promoForm.min_order_amount"
                 type="number"
                 min="0"
                 step="1000"
@@ -289,7 +285,6 @@ import { ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Modal from '@/components/Modal.vue';
-import Pagination from '@/components/Pagination.vue';
 import {
   PlusIcon,
   PencilIcon,
@@ -298,7 +293,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-  promoCodes: { type: Object, default: () => ({ data: [], links: [] }) },
+  promoCodes: { type: Array, default: () => [] },
 });
 
 const showModal = ref(false);
@@ -311,7 +306,7 @@ const promoForm = useForm({
   code: '',
   type: 'fixed',
   value: null,
-  min_amount: null,
+  min_order_amount: null,
   max_uses: null,
   starts_at: '',
   expires_at: '',
@@ -355,7 +350,7 @@ const openModal = (promo) => {
     promoForm.code = promo.code;
     promoForm.type = promo.type;
     promoForm.value = promo.value;
-    promoForm.min_amount = promo.min_amount;
+    promoForm.min_order_amount = promo.min_order_amount;
     promoForm.max_uses = promo.max_uses;
     promoForm.starts_at = promo.starts_at ? promo.starts_at.substring(0, 10) : '';
     promoForm.expires_at = promo.expires_at ? promo.expires_at.substring(0, 10) : '';
@@ -385,7 +380,7 @@ const savePromo = () => {
 };
 
 const toggleActive = (promo) => {
-  router.put(route('business.store.promo-codes.toggle-active', promo.id), {}, {
+  router.post(route('business.store.promo-codes.toggle', promo.id), {}, {
     preserveScroll: true,
     preserveState: true,
   });

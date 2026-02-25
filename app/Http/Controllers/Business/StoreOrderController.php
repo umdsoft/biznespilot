@@ -302,7 +302,25 @@ class StoreOrderController extends Controller
     }
 
     /**
-     * Export orders to CSV
+     * Pending orders count (sidebar badge uchun)
+     */
+    public function pendingCount()
+    {
+        $store = $this->getStore();
+
+        if (! $store) {
+            return response()->json(['count' => 0]);
+        }
+
+        $count = StoreOrder::where('store_id', $store->id)
+            ->where('status', StoreOrder::STATUS_PENDING)
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Export orders to Excel (SpreadsheetML)
      */
     public function export(Request $request)
     {
@@ -341,57 +359,76 @@ class StoreOrderController extends Controller
 
         $orders = $query->latest()->get();
 
-        $filename = 'orders_' . $store->slug . '_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'buyurtmalar_' . $store->slug . '_' . now()->format('Y-m-d') . '.xls';
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        $columns = [
+            'Buyurtma raqami',
+            'Sana',
+            'Mijoz',
+            'Telefon',
+            'Status',
+            "To'lov holati",
+            'Mahsulotlar soni',
+            'Subtotal (so\'m)',
+            "Yetkazish (so'm)",
+            "Chegirma (so'm)",
+            "Jami (so'm)",
+            'Promo kod',
+            'Izoh',
         ];
 
-        $callback = function () use ($orders) {
-            $handle = fopen('php://output', 'w');
+        $rows = $orders->map(fn ($order) => [
+            $order->order_number,
+            $order->created_at?->format('d.m.Y H:i') ?? '',
+            $order->customer?->getDisplayName() ?? '-',
+            $order->customer?->phone ?? '-',
+            $order->getStatusLabel(),
+            $order->payment_status === 'paid' ? "To'langan" : 'Kutilmoqda',
+            $order->items->count(),
+            $order->subtotal ?? 0,
+            $order->delivery_fee ?? 0,
+            $order->discount_amount ?? 0,
+            $order->total ?? 0,
+            $order->promo_code ?? '-',
+            $order->notes ?? '-',
+        ]);
 
-            // BOM for Excel UTF-8 support
-            fwrite($handle, "\xEF\xBB\xBF");
+        $xml = $this->buildExcelXml($columns, $rows);
 
-            // Header row
-            fputcsv($handle, [
-                'Buyurtma raqami',
-                'Sana',
-                'Mijoz',
-                'Telefon',
-                'Status',
-                'To\'lov holati',
-                'Mahsulotlar soni',
-                'Subtotal',
-                'Yetkazish',
-                'Chegirma',
-                'Jami',
-                'Promo kod',
-                'Izoh',
-            ]);
+        return response($xml, 200, [
+            'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control'       => 'max-age=0',
+        ]);
+    }
 
-            foreach ($orders as $order) {
-                fputcsv($handle, [
-                    $order->order_number,
-                    $order->created_at?->format('d.m.Y H:i'),
-                    $order->customer?->getDisplayName() ?? '-',
-                    $order->customer?->phone ?? '-',
-                    $order->getStatusLabel(),
-                    $order->payment_status === 'paid' ? 'To\'langan' : 'Kutilmoqda',
-                    $order->items->count(),
-                    $order->subtotal,
-                    $order->delivery_fee,
-                    $order->discount_amount,
-                    $order->total,
-                    $order->promo_code ?? '-',
-                    $order->notes ?? '-',
-                ]);
-            }
+    /**
+     * Build SpreadsheetML XML for Excel
+     */
+    private function buildExcelXml(array $columns, $rows): string
+    {
+        $escapeXml = fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES | ENT_XML1, 'UTF-8');
 
-            fclose($handle);
-        };
+        $headerCells = collect($columns)->map(
+            fn ($col) => '<Cell><Data ss:Type="String">' . $escapeXml($col) . '</Data></Cell>'
+        )->implode('');
 
-        return response()->stream($callback, 200, $headers);
+        $dataRows = $rows->map(function ($row) use ($escapeXml) {
+            $cells = collect($row)->map(function ($val) use ($escapeXml) {
+                $type = is_numeric($val) ? 'Number' : 'String';
+                return '<Cell><Data ss:Type="' . $type . '">' . $escapeXml($val) . '</Data></Cell>';
+            })->implode('');
+            return '<Row>' . $cells . '</Row>';
+        })->implode('');
+
+        return '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<?mso-application progid="Excel.Sheet"?>' . "\n" .
+            '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' . "\n" .
+            '  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' . "\n" .
+            '<Styles><Style ss:ID="Header"><Font ss:Bold="1"/></Style></Styles>' . "\n" .
+            '<Worksheet ss:Name="Buyurtmalar"><Table>' . "\n" .
+            '<Row>' . $headerCells . '</Row>' . "\n" .
+            $dataRows . "\n" .
+            '</Table></Worksheet></Workbook>';
     }
 }

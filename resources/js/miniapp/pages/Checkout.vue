@@ -191,10 +191,14 @@
                         v-if="!cart.promoApplied"
                         @click="applyPromo"
                         :disabled="!promoInput.trim() || cart.loading"
-                        class="shrink-0 flex items-center justify-center"
+                        class="shrink-0 flex items-center justify-center gap-2"
                         :style="{ height: '44px', padding: '0 16px', backgroundColor: 'var(--tg-theme-button-color)', color: 'var(--tg-theme-button-text-color)', fontSize: '14px', fontWeight: '600', opacity: !promoInput.trim() || cart.loading ? 0.4 : 1 }"
                     >
-                        Qo'llash
+                        <svg v-if="cart.loading" style="width: 14px; height: 14px; flex-shrink: 0" class="animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span>{{ cart.loading ? 'Tekshirilmoqda...' : 'Qo\'llash' }}</span>
                     </button>
                     <button
                         v-else
@@ -209,9 +213,12 @@
                 <div
                     v-if="cart.promoApplied"
                     class="flex items-center"
-                    style="margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(16,185,129,0.1); font-size: 13px; color: var(--color-success); font-weight: 500; gap: 6px"
+                    style="margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); font-size: 13px; color: var(--color-success); font-weight: 500; gap: 8px"
                 >
-                    Promokod qo'llandi: -{{ formatPrice(cart.discountAmount) }}
+                    <svg style="width: 18px; height: 18px; flex-shrink: 0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Promokod qo'llandi: <strong>-{{ formatPrice(cart.discountAmount) }}</strong></span>
                 </div>
             </div>
 

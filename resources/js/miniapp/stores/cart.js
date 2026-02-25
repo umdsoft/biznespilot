@@ -192,8 +192,8 @@ export const useCartStore = defineStore('cart', () => {
                 })),
             })
 
-            promoCode.value = code.trim()
-            promoDiscount.value = data.discount || 0
+            promoCode.value = data.data?.promo_code || code.trim()
+            promoDiscount.value = data.data?.discount_amount || 0
             promoApplied.value = true
             hapticNotification('success')
         } catch (err) {

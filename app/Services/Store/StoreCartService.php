@@ -117,7 +117,7 @@ class StoreCartService
     {
         $store = $cart->store;
         $promo = StorePromoCode::where('store_id', $store->id)
-            ->where('code', $code)
+            ->where('code', strtoupper(trim($code)))
             ->first();
 
         if (! $promo) {
