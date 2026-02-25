@@ -485,13 +485,19 @@ onMounted(async () => {
         router.replace({ name: 'home' })
         return
     }
+
+    // Telegram dan dastlabki qiymatlar (profil yuklanguncha)
     form.name = userStore.fullName || ''
     form.phone = userStore.phone || ''
 
-    // Fetch profile to get addresses
+    // Profilni yuklash (avvalgi buyurtmalardan saqlangan ism va telefon)
     await userStore.fetchProfile()
 
-    // Auto-select default address
+    // Profil ma'lumotlari bilan formni yangilash
+    if (userStore.fullName) form.name = userStore.fullName
+    if (userStore.phone) form.phone = userStore.phone
+
+    // Standart manzilni avtomatik tanlash
     if (userStore.defaultAddress) {
         selectedAddress.value = userStore.defaultAddress
     }
