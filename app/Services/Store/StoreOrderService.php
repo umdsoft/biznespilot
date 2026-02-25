@@ -162,27 +162,40 @@ class StoreOrderService
      */
     public function getStats(TelegramStore $store, ?string $period = 'month'): array
     {
-        $query = $store->orders();
+        // All orders for per-status counts (not period-filtered)
+        $allOrders = $store->orders()->get();
 
+        // Period-filtered orders for revenue
+        $periodQuery = $store->orders();
         $now = now();
         match ($period) {
-            'today' => $query->whereDate('created_at', $now),
-            'week' => $query->where('created_at', '>=', $now->startOfWeek()),
-            'month' => $query->where('created_at', '>=', $now->startOfMonth()),
-            'year' => $query->where('created_at', '>=', $now->startOfYear()),
+            'today' => $periodQuery->whereDate('created_at', $now),
+            'week' => $periodQuery->where('created_at', '>=', $now->startOfWeek()),
+            'month' => $periodQuery->where('created_at', '>=', $now->startOfMonth()),
+            'year' => $periodQuery->where('created_at', '>=', $now->startOfYear()),
             default => null,
         };
+        $periodOrders = $periodQuery->get();
+        $paidOrders = $periodOrders->where('payment_status', StoreOrder::PAYMENT_PAID);
 
-        $orders = $query->get();
-
-        $paidOrders = $orders->where('payment_status', StoreOrder::PAYMENT_PAID);
+        // Today's revenue
+        $todayRevenue = $store->orders()
+            ->whereDate('created_at', now())
+            ->where('payment_status', StoreOrder::PAYMENT_PAID)
+            ->sum('total');
 
         return [
-            'total_orders' => $orders->count(),
-            'pending_orders' => $orders->where('status', StoreOrder::STATUS_PENDING)->count(),
-            'active_orders' => $orders->whereIn('status', StoreOrder::ACTIVE_STATUSES)->count(),
-            'completed_orders' => $orders->where('status', StoreOrder::STATUS_DELIVERED)->count(),
-            'cancelled_orders' => $orders->where('status', StoreOrder::STATUS_CANCELLED)->count(),
+            'total_orders' => $allOrders->count(),
+            // Per-status counts (all time, for tabs)
+            'pending' => $allOrders->where('status', StoreOrder::STATUS_PENDING)->count(),
+            'confirmed' => $allOrders->where('status', StoreOrder::STATUS_CONFIRMED)->count(),
+            'processing' => $allOrders->where('status', StoreOrder::STATUS_PROCESSING)->count(),
+            'shipped' => $allOrders->where('status', StoreOrder::STATUS_SHIPPED)->count(),
+            'delivered' => $allOrders->where('status', StoreOrder::STATUS_DELIVERED)->count(),
+            'cancelled' => $allOrders->where('status', StoreOrder::STATUS_CANCELLED)->count(),
+            'active_orders' => $allOrders->whereIn('status', StoreOrder::ACTIVE_STATUSES)->count(),
+            // Revenue
+            'today_revenue' => $todayRevenue,
             'total_revenue' => $paidOrders->sum('total'),
             'avg_order_value' => $paidOrders->count() > 0 ? round($paidOrders->avg('total'), 2) : 0,
         ];
