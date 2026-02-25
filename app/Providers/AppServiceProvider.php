@@ -105,8 +105,8 @@ class AppServiceProvider extends ServiceProvider
         Customer::observe(CustomerObserver::class);
         Order::observe(OrderObserver::class);
 
-        // Store order → Lead pipeline (Telegram Mini App buyurtmalari → avtomatik Lead yaratish)
-        StoreOrder::observe(StoreOrderObserver::class);
+        // Store order → Lead pipeline (o'chirildi: buyurtmalar alohida boshqariladi, CRM lidlarga tushmasligi kerak)
+        // StoreOrder::observe(StoreOrderObserver::class);
 
         // Pipeline automation event subscriber
         Event::subscribe(PipelineAutomationListener::class);
