@@ -17,8 +17,13 @@ export const useStoreInfo = defineStore('storeInfo', () => {
     const minOrderAmount = ref(0)
     const categories = ref([])
     const featuredProducts = ref([])
+    const saleProducts = ref([])
     const banners = ref([])
     const storeType = ref('')
+    const aboutUs = ref('')
+    const telegram = ref('')
+    const instagram = ref('')
+    const website = ref('')
     const loading = ref(false)
     const error = ref(null)
 
@@ -42,8 +47,13 @@ export const useStoreInfo = defineStore('storeInfo', () => {
             minOrderAmount.value = data.settings?.min_order_amount || data.min_order_amount || 0
             categories.value = data.categories || []
             featuredProducts.value = data.featured_products || []
+            saleProducts.value = data.sale_products || []
             banners.value = data.banners || []
             storeType.value = data.store_type || 'ecommerce'
+            aboutUs.value = data.settings?.about_us || ''
+            telegram.value = data.settings?.telegram || ''
+            instagram.value = data.settings?.instagram || ''
+            website.value = data.settings?.website || ''
         } catch (err) {
             error.value = err.message || "Do'kon ma'lumotlarini yuklashda xatolik"
         } finally {
@@ -207,7 +217,12 @@ export const useStoreInfo = defineStore('storeInfo', () => {
         minOrderAmount,
         categories,
         featuredProducts,
+        saleProducts,
         banners,
+        aboutUs,
+        telegram,
+        instagram,
+        website,
         storeType,
         loading,
         error,

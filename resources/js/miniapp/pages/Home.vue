@@ -4,7 +4,7 @@
         <div class="sticky top-0 z-20 header-blur">
             <div style="padding: 12px 16px">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center" style="gap: 10px">
+                    <button class="flex items-center tap-active" style="gap: 10px; background: none; border: none; padding: 0; cursor: pointer; text-align: left" @click="goToStoreInfo">
                         <img
                             v-if="storeInfo.logo"
                             :src="storeInfo.logo"
@@ -29,7 +29,7 @@
                                 {{ storeInfo.description }}
                             </p>
                         </div>
-                    </div>
+                    </button>
                 </div>
 
                 <!-- Search bar -->
@@ -103,6 +103,22 @@
                             class="rounded-full transition-all duration-200"
                             :style="{ height: '6px', width: i === currentBanner ? '16px' : '6px', opacity: i === currentBanner ? 1 : 0.5, backgroundColor: '#fff' }"
                         />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aksiyalar (Sale Products) -->
+            <div v-if="storeInfo.saleProducts.length" style="padding-top: 16px; padding-bottom: 4px">
+                <div class="flex items-center justify-between" style="padding: 0 16px; margin-bottom: 12px">
+                    <h2 class="section-title" style="display: flex; align-items: center; gap: 6px">
+                        <span style="font-size: 18px">🔥</span> Aksiyalar
+                    </h2>
+                </div>
+                <div class="overflow-x-auto no-scrollbar" style="padding-left: 16px">
+                    <div class="flex" style="width: max-content; gap: 12px; padding-right: 16px">
+                        <div v-for="product in storeInfo.saleProducts" :key="'sale-' + product.id" style="width: 156px; flex-shrink: 0">
+                            <ProductCard :product="product" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -283,6 +299,11 @@ async function loadCategoryRows() {
 function goToSearch() {
     hapticImpact('light')
     router.push({ name: 'search' })
+}
+
+function goToStoreInfo() {
+    hapticImpact('light')
+    router.push({ name: 'store-info' })
 }
 
 function goToCategory(id) {

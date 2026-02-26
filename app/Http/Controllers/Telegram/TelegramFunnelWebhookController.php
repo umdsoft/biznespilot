@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Telegram;
 
+use App\Http\Controllers\Api\MiniApp\StoreTelegramWebhookController;
 use App\Http\Controllers\Controller;
+use App\Models\Store\TelegramStore;
 use App\Models\TelegramBot;
 use App\Models\TelegramDailyStat;
 use App\Models\TelegramUser;
@@ -62,7 +64,16 @@ class TelegramFunnelWebhookController extends Controller
                 'message_text' => $update['message']['text'] ?? null,
             ]);
 
-            // Process based on update type
+            // Check if this bot is associated with an active store — delegate to store handler
+            $linkedStore = TelegramStore::where('telegram_bot_id', $bot->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($linkedStore) {
+                return app(StoreTelegramWebhookController::class)->handle($request, $linkedStore->id);
+            }
+
+            // Process based on update type (funnel bots)
             if (isset($update['message'])) {
                 $this->processMessage($bot, $update['message']);
             } elseif (isset($update['callback_query'])) {

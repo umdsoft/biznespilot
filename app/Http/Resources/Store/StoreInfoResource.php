@@ -41,6 +41,10 @@ class StoreInfoResource extends JsonResource
                 'pickup_enabled' => $this->getSetting('pickup_enabled', false),
                 'payment_methods' => $this->getSetting('payment_methods', ['cash']),
                 'working_hours' => $this->getSetting('working_hours'),
+                'about_us' => $this->getSetting('about_us'),
+                'telegram' => $this->getSetting('telegram'),
+                'instagram' => $this->getSetting('instagram'),
+                'website' => $this->getSetting('website'),
             ],
             'categories' => $this->when(
                 $this->relationLoaded('categories'),
@@ -73,6 +77,29 @@ class StoreInfoResource extends JsonResource
                         // ProductCard kutadi: price = asl narx, sale_price = chegirmali narx
                         'price' => $p->compare_price ? (float) $p->compare_price : (float) $p->price,
                         'sale_price' => $p->compare_price ? (float) $p->price : null,
+                        'image' => $p->relationLoaded('primaryImage')
+                            ? $p->primaryImage?->image_url
+                            : ($p->relationLoaded('images') ? $p->images->first()?->image_url : null),
+                        'stock' => $p->track_stock ? $p->stock_quantity : 99,
+                        'in_stock' => $p->isInStock(),
+                    ]),
+                []
+            ),
+            'sale_products' => $this->when(
+                $this->relationLoaded('products'),
+                fn () => $this->products
+                    ->where('is_active', true)
+                    ->whereNotNull('compare_price')
+                    ->where('compare_price', '>', 0)
+                    ->sortByDesc('updated_at')
+                    ->values()
+                    ->take(20)
+                    ->map(fn ($p) => [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'slug' => $p->slug,
+                        'price' => (float) $p->compare_price,
+                        'sale_price' => (float) $p->price,
                         'image' => $p->relationLoaded('primaryImage')
                             ? $p->primaryImage?->image_url
                             : ($p->relationLoaded('images') ? $p->images->first()?->image_url : null),

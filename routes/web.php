@@ -1342,7 +1342,12 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/settings', [App\Http\Controllers\Business\StoreSettingsController::class, 'index'])->name('settings');
         Route::put('/settings', [App\Http\Controllers\Business\StoreSettingsController::class, 'update'])->name('settings.update');
         Route::put('/settings/theme', [App\Http\Controllers\Business\StoreSettingsController::class, 'updateTheme'])->name('settings.theme');
-        Route::put('/settings/delivery-zones', [App\Http\Controllers\Business\StoreSettingsController::class, 'updateDeliveryZones'])->name('settings.delivery-zones');
+        Route::put('/settings/info', [App\Http\Controllers\Business\StoreSettingsController::class, 'updateInfo'])->name('settings.info');
+
+        // Delivery Zones CRUD
+        Route::post('/delivery-zones', [App\Http\Controllers\Business\StoreSettingsController::class, 'storeDeliveryZone'])->name('delivery-zones.store');
+        Route::put('/delivery-zones/{zone}', [App\Http\Controllers\Business\StoreSettingsController::class, 'updateDeliveryZone'])->name('delivery-zones.update');
+        Route::delete('/delivery-zones/{zone}', [App\Http\Controllers\Business\StoreSettingsController::class, 'destroyDeliveryZone'])->name('delivery-zones.destroy');
     });
 });
 
@@ -2662,6 +2667,7 @@ Route::get('/miniapp/{storeSlug}', function ($storeSlug) {
         'storeName' => $store->name,
         'storeSlug' => $store->slug,
         'storeType' => $store->store_type ?? 'ecommerce',
+        'storeLogoUrl' => $store->logo_url,
         'apiUrl' => request()->getSchemeAndHttpHost() . '/api/miniapp/v1/' . $store->slug,
     ]);
 })->name('miniapp.show');

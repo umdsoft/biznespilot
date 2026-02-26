@@ -4,6 +4,11 @@ import { getStoreType } from '../composables/useBotType'
 // Shared routes (barcha bot turlari uchun)
 const sharedRoutes = [
     {
+        path: '/store-info',
+        name: 'store-info',
+        component: () => import('../pages/StoreInfo.vue'),
+    },
+    {
         path: '/payment',
         name: 'payment',
         component: () => import('../pages/Payment.vue'),
