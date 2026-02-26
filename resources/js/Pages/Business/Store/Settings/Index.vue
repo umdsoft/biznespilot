@@ -110,26 +110,65 @@
               <input ref="bannerInput" type="file" accept="image/*" class="hidden" @change="handleBannerUpload" />
             </div>
 
-            <!-- Mini App Link -->
-            <div v-if="store?.mini_app_url" class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <h4 class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">Telegram Mini App havola</h4>
-              <div class="flex items-center gap-2">
-                <input
-                  :value="store.mini_app_url"
-                  readonly
-                  class="flex-1 rounded-lg border border-blue-200 dark:border-blue-700 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white font-mono"
-                />
-                <button
-                  type="button"
-                  @click="copyLink"
-                  class="px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                >
-                  {{ copied ? 'Nusxalandi!' : 'Nusxalash' }}
-                </button>
+            <!-- Mini App QR Code -->
+            <div v-if="store?.mini_app_url" class="p-5 bg-slate-50 dark:bg-slate-700/40 border border-slate-200 dark:border-slate-600 rounded-xl">
+              <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                <QrCodeIcon class="w-4 h-4" />
+                Telegram Mini App QR Kod
+              </h4>
+              <div class="flex flex-col sm:flex-row items-start gap-6">
+                <!-- QR image -->
+                <div class="flex-shrink-0">
+                  <div class="w-44 h-44 bg-white rounded-xl p-2.5 shadow-sm border border-slate-200 dark:border-slate-600 flex items-center justify-center">
+                    <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Kod" class="w-full h-full object-contain" />
+                    <div v-else class="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
+                  </div>
+                </div>
+
+                <div class="flex-1 min-w-0 space-y-3">
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    QR kodni skaner qilib do'konga kirish mumkin. PNG yoki PDF sifatida yuklab chop eting.
+                  </p>
+
+                  <!-- URL copy -->
+                  <div class="flex items-center gap-2">
+                    <input
+                      :value="store.mini_app_url"
+                      readonly
+                      class="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 font-mono min-w-0"
+                    />
+                    <button
+                      type="button"
+                      @click="copyLink"
+                      class="flex-shrink-0 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                    >
+                      {{ copied ? '✓ Nusxalandi' : 'Nusxalash' }}
+                    </button>
+                  </div>
+
+                  <!-- Download buttons -->
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      @click="downloadPng"
+                      :disabled="!qrDataUrl"
+                      class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-40"
+                    >
+                      <ArrowDownTrayIcon class="w-4 h-4" />
+                      PNG yuklash
+                    </button>
+                    <button
+                      type="button"
+                      @click="printQr"
+                      :disabled="!qrDataUrl"
+                      class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 text-sm font-medium rounded-lg transition-colors disabled:opacity-40"
+                    >
+                      <PrinterIcon class="w-4 h-4" />
+                      PDF / Chop etish
+                    </button>
+                  </div>
+                </div>
               </div>
-              <p class="text-xs text-blue-500 dark:text-blue-400 mt-2">
-                Bu havolani QR kod sifatida chop etish yoki ijtimoiy tarmoqlarda tarqatishingiz mumkin
-              </p>
             </div>
 
             <div class="pt-3">
@@ -374,10 +413,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Modal from '@/components/Modal.vue';
+import QRCode from 'qrcode';
 import {
   Cog6ToothIcon,
   SwatchIcon,
@@ -386,6 +426,9 @@ import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
+  QrCodeIcon,
+  ArrowDownTrayIcon,
+  PrinterIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -395,6 +438,7 @@ const props = defineProps({
 
 const activeTab = ref('general');
 const copied = ref(false);
+const qrDataUrl = ref(null);
 const logoPreview = ref(null);
 const bannerPreview = ref(null);
 const showDeliveryModal = ref(false);
@@ -465,6 +509,60 @@ const copyLink = () => {
     setTimeout(() => { copied.value = false; }, 2000);
   }
 };
+
+const downloadPng = () => {
+  if (!qrDataUrl.value) return;
+  const a = document.createElement('a');
+  a.href = qrDataUrl.value;
+  a.download = `${props.store?.name || 'qr-kod'}.png`;
+  a.click();
+};
+
+const printQr = () => {
+  if (!qrDataUrl.value) return;
+  const storeName = props.store?.name || "Do'kon";
+  const url = props.store?.mini_app_url || '';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Kod — ${storeName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #111; }
+    .page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px; text-align: center; }
+    .store-name { font-size: 28px; font-weight: 700; margin-bottom: 24px; letter-spacing: -0.5px; }
+    .qr-wrap { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; display: inline-block; }
+    .qr-wrap img { width: 400px; height: 400px; display: block; }
+    .url { margin-top: 20px; font-size: 12px; color: #6b7280; word-break: break-all; max-width: 480px; }
+    .hint { margin-top: 10px; font-size: 13px; color: #9ca3af; }
+    .btn { margin-top: 28px; padding: 12px 28px; background: #10b981; color: #fff; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: 600; }
+    @media print { .btn { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <p class="store-name">${storeName}</p>
+    <div class="qr-wrap"><img src="${qrDataUrl.value}" alt="QR Kod" /></div>
+    <p class="url">${url}</p>
+    <p class="hint">QR kodni skaner qilib do'konga kiring</p>
+    <button class="btn" onclick="window.print()">Chop etish / PDF saqlash</button>
+  </div>
+</body>
+</html>`);
+  win.document.close();
+};
+
+onMounted(async () => {
+  if (!props.store?.mini_app_url) return;
+  qrDataUrl.value = await QRCode.toDataURL(props.store.mini_app_url, {
+    width: 1024,
+    margin: 2,
+    color: { dark: '#000000', light: '#ffffff' },
+    errorCorrectionLevel: 'H',
+  });
+});
 
 const saveGeneral = () => {
   generalForm.post(route('business.store.settings.update-general'), {
