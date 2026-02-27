@@ -108,6 +108,11 @@ class AppServiceProvider extends ServiceProvider
         // Store order → Lead pipeline (o'chirildi: buyurtmalar alohida boshqariladi, CRM lidlarga tushmasligi kerak)
         // StoreOrder::observe(StoreOrderObserver::class);
 
+        // Bot observers (Delivery, Queue, Service)
+        \App\Models\Bot\Delivery\DeliveryOrder::observe(\App\Observers\Bot\DeliveryOrderObserver::class);
+        \App\Models\Bot\Queue\QueueBooking::observe(\App\Observers\Bot\QueueBookingObserver::class);
+        \App\Models\Bot\Service\ServiceRequest::observe(\App\Observers\Bot\ServiceRequestObserver::class);
+
         // Pipeline automation event subscriber
         Event::subscribe(PipelineAutomationListener::class);
 

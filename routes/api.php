@@ -712,3 +712,117 @@ Route::prefix('store-webhooks')->middleware('throttle:billing-webhooks')->group(
     Route::post('/click/{store}/prepare', [\App\Http\Controllers\Api\MiniApp\StoreClickWebhookController::class, 'prepare']);
     Route::post('/click/{store}/complete', [\App\Http\Controllers\Api\MiniApp\StoreClickWebhookController::class, 'complete']);
 });
+
+// ========== DELIVERY BOT API ==========
+Route::prefix('v1/bot/delivery')->group(function () {
+    // Mini App (Public)
+    Route::get('/menu', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryMenuController::class, 'index']);
+    Route::get('/menu/search', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryMenuController::class, 'search']);
+    Route::get('/menu/popular', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryMenuController::class, 'popular']);
+    Route::get('/menu/{item}', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryMenuController::class, 'show']);
+
+    // Orders & Addresses (Telegram auth via X-Business-Id header)
+    Route::post('/orders', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'store']);
+    Route::get('/orders', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'index']);
+    Route::get('/orders/{order}', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'show']);
+    Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'cancel']);
+    Route::get('/orders/{order}/track', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'track']);
+
+    Route::get('/addresses', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'index']);
+    Route::post('/addresses', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'store']);
+    Route::put('/addresses/{addr}', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'update']);
+    Route::delete('/addresses/{addr}', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'destroy']);
+});
+
+// Delivery Admin Panel
+Route::prefix('v1/admin/delivery')->middleware('auth:sanctum')->group(function () {
+    Route::get('dashboard', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryDashboardController::class, 'index']);
+
+    Route::apiResource('categories', \App\Http\Controllers\Api\Admin\Delivery\DeliveryCategoryAdminController::class);
+    Route::post('categories/reorder', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryCategoryAdminController::class, 'reorder']);
+
+    Route::apiResource('menu-items', \App\Http\Controllers\Api\Admin\Delivery\DeliveryMenuItemAdminController::class);
+    Route::patch('menu-items/{menuItem}/toggle', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryMenuItemAdminController::class, 'toggle']);
+
+    Route::get('orders', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryOrderAdminController::class, 'index']);
+    Route::get('orders/{order}', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryOrderAdminController::class, 'show']);
+    Route::patch('orders/{order}/status', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryOrderAdminController::class, 'updateStatus']);
+    Route::patch('orders/{order}/courier', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryOrderAdminController::class, 'assignCourier']);
+
+    Route::get('settings', [\App\Http\Controllers\Api\Admin\Delivery\DeliverySettingsController::class, 'show']);
+    Route::put('settings', [\App\Http\Controllers\Api\Admin\Delivery\DeliverySettingsController::class, 'update']);
+});
+
+// ========== QUEUE BOT API ==========
+Route::prefix('v1/bot/queue')->group(function () {
+    // Mini App (Public)
+    Route::get('/services', [\App\Http\Controllers\Api\Bot\Queue\QueueServiceController::class, 'index']);
+    Route::get('/branches', [\App\Http\Controllers\Api\Bot\Queue\QueueBranchController::class, 'index']);
+    Route::get('/slots', [\App\Http\Controllers\Api\Bot\Queue\QueueSlotController::class, 'available']);
+    Route::get('/specialists', [\App\Http\Controllers\Api\Bot\Queue\QueueBranchController::class, 'specialists']);
+
+    // Bookings
+    Route::post('/bookings', [\App\Http\Controllers\Api\Bot\Queue\QueueBookingController::class, 'store']);
+    Route::get('/bookings', [\App\Http\Controllers\Api\Bot\Queue\QueueBookingController::class, 'index']);
+    Route::get('/bookings/{booking}', [\App\Http\Controllers\Api\Bot\Queue\QueueBookingController::class, 'show']);
+    Route::post('/bookings/{booking}/cancel', [\App\Http\Controllers\Api\Bot\Queue\QueueBookingController::class, 'cancel']);
+    Route::post('/bookings/{booking}/rate', [\App\Http\Controllers\Api\Bot\Queue\QueueBookingController::class, 'rate']);
+    Route::get('/bookings/{booking}/position', [\App\Http\Controllers\Api\Bot\Queue\QueueTrackingController::class, 'position']);
+});
+
+// Queue Admin Panel
+Route::prefix('v1/admin/queue')->middleware('auth:sanctum')->group(function () {
+    Route::get('dashboard', [\App\Http\Controllers\Api\Admin\Queue\QueueDashboardController::class, 'index']);
+
+    Route::apiResource('services', \App\Http\Controllers\Api\Admin\Queue\QueueServiceAdminController::class);
+    Route::apiResource('branches', \App\Http\Controllers\Api\Admin\Queue\QueueBranchAdminController::class);
+    Route::apiResource('specialists', \App\Http\Controllers\Api\Admin\Queue\QueueSpecialistAdminController::class);
+
+    Route::get('bookings', [\App\Http\Controllers\Api\Admin\Queue\QueueBookingAdminController::class, 'index']);
+    Route::get('bookings/{booking}', [\App\Http\Controllers\Api\Admin\Queue\QueueBookingAdminController::class, 'show']);
+    Route::patch('bookings/{booking}/status', [\App\Http\Controllers\Api\Admin\Queue\QueueBookingAdminController::class, 'updateStatus']);
+    Route::post('bookings/bulk-cancel', [\App\Http\Controllers\Api\Admin\Queue\QueueBookingAdminController::class, 'bulkCancel']);
+
+    Route::post('slots/generate', [\App\Http\Controllers\Api\Admin\Queue\QueueSlotAdminController::class, 'generate']);
+    Route::patch('slots/{slot}/block', [\App\Http\Controllers\Api\Admin\Queue\QueueSlotAdminController::class, 'block']);
+    Route::patch('slots/{slot}/unblock', [\App\Http\Controllers\Api\Admin\Queue\QueueSlotAdminController::class, 'unblock']);
+
+    Route::get('settings', [\App\Http\Controllers\Api\Admin\Queue\QueueSettingsController::class, 'show']);
+    Route::put('settings', [\App\Http\Controllers\Api\Admin\Queue\QueueSettingsController::class, 'update']);
+});
+
+// ========== SERVICE BOT API ==========
+Route::prefix('v1/bot/service')->group(function () {
+    // Mini App (Public)
+    Route::get('/categories', [\App\Http\Controllers\Api\Bot\Service\ServiceCatalogController::class, 'categories']);
+    Route::get('/categories/{category}', [\App\Http\Controllers\Api\Bot\Service\ServiceCatalogController::class, 'categoryDetail']);
+    Route::get('/masters', [\App\Http\Controllers\Api\Bot\Service\ServiceMasterController::class, 'index']);
+    Route::get('/masters/{master}', [\App\Http\Controllers\Api\Bot\Service\ServiceMasterController::class, 'show']);
+
+    // Service Requests
+    Route::post('/requests', [\App\Http\Controllers\Api\Bot\Service\ServiceRequestController::class, 'store']);
+    Route::get('/requests', [\App\Http\Controllers\Api\Bot\Service\ServiceRequestController::class, 'index']);
+    Route::get('/requests/{serviceRequest}', [\App\Http\Controllers\Api\Bot\Service\ServiceRequestController::class, 'show']);
+    Route::post('/requests/{serviceRequest}/cancel', [\App\Http\Controllers\Api\Bot\Service\ServiceRequestController::class, 'cancel']);
+    Route::post('/requests/{serviceRequest}/approve-cost', [\App\Http\Controllers\Api\Bot\Service\ServiceRequestController::class, 'approveCost']);
+    Route::post('/requests/{serviceRequest}/rate', [\App\Http\Controllers\Api\Bot\Service\ServiceRequestController::class, 'rate']);
+    Route::get('/requests/{serviceRequest}/tracking', [\App\Http\Controllers\Api\Bot\Service\ServiceTrackingController::class, 'status']);
+});
+
+// Service Admin Panel
+Route::prefix('v1/admin/service')->middleware('auth:sanctum')->group(function () {
+    Route::get('dashboard', [\App\Http\Controllers\Api\Admin\Service\ServiceDashboardController::class, 'index']);
+
+    Route::apiResource('categories', \App\Http\Controllers\Api\Admin\Service\ServiceCategoryAdminController::class);
+    Route::apiResource('service-types', \App\Http\Controllers\Api\Admin\Service\ServiceTypeAdminController::class);
+    Route::apiResource('masters', \App\Http\Controllers\Api\Admin\Service\ServiceMasterAdminController::class);
+
+    Route::get('requests', [\App\Http\Controllers\Api\Admin\Service\ServiceRequestAdminController::class, 'index']);
+    Route::get('requests/{serviceRequest}', [\App\Http\Controllers\Api\Admin\Service\ServiceRequestAdminController::class, 'show']);
+    Route::patch('requests/{serviceRequest}/assign', [\App\Http\Controllers\Api\Admin\Service\ServiceRequestAdminController::class, 'assign']);
+    Route::patch('requests/{serviceRequest}/status', [\App\Http\Controllers\Api\Admin\Service\ServiceRequestAdminController::class, 'updateStatus']);
+    Route::patch('requests/{serviceRequest}/cost', [\App\Http\Controllers\Api\Admin\Service\ServiceRequestAdminController::class, 'setCost']);
+
+    Route::get('settings', [\App\Http\Controllers\Api\Admin\Service\ServiceSettingsController::class, 'show']);
+    Route::put('settings', [\App\Http\Controllers\Api\Admin\Service\ServiceSettingsController::class, 'update']);
+});
