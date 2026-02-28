@@ -220,6 +220,7 @@
             <thead>
               <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ t('telegram.bots.bot') }}</th>
+                <th class="px-4 py-3.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Turi</th>
                 <th class="px-4 py-3.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ t('telegram.bots.users') }}</th>
                 <th class="px-4 py-3.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ t('telegram.bots.funnels') }}</th>
                 <th class="px-4 py-3.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ t('telegram.bots.conversations') }}</th>
@@ -258,6 +259,25 @@
                   </div>
                 </td>
                 <td class="px-4 py-4 text-center">
+                  <BotTypeBadge
+                    v-if="bot.store_type"
+                    :type="bot.store_type"
+                    :label="bot.store_type_label"
+                    :color="bot.store_type_color"
+                    :bg-color="bot.store_type_bg_color"
+                    :icon="bot.store_type_icon"
+                  />
+                  <!-- Do'konsiz botlar uchun default ecommerce badge -->
+                  <BotTypeBadge
+                    v-else
+                    type="ecommerce"
+                    label="Online do'kon"
+                    color="#2563EB"
+                    bg-color="#DBEAFE"
+                    icon="ShoppingBagIcon"
+                  />
+                </td>
+                <td class="px-4 py-4 text-center">
                   <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300">{{ bot.users_count || 0 }}</span>
                 </td>
                 <td class="px-4 py-4 text-center">
@@ -285,11 +305,28 @@
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-center gap-2">
-                    <Link v-if="bot.has_store" :href="getRoute('store.dashboard')" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors">
+                    <!-- Do'koni bor bot — dashboard ga o'tish -->
+                    <Link
+                      v-if="bot.has_store"
+                      :href="route('business.store.select', bot.store_id)"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-colors"
+                      :style="{ backgroundColor: bot.store_type_color || '#2563EB' }"
+                    >
                       <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
-                      Do'kon
+                      {{ bot.store_type_action || "Do'kon" }}
+                    </Link>
+                    <!-- Do'koni yo'q bot — setup wizard ga yo'naltirish -->
+                    <Link
+                      v-else
+                      :href="getRoute('store.setup.wizard')"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                    >
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Sozlash
                     </Link>
                     <Link :href="getRoute('telegram-funnels.show', bot.id)" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
                       {{ t('telegram.bots.settings') }}
@@ -384,12 +421,40 @@
               {{ bot.is_verified ? t('telegram.bots.webhook_connected') : t('telegram.bots.webhook_not_connected') }}
             </div>
 
-            <!-- Store link -->
-            <Link v-if="bot.has_store" :href="getRoute('store.dashboard')" class="flex items-center gap-2 mb-3 p-2.5 rounded-lg text-xs font-semibold bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            <!-- Do'koni bor bot — dashboard ga o'tish -->
+            <Link
+              v-if="bot.has_store"
+              :href="route('business.store.select', bot.store_id)"
+              class="flex items-center gap-2 mb-3 p-2.5 rounded-lg text-xs font-semibold transition-colors"
+              :style="{
+                backgroundColor: (bot.store_type_bg_color || '#DBEAFE'),
+                color: (bot.store_type_color || '#2563EB'),
+              }"
+            >
+              <BotTypeBadge
+                v-if="bot.store_type"
+                :type="bot.store_type"
+                :label="bot.store_type_label"
+                :color="bot.store_type_color"
+                :bg-color="'transparent'"
+                :icon="bot.store_type_icon"
+              />
+              <span v-else>{{ bot.store_name || "Do'kon" }}</span>
+              <span class="ml-auto text-[10px] opacity-70">Admin panel</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
-              {{ bot.store_name || "Do'kon" }} — Admin panel
+            </Link>
+            <!-- Do'koni yo'q bot — setup wizard ga yo'naltirish -->
+            <Link
+              v-else
+              :href="getRoute('store.setup.wizard')"
+              class="flex items-center gap-2 mb-3 p-2.5 rounded-lg text-xs font-semibold transition-colors bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Do'kon sozlash</span>
               <svg class="w-3.5 h-3.5 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -415,6 +480,7 @@
 import { ref, computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import { useI18n } from '@/i18n'
+import BotTypeBadge from '@/components/telegram/BotTypeBadge.vue'
 
 const { t } = useI18n()
 
