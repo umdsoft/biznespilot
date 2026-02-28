@@ -7,6 +7,8 @@ use App\Models\ChannelMetric;
 use App\Models\KpiDailySnapshot;
 use App\Models\Lead;
 use App\Models\Order;
+use App\Models\Store\StoreOrder;
+use App\Models\Store\TelegramStore;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -86,11 +88,29 @@ class KPISnapshotService
 
     protected function calculateRevenueMetrics(Business $business, Carbon $start, Carbon $end): array
     {
-        // Get orders for the day
+        // CRM Orders
         $orders = $this->getOrdersQuery($business, $start, $end);
 
-        $total = $orders->sum('total_amount') ?? 0;
+        $crmTotal = $orders->sum('total_amount') ?? 0;
         $recurring = $orders->where('is_recurring', true)->sum('total_amount') ?? 0;
+
+        // Store Orders (Telegram Mini App)
+        $storeRevenue = 0;
+        $storeOrdersCount = 0;
+        $storeIds = TelegramStore::where('business_id', $business->id)->pluck('id');
+        if ($storeIds->isNotEmpty()) {
+            $storeRevenue = (float) StoreOrder::whereIn('store_id', $storeIds)
+                ->where('payment_status', StoreOrder::PAYMENT_PAID)
+                ->whereBetween('created_at', [$start, $end])
+                ->sum('total');
+
+            $storeOrdersCount = StoreOrder::whereIn('store_id', $storeIds)
+                ->whereNotIn('status', [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED])
+                ->whereBetween('created_at', [$start, $end])
+                ->count();
+        }
+
+        $total = $crmTotal + $storeRevenue;
         $oneTime = $total - $recurring;
         $projected = $this->calculateProjectedRevenue($business, $total);
         $target = $business->monthly_revenue_target ?? 0;
@@ -103,6 +123,10 @@ class KPISnapshotService
             'revenue_projected' => $projected,
             'revenue_target' => $target,
             'revenue_target_progress' => min(100, $targetProgress),
+            'orders_count' => ($orders->count() ?? 0) + $storeOrdersCount,
+            'aov' => ($orders->count() + $storeOrdersCount) > 0
+                ? round($total / ($orders->count() + $storeOrdersCount), 2)
+                : 0,
         ];
     }
 
@@ -391,13 +415,36 @@ class KPISnapshotService
 
     protected function getAverageOrderValue(Business $business): float
     {
-        if (! class_exists(Order::class)) {
+        $crmAvg = 0;
+        $crmCount = 0;
+        if (class_exists(Order::class)) {
+            $crmAvg = (float) (Order::where('business_id', $business->id)
+                ->where('status', 'completed')
+                ->avg('total_amount') ?? 0);
+            $crmCount = Order::where('business_id', $business->id)
+                ->where('status', 'completed')
+                ->count();
+        }
+
+        // Store orders average
+        $storeIds = TelegramStore::where('business_id', $business->id)->pluck('id');
+        $storeAvg = 0;
+        $storeCount = 0;
+        if ($storeIds->isNotEmpty()) {
+            $storeAvg = (float) (StoreOrder::whereIn('store_id', $storeIds)
+                ->where('payment_status', StoreOrder::PAYMENT_PAID)
+                ->avg('total') ?? 0);
+            $storeCount = StoreOrder::whereIn('store_id', $storeIds)
+                ->where('payment_status', StoreOrder::PAYMENT_PAID)
+                ->count();
+        }
+
+        $totalCount = $crmCount + $storeCount;
+        if ($totalCount === 0) {
             return 0;
         }
 
-        return Order::where('business_id', $business->id)
-            ->where('status', 'completed')
-            ->avg('total_amount') ?? 0;
+        return (($crmAvg * $crmCount) + ($storeAvg * $storeCount)) / $totalCount;
     }
 
     protected function calculateProjectedRevenue(Business $business, float $todayRevenue): float

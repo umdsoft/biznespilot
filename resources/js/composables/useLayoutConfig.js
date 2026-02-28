@@ -150,16 +150,6 @@ export const businessLayoutConfig = {
       ]
     },
     {
-      title: "Do'kon",
-      titleKey: 'nav.store_section',
-      items: [
-        { href: '/business/store/dashboard', label: "Do'kon", labelKey: 'nav.store', icon: ShoppingCartIcon },
-        { href: '/business/store/orders', label: 'Buyurtmalar', labelKey: 'nav.store_orders', icon: ClipboardDocumentListIcon, badgeKey: 'store_pending_orders' },
-        { href: '/business/store/customers', label: 'Mijozlar', labelKey: 'nav.store_customers', icon: UsersIcon },
-        { href: '/business/store/catalog', label: 'Katalog', labelKey: 'nav.store_catalog', icon: CubeIcon },
-      ]
-    },
-    {
       title: null,
       titleKey: null,
       items: [

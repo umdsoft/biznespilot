@@ -60,6 +60,52 @@
           </span>
         </NavLink>
       </template>
+
+      <!-- Dynamic Bot Store Menu -->
+      <template v-if="activeStore">
+        <div class="pt-3 mt-3 border-t-2" :style="{ borderColor: activeStore.store_type_color }">
+          <div class="flex items-center justify-between px-3 mb-1">
+            <div class="flex items-center gap-2 min-w-0">
+              <span
+                class="w-2 h-2 rounded-full flex-shrink-0"
+                :style="{ backgroundColor: activeStore.store_type_color }"
+              ></span>
+              <span
+                class="text-xs font-bold uppercase tracking-wider truncate"
+                :style="{ color: activeStore.store_type_color }"
+              >
+                {{ activeStore.name }}
+              </span>
+            </div>
+            <Link
+              :href="route('business.store.deselect')"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0 p-0.5"
+              title="Yopish"
+            >
+              <XMarkIcon class="w-4 h-4" />
+            </Link>
+          </div>
+          <p class="px-3 mb-2 text-[10px] text-gray-500 dark:text-gray-400">
+            {{ activeStore.store_type_label }}
+          </p>
+        </div>
+
+        <NavLink
+          v-for="item in botMenuItems"
+          :key="item.href"
+          :href="item.href"
+          :active="isActive(item)"
+        >
+          <component :is="item.icon" class="w-5 h-5 mr-3" />
+          <span class="flex-1">{{ item.label }}</span>
+          <span
+            v-if="item.badgeKey === 'pending_orders' && pendingOrdersCount > 0"
+            class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse"
+          >
+            {{ pendingOrdersCount > 99 ? '99+' : pendingOrdersCount }}
+          </span>
+        </NavLink>
+      </template>
     </template>
 
     <slot />
@@ -112,12 +158,31 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import { usePage, router, Link } from '@inertiajs/vue3';
 import BaseLayout from './BaseLayout.vue';
 import NavLink from '@/components/NavLink.vue';
 import { businessLayoutConfig } from '@/composables/useLayoutConfig';
 import { useI18n } from '@/i18n';
 import axios from 'axios';
+import {
+  ChartBarSquareIcon,
+  BuildingStorefrontIcon,
+  ClipboardDocumentListIcon as ClipDocIcon,
+  UsersIcon as UsersIconSb,
+  CubeIcon as CubeIconSb,
+  TagIcon as TagIconSb,
+  CogIcon as CogIconSb,
+  ShoppingCartIcon as CartIconSb,
+  FolderIcon,
+  MapPinIcon,
+  CalendarDaysIcon,
+  WrenchIcon,
+  BuildingOfficeIcon as BuildOfficeIcon,
+  UserGroupIcon as UserGroupSb,
+  DocumentTextIcon as DocTextIcon,
+  ListBulletIcon,
+  XMarkIcon,
+} from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
 
@@ -130,6 +195,40 @@ defineProps({
 
 const page = usePage();
 const layoutConfig = businessLayoutConfig;
+
+// Active store from Inertia shared props
+const activeStore = computed(() => page.props?.activeStore || null);
+
+// Icon map for dynamic sidebar
+const sidebarIconMap = {
+  ChartBarSquareIcon,
+  BuildingStorefrontIcon,
+  ClipboardDocumentListIcon: ClipDocIcon,
+  UsersIcon: UsersIconSb,
+  CubeIcon: CubeIconSb,
+  TagIcon: TagIconSb,
+  CogIcon: CogIconSb,
+  ShoppingCartIcon: CartIconSb,
+  FolderIcon,
+  MapPinIcon,
+  CalendarDaysIcon,
+  WrenchIcon,
+  BuildingOfficeIcon: BuildOfficeIcon,
+  UserGroupIcon: UserGroupSb,
+  DocumentTextIcon: DocTextIcon,
+  ListBulletIcon,
+};
+
+// Map sidebar_menu items to NavLink-compatible items
+const botMenuItems = computed(() => {
+  if (!activeStore.value?.sidebar_menu) return [];
+  return activeStore.value.sidebar_menu.map(item => ({
+    href: `/business/store/${item.routeSuffix}`,
+    label: item.label,
+    icon: sidebarIconMap[item.icon] || CubeIconSb,
+    badgeKey: item.badge || null,
+  }));
+});
 
 // Flash toast
 const flashVisible = ref(false);

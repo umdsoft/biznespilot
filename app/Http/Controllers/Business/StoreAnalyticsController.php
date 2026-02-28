@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasActiveStore;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Http\Controllers\Traits\HasStorePanelType;
-use App\Models\Store\StoreAnalyticsDaily;
 use App\Models\Store\StoreCustomer;
 use App\Models\Store\StoreOrder;
 use App\Models\Store\StoreProduct;
+use App\Models\Store\StoreReview;
 use App\Models\Store\TelegramStore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,17 +17,7 @@ use Inertia\Inertia;
 
 class StoreAnalyticsController extends Controller
 {
-    use HasCurrentBusiness, HasStorePanelType;
-
-    /**
-     * Get the store for the current business
-     */
-    protected function getStore(): ?TelegramStore
-    {
-        $business = $this->getCurrentBusiness();
-
-        return TelegramStore::where('business_id', $business->id)->first();
-    }
+    use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     /**
      * Main analytics dashboard
@@ -156,16 +147,31 @@ class StoreAnalyticsController extends Controller
         $totalProducts = StoreProduct::where('store_id', $store->id)->count();
         $activeProducts = StoreProduct::where('store_id', $store->id)->where('is_active', true)->count();
         $totalCustomers = StoreCustomer::where('store_id', $store->id)->count();
-        $pendingOrders = StoreOrder::where('store_id', $store->id)
+        $pendingOrdersCount = StoreOrder::where('store_id', $store->id)
             ->where('status', StoreOrder::STATUS_PENDING)
             ->count();
+
+        // Bot turiga mos qo'shimcha KPIlar
+        $botTypeKpis = $this->getBotTypeKpis($store);
+
+        // Store type ma'lumotlari (dashboard sarlavha, rang, ikonlar uchun)
+        $botTypeEnum = $store->getBotTypeEnum();
 
         return Inertia::render('Business/Store/Dashboard', [
             'store' => [
                 'name' => $store->name,
                 'is_active' => $store->is_active,
                 'mini_app_url' => $store->getMiniAppUrl(),
+                'store_type' => $store->store_type,
             ],
+            'storeTypeConfig' => $botTypeEnum ? [
+                'type' => $botTypeEnum->value,
+                'label' => $botTypeEnum->label(),
+                'icon' => $botTypeEnum->icon(),
+                'color' => $botTypeEnum->color(),
+                'bgColor' => $botTypeEnum->bgColor(),
+                'actionLabel' => $botTypeEnum->primaryActionLabel(),
+            ] : null,
             'stats' => $todayStats,
             'weekStats' => $weekStats,
             'monthStats' => $monthStats,
@@ -178,8 +184,9 @@ class StoreAnalyticsController extends Controller
                 'total_products' => $totalProducts,
                 'active_products' => $activeProducts,
                 'total_customers' => $totalCustomers,
-                'pending_orders' => $pendingOrders,
+                'pending_orders' => $pendingOrdersCount,
             ],
+            'botTypeKpis' => $botTypeKpis,
             'panelType' => $this->getStorePanelTypeForInertia(),
         ]);
     }
@@ -375,6 +382,169 @@ class StoreAnalyticsController extends Controller
             ],
             'panelType' => $this->getStorePanelTypeForInertia(),
         ]);
+    }
+
+    /**
+     * Bot turiga mos qo'shimcha KPIlar hisoblash
+     */
+    protected function getBotTypeKpis(TelegramStore $store): array
+    {
+        $storeType = $store->store_type ?? 'ecommerce';
+
+        return match ($storeType) {
+            'delivery' => $this->getDeliveryKpis($store),
+            'queue' => $this->getQueueKpis($store),
+            'service' => $this->getServiceKpis($store),
+            default => $this->getEcommerceKpis($store),
+        };
+    }
+
+    /**
+     * E-commerce: mahsulotlar, mijozlar statistikasi
+     */
+    protected function getEcommerceKpis(TelegramStore $store): array
+    {
+        $activeProducts = StoreProduct::where('store_id', $store->id)->where('is_active', true)->count();
+        $totalCustomers = StoreCustomer::where('store_id', $store->id)->count();
+
+        return [
+            'type' => 'ecommerce',
+            'extra_kpi_1' => [
+                'label' => 'Mahsulotlar',
+                'value' => $activeProducts,
+                'format' => 'number',
+            ],
+            'extra_kpi_2' => [
+                'label' => 'Mijozlar',
+                'value' => $totalCustomers,
+                'format' => 'number',
+            ],
+        ];
+    }
+
+    /**
+     * Delivery: o'rtacha yetkazish vaqti, bekor qilish foizi
+     */
+    protected function getDeliveryKpis(TelegramStore $store): array
+    {
+        $now = now();
+
+        // O'rtacha yetkazish vaqti (shipped_at → delivered_at, daqiqalarda)
+        $avgDeliveryMinutes = StoreOrder::where('store_id', $store->id)
+            ->where('status', StoreOrder::STATUS_DELIVERED)
+            ->whereNotNull('shipped_at')
+            ->whereNotNull('delivered_at')
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, shipped_at, delivered_at)) as avg_minutes')
+            ->value('avg_minutes');
+
+        // Bekor qilish foizi (oxirgi 30 kun)
+        $totalOrders = StoreOrder::where('store_id', $store->id)
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->count();
+
+        $cancelledOrders = StoreOrder::where('store_id', $store->id)
+            ->where('status', StoreOrder::STATUS_CANCELLED)
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->count();
+
+        $cancelRate = $totalOrders > 0 ? round(($cancelledOrders / $totalOrders) * 100, 1) : 0;
+
+        return [
+            'type' => 'delivery',
+            'extra_kpi_1' => [
+                'label' => "O'rt. yetkazish",
+                'value' => $avgDeliveryMinutes ? round($avgDeliveryMinutes) : 0,
+                'suffix' => 'daq',
+                'format' => 'duration',
+            ],
+            'extra_kpi_2' => [
+                'label' => 'Bekor qilingan',
+                'value' => $cancelRate,
+                'suffix' => '%',
+                'format' => 'percent',
+            ],
+        ];
+    }
+
+    /**
+     * Queue: navbatdagilar, o'rtacha kutish, bajarilganlik foizi
+     */
+    protected function getQueueKpis(TelegramStore $store): array
+    {
+        $now = now();
+
+        // Hozir navbatda (pending + confirmed buyurtmalar)
+        $inQueue = StoreOrder::where('store_id', $store->id)
+            ->whereIn('status', [StoreOrder::STATUS_PENDING, StoreOrder::STATUS_CONFIRMED])
+            ->count();
+
+        // O'rtacha kutish vaqti (created_at → confirmed_at, daqiqalarda)
+        $avgWaitMinutes = StoreOrder::where('store_id', $store->id)
+            ->whereNotNull('confirmed_at')
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, confirmed_at)) as avg_minutes')
+            ->value('avg_minutes');
+
+        // Bajarilganlik foizi (delivered / (delivered + cancelled))
+        $completed = StoreOrder::where('store_id', $store->id)
+            ->where('status', StoreOrder::STATUS_DELIVERED)
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->count();
+
+        $totalFinished = StoreOrder::where('store_id', $store->id)
+            ->whereIn('status', [StoreOrder::STATUS_DELIVERED, StoreOrder::STATUS_CANCELLED])
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->count();
+
+        $completionRate = $totalFinished > 0 ? round(($completed / $totalFinished) * 100, 1) : 0;
+
+        return [
+            'type' => 'queue',
+            'extra_kpi_1' => [
+                'label' => 'Navbatdagilar',
+                'value' => $inQueue,
+                'format' => 'number',
+            ],
+            'extra_kpi_2' => [
+                'label' => 'Bajarilganlik',
+                'value' => $completionRate,
+                'suffix' => '%',
+                'format' => 'percent',
+            ],
+            'avg_wait' => $avgWaitMinutes ? round($avgWaitMinutes) : 0,
+        ];
+    }
+
+    /**
+     * Service: faol arizalar, o'rtacha baho
+     */
+    protected function getServiceKpis(TelegramStore $store): array
+    {
+        // Faol arizalar (active status dagi buyurtmalar)
+        $activeRequests = StoreOrder::where('store_id', $store->id)
+            ->whereIn('status', StoreOrder::ACTIVE_STATUSES)
+            ->count();
+
+        // O'rtacha baho (reviews jadvalidan)
+        $avgRating = StoreReview::where('store_id', $store->id)
+            ->where('is_approved', true)
+            ->avg('rating');
+
+        return [
+            'type' => 'service',
+            'extra_kpi_1' => [
+                'label' => 'Faol arizalar',
+                'value' => $activeRequests,
+                'format' => 'number',
+            ],
+            'extra_kpi_2' => [
+                'label' => "O'rt. baho",
+                'value' => $avgRating ? round($avgRating, 1) : 0,
+                'suffix' => '',
+                'format' => 'rating',
+            ],
+        ];
     }
 
     /**
