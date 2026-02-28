@@ -89,16 +89,20 @@
                 <button
                   v-for="bt in botTypes"
                   :key="bt.key"
-                  @click="selectedBotType = bt.key"
+                  @click="!isTypeUsed(bt.key) && (selectedBotType = bt.key)"
                   type="button"
-                  class="flex flex-col items-center p-4 rounded-xl border-2 transition-all text-center"
-                  :class="selectedBotType === bt.key
-                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'"
+                  :disabled="isTypeUsed(bt.key)"
+                  class="flex flex-col items-center p-4 rounded-xl border-2 transition-all text-center relative"
+                  :class="isTypeUsed(bt.key)
+                    ? 'border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed'
+                    : selectedBotType === bt.key
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'"
                 >
                   <span class="text-2xl mb-2">{{ bt.icon }}</span>
-                  <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ bt.label }}</span>
-                  <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ bt.description }}</span>
+                  <span class="text-sm font-semibold" :class="isTypeUsed(bt.key) ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'">{{ bt.label }}</span>
+                  <span v-if="isTypeUsed(bt.key)" class="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 font-medium">Allaqachon mavjud</span>
+                  <span v-else class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ bt.description }}</span>
                 </button>
               </div>
             </div>
@@ -394,13 +398,24 @@ const props = defineProps({
   existingBots: { type: Array, default: () => [] },
   botTypes: { type: Array, default: () => [] },
   preSelectedType: { type: String, default: null },
+  usedTypes: { type: Array, default: () => [] },
 });
 
 const currentStep = ref(props.step);
 const completedSteps = ref(props.completedSteps);
 const activating = ref(false);
 const connectingBot = ref(false);
-const selectedBotType = ref(props.preSelectedType || props.store?.store_type || 'ecommerce');
+// Allaqachon ishlatilgan turni tekshirish (har turdan faqat 1 ta ruxsat)
+const isTypeUsed = (type) => props.usedTypes.includes(type);
+
+// Default turni tanlash — agar tanlangan tur allaqachon ishlatilgan bo'lsa, birinchi bo'sh turni olish
+const getDefaultType = () => {
+  const preferred = props.preSelectedType || props.store?.store_type || 'ecommerce';
+  if (!props.usedTypes.includes(preferred)) return preferred;
+  const available = props.botTypes.find(bt => !props.usedTypes.includes(bt.key));
+  return available?.key || preferred;
+};
+const selectedBotType = ref(getDefaultType());
 const enabledFeatures = ref(props.store?.enabled_features || []);
 const selectedExistingBot = ref(null);
 const connectedBot = ref(props.bot);
@@ -431,7 +446,7 @@ const currentStepInfo = computed(() => {
 });
 
 const canProceed = computed(() => {
-  if (currentStep.value === 1) return !!selectedBotType.value;
+  if (currentStep.value === 1) return !!selectedBotType.value && !isTypeUsed(selectedBotType.value);
   if (currentStep.value === 2) return !!storeForm.name;
   if (currentStep.value === 3) return !!connectedBot.value;
   return true;

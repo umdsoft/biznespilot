@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasActiveStore;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Http\Controllers\Traits\HasStorePanelType;
 use App\Models\Store\TelegramStore;
@@ -14,21 +15,11 @@ use Inertia\Inertia;
 
 class StoreSetupController extends Controller
 {
-    use HasCurrentBusiness, HasStorePanelType;
+    use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     public function __construct(
         protected StoreSetupService $storeSetupService
     ) {}
-
-    /**
-     * Get the store for the current business
-     */
-    protected function getStore(): ?TelegramStore
-    {
-        $business = $this->getCurrentBusiness();
-
-        return TelegramStore::where('business_id', $business->id)->first();
-    }
 
     /**
      * Show the store setup wizard page
@@ -40,8 +31,6 @@ class StoreSetupController extends Controller
         if (! $business) {
             return redirect()->route('login');
         }
-
-        $store = $this->getStore();
 
         // Query param dan pre-selected bot type (telegram bot create sahifasidan keladi)
         $preSelectedType = $request->query('type');
@@ -62,6 +51,15 @@ class StoreSetupController extends Controller
                 'is_active' => $bot->is_active,
             ]);
 
+        // Biznesda allaqachon ishlatilgan do'kon turlari (har turdan faqat 1 ta ruxsat)
+        $usedTypes = TelegramStore::where('business_id', $business->id)
+            ->whereNotNull('store_type')
+            ->where('store_type', '!=', '')
+            ->pluck('store_type')
+            ->unique()
+            ->values()
+            ->toArray();
+
         // Wizard always starts fresh — step 1, empty forms, no completed steps
         return Inertia::render('Business/Store/Setup', [
             'store' => null,
@@ -71,12 +69,17 @@ class StoreSetupController extends Controller
             'existingBots' => $existingBots,
             'botTypes' => app(BotTypeRegistry::class)->getAllTypesForSelect(),
             'preSelectedType' => $preSelectedType,
+            'usedTypes' => $usedTypes,
             'panelType' => $this->getStorePanelTypeForInertia(),
         ]);
     }
 
     /**
      * Create or update a store (Step 2 - store info, receives store_type from Step 1)
+     *
+     * Har bir wizard run o'z alohida do'konini yaratadi.
+     * Agar hali faollashtirilmagan do'kon bo'lsa (setup jarayonida) — uni yangilaydi.
+     * Faol do'konga tegmaydi — yangi do'kon yaratadi.
      */
     public function storeSetup(Request $request)
     {
@@ -96,10 +99,39 @@ class StoreSetupController extends Controller
             'enabled_features' => 'nullable|array',
         ]);
 
-        $existingStore = TelegramStore::where('business_id', $business->id)->first();
+        // Har bir turdan faqat 1 ta do'kon ruxsat — dublikatni tekshirish
+        $duplicateExists = TelegramStore::where('business_id', $business->id)
+            ->where('store_type', $validated['store_type'])
+            ->when(session('active_store_id'), function ($q) {
+                // Hozirgi setup dagi do'konni istisno qilish (o'zi bilan conflict bo'lmasin)
+                $q->where('id', '!=', session('active_store_id'));
+            })
+            ->exists();
+
+        if ($duplicateExists) {
+            return back()->withErrors([
+                'store_type' => 'Bu turdagi do\'kon allaqachon mavjud. Har turdan faqat bitta do\'kon yaratish mumkin.',
+            ]);
+        }
+
+        // Active store dan qidiruv — faqat hali faollashtirilmagan do'konni yangilaymiz
+        $activeStoreId = session('active_store_id');
+        $existingStore = null;
+
+        if ($activeStoreId) {
+            $store = TelegramStore::where('id', $activeStoreId)
+                ->where('business_id', $business->id)
+                ->first();
+
+            // Faqat hali faollashtirilmagan do'konni yangilash (setup jarayonida)
+            // Faol do'konga tegmaymiz — yangi yaratamiz
+            if ($store && ! $store->is_active) {
+                $existingStore = $store;
+            }
+        }
 
         if ($existingStore) {
-            // Update existing store
+            // Setup jarayonidagi do'konni yangilash (step 2 ga qayta kirganda)
             $existingStore->update([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
@@ -109,11 +141,16 @@ class StoreSetupController extends Controller
                 'store_type' => $validated['store_type'],
                 'enabled_features' => $validated['enabled_features'] ?? [],
             ]);
+            $store = $existingStore;
             $message = 'Do\'kon ma\'lumotlari yangilandi.';
         } else {
-            $this->storeSetupService->createStore($business, $validated);
+            // Yangi do'kon yaratish (boshqa do'konlarga tegmaymiz)
+            $store = $this->storeSetupService->createStore($business, $validated);
             $message = 'Do\'kon muvaffaqiyatli yaratildi. Endi Telegram botni ulang.';
         }
+
+        // Active store session ni yangilash — keyingi steplar shu do'konni topadi
+        session(['active_store_id' => $store->id]);
 
         return redirect()->route('business.store.setup.wizard')
             ->with('success', $message);
