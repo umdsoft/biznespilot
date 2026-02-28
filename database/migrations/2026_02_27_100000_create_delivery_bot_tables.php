@@ -128,7 +128,7 @@ return new class extends Migration
         Schema::create('delivery_order_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('order_id')->constrained('delivery_orders')->cascadeOnDelete();
-            $table->foreignUuid('menu_item_id')->constrained('delivery_menu_items')->nullOnDelete();
+            $table->foreignUuid('menu_item_id')->nullable()->constrained('delivery_menu_items')->nullOnDelete();
             $table->string('item_name');
             $table->string('variant_name')->nullable();
             $table->integer('quantity');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasActiveStore;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Http\Controllers\Traits\HasStorePanelType;
 use App\Models\Store\StoreCustomer;
@@ -13,17 +14,7 @@ use Inertia\Inertia;
 
 class StoreCustomerController extends Controller
 {
-    use HasCurrentBusiness, HasStorePanelType;
-
-    /**
-     * Get the store for the current business
-     */
-    protected function getStore(): ?TelegramStore
-    {
-        $business = $this->getCurrentBusiness();
-
-        return TelegramStore::where('business_id', $business->id)->first();
-    }
+    use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     /**
      * List customers with search and pagination

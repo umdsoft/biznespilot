@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Store\TelegramStore;
 use App\Services\SubscriptionGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -45,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'businesses' => fn () => $this->getUserBusinesses($user),
             'currentBusiness' => fn () => $this->getCurrentBusiness($user),
             'subscription' => fn () => $this->getSubscriptionData($user),
+            'activeStore' => fn () => $this->getActiveStore($user),
             'locale' => fn () => $this->getLocale($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
@@ -195,6 +197,66 @@ class HandleInertiaRequests extends Middleware
     public static function clearBusinessCache(string|int $businessId): void
     {
         Cache::forget("current_business_{$businessId}");
+    }
+
+    /**
+     * Get active store for sidebar and bot-type-aware navigation.
+     */
+    private function getActiveStore($user): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $currentBusinessId = session('current_business_id');
+
+        if (! $currentBusinessId) {
+            return null;
+        }
+
+        $activeStoreId = session('active_store_id');
+
+        $cacheKey = $activeStoreId
+            ? "active_store_{$activeStoreId}"
+            : "first_store_{$currentBusinessId}";
+
+        return Cache::remember($cacheKey, 300, function () use ($currentBusinessId, $activeStoreId) {
+            $query = TelegramStore::where('business_id', $currentBusinessId);
+
+            if ($activeStoreId) {
+                $store = $query->where('id', $activeStoreId)->first();
+
+                if (! $store) {
+                    session()->forget('active_store_id');
+
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+            return [
+                'id' => $store->id,
+                'name' => $store->name,
+                'slug' => $store->slug,
+                'store_type' => $store->store_type,
+                'is_active' => $store->is_active,
+                'store_type_label' => $store->getBotTypeEnum()?->label(),
+                'store_type_icon' => $store->getBotTypeEnum()?->icon(),
+                'store_type_color' => $store->getBotTypeEnum()?->color(),
+                'store_type_bg_color' => $store->getBotTypeEnum()?->bgColor(),
+                'store_type_action' => $store->getBotTypeEnum()?->primaryActionLabel(),
+                'sidebar_menu' => $store->getBotTypeEnum()?->sidebarMenu() ?? [],
+            ];
+        });
+    }
+
+    /**
+     * Clear active store cache.
+     */
+    public static function clearActiveStoreCache(string|int $storeId): void
+    {
+        Cache::forget("active_store_{$storeId}");
     }
 
     /**

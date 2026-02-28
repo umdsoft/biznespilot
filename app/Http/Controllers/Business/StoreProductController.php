@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasActiveStore;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Http\Controllers\Traits\HasStorePanelType;
 use App\Models\Store\StoreCategory;
@@ -15,21 +16,11 @@ use Inertia\Inertia;
 
 class StoreProductController extends Controller
 {
-    use HasCurrentBusiness, HasStorePanelType;
+    use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     public function __construct(
         protected StoreProductService $productService
     ) {}
-
-    /**
-     * Get the store for the current business
-     */
-    protected function getStore(): ?TelegramStore
-    {
-        $business = $this->getCurrentBusiness();
-
-        return TelegramStore::where('business_id', $business->id)->first();
-    }
 
     /**
      * List products with pagination and filters

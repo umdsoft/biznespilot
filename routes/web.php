@@ -1284,6 +1284,32 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/history', [\App\Http\Controllers\Business\BillingController::class, 'history'])->name('history');
     });
 
+    // ========== Store Selection (Active Store Session) ==========
+    Route::get('/store/{store}/select', function (\App\Models\Store\TelegramStore $store) {
+        $business = request()->user()->currentBusiness;
+
+        if ($store->business_id !== $business->id) {
+            abort(403);
+        }
+
+        session(['active_store_id' => $store->id]);
+        \App\Http\Middleware\HandleInertiaRequests::clearActiveStoreCache($store->id);
+
+        return redirect()->route('business.store.dashboard');
+    })->name('store.select');
+
+    Route::get('/store/deselect', function () {
+        $storeId = session('active_store_id');
+
+        if ($storeId) {
+            \App\Http\Middleware\HandleInertiaRequests::clearActiveStoreCache($storeId);
+        }
+
+        session()->forget('active_store_id');
+
+        return redirect()->route('business.telegram-bots.index');
+    })->name('store.deselect');
+
     // ========== Store Management (Telegram Mini App Do'kon) ==========
     Route::prefix('store')->name('store.')->group(function () {
         // Setup Wizard

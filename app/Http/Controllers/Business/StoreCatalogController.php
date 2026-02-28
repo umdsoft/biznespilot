@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasActiveStore;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Http\Controllers\Traits\HasStorePanelType;
 use App\Http\Resources\Store\CatalogResourceFactory;
@@ -15,20 +16,13 @@ use Inertia\Inertia;
 
 class StoreCatalogController extends Controller
 {
-    use HasCurrentBusiness, HasStorePanelType;
+    use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     public function __construct(
         protected CatalogServiceFactory $catalogFactory,
         protected BotTypeRegistry $registry,
         protected StoreProductService $productService
     ) {}
-
-    protected function getStore(): ?TelegramStore
-    {
-        $business = $this->getCurrentBusiness();
-
-        return TelegramStore::where('business_id', $business->id)->first();
-    }
 
     public function index(Request $request)
     {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasActiveStore;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Http\Controllers\Traits\HasStorePanelType;
 use App\Models\Store\StoreDeliveryZone;
@@ -13,14 +14,7 @@ use Inertia\Inertia;
 
 class StoreSettingsController extends Controller
 {
-    use HasCurrentBusiness, HasStorePanelType;
-
-    protected function getStore(): ?TelegramStore
-    {
-        $business = $this->getCurrentBusiness();
-
-        return TelegramStore::where('business_id', $business->id)->first();
-    }
+    use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     public function index()
     {
