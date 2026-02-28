@@ -41,6 +41,13 @@ class TelegramBotManagementController extends Controller
                 'created_at' => $bot->created_at->format('d.m.Y'),
                 'has_store' => $bot->store !== null,
                 'store_name' => $bot->store?->name,
+                'store_id' => $bot->store?->id,
+                'store_type' => $bot->store?->store_type,
+                'store_type_label' => $bot->store?->getBotTypeEnum()?->label(),
+                'store_type_icon' => $bot->store?->getBotTypeEnum()?->icon(),
+                'store_type_color' => $bot->store?->getBotTypeEnum()?->color(),
+                'store_type_bg_color' => $bot->store?->getBotTypeEnum()?->bgColor(),
+                'store_type_action' => $bot->store?->getBotTypeEnum()?->primaryActionLabel(),
             ]);
 
         // Bot limit ma'lumotlari

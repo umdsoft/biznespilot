@@ -2,6 +2,7 @@
 
 namespace App\Models\Store;
 
+use App\Enums\BotType;
 use App\Models\Business;
 use App\Models\TelegramBot;
 use App\Services\Store\BotTypeRegistry;
@@ -128,6 +129,36 @@ class TelegramStore extends Model
     }
 
     // Bot Type helpers
+
+    /**
+     * BotType enum qaytarish (sidebar menyu, ranglar uchun)
+     */
+    public function getBotTypeEnum(): ?BotType
+    {
+        return $this->store_type ? BotType::tryFrom($this->store_type) : null;
+    }
+
+    /**
+     * Sidebar menyu uchun to'liq bot type ma'lumotlari
+     */
+    public function getBotTypeInfo(): array
+    {
+        $botType = $this->getBotTypeEnum();
+        if (! $botType) {
+            return [];
+        }
+
+        return [
+            'value' => $botType->value,
+            'label' => $botType->label(),
+            'icon' => $botType->icon(),
+            'color' => $botType->color(),
+            'bg_color' => $botType->bgColor(),
+            'primary_action' => $botType->primaryActionLabel(),
+            'sidebar_menu' => $botType->sidebarMenu(),
+        ];
+    }
+
     public function getBotTypeConfig(): array
     {
         return app(BotTypeRegistry::class)->getConfig($this->store_type);
