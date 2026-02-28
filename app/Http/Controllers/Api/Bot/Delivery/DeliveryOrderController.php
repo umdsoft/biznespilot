@@ -88,4 +88,25 @@ class DeliveryOrderController extends Controller
             $this->trackingService->getTrackingInfo($order)
         );
     }
+
+    /**
+     * Kupon kodini tekshirish (buyurtma yaratishdan oldin)
+     */
+    public function validateCoupon(Request $request): JsonResponse
+    {
+        $request->validate([
+            'code' => 'required|string|max:50',
+            'subtotal' => 'required|numeric|min:0',
+        ]);
+
+        $businessId = $request->header('X-Business-Id');
+
+        $result = $this->orderService->validateCoupon(
+            $businessId,
+            $request->input('code'),
+            (float) $request->input('subtotal')
+        );
+
+        return response()->json($result, $result['success'] ? 200 : 422);
+    }
 }

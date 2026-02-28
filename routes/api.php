@@ -728,6 +728,9 @@ Route::prefix('v1/bot/delivery')->group(function () {
     Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'cancel']);
     Route::get('/orders/{order}/track', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'track']);
 
+    // Kupon tekshirish
+    Route::post('/validate-coupon', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryOrderController::class, 'validateCoupon']);
+
     Route::get('/addresses', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'index']);
     Route::post('/addresses', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'store']);
     Route::put('/addresses/{addr}', [\App\Http\Controllers\Api\Bot\Delivery\DeliveryAddressController::class, 'update']);

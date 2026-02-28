@@ -132,7 +132,10 @@
       "Bash(cmd //c \"rmdir /s /q public\\\\build\")",
       "Bash(cmd //c \"handle \"\"d:\\\\marketing startap\\\\biznespilot\\\\public\\\\build\\\\css\\\\miniapp-CtgriNLL.css\"\"\")",
       "Bash(xxd:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "WebFetch(domain:)",
+      "Bash(npx vite build:*)",
+      "Bash(artisan route:list:*)"
     ]
   }
 }

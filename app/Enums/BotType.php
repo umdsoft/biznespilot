@@ -94,6 +94,7 @@ enum BotType: string
                 ['label' => 'Menyu', 'icon' => 'ClipboardDocumentListIcon', 'routeSuffix' => 'catalog'],
                 ['label' => 'Buyurtmalar', 'icon' => 'ShoppingCartIcon', 'routeSuffix' => 'orders', 'badge' => 'pending_orders'],
                 ['label' => 'Kategoriyalar', 'icon' => 'FolderIcon', 'routeSuffix' => 'categories'],
+                ['label' => 'Promo kodlar', 'icon' => 'TagIcon', 'routeSuffix' => 'promo-codes'],
                 ['label' => 'Yetkazish zonalari', 'icon' => 'MapPinIcon', 'routeSuffix' => 'settings/delivery-zones'],
                 ['label' => 'Sozlamalar', 'icon' => 'CogIcon', 'routeSuffix' => 'settings'],
             ],

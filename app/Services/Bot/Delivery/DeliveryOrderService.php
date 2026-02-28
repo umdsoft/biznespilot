@@ -6,6 +6,8 @@ use App\Models\Bot\Delivery\DeliveryMenuItem;
 use App\Models\Bot\Delivery\DeliveryOrder;
 use App\Models\Bot\Delivery\DeliveryOrderItem;
 use App\Models\Bot\Delivery\DeliverySetting;
+use App\Models\Store\StorePromoCode;
+use App\Models\Store\TelegramStore;
 use Illuminate\Support\Facades\DB;
 
 class DeliveryOrderService
@@ -65,7 +67,19 @@ class DeliveryOrderService
                 : $settings->calculateDeliveryFee($subtotal);
 
             $serviceFee = $settings->calculateServiceFee($subtotal);
-            $discountAmount = 0; // TODO: coupon logic
+
+            // Kupon logikasi — store_promo_codes dan tekshirish
+            $discountAmount = 0;
+            $couponCode = $data['coupon_code'] ?? null;
+
+            if ($couponCode) {
+                $promo = $this->findPromoCode($businessId, $couponCode);
+                if ($promo && $promo->isValid()) {
+                    $discountAmount = $promo->calculateDiscount($subtotal);
+                    $promo->incrementUsage();
+                }
+            }
+
             $total = $subtotal + $deliveryFee + $serviceFee - $discountAmount;
 
             $order = DeliveryOrder::create([
@@ -104,7 +118,7 @@ class DeliveryOrderService
         });
     }
 
-    public function calculateTotals(string $businessId, array $items): array
+    public function calculateTotals(string $businessId, array $items, ?string $couponCode = null): array
     {
         $settings = DeliverySetting::getForBusiness($businessId);
         $subtotal = 0;
@@ -137,11 +151,21 @@ class DeliveryOrderService
         $deliveryFee = $settings->calculateDeliveryFee($subtotal);
         $serviceFee = $settings->calculateServiceFee($subtotal);
 
+        // Kupon chegirmasi
+        $discountAmount = 0;
+        if ($couponCode) {
+            $promo = $this->findPromoCode($businessId, $couponCode);
+            if ($promo && $promo->isValid()) {
+                $discountAmount = $promo->calculateDiscount($subtotal);
+            }
+        }
+
         return [
             'subtotal' => $subtotal,
             'delivery_fee' => $deliveryFee,
             'service_fee' => $serviceFee,
-            'total' => $subtotal + $deliveryFee + $serviceFee,
+            'discount_amount' => $discountAmount,
+            'total' => $subtotal + $deliveryFee + $serviceFee - $discountAmount,
             'min_order_amount' => (float) $settings->min_order_amount,
             'free_delivery_from' => $settings->free_delivery_from ? (float) $settings->free_delivery_from : null,
         ];
@@ -169,5 +193,57 @@ class DeliveryOrderService
         $order->courier_phone = $phone;
 
         return $order->save();
+    }
+
+    /**
+     * Kupon kodini tekshirish va chegirma ma'lumotlarini qaytarish
+     */
+    public function validateCoupon(string $businessId, string $code, float $subtotal): array
+    {
+        $promo = $this->findPromoCode($businessId, $code);
+
+        if (! $promo) {
+            return ['success' => false, 'error' => 'Kupon topilmadi.'];
+        }
+
+        if (! $promo->isValid()) {
+            return ['success' => false, 'error' => 'Kupon muddati tugagan yoki faol emas.'];
+        }
+
+        $discount = $promo->calculateDiscount($subtotal);
+
+        if ($discount <= 0) {
+            $minAmount = number_format($promo->min_order_amount, 0, '.', ' ');
+
+            return ['success' => false, 'error' => "Minimal buyurtma summasi: {$minAmount} so'm."];
+        }
+
+        return [
+            'success' => true,
+            'promo_code' => $promo->code,
+            'discount_type' => $promo->type,
+            'discount_value' => (float) $promo->value,
+            'discount_amount' => $discount,
+            'subtotal' => $subtotal,
+            'total' => $subtotal - $discount,
+        ];
+    }
+
+    /**
+     * Business ning delivery store sidan promo kodni topish
+     */
+    private function findPromoCode(string $businessId, string $code): ?StorePromoCode
+    {
+        $store = TelegramStore::where('business_id', $businessId)
+            ->where('store_type', 'delivery')
+            ->first();
+
+        if (! $store) {
+            return null;
+        }
+
+        return StorePromoCode::where('store_id', $store->id)
+            ->where('code', $code)
+            ->first();
     }
 }
