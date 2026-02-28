@@ -246,7 +246,11 @@
                       <div v-if="bot.is_active" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-800"></div>
                     </div>
                     <div class="min-w-0">
-                      <p class="font-semibold text-sm text-slate-900 dark:text-white truncate">{{ bot.first_name }}</p>
+                      <!-- Bot nomini bosganda dashboard yoki setup ga o'tish -->
+                      <Link
+                        :href="bot.has_store ? route('business.store.select', bot.store_id) : getRoute('store.setup.wizard')"
+                        class="font-semibold text-sm text-slate-900 dark:text-white truncate hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors block"
+                      >{{ bot.first_name }}</Link>
                       <div class="flex items-center gap-1.5">
                         <p class="text-xs text-slate-500 dark:text-slate-400">@{{ bot.username }}</p>
                         <a :href="'https://t.me/' + bot.username" target="_blank" class="text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors" @click.stop>
@@ -392,7 +396,11 @@
           <!-- Content -->
           <div class="p-5 pt-3">
             <div class="mb-4">
-              <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ bot.first_name }}</h3>
+              <!-- Bot nomini bosganda dashboard yoki setup ga o'tish -->
+              <Link
+                :href="bot.has_store ? route('business.store.select', bot.store_id) : getRoute('store.setup.wizard')"
+                class="text-base font-bold text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              >{{ bot.first_name }}</Link>
               <p class="text-xs text-slate-500 dark:text-slate-400">@{{ bot.username }}</p>
             </div>
 
