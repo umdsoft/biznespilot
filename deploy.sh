@@ -22,9 +22,9 @@
 set -euo pipefail
 
 # ===================== KONFIGURATSIYA =====================
-APP_DIR="/var/www/biznespilot"
-WEB_USER="www-data"
-WEB_GROUP="www-data"
+APP_DIR="${BIZNESPILOT_DIR:-/home/admin/web/biznespilot.uz/public_html}"
+WEB_USER="${BIZNESPILOT_USER:-admin}"
+WEB_GROUP="${BIZNESPILOT_GROUP:-admin}"
 MIN_FREE_MB=200
 LOCK_FILE="/tmp/biznespilot-deploy.lock"
 LOG_FILE="/var/log/biznespilot-deploy.log"
@@ -32,6 +32,11 @@ DEPLOY_BRANCH="main"
 
 # PHP-FPM versiyasini avtomatik aniqlash
 detect_php_fpm() {
+    # Compiled PHP 8.2 FPM (custom service name)
+    if systemctl is-active --quiet "php82-fpm" 2>/dev/null; then
+        echo "php82-fpm"
+        return
+    fi
     for ver in 8.4 8.3 8.2 8.1; do
         if systemctl is-active --quiet "php${ver}-fpm" 2>/dev/null; then
             echo "php${ver}-fpm"
@@ -58,7 +63,7 @@ log_warning() { echo -e "${YELLOW}[WARN]${NC}  $(date '+%H:%M:%S') $1"; echo "[W
 log_error()   { echo -e "${RED}[ERROR]${NC} $(date '+%H:%M:%S') $1"; echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE" 2>/dev/null || true; }
 
 # PATH xavfsizligi - OOM dan keyin PATH buzilishini oldini oladi
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH=/usr/local/php82/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # ===================== LOCK MEXANIZMI =====================
 # Bir vaqtda ikki deploy ishlamasligini ta'minlaydi
