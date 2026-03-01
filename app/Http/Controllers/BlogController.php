@@ -69,7 +69,7 @@ class BlogController extends Controller
             'post' => $blogPost,
             'relatedPosts' => $relatedPosts,
         ])->withViewData([
-            'seoTitle' => ($blogPost->meta_title ?? $blogPost->title) . ' | BiznesPilot',
+            'seoTitle' => $blogPost->meta_title ?? ($blogPost->title . ' | BiznesPilot'),
             'seoDescription' => $blogPost->meta_description ?? $blogPost->excerpt,
             'seoImage' => $blogPost->cover_image,
             'seoType' => 'article',
