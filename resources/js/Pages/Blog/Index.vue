@@ -76,6 +76,39 @@ function estimateReadTime(content) {
     const minutes = Math.max(2, Math.ceil(words / 200))
     return locale.value === 'ru' ? `${minutes} мин` : `${minutes} min`
 }
+
+// JSON-LD: BreadcrumbList for blog index/category
+const breadcrumbSchema = computed(() => {
+    const items = [
+        { '@type': 'ListItem', position: 1, name: 'BiznesPilot', item: 'https://biznespilot.uz' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://biznespilot.uz/blog' },
+    ]
+    if (props.filters?.category) {
+        items.push({
+            '@type': 'ListItem',
+            position: 3,
+            name: categoryLabels[props.filters.category] || props.filters.category,
+            item: `https://biznespilot.uz/blog/category/${props.filters.category}`,
+        })
+    }
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: items,
+    }
+})
+
+// JSON-LD: CollectionPage for blog listing
+const collectionSchema = computed(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: metaTitle.value,
+    description: metaDescription.value,
+    url: props.filters?.category
+        ? `https://biznespilot.uz/blog/category/${props.filters.category}`
+        : 'https://biznespilot.uz/blog',
+    isPartOf: { '@type': 'WebSite', name: 'BiznesPilot', url: 'https://biznespilot.uz' },
+}))
 </script>
 
 <template>
@@ -91,6 +124,8 @@ function estimateReadTime(content) {
       <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/blog" />
       <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/blog" />
       <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/blog" />
+      <script type="application/ld+json" v-html="JSON.stringify(breadcrumbSchema)" />
+      <script type="application/ld+json" v-html="JSON.stringify(collectionSchema)" />
     </Head>
 
     <!-- Hero Section -->

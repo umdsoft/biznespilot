@@ -1,6 +1,11 @@
 <template>
   <LandingLayout v-slot="{ urgencyBarVisible }">
-    <Head :title="t.meta_title" />
+    <Head>
+      <title>{{ t.meta_title }}</title>
+      <meta name="robots" content="noindex, follow" />
+      <meta name="description" :content="t.meta_description || 'BiznesPilot foydalanish shartlari'" />
+      <link rel="canonical" href="https://biznespilot.uz/terms" />
+    </Head>
 
     <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <!-- Hero Header -->

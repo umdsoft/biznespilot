@@ -9,6 +9,8 @@
       <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/about" />
       <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/about" />
       <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/about" />
+      <script type="application/ld+json" v-html="JSON.stringify(aboutSchema)" />
+      <script type="application/ld+json" v-html="JSON.stringify(breadcrumbSchema)" />
     </Head>
 
     <div class="min-h-screen">
@@ -295,6 +297,50 @@ const featuresData = computed(() => [
     icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
   },
 ])
+
+// JSON-LD: Organization schema (detailed for About page)
+const aboutSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'BiznesPilot',
+  legalName: 'BiznesPilot LLC',
+  url: 'https://biznespilot.uz',
+  logo: 'https://biznespilot.uz/images/og-image.jpg',
+  description: locale.value === 'ru'
+    ? 'Платформа управления бизнесом для предпринимателей Узбекистана — CRM, маркетинг, финансы, HR и AI'
+    : "O'zbekiston tadbirkorlari uchun biznes boshqaruv platformasi — CRM, marketing, moliya, HR va AI",
+  foundingDate: '2024',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Tashkent',
+    addressRegion: 'Tashkent',
+    addressCountry: 'UZ',
+  },
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      url: 'https://t.me/biznespilot_support',
+      availableLanguage: ['uz', 'ru'],
+    },
+  ],
+  sameAs: [
+    'https://t.me/biznespilot',
+    'https://instagram.com/biznespilot',
+  ],
+  knowsAbout: ['CRM', 'Business Management', 'Marketing Automation', 'AI', 'HR Management'],
+  numberOfEmployees: { '@type': 'QuantitativeValue', value: '10-50' },
+}))
+
+// JSON-LD: BreadcrumbList
+const breadcrumbSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'BiznesPilot', item: 'https://biznespilot.uz' },
+    { '@type': 'ListItem', position: 2, name: locale.value === 'ru' ? 'О нас' : 'Biz haqimizda', item: 'https://biznespilot.uz/about' },
+  ],
+}))
 
 const valuesData = computed(() => [
   {

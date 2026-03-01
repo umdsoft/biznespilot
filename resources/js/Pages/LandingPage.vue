@@ -73,6 +73,61 @@ onMounted(() => {
   }
   setTimeout(step, 500)
 })
+
+// JSON-LD: Organization schema
+const organizationSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'BiznesPilot',
+  url: 'https://biznespilot.uz',
+  logo: 'https://biznespilot.uz/images/og-image.jpg',
+  description: locale.value === 'ru'
+    ? 'Платформа управления бизнесом #1 в Узбекистане'
+    : "O'zbekistondagi #1 biznes boshqaruv platformasi",
+  foundingDate: '2024',
+  sameAs: [
+    'https://t.me/biznespilot',
+    'https://instagram.com/biznespilot',
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Tashkent',
+    addressCountry: 'UZ',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer service',
+    url: 'https://t.me/biznespilot_support',
+    availableLanguage: ['uz', 'ru'],
+  },
+}))
+
+// JSON-LD: SoftwareApplication schema
+const softwareSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'BiznesPilot AI',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: 'https://biznespilot.uz',
+  description: locale.value === 'ru'
+    ? 'CRM, маркетинг, продажи, финансы, HR и AI-помощник — всё в одной платформе'
+    : "CRM, marketing, sotuv, moliya, HR va AI yordamchi — hammasi bitta platformada",
+  offers: {
+    '@type': 'AggregateOffer',
+    lowPrice: '299000',
+    highPrice: '1499000',
+    priceCurrency: 'UZS',
+    offerCount: 4,
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.9',
+    bestRating: '5',
+    ratingCount: '150',
+  },
+  featureList: 'CRM, Marketing Automation, Sales Pipeline, Finance Management, HR, AI Assistant, Telegram Bot',
+}))
 </script>
 
 <template>
@@ -93,6 +148,11 @@ onMounted(() => {
       ? 'Платформа управления бизнесом. CRM, маркетинг, финансы, HR и AI.'
       : 'Biznes boshqaruv platformasi. CRM, marketing, moliya, HR va AI.'" />
     <link rel="canonical" href="https://biznespilot.uz/" />
+    <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/" />
+    <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/lang/ru" />
+    <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/" />
+    <script type="application/ld+json" v-html="JSON.stringify(organizationSchema)" />
+    <script type="application/ld+json" v-html="JSON.stringify(softwareSchema)" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">
