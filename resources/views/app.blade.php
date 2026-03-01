@@ -21,8 +21,8 @@
     <meta name="keywords" content="BiznesPilot, CRM tizimi, biznes avtomatlashtirish, sotuvlarni boshqarish, marketing avtomatizatsiya, AI biznes, Telegram bot CRM, Uzbekistan CRM">
     <meta name="author" content="BiznesPilot">
     <meta name="publisher" content="BiznesPilot LLC">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" inertia>
+    <meta name="googlebot" content="index, follow" inertia>
     <meta name="language" content="{{ app()->getLocale() === 'ru' ? 'Russian' : 'Uzbek' }}">
     <meta name="copyright" content="BiznesPilot {{ date('Y') }}">
 
