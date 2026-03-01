@@ -99,6 +99,16 @@ class SitemapController extends Controller
             ],
         ];
 
+        // Blog category pages
+        foreach (BlogPost::CATEGORIES as $category) {
+            $urls[] = [
+                'loc' => $baseUrl . '/blog/category/' . $category,
+                'lastmod' => $today,
+                'changefreq' => 'weekly',
+                'priority' => '0.6',
+            ];
+        }
+
         // Blog posts
         $blogPosts = BlogPost::published()
             ->orderByDesc('published_at')

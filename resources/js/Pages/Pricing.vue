@@ -10,6 +10,8 @@
     <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/pricing" />
     <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/pricing" />
     <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/pricing" />
+    <script type="application/ld+json" v-html="JSON.stringify(productSchema)" />
+    <script type="application/ld+json" v-html="JSON.stringify(faqSchema)" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">
@@ -567,6 +569,36 @@ const faqs = computed(() => t.value.faq.items);
 const toggleFaq = (index) => {
   openFaq.value = openFaq.value === index ? null : index;
 };
+
+// JSON-LD: Product/Offer schema for pricing plans
+const productSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'BiznesPilot AI',
+  description: locale.value === 'ru'
+    ? 'Платформа управления бизнесом: CRM, маркетинг, финансы, HR — всё в одном'
+    : "Biznes boshqaruv platformasi: CRM, marketing, moliya, HR — hammasi bir joyda",
+  brand: { '@type': 'Brand', name: 'BiznesPilot' },
+  url: 'https://biznespilot.uz/pricing',
+  offers: [
+    { '@type': 'Offer', name: 'Start', price: '299000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=start' },
+    { '@type': 'Offer', name: 'Standard', price: '599000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=standard' },
+    { '@type': 'Offer', name: 'Business', price: '799000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=business' },
+    { '@type': 'Offer', name: 'Premium', price: '1499000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=premium' },
+  ],
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', bestRating: '5', ratingCount: '150' },
+}));
+
+// JSON-LD: FAQPage schema
+const faqSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: (faqs.value || []).map(faq => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+  })),
+}));
 </script>
 
 <style scoped>

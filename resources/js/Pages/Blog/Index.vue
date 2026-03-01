@@ -50,10 +50,15 @@ const metaDescription = computed(() =>
 
 function filterByCategory(category) {
     selectedCategory.value = category
-    router.get('/blog', category ? { category } : {}, {
+    const url = category ? `/blog/category/${category}` : '/blog'
+    router.get(url, {}, {
         preserveState: true,
         preserveScroll: false,
     })
+}
+
+function categoryUrl(category) {
+    return category ? `/blog/category/${category}` : '/blog'
 }
 
 function formatDate(dateStr) {
@@ -125,26 +130,28 @@ function estimateReadTime(content) {
     <section class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
-          <button
-            @click="filterByCategory('')"
+          <Link
+            :href="categoryUrl('')"
             class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
             :class="!selectedCategory
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            preserve-state
           >
             {{ locale === 'ru' ? 'Все статьи' : 'Barcha maqolalar' }}
-          </button>
-          <button
+          </Link>
+          <Link
             v-for="cat in categories"
             :key="cat"
-            @click="filterByCategory(cat)"
+            :href="categoryUrl(cat)"
             class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
             :class="selectedCategory === cat
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            preserve-state
           >
             {{ categoryLabels[cat] || cat }}
-          </button>
+          </Link>
         </div>
       </div>
     </section>

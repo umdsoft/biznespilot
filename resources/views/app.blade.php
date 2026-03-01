@@ -26,6 +26,17 @@
     <meta name="language" content="{{ app()->getLocale() === 'ru' ? 'Russian' : 'Uzbek' }}">
     <meta name="copyright" content="BiznesPilot {{ date('Y') }}">
 
+    <!-- ========== VERIFICATION TAGS ========== -->
+    @if(config('services.verification.google'))
+    <meta name="google-site-verification" content="{{ config('services.verification.google') }}">
+    @endif
+    @if(config('services.verification.yandex'))
+    <meta name="yandex-verification" content="{{ config('services.verification.yandex') }}">
+    @endif
+    @if(config('services.verification.facebook'))
+    <meta name="facebook-domain-verification" content="{{ config('services.verification.facebook') }}">
+    @endif
+
     <!-- ========== CANONICAL ========== -->
     <link rel="canonical" href="{{ url()->current() }}" inertia>
 

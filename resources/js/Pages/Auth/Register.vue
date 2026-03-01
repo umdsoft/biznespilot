@@ -1,4 +1,8 @@
 <template>
+  <Head>
+    <title>Ro'yxatdan o'tish | BiznesPilot</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </Head>
   <div class="h-screen flex overflow-hidden">
     <!-- Left Side - Branding & Info -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 relative overflow-hidden">
@@ -270,7 +274,7 @@
 </template>
 
 <script setup>
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, Head, Link } from '@inertiajs/vue3';
 import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 import { useI18n } from '@/i18n';
 

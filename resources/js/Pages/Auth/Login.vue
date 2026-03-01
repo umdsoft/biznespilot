@@ -1,4 +1,8 @@
 <template>
+  <Head>
+    <title>Kirish | BiznesPilot</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </Head>
   <div class="min-h-screen flex">
     <!-- Left Side - Branding & Info -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden">
@@ -212,7 +216,7 @@
 
 <script setup>
 import { onMounted, ref, reactive } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import { useI18n } from '@/i18n';

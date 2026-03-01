@@ -104,6 +104,12 @@ return [
         'meta_pixel_id' => env('META_PIXEL_ID'),
     ],
 
+    'verification' => [
+        'google' => env('GOOGLE_SITE_VERIFICATION'),
+        'yandex' => env('YANDEX_VERIFICATION'),
+        'facebook' => env('FACEBOOK_DOMAIN_VERIFICATION'),
+    ],
+
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY'),
     ],

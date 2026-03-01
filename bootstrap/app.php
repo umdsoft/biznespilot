@@ -23,6 +23,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -229,6 +231,20 @@ return Application::configure(basePath: dirname(__DIR__))
             // For regular web requests, redirect to login
             return redirect()->route('login')
                 ->with('error', 'Sessiya muddati tugadi. Qayta kiring.');
+        });
+
+        // Render Inertia error pages for HTTP exceptions (404, 500, 403, etc.)
+        $exceptions->render(function (HttpException $e, Request $request) {
+            $status = $e->getStatusCode();
+
+            // Only render Inertia error page for web requests (not API/JSON)
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return Inertia::render('Error', ['status' => $status])
+                    ->toResponse($request)
+                    ->setStatusCode($status);
+            }
+
+            return null;
         });
 
         // Production error handling

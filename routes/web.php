@@ -86,6 +86,8 @@ Route::get('/about', [LandingController::class, 'about'])->name('about');
 
 // SEO: Public Blog
 Route::get('/blog', [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/category/{category}', [\App\Http\Controllers\BlogController::class, 'category'])->name('blog.category')
+    ->where('category', 'crm|marketing|smm|finance|hr|ai|business|startup');
 Route::get('/blog/{blogPost:slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
 // SEO: Dynamic Sitemap

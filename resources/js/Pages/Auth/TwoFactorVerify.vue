@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import { useI18n } from '@/i18n'
 
 const { t } = useI18n()
@@ -35,6 +35,10 @@ const toggleRecovery = () => {
 </script>
 
 <template>
+    <Head>
+        <title>2FA | BiznesPilot</title>
+        <meta name="robots" content="noindex, nofollow" />
+    </Head>
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             <div>
