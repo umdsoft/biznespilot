@@ -84,6 +84,10 @@ Route::get('/terms', [LandingController::class, 'terms'])->name('terms');
 Route::get('/data-deletion', [LandingController::class, 'dataDeletion'])->name('data-deletion');
 Route::get('/about', [LandingController::class, 'about'])->name('about');
 
+// SEO: Public Blog
+Route::get('/blog', [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{blogPost:slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+
 // SEO: Dynamic Sitemap
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 

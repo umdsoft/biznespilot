@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlogPost;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -31,7 +32,7 @@ class SitemapController extends Controller
         $baseUrl = 'https://biznespilot.uz';
         $today = now()->format('Y-m-d');
 
-        return [
+        $urls = [
             // Homepage — UZ (default)
             [
                 'loc' => $baseUrl . '/',
@@ -89,7 +90,32 @@ class SitemapController extends Controller
                 'changefreq' => 'yearly',
                 'priority' => '0.3',
             ],
+            // Blog index
+            [
+                'loc' => $baseUrl . '/blog',
+                'lastmod' => $today,
+                'changefreq' => 'daily',
+                'priority' => '0.8',
+            ],
         ];
+
+        // Blog posts
+        $blogPosts = BlogPost::published()
+            ->orderByDesc('published_at')
+            ->select(['slug', 'published_at', 'updated_at', 'title', 'meta_description'])
+            ->get();
+
+        foreach ($blogPosts as $post) {
+            $lastmod = ($post->updated_at ?? $post->published_at)->format('Y-m-d');
+            $urls[] = [
+                'loc' => $baseUrl . '/blog/' . $post->slug,
+                'lastmod' => $lastmod,
+                'changefreq' => 'monthly',
+                'priority' => '0.7',
+            ];
+        }
+
+        return $urls;
     }
 
     protected function buildUrlEntry(array $url): string

@@ -7,6 +7,9 @@
     <meta property="og:title" :content="locale === 'ru' ? 'Тарифы — BiznesPilot AI' : 'Tariflar — BiznesPilot AI'" />
     <meta property="og:url" content="https://biznespilot.uz/pricing" />
     <link rel="canonical" href="https://biznespilot.uz/pricing" />
+    <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/pricing" />
+    <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/pricing" />
+    <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/pricing" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">

@@ -82,10 +82,16 @@ const { footer } = useLandingTranslations()
               </Link>
             </li>
             <li>
-              <a href="#" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+              <Link href="/#features" class="group flex items-center text-gray-400 hover:text-white transition-colors">
                 <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 {{ footer.integrations }}
-              </a>
+              </Link>
+            </li>
+            <li>
+              <Link href="/blog" class="group flex items-center text-gray-400 hover:text-white transition-colors">
+                <svg class="w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                {{ footer.blog }}
+              </Link>
             </li>
           </ul>
         </div>
