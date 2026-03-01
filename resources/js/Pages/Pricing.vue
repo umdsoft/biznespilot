@@ -1,4 +1,14 @@
 <template>
+  <Head>
+    <title>{{ locale === 'ru' ? 'Тарифы — BiznesPilot AI' : "Tariflar — BiznesPilot AI" }}</title>
+    <meta name="description" :content="locale === 'ru'
+      ? 'Тарифные планы BiznesPilot. Starter, Growth, Enterprise. 14 дней бесплатно. CRM, маркетинг, AI для бизнеса.'
+      : 'BiznesPilot tarif rejalari. Starter, Growth, Enterprise. 14 kun bepul. CRM, marketing, AI biznes uchun.'" />
+    <meta property="og:title" :content="locale === 'ru' ? 'Тарифы — BiznesPilot AI' : 'Tariflar — BiznesPilot AI'" />
+    <meta property="og:url" content="https://biznespilot.uz/pricing" />
+    <link rel="canonical" href="https://biznespilot.uz/pricing" />
+  </Head>
+
   <LandingLayout v-slot="{ urgencyBarVisible }">
 
     <!-- Hero Section -->
@@ -494,7 +504,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, Head, router } from '@inertiajs/vue3';
 import LandingLayout from '@/layouts/LandingLayout.vue';
 import ComparisonTable from '@/components/pricing/ComparisonTable.vue';
 import { useLandingLocale } from '@/i18n/landing/locale';

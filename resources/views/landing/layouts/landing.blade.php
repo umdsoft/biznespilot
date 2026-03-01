@@ -36,9 +36,9 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $translations['meta_title'] ?? 'BiznesPilot' }}">
     <meta property="og:description" content="{{ $translations['meta_description'] ?? '' }}">
-    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
-    <meta property="og:image:secure_url" content="{{ asset('images/og-image.png') }}">
-    <meta property="og:image:type" content="image/png">
+    <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
+    <meta property="og:image:secure_url" content="{{ asset('images/og-image.jpg') }}">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="BiznesPilot - {{ $locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане' : 'O\'zbekistondagi #1 biznes boshqaruv platformasi' }}">
@@ -53,7 +53,7 @@
     <meta name="twitter:url" content="{{ url()->current() }}">
     <meta name="twitter:title" content="{{ $translations['meta_title'] ?? 'BiznesPilot' }}">
     <meta name="twitter:description" content="{{ $translations['meta_description'] ?? '' }}">
-    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+    <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}">
     <meta name="twitter:image:alt" content="BiznesPilot - {{ $locale === 'ru' ? 'Платформа управления бизнесом' : 'Biznes boshqaruv platformasi' }}">
     <meta name="twitter:domain" content="{{ parse_url(url('/'), PHP_URL_HOST) }}">
 
@@ -224,11 +224,11 @@
                 "url": "{{ url('/') }}",
                 "logo": {
                     "@@type": "ImageObject",
-                    "url": "{{ asset('images/logo.png') }}",
+                    "url": "{{ asset('images/logo-full.svg') }}",
                     "width": 512,
                     "height": 512
                 },
-                "image": "{{ asset('images/og-image.png') }}",
+                "image": "{{ asset('images/og-image.jpg') }}",
                 "description": {!! json_encode($locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане. Маркетинг, Продажи, Финансы - всё в одном месте.' : 'O\'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya - hammasi bir joyda.', JSON_UNESCAPED_UNICODE) !!},
                 "foundingDate": "2024",
                 "founders": [
@@ -351,7 +351,7 @@
                     "{{ $locale === 'ru' ? 'Telegram бот интеграция' : 'Telegram bot integratsiya' }}",
                     "{{ $locale === 'ru' ? 'Реальное время аналитика' : 'Real-time analitika' }}"
                 ],
-                "screenshot": "{{ asset('images/og-image.png') }}",
+                "screenshot": "{{ asset('images/og-image.jpg') }}",
                 "provider": {
                     "@@id": "{{ url('/') }}#organization"
                 }
@@ -378,7 +378,7 @@
                 "@@type": "LocalBusiness",
                 "@@id": "{{ url('/') }}#localbusiness",
                 "name": "BiznesPilot",
-                "image": "{{ asset('images/logo.png') }}",
+                "image": "{{ asset('images/logo-full.svg') }}",
                 "priceRange": "$$",
                 "address": {
                     "@@type": "PostalAddress",

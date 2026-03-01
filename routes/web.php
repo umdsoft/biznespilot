@@ -84,6 +84,9 @@ Route::get('/terms', [LandingController::class, 'terms'])->name('terms');
 Route::get('/data-deletion', [LandingController::class, 'dataDeletion'])->name('data-deletion');
 Route::get('/about', [LandingController::class, 'about'])->name('about');
 
+// SEO: Dynamic Sitemap
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
 // ==============================================
 // Health Check Routes (No Authentication)
 // ==============================================

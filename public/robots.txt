@@ -1,27 +1,47 @@
 # =====================================================
 # BiznesPilot - Robots.txt
-# Last Updated: 2025-01-16
+# https://biznespilot.uz
+# Last Updated: 2026-03-01
 # =====================================================
 
 # Default rules for all crawlers
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /business/
-Disallow: /api/
+Allow: /pricing
+Allow: /about
+Allow: /privacy-policy
+Allow: /terms
+Allow: /lang/
+
+# Auth pages — not for indexing
 Disallow: /login
 Disallow: /register
 Disallow: /password/
 Disallow: /email/
 Disallow: /verify-email
+Disallow: /forgot-password
+
+# App panels — private
+Disallow: /admin/
+Disallow: /business/
+Disallow: /welcome/
+
+# API & system
+Disallow: /api/
 Disallow: /sanctum/
 Disallow: /livewire/
 Disallow: /_debugbar/
 Disallow: /telescope/
 Disallow: /horizon/
-Disallow: /*.json$
+Disallow: /broadcasting/
+
+# Static assets that don't need indexing
+Disallow: /build/
+Disallow: /vendor/
+Disallow: /storage/
+
+# Block query string crawling (except lang)
 Disallow: /*?*
-Allow: /lang/*
 
 # Google specific rules
 User-agent: Googlebot
@@ -29,15 +49,8 @@ Allow: /
 Disallow: /admin/
 Disallow: /business/
 Disallow: /api/
-Crawl-delay: 1
-
-# Bing specific rules
-User-agent: Bingbot
-Allow: /
-Disallow: /admin/
-Disallow: /business/
-Disallow: /api/
-Crawl-delay: 2
+Disallow: /login
+Disallow: /register
 
 # Yandex specific rules
 User-agent: Yandex
@@ -45,9 +58,21 @@ Allow: /
 Disallow: /admin/
 Disallow: /business/
 Disallow: /api/
-Crawl-delay: 2
+Disallow: /login
+Disallow: /register
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
 
-# Block bad bots
+# Bing specific rules
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /business/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Crawl-delay: 1
+
+# Block aggressive/spam bots
 User-agent: AhrefsBot
 Disallow: /
 
@@ -63,8 +88,23 @@ Disallow: /
 User-agent: BLEXBot
 Disallow: /
 
-# Sitemap location
+User-agent: PetalBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# Sitemap
 Sitemap: https://biznespilot.uz/sitemap.xml
 
-# Host directive (for Yandex)
+# Host directive (Yandex)
 Host: https://biznespilot.uz

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, Head } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
 import { useLandingLocale } from '@/i18n/landing/locale'
 import translations from '@/i18n/landing/landing-page'
@@ -76,6 +76,25 @@ onMounted(() => {
 </script>
 
 <template>
+  <Head>
+    <title>BiznesPilot AI - {{ locale === 'ru' ? 'Платформа управления бизнесом #1 в Узбекистане' : "O'zbekistondagi #1 biznes boshqaruv platformasi" }}</title>
+    <meta name="description" :content="locale === 'ru'
+      ? 'BiznesPilot — #1 платформа для бизнеса в Узбекистане. CRM, маркетинг, продажи, финансы, HR и AI-помощник 24/7. Попробуйте бесплатно!'
+      : 'BiznesPilot — O\'zbekistondagi #1 biznes platformasi. CRM, marketing, sotuv, moliya, HR va AI yordamchi 24/7. Bepul sinab ko\'ring!'" />
+    <meta property="og:title" :content="locale === 'ru'
+      ? 'BiznesPilot AI — Платформа управления бизнесом #1'
+      : 'BiznesPilot AI — Biznes boshqaruv platformasi #1'" />
+    <meta property="og:description" :content="locale === 'ru'
+      ? 'CRM, маркетинг, продажи, финансы, HR — всё в одном месте. AI-помощник 24/7.'
+      : 'CRM, marketing, sotuv, moliya, HR — hammasi bir joyda. AI yordamchi 24/7.'" />
+    <meta property="og:url" content="https://biznespilot.uz/" />
+    <meta name="twitter:title" :content="locale === 'ru' ? 'BiznesPilot AI — #1 в Узбекистане' : 'BiznesPilot AI — #1 O\'zbekistonda'" />
+    <meta name="twitter:description" :content="locale === 'ru'
+      ? 'Платформа управления бизнесом. CRM, маркетинг, финансы, HR и AI.'
+      : 'Biznes boshqaruv platformasi. CRM, marketing, moliya, HR va AI.'" />
+    <link rel="canonical" href="https://biznespilot.uz/" />
+  </Head>
+
   <LandingLayout v-slot="{ urgencyBarVisible }">
 
     <!-- HERO SECTION -->

@@ -10,6 +10,7 @@ use App\Http\Middleware\EnsureHasBusiness;
 use App\Http\Middleware\FinanceMiddleware;
 use App\Http\Middleware\ForceHttps;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SeoRedirects;
 use App\Http\Middleware\HRMiddleware;
 use App\Http\Middleware\MarketingMiddleware;
 use App\Http\Middleware\MiniAppAuth;
@@ -42,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Register Inertia middleware
         $middleware->web(append: [
+            SeoRedirects::class,
             HandleInertiaRequests::class,
             SetBusinessContext::class,
         ]);
