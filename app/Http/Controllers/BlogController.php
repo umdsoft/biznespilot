@@ -36,6 +36,10 @@ class BlogController extends Controller
                 'category' => $request->category,
                 'locale' => $request->locale,
             ],
+        ])->withViewData([
+            'seoTitle' => 'Biznes, marketing va CRM haqida blog | BiznesPilot',
+            'seoDescription' => "CRM, marketing, SMM, moliya va biznes boshqaruvi haqida foydali maqolalar. O'zbekiston tadbirkorlari uchun amaliy maslahatlar.",
+            'seoType' => 'blog',
         ]);
     }
 
@@ -64,6 +68,11 @@ class BlogController extends Controller
         return Inertia::render('Blog/Show', [
             'post' => $blogPost,
             'relatedPosts' => $relatedPosts,
+        ])->withViewData([
+            'seoTitle' => ($blogPost->meta_title ?? $blogPost->title) . ' | BiznesPilot',
+            'seoDescription' => $blogPost->meta_description ?? $blogPost->excerpt,
+            'seoImage' => $blogPost->cover_image,
+            'seoType' => 'article',
         ]);
     }
 }

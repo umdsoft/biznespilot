@@ -28,7 +28,10 @@ class LandingController extends Controller
             return $this->redirectAuthenticatedUser();
         }
 
-        return inertia('LandingPage');
+        return inertia('LandingPage')->withViewData([
+            'seoTitle' => "BiznesPilot AI — O'zbekistondagi #1 biznes boshqaruv platformasi",
+            'seoDescription' => "Marketing, Sotuv, Moliya, HR — hammasi bir joyda. CRM tizimi, AI yordamchi, Telegram bot integratsiya. 14 kun bepul sinab ko'ring.",
+        ]);
     }
 
     /**
@@ -68,7 +71,10 @@ class LandingController extends Controller
      */
     public function about(Request $request)
     {
-        return inertia('AboutUs');
+        return inertia('AboutUs')->withViewData([
+            'seoTitle' => "Biz haqimizda — BiznesPilot biznes boshqaruv platformasi",
+            'seoDescription' => "BiznesPilot — O'zbekiston bizneslari uchun yaratilgan biznes operatsion tizimi. Jamoamiz, missiyamiz va platformamiz haqida batafsil.",
+        ]);
     }
 
     /**
@@ -84,7 +90,10 @@ class LandingController extends Controller
      */
     public function pricing(Request $request)
     {
-        return inertia('Pricing');
+        return inertia('Pricing')->withViewData([
+            'seoTitle' => "Narxlar — BiznesPilot CRM va biznes boshqaruv platformasi",
+            'seoDescription' => "BiznesPilot tarif rejalari: Starter, Professional, Enterprise. CRM, marketing, moliya, HR — barchasi bitta platformada. 14 kun bepul.",
+        ]);
     }
 
     /**

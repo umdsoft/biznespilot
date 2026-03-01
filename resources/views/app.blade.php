@@ -16,8 +16,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- ========== DEFAULT SEO META TAGS ========== -->
-    <title inertia>{{ config('app.name', 'BiznesPilot AI') }}</title>
-    <meta name="description" content="BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR - hammasi bir joyda. AI yordamchi 24/7." inertia>
+    <title inertia>{{ $seoTitle ?? config('app.name', 'BiznesPilot AI') }}</title>
+    <meta name="description" content="{{ $seoDescription ?? "BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR - hammasi bir joyda. AI yordamchi 24/7." }}" inertia>
     <meta name="keywords" content="BiznesPilot, CRM tizimi, biznes avtomatlashtirish, sotuvlarni boshqarish, marketing avtomatizatsiya, AI biznes, Telegram bot CRM, Uzbekistan CRM">
     <meta name="author" content="BiznesPilot">
     <meta name="publisher" content="BiznesPilot LLC">
@@ -30,12 +30,12 @@
     <link rel="canonical" href="{{ url()->current() }}" inertia>
 
     <!-- ========== DEFAULT OPEN GRAPH ========== -->
-    <meta property="og:type" content="website" inertia>
+    <meta property="og:type" content="{{ $seoType ?? 'website' }}" inertia>
     <meta property="og:site_name" content="BiznesPilot">
     <meta property="og:url" content="{{ url()->current() }}" inertia>
-    <meta property="og:title" content="{{ config('app.name', 'BiznesPilot AI') }}" inertia>
-    <meta property="og:description" content="BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR - hammasi bir joyda." inertia>
-    <meta property="og:image" content="{{ asset('images/og-image.jpg') }}" inertia>
+    <meta property="og:title" content="{{ $seoTitle ?? config('app.name', 'BiznesPilot AI') }}" inertia>
+    <meta property="og:description" content="{{ $seoDescription ?? "BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR - hammasi bir joyda." }}" inertia>
+    <meta property="og:image" content="{{ $seoImage ?? asset('images/og-image.jpg') }}" inertia>
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="{{ app()->getLocale() === 'ru' ? 'ru_RU' : 'uz_UZ' }}">
@@ -44,9 +44,9 @@
     <!-- ========== DEFAULT TWITTER CARDS ========== -->
     <meta name="twitter:card" content="summary_large_image" inertia>
     <meta name="twitter:site" content="@biznespilot">
-    <meta name="twitter:title" content="{{ config('app.name', 'BiznesPilot AI') }}" inertia>
-    <meta name="twitter:description" content="BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi." inertia>
-    <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}" inertia>
+    <meta name="twitter:title" content="{{ $seoTitle ?? config('app.name', 'BiznesPilot AI') }}" inertia>
+    <meta name="twitter:description" content="{{ $seoDescription ?? "BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi." }}" inertia>
+    <meta name="twitter:image" content="{{ $seoImage ?? asset('images/og-image.jpg') }}" inertia>
 
     <!-- ========== MOBILE & APP META ========== -->
     <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
