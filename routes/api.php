@@ -741,7 +741,7 @@ Route::prefix('v1/bot/delivery')->group(function () {
 Route::prefix('v1/admin/delivery')->middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryDashboardController::class, 'index']);
 
-    Route::apiResource('categories', \App\Http\Controllers\Api\Admin\Delivery\DeliveryCategoryAdminController::class);
+    Route::apiResource('categories', \App\Http\Controllers\Api\Admin\Delivery\DeliveryCategoryAdminController::class)->names('delivery.categories');
     Route::post('categories/reorder', [\App\Http\Controllers\Api\Admin\Delivery\DeliveryCategoryAdminController::class, 'reorder']);
 
     Route::apiResource('menu-items', \App\Http\Controllers\Api\Admin\Delivery\DeliveryMenuItemAdminController::class);
@@ -816,7 +816,7 @@ Route::prefix('v1/bot/service')->group(function () {
 Route::prefix('v1/admin/service')->middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\Api\Admin\Service\ServiceDashboardController::class, 'index']);
 
-    Route::apiResource('categories', \App\Http\Controllers\Api\Admin\Service\ServiceCategoryAdminController::class);
+    Route::apiResource('categories', \App\Http\Controllers\Api\Admin\Service\ServiceCategoryAdminController::class)->names('service.categories');
     Route::apiResource('service-types', \App\Http\Controllers\Api\Admin\Service\ServiceTypeAdminController::class);
     Route::apiResource('masters', \App\Http\Controllers\Api\Admin\Service\ServiceMasterAdminController::class);
 
