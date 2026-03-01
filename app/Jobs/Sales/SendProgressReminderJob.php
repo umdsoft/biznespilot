@@ -47,7 +47,7 @@ class SendProgressReminderJob implements ShouldQueue
                     $this->processForBusiness($alertService, $business);
                 }
             } else {
-                Business::whereHas('subscription', function ($q) {
+                Business::whereHas('subscriptions', function ($q) {
                     $q->where('status', 'active');
                 })->chunk(50, function ($businesses) use ($alertService) {
                     foreach ($businesses as $business) {
