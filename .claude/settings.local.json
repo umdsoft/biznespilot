@@ -135,7 +135,9 @@
       "Bash(git rm:*)",
       "WebFetch(domain:)",
       "Bash(npx vite build:*)",
-      "Bash(artisan route:list:*)"
+      "Bash(artisan route:list:*)",
+      "Bash(composer -V)",
+      "Bash(find . \\\\\\(-name *.php -o -name *.vue -o -name *.js \\\\\\) -not -path ./vendor/* -not -path ./node_modules/* -print0)"
     ]
   }
 }

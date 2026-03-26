@@ -10,8 +10,6 @@
     <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/pricing" />
     <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/pricing" />
     <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/pricing" />
-    <script type="application/ld+json" v-html="JSON.stringify(productSchema)" />
-    <script type="application/ld+json" v-html="JSON.stringify(faqSchema)" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">
@@ -508,7 +506,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { Link, Head, router } from '@inertiajs/vue3';
 import LandingLayout from '@/layouts/LandingLayout.vue';
 import ComparisonTable from '@/components/pricing/ComparisonTable.vue';
@@ -599,6 +597,25 @@ const faqSchema = computed(() => ({
     acceptedAnswer: { '@type': 'Answer', text: faq.answer },
   })),
 }));
+
+// Inject JSON-LD via DOM to avoid Vue 3 template compilation error with <script> tags
+const jsonLdElements = []
+
+function injectJsonLd() {
+  jsonLdElements.forEach(el => el.remove())
+  jsonLdElements.length = 0
+  ;[productSchema.value, faqSchema.value].forEach(schema => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.textContent = JSON.stringify(schema)
+    document.head.appendChild(el)
+    jsonLdElements.push(el)
+  })
+}
+
+onMounted(() => { injectJsonLd() })
+watch([productSchema, faqSchema], injectJsonLd)
+onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
 </script>
 
 <style scoped>

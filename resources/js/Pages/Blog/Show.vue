@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
 import { useLandingTranslations } from '@/composables/useLandingTranslations'
@@ -116,6 +116,31 @@ const breadcrumbSchema = computed(() => JSON.stringify({
         }
     ]
 }))
+
+// Inject JSON-LD schemas via DOM manipulation (Vue 3 forbids <script> in templates)
+const jsonLdElements = []
+
+function injectJsonLd() {
+  jsonLdElements.forEach(el => el.remove())
+  jsonLdElements.length = 0
+
+  const schemas = [
+    typeof blogPostingSchema.value === 'string' ? blogPostingSchema.value : JSON.stringify(blogPostingSchema.value),
+    typeof breadcrumbSchema.value === 'string' ? breadcrumbSchema.value : JSON.stringify(breadcrumbSchema.value),
+  ]
+
+  schemas.forEach(content => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.textContent = content
+    document.head.appendChild(el)
+    jsonLdElements.push(el)
+  })
+}
+
+onMounted(() => { injectJsonLd() })
+watch([blogPostingSchema, breadcrumbSchema], injectJsonLd)
+onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
 </script>
 
 <template>
@@ -137,8 +162,6 @@ const breadcrumbSchema = computed(() => JSON.stringify({
       <link rel="alternate" hreflang="uz" :href="`https://biznespilot.uz/blog/${post.slug}`" />
       <link rel="alternate" hreflang="ru" :href="`https://biznespilot.uz/blog/${post.slug}`" />
       <link rel="alternate" hreflang="x-default" :href="`https://biznespilot.uz/blog/${post.slug}`" />
-      <script type="application/ld+json" v-html="blogPostingSchema" />
-      <script type="application/ld+json" v-html="breadcrumbSchema" />
     </Head>
 
     <article>

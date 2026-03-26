@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { Link, Head } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
 import { useLandingLocale } from '@/i18n/landing/locale'
@@ -128,6 +128,26 @@ const softwareSchema = computed(() => ({
   },
   featureList: 'CRM, Marketing Automation, Sales Pipeline, Finance Management, HR, AI Assistant, Telegram Bot',
 }))
+
+// JSON-LD injection into <head> (Vue 3 doesn't allow <script> in templates)
+const jsonLdElements = []
+
+function injectJsonLd() {
+  jsonLdElements.forEach(el => el.remove())
+  jsonLdElements.length = 0
+
+  ;[organizationSchema.value, softwareSchema.value].forEach(schema => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.textContent = JSON.stringify(schema)
+    document.head.appendChild(el)
+    jsonLdElements.push(el)
+  })
+}
+
+onMounted(() => { injectJsonLd() })
+watch([organizationSchema, softwareSchema], injectJsonLd)
+onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
 </script>
 
 <template>
@@ -151,8 +171,6 @@ const softwareSchema = computed(() => ({
     <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/" />
     <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/lang/ru" />
     <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/" />
-    <script type="application/ld+json" v-html="JSON.stringify(organizationSchema)" />
-    <script type="application/ld+json" v-html="JSON.stringify(softwareSchema)" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">

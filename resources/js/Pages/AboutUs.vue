@@ -9,8 +9,6 @@
       <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/about" />
       <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/about" />
       <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/about" />
-      <script type="application/ld+json" v-html="JSON.stringify(aboutSchema)" />
-      <script type="application/ld+json" v-html="JSON.stringify(breadcrumbSchema)" />
     </Head>
 
     <div class="min-h-screen">
@@ -221,7 +219,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
 import { useLandingLocale } from '@/i18n/landing/locale'
@@ -341,6 +339,25 @@ const breadcrumbSchema = computed(() => ({
     { '@type': 'ListItem', position: 2, name: locale.value === 'ru' ? 'О нас' : 'Biz haqimizda', item: 'https://biznespilot.uz/about' },
   ],
 }))
+
+// JSON-LD injection via DOM (Vue 3 forbids <script> in templates)
+const jsonLdElements = []
+
+function injectJsonLd() {
+  jsonLdElements.forEach(el => el.remove())
+  jsonLdElements.length = 0
+  ;[aboutSchema.value, breadcrumbSchema.value].forEach(schema => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.textContent = JSON.stringify(schema)
+    document.head.appendChild(el)
+    jsonLdElements.push(el)
+  })
+}
+
+onMounted(() => { injectJsonLd() })
+watch([aboutSchema, breadcrumbSchema], injectJsonLd)
+onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
 
 const valuesData = computed(() => [
   {
