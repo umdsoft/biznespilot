@@ -490,7 +490,12 @@
           </Teleport>
 
           <!-- Integrations Tab -->
-          <div v-show="activeTab === 'integrations'" class="space-y-4">
+          <div v-show="activeTab === 'integrations'">
+            <IntegrationsContent />
+          </div>
+
+          <!-- OLD Messaging (replaced by IntegrationsContent) -->
+          <div v-if="false" class="space-y-4">
 
             <!-- Messaging -->
             <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
@@ -845,6 +850,7 @@ import { ref, h, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import InviteTeamMemberModal from '@/components/InviteTeamMemberModal.vue';
+import IntegrationsContent from '@/components/IntegrationsContent.vue';
 import { useI18n } from '@/i18n';
 
 const { t } = useI18n();
@@ -877,7 +883,6 @@ const tabs = [
   { id: 'profile', name: 'Profil', icon: UserIcon },
   { id: 'preferences', name: 'Afzalliklar', icon: BellIcon },
   { id: 'team', name: 'Jamoa', icon: UsersIcon },
-  { id: 'integrations', name: 'Integratsiyalar', icon: LinkIcon },
 ];
 
 // Profile Form

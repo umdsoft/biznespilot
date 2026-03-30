@@ -144,9 +144,10 @@ export const businessLayoutConfig = {
       title: 'Integratsiyalar',
       titleKey: 'nav.integrations_section',
       items: [
-        { href: '/business/facebook-analysis', label: 'Target Analiz', labelKey: 'nav.target_analysis', icon: FacebookIcon },
-        { href: '/integrations/instagram', label: 'Instagram', labelKey: 'nav.instagram', icon: InstagramIcon },
-        { href: '/business/telegram-funnels', label: 'Telegram', labelKey: 'nav.telegram', icon: TelegramIcon },
+        { href: '/integrations', label: 'Integratsiyalar', labelKey: 'nav.integrations', icon: BoltIcon },
+        { href: '/business/facebook-analysis', label: 'Target Analiz', labelKey: 'nav.target_analysis', icon: FacebookIcon, integration: 'facebook' },
+        { href: '/integrations/instagram', label: 'Instagram', labelKey: 'nav.instagram', icon: InstagramIcon, integration: 'instagram' },
+        { href: '/business/telegram-funnels', label: 'Telegram', labelKey: 'nav.telegram', icon: TelegramIcon, integration: 'telegram' },
       ]
     },
     {
@@ -322,7 +323,6 @@ export const adminLayoutConfig = {
   // User menu
   userMenuItems: [
     { href: '/dashboard/settings', label: 'Sozlamalar' },
-    { href: '/business', label: 'Biznes Paneliga', class: 'text-blue-600 hover:bg-blue-50' },
     { href: '/logout', label: 'Chiqish', method: 'post', as: 'button', class: 'w-full text-left text-red-600 hover:bg-red-50' },
   ],
 
@@ -358,12 +358,6 @@ export const adminLayoutConfig = {
       title: 'Tizim',
       items: [
         { href: '/dashboard/settings', label: 'Sozlamalar', icon: CogIcon },
-      ]
-    },
-    {
-      title: null,
-      items: [
-        { href: '/business', label: 'Biznes Paneliga', icon: ArrowLeftIcon },
       ]
     },
   ],
@@ -466,9 +460,10 @@ export const marketingLayoutConfig = {
     {
       title: 'Integratsiyalar',
       items: [
-        { href: '/marketing/facebook-analysis', label: 'Target analiz', icon: FacebookIcon },
-        { href: '/integrations/instagram', label: 'Instagram Tahlili', icon: InstagramIcon },
-        { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon },
+        { href: '/integrations', label: 'Integratsiyalar', icon: BoltIcon },
+        { href: '/marketing/facebook-analysis', label: 'Target analiz', icon: FacebookIcon, integration: 'facebook' },
+        { href: '/integrations/instagram', label: 'Instagram Tahlili', icon: InstagramIcon, integration: 'instagram' },
+        { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon, integration: 'telegram' },
       ]
     },
     {
@@ -836,7 +831,7 @@ export const appLayoutConfig = {
       title: 'AI & Tahlil',
       items: [
         { href: '/ai', label: 'AI Tahlil', icon: LightBulbIcon },
-        { href: '/target-analysis', label: 'Facebook analiz', icon: FacebookIcon },
+        { href: '/target-analysis', label: 'Facebook analiz', icon: FacebookIcon, integration: 'facebook' },
         { href: '/analytics/channels', label: 'Kanal Tahlili', icon: ChartBarIcon },
         { href: '/chatbot', label: 'Chatbot', icon: ChatBubbleLeftRightIcon },
       ]

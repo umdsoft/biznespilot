@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             'currentBusiness' => fn () => $this->getCurrentBusiness($user),
             'subscription' => fn () => $this->getSubscriptionData($user),
             'activeStore' => fn () => $this->getActiveStore($user),
+            'integrations' => fn () => $this->getIntegrationStatus($user),
             'locale' => fn () => $this->getLocale($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
@@ -378,5 +379,48 @@ class HandleInertiaRequests extends Middleware
         if (session()->isStarted()) {
             session()->forget("sub_active_{$businessId}");
         }
+    }
+
+    /**
+     * Get integration status for current business.
+     */
+    private function getIntegrationStatus($user): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $currentBusinessId = session('current_business_id');
+
+        if (! $currentBusinessId) {
+            return null;
+        }
+
+        $cacheKey = "integrations_status_{$currentBusinessId}";
+
+        return Cache::remember($cacheKey, 300, function () use ($currentBusinessId) {
+            $check = function (string $model) use ($currentBusinessId) {
+                try {
+                    return $model::where('business_id', $currentBusinessId)->exists();
+                } catch (\Throwable) {
+                    return false;
+                }
+            };
+
+            return [
+                'instagram' => $check(\App\Models\InstagramAccount::class),
+                'facebook' => $check(\App\Models\FacebookPage::class),
+                'meta_ads' => $check(\App\Models\MetaAdAccount::class),
+                'telegram' => $check(\App\Models\TelegramBot::class),
+            ];
+        });
+    }
+
+    /**
+     * Clear integration status cache.
+     */
+    public static function clearIntegrationCache(string|int $businessId): void
+    {
+        Cache::forget("integrations_status_{$businessId}");
     }
 }

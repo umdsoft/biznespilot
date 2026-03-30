@@ -137,7 +137,24 @@
       "Bash(npx vite build:*)",
       "Bash(artisan route:list:*)",
       "Bash(composer -V)",
-      "Bash(find . \\\\\\(-name *.php -o -name *.vue -o -name *.js \\\\\\) -not -path ./vendor/* -not -path ./node_modules/* -print0)"
+      "Bash(find . \\\\\\(-name *.php -o -name *.vue -o -name *.js \\\\\\) -not -path ./vendor/* -not -path ./node_modules/* -print0)",
+      "Bash(apt-get install:*)",
+      "Bash(pacman -S sshpass)",
+      "Bash(export SSH_ASKPASS_REQUIRE=force)",
+      "Bash(export SSH_ASKPASS=\"echo user1515\")",
+      "Bash(host zerox.uz)",
+      "Bash(choco install:*)",
+      "Bash(sshpass -p \"user1515\" ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no user@zerox.uz \"echo ''CONNECTED''; whoami; hostname\")",
+      "Bash(sshpass -p \"user1515\" ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o ConnectTimeout=15 user@zerox.uz \"echo CONNECTED; whoami\")",
+      "Bash(sshpass -p \"user1515\" ssh user@zerox.uz \"whoami\")",
+      "Bash(sshpass -p \"user1515\" ssh -o PreferredAuthentications=password user@zerox.uz \"whoami\")",
+      "Bash(sshpass -p \"user1515\" ssh -o PubkeyAuthentication=no user@zerox.uz \"whoami\")",
+      "Bash(sshpass -p \"user1515\" ssh -v -o PubkeyAuthentication=no user@zerox.uz \"whoami\")",
+      "Read(//c/xampp/php/**)",
+      "Read(//c/laragon/bin/**)",
+      "Read(//c/Program Files/PHP/**)",
+      "Bash(/c/xampp/php/php.exe -v)",
+      "Bash(/c/xampp/php/php.exe artisan:*)"
     ]
   }
 }

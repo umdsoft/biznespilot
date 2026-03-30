@@ -49,6 +49,12 @@ const dismissed = ref(false);
 
 const subscription = computed(() => page.props.subscription);
 
+// Admin uchun banner ko'rsatmaslik
+const isAdmin = computed(() => {
+  const roles = page.props.auth?.user?.roles || [];
+  return roles.some(r => r.name === 'admin' || r.name === 'super_admin');
+});
+
 const isTrial = computed(() => {
   return subscription.value?.subscription?.is_trial === true;
 });
@@ -71,6 +77,9 @@ const isUrgent = computed(() => {
 
 const showBanner = computed(() => {
   if (dismissed.value) return false;
+
+  // Admin uchun obuna banner ko'rsatmaslik
+  if (isAdmin.value) return false;
 
   // Obuna umuman yo'q — tugagan
   if (hasNoSubscription.value) return true;

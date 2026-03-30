@@ -598,6 +598,7 @@ class DashboardController extends Controller
                 'start' => $startDate->format('Y-m-d'),
                 'end' => $endDate->format('Y-m-d'),
             ],
+            'businessCategory' => $currentBusiness->category,
             'businessRegistrationDate' => $currentBusiness->created_at->format('Y-m-d'),
             'activePlan' => $activePlan,
             'kpiPlans' => $kpiPlans,

@@ -156,6 +156,23 @@ Route::middleware(['auth', 'has.business'])->prefix('onboarding')->name('onboard
 // Shared Integrations Routes (for all panels)
 // ==============================================
 Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integrations.')->group(function () {
+    // Integrations Index page
+    Route::get('/', function () {
+        $business = \App\Models\Business::find(session('current_business_id'));
+        $check = function (string $model) use ($business) {
+            if (!$business) return false;
+            try { return $model::where('business_id', $business->id)->exists(); } catch (\Throwable) { return false; }
+        };
+        return \Inertia\Inertia::render('Integrations/Index', [
+            'integrations' => [
+                'instagram' => $check(\App\Models\InstagramAccount::class),
+                'facebook' => $check(\App\Models\FacebookPage::class),
+                'meta_ads' => $check(\App\Models\MetaAdAccount::class),
+                'telegram' => $check(\App\Models\TelegramBot::class),
+            ],
+        ]);
+    })->name('index');
+
     // ==================== META (Facebook/Instagram) ====================
     Route::prefix('meta')->name('meta.')->group(function () {
         Route::get('/auth-url', [TargetAnalysisController::class, 'getMetaAuthUrl'])->name('auth-url');
@@ -507,6 +524,16 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
                 Route::get('/{requestId}/status', [App\Http\Controllers\Marketing\ContentAIController::class, 'videoStatus'])->name('status');
             });
         });
+    });
+
+    // Product Analysis (Marketing)
+    Route::prefix('product-analysis')->name('product-analysis.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'store'])->name('store');
+        Route::get('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'show'])->name('show');
+        Route::put('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'update'])->name('update');
+        Route::delete('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'destroy'])->name('destroy');
+        Route::post('/insights/{insight}/dismiss', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'dismissInsight'])->name('dismiss-insight');
     });
 
     // AI Analysis routes (Facebook) - Instagram moved to /integrations/instagram
@@ -1408,6 +1435,7 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
         Route::get('/', [BusinessManagementController::class, 'index'])->name('index');
         Route::get('/{business}', [BusinessManagementController::class, 'show'])->name('show');
         Route::put('/{business}/status', [BusinessManagementController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{business}/assign-subscription', [BusinessManagementController::class, 'assignSubscription'])->name('assign-subscription');
         Route::delete('/{business}', [BusinessManagementController::class, 'destroy'])->name('destroy');
     });
 
@@ -1872,6 +1900,16 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
     Route::get('/', [App\Http\Controllers\Marketing\DashboardController::class, 'marketingHub'])->name('hub');
     Route::get('/dashboard', [App\Http\Controllers\Marketing\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\Marketing\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // Product Analysis
+    Route::prefix('product-analysis')->name('product-analysis.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'index'])->defaults('panel', 'marketing')->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'store'])->name('store');
+        Route::get('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'show'])->defaults('panel', 'marketing')->name('show');
+        Route::put('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'update'])->name('update');
+        Route::delete('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'destroy'])->name('destroy');
+        Route::post('/insights/{insight}/dismiss', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'dismissInsight'])->name('dismiss-insight');
+    });
 
     // Campaigns
     Route::prefix('campaigns')->name('campaigns.')->group(function () {

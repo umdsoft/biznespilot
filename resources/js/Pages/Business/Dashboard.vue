@@ -1,6 +1,9 @@
 <template>
   <BusinessLayout title="Dashboard">
 
+    <!-- Telegram System Bot Connect Banner -->
+    <TelegramConnectBanner />
+
     <!-- 1. Welcome + Health Score -->
     <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
       <div>
@@ -304,6 +307,7 @@
 <script setup>
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import SubscriptionWidget from '@/components/Dashboard/SubscriptionWidget.vue';
+import TelegramConnectBanner from '@/components/Dashboard/TelegramConnectBanner.vue';
 import StatCard from '@/components/Dashboard/StatCard.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed, defineAsyncComponent } from 'vue';

@@ -434,8 +434,12 @@ class AdminDashboardController extends Controller
             'trial' => Subscription::where('status', 'trial')->count(),
             'cancelled' => Subscription::where('status', 'cancelled')->count(),
             'expired' => Subscription::where('status', 'expired')->count(),
-            'total_revenue' => Subscription::where('status', 'active')->sum('amount'),
-            'mrr' => Subscription::where('status', 'active')->sum('amount'),
+            'total_revenue' => Subscription::where('status', 'active')
+                ->where('payment_provider', '!=', 'admin')
+                ->sum('amount'),
+            'mrr' => Subscription::where('status', 'active')
+                ->where('payment_provider', '!=', 'admin')
+                ->sum('amount'),
         ];
 
         $plans = Plan::where('is_active', true)

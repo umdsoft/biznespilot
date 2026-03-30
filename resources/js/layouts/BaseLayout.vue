@@ -45,7 +45,7 @@
       <!-- Navigation -->
       <nav class="p-4 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
         <slot name="navigation">
-          <template v-for="(section, sectionIndex) in config.navigation" :key="sectionIndex">
+          <template v-for="(section, sectionIndex) in filteredNavigation" :key="sectionIndex">
             <!-- Section Divider -->
             <div v-if="sectionIndex > 0" :class="['pt-3 mt-3 border-t', config.sectionBorderClass]">
               <p v-if="section.title || section.titleKey" class="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -349,6 +349,22 @@ const props = defineProps({
 });
 
 const page = usePage();
+
+// Integratsiya holatiga qarab navigation elementlarini filtr
+const integrations = computed(() => page.props.integrations || {});
+
+const filteredNavigation = computed(() => {
+  if (!props.config.navigation) return [];
+  return props.config.navigation
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        if (!item.integration) return true;
+        return integrations.value[item.integration] === true;
+      }),
+    }))
+    .filter(section => section.items.length > 0);
+});
 
 const showUserMenu = ref(false);
 const showBusinessMenu = ref(false);
