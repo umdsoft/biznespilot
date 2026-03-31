@@ -103,9 +103,32 @@ class Subscription extends Model
      */
     public function isActive(): bool
     {
-        return in_array($this->status, ['active', 'trialing'])
-            && $this->ends_at
-            && $this->ends_at->isFuture();
+        if (! in_array($this->status, ['active', 'trialing'])) {
+            return false;
+        }
+
+        if ($this->status === 'trialing' && $this->trial_ends_at) {
+            return $this->trial_ends_at->isFuture();
+        }
+
+        return $this->ends_at && $this->ends_at->isFuture();
+    }
+
+    /**
+     * Scope: aktiv yoki trial subscriptionlar.
+     * Barcha joyda bir xil query ishlatish uchun.
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', ['active', 'trialing'])
+            ->where(function ($q) {
+                $q->whereDate('ends_at', '>=', now())
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'trialing')
+                            ->whereDate('trial_ends_at', '>=', now());
+                    });
+            })
+            ->latest('created_at');
     }
 
     /**

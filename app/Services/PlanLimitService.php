@@ -9,104 +9,22 @@ use Illuminate\Support\Facades\Cache;
 
 class PlanLimitService
 {
-    /**
-     * Limit konfiguratsiasi - hamma limitlar shu yerda aniqlanadi
-     */
-    protected array $limitConfig = [
-        'users' => [
-            'label' => 'Foydalanuvchilar soni',
-            'method' => 'getUsersCount',
-            'unlimited_value' => -1,
-            'legacy_column' => 'team_member_limit',
-        ],
-        'team_members' => [
-            'label' => 'Team member limit',
-            'method' => 'getTeamMembersCount',
-            'unlimited_value' => -1,
-            'legacy_column' => 'team_member_limit',
-        ],
-        'branches' => [
-            'label' => 'Filiallar soni',
-            'method' => 'getBranchesCount',
-            'unlimited_value' => -1,
-        ],
-        'instagram_accounts' => [
-            'label' => 'Instagram akkauntlar',
-            'method' => 'getInstagramAccountsCount',
-            'unlimited_value' => -1,
-        ],
-        'monthly_leads' => [
-            'label' => 'Oylik lidlar',
-            'method' => 'getMonthlyLeadsCount',
-            'unlimited_value' => -1,
-            'legacy_column' => 'lead_limit',
-        ],
-        'ai_call_minutes' => [
-            'label' => 'Qo\'ng\'iroqlar AI tahlili',
-            'method' => 'getAiCallMinutesUsed',
-            'unlimited_value' => -1,
-            'legacy_column' => 'audio_minutes_limit',
-        ],
-        'chatbot_channels' => [
-            'label' => 'Chatbot kanallari',
-            'method' => 'getChatbotChannelsCount',
-            'unlimited_value' => -1,
-            'legacy_column' => 'chatbot_channel_limit',
-        ],
-        'telegram_bots' => [
-            'label' => 'Telegram botlar',
-            'method' => 'getTelegramBotsCount',
-            'unlimited_value' => -1,
-            'legacy_column' => 'telegram_bot_limit',
-        ],
-        'ai_requests' => [
-            'label' => 'AI so\'rovlar',
-            'method' => 'getAiRequestsCount',
-            'unlimited_value' => -1,
-            'legacy_column' => 'ai_requests_limit',
-        ],
-        'storage_mb' => [
-            'label' => 'Saqlash hajmi',
-            'method' => 'getStorageUsedMb',
-            'unlimited_value' => -1,
-            'legacy_column' => 'storage_limit_mb',
-        ],
-    ];
+    protected array $limitConfig;
 
-    /**
-     * Feature konfiguratsiasi
-     */
-    protected array $featureConfig = [
-        'hr_tasks' => [
-            'label' => 'HR vazifalar',
-            'description' => 'Vazifalar va loyihalar boshqaruvi',
-        ],
-        'hr_bot' => [
-            'label' => 'Ishga olish boti',
-            'description' => 'Avtomatlashtirilgan HR chatbot',
-        ],
-        'anti_fraud' => [
-            'label' => 'SMS ogohlantirish',
-            'description' => 'Fraud aniqlash va ogohlantirish',
-        ],
-    ];
+    protected array $featureConfig;
+
+    public function __construct()
+    {
+        $this->limitConfig = PlanConfig::limits();
+        $this->featureConfig = PlanConfig::features();
+    }
 
     /**
      * Get the active subscription for a business.
      */
     public function getActiveSubscription(Business $business): ?Subscription
     {
-        return $business->subscriptions()
-            ->with('plan')
-            ->whereIn('status', ['active', 'trialing'])
-            ->where(function ($query) {
-                $query->whereDate('ends_at', '>=', now())
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'trialing')
-                            ->whereDate('trial_ends_at', '>=', now());
-                    });
-            })
-            ->first();
+        return $business->subscriptions()->with('plan')->active()->first();
     }
 
     /**
@@ -357,12 +275,14 @@ class PlanLimitService
 
     /**
      * Get branches count for the business.
-     * TODO: Implement when branches feature is added
+     * Counts queue_branches (service locations) for the business.
+     * Always at least 1 (main business location).
      */
     protected function getBranchesCount(Business $business): int
     {
-        // Return 1 as default (main business location)
-        return 1;
+        $count = \App\Models\Bot\Queue\QueueBranch::where('business_id', $business->id)->count();
+
+        return max($count, 1);
     }
 
     /**
@@ -385,13 +305,21 @@ class PlanLimitService
     }
 
     /**
-     * Get AI call minutes used this month.
+     * Get AI call minutes used this month (analyzed calls only).
      */
     protected function getAiCallMinutesUsed(Business $business): int
     {
-        // TODO: Implement when call recording feature is added
-        // For now return 0
-        return 0;
+        return (int) Cache::remember(
+            "business_{$business->id}_ai_call_minutes_" . now()->format('Y_m'),
+            3600,
+            fn () => (int) ceil(
+                \App\Models\CallLog::where('business_id', $business->id)
+                    ->has('analysis')
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->sum('duration') / 60
+            )
+        );
     }
 
     /**
@@ -428,12 +356,21 @@ class PlanLimitService
 
     /**
      * Get storage used in MB.
+     * Calculates from feedback attachments file sizes.
      */
     protected function getStorageUsedMb(Business $business): int
     {
-        // TODO: Implement actual storage calculation
-        // For now return 0
-        return 0;
+        return (int) Cache::remember(
+            "business_{$business->id}_storage_mb",
+            3600,
+            function () use ($business) {
+                $bytes = \App\Models\FeedbackAttachment::whereHas('feedbackReport', function ($q) use ($business) {
+                    $q->where('business_id', $business->id);
+                })->sum('file_size');
+
+                return (int) ceil($bytes / (1024 * 1024));
+            }
+        );
     }
 
     // ==================== STATIC HELPERS ====================

@@ -154,7 +154,10 @@
       "Read(//c/laragon/bin/**)",
       "Read(//c/Program Files/PHP/**)",
       "Bash(/c/xampp/php/php.exe -v)",
-      "Bash(/c/xampp/php/php.exe artisan:*)"
+      "Bash(/c/xampp/php/php.exe artisan:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -E \"\\\\.\\(php\\)$\")",
+      "Bash(awk 'NR>=934 && NR<=1015' routes/web.php)"
     ]
   }
 }

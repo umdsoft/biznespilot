@@ -255,18 +255,29 @@ const pricingModelLabel = computed(() => pricingModelLabels[props.product.pricin
 const formatPrice = (price) => price ? new Intl.NumberFormat('uz-UZ').format(price) + " so'm" : "—";
 const getScoreColor = (score) => score >= 70 ? 'emerald' : score >= 40 ? 'amber' : 'red';
 
-// ScoreCard inline component
+const colorMap = {
+  emerald: { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500' },
+  amber: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500' },
+  red: { text: 'text-red-600 dark:text-red-400', bg: 'bg-red-500' },
+  blue: { text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500' },
+};
+
+// ScoreCard inline component — static Tailwind classes
 const ScoreCard = {
   props: ['label', 'value', 'suffix', 'color'],
+  setup(props) {
+    const colors = colorMap[props.color] || colorMap.blue;
+    return { colors };
+  },
   template: `
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ label }}</p>
       <div class="flex items-end gap-1">
-        <p :class="'text-lg font-bold text-' + color + '-600 dark:text-' + color + '-400'">{{ value || 0 }}</p>
+        <p class="text-lg font-bold" :class="colors.text">{{ value || 0 }}</p>
         <span class="text-xs text-gray-400 mb-0.5">{{ suffix }}</span>
       </div>
       <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-2">
-        <div :class="'h-full bg-' + color + '-500 rounded-full transition-all duration-500'" :style="{ width: Math.min(value || 0, 100) + '%' }"></div>
+        <div class="h-full rounded-full transition-all duration-500" :class="colors.bg" :style="{ width: Math.min(value || 0, 100) + '%' }"></div>
       </div>
     </div>
   `,

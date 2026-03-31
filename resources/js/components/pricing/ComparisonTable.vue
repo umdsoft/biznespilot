@@ -23,7 +23,7 @@
       <tbody>
         <!-- Section: Asosiy limitlar -->
         <tr class="bg-slate-50">
-          <td colspan="5" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+          <td :colspan="plans.length + 1" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
             <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -41,7 +41,7 @@
 
         <!-- Section: Bot va kanallar -->
         <tr class="bg-slate-50">
-          <td colspan="5" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+          <td :colspan="plans.length + 1" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
             <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -59,7 +59,7 @@
 
         <!-- Section: AI imkoniyatlari -->
         <tr class="bg-slate-50">
-          <td colspan="5" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+          <td :colspan="plans.length + 1" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
             <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-violet-500 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -77,7 +77,7 @@
 
         <!-- Section: Qo'shimcha funksiyalar -->
         <tr class="bg-slate-50">
-          <td colspan="5" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+          <td :colspan="plans.length + 1" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
             <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -95,7 +95,7 @@
 
         <!-- Section: Barcha tariflarda mavjud -->
         <tr class="bg-slate-50">
-          <td colspan="5" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+          <td :colspan="plans.length + 1" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
             <div class="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -113,7 +113,7 @@
 
         <!-- Section: Texnik yordam -->
         <tr class="bg-slate-50">
-          <td colspan="5" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+          <td :colspan="plans.length + 1" class="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
             <div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -197,57 +197,109 @@ const props = defineProps({
 });
 
 const formatPrice = (price) => {
-  return price.toLocaleString('uz-UZ');
+  return Number(price).toLocaleString('uz-UZ');
 };
 
-// Computed data arrays using translations
-const v = computed(() => t.value.table.values);
 const tb = computed(() => t.value.table);
+const u = computed(() => t.value.units);
 
-// Asosiy limitlar - from PlanSeeder
+// Helper: format a limit value with suffix
+const fmtLimit = (val, suffix) => {
+  if (val === -1 || val === null || val === undefined) return u.value.unlimited;
+  return `${Number(val).toLocaleString('uz-UZ')} ${suffix}`;
+};
+
+// Helper: format storage (auto MB → GB)
+const fmtStorage = (mb) => {
+  if (mb === -1 || mb === null || mb === undefined) return u.value.unlimited;
+  if (mb >= 1000) return `${Math.round(mb / 1000)} ${u.value.gb}`;
+  return `${mb} ${u.value.mb}`;
+};
+
+// Helper: build a row from limit key
+const buildLimitRow = (label, limitKey, formatter) => {
+  const row = { name: label };
+  props.plans.forEach(p => {
+    const val = p.limits?.[limitKey];
+    row[p.slug || p.id] = formatter(val);
+  });
+  return row;
+};
+
+// Helper: build a row from feature key (boolean)
+const buildFeatureRow = (label, featureKey) => {
+  const row = { name: label };
+  props.plans.forEach(p => {
+    row[p.slug || p.id] = p.features?.[featureKey] ?? false;
+  });
+  return row;
+};
+
+// Helper: build a row where all plans have the same value
+const buildAllTrueRow = (label) => {
+  const row = { name: label };
+  props.plans.forEach(p => { row[p.slug || p.id] = true; });
+  return row;
+};
+
+// Asosiy limitlar — from database
 const basicLimits = computed(() => [
-  { name: tb.value.basic.users, start: v.value.pcs_2, standard: v.value.pcs_5, business: v.value.pcs_10, premium: v.value.pcs_15 },
-  { name: tb.value.basic.branches, start: v.value.pcs_1, standard: v.value.pcs_1, business: v.value.pcs_2, premium: v.value.pcs_5 },
-  { name: tb.value.basic.monthly_leads, start: v.value.leads_500, standard: v.value.leads_2000, business: v.value.leads_10000, premium: v.value.unlimited },
-  { name: tb.value.basic.storage, start: v.value.storage_500mb, standard: v.value.storage_1gb, business: v.value.storage_5gb, premium: v.value.storage_50gb },
+  buildLimitRow(tb.value.basic.users, 'users', v => fmtLimit(v, u.value.pcs)),
+  buildLimitRow(tb.value.basic.branches, 'branches', v => fmtLimit(v, u.value.pcs)),
+  buildLimitRow(tb.value.basic.monthly_leads, 'monthly_leads', v => fmtLimit(v, u.value.pcs)),
+  buildLimitRow(tb.value.basic.storage, 'storage_mb', fmtStorage),
 ]);
 
-// Bot va kanallar - from PlanSeeder
+// Bot va kanallar — from database
 const botChannels = computed(() => [
-  { name: tb.value.bots.instagram_accounts, start: v.value.pcs_1, standard: v.value.pcs_2, business: v.value.pcs_3, premium: v.value.pcs_10 },
-  { name: tb.value.bots.chatbot_channels, start: v.value.pcs_2, standard: v.value.pcs_3, business: v.value.pcs_5, premium: v.value.pcs_20 },
-  { name: tb.value.bots.telegram_bots, start: v.value.pcs_2, standard: v.value.pcs_3, business: v.value.pcs_5, premium: v.value.pcs_20 },
+  buildLimitRow(tb.value.bots.instagram_accounts, 'instagram_accounts', v => fmtLimit(v, u.value.pcs)),
+  buildLimitRow(tb.value.bots.chatbot_channels, 'chatbot_channels', v => fmtLimit(v, u.value.pcs)),
+  buildLimitRow(tb.value.bots.telegram_bots, 'telegram_bots', v => fmtLimit(v, u.value.pcs)),
 ]);
 
-// AI imkoniyatlari - from PlanSeeder
+// AI imkoniyatlari — from database
 const aiFeatures = computed(() => [
-  { name: tb.value.ai.call_analysis, start: v.value.min_60, standard: v.value.min_150, business: v.value.min_400, premium: v.value.min_1000 },
-  { name: tb.value.ai.extra_minute_price, start: v.value.price_500, standard: v.value.price_450, business: v.value.price_400, premium: v.value.price_300 },
-  { name: tb.value.ai.ai_requests, start: v.value.requests_500, standard: v.value.requests_2000, business: v.value.requests_10000, premium: v.value.requests_50000 },
+  buildLimitRow(tb.value.ai.call_analysis, 'ai_call_minutes', v => fmtLimit(v, u.value.minutes)),
+  buildLimitRow(tb.value.ai.extra_minute_price, 'extra_call_price', v => fmtLimit(v, u.value.som)),
+  buildLimitRow(tb.value.ai.ai_requests, 'ai_requests', v => fmtLimit(v, u.value.pcs)),
 ]);
 
-// Qo'shimcha funksiyalar - from PlanSeeder features
+// Qo'shimcha funksiyalar — from database features
 const additionalFeatures = computed(() => [
-  { name: tb.value.additional.hr_tasks, start: false, standard: true, business: true, premium: true },
-  { name: tb.value.additional.hr_bot, start: false, standard: false, business: true, premium: true },
-  { name: tb.value.additional.anti_fraud, start: false, standard: false, business: false, premium: true },
+  buildFeatureRow(tb.value.additional.hr_tasks, 'hr_tasks'),
+  buildFeatureRow(tb.value.additional.hr_bot, 'hr_bot'),
+  buildFeatureRow(tb.value.additional.anti_fraud, 'anti_fraud'),
 ]);
 
-// Barcha tariflarda mavjud (cheklovsiz)
+// Barcha tariflarda mavjud
 const includedInAll = computed(() => [
-  { name: tb.value.included.instagram_facebook, start: true, standard: true, business: true, premium: true },
-  { name: tb.value.included.flow_builder, start: true, standard: true, business: true, premium: true },
-  { name: tb.value.included.marketing_roi, start: true, standard: true, business: true, premium: true },
-  { name: tb.value.included.crm, start: true, standard: true, business: true, premium: true },
-  { name: tb.value.included.kanban, start: true, standard: true, business: true, premium: true },
+  buildAllTrueRow(tb.value.included.instagram_facebook),
+  buildAllTrueRow(tb.value.included.flow_builder),
+  buildAllTrueRow(tb.value.included.marketing_roi),
+  buildAllTrueRow(tb.value.included.crm),
+  buildAllTrueRow(tb.value.included.kanban),
 ]);
 
-// Texnik yordam
-const supportFeatures = computed(() => [
-  { name: tb.value.support.telegram, start: true, standard: true, business: true, premium: true },
-  { name: tb.value.support.response_time, start: v.value.hours_24, standard: v.value.hours_12, business: v.value.hours_8, premium: v.value.hours_2 },
-  { name: tb.value.support.video_guides, start: true, standard: true, business: true, premium: true },
-  { name: tb.value.support.onboarding, start: false, standard: true, business: true, premium: v.value.personal },
-  { name: tb.value.support.personal_manager, start: false, standard: false, business: false, premium: true },
-]);
+// Texnik yordam — from database limits/features
+const supportFeatures = computed(() => {
+  const rows = [
+    buildAllTrueRow(tb.value.support.telegram),
+    buildLimitRow(tb.value.support.response_time, 'support_response_hours', v => {
+      if (!v) return `24 ${u.value.hours}`;
+      return `${v} ${u.value.hours}`;
+    }),
+    buildAllTrueRow(tb.value.support.video_guides),
+  ];
+  // Onboarding row
+  const onboardingRow = { name: tb.value.support.onboarding };
+  props.plans.forEach(p => {
+    const hasOnboarding = p.features?.onboarding ?? false;
+    const hasPersonalManager = p.features?.personal_manager ?? false;
+    onboardingRow[p.slug || p.id] = hasPersonalManager ? u.value.personal : hasOnboarding;
+  });
+  rows.push(onboardingRow);
+  // Personal manager row
+  rows.push(buildFeatureRow(tb.value.support.personal_manager, 'personal_manager'));
+  return rows;
+});
 </script>

@@ -5,10 +5,17 @@ namespace App\Models;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Plan extends Model
 {
     use HasUuid;
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::forget('public_plans'));
+        static::deleted(fn () => Cache::forget('public_plans'));
+    }
 
     /**
      * Get the route key for the model.

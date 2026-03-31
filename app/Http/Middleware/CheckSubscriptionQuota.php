@@ -47,7 +47,7 @@ class CheckSubscriptionQuota
             return $this->handleError($request, 'Business konteksti kerak', 400);
         }
 
-        $business = Cache::remember("business_model:{$businessId}", 300, fn () => Business::find($businessId));
+        $business = Cache::remember("business_model:{$businessId}", 60, fn () => Business::find($businessId));
 
         if (!$business) {
             return $this->handleError($request, 'Business topilmadi', 404);

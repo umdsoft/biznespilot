@@ -51,6 +51,15 @@ class ActivateSubscriptionListener implements ShouldQueue
         $business = $event->getBusiness();
         $plan = $event->getPlan();
 
+        if (! $business || ! $plan) {
+            Log::channel('billing')->error('[Listener] Missing business or plan from transaction', [
+                'transaction_id' => $transaction->id,
+                'business_exists' => (bool) $business,
+                'plan_exists' => (bool) $plan,
+            ]);
+            return;
+        }
+
         Log::channel('billing')->info('[Listener] ActivateSubscriptionListener started', [
             'transaction_id' => $transaction->id,
             'order_id' => $transaction->order_id,
@@ -99,7 +108,7 @@ class ActivateSubscriptionListener implements ShouldQueue
     protected function activateSubscription($transaction, $business, $plan): Subscription
     {
         // Mavjud aktiv obunani tekshirish
-        $existingSubscription = $business->subscription;
+        $existingSubscription = $business->activeSubscription();
 
         if ($existingSubscription && $existingSubscription->isActive()) {
             // Mavjud obunani yangilash (upgrade/renew)

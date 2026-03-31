@@ -6,6 +6,7 @@ use App\Exceptions\IntegrationAbuseException;
 use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
 use App\Services\IntegrationGuardService;
+use App\Services\PlanLimitService;
 use App\Services\Telegram\TelegramApiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,6 +91,16 @@ class TelegramBotManagementController extends Controller
                 'error_code' => 'INTEGRATION_ABUSE',
                 'abuse_type' => $e->getAbuseType(),
                 'upgrade_required' => $e->getAbuseType() === 'trial_abuse',
+            ], 403);
+        }
+
+        // Check telegram bots limit
+        $limitService = app(PlanLimitService::class);
+        if ($limitService->hasReachedLimit($business, 'telegram_bots')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Telegram botlar limiti tugagan. Tarifni yangilang.',
+                'error_code' => 'QUOTA_EXCEEDED',
             ], 403);
         }
 

@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use App\Models\Lead;
 use App\Models\LeadForm;
 use App\Models\LeadFormSubmission;
+use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Jenssegers\Agent\Agent;
@@ -144,7 +147,37 @@ class PublicLeadFormController extends Controller
             $leadData['source'] = $request->input('utm_source');
         }
 
-        $lead = Lead::create($leadData);
+        // Check monthly leads limit with atomic lock (race condition prevention)
+        $business = Business::find($leadForm->business_id);
+        if ($business) {
+            $lock = Cache::lock("lead_create:{$business->id}", 5);
+            if (! $lock->get()) {
+                if ($request->expectsJson() || $request->boolean('embed')) {
+                    return response()->json(['success' => false, 'message' => 'Too many requests'], 429);
+                }
+                return back()->with('error', 'Iltimos, biroz kuting.');
+            }
+
+            try {
+                $limitService = app(PlanLimitService::class);
+                if ($limitService->hasReachedLimit($business, 'monthly_leads')) {
+                    if ($request->expectsJson() || $request->boolean('embed')) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'monthly_leads_limit_reached',
+                            'message' => 'Oylik lidlar limiti tugagan.',
+                        ], 403);
+                    }
+                    return back()->with('error', 'Oylik lidlar limiti tugagan.');
+                }
+
+                $lead = Lead::create($leadData);
+            } finally {
+                $lock->release();
+            }
+        } else {
+            $lead = Lead::create($leadData);
+        }
 
         // Create submission record
         $submission = LeadFormSubmission::create([
@@ -261,7 +294,7 @@ class PublicLeadFormController extends Controller
         // Accept data as JSON
         $data = $request->all();
 
-        // Create Lead
+        // Create Lead data
         $leadData = [
             'business_id' => $leadForm->business_id,
             'source_id' => $leadForm->default_source_id,
@@ -274,7 +307,31 @@ class PublicLeadFormController extends Controller
             'source' => $data['utm_source'] ?? $data['source'] ?? 'api',
         ];
 
-        $lead = Lead::create($leadData);
+        // Check monthly leads limit with atomic lock
+        $business = Business::find($leadForm->business_id);
+        if ($business) {
+            $lock = Cache::lock("lead_create:{$business->id}", 5);
+            if (! $lock->get()) {
+                return response()->json(['success' => false, 'message' => 'Too many requests'], 429);
+            }
+
+            try {
+                $limitService = app(PlanLimitService::class);
+                if ($limitService->hasReachedLimit($business, 'monthly_leads')) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'monthly_leads_limit_reached',
+                        'message' => 'Monthly leads limit reached.',
+                    ], 403);
+                }
+
+                $lead = Lead::create($leadData);
+            } finally {
+                $lock->release();
+            }
+        } else {
+            $lead = Lead::create($leadData);
+        }
 
         // Create submission
         $submission = LeadFormSubmission::create([

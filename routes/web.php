@@ -163,12 +163,17 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
             if (!$business) return false;
             try { return $model::where('business_id', $business->id)->exists(); } catch (\Throwable) { return false; }
         };
+        $googleConnected = $business ? \App\Models\Integration::where('business_id', $business->id)->where('type', 'google')->where('is_active', true)->exists() : false;
+        $yandexConnected = $business ? \App\Models\Integration::where('business_id', $business->id)->where('type', 'yandex')->where('is_active', true)->exists() : false;
+
         return \Inertia\Inertia::render('Integrations/Index', [
             'integrations' => [
                 'instagram' => $check(\App\Models\InstagramAccount::class),
                 'facebook' => $check(\App\Models\FacebookPage::class),
                 'meta_ads' => $check(\App\Models\MetaAdAccount::class),
                 'telegram' => $check(\App\Models\TelegramBot::class),
+                'google' => $googleConnected,
+                'yandex' => $yandexConnected,
             ],
         ]);
     })->name('index');
@@ -181,6 +186,20 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
         Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
         Route::post('/refresh', [TargetAnalysisController::class, 'refreshMeta'])->name('refresh');
         Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
+    });
+
+    // ==================== GOOGLE (GA4 + Ads + YouTube) ====================
+    Route::prefix('google')->name('google.')->group(function () {
+        Route::get('/auth-url', [\App\Http\Controllers\IntegrationOAuthController::class, 'googleAuthUrl'])->name('auth-url');
+        Route::get('/callback', [\App\Http\Controllers\IntegrationOAuthController::class, 'googleCallback'])->name('callback');
+        Route::post('/disconnect', [\App\Http\Controllers\IntegrationOAuthController::class, 'googleDisconnect'])->name('disconnect');
+    });
+
+    // ==================== YANDEX (Metrika + Direct) ====================
+    Route::prefix('yandex')->name('yandex.')->group(function () {
+        Route::get('/auth-url', [\App\Http\Controllers\IntegrationOAuthController::class, 'yandexAuthUrl'])->name('auth-url');
+        Route::get('/callback', [\App\Http\Controllers\IntegrationOAuthController::class, 'yandexCallback'])->name('callback');
+        Route::post('/disconnect', [\App\Http\Controllers\IntegrationOAuthController::class, 'yandexDisconnect'])->name('disconnect');
     });
 
     // ==================== SOCIAL ACCOUNTS (Qat'iy Bitta Akkaunt) ====================
@@ -314,7 +333,7 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
 });
 
 // Business Panel Routes (requires business)
-Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.')->group(function () {
+Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')->name('business.')->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -903,8 +922,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/{call}', [App\Http\Controllers\Business\CallController::class, 'show'])->name('show');
     });
 
-    // Subscription / Billing routes (tarif sotib olish)
-    Route::prefix('subscription')->name('subscription.')->group(function () {
+    // Subscription / Billing routes (tarif sotib olish) — subscription middleware dan chiqarilgan
+    Route::withoutMiddleware('subscription')->prefix('subscription')->name('subscription.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Business\SubscriptionController::class, 'index'])->name('index');
         Route::get('/success', [\App\Http\Controllers\Business\SubscriptionController::class, 'success'])->name('success');
         Route::get('/cancel', [\App\Http\Controllers\Business\SubscriptionController::class, 'cancel'])->name('cancel');
@@ -912,8 +931,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{plan}/pay', [\App\Http\Controllers\Business\SubscriptionController::class, 'pay'])->name('pay');
     });
 
-    // Settings routes
-    Route::prefix('settings')->name('settings.')->group(function () {
+    // Settings routes — subscription middleware dan chiqarilgan (profil, parol, sozlamalar)
+    Route::withoutMiddleware('subscription')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
         Route::put('/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
         Route::put('/password', [SettingsController::class, 'updatePassword'])->name('password.update');
@@ -992,7 +1011,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         });
     });
 
-    // SMS routes
+    // SMS routes (anti_fraud feature checked in controller for fraud-specific actions)
     Route::prefix('sms')->name('sms.')->group(function () {
         // Status check
         Route::get('/status', [SmsController::class, 'status'])->name('status');
@@ -1312,8 +1331,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/types', [FeedbackController::class, 'getTypes'])->name('types');
     });
 
-    // Billing routes (Tarif va To'lov)
-    Route::prefix('billing')->name('billing.')->group(function () {
+    // Billing routes (Tarif va To'lov) — subscription middleware dan chiqarilgan
+    Route::withoutMiddleware('subscription')->prefix('billing')->name('billing.')->group(function () {
         Route::get('/plans', [\App\Http\Controllers\Business\BillingController::class, 'plans'])->name('plans');
         Route::post('/checkout', [\App\Http\Controllers\Business\BillingController::class, 'checkout'])->name('checkout');
         Route::get('/success', [\App\Http\Controllers\Business\BillingController::class, 'success'])->name('success');
@@ -1565,7 +1584,7 @@ Route::middleware(['auth', 'business.access'])->prefix('api/instagram/{business}
 // ==============================================
 // Sales Head Panel Routes (Sotuv Bo'limi Rahbari)
 // ==============================================
-Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-head.')->group(function () {
+Route::middleware(['auth', 'sales.head', 'subscription'])->prefix('sales-head')->name('sales-head.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\SalesHead\DashboardController::class, 'index'])->name('dashboard');
 
@@ -1895,7 +1914,7 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
 // ==============================================
 // Marketing Panel Routes (Marketing Bo'limi)
 // ==============================================
-Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.')->group(function () {
+Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->name('marketing.')->group(function () {
     // Marketing Hub (main page) - same design as Business panel
     Route::get('/', [App\Http\Controllers\Marketing\DashboardController::class, 'marketingHub'])->name('hub');
     Route::get('/dashboard', [App\Http\Controllers\Marketing\DashboardController::class, 'index'])->name('dashboard');
@@ -2308,7 +2327,7 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
 // ==============================================
 // Finance Panel Routes (Moliya Bo'limi)
 // ==============================================
-Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->group(function () {
+Route::middleware(['auth', 'finance', 'subscription'])->prefix('finance')->name('finance.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\Finance\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\Finance\DashboardController::class, 'apiStats'])->name('api.stats');
@@ -2386,7 +2405,7 @@ Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->gro
 // ==============================================
 // HR Panel Routes (Kadrlar Bo'limi)
 // ==============================================
-Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () {
+Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\HR\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\HR\DashboardController::class, 'apiStats'])->name('api.stats');
@@ -2431,28 +2450,30 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
         })->name('index');
     });
 
-    // Tasks (Vazifalar)
-    Route::prefix('tasks')->name('tasks.')->group(function () {
-        Route::get('/', function () {
-            return inertia('HR/Tasks/Index', ['tasks' => []]);
-        })->name('index');
-    });
+    // Tasks (Vazifalar) va Todo — hr_tasks feature required
+    Route::middleware('feature:hr_tasks')->group(function () {
+        Route::prefix('tasks')->name('tasks.')->group(function () {
+            Route::get('/', function () {
+                return inertia('HR/Tasks/Index', ['tasks' => []]);
+            })->name('index');
+        });
 
-    // Todo List
-    Route::prefix('todos')->name('todos.')->group(function () {
-        Route::get('/', [App\Http\Controllers\HR\TodoController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\HR\TodoController::class, 'store'])->name('store');
-        Route::get('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'show'])->name('show');
-        Route::put('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'update'])->name('update');
-        Route::delete('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'destroy'])->name('destroy');
-        Route::post('/{todo}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleComplete'])->name('toggle');
-        Route::post('/{todo}/toggle-user', [App\Http\Controllers\HR\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
-        Route::post('/reorder', [App\Http\Controllers\HR\TodoController::class, 'reorder'])->name('reorder');
+        // Todo List
+        Route::prefix('todos')->name('todos.')->group(function () {
+            Route::get('/', [App\Http\Controllers\HR\TodoController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\HR\TodoController::class, 'store'])->name('store');
+            Route::get('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'show'])->name('show');
+            Route::put('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'update'])->name('update');
+            Route::delete('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'destroy'])->name('destroy');
+            Route::post('/{todo}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleComplete'])->name('toggle');
+            Route::post('/{todo}/toggle-user', [App\Http\Controllers\HR\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
+            Route::post('/reorder', [App\Http\Controllers\HR\TodoController::class, 'reorder'])->name('reorder');
 
-        // Subtasks
-        Route::post('/{todo}/subtasks', [App\Http\Controllers\HR\TodoController::class, 'addSubtask'])->name('subtasks.store');
-        Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
-    });
+            // Subtasks
+            Route::post('/{todo}/subtasks', [App\Http\Controllers\HR\TodoController::class, 'addSubtask'])->name('subtasks.store');
+            Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
+        });
+    }); // end feature:hr_tasks
 
     // Attendance (Davomat)
     Route::prefix('attendance')->name('attendance.')->group(function () {
@@ -2607,7 +2628,7 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
 // Employee Self-Service Routes (Barcha xodimlar uchun)
 // These routes are accessible to all employees regardless of department
 // ==============================================
-Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
+Route::middleware(['auth', 'subscription'])->prefix('employee')->name('employee.')->group(function () {
     // My Attendance
     Route::prefix('attendance')->name('attendance.')->group(function () {
         Route::get('/', [App\Http\Controllers\HR\AttendanceController::class, 'index'])->name('index');
@@ -2627,7 +2648,7 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
 // ==============================================
 // Operator Panel Routes (Sotuv Operatorlari)
 // ==============================================
-Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
+Route::middleware(['auth', 'operator', 'subscription'])->prefix('operator')->name('operator.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\Operator\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\Operator\DashboardController::class, 'apiStats'])->name('api.stats');

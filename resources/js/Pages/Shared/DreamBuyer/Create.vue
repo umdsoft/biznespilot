@@ -666,7 +666,6 @@ const isCurrentStepValid = computed(() => {
 });
 
 const isFormValid = computed(() => {
-    syncListsToForm();
     return form.name &&
            form.where_spend_time &&
            form.info_sources &&

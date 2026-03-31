@@ -23,7 +23,18 @@ import {
 } from '@heroicons/vue/24/outline'
 import { StarIcon } from '@heroicons/vue/24/solid'
 
+const props = defineProps({
+  plans: { type: Array, default: () => [] },
+})
+
 const { locale, t } = useLandingLocale(translations)
+
+const startPlan = computed(() => props.plans?.find(p => p.slug === 'start'))
+
+const formatPrice = (price) => {
+  if (!price) return '0'
+  return Math.round(price).toLocaleString('uz-UZ')
+}
 
 const demoInput = ref('')
 const demoMessages = ref([])
@@ -609,7 +620,7 @@ onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
           <div class="absolute top-5 -right-8 rotate-45 bg-amber-400 text-amber-900 text-[10px] font-bold px-10 py-1 shadow-md">{{ t.pricing.ribbon }}</div>
           <p class="text-sm font-semibold text-indigo-600 mb-1">{{ t.pricing.plan_label }}</p>
           <p class="text-xs text-slate-500 mb-4">{{ t.pricing.plan_desc }}</p>
-          <div class="flex items-baseline justify-center gap-1 mb-2"><span class="text-5xl font-bold text-slate-900">299,000</span><span class="text-lg text-slate-500 font-medium">{{ t.pricing.currency }}</span></div>
+          <div class="flex items-baseline justify-center gap-1 mb-2"><span class="text-5xl font-bold text-slate-900">{{ formatPrice(startPlan?.price_monthly) }}</span><span class="text-lg text-slate-500 font-medium">{{ t.pricing.currency }}</span></div>
           <p class="text-sm text-slate-500 mb-8">{{ t.pricing.from }}</p>
           <div class="flex flex-col sm:flex-row gap-3">
             <Link href="/register" class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]">{{ t.pricing.cta_free }}<ArrowRightIcon class="w-4 h-4" /></Link>

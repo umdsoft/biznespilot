@@ -166,7 +166,7 @@
         </div>
         <div class="p-4 space-y-1">
           <Link
-            :href="getHref('/marketing/content')"
+            :href="getHref('/content')"
             class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
           >
             <div class="w-9 h-9 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -189,7 +189,7 @@
           </Link>
 
           <Link
-            :href="getHref('/marketing/channels')"
+            :href="getHref('/channels')"
             class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
           >
             <div class="w-9 h-9 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -208,7 +208,7 @@
           </Link>
 
           <Link
-            :href="getHref('/marketing/campaigns')"
+            :href="getHref('/campaigns')"
             class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
           >
             <div class="w-9 h-9 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -257,7 +257,7 @@
         </div>
         <div class="p-4 space-y-1">
           <Link
-            :href="getHref('/marketing/custdev')"
+            :href="getHref('/custdev')"
             class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
           >
             <div class="w-9 h-9 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -381,7 +381,7 @@
         </Link>
 
         <Link
-          :href="getHref('/marketing/content')"
+          :href="getHref('/content')"
           class="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md transition-all text-center group"
         >
           <div class="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -423,7 +423,7 @@
       <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">So'nggi faoliyat</h3>
         <Link
-          :href="getHref('/marketing/content')"
+          :href="getHref('/content')"
           class="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline"
         >
           Barchasini ko'rish
@@ -466,7 +466,7 @@
           <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Hali faoliyat yo'q</p>
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Birinchi kontentni yarating</p>
           <Link
-            :href="getHref('/marketing/content')"
+            :href="getHref('/content')"
             class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -512,8 +512,13 @@ const props = defineProps({
 
 // Helper to generate correct href based on panel type
 const getHref = (path) => {
-  const prefix = props.panelType === 'business' ? '/business' : '/marketing';
-  return prefix + path;
+  if (props.panelType === 'business') {
+    // Business panelda marketing route'lari /business/marketing/ ichida
+    const marketingPaths = ['/content', '/channels', '/campaigns', '/social'];
+    const isMarketingPath = marketingPaths.some(p => path.startsWith(p));
+    return isMarketingPath ? '/business/marketing' + path : '/business' + path;
+  }
+  return '/marketing' + path;
 };
 
 const formatCurrency = (amount) => {

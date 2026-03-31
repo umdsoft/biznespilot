@@ -87,13 +87,14 @@ const confirmDelete = (dreamBuyer) => {
 
 const deleteBuyer = () => {
     if (deletingBuyer.value) {
-        router.delete(getRoute('dream-buyer.destroy', deletingBuyer.value.id), {
+        const deletedId = deletingBuyer.value.id;
+        router.delete(getRoute('dream-buyer.destroy', deletedId), {
             preserveScroll: true,
             onSuccess: () => {
-                deletingBuyer.value = null;
-                if (selectedBuyerId.value === deletingBuyer.value?.id) {
-                    selectedBuyerId.value = props.dreamBuyers?.[0]?.id || null;
+                if (selectedBuyerId.value === deletedId) {
+                    selectedBuyerId.value = props.dreamBuyers?.find(b => b.id !== deletedId)?.id || null;
                 }
+                deletingBuyer.value = null;
             },
         });
     }
@@ -120,10 +121,14 @@ const aggregateAnalysis = computed(() => {
     const buyers = props.dreamBuyers || [];
     if (buyers.length === 0) return null;
 
-    const parseItems = (text) => text ? text.split('\n').filter(i => i.trim()).map(i => i.trim().toLowerCase()) : [];
-    const parseComma = (text) => text ? text.split(',').map(i => i.trim().toLowerCase()).filter(Boolean) : [];
+    // Vergul yoki yangi qator bilan ajratish (ikki formatni ham qo'llab-quvvatlash, double-count qilmaslik)
+    const parseAny = (text) => {
+        if (!text) return [];
+        // Avval vergul bilan ajratamiz, keyin har birini trim
+        const items = text.split(/[,\n]/).map(i => i.trim().toLowerCase()).filter(Boolean);
+        return [...new Set(items)]; // dublikatlarni olib tashlash
+    };
 
-    // Barcha profillardan ma'lumotlarni yig'ish
     const allPlatforms = {};
     const allFrustrations = {};
     const allDreams = {};
@@ -131,16 +136,11 @@ const aggregateAnalysis = computed(() => {
     const allComms = {};
 
     buyers.forEach(b => {
-        // Platformalar — vergul bilan ajratilgan yoki yangi qatorli
-        const platforms = [...parseComma(b.where_spend_time), ...parseItems(b.where_spend_time)];
-        platforms.forEach(p => { allPlatforms[p] = (allPlatforms[p] || 0) + 1; });
-
-        parseItems(b.frustrations).forEach(f => { allFrustrations[f] = (allFrustrations[f] || 0) + 1; });
-        parseItems(b.dreams).forEach(d => { allDreams[d] = (allDreams[d] || 0) + 1; });
-        parseItems(b.fears).forEach(f => { allFears[f] = (allFears[f] || 0) + 1; });
-
-        const comms = [...parseComma(b.communication_preferences), ...parseItems(b.communication_preferences)];
-        comms.forEach(c => { allComms[c] = (allComms[c] || 0) + 1; });
+        parseAny(b.where_spend_time).forEach(p => { allPlatforms[p] = (allPlatforms[p] || 0) + 1; });
+        parseAny(b.frustrations).forEach(f => { allFrustrations[f] = (allFrustrations[f] || 0) + 1; });
+        parseAny(b.dreams).forEach(d => { allDreams[d] = (allDreams[d] || 0) + 1; });
+        parseAny(b.fears).forEach(f => { allFears[f] = (allFears[f] || 0) + 1; });
+        parseAny(b.communication_preferences).forEach(c => { allComms[c] = (allComms[c] || 0) + 1; });
     });
 
     const sortByCount = (obj) => Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count, percent: Math.round(count / buyers.length * 100) }));

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Admin\Queue;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Bot\Queue\QueueBranchResource;
 use App\Models\Bot\Queue\QueueBranch;
+use App\Models\Business;
+use App\Services\PlanLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -43,7 +45,22 @@ class QueueBranchAdminController extends Controller
         $serviceIds = $data['service_ids'] ?? [];
         unset($data['service_ids']);
 
-        $data['business_id'] = session('current_business_id');
+        $businessId = session('current_business_id');
+        $business = Business::find($businessId);
+
+        // Check branches limit
+        if ($business) {
+            $limitService = app(PlanLimitService::class);
+            if ($limitService->hasReachedLimit($business, 'branches')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Filiallar limiti tugagan. Tarifni yangilang.',
+                    'error_code' => 'QUOTA_EXCEEDED',
+                ], 403);
+            }
+        }
+
+        $data['business_id'] = $businessId;
         $branch = QueueBranch::create($data);
 
         if (! empty($serviceIds)) {
