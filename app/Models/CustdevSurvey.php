@@ -17,6 +17,7 @@ class CustdevSurvey extends Model
 
     protected $fillable = [
         'business_id',
+        'panel_type',
         'dream_buyer_id',
         'title',
         'description',

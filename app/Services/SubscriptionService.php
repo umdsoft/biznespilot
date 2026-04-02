@@ -43,60 +43,68 @@ class SubscriptionService
         string $paymentProvider,
         int $transactionId
     ): Subscription {
-        // Mavjud aktiv obunani bekor qilish
-        $this->cancelActive($business);
+        return DB::transaction(function () use ($business, $plan, $paymentProvider, $transactionId) {
+            // Lock the business's subscriptions to prevent concurrent modifications
+            $business->subscriptions()
+                ->whereIn('status', ['active', 'trialing'])
+                ->lockForUpdate()
+                ->get();
 
-        // Transaction metadata dan billing_cycle o'qish
-        $billingCycle = 'monthly';
-        $transaction = BillingTransaction::find($transactionId);
-        if ($transaction) {
-            $billingCycle = $transaction->getMetadata('billing_cycle', 'monthly');
-        }
+            // Mavjud aktiv obunani bekor qilish
+            $this->cancelActive($business);
 
-        $startsAt = now();
-        $endsAt = $billingCycle === 'yearly' ? now()->addYear() : now()->addMonth();
+            // Transaction metadata dan billing_cycle o'qish
+            $billingCycle = 'monthly';
+            $transaction = BillingTransaction::find($transactionId);
+            if ($transaction) {
+                $billingCycle = $transaction->getMetadata('billing_cycle', 'monthly');
+            }
 
-        $amount = $billingCycle === 'yearly'
-            ? (float) $plan->price_yearly
-            : (float) $plan->price_monthly;
+            $startsAt = now();
+            $endsAt = $billingCycle === 'yearly' ? now()->addYear() : now()->addMonth();
 
-        $subscription = Subscription::create([
-            'business_id' => $business->id,
-            'plan_id' => $plan->id,
-            'status' => 'active',
-            'billing_cycle' => $billingCycle,
-            'trial_ends_at' => null,
-            'starts_at' => $startsAt,
-            'ends_at' => $endsAt,
-            'amount' => $amount,
-            'currency' => 'UZS',
-            'auto_renew' => true,
-            'payment_provider' => $paymentProvider,
-            'last_payment_at' => now(),
-            'metadata' => [
-                'activated_via' => $paymentProvider,
-                'billing_transaction_id' => $transactionId,
+            $amount = $billingCycle === 'yearly'
+                ? (float) $plan->price_yearly
+                : (float) $plan->price_monthly;
+
+            $subscription = Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
                 'billing_cycle' => $billingCycle,
-            ],
-        ]);
+                'trial_ends_at' => null,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'amount' => $amount,
+                'currency' => 'UZS',
+                'auto_renew' => true,
+                'payment_provider' => $paymentProvider,
+                'last_payment_at' => now(),
+                'metadata' => [
+                    'activated_via' => $paymentProvider,
+                    'billing_transaction_id' => $transactionId,
+                    'billing_cycle' => $billingCycle,
+                ],
+            ]);
 
-        Log::channel('billing')->info('[SubscriptionService] Subscription activated', [
-            'business_id' => $business->id,
-            'plan_id' => $plan->id,
-            'subscription_id' => $subscription->id,
-            'provider' => $paymentProvider,
-            'transaction_id' => $transactionId,
-            'billing_cycle' => $billingCycle,
-        ]);
+            Log::channel('billing')->info('[SubscriptionService] Subscription activated', [
+                'business_id' => $business->id,
+                'plan_id' => $plan->id,
+                'subscription_id' => $subscription->id,
+                'provider' => $paymentProvider,
+                'transaction_id' => $transactionId,
+                'billing_cycle' => $billingCycle,
+            ]);
 
-        // Notification yuborish
-        $this->notificationService->sendSystemNotification(
-            $business,
-            'Obuna aktivlashtirildi!',
-            "{$plan->name} tarifi muvaffaqiyatli aktivlashtirildi. Keyingi to'lov: {$endsAt->format('d.m.Y')}"
-        );
+            // Notification yuborish
+            $this->notificationService->sendSystemNotification(
+                $business,
+                'Obuna aktivlashtirildi!',
+                "{$plan->name} tarifi muvaffaqiyatli aktivlashtirildi. Keyingi to'lov: {$endsAt->format('d.m.Y')}"
+            );
 
-        return $subscription;
+            return $subscription;
+        });
     }
 
     /**
@@ -115,56 +123,67 @@ class SubscriptionService
         string $paymentProvider,
         int $transactionId
     ): Subscription {
-        // Transaction metadata dan billing_cycle o'qish
-        $billingCycle = $subscription->billing_cycle ?? 'monthly';
-        $transaction = BillingTransaction::find($transactionId);
-        if ($transaction) {
-            $billingCycle = $transaction->getMetadata('billing_cycle', $billingCycle);
-        }
+        return DB::transaction(function () use ($subscription, $plan, $paymentProvider, $transactionId) {
+            // Lock the subscription to prevent concurrent modifications
+            $lockedSubscription = Subscription::where('id', $subscription->id)
+                ->lockForUpdate()
+                ->first();
 
-        $addPeriod = $billingCycle === 'yearly' ? 'addYear' : 'addMonth';
+            if (!$lockedSubscription) {
+                throw new \RuntimeException('Subscription not found for renewal');
+            }
 
-        $newEndsAt = $subscription->ends_at > now()
-            ? $subscription->ends_at->$addPeriod() // Muddati tugamagan - qo'shish
-            : now()->$addPeriod(); // Muddati tugagan - yangi boshlanish
+            // Transaction metadata dan billing_cycle o'qish
+            $billingCycle = $lockedSubscription->billing_cycle ?? 'monthly';
+            $transaction = BillingTransaction::find($transactionId);
+            if ($transaction) {
+                $billingCycle = $transaction->getMetadata('billing_cycle', $billingCycle);
+            }
 
-        $amount = $billingCycle === 'yearly'
-            ? (float) $plan->price_yearly
-            : (float) $plan->price_monthly;
+            $addPeriod = $billingCycle === 'yearly' ? 'addYear' : 'addMonth';
 
-        $subscription->update([
-            'plan_id' => $plan->id,
-            'status' => 'active',
-            'billing_cycle' => $billingCycle,
-            'ends_at' => $newEndsAt,
-            'amount' => $amount,
-            'payment_provider' => $paymentProvider,
-            'last_payment_at' => now(),
-            'metadata' => array_merge($subscription->metadata ?? [], [
-                'last_renewed_via' => $paymentProvider,
-                'last_billing_transaction_id' => $transactionId,
-                'renewed_at' => now()->toISOString(),
+            $newEndsAt = $lockedSubscription->ends_at > now()
+                ? $lockedSubscription->ends_at->$addPeriod() // Muddati tugamagan - qo'shish
+                : now()->$addPeriod(); // Muddati tugagan - yangi boshlanish
+
+            $amount = $billingCycle === 'yearly'
+                ? (float) $plan->price_yearly
+                : (float) $plan->price_monthly;
+
+            $lockedSubscription->update([
+                'plan_id' => $plan->id,
+                'status' => 'active',
                 'billing_cycle' => $billingCycle,
-            ]),
-        ]);
+                'ends_at' => $newEndsAt,
+                'amount' => $amount,
+                'payment_provider' => $paymentProvider,
+                'last_payment_at' => now(),
+                'metadata' => array_merge($lockedSubscription->metadata ?? [], [
+                    'last_renewed_via' => $paymentProvider,
+                    'last_billing_transaction_id' => $transactionId,
+                    'renewed_at' => now()->toISOString(),
+                    'billing_cycle' => $billingCycle,
+                ]),
+            ]);
 
-        Log::channel('billing')->info('[SubscriptionService] Subscription renewed', [
-            'subscription_id' => $subscription->id,
-            'business_id' => $subscription->business_id,
-            'plan_id' => $plan->id,
-            'new_ends_at' => $newEndsAt,
-            'provider' => $paymentProvider,
-            'transaction_id' => $transactionId,
-        ]);
+            Log::channel('billing')->info('[SubscriptionService] Subscription renewed', [
+                'subscription_id' => $lockedSubscription->id,
+                'business_id' => $lockedSubscription->business_id,
+                'plan_id' => $plan->id,
+                'new_ends_at' => $newEndsAt,
+                'provider' => $paymentProvider,
+                'transaction_id' => $transactionId,
+            ]);
 
-        // Notification yuborish
-        $this->notificationService->sendSystemNotification(
-            $subscription->business,
-            'Obuna yangilandi!',
-            "Obunangiz {$newEndsAt->format('d.m.Y')} gacha uzaytirildi."
-        );
+            // Notification yuborish
+            $this->notificationService->sendSystemNotification(
+                $lockedSubscription->business,
+                'Obuna yangilandi!',
+                "Obunangiz {$newEndsAt->format('d.m.Y')} gacha uzaytirildi."
+            );
 
-        return $subscription->fresh();
+            return $lockedSubscription->fresh();
+        });
     }
 
     // =========================================================================
@@ -180,43 +199,56 @@ class SubscriptionService
         string $billingCycle = 'monthly',
         ?int $trialDays = null
     ): Subscription {
-        // Cancel any existing active subscription
-        $this->cancelActive($business);
+        return DB::transaction(function () use ($business, $plan, $billingCycle, $trialDays) {
+            // Lock the business's subscriptions to prevent concurrent modifications
+            $business->subscriptions()
+                ->whereIn('status', ['active', 'trialing'])
+                ->lockForUpdate()
+                ->get();
 
-        $amount = $billingCycle === 'yearly'
-            ? $plan->price_yearly
-            : $plan->price_monthly;
+            // Cancel any existing active subscription
+            $this->cancelActive($business);
 
-        $startsAt = now();
+            $amount = $billingCycle === 'yearly'
+                ? $plan->price_yearly
+                : $plan->price_monthly;
 
-        $trialEndsAt = $trialDays
-            ? now()->addDays($trialDays)
-            : null;
+            $startsAt = now();
 
-        // Trial uchun ends_at = trial_ends_at (14 kun), pullik uchun billing cycle bo'yicha
-        $endsAt = $trialEndsAt
-            ?? ($billingCycle === 'yearly' ? now()->addYear() : now()->addMonth());
+            $maxTrialDays = config('billing.max_trial_days', 30);
+            if ($trialDays && $trialDays > $maxTrialDays) {
+                $trialDays = $maxTrialDays;
+            }
 
-        $subscription = Subscription::create([
-            'business_id' => $business->id,
-            'plan_id' => $plan->id,
-            'status' => $trialEndsAt ? 'trialing' : 'active',
-            'billing_cycle' => $billingCycle,
-            'trial_ends_at' => $trialEndsAt,
-            'starts_at' => $startsAt,
-            'ends_at' => $endsAt,
-            'amount' => $amount,
-            'currency' => 'UZS',
-            'auto_renew' => true,
-        ]);
+            $trialEndsAt = $trialDays
+                ? now()->addDays($trialDays)
+                : null;
 
-        Log::info('Subscription created', [
-            'business_id' => $business->id,
-            'plan_id' => $plan->id,
-            'subscription_id' => $subscription->id,
-        ]);
+            // Trial uchun ends_at = trial_ends_at (14 kun), pullik uchun billing cycle bo'yicha
+            $endsAt = $trialEndsAt
+                ?? ($billingCycle === 'yearly' ? now()->addYear() : now()->addMonth());
 
-        return $subscription;
+            $subscription = Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $plan->id,
+                'status' => $trialEndsAt ? 'trialing' : 'active',
+                'billing_cycle' => $billingCycle,
+                'trial_ends_at' => $trialEndsAt,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'amount' => $amount,
+                'currency' => 'UZS',
+                'auto_renew' => true,
+            ]);
+
+            Log::info('Subscription created', [
+                'business_id' => $business->id,
+                'plan_id' => $plan->id,
+                'subscription_id' => $subscription->id,
+            ]);
+
+            return $subscription;
+        });
     }
 
     /**
@@ -230,9 +262,13 @@ class SubscriptionService
         $currentSubscription = $this->getActiveSubscription($business);
 
         if (!$currentSubscription) {
-            return $this->create($business, $newPlan, 'monthly')
-                ? ['success' => true, 'subscription' => $this->getActiveSubscription($business)]
-                : ['success' => false, 'error' => 'Could not create subscription'];
+            try {
+                $subscription = $this->create($business, $newPlan, 'monthly');
+
+                return ['success' => true, 'subscription' => $subscription];
+            } catch (\Exception $e) {
+                return ['success' => false, 'error' => $e->getMessage()];
+            }
         }
 
         $currentPlan = $currentSubscription->plan;
@@ -647,10 +683,7 @@ class SubscriptionService
      */
     public function getActiveSubscription(Business $business): ?Subscription
     {
-        return Subscription::where('business_id', $business->id)
-            ->whereIn('status', ['active', 'trialing'])
-            ->where('ends_at', '>', now())
-            ->first();
+        return $business->subscriptions()->active()->first();
     }
 
     /**

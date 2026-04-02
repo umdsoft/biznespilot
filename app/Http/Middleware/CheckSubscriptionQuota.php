@@ -8,7 +8,6 @@ use App\Models\Business;
 use App\Services\SubscriptionGate;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -40,17 +39,24 @@ class CheckSubscriptionQuota
      */
     public function handle(Request $request, Closure $next, string $limitKey, int $addCount = 1): Response
     {
-        // Business kontekstini olish
-        $businessId = session('current_business_id');
+        // Business kontekstini olish (user accessor + session fallback)
+        $business = null;
 
-        if (!$businessId) {
-            return $this->handleError($request, 'Business konteksti kerak', 400);
+        if ($request->user()) {
+            try {
+                $business = $request->user()->currentBusiness;
+            } catch (\Exception $e) {
+                // fallback
+            }
         }
 
-        $business = Cache::remember("business_model:{$businessId}", 60, fn () => Business::find($businessId));
+        if (! $business) {
+            $businessId = session('current_business_id');
+            $business = $businessId ? Business::find($businessId) : null;
+        }
 
-        if (!$business) {
-            return $this->handleError($request, 'Business topilmadi', 404);
+        if (! $business) {
+            return $this->handleError($request, 'Business konteksti kerak', 400);
         }
 
         try {

@@ -336,7 +336,7 @@ class AdminHealthService
     protected function getSubscriptionMetrics(): array
     {
         $total = Subscription::count();
-        $active = Subscription::whereIn('status', ['active', 'trialing'])->count();
+        $active = Subscription::active()->count();
         $trialing = Subscription::where('status', 'trialing')->count();
         $cancelled = Subscription::where('status', 'cancelled')
             ->whereMonth('cancelled_at', now()->month)

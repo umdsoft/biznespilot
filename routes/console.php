@@ -824,3 +824,10 @@ Schedule::command('subscriptions:trial-expiry-notify')
     ->timezone('Asia/Tashkent')
     ->name('subscriptions-trial-expiry-notify')
     ->onOneServer();
+
+// Muddati o'tgan to'lov tranzaksiyalarni tozalash - Har kuni 02:00
+Schedule::command('billing:clean-expired')
+    ->dailyAt('02:00')
+    ->timezone('Asia/Tashkent')
+    ->name('billing-clean-expired')
+    ->onOneServer();

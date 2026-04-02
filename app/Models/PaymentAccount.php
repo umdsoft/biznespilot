@@ -52,6 +52,8 @@ class PaymentAccount extends Model
         'is_test_mode' => 'boolean',
         'settings' => 'array',
         'last_transaction_at' => 'datetime',
+        'merchant_key' => 'encrypted',
+        'secret_key' => 'encrypted',
     ];
 
     protected $hidden = [
@@ -76,6 +78,16 @@ class PaymentAccount extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeForBusiness($query, $businessId, ?string $provider = null)
+    {
+        $query->where('business_id', $businessId);
+        if ($provider) {
+            $query->where('provider', $provider);
+        }
+
+        return $query;
     }
 
     public function scopePayme($query)

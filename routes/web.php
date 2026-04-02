@@ -367,6 +367,7 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
         Route::post('/{custdev}/toggle-status', [CustdevController::class, 'toggleStatus'])->name('toggle-status');
         Route::get('/{custdev}/results', [CustdevController::class, 'results'])->name('results');
         Route::get('/{custdev}/export', [CustdevController::class, 'export'])->name('export');
+        Route::get('/{custdev}/response/{response}/pdf', [CustdevController::class, 'exportResponsePdf'])->name('response.pdf');
         Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
@@ -580,6 +581,9 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
         Route::get('/', [ChannelAnalyticsController::class, 'index'])->name('index');
         Route::post('/compare', [ChannelAnalyticsController::class, 'compare'])->name('compare');
     });
+
+    // HR Hub (faqat hub sahifa — qolgan HR funksiyalar /hr/ panelda, business owner kirish huquqiga ega)
+    Route::get('/hr', [App\Http\Controllers\Business\HRHubController::class, 'index'])->name('hr.index');
 
     // Sales routes (Lead management)
     Route::resource('sales', SalesController::class)->parameters([
@@ -1522,6 +1526,14 @@ Route::prefix('s')->name('survey.')->group(function () {
     Route::get('/{slug}/thank-you', [PublicSurveyController::class, 'thankYou'])->name('thank-you');
 });
 
+// Public Job Application routes (nomzod ariza topshirish, no auth)
+Route::get('/vacancy/{slug}', [App\Http\Controllers\HR\PublicJobApplicationController::class, 'show'])->name('vacancy.show');
+Route::post('/vacancy/{slug}/apply', [App\Http\Controllers\HR\PublicJobApplicationController::class, 'submit'])->name('vacancy.apply');
+
+// Public Candidate Assessment routes (no authentication, token-based)
+Route::get('/assessment/{token}', [App\Http\Controllers\HR\CandidateAssessmentPublicController::class, 'show'])->name('assessment.show');
+Route::post('/assessment/{token}', [App\Http\Controllers\HR\CandidateAssessmentPublicController::class, 'submit'])->name('assessment.submit');
+
 // Public Lead Form routes (no authentication required)
 Route::prefix('f')->name('lead-form.')->group(function () {
     Route::get('/{slug}', [PublicLeadFormController::class, 'show'])->name('show');
@@ -2049,6 +2061,7 @@ Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->n
         Route::post('/{custdev}/toggle-status', [CustdevController::class, 'toggleStatus'])->name('toggle-status');
         Route::get('/{custdev}/results', [CustdevController::class, 'results'])->name('results');
         Route::get('/{custdev}/export', [CustdevController::class, 'export'])->name('export');
+        Route::get('/{custdev}/response/{response}/pdf', [CustdevController::class, 'exportResponsePdf'])->name('response.pdf');
         Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
@@ -2545,6 +2558,44 @@ Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->gr
         Route::post('/job-postings/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateJobPostingStatus'])->name('job-postings.update-status');
         Route::delete('/job-postings/{id}', [App\Http\Controllers\HR\RecruitingController::class, 'destroyJobPosting'])->name('job-postings.destroy');
         Route::post('/applications/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateApplicationStatus'])->name('applications.update-status');
+        Route::post('/applications/{id}/talent-pool', [App\Http\Controllers\HR\TalentPoolController::class, 'addFromApplication'])->name('applications.talent-pool');
+        // Pipeline Kanban
+        Route::get('/pipeline', [App\Http\Controllers\HR\InterviewPipelineController::class, 'index'])->name('pipeline');
+        Route::post('/pipeline/{id}/move', [App\Http\Controllers\HR\InterviewPipelineController::class, 'moveStage'])->name('pipeline.move');
+        // Interviews
+        Route::prefix('interviews')->name('interviews.')->group(function () {
+            Route::get('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'store'])->name('store');
+            Route::post('/{id}/complete', [App\Http\Controllers\HR\InterviewScheduleController::class, 'complete'])->name('complete');
+            Route::post('/{id}/cancel', [App\Http\Controllers\HR\InterviewScheduleController::class, 'cancel'])->name('cancel');
+        });
+    });
+
+    // Talent Pool (Kadrlar Zaxirasi)
+    Route::prefix('talent-pool')->name('talent-pool.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\TalentPoolController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'show'])->name('show');
+        Route::post('/', [App\Http\Controllers\HR\TalentPoolController::class, 'store'])->name('store');
+        Route::put('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'update'])->name('update');
+        Route::post('/{id}/status', [App\Http\Controllers\HR\TalentPoolController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{id}/note', [App\Http\Controllers\HR\TalentPoolController::class, 'addNote'])->name('add-note');
+        Route::delete('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'destroy'])->name('destroy');
+    });
+
+    // HR So'rovnomalar (CustDev pattern — shared controller)
+    Route::prefix('custdev')->name('custdev.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\CustdevController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Shared\CustdevController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Shared\CustdevController::class, 'store'])->name('store');
+        Route::get('/{custdev}', [App\Http\Controllers\Shared\CustdevController::class, 'show'])->name('show');
+        Route::get('/{custdev}/edit', [App\Http\Controllers\Shared\CustdevController::class, 'edit'])->name('edit');
+        Route::put('/{custdev}', [App\Http\Controllers\Shared\CustdevController::class, 'update'])->name('update');
+        Route::delete('/{custdev}', [App\Http\Controllers\Shared\CustdevController::class, 'destroy'])->name('destroy');
+        Route::post('/{custdev}/toggle-status', [App\Http\Controllers\Shared\CustdevController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{custdev}/results', [App\Http\Controllers\Shared\CustdevController::class, 'results'])->name('results');
+        Route::get('/{custdev}/export', [App\Http\Controllers\Shared\CustdevController::class, 'export'])->name('export');
+        Route::get('/{custdev}/response/{response}/pdf', [App\Http\Controllers\Shared\CustdevController::class, 'exportResponsePdf'])->name('response.pdf');
+        Route::post('/{custdev}/sync-dream-buyer', [App\Http\Controllers\Shared\CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
     // Organizational Structure (Tashkiliy Tuzilma)

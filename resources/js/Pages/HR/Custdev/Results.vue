@@ -1,11 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import BusinessLayout from '@/layouts/BusinessLayout.vue';
-import { Doughnut, Bar, Line } from 'vue-chartjs';
+import HRLayout from '@/layouts/HRLayout.vue';
 import { useI18n } from '@/i18n';
 
 const { t } = useI18n();
+import { Doughnut, Bar, Line } from 'vue-chartjs';
 import {
     Chart as ChartJS,
     ArcElement,
@@ -396,47 +396,6 @@ const getSelectChartData = (question) => {
     };
 };
 
-const selectChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-        legend: {
-            display: false,
-        },
-        tooltip: {
-            backgroundColor: '#1f2937',
-            titleColor: '#f9fafb',
-            bodyColor: '#d1d5db',
-            borderColor: '#374151',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 12,
-        }
-    },
-    scales: {
-        x: {
-            beginAtZero: true,
-            grid: {
-                color: 'rgba(156, 163, 175, 0.1)',
-            },
-            ticks: {
-                color: '#9ca3af',
-                stepSize: 1,
-            }
-        },
-        y: {
-            grid: {
-                display: false,
-            },
-            ticks: {
-                color: '#9ca3af',
-            }
-        }
-    }
-};
-
-// Compact bar chart options for select/multiselect
 const compactBarOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -528,12 +487,12 @@ const getRatingDistribution = (questionId, rating) => {
 };
 
 const exportResults = () => {
-    window.location.href = route('business.custdev.export', { custdev: props.survey.id });
+    window.location.href = route('hr.custdev.export', { custdev: props.survey.id });
 };
 
 const syncToDreamBuyer = () => {
     if (confirm('Javoblarni Ideal Mijoz profiliga sinxronlashni xohlaysizmi?')) {
-        router.post(route('business.custdev.sync-dream-buyer', { custdev: props.survey.id }));
+        router.post(route('hr.custdev.sync-dream-buyer', { custdev: props.survey.id }));
     }
 };
 
@@ -544,15 +503,15 @@ const copyLink = () => {
 </script>
 
 <template>
-    <BusinessLayout title="So'rovnoma Natijalari">
-        <Head :title="`Natijalar - ${survey.title}`" />
+    <HRLayout :title="t('custdev.survey_results')">
+        <Head :title="`${t('custdev.results')} - ${survey.title}`" />
 
         <div class="p-6 space-y-6">
             <!-- Header -->
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <Link
-                        :href="route('business.custdev.index')"
+                        :href="route('hr.custdev.index')"
                         class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
                     >
                         <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -713,14 +672,9 @@ const copyLink = () => {
                     <div v-else class="space-y-6">
                         <!-- Charts Row 1 -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Device Distribution Doughnut Chart -->
+                            <!-- Device Distribution -->
                             <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6">
-                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                    </svg>
-                                    Qurilmalar bo'yicha
-                                </h3>
+                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">Qurilmalar bo'yicha</h3>
                                 <div class="h-64">
                                     <Doughnut
                                         v-if="deviceChartData"
@@ -730,15 +684,9 @@ const copyLink = () => {
                                 </div>
                             </div>
 
-                            <!-- Region Distribution Bar Chart -->
+                            <!-- Region Distribution -->
                             <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6">
-                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Hududlar bo'yicha
-                                </h3>
+                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">Hududlar bo'yicha</h3>
                                 <div class="h-64">
                                     <Bar
                                         v-if="regionChartData"
@@ -749,123 +697,15 @@ const copyLink = () => {
                             </div>
                         </div>
 
-                        <!-- Charts Row 2 -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <!-- Response Timeline Line Chart -->
-                            <div class="lg:col-span-2 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6">
-                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                                    </svg>
-                                    Javoblar dinamikasi
-                                </h3>
-                                <div class="h-64">
-                                    <Line
-                                        v-if="timelineChartData"
-                                        :data="timelineChartData"
-                                        :options="timelineChartOptions"
-                                    />
-                                </div>
-                            </div>
-
-                            <!-- Completion Funnel -->
-                            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6">
-                                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                    </svg>
-                                    Konversiya
-                                </h3>
-                                <div v-if="funnelData" class="space-y-4">
-                                    <!-- Funnel visualization -->
-                                    <div class="space-y-3">
-                                        <div class="relative">
-                                            <div class="flex items-center justify-between text-sm mb-1">
-                                                <span class="text-gray-600 dark:text-gray-400">Boshlagan</span>
-                                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ funnelData.started }}</span>
-                                            </div>
-                                            <div class="h-8 bg-emerald-500 rounded-lg w-full"></div>
-                                        </div>
-                                        <div class="relative">
-                                            <div class="flex items-center justify-between text-sm mb-1">
-                                                <span class="text-gray-600 dark:text-gray-400">Jarayonda</span>
-                                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ funnelData.inProgress }}</span>
-                                            </div>
-                                            <div
-                                                class="h-8 bg-amber-500 rounded-lg mx-auto"
-                                                :style="{ width: funnelData.started ? `${Math.max((funnelData.inProgress / funnelData.started) * 100, 10)}%` : '10%' }"
-                                            ></div>
-                                        </div>
-                                        <div class="relative">
-                                            <div class="flex items-center justify-between text-sm mb-1">
-                                                <span class="text-gray-600 dark:text-gray-400">Tugallagan</span>
-                                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ funnelData.completed }}</span>
-                                            </div>
-                                            <div
-                                                class="h-8 bg-blue-500 rounded-lg mx-auto"
-                                                :style="{ width: funnelData.started ? `${Math.max((funnelData.completed / funnelData.started) * 100, 10)}%` : '10%' }"
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Completion rate -->
-                                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <div class="text-center">
-                                            <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ funnelData.completionRate }}%</p>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Tugallash darajasi</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Responses -->
+                        <!-- Timeline -->
                         <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6">
-                            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Oxirgi Javoblar
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div
-                                    v-for="response in responses.slice(0, 6)"
-                                    :key="response.id"
-                                    class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
-                                >
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium text-gray-900 dark:text-gray-100">
-                                                {{ response.respondent_name || 'Anonim' }}
-                                            </p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ response.respondent_region || 'Noma\'lum hudud' }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span
-                                            :class="response.status === 'completed'
-                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                                : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'"
-                                            class="px-2 py-1 rounded-full text-xs font-medium"
-                                        >
-                                            {{ response.status === 'completed' ? 'Tugallangan' : 'Jarayonda' }}
-                                        </span>
-                                        <p class="text-xs text-gray-400 mt-1">
-                                            {{ formatDate(response.created_at) }}
-                                        </p>
-                                        <a v-if="response.status === 'completed'" :href="route('business.custdev.response.pdf', { custdev: survey.id, response: response.id })" class="inline-flex items-center gap-1 mt-2 text-xs text-red-600 hover:text-red-700">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                            PDF
-                                        </a>
-                                    </div>
-                                </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">Javoblar dinamikasi</h3>
+                            <div class="h-64">
+                                <Line
+                                    v-if="timelineChartData"
+                                    :data="timelineChartData"
+                                    :options="timelineChartOptions"
+                                />
                             </div>
                         </div>
                     </div>
@@ -890,78 +730,49 @@ const copyLink = () => {
                                         {{ index + 1 }}
                                     </div>
                                     <div class="flex-1">
-                                        <div class="flex items-start justify-between gap-4">
-                                            <div>
-                                                <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ question.question }}</h4>
-                                                <div class="flex items-center gap-4 mt-2">
-                                                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        </svg>
-                                                        {{ getQuestionResponseCount(question.id) }} javob
-                                                    </span>
-                                                    <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full" :class="getTypeColor(question.type)">
-                                                        {{ getTypeLabel(question.type) }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <!-- Response Rate -->
-                                            <div class="text-right">
-                                                <div class="text-2xl font-bold" :class="getResponseRateColor(getQuestionResponseRate(question.id))">
-                                                    {{ getQuestionResponseRate(question.id) }}%
-                                                </div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">javob berdi</div>
-                                            </div>
+                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ question.question }}</h4>
+                                        <div class="flex items-center gap-4 mt-2">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ getQuestionResponseCount(question.id) }} javob
+                                            </span>
+                                            <span :class="getTypeColor(question.type)" class="px-2 py-1 rounded-full text-xs font-medium">
+                                                {{ getTypeLabel(question.type) }}
+                                            </span>
                                         </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold" :class="getResponseRateColor(getQuestionResponseRate(question.id))">
+                                            {{ getQuestionResponseRate(question.id) }}%
+                                        </div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">javob berdi</div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Question Content -->
                             <div class="p-6">
-                                <!-- Text answers with nice cards -->
+                                <!-- Text answers -->
                                 <div v-if="question.type === 'text' || question.type === 'textarea'">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div
                                             v-for="(response, rIndex) in getTextAnswers(question.id).slice(0, 6)"
                                             :key="response.id"
-                                            class="group bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all"
+                                            class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl"
                                         >
-                                            <div class="flex items-start gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                                    {{ (response.respondent_name || 'A')[0].toUpperCase() }}
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                                                        "{{ getAnswerForQuestion(response, question.id)?.answer || '-' }}"
-                                                    </p>
-                                                    <div class="flex items-center gap-2 mt-2">
-                                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                            {{ response.respondent_name || 'Anonim' }}
-                                                        </span>
-                                                        <span class="text-gray-300 dark:text-gray-600">•</span>
-                                                        <span class="text-xs text-gray-400">
-                                                            {{ response.respondent_region || 'Noma\'lum' }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                                "{{ getAnswerForQuestion(response, question.id)?.answer || '-' }}"
+                                            </p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                {{ response.respondent_name || 'Anonim' }}
+                                            </p>
                                         </div>
-                                    </div>
-                                    <div v-if="getTextAnswers(question.id).length > 6" class="mt-4 text-center">
-                                        <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                            Yana {{ getTextAnswers(question.id).length - 6 }} ta javobni ko'rish
-                                        </button>
                                     </div>
                                     <div v-if="!getTextAnswers(question.id).length" class="text-center py-8 text-gray-400">
                                         Hali javoblar yo'q
                                     </div>
                                 </div>
 
-                                <!-- Select/Multiselect answers - Compact Chart -->
+                                <!-- Select/Multiselect answers -->
                                 <div v-else-if="question.type === 'select' || question.type === 'multiselect'" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                                     <!-- Chart -->
                                     <div class="lg:col-span-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
@@ -975,7 +786,7 @@ const copyLink = () => {
                                     </div>
                                     <!-- Top Results -->
                                     <div class="lg:col-span-2 space-y-2">
-                                        <h5 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Top natijalar</h5>
+                                        <h5 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">Top natijalar</h5>
                                         <div
                                             v-for="(option, oIndex) in getTopOptions(question)"
                                             :key="option.name"
@@ -990,10 +801,10 @@ const copyLink = () => {
                                     </div>
                                 </div>
 
-                                <!-- Rating/Scale answers with visual -->
+                                <!-- Rating/Scale answers -->
                                 <div v-else-if="question.type === 'rating' || question.type === 'scale'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     <!-- Main Score -->
-                                    <div class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                                    <div class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl">
                                         <div class="text-5xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
                                             {{ getAverageRating(question.id) }}
                                         </div>
@@ -1015,13 +826,9 @@ const copyLink = () => {
                                                 <span class="w-6 text-sm font-medium text-gray-600 dark:text-gray-400 text-right">{{ rating }}</span>
                                                 <div class="flex-1 h-6 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                                                     <div
-                                                        class="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-lg transition-all duration-500 flex items-center justify-end pr-2"
+                                                        class="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-lg transition-all duration-500"
                                                         :style="{ width: `${getRatingDistribution(question.id, rating)}%` }"
-                                                    >
-                                                        <span v-if="getRatingDistribution(question.id, rating) > 10" class="text-xs font-semibold text-white">
-                                                            {{ getRatingCount(question.id, rating) }}
-                                                        </span>
-                                                    </div>
+                                                    ></div>
                                                 </div>
                                                 <span class="w-10 text-xs text-gray-500 dark:text-gray-400">{{ getRatingDistribution(question.id, rating) }}%</span>
                                             </div>
@@ -1048,6 +855,7 @@ const copyLink = () => {
                                     <th class="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">Vaqt</th>
                                     <th class="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
                                     <th class="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">Sana</th>
+                                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 w-16">PDF</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1090,6 +898,11 @@ const copyLink = () => {
                                     <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                                         {{ formatDate(response.created_at) }}
                                     </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <a v-if="response.status === 'completed'" :href="route('hr.custdev.response.pdf', { custdev: survey.id, response: response.id })" class="inline-flex items-center justify-center p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="PDF yuklab olish">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                        </a>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1097,5 +910,5 @@ const copyLink = () => {
                 </div>
             </div>
         </div>
-    </BusinessLayout>
+    </HRLayout>
 </template>

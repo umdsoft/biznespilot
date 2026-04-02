@@ -157,7 +157,14 @@
       "Bash(/c/xampp/php/php.exe artisan:*)",
       "Bash(npm run:*)",
       "Bash(grep -E \"\\\\.\\(php\\)$\")",
-      "Bash(awk 'NR>=934 && NR<=1015' routes/web.php)"
+      "Bash(awk 'NR>=934 && NR<=1015' routes/web.php)",
+      "Bash(where.exe php:*)",
+      "Read(//c/wamp64/bin/**)",
+      "Bash(C:/xampp/php/php.exe artisan:*)",
+      "Bash(cp resources/js/Pages/Marketing/Custdev/Create.vue resources/js/Pages/HR/Custdev/Create.vue)",
+      "Bash(cp resources/js/Pages/Marketing/Custdev/Show.vue resources/js/Pages/HR/Custdev/Show.vue)",
+      "Bash(cp resources/js/Pages/Marketing/Custdev/Results.vue resources/js/Pages/HR/Custdev/Results.vue)",
+      "Bash(npx vite:*)"
     ]
   }
 }

@@ -117,6 +117,7 @@ export const businessLayoutConfig = {
       titleKey: null,
       items: [
         { href: '/business', label: 'Bosh sahifa', labelKey: 'nav.dashboard', icon: HomeIcon, exact: true },
+        { href: '/business/hr', label: 'HR va Xodimlar', icon: UserGroupIcon, activeMatch: (url) => url.startsWith('/business/hr') },
         { href: '/business/marketing', label: 'Marketing', labelKey: 'nav.marketing', icon: MegaphoneIcon, activeMatch: (url) => url.startsWith('/business/marketing') && !url.startsWith('/business/marketing/content') },
         { href: '/business/marketing/content', label: 'Kontent Reja', labelKey: 'nav.content_plan', icon: CalendarIcon, activeMatch: (url) => url.startsWith('/business/marketing/content') },
         { href: '/business/inbox', label: 'Yagona Inbox', labelKey: 'nav.inbox', icon: InboxIcon, badgeKey: 'unread_messages' },

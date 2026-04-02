@@ -51,15 +51,19 @@ class JobPosting extends Model
         'business_id',
         'job_description_id',
         'title',
+        'slug',
         'department',
         'description',
         'requirements',
+        'form_fields',
         'salary_min',
         'salary_max',
         'location',
         'employment_type',
         'openings',
         'status',
+        'is_public',
+        'success_message',
         'posted_date',
         'closing_date',
         'posted_by',
@@ -70,7 +74,18 @@ class JobPosting extends Model
         'salary_max' => 'decimal:2',
         'posted_date' => 'date',
         'closing_date' => 'date',
+        'form_fields' => 'array',
+        'is_public' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($posting) {
+            if (! $posting->slug) {
+                $posting->slug = \Illuminate\Support\Str::slug($posting->title) . '-' . \Illuminate\Support\Str::random(6);
+            }
+        });
+    }
 
     // ==================== Relationships ====================
 

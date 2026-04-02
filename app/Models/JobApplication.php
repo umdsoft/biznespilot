@@ -6,6 +6,8 @@ use App\Traits\BelongsToBusiness;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class JobApplication extends Model
 {
@@ -33,9 +35,23 @@ class JobApplication extends Model
         self::STATUS_REJECTED => 'Rad etildi',
     ];
 
+    // Pipeline stages (Kanban uchun)
+    public const PIPELINE_STAGES = [
+        'new' => 'Yangi',
+        'screening' => 'Ko\'rib chiqish',
+        'phone_screen' => 'Telefon',
+        'interview_scheduled' => 'Intervyu rejalashtirilgan',
+        'interview_done' => 'Intervyu o\'tdi',
+        'assessment' => 'Baholash',
+        'offer' => 'Taklif',
+        'hired' => 'Qabul qilindi',
+        'rejected' => 'Rad etildi',
+    ];
+
     protected $fillable = [
         'business_id',
         'job_posting_id',
+        'vacancy_card_id',
         'candidate_name',
         'candidate_email',
         'candidate_phone',
@@ -47,15 +63,25 @@ class JobApplication extends Model
         'current_company',
         'expected_salary',
         'status',
+        'pipeline_stage',
         'notes',
         'rating',
         'assigned_to',
         'applied_at',
+        'added_to_talent_pool',
+        'interview_scheduled_at',
+        'current_interviewer_id',
+        'interview_round',
+        'scorecard',
     ];
 
     protected $casts = [
         'expected_salary' => 'decimal:2',
         'applied_at' => 'datetime',
+        'interview_scheduled_at' => 'datetime',
+        'added_to_talent_pool' => 'boolean',
+        'interview_round' => 'integer',
+        'scorecard' => 'array',
     ];
 
     // ==================== Relationships ====================
@@ -68,6 +94,26 @@ class JobApplication extends Model
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function vacancyCard(): BelongsTo
+    {
+        return $this->belongsTo(VacancyCard::class);
+    }
+
+    public function interviews(): HasMany
+    {
+        return $this->hasMany(Interview::class);
+    }
+
+    public function evaluations(): HasMany
+    {
+        return $this->hasMany(CandidateEvaluation::class);
+    }
+
+    public function talentPoolCandidate(): HasOne
+    {
+        return $this->hasOne(TalentPoolCandidate::class);
     }
 
     // ==================== Scopes ====================
@@ -116,5 +162,20 @@ class JobApplication extends Model
         ];
 
         return $colors[$this->status] ?? 'gray';
+    }
+
+    public function getPipelineStageLabelAttribute(): string
+    {
+        return self::PIPELINE_STAGES[$this->pipeline_stage] ?? $this->pipeline_stage;
+    }
+
+    public function getAverageEvaluationScoreAttribute(): float
+    {
+        $evaluations = $this->evaluations;
+        if ($evaluations->isEmpty()) {
+            return 0;
+        }
+
+        return round($evaluations->avg('overall_rating'), 1);
     }
 }

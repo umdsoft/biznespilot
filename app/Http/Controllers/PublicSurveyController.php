@@ -210,10 +210,49 @@ class PublicSurveyController extends Controller
 
         $survey->update(['completion_rate' => $completionRate]);
 
+        // HR so'rovnoma to'ldirilganda — avtomatik Pipeline'ga tushirish
+        if ($survey->panel_type === 'hr') {
+            $this->createJobApplicationFromSurvey($survey, $response, $request);
+        }
+
         return response()->json([
             'success' => true,
             'thank_you_message' => $survey->thank_you_message,
         ]);
+    }
+
+    /**
+     * HR so'rovnomadan JobApplication yaratish — nomzod pipeline'ga tushadi.
+     */
+    protected function createJobApplicationFromSurvey($survey, $response, $request): void
+    {
+        try {
+            $name = $request->respondent_name ?: 'Noma\'lum';
+            $phone = $request->respondent_phone;
+
+            // Javoblardan qo'shimcha ma'lumot olish
+            $answers = $response->answers ?? [];
+            $answersText = collect($answers)->map(function ($answer) {
+                $q = $answer['question'] ?? '';
+                $a = is_array($answer['answer'] ?? null) ? implode(', ', $answer['answer']) : ($answer['answer'] ?? '');
+                return "{$q}: {$a}";
+            })->implode("\n");
+
+            \App\Models\JobApplication::create([
+                'business_id' => $survey->business_id,
+                'candidate_name' => $name,
+                'candidate_phone' => $phone,
+                'status' => 'new',
+                'pipeline_stage' => 'new',
+                'applied_at' => now(),
+                'notes' => "HR so'rovnoma: {$survey->title}\nResponse ID: {$response->id}\n\n{$answersText}",
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('HR survey to pipeline failed', [
+                'survey_id' => $survey->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

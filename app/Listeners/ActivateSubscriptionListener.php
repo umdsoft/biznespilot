@@ -8,6 +8,7 @@ use App\Models\Subscription;
 use App\Services\SubscriptionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -68,22 +69,19 @@ class ActivateSubscriptionListener implements ShouldQueue
         ]);
 
         try {
-            // 1. Obunani aktivlashtirish
-            $subscription = $this->activateSubscription($transaction, $business, $plan);
+            // Critical DB operations inside transaction
+            // If any of these fail, all changes are rolled back
+            $subscription = DB::transaction(function () use ($transaction, $business, $plan) {
+                // 1. Obunani aktivlashtirish
+                $subscription = $this->activateSubscription($transaction, $business, $plan);
 
-            // 2. Tranzaksiyaga subscription_id ni bog'lash
-            $transaction->update([
-                'subscription_id' => $subscription->id,
-            ]);
+                // 2. Tranzaksiyaga subscription_id ni bog'lash
+                $transaction->update([
+                    'subscription_id' => $subscription->id,
+                ]);
 
-            // 2.5. Redis subscription cache ni tozalash (session bu yerda mavjud emas)
-            HandleInertiaRequests::clearSubscriptionCache($business->id);
-
-            // 3. Foydalanuvchiga xabar yuborish
-            $this->notifyUser($business, $plan, $transaction);
-
-            // 4. Admin ga xabar yuborish (agar sozlangan bo'lsa)
-            $this->notifyAdmin($business, $plan, $transaction);
+                return $subscription;
+            });
 
             Log::channel('billing')->info('[Listener] Subscription activated successfully', [
                 'subscription_id' => $subscription->id,
@@ -100,6 +98,25 @@ class ActivateSubscriptionListener implements ShouldQueue
             // Re-throw to trigger retry
             throw $e;
         }
+
+        // Non-critical operations outside transaction (can fail safely)
+        // These run after the subscription is committed to the database
+
+        // 3. Redis subscription cache ni tozalash
+        try {
+            HandleInertiaRequests::clearSubscriptionCache($business->id);
+        } catch (\Exception $e) {
+            Log::channel('billing')->warning('[Listener] Failed to clear subscription cache', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // 4. Foydalanuvchiga xabar yuborish
+        $this->notifyUser($business, $plan, $transaction);
+
+        // 5. Admin ga xabar yuborish (agar sozlangan bo'lsa)
+        $this->notifyAdmin($business, $plan, $transaction);
     }
 
     /**
