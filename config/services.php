@@ -77,18 +77,14 @@ return [
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    ],
-
-    'google_ads' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('APP_URL', 'http://localhost') . '/integrations/google/callback',
         'developer_token' => env('GOOGLE_ADS_DEVELOPER_TOKEN'),
-        'redirect' => env('GOOGLE_ADS_REDIRECT_URI'),
     ],
 
     'yandex' => [
         'client_id' => env('YANDEX_CLIENT_ID'),
         'client_secret' => env('YANDEX_CLIENT_SECRET'),
+        'redirect' => env('APP_URL', 'http://localhost') . '/integrations/yandex/callback',
     ],
 
     'whatsapp' => [

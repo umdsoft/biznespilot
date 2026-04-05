@@ -11,6 +11,7 @@ use App\Models\LeadSource;
 use App\Models\PipelineStage;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -294,11 +295,28 @@ class SalesController extends Controller
             }
         }
 
-        unset($validated['force_create']);
-        $validated['business_id'] = $currentBusiness->id;
-        $validated['uuid'] = Str::uuid();
+        // Check monthly leads limit with atomic lock
+        $lock = Cache::lock("lead_create:{$currentBusiness->id}", 5);
+        if (! $lock->get()) {
+            return redirect()->back()->withInput()->with('error', 'Iltimos, biroz kuting.');
+        }
 
-        Lead::create($validated);
+        try {
+            $limitService = app(PlanLimitService::class);
+            if ($limitService->hasReachedLimit($currentBusiness, 'monthly_leads')) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Oylik lidlar limiti tugagan. Tarifni yangilang.');
+            }
+
+            unset($validated['force_create']);
+            $validated['business_id'] = $currentBusiness->id;
+            $validated['uuid'] = Str::uuid();
+
+            Lead::create($validated);
+        } finally {
+            $lock->release();
+        }
 
         // Clear stats cache on lead creation
         Cache::forget("lead_stats_{$currentBusiness->id}");

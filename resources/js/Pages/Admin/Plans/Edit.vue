@@ -474,7 +474,6 @@
 import { ref, reactive, computed, h } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
-import axios from 'axios';
 
 const props = defineProps({
   plan: Object,
@@ -720,7 +719,7 @@ const disableAllFeatures = () => {
 };
 
 // Save form
-const saveForm = async () => {
+const saveForm = () => {
   if (!form.name) {
     alert('Tarif nomini kiriting');
     return;
@@ -728,30 +727,35 @@ const saveForm = async () => {
 
   loading.value = true;
 
-  try {
-    // Clean up limits - convert empty/null to null for unlimited
-    const cleanLimits = {};
-    Object.entries(form.limits).forEach(([key, value]) => {
-      cleanLimits[key] = value === '' || value === null || value === undefined ? null : Number(value);
+  // Clean up limits - convert empty/null to null for unlimited
+  const cleanLimits = {};
+  Object.entries(form.limits).forEach(([key, value]) => {
+    cleanLimits[key] = value === '' || value === null || value === undefined ? null : Number(value);
+  });
+
+  const payload = {
+    ...form,
+    limits: cleanLimits,
+  };
+
+  if (props.plan) {
+    router.put(`/dashboard/plans/${props.plan.id}`, payload, {
+      onSuccess: () => { loading.value = false; },
+      onError: (errors) => {
+        loading.value = false;
+        const msg = Object.values(errors).flat().join('\n');
+        if (msg) alert(msg);
+      },
     });
-
-    const payload = {
-      ...form,
-      limits: cleanLimits,
-    };
-
-    if (props.plan) {
-      await axios.put(`/dashboard/plans/${props.plan.id}`, payload);
-    } else {
-      await axios.post('/dashboard/plans', payload);
-    }
-
-    router.visit('/dashboard/plans');
-  } catch (error) {
-    console.error(error);
-    alert(error.response?.data?.message || 'Xatolik yuz berdi');
-  } finally {
-    loading.value = false;
+  } else {
+    router.post('/dashboard/plans', payload, {
+      onSuccess: () => { loading.value = false; },
+      onError: (errors) => {
+        loading.value = false;
+        const msg = Object.values(errors).flat().join('\n');
+        if (msg) alert(msg);
+      },
+    });
   }
 };
 </script>

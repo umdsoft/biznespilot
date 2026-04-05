@@ -619,14 +619,15 @@ const includedInAllRows = [
 ];
 
 // ============================================================
-// SECTION 6: Texnik yordam (hardcoded by plan slug)
+// SECTION 6: Texnik yordam (dynamic from plan limits/features)
 // ============================================================
-const supportDataBySlug = {
-  start: { response: '24 soat', onboarding: false, personal_manager: false },
-  standard: { response: '12 soat', onboarding: true, personal_manager: false },
-  business: { response: '8 soat', onboarding: true, personal_manager: false },
-  premium: { response: '2 soat', onboarding: 'Shaxsiy', personal_manager: true },
-  enterprise: { response: '1 soat', onboarding: 'Shaxsiy', personal_manager: true },
+const getSupportData = (plan) => {
+  const hours = plan.limits?.support_response_hours;
+  return {
+    response: hours ? `${hours} soat` : '24 soat',
+    onboarding: plan.features?.onboarding ?? false,
+    personal_manager: plan.features?.personal_manager ?? false,
+  };
 };
 
 const supportRows = [
@@ -636,7 +637,7 @@ const supportRows = [
   },
   {
     label: 'Javob vaqti',
-    getValue: (plan) => supportDataBySlug[plan.slug]?.response || '24 soat',
+    getValue: (plan) => getSupportData(plan).response,
   },
   {
     label: "Video qo'llanmalar",
@@ -645,14 +646,14 @@ const supportRows = [
   {
     label: 'Onboarding yordam',
     getValue: (plan) => {
-      const val = supportDataBySlug[plan.slug]?.onboarding;
+      const val = getSupportData(plan).onboarding;
       if (typeof val === 'string') return val;
       return val ?? false;
     },
   },
   {
     label: 'Shaxsiy menejer',
-    getValue: (plan) => supportDataBySlug[plan.slug]?.personal_manager ?? false,
+    getValue: (plan) => getSupportData(plan).personal_manager ?? false,
   },
 ];
 

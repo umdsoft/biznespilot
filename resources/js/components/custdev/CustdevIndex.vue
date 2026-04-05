@@ -7,359 +7,244 @@ const props = defineProps({
     panelType: {
         type: String,
         required: true,
-        validator: (value) => ['business', 'marketing'].includes(value),
+        validator: (value) => ['business', 'marketing', 'hr'].includes(value),
     },
 });
 
-// Route helpers based on panel type
 const getRoute = (name, params = null) => {
-    const prefix = props.panelType === 'business' ? 'business.' : 'marketing.';
+    const prefixMap = { business: 'business.', marketing: 'marketing.', hr: 'hr.' };
+    const prefix = prefixMap[props.panelType] || 'business.';
     return params ? route(prefix + name, params) : route(prefix + name);
 };
 
 const deletingSurvey = ref(null);
 const copiedSlug = ref(null);
 
-const getStatusColor = (status) => {
-    const colors = {
-        active: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
-        inactive: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
-        draft: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
-        completed: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-        paused: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
-        closed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-    };
-    return colors[status] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400';
+const statusMap = {
+    active:    { label: 'Faol',        dot: 'bg-emerald-500', bg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' },
+    inactive:  { label: 'Nofaol',      dot: 'bg-gray-400',    bg: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
+    draft:     { label: 'Qoralama',    dot: 'bg-amber-400',   bg: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' },
+    completed: { label: 'Tugallangan', dot: 'bg-blue-500',    bg: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' },
+    paused:    { label: "To'xtatilgan",dot: 'bg-amber-400',   bg: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' },
+    closed:    { label: 'Yopilgan',    dot: 'bg-red-400',     bg: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' },
 };
 
-const getStatusText = (status) => {
-    const texts = {
-        active: 'Faol',
-        inactive: 'Nofaol',
-        draft: 'Qoralama',
-        completed: 'Tugallangan',
-        paused: 'To\'xtatilgan',
-        closed: 'Yopilgan',
-    };
-    return texts[status] || status;
-};
+const getStatus = (s) => statusMap[s] || statusMap.inactive;
 
 const toggleStatus = (survey) => {
-    router.post(getRoute('custdev.toggle-status', { custdev: survey.id }), {}, {
-        preserveScroll: true,
-    });
+    router.post(getRoute('custdev.toggle-status', { custdev: survey.id }), {}, { preserveScroll: true });
 };
 
 const copyLink = (survey) => {
-    const link = `${window.location.origin}/s/${survey.slug}`;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(`${window.location.origin}/s/${survey.slug}`);
     copiedSlug.value = survey.slug;
-    setTimeout(() => {
-        copiedSlug.value = null;
-    }, 2000);
+    setTimeout(() => copiedSlug.value = null, 2000);
 };
 
-const confirmDelete = (survey) => {
-    deletingSurvey.value = survey;
-};
+const confirmDelete = (survey) => deletingSurvey.value = survey;
+const cancelDelete = () => deletingSurvey.value = null;
 
 const deleteSurvey = () => {
     if (deletingSurvey.value) {
         router.delete(getRoute('custdev.destroy', { custdev: deletingSurvey.value.id }), {
             preserveScroll: true,
-            onSuccess: () => {
-                deletingSurvey.value = null;
-            },
+            onSuccess: () => deletingSurvey.value = null,
         });
     }
 };
 
-const cancelDelete = () => {
-    deletingSurvey.value = null;
-};
-
 const activeSurveysCount = computed(() => props.surveys?.filter(s => s.status === 'active').length || 0);
-const inactiveSurveysCount = computed(() => props.surveys?.filter(s => s.status !== 'active').length || 0);
+const totalResponses = computed(() => props.surveys?.reduce((sum, s) => sum + (s.responses_count || 0), 0) || 0);
 </script>
 
 <template>
     <div class="space-y-6">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">CustDev So'rovnomalar</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Mijozlaringiz haqida real ma'lumotlar to'plang</p>
-                </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">So'rovnomalar</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Mijozlaringiz haqida real ma'lumotlar to'plang</p>
             </div>
             <Link
                 :href="getRoute('custdev.create')"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium rounded-xl shadow-lg shadow-emerald-500/25 transition-all"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Yangi So'rovnoma
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Yangi so'rovnoma
             </Link>
         </div>
 
+        <!-- Stats (only when surveys exist) -->
+        <div v-if="surveys && surveys.length > 0" class="grid grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ surveys.length }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Jami</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                <p class="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{{ activeSurveysCount }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Faol</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                <p class="text-2xl font-semibold text-blue-600 dark:text-blue-400">{{ totalResponses }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Javoblar</p>
+            </div>
+        </div>
+
         <!-- Empty State -->
-        <div v-if="!surveys || surveys.length === 0" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="p-12 text-center">
-                <div class="relative w-32 h-32 mx-auto mb-8">
-                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 rounded-full animate-pulse"></div>
-                    <div class="absolute inset-4 bg-gradient-to-br from-emerald-500/30 to-teal-600/30 rounded-full"></div>
-                    <div class="absolute inset-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                    </div>
+        <div v-if="!surveys || surveys.length === 0" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+            <div class="py-12 px-6 text-center">
+                <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
                 </div>
-
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">CustDev So'rovnomasi Yarating</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-                    Mijozlaringizdan real ma'lumotlar to'plang. Professional savollar tayyor - faqat link ulashing!
+                <h3 class="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">So'rovnoma yo'q</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+                    CustDev so'rovnomasi yarating va mijozlaringizdan real fikr-mulohazalar to'plang.
                 </p>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
-                    <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-4 border border-emerald-100 dark:border-emerald-800">
-                        <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Oson Link</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Link yaratib ulashing, javoblar avtomatik to'planadi</p>
-                    </div>
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
-                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Professional</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">CustDev metodologiyasi asosida savollar</p>
-                    </div>
-                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border border-purple-100 dark:border-purple-800">
-                        <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Tahlil</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Javoblar avtomatik tahlil qilinadi</p>
-                    </div>
-                </div>
-
                 <Link
                     :href="getRoute('custdev.create')"
-                    class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition-all"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    So'rovnoma Yaratish
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    So'rovnoma yaratish
                 </Link>
             </div>
         </div>
 
-        <!-- Surveys Table -->
-        <div v-else class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                So'rovnoma
-                            </th>
-                            <th class="px-4 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Holat
-                            </th>
-                            <th class="px-4 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Savollar
-                            </th>
-                            <th class="px-4 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Javoblar
-                            </th>
-                            <th class="px-4 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Tugallangan
-                            </th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Link
-                            </th>
-                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Amallar
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <tr
-                            v-for="survey in surveys"
-                            :key="survey.id"
-                            class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                        >
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white flex-shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                        </svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 truncate max-w-xs">{{ survey.title }}</h3>
-                                        <p v-if="survey.description" class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{{ survey.description }}</p>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td class="px-4 py-4 text-center">
-                                <button
-                                    @click="toggleStatus(survey)"
-                                    :class="getStatusColor(survey.status)"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:ring-2 hover:ring-offset-2 hover:ring-emerald-500 dark:hover:ring-offset-gray-800"
-                                    :title="survey.status === 'active' ? 'Toxtatish' : 'Faollashtirish'"
-                                >
-                                    <span class="w-1.5 h-1.5 rounded-full" :class="survey.status === 'active' ? 'bg-green-500' : 'bg-gray-400'"></span>
-                                    {{ getStatusText(survey.status) }}
-                                </button>
-                            </td>
-
-                            <td class="px-4 py-4 text-center">
-                                <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-semibold">
-                                    {{ survey.questions_count || survey.questions?.length || 0 }}
-                                </span>
-                            </td>
-
-                            <td class="px-4 py-4 text-center">
-                                <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-semibold">
-                                    {{ survey.responses_count || 0 }}
-                                </span>
-                            </td>
-
-                            <td class="px-4 py-4 text-center">
-                                <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-semibold">
-                                    {{ survey.completed_responses_count || 0 }}
-                                </span>
-                            </td>
-
-                            <td class="px-4 py-4">
-                                <div class="flex items-center gap-2">
-                                    <code class="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md truncate max-w-[120px]">/s/{{ survey.slug }}</code>
-                                    <button
-                                        @click="copyLink(survey)"
-                                        class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group relative"
-                                        :title="copiedSlug === survey.slug ? 'Nusxalandi!' : 'Linkni nusxalash'"
-                                    >
-                                        <svg v-if="copiedSlug !== survey.slug" class="w-4 h-4 text-gray-500 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                        </svg>
-                                        <svg v-else class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-
-                            <td class="px-6 py-4">
-                                <div class="flex items-center justify-end gap-1">
-                                    <Link
-                                        :href="getRoute('custdev.results', { custdev: survey.id })"
-                                        class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
-                                        title="Natijalarni ko'rish"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                        <span class="hidden lg:inline">Natijalar</span>
-                                    </Link>
-
-                                    <Link
-                                        :href="getRoute('custdev.edit', { custdev: survey.id })"
-                                        class="inline-flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                        title="Tahrirlash"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </Link>
-
-                                    <button
-                                        @click="confirmDelete(survey)"
-                                        class="inline-flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                        title="O'chirish"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Jami <span class="font-semibold text-gray-900 dark:text-gray-100">{{ surveys.length }}</span> ta so'rovnoma
-                    </p>
-                    <div class="flex items-center gap-6 text-sm">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                            <span class="text-gray-600 dark:text-gray-400">Faol: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ activeSurveysCount }}</span></span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-                            <span class="text-gray-600 dark:text-gray-400">Nofaol: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ inactiveSurveysCount }}</span></span>
-                        </div>
+        <!-- CustDev haqida -->
+        <div v-if="!surveys || surveys.length === 0" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">CustDev nima va nima uchun kerak?</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                <strong>Customer Development (CustDev)</strong> — bu mijozlaringiz bilan tizimli suhbat o'tkazib, ularning haqiqiy muammolari, ehtiyojlari va xulq-atvorini o'rganish metodologiyasi. Oddiy so'rovnomadan farqi — CustDev ochiq savollar orqali chuqur tushunchalar beradi.
+            </p>
+            <div class="grid sm:grid-cols-3 gap-3">
+                <div class="flex gap-2.5">
+                    <div class="w-7 h-7 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-900 dark:text-gray-100">Muammoni aniqlang</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Mijozlar nimadan norozi? Qaysi muammo eng kuchli?</p>
+                    </div>
+                </div>
+                <div class="flex gap-2.5">
+                    <div class="w-7 h-7 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-900 dark:text-gray-100">G'oyani tekshiring</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Yangi mahsulot yoki xizmat uchun talab bormi?</p>
+                    </div>
+                </div>
+                <div class="flex gap-2.5">
+                    <div class="w-7 h-7 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-900 dark:text-gray-100">Qaror qabul qiling</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Ma'lumotlarga asoslangan biznes qarorlar chiqaring.</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Surveys Table -->
+        <div v-else class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nomi</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-20">Holat</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-16 hidden sm:table-cell">Savollar</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-16 hidden sm:table-cell">Javoblar</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-20 hidden md:table-cell">Link</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-28">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                    <tr v-for="survey in surveys" :key="survey.id" class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                        <!-- Name -->
+                        <td class="px-4 py-3">
+                            <Link :href="getRoute('custdev.results', { custdev: survey.id })" class="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                {{ survey.title }}
+                            </Link>
+                            <p v-if="survey.description" class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs mt-0.5">{{ survey.description }}</p>
+                        </td>
+
+                        <!-- Status toggle -->
+                        <td class="px-3 py-3 text-center">
+                            <button
+                                @click="toggleStatus(survey)"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none"
+                                :class="survey.status === 'active' ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'"
+                                :title="survey.status === 'active' ? 'Faol — o\'chirish uchun bosing' : 'Nofaol — yoqish uchun bosing'"
+                            >
+                                <span
+                                    class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform"
+                                    :class="survey.status === 'active' ? 'translate-x-4.5' : 'translate-x-0.5'"
+                                ></span>
+                            </button>
+                        </td>
+
+                        <!-- Questions count -->
+                        <td class="px-3 py-3 text-center hidden sm:table-cell">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ survey.questions_count || survey.questions?.length || 0 }}</span>
+                        </td>
+
+                        <!-- Responses count -->
+                        <td class="px-3 py-3 text-center hidden sm:table-cell">
+                            <span class="text-sm font-medium" :class="(survey.responses_count || 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'">{{ survey.responses_count || 0 }}</span>
+                        </td>
+
+                        <!-- Link copy -->
+                        <td class="px-3 py-3 text-center hidden md:table-cell">
+                            <button
+                                @click.stop="copyLink(survey)"
+                                class="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            >
+                                <svg v-if="copiedSlug !== survey.slug" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                <svg v-else class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {{ copiedSlug === survey.slug ? 'OK' : 'Link' }}
+                            </button>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="px-4 py-3 text-right">
+                            <div class="flex items-center justify-end gap-0.5">
+                                <Link :href="getRoute('custdev.results', { custdev: survey.id })" class="p-1.5 text-gray-400 hover:text-emerald-600 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Natijalar">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                </Link>
+                                <Link :href="getRoute('custdev.edit', { custdev: survey.id })" class="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title="Tahrirlash">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </Link>
+                                <button @click="confirmDelete(survey)" class="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="O'chirish">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Modal -->
     <Teleport to="body">
-        <div v-if="deletingSurvey" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4">
-                <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="cancelDelete"></div>
-                <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">So'rovnomani o'chirish</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Bu amalni qaytarib bo'lmaydi</p>
-                        </div>
-                    </div>
-
-                    <p class="text-gray-700 dark:text-gray-300 mb-6">
-                        <strong class="text-gray-900 dark:text-gray-100">{{ deletingSurvey.title }}</strong> nomli so'rovnomani va uning barcha javoblarini o'chirishni xohlaysizmi?
-                    </p>
-
-                    <div class="flex gap-3">
-                        <button
-                            @click="cancelDelete"
-                            class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
-                        >
-                            Bekor qilish
-                        </button>
-                        <button
-                            @click="deleteSurvey"
-                            class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
-                        >
-                            O'chirish
-                        </button>
-                    </div>
+        <div v-if="deletingSurvey" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/40" @click="cancelDelete"></div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full p-5 border border-gray-200 dark:border-gray-700">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">O'chirishni tasdiqlang</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">
+                    <strong>{{ deletingSurvey.title }}</strong> va uning barcha javoblari o'chiriladi. Bu amalni qaytarib bo'lmaydi.
+                </p>
+                <div class="flex gap-2.5">
+                    <button @click="cancelDelete" class="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                        Bekor qilish
+                    </button>
+                    <button @click="deleteSurvey" class="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                        O'chirish
+                    </button>
                 </div>
             </div>
         </div>

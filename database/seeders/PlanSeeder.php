@@ -44,11 +44,14 @@ class PlanSeeder extends Seeder
                     'telegram_bots' => 1,
                     'ai_requests' => 15,
                     'storage_mb' => 200,
+                    'support_response_hours' => 24,
                 ],
                 'features' => [
                     'hr_tasks' => true,
                     'hr_bot' => true,
                     'anti_fraud' => true,
+                    'onboarding' => false,
+                    'personal_manager' => false,
                 ],
             ],
 
@@ -73,11 +76,14 @@ class PlanSeeder extends Seeder
                     'telegram_bots' => 2,
                     'ai_requests' => 500,
                     'storage_mb' => 500,
+                    'support_response_hours' => 24,
                 ],
                 'features' => [
                     'hr_tasks' => false,
                     'hr_bot' => false,
                     'anti_fraud' => false,
+                    'onboarding' => false,
+                    'personal_manager' => false,
                 ],
             ],
 
@@ -102,11 +108,14 @@ class PlanSeeder extends Seeder
                     'telegram_bots' => 3,
                     'ai_requests' => 2000,
                     'storage_mb' => 1000,
+                    'support_response_hours' => 12,
                 ],
                 'features' => [
                     'hr_tasks' => true,
                     'hr_bot' => false,
                     'anti_fraud' => false,
+                    'onboarding' => true,
+                    'personal_manager' => false,
                 ],
             ],
 
@@ -131,11 +140,14 @@ class PlanSeeder extends Seeder
                     'telegram_bots' => 5,
                     'ai_requests' => 10000,
                     'storage_mb' => 5000,
+                    'support_response_hours' => 8,
                 ],
                 'features' => [
                     'hr_tasks' => true,
                     'hr_bot' => true,
                     'anti_fraud' => false,
+                    'onboarding' => true,
+                    'personal_manager' => false,
                 ],
             ],
 
@@ -160,11 +172,14 @@ class PlanSeeder extends Seeder
                     'telegram_bots' => 20,
                     'ai_requests' => 50000,
                     'storage_mb' => 50000,
+                    'support_response_hours' => 2,
                 ],
                 'features' => [
                     'hr_tasks' => true,
                     'hr_bot' => true,
                     'anti_fraud' => true,
+                    'onboarding' => true,
+                    'personal_manager' => true,
                 ],
             ],
 
@@ -189,11 +204,14 @@ class PlanSeeder extends Seeder
                     'telegram_bots' => null, // Cheksiz
                     'ai_requests' => null, // Cheksiz
                     'storage_mb' => null, // Cheksiz
+                    'support_response_hours' => 1,
                 ],
                 'features' => [
                     'hr_tasks' => true,
                     'hr_bot' => true,
                     'anti_fraud' => true,
+                    'onboarding' => true,
+                    'personal_manager' => true,
                 ],
             ],
         ];

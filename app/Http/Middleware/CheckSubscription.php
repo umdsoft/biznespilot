@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\NoActiveSubscriptionException;
 use App\Models\Business;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,45 +17,17 @@ class CheckSubscription
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Get current business ID from session
-        $businessId = session('current_business_id');
-
-        if (! $businessId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Business context is required',
-            ], 400);
-        }
-
-        // Get the business
-        $business = Business::find($businessId);
+        $business = $this->resolveBusiness($request);
 
         if (! $business) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Business not found',
-            ], 404);
+            throw new NoActiveSubscriptionException;
         }
 
-        // Get the active subscription (including trialing status)
-        // SubscriptionService 'trialing' status yaratadi
-        $subscription = $business->subscriptions()
-            ->whereIn('status', ['active', 'trialing'])
-            ->where(function ($query) {
-                $query->whereDate('ends_at', '>=', now())
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'trialing')
-                            ->whereDate('trial_ends_at', '>=', now());
-                    });
-            })
-            ->first();
+        // Get the active subscription (scope: active/trialing, latest first)
+        $subscription = $business->subscriptions()->active()->first();
 
-        if (!$subscription) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Aktiv obuna topilmadi. Iltimos, tarifni tanlang.',
-                'error_code' => 'NO_ACTIVE_SUBSCRIPTION',
-            ], 402);
+        if (! $subscription) {
+            throw new NoActiveSubscriptionException;
         }
 
         // Trial tugash ogohlantirishi (3 kun qolganida)
@@ -69,5 +42,31 @@ class CheckSubscription
         $request->merge(['current_subscription' => $subscription]);
 
         return $next($request);
+    }
+
+    /**
+     * Resolve the current business from request or session.
+     */
+    protected function resolveBusiness(Request $request): ?Business
+    {
+        // Try from authenticated user's current business (accessor)
+        if ($request->user()) {
+            try {
+                $business = $request->user()->currentBusiness;
+                if ($business) {
+                    return $business;
+                }
+            } catch (\Exception $e) {
+                // Accessor mavjud emas yoki xato — fallback ga o'tish
+            }
+        }
+
+        // Fallback to session
+        $businessId = session('current_business_id');
+        if ($businessId) {
+            return Business::find($businessId);
+        }
+
+        return null;
     }
 }

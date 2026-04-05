@@ -156,6 +156,28 @@ Route::middleware(['auth', 'has.business'])->prefix('onboarding')->name('onboard
 // Shared Integrations Routes (for all panels)
 // ==============================================
 Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integrations.')->group(function () {
+    // Integrations Index page
+    Route::get('/', function () {
+        $business = \App\Models\Business::find(session('current_business_id'));
+        $check = function (string $model) use ($business) {
+            if (!$business) return false;
+            try { return $model::where('business_id', $business->id)->exists(); } catch (\Throwable) { return false; }
+        };
+        $googleConnected = $business ? \App\Models\Integration::where('business_id', $business->id)->where('type', 'google')->where('is_active', true)->exists() : false;
+        $yandexConnected = $business ? \App\Models\Integration::where('business_id', $business->id)->where('type', 'yandex')->where('is_active', true)->exists() : false;
+
+        return \Inertia\Inertia::render('Integrations/Index', [
+            'integrations' => [
+                'instagram' => $check(\App\Models\InstagramAccount::class),
+                'facebook' => $check(\App\Models\FacebookPage::class),
+                'meta_ads' => $check(\App\Models\MetaAdAccount::class),
+                'telegram' => $check(\App\Models\TelegramBot::class),
+                'google' => $googleConnected,
+                'yandex' => $yandexConnected,
+            ],
+        ]);
+    })->name('index');
+
     // ==================== META (Facebook/Instagram) ====================
     Route::prefix('meta')->name('meta.')->group(function () {
         Route::get('/auth-url', [TargetAnalysisController::class, 'getMetaAuthUrl'])->name('auth-url');
@@ -164,6 +186,20 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
         Route::post('/sync', [TargetAnalysisController::class, 'syncMeta'])->name('sync');
         Route::post('/refresh', [TargetAnalysisController::class, 'refreshMeta'])->name('refresh');
         Route::post('/select-account', [TargetAnalysisController::class, 'selectMetaAccount'])->name('select-account');
+    });
+
+    // ==================== GOOGLE (GA4 + Ads + YouTube) ====================
+    Route::prefix('google')->name('google.')->group(function () {
+        Route::get('/auth-url', [\App\Http\Controllers\IntegrationOAuthController::class, 'googleAuthUrl'])->name('auth-url');
+        Route::get('/callback', [\App\Http\Controllers\IntegrationOAuthController::class, 'googleCallback'])->name('callback');
+        Route::post('/disconnect', [\App\Http\Controllers\IntegrationOAuthController::class, 'googleDisconnect'])->name('disconnect');
+    });
+
+    // ==================== YANDEX (Metrika + Direct) ====================
+    Route::prefix('yandex')->name('yandex.')->group(function () {
+        Route::get('/auth-url', [\App\Http\Controllers\IntegrationOAuthController::class, 'yandexAuthUrl'])->name('auth-url');
+        Route::get('/callback', [\App\Http\Controllers\IntegrationOAuthController::class, 'yandexCallback'])->name('callback');
+        Route::post('/disconnect', [\App\Http\Controllers\IntegrationOAuthController::class, 'yandexDisconnect'])->name('disconnect');
     });
 
     // ==================== SOCIAL ACCOUNTS (Qat'iy Bitta Akkaunt) ====================
@@ -297,7 +333,7 @@ Route::middleware(['auth', 'has.business'])->prefix('integrations')->name('integ
 });
 
 // Business Panel Routes (requires business)
-Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.')->group(function () {
+Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')->name('business.')->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -331,6 +367,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{custdev}/toggle-status', [CustdevController::class, 'toggleStatus'])->name('toggle-status');
         Route::get('/{custdev}/results', [CustdevController::class, 'results'])->name('results');
         Route::get('/{custdev}/export', [CustdevController::class, 'export'])->name('export');
+        Route::get('/{custdev}/response/{response}/pdf', [CustdevController::class, 'exportResponsePdf'])->name('response.pdf');
         Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
@@ -509,6 +546,16 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         });
     });
 
+    // Product Analysis (Marketing)
+    Route::prefix('product-analysis')->name('product-analysis.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'store'])->name('store');
+        Route::get('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'show'])->name('show');
+        Route::put('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'update'])->name('update');
+        Route::delete('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'destroy'])->name('destroy');
+        Route::post('/insights/{insight}/dismiss', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'dismissInsight'])->name('dismiss-insight');
+    });
+
     // AI Analysis routes (Facebook) - Instagram moved to /integrations/instagram
     Route::get('/facebook-analysis', [App\Http\Controllers\Business\AIAnalysisController::class, 'facebook'])->name('facebook-analysis');
 
@@ -534,6 +581,9 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/', [ChannelAnalyticsController::class, 'index'])->name('index');
         Route::post('/compare', [ChannelAnalyticsController::class, 'compare'])->name('compare');
     });
+
+    // HR Hub (faqat hub sahifa — qolgan HR funksiyalar /hr/ panelda, business owner kirish huquqiga ega)
+    Route::get('/hr', [App\Http\Controllers\Business\HRHubController::class, 'index'])->name('hr.index');
 
     // Sales routes (Lead management)
     Route::resource('sales', SalesController::class)->parameters([
@@ -876,8 +926,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/{call}', [App\Http\Controllers\Business\CallController::class, 'show'])->name('show');
     });
 
-    // Subscription / Billing routes (tarif sotib olish)
-    Route::prefix('subscription')->name('subscription.')->group(function () {
+    // Subscription / Billing routes (tarif sotib olish) — subscription middleware dan chiqarilgan
+    Route::withoutMiddleware('subscription')->prefix('subscription')->name('subscription.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Business\SubscriptionController::class, 'index'])->name('index');
         Route::get('/success', [\App\Http\Controllers\Business\SubscriptionController::class, 'success'])->name('success');
         Route::get('/cancel', [\App\Http\Controllers\Business\SubscriptionController::class, 'cancel'])->name('cancel');
@@ -885,8 +935,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::post('/{plan}/pay', [\App\Http\Controllers\Business\SubscriptionController::class, 'pay'])->name('pay');
     });
 
-    // Settings routes
-    Route::prefix('settings')->name('settings.')->group(function () {
+    // Settings routes — subscription middleware dan chiqarilgan (profil, parol, sozlamalar)
+    Route::withoutMiddleware('subscription')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
         Route::put('/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
         Route::put('/password', [SettingsController::class, 'updatePassword'])->name('password.update');
@@ -965,7 +1015,7 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         });
     });
 
-    // SMS routes
+    // SMS routes (anti_fraud feature checked in controller for fraud-specific actions)
     Route::prefix('sms')->name('sms.')->group(function () {
         // Status check
         Route::get('/status', [SmsController::class, 'status'])->name('status');
@@ -1285,8 +1335,8 @@ Route::middleware(['auth', 'has.business'])->prefix('business')->name('business.
         Route::get('/types', [FeedbackController::class, 'getTypes'])->name('types');
     });
 
-    // Billing routes (Tarif va To'lov)
-    Route::prefix('billing')->name('billing.')->group(function () {
+    // Billing routes (Tarif va To'lov) — subscription middleware dan chiqarilgan
+    Route::withoutMiddleware('subscription')->prefix('billing')->name('billing.')->group(function () {
         Route::get('/plans', [\App\Http\Controllers\Business\BillingController::class, 'plans'])->name('plans');
         Route::post('/checkout', [\App\Http\Controllers\Business\BillingController::class, 'checkout'])->name('checkout');
         Route::get('/success', [\App\Http\Controllers\Business\BillingController::class, 'success'])->name('success');
@@ -1408,6 +1458,7 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
         Route::get('/', [BusinessManagementController::class, 'index'])->name('index');
         Route::get('/{business}', [BusinessManagementController::class, 'show'])->name('show');
         Route::put('/{business}/status', [BusinessManagementController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{business}/assign-subscription', [BusinessManagementController::class, 'assignSubscription'])->name('assign-subscription');
         Route::delete('/{business}', [BusinessManagementController::class, 'destroy'])->name('destroy');
     });
 
@@ -1475,6 +1526,14 @@ Route::prefix('s')->name('survey.')->group(function () {
     Route::get('/{slug}/thank-you', [PublicSurveyController::class, 'thankYou'])->name('thank-you');
 });
 
+// Public Job Application routes (nomzod ariza topshirish, no auth)
+Route::get('/vacancy/{slug}', [App\Http\Controllers\HR\PublicJobApplicationController::class, 'show'])->name('vacancy.show');
+Route::post('/vacancy/{slug}/apply', [App\Http\Controllers\HR\PublicJobApplicationController::class, 'submit'])->name('vacancy.apply');
+
+// Public Candidate Assessment routes (no authentication, token-based)
+Route::get('/assessment/{token}', [App\Http\Controllers\HR\CandidateAssessmentPublicController::class, 'show'])->name('assessment.show');
+Route::post('/assessment/{token}', [App\Http\Controllers\HR\CandidateAssessmentPublicController::class, 'submit'])->name('assessment.submit');
+
 // Public Lead Form routes (no authentication required)
 Route::prefix('f')->name('lead-form.')->group(function () {
     Route::get('/{slug}', [PublicLeadFormController::class, 'show'])->name('show');
@@ -1537,7 +1596,7 @@ Route::middleware(['auth', 'business.access'])->prefix('api/instagram/{business}
 // ==============================================
 // Sales Head Panel Routes (Sotuv Bo'limi Rahbari)
 // ==============================================
-Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-head.')->group(function () {
+Route::middleware(['auth', 'sales.head', 'subscription'])->prefix('sales-head')->name('sales-head.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\SalesHead\DashboardController::class, 'index'])->name('dashboard');
 
@@ -1867,11 +1926,21 @@ Route::middleware(['auth', 'sales.head'])->prefix('sales-head')->name('sales-hea
 // ==============================================
 // Marketing Panel Routes (Marketing Bo'limi)
 // ==============================================
-Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.')->group(function () {
+Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->name('marketing.')->group(function () {
     // Marketing Hub (main page) - same design as Business panel
     Route::get('/', [App\Http\Controllers\Marketing\DashboardController::class, 'marketingHub'])->name('hub');
     Route::get('/dashboard', [App\Http\Controllers\Marketing\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\Marketing\DashboardController::class, 'apiStats'])->name('api.stats');
+
+    // Product Analysis
+    Route::prefix('product-analysis')->name('product-analysis.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'index'])->defaults('panel', 'marketing')->name('index');
+        Route::post('/', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'store'])->name('store');
+        Route::get('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'show'])->defaults('panel', 'marketing')->name('show');
+        Route::put('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'update'])->name('update');
+        Route::delete('/{product}', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'destroy'])->name('destroy');
+        Route::post('/insights/{insight}/dismiss', [App\Http\Controllers\Marketing\ProductAnalysisController::class, 'dismissInsight'])->name('dismiss-insight');
+    });
 
     // Campaigns
     Route::prefix('campaigns')->name('campaigns.')->group(function () {
@@ -1992,6 +2061,7 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
         Route::post('/{custdev}/toggle-status', [CustdevController::class, 'toggleStatus'])->name('toggle-status');
         Route::get('/{custdev}/results', [CustdevController::class, 'results'])->name('results');
         Route::get('/{custdev}/export', [CustdevController::class, 'export'])->name('export');
+        Route::get('/{custdev}/response/{response}/pdf', [CustdevController::class, 'exportResponsePdf'])->name('response.pdf');
         Route::post('/{custdev}/sync-dream-buyer', [CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
@@ -2270,7 +2340,7 @@ Route::middleware(['auth', 'marketing'])->prefix('marketing')->name('marketing.'
 // ==============================================
 // Finance Panel Routes (Moliya Bo'limi)
 // ==============================================
-Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->group(function () {
+Route::middleware(['auth', 'finance', 'subscription'])->prefix('finance')->name('finance.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\Finance\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\Finance\DashboardController::class, 'apiStats'])->name('api.stats');
@@ -2348,7 +2418,7 @@ Route::middleware(['auth', 'finance'])->prefix('finance')->name('finance.')->gro
 // ==============================================
 // HR Panel Routes (Kadrlar Bo'limi)
 // ==============================================
-Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () {
+Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\HR\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\HR\DashboardController::class, 'apiStats'])->name('api.stats');
@@ -2393,28 +2463,30 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
         })->name('index');
     });
 
-    // Tasks (Vazifalar)
-    Route::prefix('tasks')->name('tasks.')->group(function () {
-        Route::get('/', function () {
-            return inertia('HR/Tasks/Index', ['tasks' => []]);
-        })->name('index');
-    });
+    // Tasks (Vazifalar) va Todo — hr_tasks feature required
+    Route::middleware('feature:hr_tasks')->group(function () {
+        Route::prefix('tasks')->name('tasks.')->group(function () {
+            Route::get('/', function () {
+                return inertia('HR/Tasks/Index', ['tasks' => []]);
+            })->name('index');
+        });
 
-    // Todo List
-    Route::prefix('todos')->name('todos.')->group(function () {
-        Route::get('/', [App\Http\Controllers\HR\TodoController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\HR\TodoController::class, 'store'])->name('store');
-        Route::get('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'show'])->name('show');
-        Route::put('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'update'])->name('update');
-        Route::delete('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'destroy'])->name('destroy');
-        Route::post('/{todo}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleComplete'])->name('toggle');
-        Route::post('/{todo}/toggle-user', [App\Http\Controllers\HR\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
-        Route::post('/reorder', [App\Http\Controllers\HR\TodoController::class, 'reorder'])->name('reorder');
+        // Todo List
+        Route::prefix('todos')->name('todos.')->group(function () {
+            Route::get('/', [App\Http\Controllers\HR\TodoController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\HR\TodoController::class, 'store'])->name('store');
+            Route::get('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'show'])->name('show');
+            Route::put('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'update'])->name('update');
+            Route::delete('/{todo}', [App\Http\Controllers\HR\TodoController::class, 'destroy'])->name('destroy');
+            Route::post('/{todo}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleComplete'])->name('toggle');
+            Route::post('/{todo}/toggle-user', [App\Http\Controllers\HR\TodoController::class, 'toggleUserComplete'])->name('toggle-user');
+            Route::post('/reorder', [App\Http\Controllers\HR\TodoController::class, 'reorder'])->name('reorder');
 
-        // Subtasks
-        Route::post('/{todo}/subtasks', [App\Http\Controllers\HR\TodoController::class, 'addSubtask'])->name('subtasks.store');
-        Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
-    });
+            // Subtasks
+            Route::post('/{todo}/subtasks', [App\Http\Controllers\HR\TodoController::class, 'addSubtask'])->name('subtasks.store');
+            Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\HR\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
+        });
+    }); // end feature:hr_tasks
 
     // Attendance (Davomat)
     Route::prefix('attendance')->name('attendance.')->group(function () {
@@ -2486,6 +2558,44 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
         Route::post('/job-postings/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateJobPostingStatus'])->name('job-postings.update-status');
         Route::delete('/job-postings/{id}', [App\Http\Controllers\HR\RecruitingController::class, 'destroyJobPosting'])->name('job-postings.destroy');
         Route::post('/applications/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateApplicationStatus'])->name('applications.update-status');
+        Route::post('/applications/{id}/talent-pool', [App\Http\Controllers\HR\TalentPoolController::class, 'addFromApplication'])->name('applications.talent-pool');
+        // Pipeline Kanban
+        Route::get('/pipeline', [App\Http\Controllers\HR\InterviewPipelineController::class, 'index'])->name('pipeline');
+        Route::post('/pipeline/{id}/move', [App\Http\Controllers\HR\InterviewPipelineController::class, 'moveStage'])->name('pipeline.move');
+        // Interviews
+        Route::prefix('interviews')->name('interviews.')->group(function () {
+            Route::get('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'store'])->name('store');
+            Route::post('/{id}/complete', [App\Http\Controllers\HR\InterviewScheduleController::class, 'complete'])->name('complete');
+            Route::post('/{id}/cancel', [App\Http\Controllers\HR\InterviewScheduleController::class, 'cancel'])->name('cancel');
+        });
+    });
+
+    // Talent Pool (Kadrlar Zaxirasi)
+    Route::prefix('talent-pool')->name('talent-pool.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HR\TalentPoolController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'show'])->name('show');
+        Route::post('/', [App\Http\Controllers\HR\TalentPoolController::class, 'store'])->name('store');
+        Route::put('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'update'])->name('update');
+        Route::post('/{id}/status', [App\Http\Controllers\HR\TalentPoolController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{id}/note', [App\Http\Controllers\HR\TalentPoolController::class, 'addNote'])->name('add-note');
+        Route::delete('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'destroy'])->name('destroy');
+    });
+
+    // HR So'rovnomalar (CustDev pattern — shared controller)
+    Route::prefix('custdev')->name('custdev.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\CustdevController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Shared\CustdevController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Shared\CustdevController::class, 'store'])->name('store');
+        Route::get('/{custdev}', [App\Http\Controllers\Shared\CustdevController::class, 'show'])->name('show');
+        Route::get('/{custdev}/edit', [App\Http\Controllers\Shared\CustdevController::class, 'edit'])->name('edit');
+        Route::put('/{custdev}', [App\Http\Controllers\Shared\CustdevController::class, 'update'])->name('update');
+        Route::delete('/{custdev}', [App\Http\Controllers\Shared\CustdevController::class, 'destroy'])->name('destroy');
+        Route::post('/{custdev}/toggle-status', [App\Http\Controllers\Shared\CustdevController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{custdev}/results', [App\Http\Controllers\Shared\CustdevController::class, 'results'])->name('results');
+        Route::get('/{custdev}/export', [App\Http\Controllers\Shared\CustdevController::class, 'export'])->name('export');
+        Route::get('/{custdev}/response/{response}/pdf', [App\Http\Controllers\Shared\CustdevController::class, 'exportResponsePdf'])->name('response.pdf');
+        Route::post('/{custdev}/sync-dream-buyer', [App\Http\Controllers\Shared\CustdevController::class, 'syncToDreamBuyer'])->name('sync-dream-buyer');
     });
 
     // Organizational Structure (Tashkiliy Tuzilma)
@@ -2569,7 +2679,7 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->name('hr.')->group(function () 
 // Employee Self-Service Routes (Barcha xodimlar uchun)
 // These routes are accessible to all employees regardless of department
 // ==============================================
-Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
+Route::middleware(['auth', 'subscription'])->prefix('employee')->name('employee.')->group(function () {
     // My Attendance
     Route::prefix('attendance')->name('attendance.')->group(function () {
         Route::get('/', [App\Http\Controllers\HR\AttendanceController::class, 'index'])->name('index');
@@ -2589,7 +2699,7 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
 // ==============================================
 // Operator Panel Routes (Sotuv Operatorlari)
 // ==============================================
-Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
+Route::middleware(['auth', 'operator', 'subscription'])->prefix('operator')->name('operator.')->group(function () {
     // Dashboard
     Route::get('/', [App\Http\Controllers\Operator\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/stats', [App\Http\Controllers\Operator\DashboardController::class, 'apiStats'])->name('api.stats');

@@ -10,8 +10,6 @@
     <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/pricing" />
     <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/pricing" />
     <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/pricing" />
-    <script type="application/ld+json" v-html="JSON.stringify(productSchema)" />
-    <script type="application/ld+json" v-html="JSON.stringify(faqSchema)" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">
@@ -102,14 +100,14 @@
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
-                  <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(299000)) }}</span>
+                  <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(startPlan)) }}</span>
                   <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
-                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(getPrice(299000) * 12) }} {{ t.price.yearly_suffix }}</p>
+                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(startPlan?.price_yearly) }} {{ t.price.yearly_suffix }}</p>
               </div>
 
               <ul class="space-y-3 mb-8 flex-1">
-                <li v-for="feature in startFeatures" :key="feature" class="flex items-start gap-3">
+                <li v-for="feature in buildStartFeatures" :key="feature" class="flex items-start gap-3">
                   <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                   </svg>
@@ -148,14 +146,14 @@
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
-                  <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(599000)) }}</span>
+                  <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(standardPlan)) }}</span>
                   <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
-                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(getPrice(599000) * 12) }} {{ t.price.yearly_suffix }}</p>
+                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(standardPlan?.price_yearly) }} {{ t.price.yearly_suffix }}</p>
               </div>
 
               <ul class="space-y-3 mb-8 flex-1">
-                <li v-for="feature in standardFeatures" :key="feature" class="flex items-start gap-3">
+                <li v-for="feature in buildStandardFeatures" :key="feature" class="flex items-start gap-3">
                   <svg class="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                   </svg>
@@ -205,25 +203,25 @@
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
-                  <span class="text-4xl lg:text-5xl font-black text-gray-900">{{ formatPrice(getPrice(799000)) }}</span>
+                  <span class="text-4xl lg:text-5xl font-black text-gray-900">{{ formatPrice(getPrice(businessPlan)) }}</span>
                   <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
                 <p v-if="isYearly" class="text-sm text-green-600 font-semibold mt-1">
                   <svg class="w-4 h-4 inline mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                  {{ t.price.yearly_label }} {{ formatPrice(getPrice(799000) * 12) }} {{ t.price.yearly_suffix }} — 1,918,000 {{ t.price.yearly_savings }}
+                  {{ t.price.yearly_label }} {{ formatPrice(businessPlan?.price_yearly) }} {{ t.price.yearly_suffix }} — {{ formatPrice(businessPlan ? businessPlan.price_monthly * 12 - businessPlan.price_yearly : 0) }} {{ t.price.yearly_savings }}
                 </p>
-                <p v-else class="text-sm text-purple-600 font-semibold mt-1">{{ t.price.per_day }} {{ formatPrice(Math.round(799000 / 30)) }} {{ t.price.yearly_suffix }}</p>
+                <p v-else class="text-sm text-purple-600 font-semibold mt-1">{{ t.price.per_day }} {{ formatPrice(businessPlan ? Math.round(businessPlan.price_monthly / 30) : 0) }} {{ t.price.yearly_suffix }}</p>
 
                 <!-- Value anchor: per employee -->
                 <div class="mt-3 px-3 py-2 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100">
                   <p class="text-xs text-purple-700 font-medium">
-                    {{ t.price.per_employee }} <span class="font-bold text-purple-900">{{ formatPrice(Math.round(getPrice(799000) / 10)) }} {{ t.price.per_month }}</span>
+                    {{ t.price.per_employee }} <span class="font-bold text-purple-900">{{ formatPrice(businessPlan ? Math.round(getPrice(businessPlan) / (businessPlan.limits?.users || 10)) : 0) }} {{ t.price.per_month }}</span>
                   </p>
                 </div>
               </div>
 
               <ul class="space-y-3.5 mb-8 flex-1">
-                <li v-for="feature in businessFeatures" :key="feature.text" class="flex items-start gap-3">
+                <li v-for="feature in buildBusinessFeatures" :key="feature.text" class="flex items-start gap-3">
                   <svg class="w-5 h-5 flex-shrink-0 mt-0.5" :class="feature.hot ? 'text-amber-500' : 'text-purple-500'" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                   </svg>
@@ -267,15 +265,15 @@
 
               <div class="mb-6">
                 <div class="flex items-baseline gap-1">
-                  <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(1499000)) }}</span>
+                  <span class="text-3xl lg:text-4xl font-extrabold text-gray-900">{{ formatPrice(getPrice(premiumPlan)) }}</span>
                   <span class="text-sm text-gray-400 font-medium">{{ t.price.per_month }}</span>
                 </div>
-                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(getPrice(1499000) * 12) }} {{ t.price.yearly_suffix }}</p>
+                <p v-if="isYearly" class="text-sm text-green-600 font-medium mt-1">{{ t.price.yearly_label }} {{ formatPrice(premiumPlan?.price_yearly) }} {{ t.price.yearly_suffix }}</p>
                 <p v-else class="text-sm text-amber-600 font-medium mt-1">{{ t.plans.premium.custom_hint }}</p>
               </div>
 
               <ul class="space-y-3 mb-8 flex-1">
-                <li v-for="feature in premiumFeatures" :key="feature" class="flex items-start gap-3">
+                <li v-for="feature in buildPremiumFeatures" :key="feature" class="flex items-start gap-3">
                   <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                   </svg>
@@ -301,19 +299,19 @@
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-gray-300"></div>
-            <span class="text-gray-500">{{ t.comparison_strip.start }}</span>
+            <span class="text-gray-500">Start: {{ startPlan?.limits?.users || 2 }} {{ t.feature_labels.users }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-            <span class="text-gray-600">{{ t.comparison_strip.standard }}</span>
+            <span class="text-gray-600">Standard: {{ standardPlan?.limits?.users || 5 }} {{ t.feature_labels.users }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-violet-500 ring-2 ring-purple-300"></div>
-            <span class="text-purple-700 font-bold">{{ t.comparison_strip.business }}</span>
+            <span class="text-purple-700 font-bold">Business: {{ businessPlan?.limits?.users || 10 }} {{ t.feature_labels.users }} {{ t.comparison_strip.business_extra }}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-            <span class="text-gray-600">{{ t.comparison_strip.premium }}</span>
+            <span class="text-gray-600">Premium: {{ premiumPlan?.limits?.users || 15 }} {{ t.feature_labels.users }} {{ t.comparison_strip.premium_extra }}</span>
           </div>
         </div>
       </div>
@@ -374,7 +372,7 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-          <ComparisonTable :plans="plans" />
+          <ComparisonTable :plans="comparisonPlans" />
         </div>
 
         <!-- Business CTA under comparison -->
@@ -508,45 +506,127 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { Link, Head, router } from '@inertiajs/vue3';
 import LandingLayout from '@/layouts/LandingLayout.vue';
 import ComparisonTable from '@/components/pricing/ComparisonTable.vue';
 import { useLandingLocale } from '@/i18n/landing/locale';
 import translations from '@/i18n/landing/pricing';
 
+const props = defineProps({
+  plans: { type: Array, default: () => [] },
+});
+
 const { locale, t } = useLandingLocale(translations);
 
-const isYearly = ref(true); // Default to yearly (better for conversions)
+const isYearly = ref(true);
 const openFaq = ref(null);
 
 const formatPrice = (price) => {
+  if (!price) return '0';
   return Math.round(price).toLocaleString('uz-UZ');
 };
 
-const getPrice = (monthlyPrice) => {
-  return isYearly.value ? Math.round(monthlyPrice * 0.8) : monthlyPrice;
+const getPrice = (plan) => {
+  if (!plan) return 0;
+  return isYearly.value ? Math.round(plan.price_yearly / 12) : plan.price_monthly;
 };
 
-const selectPlan = (planId) => {
+const selectPlan = (planSlug) => {
   router.visit('/register', {
-    data: { plan: planId }
+    data: { plan: planSlug }
   });
 };
 
-// Plans data for ComparisonTable
-const plans = [
-  { id: 'start', name: 'Start', monthlyPrice: 299000 },
-  { id: 'standard', name: 'Standard', monthlyPrice: 599000 },
-  { id: 'business', name: 'Business', monthlyPrice: 799000 },
-  { id: 'premium', name: 'Premium', monthlyPrice: 1499000 }
-];
+// Plans from database (props)
+const planBySlug = (slug) => props.plans?.find(p => p.slug === slug);
+const startPlan = computed(() => planBySlug('start'));
+const standardPlan = computed(() => planBySlug('standard'));
+const businessPlan = computed(() => planBySlug('business'));
+const premiumPlan = computed(() => planBySlug('premium'));
 
-// Feature lists per plan — computed from translations
-const startFeatures = computed(() => t.value.features.start);
-const standardFeatures = computed(() => t.value.features.standard);
-const businessFeatures = computed(() => t.value.features.business);
-const premiumFeatures = computed(() => t.value.features.premium);
+// Plans data for ComparisonTable (formatted for the component)
+const comparisonPlans = computed(() =>
+  props.plans.map(p => ({
+    id: p.slug,
+    slug: p.slug,
+    name: p.name,
+    monthlyPrice: p.price_monthly,
+    price_monthly: p.price_monthly,
+    price_yearly: p.price_yearly,
+    limits: p.limits,
+    features: p.features,
+  }))
+);
+
+// Format limit value for display
+const fmtLimit = (val, suffix) => {
+  if (val === -1 || val === null || val === undefined) return t.value.units.unlimited;
+  return `${Number(val).toLocaleString('uz-UZ')} ${suffix}`;
+};
+
+// Build feature list dynamically from plan data
+const buildStartFeatures = computed(() => {
+  const p = startPlan.value;
+  if (!p) return [];
+  const fl = t.value.feature_labels;
+  return [
+    `${fmtLimit(p.limits.users, fl.users)}`,
+    `${fmtLimit(p.limits.branches, fl.branches)}`,
+    fl.instagram_telegram,
+    `${fmtLimit(p.limits.monthly_leads, fl.monthly_leads)}`,
+    `${fmtLimit(p.limits.ai_call_minutes, t.value.units.minutes)} ${fl.ai_call_minutes}`,
+    fl.basic_crm,
+  ];
+});
+
+const buildStandardFeatures = computed(() => {
+  const p = standardPlan.value;
+  if (!p) return [];
+  const fl = t.value.feature_labels;
+  return [
+    `${fmtLimit(p.limits.users, fl.users)}`,
+    `${fmtLimit(p.limits.branches, fl.branches)}`,
+    fl.flow_builder,
+    `${fmtLimit(p.limits.monthly_leads, fl.monthly_leads)}`,
+    `${fmtLimit(p.limits.ai_call_minutes, t.value.units.minutes)} ${fl.ai_call_minutes}`,
+    fl.hr_tasks,
+  ];
+});
+
+const buildBusinessFeatures = computed(() => {
+  const p = businessPlan.value;
+  if (!p) return [];
+  const fl = t.value.feature_labels;
+  const u = t.value.units;
+  return [
+    { text: `${fmtLimit(p.limits.users, fl.users)}`, hot: false },
+    { text: `${fmtLimit(p.limits.branches, fl.branches)}`, hot: false },
+    { text: fl.hr_bot_marketing, hot: true },
+    { text: `${fmtLimit(p.limits.monthly_leads, fl.monthly_leads)}`, hot: true },
+    { text: `${fmtLimit(p.limits.ai_call_minutes, u.minutes)} ${fl.ai_call_minutes}`, hot: false },
+    { text: fl.flow_builder, hot: false },
+    { text: `${fmtLimit(p.limits.instagram_accounts, fl.instagram_accounts)}`, hot: true },
+    { text: `${p.limits.support_response_hours || 8} ${fl.response_time}`, hot: false },
+  ];
+});
+
+const buildPremiumFeatures = computed(() => {
+  const p = premiumPlan.value;
+  if (!p) return [];
+  const fl = t.value.feature_labels;
+  const u = t.value.units;
+  return [
+    `${fmtLimit(p.limits.users, fl.users)}`,
+    `${fmtLimit(p.limits.branches, fl.branches)}`,
+    fl.ai_bot_antifraud,
+    `${fmtLimit(p.limits.monthly_leads, fl.monthly_leads)}`,
+    `${fmtLimit(p.limits.ai_call_minutes, u.minutes)} ${fl.ai_call_minutes}`,
+    fl.personal_manager,
+    `${fmtLimit(p.limits.instagram_accounts, fl.instagram_accounts)}`,
+    `${p.limits.support_response_hours || 2} ${fl.response_time}`,
+  ];
+});
 
 // Testimonials - Business plan focused (computed from translations)
 const testimonials = computed(() => {
@@ -580,12 +660,15 @@ const productSchema = computed(() => ({
     : "Biznes boshqaruv platformasi: CRM, marketing, moliya, HR — hammasi bir joyda",
   brand: { '@type': 'Brand', name: 'BiznesPilot' },
   url: 'https://biznespilot.uz/pricing',
-  offers: [
-    { '@type': 'Offer', name: 'Start', price: '299000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=start' },
-    { '@type': 'Offer', name: 'Standard', price: '599000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=standard' },
-    { '@type': 'Offer', name: 'Business', price: '799000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=business' },
-    { '@type': 'Offer', name: 'Premium', price: '1499000', priceCurrency: 'UZS', priceValidUntil: '2027-12-31', availability: 'https://schema.org/InStock', url: 'https://biznespilot.uz/register?plan=premium' },
-  ],
+  offers: props.plans.map(p => ({
+    '@type': 'Offer',
+    name: p.name,
+    price: String(p.price_monthly),
+    priceCurrency: p.currency || 'UZS',
+    priceValidUntil: '2027-12-31',
+    availability: 'https://schema.org/InStock',
+    url: `https://biznespilot.uz/register?plan=${p.slug}`,
+  })),
   aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', bestRating: '5', ratingCount: '150' },
 }));
 
@@ -599,6 +682,25 @@ const faqSchema = computed(() => ({
     acceptedAnswer: { '@type': 'Answer', text: faq.answer },
   })),
 }));
+
+// Inject JSON-LD via DOM to avoid Vue 3 template compilation error with <script> tags
+const jsonLdElements = []
+
+function injectJsonLd() {
+  jsonLdElements.forEach(el => el.remove())
+  jsonLdElements.length = 0
+  ;[productSchema.value, faqSchema.value].forEach(schema => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.textContent = JSON.stringify(schema)
+    document.head.appendChild(el)
+    jsonLdElements.push(el)
+  })
+}
+
+onMounted(() => { injectJsonLd() })
+watch([productSchema, faqSchema], injectJsonLd)
+onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
 </script>
 
 <style scoped>

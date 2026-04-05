@@ -23,84 +23,15 @@ use Illuminate\Support\Facades\Cache;
  */
 class SubscriptionGate
 {
-    /**
-     * Limit konfiguratsiasi - hamma limitlar shu yerda aniqlanadi
-     * Bu konfiguratsia Admin Panel bilan sinxronlashtirilgan
-     */
-    protected array $limitConfig = [
-        'users' => [
-            'label' => 'Foydalanuvchilar soni',
-            'method' => 'getUsersCount',
-            'icon' => 'users',
-            'suffix' => 'ta',
-        ],
-        'branches' => [
-            'label' => 'Filiallar soni',
-            'method' => 'getBranchesCount',
-            'icon' => 'building',
-            'suffix' => 'ta',
-        ],
-        'instagram_accounts' => [
-            'label' => 'Instagram akkauntlar',
-            'method' => 'getInstagramAccountsCount',
-            'icon' => 'instagram',
-            'suffix' => 'ta',
-        ],
-        'monthly_leads' => [
-            'label' => 'Oylik lidlar',
-            'method' => 'getMonthlyLeadsCount',
-            'icon' => 'user-plus',
-            'suffix' => 'ta',
-        ],
-        'ai_call_minutes' => [
-            'label' => 'Qo\'ng\'iroqlar AI tahlili',
-            'method' => 'getAiCallMinutesUsed',
-            'icon' => 'phone',
-            'suffix' => 'daq',
-        ],
-        'chatbot_channels' => [
-            'label' => 'Chatbot kanallari',
-            'method' => 'getChatbotChannelsCount',
-            'icon' => 'chat',
-            'suffix' => 'ta',
-        ],
-        'telegram_bots' => [
-            'label' => 'Telegram botlar',
-            'method' => 'getTelegramBotsCount',
-            'icon' => 'telegram',
-            'suffix' => 'ta',
-        ],
-        'ai_requests' => [
-            'label' => 'AI so\'rovlar',
-            'method' => 'getAiRequestsCount',
-            'icon' => 'sparkles',
-            'suffix' => 'ta',
-        ],
-        'storage_mb' => [
-            'label' => 'Saqlash hajmi',
-            'method' => 'getStorageUsedMb',
-            'icon' => 'database',
-            'suffix' => 'MB',
-        ],
-    ];
+    protected array $limitConfig;
 
-    /**
-     * Feature konfiguratsiasi - Admin Panel bilan sinxronlashtirilgan
-     */
-    protected array $featureConfig = [
-        'hr_tasks' => [
-            'label' => 'HR vazifalar',
-            'description' => 'Vazifalar va loyihalar boshqaruvi',
-        ],
-        'hr_bot' => [
-            'label' => 'Ishga olish boti',
-            'description' => 'Avtomatlashtirilgan HR chatbot',
-        ],
-        'anti_fraud' => [
-            'label' => 'SMS ogohlantirish',
-            'description' => 'Fraud aniqlash va ogohlantirish',
-        ],
-    ];
+    protected array $featureConfig;
+
+    public function __construct()
+    {
+        $this->limitConfig = PlanConfig::limits();
+        $this->featureConfig = PlanConfig::features();
+    }
 
     // ==================== CORE GATE METHODS ====================
 
@@ -225,17 +156,7 @@ class SubscriptionGate
      */
     public function getActiveSubscription(Business $business): Subscription
     {
-        $subscription = $business->subscriptions()
-            ->with('plan')
-            ->whereIn('status', ['active', 'trialing'])
-            ->where(function ($query) {
-                $query->whereDate('ends_at', '>=', now())
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'trialing')
-                            ->whereDate('trial_ends_at', '>=', now());
-                    });
-            })
-            ->first();
+        $subscription = $business->subscriptions()->with('plan')->active()->first();
 
         if (!$subscription) {
             throw new NoActiveSubscriptionException();
@@ -265,10 +186,22 @@ class SubscriptionGate
      */
     protected function getPlanLimit(Plan $plan, string $limitKey): ?int
     {
+        // JSON limits dan olish
         $limits = $plan->limits ?? [];
-        $value = $limits[$limitKey] ?? null;
+        if (isset($limits[$limitKey])) {
+            return (int) $limits[$limitKey];
+        }
 
-        return $value !== null ? (int) $value : null;
+        // Legacy column dan fallback
+        $config = $this->limitConfig[$limitKey] ?? null;
+        if ($config && isset($config['legacy_column'])) {
+            $value = $plan->getAttribute($config['legacy_column']);
+            if ($value !== null) {
+                return (int) $value;
+            }
+        }
+
+        return null;
     }
 
     // ==================== USAGE STATISTICS ====================
@@ -423,12 +356,21 @@ class SubscriptionGate
     }
 
     /**
+     * Team members count (excluding owner).
+     */
+    protected function getTeamMembersCount(Business $business): int
+    {
+        return $business->users()->count();
+    }
+
+    /**
      * Filiallar soni.
      */
     protected function getBranchesCount(Business $business): int
     {
-        // TODO: Filiallar jadvali qo'shilganda yangilash
-        return 1;
+        $count = \App\Models\Bot\Queue\QueueBranch::where('business_id', $business->id)->count();
+
+        return max($count, 1);
     }
 
     /**
@@ -455,12 +397,16 @@ class SubscriptionGate
      */
     protected function getAiCallMinutesUsed(Business $business): int
     {
-        // CallAnalysis modelidan hisoblash
-        // TODO: usage_tracking jadvali qo'shilganda yangilash
         return (int) Cache::remember(
             "business_{$business->id}_ai_call_minutes_" . now()->format('Y_m'),
             3600,
-            fn () => 0
+            fn () => (int) ceil(
+                \App\Models\CallLog::where('business_id', $business->id)
+                    ->has('analysis')
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->sum('duration') / 60
+            )
         );
     }
 
@@ -477,8 +423,7 @@ class SubscriptionGate
      */
     protected function getTelegramBotsCount(Business $business): int
     {
-        return $business->chatbotConfigs()
-            ->where('platform', 'telegram')
+        return \App\Models\TelegramBot::where('business_id', $business->id)
             ->count();
     }
 
@@ -503,8 +448,17 @@ class SubscriptionGate
      */
     protected function getStorageUsedMb(Business $business): int
     {
-        // TODO: media jadvali orqali hisoblash
-        return 0;
+        return (int) Cache::remember(
+            "business_{$business->id}_storage_mb",
+            3600,
+            function () use ($business) {
+                $bytes = \App\Models\FeedbackAttachment::whereHas('feedbackReport', function ($q) use ($business) {
+                    $q->where('business_id', $business->id);
+                })->sum('file_size');
+
+                return (int) ceil($bytes / (1024 * 1024));
+            }
+        );
     }
 
     // ==================== CONFIG GETTERS ====================

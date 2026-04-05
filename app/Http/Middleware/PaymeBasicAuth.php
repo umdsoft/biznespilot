@@ -77,7 +77,7 @@ class PaymeBasicAuth
         }
 
         // IP tekshiruvi (agar sozlangan bo'lsa)
-        if (config('billing.webhook.verify_ip', false)) {
+        if (config('billing.webhook.verify_ip', true)) {
             $allowedIps = config('billing.payme.allowed_ips', []);
 
             if (!empty($allowedIps) && !in_array($request->ip(), $allowedIps)) {

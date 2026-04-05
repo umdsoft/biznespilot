@@ -105,6 +105,11 @@ const canProceed = computed(() => {
         return true;
     }
 
+    if (currentQuestion.value.type === 'phone') {
+        const digits = (answer || '').replace(/\D/g, '');
+        return digits.length >= 9;
+    }
+
     return answer && answer.toString().trim() !== '';
 });
 
@@ -167,6 +172,13 @@ const startSurvey = async () => {
     } finally {
         isLoading.value = false;
     }
+};
+
+const formatPhone = (questionId) => {
+    let val = answers.value[questionId] || '';
+    // Faqat raqamlar, +, bo'sh joy va defis qoldirish
+    val = val.replace(/[^\d\+\s\-\(\)]/g, '');
+    answers.value[questionId] = val;
 };
 
 const nextQuestion = async () => {
@@ -471,6 +483,22 @@ const themeColor = computed(() => props.survey.theme_color || '#10B981');
                                         :placeholder="t('public_survey.answer_placeholder')"
                                         @focus="$event.target.style.borderColor = themeColor"
                                         @blur="$event.target.style.borderColor = answers[currentQuestion.id] ? themeColor : ''"
+                                    />
+                                </div>
+
+                                <!-- Phone -->
+                                <div v-else-if="currentQuestion.type === 'phone'" class="space-y-4">
+                                    <input
+                                        v-model="answers[currentQuestion.id]"
+                                        type="tel"
+                                        inputmode="numeric"
+                                        pattern="[\+]?[0-9\s\-\(\)]{9,18}"
+                                        maxlength="18"
+                                        class="w-full px-5 py-4 bg-slate-900/50 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none transition-all text-lg"
+                                        :placeholder="currentQuestion.placeholder || '+998 90 123 45 67'"
+                                        @focus="$event.target.style.borderColor = themeColor"
+                                        @blur="$event.target.style.borderColor = answers[currentQuestion.id] ? themeColor : ''"
+                                        @input="formatPhone(currentQuestion.id)"
                                     />
                                 </div>
 

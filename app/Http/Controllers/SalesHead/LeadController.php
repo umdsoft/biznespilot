@@ -11,6 +11,7 @@ use App\Models\LeadActivity;
 use App\Models\LeadSource;
 use App\Models\PipelineStage;
 use App\Models\User;
+use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -249,11 +250,26 @@ class LeadController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['business_id'] = $business->id;
-        $validated['status'] = Lead::STATUS_NEW;
-        $validated['score'] = 50; // Default score
+        // Check monthly leads limit with atomic lock
+        $lock = Cache::lock("lead_create:{$business->id}", 5);
+        if (! $lock->get()) {
+            return back()->with('error', 'Iltimos, biroz kuting.');
+        }
 
-        Lead::create($validated);
+        try {
+            $limitService = app(PlanLimitService::class);
+            if ($limitService->hasReachedLimit($business, 'monthly_leads')) {
+                return back()->with('error', 'Oylik lidlar limiti tugagan. Tarifni yangilang.');
+            }
+
+            $validated['business_id'] = $business->id;
+            $validated['status'] = Lead::STATUS_NEW;
+            $validated['score'] = 50;
+
+            Lead::create($validated);
+        } finally {
+            $lock->release();
+        }
 
         return redirect()->route('sales-head.leads.index')
             ->with('success', 'Lead muvaffaqiyatli yaratildi');

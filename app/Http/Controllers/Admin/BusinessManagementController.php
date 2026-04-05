@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\Plan;
+use App\Models\Subscription;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,10 +17,17 @@ class BusinessManagementController extends Controller
      */
     public function index()
     {
-        $businesses = Business::with('owner')
+        $businesses = Business::with(['owner', 'subscriptions' => function ($q) {
+                $q->whereIn('status', ['active', 'trialing'])
+                    ->where('ends_at', '>', now())
+                    ->with('plan')
+                    ->latest();
+            }])
             ->withCount(['customers', 'campaigns'])
             ->get()
             ->map(function ($business) {
+                $activeSub = $business->subscriptions->first();
+
                 return [
                     'id' => $business->id,
                     'name' => $business->name,
@@ -29,6 +39,14 @@ class BusinessManagementController extends Controller
                     'campaigns_count' => $business->campaigns_count,
                     'created_at' => $business->created_at->diffForHumans(),
                     'created_at_raw' => $business->created_at->toDateTimeString(),
+                    'subscription' => $activeSub ? [
+                        'id' => $activeSub->id,
+                        'plan_name' => $activeSub->plan->name ?? '—',
+                        'plan_id' => $activeSub->plan_id,
+                        'status' => $activeSub->status,
+                        'ends_at' => $activeSub->ends_at?->format('d.m.Y'),
+                        'days_remaining' => (int) max(0, ceil(now()->floatDiffInDays($activeSub->ends_at, false))),
+                    ] : null,
                 ];
             });
 
@@ -41,9 +59,21 @@ class BusinessManagementController extends Controller
                 ->count(),
         ];
 
+        $plans = Plan::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn ($plan) => [
+                'id' => $plan->id,
+                'name' => $plan->name,
+                'slug' => $plan->slug,
+                'price_monthly' => $plan->price_monthly,
+                'price_yearly' => $plan->price_yearly,
+            ]);
+
         return Inertia::render('Admin/Businesses/Index', [
             'businesses' => $businesses,
             'stats' => $stats,
+            'plans' => $plans,
         ]);
     }
 
@@ -127,6 +157,59 @@ class BusinessManagementController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Business status yangilandi');
+    }
+
+    /**
+     * Admin tomonidan biznesga obuna berish
+     */
+    public function assignSubscription(Request $request, Business $business)
+    {
+        $validated = $request->validate([
+            'plan_id' => 'required|exists:plans,id',
+            'billing_cycle' => 'required|in:monthly,yearly',
+            'duration_months' => 'required|integer|min:1|max:36',
+        ]);
+
+        $plan = Plan::findOrFail($validated['plan_id']);
+
+        // Avvalgi faol obunalarni bekor qilish
+        Subscription::where('business_id', $business->id)
+            ->whereIn('status', ['active', 'trialing'])
+            ->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancellation_reason' => 'Admin tomonidan yangi tarif tayinlandi',
+            ]);
+
+        // Yangi obuna yaratish
+        $startsAt = now();
+        $endsAt = now()->addMonths($validated['duration_months']);
+
+        $amount = $validated['billing_cycle'] === 'yearly'
+            ? $plan->price_yearly
+            : $plan->price_monthly;
+
+        Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => $validated['billing_cycle'],
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+            'amount' => $amount,
+            'currency' => 'UZS',
+            'auto_renew' => false,
+            'payment_provider' => 'admin',
+            'metadata' => [
+                'assigned_by' => auth()->user()->name,
+                'assigned_at' => now()->toDateTimeString(),
+            ],
+        ]);
+
+        // Keshni tozalash
+        HandleInertiaRequests::clearSubscriptionCache($business->id);
+
+        return redirect()->back()->with('success', "{$business->name} ga \"{$plan->name}\" tarifi {$validated['duration_months']} oyga muvaffaqiyatli tayinlandi");
     }
 
     /**

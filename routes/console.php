@@ -799,3 +799,35 @@ Schedule::job(new \App\Jobs\Store\UpdateStoreAnalyticsJob)
 //     ->timezone('Asia/Tashkent')
 //     ->name('trendsee-refresh-competitors')
 //     ->onOneServer();
+
+// ==========================================
+// SUBSCRIPTION MANAGEMENT
+// ==========================================
+
+// Muddati o'tgan subscriptionlarni expired qilish - Har kuni 00:30
+Schedule::command('subscriptions:check-expired')
+    ->dailyAt('00:30')
+    ->timezone('Asia/Tashkent')
+    ->name('subscriptions-check-expired')
+    ->onOneServer();
+
+// Rejalashtirilgan tarif o'zgarishlarni bajarish - Har kuni 01:00
+Schedule::command('subscriptions:apply-scheduled')
+    ->dailyAt('01:00')
+    ->timezone('Asia/Tashkent')
+    ->name('subscriptions-apply-scheduled')
+    ->onOneServer();
+
+// Trial tugashi haqida ogohlantirish (3 kun va 1 kun oldin) - Har kuni 10:00
+Schedule::command('subscriptions:trial-expiry-notify')
+    ->dailyAt('10:00')
+    ->timezone('Asia/Tashkent')
+    ->name('subscriptions-trial-expiry-notify')
+    ->onOneServer();
+
+// Muddati o'tgan to'lov tranzaksiyalarni tozalash - Har kuni 02:00
+Schedule::command('billing:clean-expired')
+    ->dailyAt('02:00')
+    ->timezone('Asia/Tashkent')
+    ->name('billing-clean-expired')
+    ->onOneServer();

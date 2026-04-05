@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import LandingLayout from '@/layouts/LandingLayout.vue'
 import { useLandingTranslations } from '@/composables/useLandingTranslations'
@@ -109,6 +109,25 @@ const collectionSchema = computed(() => ({
         : 'https://biznespilot.uz/blog',
     isPartOf: { '@type': 'WebSite', name: 'BiznesPilot', url: 'https://biznespilot.uz' },
 }))
+
+// Inject JSON-LD via DOM manipulation (Vue 3 disallows <script> in templates)
+const jsonLdElements = []
+
+function injectJsonLd() {
+  jsonLdElements.forEach(el => el.remove())
+  jsonLdElements.length = 0
+  ;[breadcrumbSchema.value, collectionSchema.value].forEach(schema => {
+    const el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.textContent = JSON.stringify(schema)
+    document.head.appendChild(el)
+    jsonLdElements.push(el)
+  })
+}
+
+onMounted(() => { injectJsonLd() })
+watch([breadcrumbSchema, collectionSchema], injectJsonLd)
+onUnmounted(() => { jsonLdElements.forEach(el => el.remove()) })
 </script>
 
 <template>
@@ -124,8 +143,6 @@ const collectionSchema = computed(() => ({
       <link rel="alternate" hreflang="uz" href="https://biznespilot.uz/blog" />
       <link rel="alternate" hreflang="ru" href="https://biznespilot.uz/blog" />
       <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/blog" />
-      <script type="application/ld+json" v-html="JSON.stringify(breadcrumbSchema)" />
-      <script type="application/ld+json" v-html="JSON.stringify(collectionSchema)" />
     </Head>
 
     <!-- Hero Section -->

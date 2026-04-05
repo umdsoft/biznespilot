@@ -44,6 +44,11 @@ class PaymentRedirectService
         ?string $subscriptionId = null,
         string $billingCycle = 'monthly'
     ): array {
+        // Plan mavjudligini tekshirish
+        if (! $plan->is_active) {
+            throw new \RuntimeException("Plan '{$plan->name}' is not active.");
+        }
+
         // Summani cycle bo'yicha aniqlash
         $amount = $billingCycle === 'yearly'
             ? (float) $plan->price_yearly
@@ -188,6 +193,18 @@ class PaymentRedirectService
         string $provider = 'payme',
         string $billingCycle = 'monthly'
     ): array {
+        // Boshqa providerda pending tranzaksiya bormi tekshirish (concurrent to'lov oldini olish)
+        $otherProviderPending = BillingTransaction::where('business_id', $business->id)
+            ->where('plan_id', $plan->id)
+            ->where('provider', '!=', $provider)
+            ->where('status', BillingTransaction::STATUS_CREATED)
+            ->where('expires_at', '>', now())
+            ->exists();
+
+        if ($otherProviderPending) {
+            throw new \RuntimeException("Boshqa to'lov tizimida kutilayotgan tranzaksiya mavjud. Avval uni yakunlang yoki bekor qiling.");
+        }
+
         // Mavjud pending tranzaksiyani tekshirish (billing_cycle bo'yicha ham filter)
         $existingTransaction = BillingTransaction::where('business_id', $business->id)
             ->where('plan_id', $plan->id)

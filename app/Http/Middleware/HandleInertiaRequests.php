@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             'currentBusiness' => fn () => $this->getCurrentBusiness($user),
             'subscription' => fn () => $this->getSubscriptionData($user),
             'activeStore' => fn () => $this->getActiveStore($user),
+            'integrations' => fn () => $this->getIntegrationStatus($user),
             'locale' => fn () => $this->getLocale($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
@@ -110,7 +111,7 @@ class HandleInertiaRequests extends Middleware
 
         return Cache::remember($cacheKey, 300, function () use ($user) {
             return $user->businesses()
-                ->select('id', 'name', 'slug', 'category', 'logo')
+                ->select('id', 'name', 'slug', 'category', 'logo', 'user_id')
                 ->get()
                 ->map(fn ($b) => [
                     'id' => $b->id,
@@ -137,7 +138,7 @@ class HandleInertiaRequests extends Middleware
         if (! $currentBusinessId) {
             // Get first business if no session
             $firstBusiness = $user->businesses()
-                ->select('id', 'name', 'slug', 'category', 'logo')
+                ->select('id', 'name', 'slug', 'category', 'logo', 'user_id')
                 ->first();
 
             if ($firstBusiness) {
@@ -149,18 +150,18 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
-        // Cache current business for 5 minutes
-        $cacheKey = "current_business_{$currentBusinessId}";
+        // Cache current business for 5 minutes (per user — is_owner farqlanadi)
+        $cacheKey = "current_business_{$currentBusinessId}_{$user->id}";
 
         return Cache::remember($cacheKey, 300, function () use ($user, $currentBusinessId) {
             // Try owned businesses first
             $business = $user->businesses()
-                ->select('id', 'name', 'slug', 'category', 'logo')
+                ->select('id', 'name', 'slug', 'category', 'logo', 'user_id')
                 ->find($currentBusinessId);
 
             // If not found, might be team member
             if (! $business) {
-                $business = \App\Models\Business::select('id', 'name', 'slug', 'category', 'logo')
+                $business = \App\Models\Business::select('id', 'name', 'slug', 'category', 'logo', 'user_id')
                     ->find($currentBusinessId);
             }
 
@@ -173,12 +174,15 @@ class HandleInertiaRequests extends Middleware
      */
     private function formatBusiness($business): array
     {
+        $user = request()->user();
+
         return [
             'id' => $business->id,
             'name' => $business->name,
             'slug' => $business->slug,
             'category' => $business->category,
             'logo' => $business->logo,
+            'is_owner' => $user && $business->user_id === $user->id,
         ];
     }
 
@@ -378,5 +382,48 @@ class HandleInertiaRequests extends Middleware
         if (session()->isStarted()) {
             session()->forget("sub_active_{$businessId}");
         }
+    }
+
+    /**
+     * Get integration status for current business.
+     */
+    private function getIntegrationStatus($user): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $currentBusinessId = session('current_business_id');
+
+        if (! $currentBusinessId) {
+            return null;
+        }
+
+        $cacheKey = "integrations_status_{$currentBusinessId}";
+
+        return Cache::remember($cacheKey, 300, function () use ($currentBusinessId) {
+            $check = function (string $model) use ($currentBusinessId) {
+                try {
+                    return $model::where('business_id', $currentBusinessId)->exists();
+                } catch (\Throwable) {
+                    return false;
+                }
+            };
+
+            return [
+                'instagram' => $check(\App\Models\InstagramAccount::class),
+                'facebook' => $check(\App\Models\FacebookPage::class),
+                'meta_ads' => $check(\App\Models\MetaAdAccount::class),
+                'telegram' => $check(\App\Models\TelegramBot::class),
+            ];
+        });
+    }
+
+    /**
+     * Clear integration status cache.
+     */
+    public static function clearIntegrationCache(string|int $businessId): void
+    {
+        Cache::forget("integrations_status_{$businessId}");
     }
 }

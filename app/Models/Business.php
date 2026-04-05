@@ -407,17 +407,7 @@ class Business extends Model
      */
     public function activeSubscription()
     {
-        return $this->subscriptions()
-            ->with('plan')
-            ->whereIn('status', ['active', 'trialing'])
-            ->where(function ($query) {
-                $query->whereDate('ends_at', '>=', now())
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'trialing')
-                            ->whereDate('trial_ends_at', '>=', now());
-                    });
-            })
-            ->first();
+        return $this->subscriptions()->with('plan')->active()->first();
     }
 
     /**

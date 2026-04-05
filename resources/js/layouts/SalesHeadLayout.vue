@@ -125,7 +125,20 @@ defineProps({
 });
 
 const page = usePage();
-const layoutConfig = salesHeadLayoutConfig;
+const integrations = computed(() => page.props.integrations || {});
+const layoutConfig = computed(() => {
+  const config = { ...salesHeadLayoutConfig };
+  config.navigation = salesHeadLayoutConfig.navigation
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        if (!item.integration) return true;
+        return integrations.value[item.integration] === true;
+      }),
+    }))
+    .filter(section => section.items.length > 0);
+  return config;
+});
 
 // Dropdown state
 const openDropdowns = reactive({});

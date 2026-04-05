@@ -14,95 +14,49 @@
                 </button>
 
                 <!-- Header -->
-                <div class="flex items-center gap-4 mb-8">
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            {{ isEdit ? t('dream_buyer.edit') : t('dream_buyer.create_title') }}
-                        </h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">
-                            {{ t('dream_buyer.create_desc') }}
-                        </p>
-                    </div>
+                <div class="mb-6">
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                        {{ isEdit ? t('dream_buyer.edit') : t('dream_buyer.create_title') }}
+                    </h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ t('dream_buyer.create_desc') }}</p>
                 </div>
 
-                <!-- Progress Section -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                            <component :is="steps[currentStep].icon" class="w-7 h-7 text-white" />
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ steps[currentStep].title }}</h2>
-                                <span class="text-sm font-bold" :class="progressPercent < 50 ? 'text-orange-500' : 'text-green-500'">
-                                    {{ progressPercent }}%
-                                    <span class="font-normal text-gray-400">Tugallandi</span>
-                                </span>
+                <!-- Steps Navigation -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+                    <!-- Progress -->
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Qadam {{ currentStep + 1 }} / {{ steps.length }}</span>
+                        <span class="text-xs font-semibold" :class="progressPercent >= 50 ? 'text-emerald-600' : 'text-gray-500'">{{ progressPercent }}%</span>
+                    </div>
+                    <div class="h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-4">
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" :style="{ width: progressPercent + '%' }"></div>
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="flex gap-1">
+                        <button
+                            v-for="(step, index) in steps"
+                            :key="index"
+                            type="button"
+                            @click="goToStep(index)"
+                            :disabled="!canGoToStep(index)"
+                            :class="[
+                                'flex-1 py-2 px-1 rounded-lg text-center transition-all text-[11px] font-medium leading-tight',
+                                currentStep === index
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500/30'
+                                    : isStepComplete(index)
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                                        : canGoToStep(index)
+                                            ? 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer'
+                                            : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                            ]"
+                        >
+                            <div class="flex items-center justify-center gap-1 mb-0.5">
+                                <svg v-if="isStepComplete(index) && currentStep !== index" class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                <span v-else :class="currentStep === index ? 'text-indigo-500 font-bold' : ''">{{ index + 1 }}</span>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Qadam {{ currentStep + 1 }} / {{ steps.length }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-6">
-                        <div
-                            class="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-orange-500 via-amber-500 to-green-500"
-                            :style="{ width: progressPercent + '%' }"
-                        ></div>
-                    </div>
-
-                    <!-- Step Circles -->
-                    <div class="flex items-center justify-between">
-                        <template v-for="(step, index) in steps" :key="index">
-                            <button
-                                type="button"
-                                @click="goToStep(index)"
-                                :disabled="!canGoToStep(index)"
-                                class="relative group flex flex-col items-center"
-                            >
-                                <div
-                                    :class="[
-                                        'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 border-2',
-                                        currentStep === index
-                                            ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/40 scale-110'
-                                            : isStepComplete(index)
-                                                ? 'bg-green-500 text-white border-green-500'
-                                                : canGoToStep(index)
-                                                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer'
-                                                    : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700'
-                                    ]"
-                                >
-                                    <svg v-if="isStepComplete(index) && currentStep !== index" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span v-else>{{ index + 1 }}</span>
-                                </div>
-
-                                <!-- Step Label -->
-                                <span
-                                    :class="[
-                                        'mt-2 text-xs font-medium text-center whitespace-nowrap transition-colors',
-                                        currentStep === index
-                                            ? 'text-indigo-600 dark:text-indigo-400'
-                                            : 'text-gray-500 dark:text-gray-400'
-                                    ]"
-                                >
-                                    {{ step.shortTitle }}
-                                </span>
-                            </button>
-
-                            <!-- Connector Line -->
-                            <div
-                                v-if="index < steps.length - 1"
-                                class="flex-1 h-0.5 mx-1 rounded-full transition-all duration-500 -mt-4"
-                                :class="index < currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
-                            ></div>
-                        </template>
+                            <span class="hidden sm:block">{{ step.shortTitle }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -120,16 +74,16 @@
                     >
                         <div :key="currentStep">
                             <!-- Step Card -->
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <!-- Step Header with Gradient -->
-                                <div :class="['px-6 py-5 bg-gradient-to-r', steps[currentStep].headerGradient || 'from-indigo-500 to-purple-600']">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                            <component :is="steps[currentStep].icon" class="w-6 h-6 text-white" />
+                            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <!-- Step Header -->
+                                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                                            <component :is="steps[currentStep].icon" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         <div>
-                                            <h2 class="text-xl font-bold text-white">{{ steps[currentStep].title }}</h2>
-                                            <p class="text-white/80 text-sm">{{ steps[currentStep].description }}</p>
+                                            <h2 class="text-base font-bold text-gray-900 dark:text-white">{{ steps[currentStep].title }}</h2>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ steps[currentStep].description }}</p>
                                         </div>
                                     </div>
                                 </div>

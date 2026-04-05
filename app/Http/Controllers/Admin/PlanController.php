@@ -25,6 +25,7 @@ class PlanController extends Controller
         'telegram_bots' => ['label' => 'Telegram botlar', 'icon' => 'telegram', 'suffix' => 'ta'],
         'ai_requests' => ['label' => 'AI so\'rovlar', 'icon' => 'sparkles', 'suffix' => 'ta'],
         'storage_mb' => ['label' => 'Saqlash hajmi', 'icon' => 'database', 'suffix' => 'MB'],
+        'support_response_hours' => ['label' => 'Javob vaqti (soat)', 'icon' => 'clock', 'suffix' => 'soat'],
     ];
 
     /**
@@ -34,6 +35,8 @@ class PlanController extends Controller
         'hr_tasks' => ['label' => 'HR vazifalar', 'description' => 'Vazifalar va loyihalar boshqaruvi'],
         'hr_bot' => ['label' => 'Ishga olish boti', 'description' => 'Avtomatlashtirilgan HR chatbot'],
         'anti_fraud' => ['label' => 'SMS ogohlantirish', 'description' => 'Fraud aniqlash va ogohlantirish'],
+        'onboarding' => ['label' => 'Onboarding', 'description' => 'Yangi mijoz uchun onboarding yordam'],
+        'personal_manager' => ['label' => 'Shaxsiy menejer', 'description' => 'Shaxsiy menejer tayinlash'],
     ];
 
     /**

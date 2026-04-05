@@ -14,95 +14,47 @@
                 </button>
 
                 <!-- Header -->
-                <div class="flex items-center gap-4 mb-8">
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            {{ t('dream_buyer.create_title') }}
-                        </h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">
-                            {{ t('dream_buyer.create_desc') }}
-                        </p>
-                    </div>
+                <div class="mb-6">
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ t('dream_buyer.create_title') }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ t('dream_buyer.create_desc') }}</p>
                 </div>
 
-                <!-- Progress Section -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                            <component :is="steps[currentStep].icon" class="w-7 h-7 text-white" />
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ steps[currentStep].title }}</h2>
-                                <span class="text-sm font-bold" :class="progressPercent < 50 ? 'text-orange-500' : 'text-green-500'">
-                                    {{ progressPercent }}%
-                                    <span class="font-normal text-gray-400">Tugallandi</span>
-                                </span>
+                <!-- Steps Navigation -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+                    <!-- Progress -->
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Qadam {{ currentStep + 1 }} / {{ steps.length }}</span>
+                        <span class="text-xs font-semibold" :class="progressPercent >= 50 ? 'text-emerald-600' : 'text-gray-500'">{{ progressPercent }}%</span>
+                    </div>
+                    <div class="h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-4">
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" :style="{ width: progressPercent + '%' }"></div>
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="flex gap-1">
+                        <button
+                            v-for="(step, index) in steps"
+                            :key="index"
+                            type="button"
+                            @click="goToStep(index)"
+                            :disabled="!canGoToStep(index)"
+                            :class="[
+                                'flex-1 py-2 px-1 rounded-lg text-center transition-all text-[11px] font-medium leading-tight',
+                                currentStep === index
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500/30'
+                                    : isStepComplete(index)
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                                        : canGoToStep(index)
+                                            ? 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer'
+                                            : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                            ]"
+                        >
+                            <div class="flex items-center justify-center gap-1 mb-0.5">
+                                <svg v-if="isStepComplete(index) && currentStep !== index" class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                <span v-else :class="currentStep === index ? 'text-indigo-500 font-bold' : ''">{{ index + 1 }}</span>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Qadam {{ currentStep + 1 }} / {{ steps.length }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-6">
-                        <div
-                            class="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-orange-500 via-amber-500 to-green-500"
-                            :style="{ width: progressPercent + '%' }"
-                        ></div>
-                    </div>
-
-                    <!-- Step Circles -->
-                    <div class="flex items-center justify-between">
-                        <template v-for="(step, index) in steps" :key="index">
-                            <button
-                                type="button"
-                                @click="goToStep(index)"
-                                :disabled="!canGoToStep(index)"
-                                class="relative group flex flex-col items-center"
-                            >
-                                <div
-                                    :class="[
-                                        'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 border-2',
-                                        currentStep === index
-                                            ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/40 scale-110'
-                                            : isStepComplete(index)
-                                                ? 'bg-green-500 text-white border-green-500'
-                                                : canGoToStep(index)
-                                                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer'
-                                                    : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700'
-                                    ]"
-                                >
-                                    <svg v-if="isStepComplete(index) && currentStep !== index" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span v-else>{{ index + 1 }}</span>
-                                </div>
-
-                                <!-- Step Label -->
-                                <span
-                                    :class="[
-                                        'mt-2 text-xs font-medium text-center whitespace-nowrap transition-colors',
-                                        currentStep === index
-                                            ? 'text-indigo-600 dark:text-indigo-400'
-                                            : 'text-gray-500 dark:text-gray-400'
-                                    ]"
-                                >
-                                    {{ step.shortTitle }}
-                                </span>
-                            </button>
-
-                            <!-- Connector Line -->
-                            <div
-                                v-if="index < steps.length - 1"
-                                class="flex-1 h-0.5 mx-1 rounded-full transition-all duration-500 -mt-4"
-                                :class="index < currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
-                            ></div>
-                        </template>
+                            <span class="hidden sm:block">{{ step.shortTitle }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -120,16 +72,16 @@
                     >
                         <div :key="currentStep">
                             <!-- Step Card -->
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <!-- Step Header with Gradient -->
-                                <div :class="['px-6 py-5 bg-gradient-to-r', steps[currentStep].headerGradient || 'from-indigo-500 to-purple-600']">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                            <component :is="steps[currentStep].icon" class="w-6 h-6 text-white" />
+                            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <!-- Step Header -->
+                                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                                            <component :is="steps[currentStep].icon" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         <div>
-                                            <h2 class="text-xl font-bold text-white">{{ steps[currentStep].title }}</h2>
-                                            <p class="text-white/80 text-sm">{{ steps[currentStep].description }}</p>
+                                            <h2 class="text-base font-bold text-gray-900 dark:text-white">{{ steps[currentStep].title }}</h2>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ steps[currentStep].description }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -257,40 +209,49 @@
                                         <p v-if="form.errors.info_sources" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.info_sources }}</p>
                                     </div>
 
-                                    <!-- Step 4: Frustratsiyalar -->
-                                    <div v-else-if="currentStep === 3" class="space-y-4">
-                                        <textarea
-                                            v-model="form.frustrations"
-                                            rows="6"
-                                            required
-                                            placeholder="Vaqt yetishmasligi, natijalarga erisha olmaslik, pulni behuda sarflash, noto'g'ri qarorlar qabul qilish, raqobatchilardan orqada qolish..."
-                                            class="w-full px-4 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-red-500 dark:focus:border-red-400 focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-red-500/10 transition-all resize-none"
-                                        ></textarea>
-                                        <p v-if="form.errors.frustrations" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.frustrations }}</p>
+                                    <!-- Step 4: Muammolar -->
+                                    <div v-else-if="currentStep === 3" class="space-y-3">
+                                        <div v-for="(item, i) in frustrationItems" :key="'f'+i" class="flex items-center gap-2">
+                                            <div class="w-7 h-7 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-3.5 h-3.5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            </div>
+                                            <input v-model="frustrationItems[i]" type="text" class="flex-1 px-3 py-2.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all" :placeholder="'Muammo ' + (i+1) + ' — masalan: Vaqt yetishmasligi'" />
+                                            <button v-if="frustrationItems.length > 1" @click="frustrationItems.splice(i, 1)" class="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                        </div>
+                                        <button @click="frustrationItems.push('')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                            Muammo qo'shish
+                                        </button>
                                     </div>
 
                                     <!-- Step 5: Orzular -->
-                                    <div v-else-if="currentStep === 4" class="space-y-4">
-                                        <textarea
-                                            v-model="form.dreams"
-                                            rows="6"
-                                            required
-                                            placeholder="Moliyaviy erkinlik, ko'proq erkin vaqt, muvaffaqiyatli biznes, sog'lom hayot tarzi, oilaga ko'proq vaqt, hurmat qozonish, sohasida tan olinish..."
-                                            class="w-full px-4 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-green-500 dark:focus:border-green-400 focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all resize-none"
-                                        ></textarea>
-                                        <p v-if="form.errors.dreams" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.dreams }}</p>
+                                    <div v-else-if="currentStep === 4" class="space-y-3">
+                                        <div v-for="(item, i) in dreamItems" :key="'d'+i" class="flex items-center gap-2">
+                                            <div class="w-7 h-7 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                            </div>
+                                            <input v-model="dreamItems[i]" type="text" class="flex-1 px-3 py-2.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" :placeholder="'Orzu ' + (i+1) + ' — masalan: Moliyaviy erkinlik'" />
+                                            <button v-if="dreamItems.length > 1" @click="dreamItems.splice(i, 1)" class="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                        </div>
+                                        <button @click="dreamItems.push('')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg hover:bg-emerald-100 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                            Orzu qo'shish
+                                        </button>
                                     </div>
 
                                     <!-- Step 6: Qo'rquvlar -->
-                                    <div v-else-if="currentStep === 5" class="space-y-4">
-                                        <textarea
-                                            v-model="form.fears"
-                                            rows="6"
-                                            required
-                                            placeholder="Muvaffaqiyatsizlik, pul yo'qotish, noto'g'ri qaror qabul qilish, vaqtni behuda sarflash, boshqalar oldida sharmanda bo'lish..."
-                                            class="w-full px-4 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 dark:focus:border-orange-400 focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-orange-500/10 transition-all resize-none"
-                                        ></textarea>
-                                        <p v-if="form.errors.fears" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.fears }}</p>
+                                    <div v-else-if="currentStep === 5" class="space-y-3">
+                                        <div v-for="(item, i) in fearItems" :key="'fe'+i" class="flex items-center gap-2">
+                                            <div class="w-7 h-7 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                            </div>
+                                            <input v-model="fearItems[i]" type="text" class="flex-1 px-3 py-2.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" :placeholder="'Qo\'rquv ' + (i+1) + ' — masalan: Pul yo\'qotish'" />
+                                            <button v-if="fearItems.length > 1" @click="fearItems.splice(i, 1)" class="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                        </div>
+                                        <button @click="fearItems.push('')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg hover:bg-amber-100 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                            Qo'rquv qo'shish
+                                        </button>
                                     </div>
 
                                     <!-- Step 7: Kommunikatsiya -->
@@ -363,7 +324,7 @@
                                         <div class="space-y-4">
                                             <SummaryItem label="Qayerda topish mumkin" :value="form.where_spend_time" color="blue" icon="location" />
                                             <SummaryItem label="Ma'lumot manbalari" :value="form.info_sources" color="cyan" icon="search" />
-                                            <SummaryItem label="Frustratsiyalar" :value="form.frustrations" color="red" icon="fire" />
+                                            <SummaryItem label="Muammolar va qiyinchiliklar" :value="form.frustrations" color="red" icon="fire" />
                                             <SummaryItem label="Orzular va maqsadlar" :value="form.dreams" color="green" icon="star" />
                                             <SummaryItem label="Qo'rquvlar" :value="form.fears" color="orange" icon="shield" />
                                             <SummaryItem label="Kommunikatsiya" :value="form.communication_preferences" color="purple" icon="chat" />
@@ -561,9 +522,9 @@ const steps = [
         tipBg: 'from-cyan-100 to-teal-100 dark:from-cyan-900/30 dark:to-teal-900/30',
     },
     {
-        title: "Frustratsiyalari nima?",
+        title: "Qanday muammolari bor?",
         shortTitle: 'Muamm...',
-        description: 'Eng katta qiyinchiliklari va frustratsiyalari',
+        description: 'Eng katta qiyinchiliklari va og\'riq nuqtalari',
         icon: FireIcon,
         headerGradient: 'from-red-500 to-rose-500',
         field: 'frustrations',
@@ -640,6 +601,18 @@ const form = useForm({
     is_primary: false,
 });
 
+// Dinamik ro'yxatlar (muammolar, orzular, qo'rquvlar)
+const frustrationItems = ref(form.frustrations ? form.frustrations.split('\n').filter(Boolean) : ['']);
+const dreamItems = ref(form.dreams ? form.dreams.split('\n').filter(Boolean) : ['']);
+const fearItems = ref(form.fears ? form.fears.split('\n').filter(Boolean) : ['']);
+
+// Arraylarni formga sync qilish
+const syncListsToForm = () => {
+    form.frustrations = frustrationItems.value.filter(Boolean).join('\n');
+    form.dreams = dreamItems.value.filter(Boolean).join('\n');
+    form.fears = fearItems.value.filter(Boolean).join('\n');
+};
+
 const toggleTag = (field, tag) => {
     const currentValue = form[field];
     if (currentValue.includes(tag)) {
@@ -661,6 +634,10 @@ const isStepComplete = (index) => {
     const step = steps[index];
     if (!step.field) return currentStep.value > index;
     if (step.required === false) return true;
+    // Dinamik ro'yxatlar uchun
+    if (step.field === 'frustrations') return frustrationItems.value.some(i => i.trim());
+    if (step.field === 'dreams') return dreamItems.value.some(i => i.trim());
+    if (step.field === 'fears') return fearItems.value.some(i => i.trim());
     return form[step.field] && form[step.field].trim() !== '';
 };
 
@@ -682,6 +659,9 @@ const isCurrentStepValid = computed(() => {
     const step = steps[currentStep.value];
     if (!step.field) return true;
     if (step.required === false) return true;
+    if (step.field === 'frustrations') return frustrationItems.value.some(i => i.trim());
+    if (step.field === 'dreams') return dreamItems.value.some(i => i.trim());
+    if (step.field === 'fears') return fearItems.value.some(i => i.trim());
     return form[step.field] && form[step.field].trim() !== '';
 });
 
@@ -689,13 +669,14 @@ const isFormValid = computed(() => {
     return form.name &&
            form.where_spend_time &&
            form.info_sources &&
-           form.frustrations &&
-           form.dreams &&
-           form.fears &&
+           frustrationItems.value.some(i => i.trim()) &&
+           dreamItems.value.some(i => i.trim()) &&
+           fearItems.value.some(i => i.trim()) &&
            form.communication_preferences;
 });
 
 const nextStep = () => {
+    syncListsToForm();
     if (currentStep.value < steps.length - 1 && isCurrentStepValid.value) {
         currentStep.value++;
     }
@@ -708,6 +689,7 @@ const prevStep = () => {
 };
 
 const submit = () => {
+    syncListsToForm();
     const prefix = getRoutePrefix();
     form.post(route(`${prefix}.dream-buyer.store`));
 };

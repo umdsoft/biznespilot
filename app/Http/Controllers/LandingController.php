@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PlanDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cookie;
@@ -28,7 +29,9 @@ class LandingController extends Controller
             return $this->redirectAuthenticatedUser();
         }
 
-        return inertia('LandingPage')->withViewData([
+        return inertia('LandingPage', [
+            'plans' => app(PlanDataService::class)->getPublicPlans(),
+        ])->withViewData([
             'seoTitle' => "BiznesPilot AI — O'zbekistondagi #1 biznes boshqaruv platformasi",
             'seoDescription' => "Marketing, Sotuv, Moliya, HR — hammasi bir joyda. CRM tizimi, AI yordamchi, Telegram bot integratsiya. 14 kun bepul sinab ko'ring.",
         ]);
@@ -90,7 +93,9 @@ class LandingController extends Controller
      */
     public function pricing(Request $request)
     {
-        return inertia('Pricing')->withViewData([
+        return inertia('Pricing', [
+            'plans' => app(PlanDataService::class)->getPublicPlans(),
+        ])->withViewData([
             'seoTitle' => "Narxlar — BiznesPilot CRM va biznes boshqaruv platformasi",
             'seoDescription' => "BiznesPilot tarif rejalari: Starter, Professional, Enterprise. CRM, marketing, moliya, HR — barchasi bitta platformada. 14 kun bepul.",
         ]);
@@ -101,7 +106,9 @@ class LandingController extends Controller
      */
     public function landingPage()
     {
-        return inertia('LandingPage');
+        return inertia('LandingPage', [
+            'plans' => app(PlanDataService::class)->getPublicPlans(),
+        ]);
     }
 
     /**

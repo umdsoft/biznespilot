@@ -30,6 +30,13 @@ class DreamBuyer extends Model
      *
      * @var array<string>
      */
+    protected $appends = [
+        'where_spend_time',
+        'frustrations',
+        'dreams',
+        'fears',
+    ];
+
     protected $fillable = [
         'business_id',
         'name',

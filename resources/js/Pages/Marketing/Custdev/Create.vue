@@ -251,54 +251,28 @@ const submit = () => {
     <MarketingLayout :title="isEdit ? t('custdev.edit_survey') : t('custdev.new_survey')">
         <Head :title="isEdit ? `${t('common.edit')} - ${survey?.title}` : t('custdev.new_survey')" />
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-            <!-- Hero Header -->
-            <div class="relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600"></div>
-                <div class="absolute inset-0 opacity-10">
-                    <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 24px 24px;"></div>
-                </div>
-
-                <div class="relative px-6 py-8">
+        <div class="min-h-screen">
+            <!-- Header -->
+            <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-4">
+                <div class="max-w-5xl mx-auto">
                     <Link
                         :href="route('marketing.custdev.index')"
-                        class="inline-flex items-center gap-2 text-emerald-100 hover:text-white transition-colors mb-6"
+                        class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors mb-3"
                     >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span class="font-medium">Orqaga qaytish</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        Orqaga
                     </Link>
-
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h1 class="text-3xl font-bold text-white">{{ isEdit ? 'So\'rovnomani Tahrirlash' : 'Yangi So\'rovnoma' }}</h1>
-                                <p class="text-emerald-100 mt-1">CustDev metodologiyasi asosida professional so'rovnoma yarating</p>
-                            </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ isEdit ? 'So\'rovnomani tahrirlash' : 'Yangi so\'rovnoma' }}</h1>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">CustDev metodologiyasi asosida professional so'rovnoma</p>
                         </div>
-
-                        <!-- Progress Circle -->
-                        <div class="hidden md:flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-                            <div class="relative w-16 h-16">
-                                <svg class="w-16 h-16 transform -rotate-90">
-                                    <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,0.2)" stroke-width="4" fill="none"/>
-                                    <circle cx="32" cy="32" r="28" stroke="white" stroke-width="4" fill="none"
-                                        :stroke-dasharray="175.93"
-                                        :stroke-dashoffset="175.93 - (175.93 * formProgress / 100)"
-                                        stroke-linecap="round"/>
-                                </svg>
-                                <span class="absolute inset-0 flex items-center justify-center text-white font-bold">{{ formProgress }}%</span>
+                        <div class="hidden md:flex items-center gap-3 text-sm">
+                            <div class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <div class="w-2 h-2 rounded-full" :class="formProgress === 100 ? 'bg-emerald-500' : 'bg-amber-400'"></div>
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">{{ formProgress }}%</span>
                             </div>
-                            <div class="text-white">
-                                <p class="font-semibold">To'ldirilganlik</p>
-                                <p class="text-sm text-emerald-100">{{ form.questions.length }} ta savol</p>
-                            </div>
+                            <span class="text-gray-400">{{ form.questions.length }} ta savol</span>
                         </div>
                     </div>
                 </div>
@@ -307,16 +281,16 @@ const submit = () => {
             <div class="px-6 py-8">
                 <div class="max-w-5xl mx-auto">
                     <!-- Navigation Tabs -->
-                    <div class="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
+                    <div class="flex items-center gap-1 mb-6 overflow-x-auto pb-2 border-b border-gray-200 dark:border-gray-700">
                         <button
                             v-for="section in sections"
                             :key="section.id"
                             @click="activeSection = section.id"
                             :class="[
-                                'flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all whitespace-nowrap',
+                                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap border-b-2 -mb-[2px]',
                                 activeSection === section.id
-                                    ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-lg shadow-emerald-500/10'
-                                    : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50'
+                                    ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                             ]"
                         >
                             <svg v-if="section.icon === 'info'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -340,7 +314,7 @@ const submit = () => {
                         <!-- Preview Button -->
                         <button
                             @click="showPreview = !showPreview"
-                            class="flex items-center gap-2 px-5 py-3 rounded-xl font-medium bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -354,18 +328,9 @@ const submit = () => {
                         <!-- Basic Info Section -->
                         <div v-show="activeSection === 'basic'" class="space-y-6 animate-fadeIn">
                             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Asosiy Ma'lumotlar</h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">So'rovnoma nomi va tavsifi</p>
-                                        </div>
-                                    </div>
+                                <div class="px-5 py-3.5 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Asosiy ma'lumotlar</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">So'rovnoma nomi va tavsifi</p>
                                 </div>
 
                                 <div class="p-6 space-y-6">
@@ -377,7 +342,7 @@ const submit = () => {
                                         <input
                                             v-model="form.title"
                                             type="text"
-                                            class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                             placeholder="Masalan: Mijozlar ehtiyojlari tadqiqoti"
                                             required
                                         />
@@ -391,7 +356,7 @@ const submit = () => {
                                         <textarea
                                             v-model="form.description"
                                             rows="3"
-                                            class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow resize-none"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                                             placeholder="Bu so'rovnoma nima uchun kerak? Qanday ma'lumotlar yig'iladi?"
                                         ></textarea>
                                     </div>
@@ -403,7 +368,7 @@ const submit = () => {
                                             </label>
                                             <select
                                                 v-model="form.dream_buyer_id"
-                                                class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                             >
                                                 <option value="">Yangi profil yaratish</option>
                                                 <option v-for="buyer in dreamBuyers" :key="buyer.id" :value="buyer.id">
@@ -443,18 +408,9 @@ const submit = () => {
                         <!-- Messages Section -->
                         <div v-show="activeSection === 'messages'" class="space-y-6 animate-fadeIn">
                             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                                <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Xabarlar</h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Respondentlarga ko'rsatiladigan xabarlar</p>
-                                        </div>
-                                    </div>
+                                <div class="px-5 py-3.5 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Xabarlar</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Respondentlarga ko'rsatiladigan xabarlar</p>
                                 </div>
 
                                 <div class="p-6 space-y-6">
@@ -465,7 +421,7 @@ const submit = () => {
                                         <textarea
                                             v-model="form.welcome_message"
                                             rows="3"
-                                            class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow resize-none"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                                             placeholder="So'rovnoma boshidagi xabar..."
                                         ></textarea>
                                     </div>
@@ -477,7 +433,7 @@ const submit = () => {
                                         <textarea
                                             v-model="form.thank_you_message"
                                             rows="3"
-                                            class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow resize-none"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                                             placeholder="So'rovnoma oxiridagi xabar..."
                                         ></textarea>
                                     </div>
@@ -488,19 +444,9 @@ const submit = () => {
                         <!-- Settings Section -->
                         <div v-show="activeSection === 'settings'" class="space-y-6 animate-fadeIn">
                             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                                <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Sozlamalar</h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">So'rovnoma parametrlari</p>
-                                        </div>
-                                    </div>
+                                <div class="px-5 py-3.5 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Sozlamalar</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">So'rovnoma parametrlari</p>
                                 </div>
 
                                 <div class="p-6">
@@ -525,7 +471,7 @@ const submit = () => {
                                                 v-model="form.response_limit"
                                                 type="number"
                                                 min="1"
-                                                class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                                 placeholder="Cheksiz"
                                             />
                                         </div>
@@ -536,7 +482,7 @@ const submit = () => {
                                             <input
                                                 v-model="form.expires_at"
                                                 type="date"
-                                                class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                             />
                                         </div>
                                     </div>
@@ -547,23 +493,16 @@ const submit = () => {
                         <!-- Questions Section -->
                         <div v-show="activeSection === 'questions'" class="space-y-6 animate-fadeIn">
                             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                <div class="px-5 py-3.5 border-b border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h3 class="font-semibold text-gray-900 dark:text-gray-100">Savollar</h3>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ form.questions.length }} ta savol qo'shilgan</p>
-                                            </div>
+                                        <div>
+                                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Savollar</h3>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ form.questions.length }} ta savol qo'shilgan</p>
                                         </div>
                                         <button
                                             type="button"
                                             @click="showAddQuestion = true"
-                                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all"
+                                            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
                                         >
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -683,30 +622,30 @@ const submit = () => {
                         </div>
 
                         <!-- Submit Section -->
-                        <div class="sticky bottom-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg p-4 mt-8">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-3 h-3 rounded-full" :class="form.title ? 'bg-emerald-500' : 'bg-gray-300'"></div>
-                                        <span class="text-sm text-gray-600 dark:text-gray-400">Nom</span>
+                        <div class="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 mt-8">
+                            <div class="flex items-center justify-between max-w-5xl mx-auto">
+                                <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="w-2 h-2 rounded-full" :class="form.title ? 'bg-emerald-500' : 'bg-gray-300'"></div>
+                                        Nom
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-3 h-3 rounded-full" :class="form.questions.length > 0 ? 'bg-emerald-500' : 'bg-gray-300'"></div>
-                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ form.questions.length }} savol</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="w-2 h-2 rounded-full" :class="form.questions.length > 0 ? 'bg-emerald-500' : 'bg-gray-300'"></div>
+                                        {{ form.questions.length }} savol
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2.5">
                                     <Link
                                         :href="route('marketing.custdev.index')"
-                                        class="px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                                     >
                                         Bekor qilish
                                     </Link>
                                     <button
                                         type="submit"
                                         :disabled="form.processing || !form.title || form.questions.length === 0"
-                                        class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
                                         <span v-if="form.processing" class="flex items-center gap-2">
                                             <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -736,13 +675,13 @@ const submit = () => {
                 <div class="flex items-center justify-center min-h-screen px-4 py-8">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showAddQuestion = false"></div>
 
-                    <div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden">
+                    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-xl w-full overflow-hidden border border-gray-200 dark:border-gray-700">
                         <!-- Modal Header -->
-                        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-5">
+                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                         </svg>
                                     </div>
@@ -771,7 +710,7 @@ const submit = () => {
                                 <textarea
                                     v-model="newQuestion.question"
                                     rows="3"
-                                    class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow resize-none"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                                     placeholder="Savolingizni yozing..."
                                 ></textarea>
                             </div>
@@ -783,7 +722,7 @@ const submit = () => {
                                     </label>
                                     <select
                                         v-model="newQuestion.type"
-                                        class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     >
                                         <option v-for="type in questionTypes" :key="type.value" :value="type.value">
                                             {{ type.label }}
@@ -797,7 +736,7 @@ const submit = () => {
                                     </label>
                                     <select
                                         v-model="newQuestion.category"
-                                        class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     >
                                         <option value="custom">Maxsus savol</option>
                                         <option value="where_spend_time">Vaqt o'tkazish</option>
@@ -819,7 +758,7 @@ const submit = () => {
                                     <input
                                         v-model="newOption"
                                         type="text"
-                                        class="flex-1 px-4 py-2.5 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+                                        class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                         placeholder="Variant qo'shish"
                                         @keyup.enter="addOption"
                                     />

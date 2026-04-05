@@ -27,6 +27,10 @@ class CustdevController extends Controller
             return 'marketing';
         }
 
+        if (str_contains($path, 'hr')) {
+            return 'hr';
+        }
+
         return 'business';
     }
 
@@ -35,7 +39,11 @@ class CustdevController extends Controller
      */
     private function getViewPrefix(Request $request): string
     {
-        return $this->getPanelType($request) === 'marketing' ? 'Marketing' : 'Business';
+        return match ($this->getPanelType($request)) {
+            'marketing' => 'Marketing',
+            'hr' => 'HR',
+            default => 'Business',
+        };
     }
 
     /**
@@ -69,7 +77,10 @@ class CustdevController extends Controller
             return redirect()->route('login');
         }
 
+        $panelType = $this->getPanelType($request);
+
         $surveys = CustdevSurvey::forBusiness($business->id)
+            ->where('panel_type', $panelType)
             ->with(['questions', 'dreamBuyer'])
             ->withCount(['responses', 'completedResponses'])
             ->latest()
@@ -95,12 +106,240 @@ class CustdevController extends Controller
             ->select('id', 'name', 'description')
             ->get();
 
-        $defaultQuestions = CustdevSurvey::getDefaultQuestions();
+        $panelType = $this->getPanelType($request);
+        $defaultQuestions = $panelType === 'hr'
+            ? $this->getHRDefaultQuestions()
+            : CustdevSurvey::getDefaultQuestions();
 
         return Inertia::render($this->getViewPrefix($request).'/Custdev/Create', [
             'dreamBuyers' => $dreamBuyers,
             'defaultQuestions' => $defaultQuestions,
         ]);
+    }
+
+    /**
+     * HR uchun default savollar — psixologik va professional baholash anketa.
+     *
+     * Metodologiya: Industrial-Organizational Psychology asosida.
+     * Kategoriyalar: motivatsiya, mas'uliyat, stress, jamoa, o'sish, halollik, yetakchilik
+     * Har bir javob nomzodning ishlash qobiliyatini psixologik jihatdan baholashga yordam beradi.
+     */
+    private function getHRDefaultQuestions(): array
+    {
+        return [
+            // ===== ASOSIY MA'LUMOTLAR =====
+            [
+                'type' => 'text',
+                'category' => 'personal_info',
+                'question' => "To'liq ismingiz",
+                'is_required' => true,
+            ],
+            [
+                'type' => 'phone',
+                'category' => 'personal_info',
+                'question' => 'Telefon raqamingiz',
+                'placeholder' => '+998 90 123 45 67',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'select',
+                'category' => 'experience',
+                'question' => 'Siz qancha vaqt davomida shu sohada ishlayapsiz?',
+                'options' => ['1 yildan kam', '1-3 yil', '3-5 yil', '5-10 yil', '10 yildan ko\'p'],
+                'is_required' => true,
+            ],
+
+            // ===== OILAVIY HOLAT (barqarorlik va mas'uliyat ko'rsatkichi) =====
+            [
+                'type' => 'select',
+                'category' => 'family',
+                'question' => 'Oilaviy holatingiz',
+                'options' => ['Turmush qurmagan', 'Turmush qurgan', 'Ajrashgan', 'Javob bermayman'],
+                'description' => 'Oilaviy barqarorlik — ish o\'rnida uzoq ishlash ehtimolini ko\'rsatadi.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'select',
+                'category' => 'family',
+                'question' => 'Farzandlaringiz bormi?',
+                'options' => ['Yo\'q', '1 ta', '2 ta', '3 va undan ko\'p', 'Javob bermayman'],
+                'description' => 'Farzandli xodimlar ko\'pincha barqarorroq va mas\'uliyatliroq bo\'ladi, lekin vaqt chegaralari bo\'lishi mumkin.',
+                'is_required' => false,
+            ],
+            [
+                'type' => 'select',
+                'category' => 'family',
+                'question' => 'Oilangiz sizning ish joyingizni o\'zgartirishingizni qo\'llab-quvvatlayaptimi?',
+                'options' => [
+                    'Ha, to\'liq qo\'llab-quvvatlaydi',
+                    'Ha, lekin ba\'zi shartlar bilan (masalan, ish vaqti)',
+                    'Hali muhokama qilmadik',
+                    'Javob bermayman',
+                ],
+                'description' => 'Oilaviy qo\'llab-quvvatlash — ishga moslashish va uzoq muddatli ishlash kafolati.',
+                'is_required' => false,
+            ],
+
+            // ===== MOTIVATSIYA VA MAQSAD (nima uchun ishlaydi?) =====
+            [
+                'type' => 'textarea',
+                'category' => 'motivation',
+                'question' => 'Nima uchun hozirgi ish joyingizni tark etmoqchisiz yoki yangi ish qidiryapsiz?',
+                'description' => 'Bu savol nomzodning haqiqiy motivatsiyasini ochib beradi — pul, o\'sish, muhit yoki muammo.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'textarea',
+                'category' => 'motivation',
+                'question' => '5 yildan keyin o\'zingizni qayerda ko\'rasiz? Kasbiy maqsadingiz nima?',
+                'description' => 'Uzoq muddatli fikrlash qobiliyati va ambitsiya darajasini ko\'rsatadi.',
+                'is_required' => true,
+            ],
+
+            // ===== MAS\'ULIYAT VA ISHONCHLILK =====
+            [
+                'type' => 'textarea',
+                'category' => 'responsibility',
+                'question' => 'Ishda qiyin vazifa berilganda va muddat yaqin bo\'lganda siz odatda nima qilasiz? Haqiqiy misolda tushuntiring.',
+                'description' => 'Stress ostida ishlash qobiliyati, mas\'uliyatni qabul qilish va hal qilish yondashuvini ko\'rsatadi.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'select',
+                'category' => 'responsibility',
+                'question' => 'Agar ish vaqtida xatolik qilsangiz, odatda nima qilasiz?',
+                'options' => [
+                    'Darhol rahbarga aytaman va tuzatish yo\'lini taklif qilaman',
+                    'O\'zim tuzatishga harakat qilaman, kerak bo\'lsa yordam so\'rayman',
+                    'Boshqalar sezmaguncha o\'zim tuzataman',
+                    'Bu xatolik ekanini bilmasam, e\'tibor bermayman',
+                ],
+                'description' => 'Halollik va mas\'uliyat darajasi — eng muhim ko\'rsatkich.',
+                'is_required' => true,
+            ],
+
+            // ===== STRESS VA EMOTSIONAL BARQARORLIK =====
+            [
+                'type' => 'scale',
+                'category' => 'stress_resilience',
+                'question' => 'Stress ostida ishlash qobiliyatingizni 1 dan 10 gacha baholang',
+                'description' => '1 = juda qiyin, 10 = stress menga ta\'sir qilmaydi. O\'zini baholash darajasi ham muhim.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'textarea',
+                'category' => 'stress_resilience',
+                'question' => 'Hayotingizdagi eng qiyin professional vaziyatni tasvirlab bering. Qanday hal qildingiz?',
+                'description' => 'Real tajriba — muammoni hal qilish qobiliyati va emotsional yetuklik ko\'rsatkichi.',
+                'is_required' => true,
+            ],
+
+            // ===== JAMOAVIY ISH VA MUNOSABATLAR =====
+            [
+                'type' => 'select',
+                'category' => 'teamwork',
+                'question' => 'Jamoada ishlashda sizga eng qiyin nima?',
+                'options' => [
+                    'Boshqalar bilan fikr kelishmovchiligi',
+                    'Boshqalarning ishini kutish',
+                    'O\'z fikrimi himoya qilish',
+                    'Boshqalarning ishiga ishonish',
+                    'Menga qiyin narsa yo\'q, jamoada yaxshi ishlayman',
+                ],
+                'description' => 'Jamoaviy dinamikadagi zaif tomonni aniqlaydi.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'textarea',
+                'category' => 'teamwork',
+                'question' => 'Hamkasbingiz bilan kelishmovchilik bo\'lganda odatda qanday hal qilasiz? Misol keltiring.',
+                'description' => 'Konflikt hal qilish uslubi — muzokarachilik yoki konfrontatsiya.',
+                'is_required' => true,
+            ],
+
+            // ===== O\'Z-O\'ZINI BAHOLASH VA O\'SISH =====
+            [
+                'type' => 'textarea',
+                'category' => 'self_awareness',
+                'question' => 'O\'zingizning eng katta kamchiligingiz nima deb hisoblaysiz? Bu kamchilikni bartaraf etish uchun nima qilyapsiz?',
+                'description' => 'O\'z-o\'zini tanqid qilish qobiliyati — emotsional intellektning asosiy ko\'rsatkichi.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'rating',
+                'category' => 'self_awareness',
+                'question' => 'O\'z professional darajangizni 1 dan 5 gacha baholang (1=boshlang\'ich, 5=ekspert)',
+                'description' => 'O\'z kuchini to\'g\'ri baholash — adekvat yoki shishgan ego.',
+                'is_required' => true,
+            ],
+
+            // ===== YETAKCHILIK VA TASHABBUSKORLIK =====
+            [
+                'type' => 'select',
+                'category' => 'leadership',
+                'question' => 'Yangi loyiha yoki vazifa berilganda odatda nima qilasiz?',
+                'options' => [
+                    'Darhol reja tuzaman va boshlаyman',
+                    'Avval batafsil o\'rganaman, keyin boshlаyman',
+                    'Rahbardan aniq ko\'rsatma kutaman',
+                    'Jamoadan maslahat so\'rayman va birga boshlаymiz',
+                ],
+                'description' => 'Tashabbuskorlik va mustaqillik darajasi — "thinker" yoki "doer" ekanini ko\'rsatadi.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'textarea',
+                'category' => 'leadership',
+                'question' => 'Ishda o\'zingiz tashabbuskorlik ko\'rsatgan va natija bergan biror voqeani aytib bering.',
+                'description' => 'Real misol — so\'z emas, ish bilan isbotlash.',
+                'is_required' => false,
+            ],
+
+            // ===== QADRIYATLAR VA HALOLLIK =====
+            [
+                'type' => 'select',
+                'category' => 'values',
+                'question' => 'Sizning uchun ishda eng muhim narsa nima?',
+                'options' => [
+                    'Yaxshi ish haqi va moddiy barqarorlik',
+                    'Kasbiy o\'sish va yangi narsalar o\'rganish',
+                    'Yaxshi jamoa va ish muhiti',
+                    'Erkinlik va mustaqil ishlash imkoniyati',
+                    'Kompaniyaning missiyasi va maqsadlarga ishonch',
+                ],
+                'description' => 'Asosiy qadriyat — kompaniya madaniyatiga moslikni aniqlaydi.',
+                'is_required' => true,
+            ],
+            [
+                'type' => 'select',
+                'category' => 'values',
+                'question' => 'Agar rahbaringiz noto\'g\'ri qaror qilayotganini bilsangiz, nima qilasiz?',
+                'options' => [
+                    'Ochiqchasiga fikrimni aytaman, hatto rahbar bo\'lsa ham',
+                    'Yakkama-yakka suhbatda ehtiyotkorlik bilan aytaman',
+                    'Jamoada muhokama qilishni taklif qilaman',
+                    'Rahbar biladi, aralashmayman',
+                ],
+                'description' => 'Halollik, jasurlik va munosabat uslubi — kompaniya uchun muhim.',
+                'is_required' => true,
+            ],
+
+            // ===== AMALIY MA'LUMOTLAR =====
+            [
+                'type' => 'select',
+                'category' => 'availability',
+                'question' => 'Qachondan ishga kirishingiz mumkin?',
+                'options' => ['Darhol', '1 hafta ichida', '2 hafta ichida', '1 oy ichida', 'Kelishiladi'],
+                'is_required' => true,
+            ],
+            [
+                'type' => 'select',
+                'category' => 'work_format',
+                'question' => 'Qaysi ish formatini afzal ko\'rasiz?',
+                'options' => ['Ofisda', 'Masofadan (remote)', 'Aralash (hybrid)', 'Farqi yo\'q'],
+                'is_required' => true,
+            ],
+        ];
     }
 
     /**
@@ -127,7 +366,7 @@ class CustdevController extends Controller
             'expires_at' => 'nullable|date|after:now',
             'theme_color' => 'nullable|string|max:20',
             'questions' => 'required|array|min:1',
-            'questions.*.type' => 'required|string|in:text,textarea,select,multiselect,rating,scale',
+            'questions.*.type' => 'required|string|in:text,phone,textarea,select,multiselect,rating,scale',
             'questions.*.question' => 'required|string',
             'questions.*.category' => 'nullable|string',
             'questions.*.description' => 'nullable|string',
@@ -141,24 +380,35 @@ class CustdevController extends Controller
 
         DB::beginTransaction();
 
-        try {
-            // Auto-create Dream Buyer for this survey
-            $dreamBuyer = DreamBuyer::create([
-                'business_id' => $business->id,
-                'name' => $request->title.' - Ideal Mijoz',
-                'description' => 'CustDev so\'rovnomasi asosida avtomatik yaratilgan profil',
-                'priority' => 'medium',
-                'is_primary' => false,
-            ]);
+        $panelType = $this->getPanelType($request);
 
-            // Create survey linked to Dream Buyer
+        try {
+            // HR panelda DreamBuyer yaratilmaydi
+            $dreamBuyerId = null;
+            if ($panelType !== 'hr') {
+                $dreamBuyer = DreamBuyer::create([
+                    'business_id' => $business->id,
+                    'name' => $request->title.' - Ideal Mijoz',
+                    'description' => 'CustDev so\'rovnomasi asosida avtomatik yaratilgan profil',
+                    'priority' => 'medium',
+                    'is_primary' => false,
+                ]);
+                $dreamBuyerId = $dreamBuyer->id;
+            }
+
+            // Create survey
             $survey = CustdevSurvey::create([
                 'business_id' => $business->id,
-                'dream_buyer_id' => $dreamBuyer->id,
+                'panel_type' => $panelType,
+                'dream_buyer_id' => $dreamBuyerId,
                 'title' => $request->title,
                 'description' => $request->description,
-                'welcome_message' => $request->welcome_message ?? 'Salom! Ushbu qisqa so\'rovnomani to\'ldirishingizni so\'raymiz. Sizning fikringiz biz uchun juda muhim.',
-                'thank_you_message' => $request->thank_you_message ?? 'Rahmat! Sizning javoblaringiz biz uchun juda qimmatli. Yaxshi kun tilaymiz!',
+                'welcome_message' => $request->welcome_message ?? ($panelType === 'hr'
+                    ? 'Assalomu alaykum! Ushbu anketa sizning professional ko\'nikmalaringiz va shaxsiy xususiyatlaringizni baholash uchun mo\'ljallangan. Iltimos, har bir savolga ochiq va halol javob bering.'
+                    : 'Salom! Ushbu qisqa so\'rovnomani to\'ldirishingizni so\'raymiz. Sizning fikringiz biz uchun juda muhim.'),
+                'thank_you_message' => $request->thank_you_message ?? ($panelType === 'hr'
+                    ? 'Javoblaringiz uchun katta rahmat! Biz sizning arizangizni ko\'rib chiqamiz va tez orada siz bilan bog\'lanamiz.'
+                    : 'Rahmat! Sizning javoblaringiz biz uchun juda qimmatli. Yaxshi kun tilaymiz!'),
                 'collect_contact' => $request->boolean('collect_contact'),
                 'anonymous' => $request->boolean('anonymous', true),
                 'estimated_time' => $request->estimated_time ?? 5,
@@ -264,7 +514,10 @@ class CustdevController extends Controller
             ->select('id', 'name', 'description')
             ->get();
 
-        $defaultQuestions = CustdevSurvey::getDefaultQuestions();
+        $panelType = $this->getPanelType($request);
+        $defaultQuestions = $panelType === 'hr'
+            ? $this->getHRDefaultQuestions()
+            : CustdevSurvey::getDefaultQuestions();
 
         return Inertia::render($this->getViewPrefix($request).'/Custdev/Create', [
             'survey' => $survey,
@@ -303,7 +556,7 @@ class CustdevController extends Controller
             'theme_color' => 'nullable|string|max:20',
             'questions' => 'nullable|array',
             'questions.*.id' => 'nullable|exists:custdev_questions,id',
-            'questions.*.type' => 'required|string|in:text,textarea,select,multiselect,rating,scale',
+            'questions.*.type' => 'required|string|in:text,phone,textarea,select,multiselect,rating,scale',
             'questions.*.question' => 'required|string',
             'questions.*.category' => 'nullable|string',
             'questions.*.description' => 'nullable|string',
@@ -572,6 +825,42 @@ class CustdevController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export individual response as PDF
+     */
+    public function exportResponsePdf(Request $request, $id, $responseId)
+    {
+        $business = $this->getCurrentBusiness();
+
+        if (! $business) {
+            return redirect()->route('login');
+        }
+
+        $survey = CustdevSurvey::where('business_id', $business->id)
+            ->where('id', $id)
+            ->with('questions')
+            ->firstOrFail();
+
+        $response = $survey->responses()
+            ->with(['answers.question'])
+            ->where('id', $responseId)
+            ->firstOrFail();
+
+        $html = view('pdf.survey-response', [
+            'survey' => $survey,
+            'response' => $response,
+            'business' => $business,
+        ])->render();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+        $pdf->setPaper('a4', 'portrait');
+
+        $name = \Illuminate\Support\Str::slug($response->respondent_name ?: 'anonim');
+        $filename = "{$name}_{$survey->slug}_" . now()->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**
