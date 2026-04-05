@@ -128,6 +128,24 @@ const softwareSchema = computed(() => ({
   },
   featureList: 'CRM, Marketing Automation, Sales Pipeline, Finance Management, HR, AI Assistant, Telegram Bot',
 }))
+
+// JSON-LD: WebSite schema with Sitelinks SearchAction
+const websiteSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'BiznesPilot',
+  alternateName: 'BiznesPilot AI',
+  url: 'https://biznespilot.uz',
+  inLanguage: ['uz', 'ru'],
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://biznespilot.uz/blog?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
+}))
 </script>
 
 <template>
@@ -153,6 +171,7 @@ const softwareSchema = computed(() => ({
     <link rel="alternate" hreflang="x-default" href="https://biznespilot.uz/" />
     <script type="application/ld+json" v-html="JSON.stringify(organizationSchema)" />
     <script type="application/ld+json" v-html="JSON.stringify(softwareSchema)" />
+    <script type="application/ld+json" v-html="JSON.stringify(websiteSchema)" />
   </Head>
 
   <LandingLayout v-slot="{ urgencyBarVisible }">
