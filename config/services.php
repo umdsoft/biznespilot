@@ -110,6 +110,10 @@ return [
         'api_key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+    ],
+
     'telegram-bot-api' => [
         'token' => env('TELEGRAM_BOT_TOKEN'),
     ],

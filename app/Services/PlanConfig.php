@@ -92,6 +92,34 @@ class PlanConfig
                 'unlimited_value' => -1,
                 'legacy_column' => 'storage_limit_mb',
             ],
+            'agent_questions_daily' => [
+                'label' => 'AI Agent kunlik savollar',
+                'method' => 'getAgentQuestionsTodayCount',
+                'icon' => 'sparkles',
+                'suffix' => 'ta',
+                'unlimited_value' => -1,
+            ],
+            'chat_messages_monthly' => [
+                'label' => 'Oylik suhbat xabarlari',
+                'method' => 'getChatMessagesMonthlyCount',
+                'icon' => 'chat',
+                'suffix' => 'ta',
+                'unlimited_value' => -1,
+            ],
+            'voice_messages_monthly' => [
+                'label' => 'Oylik ovozli xabarlar',
+                'method' => 'getVoiceMessagesMonthlyCount',
+                'icon' => 'microphone',
+                'suffix' => 'ta',
+                'unlimited_value' => -1,
+            ],
+            'training_sessions_monthly' => [
+                'label' => 'Oylik mashq sessiyalari',
+                'method' => 'getTrainingSessionsMonthlyCount',
+                'icon' => 'academic-cap',
+                'suffix' => 'ta',
+                'unlimited_value' => -1,
+            ],
         ];
     }
 
@@ -120,6 +148,26 @@ class PlanConfig
             'personal_manager' => [
                 'label' => 'Shaxsiy menejer',
                 'description' => 'Shaxsiy menejer tayinlash',
+            ],
+            'voice_assistant' => [
+                'label' => 'Ovozli yordamchi',
+                'description' => 'Telegram orqali ovozli AI yordamchi',
+            ],
+            'cash_flow_forecast' => [
+                'label' => 'Pul oqimi bashorati',
+                'description' => '30-60 kunlik kirim-chiqim bashorati',
+            ],
+            'training_system' => [
+                'label' => 'AI o\'qituvchi',
+                'description' => 'Sotuv xodimlarini AI bilan mashq qildirish',
+            ],
+            'reputation_management' => [
+                'label' => 'Obro\' boshqaruvi',
+                'description' => 'Izohlar va sharhlarni kuzatish',
+            ],
+            'industry_knowledge' => [
+                'label' => 'Sohaviy bilim',
+                'description' => 'Sohaviy benchmarklar va eng yaxshi amaliyotlar',
             ],
         ];
     }

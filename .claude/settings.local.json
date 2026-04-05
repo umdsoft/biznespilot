@@ -164,7 +164,9 @@
       "Bash(cp resources/js/Pages/Marketing/Custdev/Create.vue resources/js/Pages/HR/Custdev/Create.vue)",
       "Bash(cp resources/js/Pages/Marketing/Custdev/Show.vue resources/js/Pages/HR/Custdev/Show.vue)",
       "Bash(cp resources/js/Pages/Marketing/Custdev/Results.vue resources/js/Pages/HR/Custdev/Results.vue)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(php -r \":*)",
+      "Bash(php artisan tinker --execute=\":*)"
     ]
   }
 }

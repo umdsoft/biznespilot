@@ -373,6 +373,64 @@ class PlanLimitService
         );
     }
 
+    /**
+     * Bugungi AI Agent savollari sonini olish.
+     */
+    protected function getAgentQuestionsTodayCount(Business $business): int
+    {
+        return \App\Models\AgentMessage::where('business_id', $business->id)
+            ->where('role', 'user')
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+    }
+
+    /**
+     * Bu oydagi ovozli xabarlar sonini olish.
+     */
+    protected function getVoiceMessagesMonthlyCount(Business $business): int
+    {
+        return (int) Cache::remember(
+            "business_{$business->id}_voice_messages_" . now()->format('Y_m'),
+            300,
+            fn () => \App\Models\VoiceInteraction::where('business_id', $business->id)
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->count()
+        );
+    }
+
+    /**
+     * Bu oydagi mashq sessiyalari sonini olish.
+     */
+    protected function getTrainingSessionsMonthlyCount(Business $business): int
+    {
+        return (int) Cache::remember(
+            "business_{$business->id}_training_sessions_" . now()->format('Y_m'),
+            300,
+            fn () => \App\Models\TrainingSession::where('business_id', $business->id)
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->count()
+        );
+    }
+
+    /**
+     * Bu oydagi chatbot xabarlari sonini olish.
+     */
+    protected function getChatMessagesMonthlyCount(Business $business): int
+    {
+        return (int) Cache::remember(
+            "business_{$business->id}_chat_messages_" . now()->format('Y_m'),
+            300,
+            fn () => \App\Models\ChatbotMessage::whereHas('conversation', function ($q) use ($business) {
+                $q->where('business_id', $business->id);
+            })
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->count()
+        );
+    }
+
     // ==================== STATIC HELPERS ====================
 
     /**

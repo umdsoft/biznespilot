@@ -1,0 +1,10 @@
+👔 Bugungi kun yakunlandi — {date}
+
+💰 Salomatxon (Sotuv boshlig'i): {new_leads} ta yangi suhbat, {orders} ta buyurtma ({revenue} so'm)
+📱 Imronbek (Marketolog): {posts} ta post, eng yaxshisi {best_type} ({engagement}%)
+📊 Jasurbek (Tahlilchi): Daromad {daily_revenue} ({revenue_change}), CAC {cac}
+🎯 Nodira (Sifat nazoratchi): {calls_analyzed} ta qo'ng'iroq, o'rtacha {avg_score}/100
+
+{important_note}
+
+Ertangi asosiy vazifa: {top_task}

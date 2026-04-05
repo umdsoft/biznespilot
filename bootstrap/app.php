@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\AgentAccessMiddleware;
 use App\Http\Middleware\CheckFeatureLimit;
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\CheckSubscriptionQuota;
@@ -77,6 +78,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'feature' => EnsureFeatureEnabled::class,      // Route::middleware('feature:hr_tasks')
             'quota' => CheckSubscriptionQuota::class,       // Route::middleware('quota:users')
             'admin' => AdminMiddleware::class,
+            'agent.access' => AgentAccessMiddleware::class,
             'sales.head' => SalesHeadMiddleware::class,
             'marketing' => MarketingMiddleware::class,
             'finance' => FinanceMiddleware::class,

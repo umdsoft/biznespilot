@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\AgentController;
+use App\Http\Controllers\Api\AIUsageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CallCenter\CallAnalysisController;
 use App\Http\Controllers\Api\IntegrationsController;
@@ -272,6 +274,32 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
         // Route::apiResource('leads', LeadController::class)->middleware('feature.limit:leads');
         // Route::apiResource('team-members', TeamMemberController::class)->middleware('feature.limit:team_members');
         // Route::apiResource('chatbot-configs', ChatbotConfigController::class)->middleware('feature.limit:chatbot_channels');
+    });
+
+    // ========== AI AGENT ROUTES ==========
+    // AI Agent suhbat tizimi — rol va tarif bo'yicha cheklov
+    Route::prefix('agent')->group(function () {
+        Route::post('/ask', [AgentController::class, 'ask'])
+            ->middleware('agent.access:ask')
+            ->name('api.agent.ask');
+        Route::get('/conversations', [AgentController::class, 'conversations'])
+            ->middleware('agent.access:view_conversations')
+            ->name('api.agent.conversations');
+        Route::get('/conversations/{id}', [AgentController::class, 'conversation'])
+            ->middleware('agent.access:view_conversations')
+            ->name('api.agent.conversation');
+        Route::get('/conversations/{id}/messages', [AgentController::class, 'messages'])
+            ->middleware('agent.access:view_conversations')
+            ->name('api.agent.messages');
+    });
+
+    // ========== AI USAGE TRACKING ROUTES ==========
+    // AI xarajat kuzatuvi — faqat owner/admin
+    Route::prefix('ai-usage')->middleware('agent.access:view_usage')->group(function () {
+        Route::get('/summary', [AIUsageController::class, 'summary'])
+            ->name('api.ai-usage.summary');
+        Route::get('/daily', [AIUsageController::class, 'daily'])
+            ->name('api.ai-usage.daily');
     });
 
     // Integrations Management Routes

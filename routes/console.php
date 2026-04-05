@@ -831,3 +831,96 @@ Schedule::command('billing:clean-expired')
     ->timezone('Asia/Tashkent')
     ->name('billing-clean-expired')
     ->onOneServer();
+
+// ==========================================
+// AI AGENT TIZIMI CRON VAZIFALARI
+// ==========================================
+
+// Kundalik qisqa hisobot - Har kuni 08:00
+Schedule::command('agent:daily-brief')
+    ->dailyAt('08:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-daily-brief')
+    ->onOneServer();
+
+// Pul oqimi bashorati - Har kuni 07:00
+Schedule::command('agent:forecast-cash')
+    ->dailyAt('07:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-forecast-cash')
+    ->onOneServer();
+
+// Muddati o'tgan kontekstlarni tozalash - Har kuni 03:00
+Schedule::command('agent:cleanup-expired-context')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-cleanup-context')
+    ->onOneServer();
+
+// Haftalik samaradorlik hisoboti - Har dushanba 09:00
+Schedule::command('agent:weekly-reports')
+    ->weeklyOn(1, '09:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-weekly-reports')
+    ->onOneServer();
+
+// Biznes sog'ligi tekshiruvi - Har dushanba 08:00
+Schedule::command('agent:health-check')
+    ->weeklyOn(1, '08:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-health-check')
+    ->onOneServer();
+
+// Obro' bali hisoblash - Har dushanba 07:00
+Schedule::command('agent:reputation-score')
+    ->weeklyOn(1, '07:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-reputation-score')
+    ->onOneServer();
+
+// Mavsumiy voqealar tekshiruvi - Har yakshanba 10:00
+Schedule::command('agent:check-seasons')
+    ->weeklyOn(0, '10:00')
+    ->timezone('Asia/Tashkent')
+    ->name('agent-check-seasons')
+    ->onOneServer();
+
+// Mijoz umr yo'li harakatlari - Har 30 daqiqada
+Schedule::command('agent:lifecycle')
+    ->everyThirtyMinutes()
+    ->timezone('Asia/Tashkent')
+    ->name('agent-lifecycle')
+    ->onOneServer();
+
+// ==========================================
+// AI JAMOA OPERATSION TIZIMI
+// ==========================================
+
+// Ertalabki jamoa majlisi - Har kuni 08:00
+Schedule::command('team:morning-standup')
+    ->dailyAt('08:00')
+    ->timezone('Asia/Tashkent')
+    ->name('team-morning-standup')
+    ->onOneServer();
+
+// Soatlik monitoring - Har 2 soatda (08:00-22:00)
+Schedule::command('team:hourly-check')
+    ->everyTwoHours()
+    ->between('8:00', '22:00')
+    ->timezone('Asia/Tashkent')
+    ->name('team-hourly-check')
+    ->onOneServer();
+
+// Kunlik xulosa - Har kuni 18:00
+Schedule::command('team:daily-summary')
+    ->dailyAt('18:00')
+    ->timezone('Asia/Tashkent')
+    ->name('team-daily-summary')
+    ->onOneServer();
+
+// Haftalik reja - Har dushanba 09:30
+Schedule::command('team:weekly-planning')
+    ->weeklyOn(1, '09:30')
+    ->timezone('Asia/Tashkent')
+    ->name('team-weekly-planning')
+    ->onOneServer();

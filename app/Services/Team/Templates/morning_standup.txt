@@ -1,0 +1,12 @@
+👔 Assalomu alaykum! Ertalabki majlis — {date}
+
+📱 Imronbek (Marketolog): {imronbek_report}
+
+💰 Salomatxon (Sotuv boshlig'i): {salomatxon_report}
+
+📊 Jasurbek (Tahlilchi): {jasurbek_report}
+
+🎯 Nodira (Sifat nazoratchi): {nodira_report}
+
+{urgent_section}
+Yaxshi kun tilayman! 🙌
