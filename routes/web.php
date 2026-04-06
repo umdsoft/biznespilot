@@ -585,6 +585,9 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     // HR Hub (faqat hub sahifa — qolgan HR funksiyalar /hr/ panelda, business owner kirish huquqiga ega)
     Route::get('/hr', [App\Http\Controllers\Business\HRHubController::class, 'index'])->name('hr.index');
 
+    // AI Agent
+    Route::get('/ai-agent', [App\Http\Controllers\Business\AIAgentController::class, 'index'])->name('ai-agent.index');
+
     // Sales routes (Lead management)
     Route::resource('sales', SalesController::class)->parameters([
         'sales' => 'lead',
