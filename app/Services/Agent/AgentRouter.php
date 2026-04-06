@@ -78,6 +78,8 @@ class AgentRouter
         'rahmat', 'tashakkur', 'raxmat', 'thanks',
         'xayr', 'ko\'rishguncha', 'hayrlashish', 'bye', 'goodbye',
         'yordam', 'help', 'nima qila olasan', 'qanday ishlaysan',
+        'nimadan boshla', 'birinchi qadam', 'ishni boshla', 'nima qilish kerak',
+        'boshlash kerak', 'qanday boshlash', 'ko\'paytirish', 'o\'stirish',
     ];
 
     // Parallel agentlar kerak bo'ladigan murakkab savollar

@@ -192,43 +192,48 @@ class OrchestratorService
         // Salomlashish
         if ($this->containsAny($normalizedMessage, ['salom', 'assalomu', 'hello', 'hi', 'hey'])) {
             return AIResponse::fromRule(
-                "Assalomu alaykum! 👋 Men BiznesPilot AI yordamchisiman. Sizga quyidagilar bo'yicha yordam bera olaman:\n\n"
-                . "📊 **Tahlil** — KPI, sotuvlar, konversiya ko'rsatkichlari\n"
-                . "📱 **Marketing** — kontent, ijtimoiy tarmoq, raqobatchi tahlili\n"
-                . "💰 **Sotuv** — leadlar, mijozlar, buyurtmalar\n"
-                . "📞 **Qo'ng'iroqlar** — operator tahlili, coaching\n\n"
-                . "Savolingizni bering!"
+                "Assalomu alaykum! Men sizning biznes yordamchingizman. Sotuvlar tahlili, marketing strategiya, HR masalalari, moliya hisoboti — har qanday savolga javob beraman.\n\nNimani bilmoqchisiz?"
             );
         }
 
         // Rahmat
         if ($this->containsAny($normalizedMessage, ['rahmat', 'raxmat', 'tashakkur', 'thanks', 'thank'])) {
-            return AIResponse::fromRule("Marhamat! Yana savol bo'lsa bemalol so'rang. 😊");
+            return AIResponse::fromRule("Marhamat! Yana savol bo'lsa bemalol yozing.");
         }
 
         // Xayrlashish
         if ($this->containsAny($normalizedMessage, ['xayr', 'ko\'rishguncha', 'bye', 'goodbye'])) {
-            return AIResponse::fromRule("Ko'rishguncha! Omad tilayman! 🙌");
+            return AIResponse::fromRule("Omad! Kerak bo'lganda yozing.");
         }
 
         // Yordam
         if ($this->containsAny($normalizedMessage, ['yordam', 'help', 'nima qila', 'qanday'])) {
             return AIResponse::fromRule(
-                "Men sizga quyidagilar bo'yicha yordam bera olaman:\n\n"
-                . "1. 📊 \"Bugungi sotuvlar qanday?\" — KPI va tahlillar\n"
-                . "2. 📱 \"Bugun nima post qilsam?\" — kontent tavsiya\n"
-                . "3. 📈 \"Nega konversiya tushdi?\" — chuqur tahlil\n"
-                . "4. 💰 \"Leadlar holati\" — sotuv ma'lumotlari\n"
-                . "5. 📞 \"Operator baholari\" — qo'ng'iroq tahlili\n\n"
-                . "Istalgan savolni o'zbek yoki rus tilida bering!"
+                "Men sizga quyidagilar bo'yicha yordam beraman:\n\n"
+                . "Sotuvlar — \"Bugungi sotuvlar qanday?\" yoki \"Leadlar holati\"\n"
+                . "Marketing — \"Bugun nima post qilsam?\" yoki \"Kontent reja\"\n"
+                . "Tahlil — \"Nega konversiya tushdi?\" yoki \"Haftalik hisobot\"\n"
+                . "HR — \"Xodimlar holati\" yoki \"Yangi vakansiya\"\n\n"
+                . "Savolingizni o'zbek yoki rus tilida yozing."
             );
         }
 
-        // Agar hech narsaga mos kelmasa — umumiy javob
-        return AIResponse::fromRule(
-            "Tushundim. Iltimos, savolingizni aniqroq bering — sizga yordam berishga tayyorman! "
-            . "Masalan: \"Bugungi sotuvlar\", \"Kontent reja\", \"Leadlar holati\"."
-        );
+        // Nimadan boshlash / birinchi qadam
+        if ($this->containsAny($normalizedMessage, ['nimadan boshla', 'birinchi', 'qadam', 'nima qilish', 'boshlash kerak', 'ishni boshla', 'paydo', 'ko\'paytirish'])) {
+            return AIResponse::fromRule(
+                "Biznesingizni tizimlashtirish uchun quyidagi ketma-ketlikda ishlang:\n\n"
+                . "1. Lidlar bo'limiga o'ting — dastlabki mijozlaringizni kiriting\n"
+                . "2. Marketing — haftada kamida 3 ta kontent rejalashtiring\n"
+                . "3. HR — jamoangizni kiriting va vazifalarni taqsimlang\n"
+                . "4. KPI Reja — oylik maqsadlaringizni belgilang\n"
+                . "5. Integratsiya — Instagram va Telegram ulang\n\n"
+                . "Qaysi biridan boshlaysiz?"
+            );
+        }
+
+        // Agar oddiy javob topilmasa — AI ga yuborish
+        // Bu holda orchestrator o'zi AI dan javob oladi
+        return $this->handleWithFallbackAI('orchestrator', $message, $businessId);
     }
 
     /**
@@ -236,17 +241,55 @@ class OrchestratorService
      */
     private function handleWithFallbackAI(string $agentType, string $message, string $businessId): AIResponse
     {
-        $systemPrompt = "Sen BiznesPilot AI yordamchisisan. {$agentType} sohasida savolga javob ber. "
-            . "O'zbek tilida, qisqa va aniq javob ber. Agar aniq ma'lumot yo'q bo'lsa, umumiy maslahat ber.";
+        // Biznes kontekstini olish
+        $contextData = $this->businessContextMemory->getAllContext($businessId);
+        $contextText = !empty($contextData) ? "\n\nBiznes konteksti:\n" . json_encode($contextData, JSON_UNESCAPED_UNICODE) : '';
 
-        return $this->aiService->ask(
-            prompt: $message,
-            systemPrompt: $systemPrompt,
-            preferredModel: 'haiku',
-            maxTokens: 400,
-            businessId: $businessId,
-            agentType: $agentType,
-        );
+        // Suhbat tarixini olish
+        $recentMessages = [];
+        try {
+            $lastConv = AgentConversation::where('business_id', $businessId)
+                ->where('status', 'active')
+                ->latest()
+                ->first();
+            if ($lastConv) {
+                $recentMessages = $this->shortTermMemory->getRecentMessages($businessId, $lastConv->id, 5);
+            }
+        } catch (\Exception $e) {}
+
+        $historyText = '';
+        if (!empty($recentMessages)) {
+            $historyText = "\n\nOldingi suhbat:\n";
+            foreach ($recentMessages as $msg) {
+                $role = ($msg['role'] ?? 'user') === 'user' ? 'Foydalanuvchi' : 'Agent';
+                $historyText .= "{$role}: " . mb_substr($msg['content'] ?? '', 0, 200) . "\n";
+            }
+        }
+
+        $systemPrompt = "Sen BiznesPilot platformasining AI biznes maslahatchisisan. "
+            . "Foydalanuvchi — biznes egasi. Unga professional, aniq va amaliy javob ber. "
+            . "O'zbek tilida gapir. Qisqa bo'l — 3-5 jumla yetarli. "
+            . "Agar savol aniq bo'lmasa — aniqlashtiruvchi savol ber. "
+            . "Agar biznes ma'lumotlari kerak bo'lsa — qaysi bo'limga o'tishni ayt. "
+            . "Hech qachon xayoliy raqam yoki ma'lumot berma."
+            . $contextText
+            . $historyText;
+
+        try {
+            return $this->aiService->ask(
+                prompt: $message,
+                systemPrompt: $systemPrompt,
+                preferredModel: 'haiku',
+                maxTokens: 600,
+                businessId: $businessId,
+                agentType: $agentType,
+            );
+        } catch (\Exception $e) {
+            return AIResponse::fromRule(
+                "Hozir AI xizmatiga ulanib bo'lmadi. Iltimos savolingizni aniqroq yozing yoki keyinroq urinib ko'ring.\n\n"
+                . "Masalan: \"Bugungi sotuvlar\", \"Kontent reja\", \"Leadlar holati\""
+            );
+        }
     }
 
     /**

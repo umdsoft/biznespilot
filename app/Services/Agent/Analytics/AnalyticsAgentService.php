@@ -186,6 +186,20 @@ class AnalyticsAgentService
         $todayData = $today['today'];
         $yesterdayData = $today['yesterday'];
 
+        // Agar hamma narsa 0 bo'lsa — tavsiya bilan javob
+        $totalActivity = ($todayData['sales_count'] ?? 0) + ($todayData['leads_count'] ?? 0) + ($yesterdayData['sales_count'] ?? 0);
+        if ($totalActivity === 0) {
+            return AIResponse::fromDatabase(
+                "Hozircha biznesingizda sotuv va lidlar kiritilmagan.\n\n"
+                . "Boshlash uchun tavsiyalar:\n"
+                . "1. Lidlar bo'limiga o'ting va birinchi mijozlaringizni kiriting\n"
+                . "2. Marketing bo'limida kontent reja tuzing\n"
+                . "3. Integratsiyalar orqali Instagram/Telegram ulang\n"
+                . "4. KPI Reja bo'limida maqsadlaringizni belgilang\n\n"
+                . "Ma'lumotlar kiritilgandan so'ng men sizga batafsil tahlil beraman!"
+            );
+        }
+
         // Solishtirish
         $salesChange = $yesterdayData['sales_count'] > 0
             ? round((($todayData['sales_count'] - $yesterdayData['sales_count']) / $yesterdayData['sales_count']) * 100, 1)
@@ -194,11 +208,11 @@ class AnalyticsAgentService
         $salesEmoji = $salesChange > 0 ? '📈' : ($salesChange < 0 ? '📉' : '➡️');
         $revenueFormatted = number_format($todayData['sales_total'], 0, '.', ',');
 
-        $response = "📊 **Bugungi holat:**\n\n"
-            . "💰 Sotuvlar: **{$todayData['sales_count']}** ta ({$salesEmoji} {$salesChange}% kechaga nisbatan)\n"
-            . "💵 Daromad: **{$revenueFormatted} so'm**\n"
-            . "👥 Yangi leadlar: **{$todayData['leads_count']}** ta\n\n"
-            . "📅 Kecha: {$yesterdayData['sales_count']} ta sotuv, " . number_format($yesterdayData['sales_total'], 0, '.', ',') . " so'm";
+        $response = "Bugungi holat:\n\n"
+            . "Sotuvlar: {$todayData['sales_count']} ta ({$salesEmoji} {$salesChange}% kechaga nisbatan)\n"
+            . "Daromad: {$revenueFormatted} so'm\n"
+            . "Yangi leadlar: {$todayData['leads_count']} ta\n\n"
+            . "Kecha: {$yesterdayData['sales_count']} ta sotuv, " . number_format($yesterdayData['sales_total'], 0, '.', ',') . " so'm";
 
         return AIResponse::fromDatabase($response);
     }
