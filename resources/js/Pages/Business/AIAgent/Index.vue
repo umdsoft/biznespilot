@@ -45,7 +45,7 @@
 
           <div v-for="msg in messages" :key="msg.id" class="flex" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
             <div class="max-w-[70%] rounded-2xl px-4 py-3" :class="msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'">
-              <p class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
+              <div class="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none" v-html="formatMarkdown(msg.content)"></div>
               <div class="flex items-center justify-end gap-2 mt-1">
                 <span v-if="msg.agent_type" class="text-[10px] opacity-60">{{ msg.agent_type }}</span>
                 <span class="text-[10px] opacity-50">{{ formatTime(msg.created_at) }}</span>
@@ -200,5 +200,15 @@ const timeAgo = (date) => {
 const formatTime = (date) => {
   if (!date) return '';
   return new Date(date).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+};
+
+const formatMarkdown = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // XSS himoya
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')                   // **bold**
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')                                // *italic*
+    .replace(/^- (.+)/gm, '<span class="flex gap-1.5"><span class="text-blue-500">•</span><span>$1</span></span>') // - list
+    .replace(/^(\d+)\. (.+)/gm, '<span class="flex gap-1.5"><span class="text-blue-500 font-medium">$1.</span><span>$2</span></span>'); // 1. numbered
 };
 </script>
