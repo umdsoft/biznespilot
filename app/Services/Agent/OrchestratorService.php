@@ -155,8 +155,7 @@ class OrchestratorService
             $agentName = $this->getAgentName($agents[0]);
             $response = $this->callAgent($agents[0], $message, $businessId, $conversationId);
             // Agent nomini javobga qo'shish
-            $response->content = "{$agentName} tahlili:\n\n{$response->content}";
-            return $response;
+            return AIResponse::fromRule("{$agentName} tahlili:\n\n{$response->content}");
         }
 
         // Multi-agent — har bir agent alohida javob beradi, keyin birlashtirish
