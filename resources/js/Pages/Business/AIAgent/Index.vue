@@ -45,7 +45,7 @@
 
           <div v-for="msg in messages" :key="msg.id" class="flex" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
             <div class="max-w-[70%] rounded-2xl px-4 py-3" :class="msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'">
-              <div class="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none" v-html="formatMarkdown(msg.content)"></div>
+              <div class="ai-message-content text-sm prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(msg.content)"></div>
               <div class="flex items-center justify-end gap-2 mt-1">
                 <span v-if="msg.agent_type" class="text-[10px] opacity-60">{{ msg.agent_type }}</span>
                 <span class="text-[10px] opacity-50">{{ formatTime(msg.created_at) }}</span>
@@ -97,6 +97,7 @@ import { ref, nextTick } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
+import { marked } from 'marked';
 
 const props = defineProps({ conversations: Array });
 
@@ -202,13 +203,32 @@ const formatTime = (date) => {
   return new Date(date).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
 };
 
-const formatMarkdown = (text) => {
+// Markdown parser — marked kutubxonasi
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
+
+const renderMarkdown = (text) => {
   if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // XSS himoya
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')                   // **bold**
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')                                // *italic*
-    .replace(/^- (.+)/gm, '<span class="flex gap-1.5"><span class="text-blue-500">•</span><span>$1</span></span>') // - list
-    .replace(/^(\d+)\. (.+)/gm, '<span class="flex gap-1.5"><span class="text-blue-500 font-medium">$1.</span><span>$2</span></span>'); // 1. numbered
+  try {
+    return marked.parse(text);
+  } catch (e) {
+    return text;
+  }
 };
 </script>
+
+<style scoped>
+.ai-message-content :deep(h1) { font-size: 1.25rem; font-weight: 700; margin: 1rem 0 0.5rem; }
+.ai-message-content :deep(h2) { font-size: 1.15rem; font-weight: 600; margin: 0.75rem 0 0.5rem; }
+.ai-message-content :deep(h3) { font-size: 1.05rem; font-weight: 600; margin: 0.5rem 0 0.25rem; }
+.ai-message-content :deep(strong) { font-weight: 600; }
+.ai-message-content :deep(em) { font-style: italic; }
+.ai-message-content :deep(ul) { list-style: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
+.ai-message-content :deep(ol) { list-style: decimal; padding-left: 1.25rem; margin: 0.5rem 0; }
+.ai-message-content :deep(li) { margin: 0.25rem 0; }
+.ai-message-content :deep(hr) { margin: 0.75rem 0; border: none; border-top: 1px solid #e5e7eb; }
+.ai-message-content :deep(p) { margin: 0.35rem 0; }
+.ai-message-content :deep(code) { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-size: 0.85em; }
+</style>

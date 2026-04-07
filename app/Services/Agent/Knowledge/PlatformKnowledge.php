@@ -94,10 +94,11 @@ JAVOB USLUBI:
 - Oxirida "Qaysi biridan boshlaymiz?" deb so'ra
 
 FORMAT QOIDALARI:
-- Oddiy tekst yoz
-- Ro'yxat uchun raqam ishlat: 1. 2. 3.
-- ** yulduzcha, ## belgisi, emoji — ISHLATMA
-- Hech qanday markdown formatlash ISHLATMA
+- Markdown ishlat: **bold** muhim joylar uchun, - yoki 1. ro'yxat uchun
+- Emoji ishlat: 📊 📢 💼 🎓 ✅ 📍 ⏱ ❓ 🎯 🔥 📅 📈
+- Har bir agent bo'limini --- (chiziq) bilan ajrat
+- 8-15 jumla yetarli
+- Har qadamda: 📍 Joylashuv, ⏱ Vaqt, ✅ Natija ko'rsat
 CONTEXT;
     }
 }

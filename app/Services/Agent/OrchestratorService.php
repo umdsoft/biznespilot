@@ -158,43 +158,56 @@ class OrchestratorService
             return AIResponse::fromRule("{$agentName} tahlili:\n\n{$response->content}");
         }
 
-        // Multi-agent — har bir agent alohida javob beradi, keyin birlashtirish
-        $combinedParts = [];
-        $totalTokensIn = 0;
-        $totalTokensOut = 0;
-        $totalCost = 0.0;
+        // Multi-agent — har bir agent alohida javob beradi
+        $inspector = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class);
+        $inspectorData = $inspector->getTextSummary($businessId);
 
+        // Kirish — biznes holati
+        $parts = [];
+        $parts[] = "Savolingizni jamoam bilan birga ko'rib chiqdim. Mana hozirgi holatingiz va har bir bo'lim tavsiyalari:\n\n**Biznes holati:**\n{$inspectorData}";
+        $parts[] = "---";
+
+        // Har bir agent javob beradi
         foreach ($agents as $agent) {
             $agentName = $this->getAgentName($agent);
+            $agentEmoji = $this->getAgentEmoji($agent);
             try {
                 $response = $this->callAgent($agent, $message, $businessId, $conversationId);
-                $combinedParts[] = "{$agentName} tahlili:\n{$response->content}";
-                $totalTokensIn += $response->tokensInput;
-                $totalTokensOut += $response->tokensOutput;
-                $totalCost += $response->costUsd;
+                $parts[] = "{$agentEmoji} **{$agentName}:**\n\n{$response->content}";
             } catch (\Exception $e) {
-                $combinedParts[] = "{$agentName}: hozir javob bera olmadim.";
+                $parts[] = "{$agentEmoji} **{$agentName}:** Hozir tahlil qilib bo'lmadi. Keyinroq qayta so'rang.";
             }
         }
 
-        // Direktor xulosasi
-        $inspectorSummary = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class)->getTextSummary($businessId);
-        $combinedParts[] = "---\nYakuniy xulosa:\n" . $inspectorSummary;
-        $combinedParts[] = "Qaysi biridan boshlaymiz? Yoki shu vazifalarni Vazifalar bo'limiga qo'shaymi?";
+        // Direktor yakuniy strategiya
+        $parts[] = "---";
+        $parts[] = "✅ **Mening yakuniy strategiyam (Umidbek):**\n\n"
+            . "Yuqoridagi barcha tavsiyalarni amalga oshirish uchun qadamma-qadam harakat qiling. "
+            . "Birinchi navbatda eng muhim qadamlardan boshlang — ular har bir agent tavsiyasida ko'rsatilgan.\n\n"
+            . "❓ **Shu vazifalarni Vazifalar bo'limiga qo'shaymi?** \"Ha\" deb javob bering — men har biriga sana belgilab, eslatma qo'yaman.";
 
-        $combinedText = implode("\n\n", $combinedParts);
-
-        return AIResponse::fromRule($combinedText);
+        return AIResponse::fromRule(implode("\n\n", $parts));
     }
 
     private function getAgentName(string $agentType): string
     {
         return match ($agentType) {
-            AgentRouter::AGENT_ANALYTICS => 'Jasurbek (Tahlil)',
-            AgentRouter::AGENT_MARKETING => 'Imronbek (Marketing)',
-            AgentRouter::AGENT_SALES => 'Salomatxon (Sotuv)',
+            AgentRouter::AGENT_ANALYTICS => 'Jasurbek (Tahlil bo\'limi)',
+            AgentRouter::AGENT_MARKETING => 'Imronbek (Marketing bo\'limi)',
+            AgentRouter::AGENT_SALES => 'Salomatxon (Sotuv bo\'limi)',
             AgentRouter::AGENT_CALL_CENTER => 'Nodira (Sifat nazorati)',
             default => 'Maslahatchi',
+        };
+    }
+
+    private function getAgentEmoji(string $agentType): string
+    {
+        return match ($agentType) {
+            AgentRouter::AGENT_ANALYTICS => '📊',
+            AgentRouter::AGENT_MARKETING => '📢',
+            AgentRouter::AGENT_SALES => '💼',
+            AgentRouter::AGENT_CALL_CENTER => '🎓',
+            default => '💡',
         };
     }
 
@@ -287,7 +300,10 @@ class OrchestratorService
 
         $platformContext = \App\Services\Agent\Knowledge\PlatformKnowledge::getSystemContext();
 
-        $systemPrompt = $platformContext . "\n\nBIZNES MA'LUMOTLARI:\n" . $businessContext;
+        $systemPrompt = $platformContext
+            . "\n\nQO'SHIMCHA: Markdown ishlat (**bold**, - ro'yxat, 1. raqamli). Emoji ishlat (📊 📢 💼 🎓 ✅ 📍 ⏱ ❓). "
+            . "8-15 jumla yetarli. Har doim 3 ta aniq qadam ber. Oxirida 'Qaysi biridan boshlaymiz?' de."
+            . "\n\nBIZNES MA'LUMOTLARI:\n" . $businessContext;
 
         try {
             return $this->aiService->ask(

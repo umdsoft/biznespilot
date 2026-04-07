@@ -88,6 +88,18 @@ class AgentRouter
         'to\'liq tahlil' => [self::AGENT_ANALYTICS, self::AGENT_MARKETING, self::AGENT_SALES],
     ];
 
+    // STRATEGIK savollar — HAR DOIM barcha agentlarni chaqirish
+    private const STRATEGIC_KEYWORDS = [
+        'oshirsam', 'oshirish', 'oshiramiz', 'ko\'paytirish', 'ko\'paytir',
+        'yaxshilash', 'yaxshilaymiz', 'rivojlantirish',
+        'strategiya', 'reja tuz', 'reja ber', 'rejalashtir',
+        'nimadan boshla', 'nima qilsam', 'nima qilishim', 'nima tavsiya',
+        'qanday tavsiya', 'maslahat ber', 'yordam ber', 'yo\'l ko\'rsat',
+        'biznesim', 'biznesni', 'kompaniyam',
+        'sotuvni oshir', 'sotuvlarni oshir', 'savdoni oshir',
+        'daromadni oshir', 'foydani oshir', 'mijoz ko\'payt',
+    ];
+
     public function __construct(
         private AIService $aiService,
     ) {}
@@ -106,6 +118,15 @@ class AgentRouter
             return [
                 'agents' => [self::AGENT_ORCHESTRATOR],
                 'method' => 'rule',
+                'confidence' => 'high',
+            ];
+        }
+
+        // 1.5-qadam: STRATEGIK savol — BARCHA agentlar parallel ishlaydi
+        if ($this->isStrategicQuestion($normalizedMessage)) {
+            return [
+                'agents' => [self::AGENT_MARKETING, self::AGENT_SALES, self::AGENT_ANALYTICS, self::AGENT_CALL_CENTER],
+                'method' => 'strategic',
                 'confidence' => 'high',
             ];
         }
@@ -132,6 +153,19 @@ class AgentRouter
 
         // 4-qadam: Haiku dan so'rash (qoida aniqlamasa)
         return $this->routeWithAI($normalizedMessage, $businessId);
+    }
+
+    /**
+     * Strategik savol — barcha agentlar birga ishlashi kerak
+     */
+    private function isStrategicQuestion(string $message): bool
+    {
+        foreach (self::STRATEGIC_KEYWORDS as $keyword) {
+            if (mb_stripos($message, $keyword) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
