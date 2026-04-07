@@ -30,7 +30,12 @@ class BusinessDataService
 
         $parts = [];
         $parts[] = "Biznes: {$business->name}";
-        if ($business->category) $parts[] = "Soha: {$business->category}";
+        if ($business->category) {
+            $parts[] = "Soha: {$business->category}";
+        } else {
+            $parts[] = "Soha: ANIQLANMAGAN (Sozlamalar bo'limida biznes profilini to'ldirish kerak)";
+        }
+        if ($business->description) $parts[] = "Tavsif: " . mb_substr($business->description, 0, 200);
 
         // Xodimlar
         $this->safe($parts, fn() => "Jamoa: " . ($business->users()->count() + 1) . " kishi");
