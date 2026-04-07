@@ -43,12 +43,58 @@
             </p>
           </div>
 
-          <div v-for="msg in messages" :key="msg.id" class="flex" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-            <div class="max-w-[70%] rounded-2xl px-4 py-3" :class="msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'">
+          <div v-for="msg in messages" :key="msg.id" v-show="msg.role !== 'progress'" class="flex" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+            <div class="rounded-2xl px-4 py-3" :class="[
+              msg.role === 'user' ? 'max-w-[70%] bg-blue-600 text-white' : 'max-w-[85%] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'
+            ]">
               <div class="ai-message-content text-sm prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(msg.content)"></div>
+
+              <!-- Deliverable Actions — agar agent xabarida deliverable bo'lsa -->
+              <div v-if="msg.role !== 'user' && hasDeliverableActions(msg.content)" class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2">
+                <button
+                  @click="approveAllDeliverables"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
+                  :disabled="approvingAll"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                  {{ approvingAll ? 'Tasdiqlanmoqda...' : 'Hammasini tasdiqlash' }}
+                </button>
+                <button
+                  @click="viewDeliverables"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-lg transition-colors"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  Ko'rish
+                </button>
+              </div>
+
               <div class="flex items-center justify-end gap-2 mt-1">
                 <span v-if="msg.agent_type" class="text-[10px] opacity-60">{{ msg.agent_type }}</span>
                 <span class="text-[10px] opacity-50">{{ formatTime(msg.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress indicator — tasdiqlash jarayoni -->
+          <div v-if="approveSteps.length > 0" class="flex justify-start">
+            <div class="max-w-[85%] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-5 py-4">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Jamoam ishga kirishdi...</span>
+              </div>
+              <div class="space-y-2.5">
+                <div v-for="(step, i) in approveSteps" :key="i" class="flex items-center gap-2.5 transition-all duration-300"
+                  :class="{ 'opacity-40': i > approveCurrentStep && !step.done }">
+                  <span class="text-base flex-shrink-0">{{ step.done ? '✅' : (i === approveCurrentStep ? step.icon : '⏳') }}</span>
+                  <span class="text-sm" :class="[
+                    step.done ? 'text-green-600 dark:text-green-400 line-through' : (i === approveCurrentStep ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500')
+                  ]">{{ step.label }}</span>
+                  <div v-if="i === approveCurrentStep && !step.done" class="flex gap-0.5 ml-1">
+                    <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                    <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                    <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -107,6 +153,7 @@ const sending = ref(false);
 const loading = ref(false);
 const activeConversationId = ref(null);
 const messagesContainer = ref(null);
+const approvingAll = ref(false);
 
 const scrollToBottom = async () => {
   await nextTick();
@@ -153,7 +200,7 @@ const sendMessage = async () => {
     const res = await axios.post('/api/v1/agent/ask', {
       message: text,
       conversation_id: activeConversationId.value,
-    });
+    }, { timeout: 120000 });
 
     if (res.data.success) {
       if (res.data.conversation_id) {
@@ -184,6 +231,139 @@ const sendMessage = async () => {
   } finally {
     sending.value = false;
     scrollToBottom();
+  }
+};
+
+// Deliverable action helper'lar
+const hasDeliverableActions = (content) => {
+  if (!content) return false;
+  const keywords = [
+    'tasdiqlaymi', 'tasdiqlang', 'boshlaylik',
+    'BAJARILISHI KERAK', 'Tayyor mahsulot',
+    'Hammasini tasdiqlash', 'mahsulotlar',
+    'Tayyor —', 'Holat: Tayyor',
+  ];
+  return keywords.some(k => content.includes(k));
+};
+
+const approveSteps = ref([]);
+const approveCurrentStep = ref(-1);
+
+const approveAllDeliverables = async () => {
+  if (approvingAll.value || sending.value) return;
+  approvingAll.value = true;
+
+  // Foydalanuvchi xabari
+  messages.value.push({
+    id: Date.now(),
+    role: 'user',
+    content: 'Ha, tasdiqlayman',
+    created_at: new Date().toISOString(),
+  });
+
+  // Progress xabarini qo'shish
+  const progressId = Date.now() + 1;
+  approveSteps.value = [
+    { label: 'Imronbek — kontent reja tayyorlanmoqda', icon: '📢', done: false },
+    { label: 'Salomatxon — lid javoblar tayyorlanmoqda', icon: '💼', done: false },
+    { label: 'Jasurbek — KPI hisobot tayyorlanmoqda', icon: '📊', done: false },
+    { label: 'Nodira — sifat hisoboti tayyorlanmoqda', icon: '🎓', done: false },
+  ];
+  approveCurrentStep.value = 0;
+  messages.value.push({
+    id: progressId,
+    role: 'progress',
+    content: '',
+    created_at: new Date().toISOString(),
+  });
+  scrollToBottom();
+
+  // Step animatsiyasi — har 3 sekundda yangi step
+  const stepInterval = setInterval(() => {
+    if (approveCurrentStep.value < approveSteps.value.length - 1) {
+      approveSteps.value[approveCurrentStep.value].done = true;
+      approveCurrentStep.value++;
+    }
+  }, 3000);
+
+  try {
+    const res = await axios.post('/api/v1/agent/ask', {
+      message: 'Ha, tasdiqlayman',
+      conversation_id: activeConversationId.value,
+    }, { timeout: 120000 });
+
+    clearInterval(stepInterval);
+
+    // Barcha steplarni done qilish
+    approveSteps.value.forEach(s => s.done = true);
+    approveCurrentStep.value = approveSteps.value.length;
+
+    if (res.data.conversation_id) {
+      activeConversationId.value = res.data.conversation_id;
+    }
+
+    // Progress xabarini o'chirish
+    await new Promise(r => setTimeout(r, 500));
+    const progressIdx = messages.value.findIndex(m => m.id === progressId);
+    if (progressIdx > -1) messages.value.splice(progressIdx, 1);
+
+    // Natija xabari
+    messages.value.push({
+      id: Date.now() + 2,
+      role: 'assistant',
+      content: res.data.message || 'Bajarildi!',
+      created_at: new Date().toISOString(),
+    });
+    scrollToBottom();
+  } catch (e) {
+    clearInterval(stepInterval);
+    const progressIdx = messages.value.findIndex(m => m.id === progressId);
+    if (progressIdx > -1) messages.value.splice(progressIdx, 1);
+
+    messages.value.push({
+      id: Date.now() + 2,
+      role: 'assistant',
+      content: e.response?.data?.message || 'Xatolik yuz berdi. Qayta urinib ko\'ring.',
+      created_at: new Date().toISOString(),
+    });
+  } finally {
+    approvingAll.value = false;
+    approveSteps.value = [];
+    approveCurrentStep.value = -1;
+    scrollToBottom();
+  }
+};
+
+const viewDeliverables = async () => {
+  try {
+    const res = await axios.get('/api/v1/deliverables');
+    const deliverables = res.data.data || [];
+
+    if (deliverables.length === 0) {
+      messages.value.push({
+        id: Date.now(),
+        role: 'assistant',
+        content: 'Hozircha tayyor mahsulotlar yo\'q. Savol bering — jamoam tayyorlaydi!',
+        created_at: new Date().toISOString(),
+      });
+    } else {
+      const list = deliverables.map(d => {
+        const status = d.status === 'pending_approval' ? '⏳ Kutilmoqda' :
+          d.status === 'completed' ? '✅ Bajarilgan' :
+          d.status === 'approved' ? '✅ Tasdiqlangan' : '❌ Rad etilgan';
+        return `- **${d.title}** (${d.agent}) — ${status}`;
+      }).join('\n');
+
+      messages.value.push({
+        id: Date.now(),
+        role: 'assistant',
+        content: `📦 **Tayyor mahsulotlar ro'yxati:**\n\n${list}`,
+        created_at: new Date().toISOString(),
+      });
+    }
+    scrollToBottom();
+  } catch (e) {
+    console.error(e);
   }
 };
 
@@ -228,7 +408,7 @@ const renderMarkdown = (text) => {
 .ai-message-content :deep(ul) { list-style: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
 .ai-message-content :deep(ol) { list-style: decimal; padding-left: 1.25rem; margin: 0.5rem 0; }
 .ai-message-content :deep(li) { margin: 0.25rem 0; }
-.ai-message-content :deep(hr) { margin: 0.75rem 0; border: none; border-top: 1px solid #e5e7eb; }
-.ai-message-content :deep(p) { margin: 0.35rem 0; }
+.ai-message-content :deep(hr) { margin: 1rem 0; border: none; border-top: 2px solid #e5e7eb; }
+.ai-message-content :deep(p) { margin: 0.4rem 0; line-height: 1.6; }
 .ai-message-content :deep(code) { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-size: 0.85em; }
 </style>

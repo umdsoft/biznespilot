@@ -224,9 +224,9 @@ class SalesAgentService
     {
         return $this->aiService->ask(
             prompt: $message,
-            systemPrompt: "Sen sotuv coaching ekspertisan. Sotuv xodimlariga e'tirozlarni bartaraf qilish bo'yicha maslahat ber. O'zbek tilida, amaliy misollar bilan.",
+            systemPrompt: $this->objectionPrompt ?: "Sen sotuv coaching ekspertisan. O'zbek tilida, qisqa jumla bilan yoz.",
             preferredModel: 'haiku',
-            maxTokens: 600,
+            maxTokens: 1200,
             businessId: $businessId,
             agentType: 'sales',
         );
@@ -239,9 +239,9 @@ class SalesAgentService
     {
         return $this->aiService->ask(
             prompt: $message,
-            systemPrompt: "Sen BiznesPilot sotuv agentisan. Sotuv bo'yicha maslahat ber. O'zbek tilida, qisqa va amaliy.",
+            systemPrompt: $this->objectionPrompt ?: "Sen BiznesPilot sotuv agentisan. O'zbek tilida, qisqa jumla bilan yoz.",
             preferredModel: 'haiku',
-            maxTokens: 600,
+            maxTokens: 1200,
             businessId: $businessId,
             agentType: 'sales',
         );

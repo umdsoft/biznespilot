@@ -43,7 +43,7 @@ class BusinessDataInspector
             'channels_count' => count($channels),
             'competitors_count' => $competitors,
             'missing' => array_filter([
-                !$dreamBuyer ? 'Dream Buyer profili (Bosh sahifa > Dream Buyer)' : null,
+                !$dreamBuyer ? 'Ideal mijoz portreti (Bosh sahifa > Ideal Mijoz)' : null,
                 empty($channels) ? 'Marketing kanallari (Bosh sahifa > Integratsiyalar)' : null,
                 $competitors === 0 ? 'Raqobatchilar (Marketing > Raqobatchilar)' : null,
             ]),
@@ -119,7 +119,7 @@ class BusinessDataInspector
 
         // Marketing
         $m = $data['marketing'];
-        $parts[] = "Dream Buyer: " . ($m['dream_buyer_exists'] ? $m['dream_buyer_name'] : 'KIRITILMAGAN');
+        $parts[] = "Ideal mijoz portreti: " . ($m['dream_buyer_exists'] ? $m['dream_buyer_name'] : 'KIRITILMAGAN');
         $parts[] = "Marketing kanallari: " . ($m['channels_count'] > 0 ? implode(', ', $m['channels_connected']) : 'ULANMAGAN');
         $parts[] = "Raqobatchilar: " . ($m['competitors_count'] > 0 ? "{$m['competitors_count']} ta" : 'KIRITILMAGAN');
 

@@ -197,11 +197,9 @@ class MarketingAgentService
 
         return $this->aiService->ask(
             prompt: "Foydalanuvchi savoli: {$message}\n\nRaqobatchi ma'lumotlari:\n{$dataText}",
-            systemPrompt: $this->competitorPrompt ?: 'Sen marketing agentisan. Raqobatchi tahlili ber. O\'zbek tilida.',
+            systemPrompt: $this->competitorPrompt ?: 'Sen marketing agentisan. O\'zbek tilida.',
             preferredModel: 'haiku',
-            maxTokens: 800,
-            cacheKey: "agent_response:marketing:competitor:" . md5($dataText),
-            cacheTTL: 3600,
+            maxTokens: 1200,
             businessId: $businessId,
             agentType: 'marketing',
         );
@@ -214,19 +212,16 @@ class MarketingAgentService
     {
         $dataText = $this->formatContentData($data);
 
-        // Strategik rejalar uchun Sonnet, qolganlari Haiku
-        $model = $questionType === 'strategy' ? 'sonnet' : 'haiku';
-        $maxTokens = $model === 'sonnet' ? 1500 : 800;
+        $model = 'haiku';
+        $maxTokens = 1200;
 
         $prompt = "Foydalanuvchi savoli: {$message}\n\nMavjud ma'lumotlar:\n{$dataText}";
 
         return $this->aiService->ask(
             prompt: $prompt,
-            systemPrompt: $this->contentPrompt ?: 'Sen marketing agentisan. Kontent tavsiya ber. O\'zbek tilida.',
+            systemPrompt: $this->contentPrompt ?: 'Sen marketing agentisan. O\'zbek tilida.',
             preferredModel: $model,
             maxTokens: $maxTokens,
-            cacheKey: "agent_response:marketing:" . md5($message . $dataText),
-            cacheTTL: 1800, // 30 daqiqa
             businessId: $businessId,
             agentType: 'marketing',
         );

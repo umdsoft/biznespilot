@@ -6,6 +6,7 @@ use App\Models\AgentConversation;
 use App\Models\AgentMessage;
 use App\Services\Agent\Analytics\AnalyticsAgentService;
 use App\Services\Agent\CallCenter\CallCenterAgentService;
+use App\Services\Agent\Deliverables\DeliverableGenerator;
 use App\Services\Agent\Marketing\MarketingAgentService;
 use App\Services\Agent\Memory\BusinessContextMemory;
 use App\Services\Agent\Memory\ShortTermMemory;
@@ -33,6 +34,7 @@ class OrchestratorService
         private ShortTermMemory $shortTermMemory,
         private BusinessContextMemory $businessContextMemory,
         private BusinessDataService $businessDataService,
+        private DeliverableGenerator $deliverableGenerator,
         private AnalyticsAgentService $analyticsAgent,
         private MarketingAgentService $marketingAgent,
         private SalesAgentService $salesAgent,
@@ -158,45 +160,82 @@ class OrchestratorService
             return AIResponse::fromRule("{$agentName} tahlili:\n\n{$response->content}");
         }
 
-        // Multi-agent — har bir agent alohida javob beradi
+        // Multi-agent javob — EXECUTOR paradigma
+        // Timeout oldini olish: 4 agent o'rniga eng mos 2 ta + director
+        // Har bir Haiku call ~5-8 sek, jami: 2 agent + 1 director = ~20-25 sek
+        set_time_limit(120); // PHP timeout ni 120 sek ga oshirish
+
         $inspector = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class);
-        $inspectorData = $inspector->getTextSummary($businessId);
+        $data = $inspector->inspect($businessId);
+        $completeness = $data['completeness'] ?? 0;
+        $s = $data['sales'] ?? [];
 
-        // Kirish — biznes holati
         $parts = [];
-        $parts[] = "Savolingizni jamoam bilan birga ko'rib chiqdim. Mana hozirgi holatingiz va har bir bo'lim tavsiyalari:\n\n**Biznes holati:**\n{$inspectorData}";
-        $parts[] = "---";
+        $parts[] = "🎯 Jamoam savolingizni ko'rib chiqdi.\n";
+        $parts[] = "📊 **Biznesingiz:** to'liqlik **{$completeness}%**, lidlar **" . ($s['leads_total'] ?? 0) . " ta**, yutilgan **" . ($s['leads_won'] ?? 0) . " ta**";
+        $parts[] = "";
 
-        // Har bir agent javob beradi
-        foreach ($agents as $agent) {
+        // Eng ko'pi 2 ta agent chaqirish (timeout oldini olish)
+        $maxAgents = min(count($agents), 2);
+        $calledAgents = array_slice($agents, 0, $maxAgents);
+
+        foreach ($calledAgents as $agent) {
             $agentName = $this->getAgentName($agent);
             $agentEmoji = $this->getAgentEmoji($agent);
+
             try {
                 $response = $this->callAgent($agent, $message, $businessId, $conversationId);
+                $parts[] = "---";
                 $parts[] = "{$agentEmoji} **{$agentName}:**\n\n{$response->content}";
             } catch (\Exception $e) {
-                $parts[] = "{$agentEmoji} **{$agentName}:** Hozir tahlil qilib bo'lmadi. Keyinroq qayta so'rang.";
+                $parts[] = "---";
+                $parts[] = "{$agentEmoji} **{$agentName}:** Hozir tahlil qilib bo'lmadi.";
+                Log::warning("Multi-agent xato: {$agent}", ['error' => $e->getMessage()]);
             }
         }
 
-        // Direktor yakuniy strategiya
-        $parts[] = "---";
-        $parts[] = "✅ **Mening yakuniy strategiyam (Umidbek):**\n\n"
-            . "Yuqoridagi barcha tavsiyalarni amalga oshirish uchun qadamma-qadam harakat qiling. "
-            . "Birinchi navbatda eng muhim qadamlardan boshlang — ular har bir agent tavsiyasida ko'rsatilgan.\n\n"
-            . "❓ **Shu vazifalarni Vazifalar bo'limiga qo'shaymi?** \"Ha\" deb javob bering — men har biriga sana belgilab, eslatma qo'yaman.";
+        // Director xulosa — qisqa, AI bilan
+        try {
+            $agentSummary = implode("\n", array_slice($parts, 3));
+            $directorResponse = $this->aiService->ask(
+                prompt: "Agent tavsiyalari:\n{$agentSummary}\n\nENG MUHIM 3 ta harakatni tanla.",
+                systemPrompt: "Sen Umidbek — bosh direktor. O'zbek tilida. QISQA yoz — 5 jumla.\n"
+                    . "'Qiling' DEMA, 'Men tayyorladim' de. Faqat TASDIQLASH so'ra.\n"
+                    . "Format: 🔥 3 ta harakat. Oxirida: ❓ Tasdiqlaymi?",
+                preferredModel: 'haiku',
+                maxTokens: 500,
+                businessId: $businessId,
+                agentType: 'director',
+            );
+            $parts[] = "---";
+            $parts[] = "✅ **Umidbek (Bosh direktor):**\n\n{$directorResponse->content}";
+        } catch (\Exception $e) {
+            $parts[] = "---";
+            $parts[] = "✅ **Umidbek (Bosh direktor):**\n\nYuqoridagi ishlar tayyor. **Tasdiqlaymi?**";
+        }
 
-        return AIResponse::fromRule(implode("\n\n", $parts));
+        return AIResponse::fromRule(implode("\n", $parts));
     }
 
     private function getAgentName(string $agentType): string
     {
         return match ($agentType) {
-            AgentRouter::AGENT_ANALYTICS => 'Jasurbek (Tahlil bo\'limi)',
-            AgentRouter::AGENT_MARKETING => 'Imronbek (Marketing bo\'limi)',
-            AgentRouter::AGENT_SALES => 'Salomatxon (Sotuv bo\'limi)',
-            AgentRouter::AGENT_CALL_CENTER => 'Nodira (Sifat nazorati)',
+            AgentRouter::AGENT_ANALYTICS => 'Jasurbek — Tahlil bo\'limi boshlig\'i',
+            AgentRouter::AGENT_MARKETING => 'Imronbek — Marketing bo\'limi boshlig\'i',
+            AgentRouter::AGENT_SALES => 'Salomatxon — Sotuv bo\'limi boshlig\'i',
+            AgentRouter::AGENT_CALL_CENTER => 'Nodira — Sifat nazorati boshlig\'i',
             default => 'Maslahatchi',
+        };
+    }
+
+    private function getAgentKey(string $agentType): string
+    {
+        return match ($agentType) {
+            AgentRouter::AGENT_ANALYTICS => 'jasurbek',
+            AgentRouter::AGENT_MARKETING => 'imronbek',
+            AgentRouter::AGENT_SALES => 'salomatxon',
+            AgentRouter::AGENT_CALL_CENTER => 'nodira',
+            default => 'unknown',
         };
     }
 
@@ -263,27 +302,80 @@ class OrchestratorService
     }
 
     /**
-     * Foydalanuvchi "ha" desa — vazifalar yaratiladi
+     * Foydalanuvchi "ha" / "tasdiq" desa — deliverable yaratiladi va vazifalar qo'shiladi
      */
     private function handleTaskConfirmation(string $businessId): AIResponse
     {
         try {
+            $results = [];
+
+            // 1. Avval oddiy vazifalar (eski logika)
             $taskService = app(TaskProposalService::class);
             $tasks = $taskService->extractTasksFromInspection($businessId);
-
-            if (empty($tasks)) {
-                return AIResponse::fromRule("Hozircha qo'shimcha vazifa yo'q — ma'lumotlaringiz yetarli darajada to'ldirilgan. Boshqa savol bo'lsa yozing.");
+            if (!empty($tasks)) {
+                $userId = auth()->id();
+                $created = $taskService->createTasks($tasks, $businessId, $userId);
+                $results[] = "✅ **{$created} ta vazifa** Vazifalar bo'limiga qo'shildi";
             }
 
-            $userId = auth()->id();
-            $created = $taskService->createTasks($tasks, $businessId, $userId);
+            // 2. Deliverable'lar yaratish (kontent reja, lid javoblar, KPI hisobot)
+            $deliverableResults = [];
 
-            $taskList = collect($tasks)->map(fn($t, $i) => ($i + 1) . ". {$t['title']}")->implode("\n");
+            // Imronbek — kontent reja (haiku bilan tez)
+            try {
+                $contentPlan = $this->deliverableGenerator->generateContentPlan($businessId);
+                if ($contentPlan) {
+                    $deliverableResults[] = "📢 **Imronbek:** {$contentPlan['title']}";
+                }
+            } catch (\Exception $e) {
+                Log::warning('Deliverable kontent xato', ['error' => $e->getMessage()]);
+            }
 
-            return AIResponse::fromRule(
-                "{$created} ta vazifa Vazifalar bo'limiga qo'shildi:\n\n{$taskList}\n\n"
-                . "Bosh sahifa > Vazifalar bo'limidan to'liq ko'rishingiz mumkin. Har bir vazifaga sana belgilangan."
-            );
+            // Salomatxon — lid javoblar
+            try {
+                $leadResponses = $this->deliverableGenerator->generateLeadResponses($businessId);
+                if ($leadResponses) {
+                    $deliverableResults[] = "💼 **Salomatxon:** {$leadResponses['title']}";
+                }
+            } catch (\Exception $e) {
+                Log::warning('Deliverable lid xato', ['error' => $e->getMessage()]);
+            }
+
+            // Jasurbek — KPI hisobot (bazadan — AI kerak emas)
+            try {
+                $kpiReport = $this->deliverableGenerator->generateKPIReport($businessId);
+                if ($kpiReport) {
+                    $deliverableResults[] = "📊 **Jasurbek:** {$kpiReport['title']}";
+                }
+            } catch (\Exception $e) {
+                Log::warning('Deliverable KPI xato', ['error' => $e->getMessage()]);
+            }
+
+            // Nodira — sifat hisobot (bazadan — AI kerak emas)
+            try {
+                $qualityReport = $this->deliverableGenerator->generateQualityReport($businessId);
+                if ($qualityReport) {
+                    $deliverableResults[] = "🎓 **Nodira:** {$qualityReport['title']}";
+                }
+            } catch (\Exception $e) {
+                Log::warning('Deliverable sifat xato', ['error' => $e->getMessage()]);
+            }
+
+            if (empty($results) && empty($deliverableResults)) {
+                return AIResponse::fromRule("Hozircha qo'shimcha vazifa yo'q. Boshqa savol bo'lsa yozing.");
+            }
+
+            $response = "🎯 **Tasdiqlandi! Jamoam ishga kirishdi:**\n\n";
+            if (!empty($results)) {
+                $response .= implode("\n", $results) . "\n\n";
+            }
+            if (!empty($deliverableResults)) {
+                $response .= "📦 **Tayyor mahsulotlar:**\n" . implode("\n", $deliverableResults) . "\n\n";
+                $response .= "Bosh sahifa > Vazifalar va Marketing bo'limlarida ko'rishingiz mumkin.\n";
+                $response .= "Tayyor mahsulotlarni tasdiqlash uchun **\"Hammasini tasdiqlash\"** tugmasini bosing.";
+            }
+
+            return AIResponse::fromRule($response);
         } catch (\Exception $e) {
             Log::warning('Task confirmation xato', ['error' => $e->getMessage()]);
             return AIResponse::fromRule("Vazifalarni qo'shishda xatolik yuz berdi. Iltimos qayta urinib ko'ring.");
@@ -295,22 +387,24 @@ class OrchestratorService
      */
     private function handleWithFallbackAI(string $agentType, string $message, string $businessId): AIResponse
     {
-        // HAQIQIY biznes ma'lumotlari — DB dan
         $businessContext = $this->businessDataService->getContextForAI($businessId, $agentType);
 
-        $platformContext = \App\Services\Agent\Knowledge\PlatformKnowledge::getSystemContext();
-
-        $systemPrompt = $platformContext
-            . "\n\nQO'SHIMCHA: Markdown ishlat (**bold**, - ro'yxat, 1. raqamli). Emoji ishlat (📊 📢 💼 🎓 ✅ 📍 ⏱ ❓). "
-            . "8-15 jumla yetarli. Har doim 3 ta aniq qadam ber. Oxirida 'Qaysi biridan boshlaymiz?' de."
-            . "\n\nBIZNES MA'LUMOTLARI:\n" . $businessContext;
+        $systemPrompt = "Sen BiznesPilot AI yordamchisisan. O'zbek tilida yoz.\n\n"
+            . "QATTIQ QOIDALAR:\n"
+            . "1. 'Shuni qiling' AYTMA — 'Men tayyorladim' de\n"
+            . "2. Har bir jumla QISQA — 1-2 qator\n"
+            . "3. Tashqi dastur (CRM, Excel, Canva) TAVSIYA QILMA\n"
+            . "4. 3 ta tayyor ish natijasi taqdim et\n"
+            . "5. Oxirida 'Tasdiqlaymi?' de\n"
+            . "6. Markdown ishlat: **qalin**, - ro'yxat\n\n"
+            . "BIZNES MA'LUMOTLARI:\n" . $businessContext;
 
         try {
             return $this->aiService->ask(
                 prompt: $message,
                 systemPrompt: $systemPrompt,
                 preferredModel: 'haiku',
-                maxTokens: 600,
+                maxTokens: 1500,
                 businessId: $businessId,
                 agentType: $agentType,
             );

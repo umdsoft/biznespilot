@@ -149,11 +149,14 @@ class CallCenterAgentService
      */
     private function getCallInsights(string $message, string $businessId): AIResponse
     {
+        $promptPath = __DIR__ . '/Prompts/call_analysis.txt';
+        $systemPrompt = file_exists($promptPath) ? file_get_contents($promptPath) : "Sen sifat nazoratchi. O'zbek tilida yoz.";
+
         return $this->aiService->ask(
             prompt: $message,
-            systemPrompt: "Sen BiznesPilot qo'ng'iroq markazi agentisan. Operator coaching va qo'ng'iroq tahlili bo'yicha maslahat ber. O'zbek tilida, qisqa va amaliy.",
+            systemPrompt: $systemPrompt,
             preferredModel: 'haiku',
-            maxTokens: 600,
+            maxTokens: 1200,
             businessId: $businessId,
             agentType: 'call_center',
         );
@@ -164,11 +167,14 @@ class CallCenterAgentService
      */
     private function getGeneralAdvice(string $message, string $businessId): AIResponse
     {
+        $promptPath = __DIR__ . '/Prompts/call_analysis.txt';
+        $systemPrompt = file_exists($promptPath) ? file_get_contents($promptPath) : "Sen sifat nazoratchi. O'zbek tilida yoz.";
+
         return $this->aiService->ask(
             prompt: $message,
-            systemPrompt: "Sen BiznesPilot qo'ng'iroq markazi agentisan. O'zbek tilida, qisqa javob ber.",
+            systemPrompt: $systemPrompt,
             preferredModel: 'haiku',
-            maxTokens: 500,
+            maxTokens: 1200,
             businessId: $businessId,
             agentType: 'call_center',
         );

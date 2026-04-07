@@ -100,7 +100,7 @@ class BusinessDataService
 
         // To'liqlik
         $missing = [];
-        if (!$dreamBuyer) $missing[] = 'Ideal mijoz portreti (Dream Buyer bo\'limi)';
+        if (!$dreamBuyer) $missing[] = 'Ideal mijoz portreti (Bosh sahifa > Ideal Mijoz)';
         if ($leadsTotal === 0) $missing[] = 'Lidlar (Lidlar bo\'limi)';
 
         $completeness = max(10, 100 - count($missing) * 15);

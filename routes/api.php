@@ -293,6 +293,14 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
             ->name('api.agent.messages');
     });
 
+    // ========== DELIVERABLES ROUTES ==========
+    Route::prefix('deliverables')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\DeliverableController::class, 'index'])->name('api.deliverables.index');
+        Route::get('/{id}', [\App\Http\Controllers\Api\DeliverableController::class, 'show'])->name('api.deliverables.show');
+        Route::post('/{id}/approve', [\App\Http\Controllers\Api\DeliverableController::class, 'approve'])->name('api.deliverables.approve');
+        Route::post('/{id}/reject', [\App\Http\Controllers\Api\DeliverableController::class, 'reject'])->name('api.deliverables.reject');
+    });
+
     // ========== AI USAGE TRACKING ROUTES ==========
     // AI xarajat kuzatuvi — faqat owner/admin
     Route::prefix('ai-usage')->middleware('agent.access:view_usage')->group(function () {

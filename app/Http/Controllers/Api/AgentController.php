@@ -31,6 +31,8 @@ class AgentController extends Controller
      */
     public function ask(Request $request): JsonResponse
     {
+        set_time_limit(120); // AI javob uchun yetarli vaqt
+
         $request->validate([
             'message' => 'required|string|max:2000',
             'conversation_id' => 'nullable|uuid',

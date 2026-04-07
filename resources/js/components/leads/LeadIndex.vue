@@ -27,7 +27,9 @@ import {
     ChartPieIcon,
     PresentationChartLineIcon,
     Cog6ToothIcon,
+    ChartBarSquareIcon,
 } from '@heroicons/vue/24/outline';
+import FunnelChart from './FunnelChart.vue';
 import { StarIcon } from '@heroicons/vue/24/solid';
 import BulkSmsModal from '@/components/BulkSmsModal.vue';
 import BulkAssignModal from '@/components/BulkAssignModal.vue';
@@ -928,6 +930,18 @@ onUnmounted(() => {
                         >
                             <ListBulletIcon class="w-5 h-5" />
                         </button>
+                        <button
+                            @click="viewMode = 'funnel'"
+                            :class="[
+                                'p-2 rounded-md transition-colors',
+                                viewMode === 'funnel'
+                                    ? `bg-white dark:bg-gray-600 shadow-sm ${themeColors.activeView}`
+                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                            ]"
+                            title="Voronka ko'rinishi"
+                        >
+                            <ChartBarIcon class="w-5 h-5" />
+                        </button>
                     </div>
 
                     <!-- Pipeline Stages Settings Button -->
@@ -1476,6 +1490,15 @@ onUnmounted(() => {
         @close="showBulkSmsModal = false"
         @sent="handleSmsSent"
     />
+
+    <!-- Funnel Chart View -->
+    <div v-if="viewMode === 'funnel' && !isLoading" class="flex-1 overflow-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 m-4">
+      <FunnelChart
+        :stages="pipelineStages"
+        :column-totals="columnTotals"
+        :leads="filteredLeads"
+      />
+    </div>
 
     <!-- Bulk Assign Modal -->
     <BulkAssignModal

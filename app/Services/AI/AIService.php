@@ -5,7 +5,7 @@ namespace App\Services\AI;
 use App\Models\AIUsageLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Umumiy AI muloqot xizmati — barcha agentlar shu orqali AI bilan gaplashadi.
@@ -15,10 +15,11 @@ class AIService
 {
     // Model identifikatorlari
     private const MODEL_HAIKU = 'claude-haiku-4-5-20251001';
-    private const MODEL_SONNET = 'claude-sonnet-4-6-20250514';
+    private const MODEL_SONNET = 'claude-sonnet-4-5-20250514';
 
     private string $apiKey;
     private string $apiUrl = 'https://api.anthropic.com/v1/messages';
+    private int $maxRetries = 2;
 
     public function __construct()
     {
@@ -50,7 +51,7 @@ class AIService
         // 1-qadam: Keshdan tekshirish
         if ($cacheKey) {
             try {
-                $cached = Redis::get("ai_cache:{$cacheKey}");
+                $cached = Cache::get("ai_cache:{$cacheKey}");
                 if ($cached) {
                     Log::debug('AIService: keshdan javob qaytarildi', ['key' => $cacheKey]);
 
@@ -74,63 +75,82 @@ class AIService
         // 3-qadam: Model tanlash
         $model = $this->resolveModel($preferredModel);
 
-        // 4-qadam: Claude API ga so'rov yuborish
+        // 4-qadam: Claude API ga retry bilan so'rov yuborish
         $startTime = microtime(true);
+        $lastError = null;
 
-        try {
-            $response = Http::withHeaders([
-                'x-api-key' => $this->apiKey,
-                'anthropic-version' => '2023-06-01',
-                'content-type' => 'application/json',
-            ])->timeout(30)->post($this->apiUrl, [
-                'model' => $model,
-                'max_tokens' => $maxTokens,
-                'system' => $systemPrompt,
-                'messages' => [['role' => 'user', 'content' => $prompt]],
-            ]);
+        for ($attempt = 0; $attempt <= $this->maxRetries; $attempt++) {
+            // Agar oldingi urinish muvaffaqiyatsiz bo'lsa — Haiku ga fallback
+            $currentModel = ($attempt > 0 && $model !== self::MODEL_HAIKU) ? self::MODEL_HAIKU : $model;
 
-            $processingTimeMs = (int) ((microtime(true) - $startTime) * 1000);
-
-            if (! $response->successful()) {
-                Log::error('AIService: API xatosi', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
+            try {
+                $response = Http::withHeaders([
+                    'x-api-key' => $this->apiKey,
+                    'anthropic-version' => '2023-06-01',
+                    'content-type' => 'application/json',
+                ])->timeout(45)->post($this->apiUrl, [
+                    'model' => $currentModel,
+                    'max_tokens' => $maxTokens,
+                    'system' => $systemPrompt,
+                    'messages' => [['role' => 'user', 'content' => $prompt]],
                 ]);
-                return AIResponse::error("API xatosi: {$response->status()}");
-            }
 
-            $responseData = $response->json();
-            $aiResponse = AIResponse::fromAPI($responseData, $model, $processingTimeMs);
+                if ($response->successful()) {
+                    $processingTimeMs = (int) ((microtime(true) - $startTime) * 1000);
+                    $responseData = $response->json();
+                    $aiResponse = AIResponse::fromAPI($responseData, $currentModel, $processingTimeMs);
 
-            // 5-qadam: Natijani keshlash
-            if ($cacheKey && $aiResponse->success) {
-                try {
-                    Redis::setex("ai_cache:{$cacheKey}", $cacheTTL, $aiResponse->content);
-                } catch (\Exception $e) {
-                    Log::warning('AIService: Redis kesh yozish xatosi', ['error' => $e->getMessage()]);
+                    // 5-qadam: Natijani keshlash
+                    if ($cacheKey && $aiResponse->success) {
+                        try {
+                            Cache::put("ai_cache:{$cacheKey}", $aiResponse->content, $cacheTTL);
+                        } catch (\Exception $e) {
+                            Log::warning('AIService: kesh yozish xatosi', ['error' => $e->getMessage()]);
+                        }
+                    }
+
+                    // 6-qadam: Token va xarajatni qayd qilish
+                    $this->logUsage(
+                        $businessId,
+                        $agentType,
+                        $currentModel,
+                        $aiResponse->tokensInput,
+                        $aiResponse->tokensOutput,
+                        $aiResponse->costUsd,
+                        false,
+                    );
+
+                    if ($attempt > 0) {
+                        Log::info("AIService: {$attempt}-urinishda {$currentModel} bilan muvaffaqiyatli javob olindi");
+                    }
+
+                    return $aiResponse;
                 }
+
+                // API xatosi — log yozib retry
+                $lastError = "API {$response->status()}: " . mb_substr($response->body(), 0, 200);
+                Log::warning("AIService: API xatosi (urinish {$attempt})", [
+                    'status' => $response->status(),
+                    'model' => $currentModel,
+                    'body' => mb_substr($response->body(), 0, 300),
+                ]);
+
+            } catch (\Exception $e) {
+                $lastError = $e->getMessage();
+                Log::warning("AIService: So'rov exception (urinish {$attempt})", [
+                    'error' => $e->getMessage(),
+                    'model' => $currentModel,
+                ]);
             }
 
-            // 6-qadam: Token va xarajatni qayd qilish
-            $this->logUsage(
-                $businessId,
-                $agentType,
-                $model,
-                $aiResponse->tokensInput,
-                $aiResponse->tokensOutput,
-                $aiResponse->costUsd,
-                false,
-            );
-
-            return $aiResponse;
-
-        } catch (\Exception $e) {
-            Log::error('AIService: So\'rov xatosi', [
-                'error' => $e->getMessage(),
-                'model' => $model,
-            ]);
-            return AIResponse::error($e->getMessage());
+            // Retry oldidan kutish (exponential backoff)
+            if ($attempt < $this->maxRetries) {
+                usleep(500000 * ($attempt + 1)); // 0.5s, 1s
+            }
         }
+
+        Log::error('AIService: Barcha urinishlar muvaffaqiyatsiz', ['last_error' => $lastError]);
+        return AIResponse::error($lastError ?? 'API javob bermadi');
     }
 
     /**
@@ -151,42 +171,44 @@ class AIService
         $model = $this->resolveModel($preferredModel);
         $startTime = microtime(true);
 
-        try {
-            $response = Http::withHeaders([
-                'x-api-key' => $this->apiKey,
-                'anthropic-version' => '2023-06-01',
-                'content-type' => 'application/json',
-            ])->timeout(30)->post($this->apiUrl, [
-                'model' => $model,
-                'max_tokens' => $maxTokens,
-                'system' => $systemPrompt,
-                'messages' => $messages,
-            ]);
+        for ($attempt = 0; $attempt <= $this->maxRetries; $attempt++) {
+            $currentModel = ($attempt > 0 && $model !== self::MODEL_HAIKU) ? self::MODEL_HAIKU : $model;
 
-            $processingTimeMs = (int) ((microtime(true) - $startTime) * 1000);
+            try {
+                $response = Http::withHeaders([
+                    'x-api-key' => $this->apiKey,
+                    'anthropic-version' => '2023-06-01',
+                    'content-type' => 'application/json',
+                ])->timeout(45)->post($this->apiUrl, [
+                    'model' => $currentModel,
+                    'max_tokens' => $maxTokens,
+                    'system' => $systemPrompt,
+                    'messages' => $messages,
+                ]);
 
-            if (! $response->successful()) {
-                return AIResponse::error("API xatosi: {$response->status()}");
+                if ($response->successful()) {
+                    $processingTimeMs = (int) ((microtime(true) - $startTime) * 1000);
+                    $aiResponse = AIResponse::fromAPI($response->json(), $currentModel, $processingTimeMs);
+
+                    $this->logUsage($businessId, $agentType, $currentModel,
+                        $aiResponse->tokensInput, $aiResponse->tokensOutput, $aiResponse->costUsd, false);
+
+                    return $aiResponse;
+                }
+
+                Log::warning("AIService: Chat API xatosi (urinish {$attempt})", [
+                    'status' => $response->status(), 'model' => $currentModel,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning("AIService: Chat exception (urinish {$attempt})", ['error' => $e->getMessage()]);
             }
 
-            $aiResponse = AIResponse::fromAPI($response->json(), $model, $processingTimeMs);
-
-            $this->logUsage(
-                $businessId,
-                $agentType,
-                $model,
-                $aiResponse->tokensInput,
-                $aiResponse->tokensOutput,
-                $aiResponse->costUsd,
-                false,
-            );
-
-            return $aiResponse;
-
-        } catch (\Exception $e) {
-            Log::error('AIService: Chat xatosi', ['error' => $e->getMessage()]);
-            return AIResponse::error($e->getMessage());
+            if ($attempt < $this->maxRetries) {
+                usleep(500000 * ($attempt + 1));
+            }
         }
+
+        return AIResponse::error('Chat API javob bermadi');
     }
 
     /**

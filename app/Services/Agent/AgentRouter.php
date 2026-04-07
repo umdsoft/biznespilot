@@ -122,10 +122,11 @@ class AgentRouter
             ];
         }
 
-        // 1.5-qadam: STRATEGIK savol — BARCHA agentlar parallel ishlaydi
+        // 1.5-qadam: STRATEGIK savol — eng mos 2 ta agent (timeout oldini olish)
         if ($this->isStrategicQuestion($normalizedMessage)) {
+            $bestTwo = $this->pickBestTwoAgents($normalizedMessage);
             return [
-                'agents' => [self::AGENT_MARKETING, self::AGENT_SALES, self::AGENT_ANALYTICS, self::AGENT_CALL_CENTER],
+                'agents' => $bestTwo,
                 'method' => 'strategic',
                 'confidence' => 'high',
             ];
@@ -166,6 +167,34 @@ class AgentRouter
             }
         }
         return false;
+    }
+
+    /**
+     * Strategik savol uchun eng mos 2 ta agentni tanlash
+     */
+    private function pickBestTwoAgents(string $message): array
+    {
+        $scores = [];
+        foreach (self::KEYWORD_MAP as $agent => $keywords) {
+            $score = 0;
+            foreach ($keywords as $keyword) {
+                if (str_contains($message, $keyword)) $score++;
+            }
+            $scores[$agent] = $score;
+        }
+
+        arsort($scores);
+        $sorted = array_keys($scores);
+
+        // Eng ko'p mos kelgan 2 ta
+        $result = array_slice($sorted, 0, 2);
+
+        // Agar analytics yo'q bo'lsa, qo'shish (har doim kerak)
+        if (!in_array(self::AGENT_ANALYTICS, $result)) {
+            $result[1] = self::AGENT_ANALYTICS;
+        }
+
+        return $result;
     }
 
     /**
