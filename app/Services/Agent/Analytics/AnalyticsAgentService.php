@@ -4,6 +4,7 @@ namespace App\Services\Agent\Analytics;
 
 use App\Services\Agent\Analytics\Tools\FunnelAnalysisTool;
 use App\Services\Agent\Analytics\Tools\KPICalculatorTool;
+use App\Services\Agent\BusinessDataService;
 use App\Services\Agent\Memory\BusinessContextMemory;
 use App\Services\Agent\Memory\ShortTermMemory;
 use App\Services\AI\AIResponse;
@@ -279,9 +280,14 @@ class AnalyticsAgentService
         $model = in_array($questionType, ['deep_analysis', 'report']) ? 'sonnet' : 'haiku';
         $maxTokens = $model === 'sonnet' ? 1500 : 800;
 
+        // Biznes kontekstini ham qo'shish
+        $businessContext = app(BusinessDataService::class)->getContextForAI($businessId, 'analytics');
+
         $prompt = "Foydalanuvchi savoli: {$message}\n\n"
-            . "Mavjud ma'lumotlar:\n{$dataText}\n\n"
-            . "Shu ma'lumotlar asosida javob ber. Faqat berilgan raqamlarga asoslan.";
+            . "BIZNES HAQIDA:\n{$businessContext}\n\n"
+            . "TAHLIL MA'LUMOTLARI:\n{$dataText}\n\n"
+            . "Shu ma'lumotlar asosida javob ber. Faqat berilgan raqamlarga asoslan. "
+            . "Agar ma'lumot etishmasa, qaysi bo'limga o'tib nima to'ldirish kerakligini aniq ayt.";
 
         // Kesh kaliti — shu sohada shu savolga oldin javob berilganmi
         $cacheKey = "agent_response:analytics:" . md5($message . $dataText);

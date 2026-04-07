@@ -32,6 +32,7 @@ class OrchestratorService
         private AgentResponseMerger $merger,
         private ShortTermMemory $shortTermMemory,
         private BusinessContextMemory $businessContextMemory,
+        private BusinessDataService $businessDataService,
         private AnalyticsAgentService $analyticsAgent,
         private MarketingAgentService $marketingAgent,
         private SalesAgentService $salesAgent,
@@ -214,41 +215,23 @@ class OrchestratorService
      */
     private function handleWithFallbackAI(string $agentType, string $message, string $businessId): AIResponse
     {
-        // Biznes kontekstini olish
-        $contextData = $this->businessContextMemory->getAllContext($businessId);
-        $contextText = !empty($contextData) ? "\n\nBiznes konteksti:\n" . json_encode($contextData, JSON_UNESCAPED_UNICODE) : '';
+        // HAQIQIY biznes ma'lumotlari — DB dan
+        $businessContext = $this->businessDataService->getContextForAI($businessId, $agentType);
 
-        // Suhbat tarixini olish
-        $recentMessages = [];
-        try {
-            $lastConv = AgentConversation::where('business_id', $businessId)
-                ->where('status', 'active')
-                ->latest()
-                ->first();
-            if ($lastConv) {
-                $recentMessages = $this->shortTermMemory->getRecentMessages($businessId, $lastConv->id, 5);
-            }
-        } catch (\Exception $e) {}
-
-        $historyText = '';
-        if (!empty($recentMessages)) {
-            $historyText = "\n\nOldingi suhbat:\n";
-            foreach ($recentMessages as $msg) {
-                $role = ($msg['role'] ?? 'user') === 'user' ? 'Foydalanuvchi' : 'Agent';
-                $historyText .= "{$role}: " . mb_substr($msg['content'] ?? '', 0, 200) . "\n";
-            }
-        }
-
-        $systemPrompt = "Sen BiznesPilot platformasining AI biznes maslahatchisisan. "
-            . "Foydalanuvchi — O'zbekistondagi biznes egasi. "
-            . "Unga haqiqiy tajribali biznes maslahatchi kabi javob ber — sodda, aniq, amaliy. "
-            . "O'zbek tilida gapir. 5-8 jumla yetarli, ko'p gapirma. "
-            . "Har doim 2-3 ta aniq qadam tavsiya qil. "
-            . "Agar savol aniq bo'lmasa — aniqlashtiruvchi savol ber. "
-            . "Hech qachon xayoliy raqam berma. "
-            . "Markdown ishlatma — oddiy tekst yoz, ** yulduzcha va ## belgilar ISHLATMA."
-            . $contextText
-            . $historyText;
+        $systemPrompt = "Sen BiznesPilot platformasining AI biznes maslahatchisisan.\n\n"
+            . "TAQIQLANGAN NARSALAR:\n"
+            . "- ** yulduzcha, ## belgisi, emoji — HECH QACHON ishlatma\n"
+            . "- 'CRM o'rnating', 'Excel ishlating', 'Google Sheets' kabi tashqi xizmatlar tavsiya qilma\n"
+            . "- Xayoliy raqam berma\n\n"
+            . "QOIDALAR:\n"
+            . "- Faqat oddiy tekst yoz, hech qanday formatlash belgisi bo'lmasin\n"
+            . "- O'zbek tilida, sodda va samimiy gapir\n"
+            . "- 5-8 jumla yetarli\n"
+            . "- 2-3 ta aniq qadam tavsiya qil\n"
+            . "- Foydalanuvchi BiznesPilot platformasida — uni platforma ichidagi bo'limlarga yo'naltir:\n"
+            . "  Lidlar bo'limi, Marketing bo'limi, KPI Reja, Integratsiyalar, HR va Xodimlar, Sozlamalar\n"
+            . "- Agar ma'lumot etishmasa — qaysi bo'limga o'tib nima to'ldirish kerakligini ayt\n\n"
+            . "BIZNES MA'LUMOTLARI:\n" . $businessContext;
 
         try {
             return $this->aiService->ask(
