@@ -280,21 +280,19 @@ class AnalyticsAgentService
         $model = in_array($questionType, ['deep_analysis', 'report']) ? 'sonnet' : 'haiku';
         $maxTokens = $model === 'sonnet' ? 1500 : 800;
 
-        // Biznes kontekstini ham qo'shish
         $businessContext = app(BusinessDataService::class)->getContextForAI($businessId, 'analytics');
+        $platformContext = \App\Services\Agent\Knowledge\PlatformKnowledge::getSystemContext();
 
         $prompt = "Foydalanuvchi savoli: {$message}\n\n"
             . "BIZNES HAQIDA:\n{$businessContext}\n\n"
-            . "TAHLIL MA'LUMOTLARI:\n{$dataText}\n\n"
-            . "Shu ma'lumotlar asosida javob ber. Faqat berilgan raqamlarga asoslan. "
-            . "Agar ma'lumot etishmasa, qaysi bo'limga o'tib nima to'ldirish kerakligini aniq ayt.";
+            . "TAHLIL MA'LUMOTLARI:\n{$dataText}";
 
         // Kesh kaliti — shu sohada shu savolga oldin javob berilganmi
         $cacheKey = "agent_response:analytics:" . md5($message . $dataText);
 
         return $this->aiService->ask(
             prompt: $prompt,
-            systemPrompt: $this->systemPrompt,
+            systemPrompt: $platformContext . "\n\n" . $this->systemPrompt,
             preferredModel: $model,
             maxTokens: $maxTokens,
             cacheKey: $cacheKey,

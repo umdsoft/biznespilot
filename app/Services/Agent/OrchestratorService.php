@@ -145,23 +145,58 @@ class OrchestratorService
     ): AIResponse {
         $agents = $routing['agents'];
 
-        // Boshqaruvchi o'zi javob beradi (salomlashish, oddiy savollar)
+        // Salomlashish — oddiy javob
         if (count($agents) === 1 && $agents[0] === AgentRouter::AGENT_ORCHESTRATOR) {
             return $this->handleSimpleMessage($message, $businessId, $conversationId);
         }
 
-        // Bitta agentga yuborish
+        // Bitta agent
         if (count($agents) === 1) {
-            return $this->callAgent($agents[0], $message, $businessId, $conversationId);
+            $agentName = $this->getAgentName($agents[0]);
+            $response = $this->callAgent($agents[0], $message, $businessId, $conversationId);
+            // Agent nomini javobga qo'shish
+            $response->content = "{$agentName} tahlili:\n\n{$response->content}";
+            return $response;
         }
 
-        // Bir nechta agentga parallel yuborish
-        $responses = [];
+        // Multi-agent — har bir agent alohida javob beradi, keyin birlashtirish
+        $combinedParts = [];
+        $totalTokensIn = 0;
+        $totalTokensOut = 0;
+        $totalCost = 0.0;
+
         foreach ($agents as $agent) {
-            $responses[$agent] = $this->callAgent($agent, $message, $businessId, $conversationId);
+            $agentName = $this->getAgentName($agent);
+            try {
+                $response = $this->callAgent($agent, $message, $businessId, $conversationId);
+                $combinedParts[] = "{$agentName} tahlili:\n{$response->content}";
+                $totalTokensIn += $response->tokensInput;
+                $totalTokensOut += $response->tokensOutput;
+                $totalCost += $response->costUsd;
+            } catch (\Exception $e) {
+                $combinedParts[] = "{$agentName}: hozir javob bera olmadim.";
+            }
         }
 
-        return $this->merger->merge($responses, $businessId);
+        // Direktor xulosasi
+        $inspectorSummary = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class)->getTextSummary($businessId);
+        $combinedParts[] = "---\nYakuniy xulosa:\n" . $inspectorSummary;
+        $combinedParts[] = "Qaysi biridan boshlaymiz? Yoki shu vazifalarni Vazifalar bo'limiga qo'shaymi?";
+
+        $combinedText = implode("\n\n", $combinedParts);
+
+        return AIResponse::fromRule($combinedText);
+    }
+
+    private function getAgentName(string $agentType): string
+    {
+        return match ($agentType) {
+            AgentRouter::AGENT_ANALYTICS => 'Jasurbek (Tahlil)',
+            AgentRouter::AGENT_MARKETING => 'Imronbek (Marketing)',
+            AgentRouter::AGENT_SALES => 'Salomatxon (Sotuv)',
+            AgentRouter::AGENT_CALL_CENTER => 'Nodira (Sifat nazorati)',
+            default => 'Maslahatchi',
+        };
     }
 
     /**
@@ -191,11 +226,16 @@ class OrchestratorService
     {
         $normalizedMessage = mb_strtolower(trim($message));
 
-        // FAQAT qisqa salomlashish (30 belgidan kam va aniq salomlashish so'zi)
+        // Vazifa tasdiqlash — "ha", "qo'sh", "vazifaga qo'sh"
+        if (mb_strlen($normalizedMessage) < 30 && $this->containsAny($normalizedMessage, ['ha', 'qo\'sh', 'vazifa', 'qo\'shib', 'tasdiq', 'bajar'])) {
+            return $this->handleTaskConfirmation($businessId);
+        }
+
+        // FAQAT qisqa salomlashish
         if (mb_strlen($normalizedMessage) < 25) {
             if ($this->containsAny($normalizedMessage, ['assalomu alaykum', 'salom', 'hello'])) {
                 return AIResponse::fromRule(
-                    "Assalomu alaykum! Men sizning biznes yordamchingizman. Nimani bilmoqchisiz?"
+                    "Assalomu alaykum! Men sizning biznes yordamchingizman. Jamoamda Imronbek (marketing), Salomatxon (sotuv), Jasurbek (tahlil) va Nodira (sifat) bor. Nimani bilmoqchisiz?"
                 );
             }
             if ($this->containsAny($normalizedMessage, ['rahmat', 'raxmat', 'tashakkur', 'thanks'])) {
@@ -211,6 +251,34 @@ class OrchestratorService
     }
 
     /**
+     * Foydalanuvchi "ha" desa — vazifalar yaratiladi
+     */
+    private function handleTaskConfirmation(string $businessId): AIResponse
+    {
+        try {
+            $taskService = app(TaskProposalService::class);
+            $tasks = $taskService->extractTasksFromInspection($businessId);
+
+            if (empty($tasks)) {
+                return AIResponse::fromRule("Hozircha qo'shimcha vazifa yo'q — ma'lumotlaringiz yetarli darajada to'ldirilgan. Boshqa savol bo'lsa yozing.");
+            }
+
+            $userId = auth()->id();
+            $created = $taskService->createTasks($tasks, $businessId, $userId);
+
+            $taskList = collect($tasks)->map(fn($t, $i) => ($i + 1) . ". {$t['title']}")->implode("\n");
+
+            return AIResponse::fromRule(
+                "{$created} ta vazifa Vazifalar bo'limiga qo'shildi:\n\n{$taskList}\n\n"
+                . "Bosh sahifa > Vazifalar bo'limidan to'liq ko'rishingiz mumkin. Har bir vazifaga sana belgilangan."
+            );
+        } catch (\Exception $e) {
+            Log::warning('Task confirmation xato', ['error' => $e->getMessage()]);
+            return AIResponse::fromRule("Vazifalarni qo'shishda xatolik yuz berdi. Iltimos qayta urinib ko'ring.");
+        }
+    }
+
+    /**
      * Hali tayyor bo'lmagan agentlar uchun fallback — Haiku dan javob
      */
     private function handleWithFallbackAI(string $agentType, string $message, string $businessId): AIResponse
@@ -218,23 +286,9 @@ class OrchestratorService
         // HAQIQIY biznes ma'lumotlari — DB dan
         $businessContext = $this->businessDataService->getContextForAI($businessId, $agentType);
 
-        $systemPrompt = "Sen BiznesPilot platformasining ichki biznes maslahatchisisan.\n\n"
-            . "PLATFORMANI TUSHUN: BiznesPilot — CRM, marketing, HR, moliya, tahlil hammasini o'z ichiga olgan YAGONA platforma. "
-            . "Foydalanuvchi ALLAQACHON platformada. Unga boshqa hech qanday tizim kerak EMAS.\n\n"
-            . "QATTIQ TAQIQLANGAN (HECH QACHON AYTMA): CRM o'rnating, Excel, Google Sheets, Canva, Bitrix, AmoCRM, HubSpot, "
-            . "Trello, tashqi bot, tashqi xizmat — BU SO'ZLARNI HECH QACHON ISHLATMA.\n\n"
-            . "BUNING O'RNIGA platformaning shu bo'limlariga yo'naltir:\n"
-            . "- Lidlar bo'limi — mijozlar kiritish va boshqarish\n"
-            . "- Marketing bo'limi — kontent reja, kanal boshqaruvi\n"
-            . "- KPI Reja — maqsadlar va ko'rsatkichlar\n"
-            . "- Integratsiyalar — Instagram, Telegram, Facebook ulash\n"
-            . "- HR va Xodimlar — jamoa boshqaruvi\n"
-            . "- Sozlamalar — biznes profili\n\n"
-            . "JAVOB USLUBI: Tajribali maslahatchi kabi gapir. O'zbek tilida, 6-10 jumla. "
-            . "3 ta aniq qadam ber. Biznes sohasiga mos strategiya ber. "
-            . "Oxirida 'Qaysi biridan boshlaymiz?' de.\n"
-            . "FORMAT: Oddiy tekst. ** yulduzcha, ## belgisi, emoji ISHLATMA.\n\n"
-            . "BIZNES MA'LUMOTLARI:\n" . $businessContext;
+        $platformContext = \App\Services\Agent\Knowledge\PlatformKnowledge::getSystemContext();
+
+        $systemPrompt = $platformContext . "\n\nBIZNES MA'LUMOTLARI:\n" . $businessContext;
 
         try {
             return $this->aiService->ask(
