@@ -73,13 +73,11 @@ class AgentRouter
 
     // Oddiy salomlashish va shunga o'xshash xabarlar — boshqaruvchi o'zi javob beradi
     // MUHIM: qisqa so'zlar (hi, hey) qo'shilmagan — boshqa so'zlar ichida mos kelishi mumkin
+    // FAQAT qisqa salomlashish — boshqa hamma narsa agentlarga boradi
     private const SIMPLE_PATTERNS = [
         'salom', 'assalomu alaykum', 'hello',
         'rahmat', 'tashakkur', 'raxmat', 'thanks',
-        'xayr', 'ko\'rishguncha', 'hayrlashish', 'bye', 'goodbye',
-        'yordam', 'help', 'nima qila olasan', 'qanday ishlaysan',
-        'nimadan boshla', 'birinchi qadam', 'ishni boshla', 'nima qilish kerak',
-        'boshlash kerak', 'qanday boshlash', 'ko\'paytirish', 'o\'stirish',
+        'xayr', 'ko\'rishguncha', 'bye', 'goodbye',
     ];
 
     // Parallel agentlar kerak bo'ladigan murakkab savollar
@@ -141,14 +139,19 @@ class AgentRouter
      */
     private function isSimpleMessage(string $message): bool
     {
+        // 25 belgidan uzun xabar — hech qachon oddiy emas
+        if (mb_strlen($message) > 25) {
+            return false;
+        }
+
         foreach (self::SIMPLE_PATTERNS as $pattern) {
             if (str_contains($message, $pattern)) {
                 return true;
             }
         }
 
-        // Juda qisqa xabarlar ham oddiy hisoblanadi
-        return mb_strlen($message) < 5;
+        // 4 belgidan qisqa (ha, yo, ok)
+        return mb_strlen($message) < 4;
     }
 
     /**

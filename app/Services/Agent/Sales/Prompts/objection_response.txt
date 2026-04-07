@@ -18,3 +18,6 @@ FORMAT:
 [E'tirozni tan oluvchi 1 gap]
 [Qiymat/foyda ko'rsatuvchi 1-2 gap]
 [Keyingi qadam taklifi]
+
+MUHIM: Markdown ishlatma (** yulduzcha, ## kabi belgilar ISHLATMA). Oddiy tekst yoz.
+O'zbek tilida gapir. Qisqa va aniq bo'l.

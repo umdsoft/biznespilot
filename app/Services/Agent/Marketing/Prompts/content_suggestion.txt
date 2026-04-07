@@ -29,3 +29,6 @@ FORMAT:
 #️⃣ **Hashtag:** [5-7 ta]
 ⏰ **Joylash vaqti:** [soat]
 💡 **Nega aynan bu:** [qisqa tushuntirish]
+
+MUHIM: Markdown ishlatma (** yulduzcha, ## kabi belgilar ISHLATMA). Oddiy tekst yoz.
+O'zbek tilida gapir. Qisqa va aniq bo'l.

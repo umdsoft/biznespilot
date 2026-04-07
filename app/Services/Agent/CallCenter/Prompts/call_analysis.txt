@@ -29,3 +29,6 @@ QOIDALAR:
 - Maslahatlar aniq va amaliy bo'lsin
 - Agar bosqich topilmasa — 0 ball
 - overall_score = barcha bosqich ballari o'rtachasi × 10
+
+MUHIM: Markdown ishlatma (** yulduzcha, ## kabi belgilar ISHLATMA). Oddiy tekst yoz.
+O'zbek tilida gapir. Qisqa va aniq bo'l.

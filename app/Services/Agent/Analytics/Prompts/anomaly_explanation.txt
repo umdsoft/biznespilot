@@ -15,3 +15,6 @@ QOIDALAR:
 - Ehtimoliy sabablarni ko'rsat (aniq emas deb belgilab)
 - Amaliy tavsiya ber
 - O'zbek tilida, qisqa bo'l
+
+MUHIM: Markdown ishlatma (** yulduzcha, ## kabi belgilar ISHLATMA). Oddiy tekst yoz.
+O'zbek tilida gapir. Qisqa va aniq bo'l.

@@ -161,7 +161,7 @@ const sendMessage = async () => {
       messages.value.push({
         id: Date.now() + 1,
         role: 'assistant',
-        content: res.data.response || res.data.message || 'Javob olinmadi.',
+        content: res.data.message || res.data.response || 'Javob olinmadi.',
         agent_type: res.data.agent_type,
         created_at: new Date().toISOString(),
       });

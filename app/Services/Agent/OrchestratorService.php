@@ -183,56 +183,29 @@ class OrchestratorService
     }
 
     /**
-     * Oddiy xabarlarga javob (salomlashish, rahmat, yordam)
+     * Oddiy xabarlarga javob — FAQAT salomlashish, rahmat, xayrlashish.
+     * Qolgan HAMMA narsa AI ga yuboriladi.
      */
     private function handleSimpleMessage(string $message, string $businessId, string $conversationId): AIResponse
     {
         $normalizedMessage = mb_strtolower(trim($message));
 
-        // Salomlashish
-        if ($this->containsAny($normalizedMessage, ['salom', 'assalomu', 'hello', 'hi', 'hey'])) {
-            return AIResponse::fromRule(
-                "Assalomu alaykum! Men sizning biznes yordamchingizman. Sotuvlar tahlili, marketing strategiya, HR masalalari, moliya hisoboti — har qanday savolga javob beraman.\n\nNimani bilmoqchisiz?"
-            );
+        // FAQAT qisqa salomlashish (30 belgidan kam va aniq salomlashish so'zi)
+        if (mb_strlen($normalizedMessage) < 25) {
+            if ($this->containsAny($normalizedMessage, ['assalomu alaykum', 'salom', 'hello'])) {
+                return AIResponse::fromRule(
+                    "Assalomu alaykum! Men sizning biznes yordamchingizman. Nimani bilmoqchisiz?"
+                );
+            }
+            if ($this->containsAny($normalizedMessage, ['rahmat', 'raxmat', 'tashakkur', 'thanks'])) {
+                return AIResponse::fromRule("Marhamat! Yana savol bo'lsa yozing.");
+            }
+            if ($this->containsAny($normalizedMessage, ['xayr', 'ko\'rishguncha', 'bye'])) {
+                return AIResponse::fromRule("Omad! Kerak bo'lganda yozing.");
+            }
         }
 
-        // Rahmat
-        if ($this->containsAny($normalizedMessage, ['rahmat', 'raxmat', 'tashakkur', 'thanks', 'thank'])) {
-            return AIResponse::fromRule("Marhamat! Yana savol bo'lsa bemalol yozing.");
-        }
-
-        // Xayrlashish
-        if ($this->containsAny($normalizedMessage, ['xayr', 'ko\'rishguncha', 'bye', 'goodbye'])) {
-            return AIResponse::fromRule("Omad! Kerak bo'lganda yozing.");
-        }
-
-        // Yordam
-        if ($this->containsAny($normalizedMessage, ['yordam', 'help', 'nima qila', 'qanday'])) {
-            return AIResponse::fromRule(
-                "Men sizga quyidagilar bo'yicha yordam beraman:\n\n"
-                . "Sotuvlar — \"Bugungi sotuvlar qanday?\" yoki \"Leadlar holati\"\n"
-                . "Marketing — \"Bugun nima post qilsam?\" yoki \"Kontent reja\"\n"
-                . "Tahlil — \"Nega konversiya tushdi?\" yoki \"Haftalik hisobot\"\n"
-                . "HR — \"Xodimlar holati\" yoki \"Yangi vakansiya\"\n\n"
-                . "Savolingizni o'zbek yoki rus tilida yozing."
-            );
-        }
-
-        // Nimadan boshlash / birinchi qadam
-        if ($this->containsAny($normalizedMessage, ['nimadan boshla', 'birinchi', 'qadam', 'nima qilish', 'boshlash kerak', 'ishni boshla', 'paydo', 'ko\'paytirish'])) {
-            return AIResponse::fromRule(
-                "Biznesingizni tizimlashtirish uchun quyidagi ketma-ketlikda ishlang:\n\n"
-                . "1. Lidlar bo'limiga o'ting — dastlabki mijozlaringizni kiriting\n"
-                . "2. Marketing — haftada kamida 3 ta kontent rejalashtiring\n"
-                . "3. HR — jamoangizni kiriting va vazifalarni taqsimlang\n"
-                . "4. KPI Reja — oylik maqsadlaringizni belgilang\n"
-                . "5. Integratsiya — Instagram va Telegram ulang\n\n"
-                . "Qaysi biridan boshlaysiz?"
-            );
-        }
-
-        // Agar oddiy javob topilmasa — AI ga yuborish
-        // Bu holda orchestrator o'zi AI dan javob oladi
+        // Qolgan HAMMA narsa — AI ga yuboriladi
         return $this->handleWithFallbackAI('orchestrator', $message, $businessId);
     }
 
@@ -267,11 +240,13 @@ class OrchestratorService
         }
 
         $systemPrompt = "Sen BiznesPilot platformasining AI biznes maslahatchisisan. "
-            . "Foydalanuvchi — biznes egasi. Unga professional, aniq va amaliy javob ber. "
-            . "O'zbek tilida gapir. Qisqa bo'l — 3-5 jumla yetarli. "
+            . "Foydalanuvchi — O'zbekistondagi biznes egasi. "
+            . "Unga haqiqiy tajribali biznes maslahatchi kabi javob ber — sodda, aniq, amaliy. "
+            . "O'zbek tilida gapir. 5-8 jumla yetarli, ko'p gapirma. "
+            . "Har doim 2-3 ta aniq qadam tavsiya qil. "
             . "Agar savol aniq bo'lmasa — aniqlashtiruvchi savol ber. "
-            . "Agar biznes ma'lumotlari kerak bo'lsa — qaysi bo'limga o'tishni ayt. "
-            . "Hech qachon xayoliy raqam yoki ma'lumot berma."
+            . "Hech qachon xayoliy raqam berma. "
+            . "Markdown ishlatma — oddiy tekst yoz, ** yulduzcha va ## belgilar ISHLATMA."
             . $contextText
             . $historyText;
 

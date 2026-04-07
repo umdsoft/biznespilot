@@ -51,24 +51,8 @@ class AnalyticsAgentService
             // 2-qadam: Bazadan ma'lumot olish
             $data = $this->gatherData($questionType, $businessId, $normalizedMessage);
 
-            // 3-qadam: Oddiy savollarga bazadan javob (AI chaqirilMAYDI)
-            if ($questionType === 'simple_kpi') {
-                // Bugungi holat yoki KPI hisoblash
-                if (isset($data['today']['success']) && $data['today']['success']) {
-                    return $this->formatSimpleKPIResponse($data);
-                }
-                // KPI hisoblash natijasi
-                if (isset($data['kpi']['success']) && $data['kpi']['success']) {
-                    return $this->formatKPICalculationResponse($data['kpi']);
-                }
-            }
-
-            // Funnel savoli ham bazadan javob berish mumkin
-            if ($questionType === 'funnel' && isset($data['funnel']['success']) && $data['funnel']['success']) {
-                return $this->formatFunnelResponse($data['funnel']);
-            }
-
-            // 4-qadam: Murakkab tahlil — faqat qoida hal qilmagan savollar uchun
+            // 3-qadam: HAR DOIM AI tahlil bilan javob berish
+            // Bazadan raqam olinadi + AI (Haiku) tahlil va tavsiya qo'shadi
             return $this->analyzeWithAI($message, $data, $businessId, $questionType);
 
         } catch (\Exception $e) {

@@ -25,3 +25,6 @@ FORMAT:
 1. [aniq harakat]
 2. [aniq harakat]
 3. [aniq harakat]
+
+MUHIM: Markdown ishlatma (** yulduzcha, ## kabi belgilar ISHLATMA). Oddiy tekst yoz.
+O'zbek tilida gapir. Qisqa va aniq bo'l.
