@@ -89,16 +89,23 @@ class SettingsController extends Controller
             'email_notifications' => ['boolean'],
             'browser_notifications' => ['boolean'],
             'marketing_emails' => ['boolean'],
-            'preferred_ai_model' => ['string', 'in:gpt-4,gpt-3.5-turbo,claude-3-opus,claude-3-sonnet'],
+            'preferred_ai_model' => ['string', 'in:gpt-4,gpt-3.5-turbo,claude-haiku-4-5,claude-sonnet-4-5,claude-opus-4-6'],
             'ai_creativity_level' => ['integer', 'min:1', 'max:10'],
             'theme' => ['string', 'in:light,dark,auto'],
-            'language' => ['string', 'in:uz,ru,en'],
+            'language' => ['string', 'in:uz,uz-latn,uz-cyrl,ru,en'],
         ]);
 
         $settings = UserSetting::firstOrCreate(['user_id' => Auth::id()]);
         $settings->update($validated);
 
-        return redirect()->back()->with('success', 'Sozlamalar yangilandi!');
+        // Til o'zgartirilgan bo'lsa — cookie ga yozish (i18n.js uni o'qiydi)
+        $response = redirect()->back()->with('success', 'Sozlamalar yangilandi!');
+        if (!empty($validated['language'])) {
+            $lang = $validated['language'] === 'uz' ? 'uz-latn' : $validated['language'];
+            $response->cookie('locale', $lang, 60 * 24 * 365, '/', null, false, false);
+        }
+
+        return $response;
     }
 
     public function updateApiKeys(Request $request)

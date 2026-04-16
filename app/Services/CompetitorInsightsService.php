@@ -98,11 +98,13 @@ class CompetitorInsightsService
     {
         $insights = collect();
         $businessSwot = $business->swot_data ?? [];
-        $ourStrengths = $businessSwot['strengths'] ?? [];
+        // SWOT items {text, business_id} formatida bo'lishi mumkin — normalize qilib stringga aylantirish
+        $ourStrengths = $this->normalizeSwotItems($businessSwot['strengths'] ?? []);
 
         foreach ($competitors as $competitor) {
             $compSwot = $competitor->swot_data ?? [];
-            $compWeaknesses = $compSwot['weaknesses'] ?? $competitor->weaknesses ?? [];
+            $compWeaknessesRaw = $compSwot['weaknesses'] ?? $competitor->weaknesses ?? [];
+            $compWeaknesses = $this->normalizeSwotItems($compWeaknessesRaw);
 
             if (empty($compWeaknesses)) {
                 continue;
@@ -473,7 +475,7 @@ class CompetitorInsightsService
 
         foreach ($competitors as $competitor) {
             $compSwot = $competitor->swot_data ?? [];
-            $weaknesses = $compSwot['weaknesses'] ?? $competitor->weaknesses ?? [];
+            $weaknesses = $this->normalizeSwotItems($compSwot['weaknesses'] ?? $competitor->weaknesses ?? []);
             $compPrice = $competitor->pricing['average'] ?? null;
 
             if (empty($weaknesses) && !$compPrice) {
@@ -569,6 +571,29 @@ class CompetitorInsightsService
     protected function getBusinessPrice(Business $business): ?float
     {
         return $business->average_price ?? $business->price_range_max ?? null;
+    }
+
+    /**
+     * SWOT items'larni normalize qilish.
+     * Items {text, business_id} obyekt yoki to'g'ridan-to'g'ri string bo'lishi mumkin.
+     */
+    protected function normalizeSwotItems($items): array
+    {
+        if (!is_array($items)) return [];
+
+        $result = [];
+        foreach ($items as $item) {
+            if (is_string($item)) {
+                $text = trim($item);
+                if ($text !== '') $result[] = $text;
+            } elseif (is_array($item) && !empty($item['text'])) {
+                $result[] = trim($item['text']);
+            } elseif (is_object($item) && !empty($item->text)) {
+                $result[] = trim($item->text);
+            }
+        }
+
+        return $result;
     }
 
     protected function matchStrengthToWeakness(string $weakness, array $strengths): ?string

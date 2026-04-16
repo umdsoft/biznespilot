@@ -83,7 +83,7 @@ class LeadController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
-        $perPage = min($request->input('per_page', 50), 100); // Max 100 for performance
+        $perPage = min($request->input('per_page', 100), 500); // Kanban uchun 500 max
         $status = $request->input('status');
         $source = $request->input('source');
         $search = $request->input('search');
@@ -167,7 +167,6 @@ class LeadController extends Controller
         // Cache stats for 30 seconds to reduce DB load
         $cacheKey = "lead_stats_{$business->id}";
         $stats = Cache::remember($cacheKey, 30, function () use ($business) {
-            // Single optimized query with aggregations
             $sNew = Lead::STATUS_NEW;
             $sQualified = Lead::STATUS_QUALIFIED;
             $sWon = Lead::STATUS_WON;
@@ -184,6 +183,17 @@ class LeadController extends Controller
                 ")
                 ->first();
 
+            // Stage bo'yicha count + value (Kanban ustun umumiy summasi uchun)
+            $stageTotals = Lead::where('business_id', $business->id)
+                ->selectRaw('status, COUNT(*) as cnt, SUM(COALESCE(estimated_value, 0)) as val')
+                ->groupBy('status')
+                ->get()
+                ->mapWithKeys(fn($row) => [$row->status => [
+                    'count' => (int) $row->cnt,
+                    'value' => (float) $row->val,
+                ]])
+                ->toArray();
+
             return [
                 'total_leads' => (int) ($result->total_leads ?? 0),
                 'new_leads' => (int) ($result->new_leads ?? 0),
@@ -191,6 +201,7 @@ class LeadController extends Controller
                 'won_deals' => (int) ($result->won_deals ?? 0),
                 'pipeline_value' => (float) ($result->pipeline_value ?? 0),
                 'total_value' => (float) ($result->total_value ?? 0),
+                'stage_totals' => $stageTotals,
             ];
         });
 

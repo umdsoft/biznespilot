@@ -44,7 +44,9 @@ use App\Listeners\LeadStageChangedListener;
 use App\Listeners\PipelineAutomationListener;
 use App\Listeners\Sales\SalesIntegrationListener;
 use App\Listeners\Marketing\MarketingIntegrationListener;
+use App\Listeners\Marketing\MarketingOrchestratorListener;
 use App\Listeners\HR\HRIntegrationListener;
+use App\Observers\LeadActivityObserver;
 use App\Events\PaymentReceived;
 use App\Events\PaymentSuccessEvent;
 use App\Listeners\SendPaymentNotification;
@@ -124,6 +126,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Marketing integration subscriber (Sales → Marketing KPI yangilash)
         Event::subscribe(MarketingIntegrationListener::class);
+
+        // Marketing Orchestrator subscriber (content/competitor/campaign event → cache invalidate)
+        Event::subscribe(MarketingOrchestratorListener::class);
+
+        // Lead activity observer (har Lead update'da activity log)
+        Lead::observe(LeadActivityObserver::class);
 
         // HR observers (Attendance, Leave, Goals, Engagement, FlightRisk)
         AttendanceRecord::observe(AttendanceRecordObserver::class);

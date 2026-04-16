@@ -47,25 +47,18 @@ import {
 const page = usePage();
 const dismissed = ref(false);
 
-const subscription = computed(() => page.props.subscription);
+// subscriptionStatus — har sahifada minimal info (TrialBanner uchun)
+// subscription — lazy load, faqat subscription sahifasida kerak
+const subStatus = computed(() => page.props.subscriptionStatus || {});
 
-// Admin uchun banner ko'rsatmaslik
 const isAdmin = computed(() => {
   const roles = page.props.auth?.user?.roles || [];
   return roles.some(r => r.name === 'admin' || r.name === 'super_admin');
 });
 
-const isTrial = computed(() => {
-  return subscription.value?.subscription?.is_trial === true;
-});
-
-const hasNoSubscription = computed(() => {
-  return subscription.value?.has_subscription === false;
-});
-
-const daysRemaining = computed(() => {
-  return subscription.value?.subscription?.days_remaining ?? 0;
-});
+const isTrial = computed(() => subStatus.value.is_trial === true);
+const hasNoSubscription = computed(() => subStatus.value.has_subscription === false);
+const daysRemaining = computed(() => subStatus.value.days_remaining ?? 999);
 
 const isExpired = computed(() => {
   return hasNoSubscription.value;

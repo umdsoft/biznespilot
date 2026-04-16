@@ -59,39 +59,21 @@ class OperatorScorer
     }
 
     /**
-     * Jamoa reytingi (leaderboard)
+     * Jamoa reytingi (leaderboard) — yangi OperatorScorecardService'ga delegate qiladi.
+     * Backward compatibility uchun saqlangan.
      */
     public function getLeaderboard(string $businessId, int $days = 30): array
     {
         try {
-            $operators = DB::table('call_analyses')
-                ->where('business_id', $businessId)
-                ->where('created_at', '>=', now()->subDays($days))
-                ->select('operator_id')
-                ->selectRaw('
-                    COUNT(*) as total_calls,
-                    AVG(overall_score) as avg_score,
-                    SUM(CASE WHEN outcome = "sale" THEN 1 ELSE 0 END) as sales
-                ')
-                ->groupBy('operator_id')
-                ->orderByDesc('avg_score')
-                ->limit(20)
-                ->get()
-                ->toArray();
+            $service = app(\App\Services\Agent\CallCenter\OperatorScorecardService::class);
+            $operators = $service->leaderboard($businessId, $days);
 
-            // Operator ismlarini qo'shish
-            foreach ($operators as $i => &$op) {
-                $user = DB::table('users')->where('id', $op->operator_id)->first(['name']);
-                $op->operator_name = $user->name ?? 'Noma\'lum';
-                $op->rank = $i + 1;
-                $op->avg_score = round($op->avg_score, 1);
-                $op->conversion_rate = $op->total_calls > 0
-                    ? round(($op->sales / $op->total_calls) * 100, 1)
-                    : 0;
-            }
+            // Eski format'ga aylantirish (backward compat)
+            $leaderboard = array_map(fn($op) => (object) $op, $operators);
 
-            return ['success' => true, 'leaderboard' => $operators];
+            return ['success' => true, 'leaderboard' => $leaderboard];
         } catch (\Exception $e) {
+            Log::warning('OperatorScorer.getLeaderboard xato', ['error' => $e->getMessage()]);
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }

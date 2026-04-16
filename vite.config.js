@@ -22,6 +22,8 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': '/resources/js',
+            // Runtime compiler (inline template komponentlar uchun)
+            'vue': 'vue/dist/vue.esm-bundler.js',
         },
     },
     server: {
@@ -41,11 +43,13 @@ export default defineConfig({
             output: {
                 // Manual chunk splitting for better caching
                 manualChunks: {
-                    // Vendor chunks - these rarely change, so cache well
                     'vendor-vue': ['vue', '@vue/runtime-dom', '@vue/runtime-core'],
                     'vendor-inertia': ['@inertiajs/vue3'],
                     'vendor-pinia': ['pinia'],
-                    // Heavy libraries in separate chunks
+                    'vendor-axios': ['axios'],
+                    'vendor-icons': ['@heroicons/vue/24/outline', '@heroicons/vue/24/solid'],
+                    'vendor-ziggy': ['ziggy-js'],
+                    'vendor-marked': ['marked'],
                     'vendor-charts': ['chart.js', 'apexcharts', 'vue3-apexcharts'],
                 },
                 // Dynamic chunk naming for lazy-loaded modules

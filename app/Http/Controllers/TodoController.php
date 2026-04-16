@@ -31,9 +31,24 @@ class TodoController extends Controller
         $filter = $request->get('filter', 'all'); // all, personal, team, process
         $status = $request->get('status', 'active'); // active, completed, all
 
+        // Faqat kerakli maydonlar (prop hajmi 32KB → ~5KB)
         $query = Todo::where('business_id', $business->id)
-            ->whereNull('parent_id') // Only root todos
-            ->with(['assignee:id,name', 'subtasks', 'recurrence', 'assignees.user:id,name'])
+            ->whereNull('parent_id')
+            ->select([
+                'id', 'business_id', 'title', 'description', 'type', 'status',
+                'priority', 'assigned_to', 'created_by', 'due_date', 'completed_at',
+                'order', 'parent_id', 'created_at',
+            ])
+            ->with([
+                'assignee:id,name',
+                'subtasks:id,parent_id,title,status,due_date',
+                'assignees',
+                'recurrence',
+            ])
+            ->withCount([
+                'assignees',
+                'assignees as completed_assignees_count' => fn($q) => $q->where('is_completed', true),
+            ])
             ->orderBy('order')
             ->orderBy('due_date');
 

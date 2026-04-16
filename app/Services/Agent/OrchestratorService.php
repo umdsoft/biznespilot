@@ -163,7 +163,8 @@ class OrchestratorService
         // Multi-agent javob — EXECUTOR paradigma
         // Timeout oldini olish: 4 agent o'rniga eng mos 2 ta + director
         // Har bir Haiku call ~5-8 sek, jami: 2 agent + 1 director = ~20-25 sek
-        set_time_limit(120); // PHP timeout ni 120 sek ga oshirish
+        set_time_limit(180); // Sonnet chuqur tahlil uchun yetarli vaqt
+        ini_set('max_execution_time', 180);
 
         $inspector = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class);
         $data = $inspector->inspect($businessId);
@@ -179,12 +180,16 @@ class OrchestratorService
         $maxAgents = min(count($agents), 2);
         $calledAgents = array_slice($agents, 0, $maxAgents);
 
+        // Agent javoblarini yig'ish — Merger uchun
+        $agentResponses = [];
+
         foreach ($calledAgents as $agent) {
             $agentName = $this->getAgentName($agent);
             $agentEmoji = $this->getAgentEmoji($agent);
 
             try {
                 $response = $this->callAgent($agent, $message, $businessId, $conversationId);
+                $agentResponses[$agent] = $response;
                 $parts[] = "---";
                 $parts[] = "{$agentEmoji} **{$agentName}:**\n\n{$response->content}";
             } catch (\Exception $e) {
@@ -194,16 +199,33 @@ class OrchestratorService
             }
         }
 
-        // Director xulosa — qisqa, AI bilan
+        // Cross-agent xulosa — Merger orqali (agentlar orasidagi bog'liqlik)
+        if (count($agentResponses) >= 2) {
+            try {
+                $merged = $this->merger->merge($agentResponses, $businessId);
+                if ($merged->success && $merged->source === 'merged_ai') {
+                    $parts[] = "---";
+                    $parts[] = "🔗 **Jamoaviy xulosa:**\n\n{$merged->content}";
+                }
+            } catch (\Exception $e) {
+                Log::warning('Merger xato', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // Director xulosa — Sonnet bilan chuqur strategik tahlil
         try {
             $agentSummary = implode("\n", array_slice($parts, 3));
             $directorResponse = $this->aiService->ask(
-                prompt: "Agent tavsiyalari:\n{$agentSummary}\n\nENG MUHIM 3 ta harakatni tanla.",
-                systemPrompt: "Sen Umidbek — bosh direktor. O'zbek tilida. QISQA yoz — 5 jumla.\n"
-                    . "'Qiling' DEMA, 'Men tayyorladim' de. Faqat TASDIQLASH so'ra.\n"
-                    . "Format: 🔥 3 ta harakat. Oxirida: ❓ Tasdiqlaymi?",
-                preferredModel: 'haiku',
-                maxTokens: 500,
+                prompt: "Agent tavsiyalari:\n{$agentSummary}\n\n"
+                    . "Chuqur strategik tahlil qil. ENG MUHIM 3 ta harakatni tanla. "
+                    . "Har biri uchun: NIMA va NEGA aniq yoz. Aniq raqamlar ishlat (lidlar, foizlar, valyuta).",
+                systemPrompt: "Sen Umidbek — BiznesPilot AI bosh direktorisan. 15 yillik tajribali biznes strategisan.\n"
+                    . "O'zbek tilida, professional. Sen jamoang ISHINI ko'rib chiqib, STRATEGIK qaror qabul qilasan.\n"
+                    . "'Qiling' DEMA. 'Men tayyorladim', 'Biz bajardik' de. Faqat TASDIQLASH so'ra.\n"
+                    . "Har harakatda: muammo, yechim, kutilgan natija (raqam bilan).\n"
+                    . "Format: 🔥 3 ta strategik harakat (har biri 3-4 jumla). Oxirida: ❓ Tasdiqlaymi?",
+                preferredModel: 'sonnet',
+                maxTokens: 1500,
                 businessId: $businessId,
                 agentType: 'director',
             );
@@ -467,6 +489,22 @@ class OrchestratorService
             str_contains($response->model, 'sonnet') => 'sonnet',
             default => 'none',
         };
+
+        // Javob sifatini avtomatik baholash (Ruflo uslubi)
+        try {
+            $scorer = app(\App\Services\Agent\Context\ResponseQualityScorer::class);
+            $quality = $scorer->score($response->content);
+            Log::info('Agent javob sifati', [
+                'conversation_id' => $conversation->id,
+                'grade' => $quality['grade'],
+                'score' => $quality['score'],
+                'issues_count' => count($quality['issues']),
+                'issues' => $quality['issues'],
+                'model' => $modelUsed,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Quality score xato', ['error' => $e->getMessage()]);
+        }
 
         AgentMessage::create([
             'conversation_id' => $conversation->id,

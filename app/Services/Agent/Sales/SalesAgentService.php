@@ -5,6 +5,7 @@ namespace App\Services\Agent\Sales;
 use App\Services\Agent\Sales\ChatHandler\MessageClassifier;
 use App\Services\Agent\Sales\ChatHandler\RuleBasedResponder;
 use App\Services\Agent\Sales\LeadScoring\RealTimeScorer;
+use App\Services\Agent\Sales\Tools\PipelineAnalysisTool;
 use App\Services\AI\AIResponse;
 use App\Services\AI\AIService;
 use Illuminate\Support\Facades\DB;
@@ -237,8 +238,20 @@ class SalesAgentService
      */
     private function getGeneralSalesAdvice(string $message, string $businessId): AIResponse
     {
+        // Pipeline tahlilini context'ga qo'shish
+        $pipelineContext = '';
+        try {
+            $pipelineContext = app(PipelineAnalysisTool::class)->asContext($businessId);
+        } catch (\Exception $e) {
+            Log::warning('Pipeline tool xato', ['error' => $e->getMessage()]);
+        }
+
+        $prompt = $pipelineContext
+            ? "Foydalanuvchi savoli: {$message}\n\nSOTUV MA'LUMOTLARI:\n{$pipelineContext}"
+            : $message;
+
         return $this->aiService->ask(
-            prompt: $message,
+            prompt: $prompt,
             systemPrompt: $this->objectionPrompt ?: "Sen BiznesPilot sotuv agentisan. O'zbek tilida, qisqa jumla bilan yoz.",
             preferredModel: 'haiku',
             maxTokens: 1200,

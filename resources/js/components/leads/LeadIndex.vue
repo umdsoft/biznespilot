@@ -286,7 +286,7 @@ const initialLoadComplete = ref(false);
 const pagination = ref({
     current_page: 1,
     last_page: 1,
-    per_page: 50, // Reduced for faster initial load
+    per_page: 200, // Kanban uchun optimal (500 503 beryapti edi)
     total: 0,
 });
 
@@ -388,7 +388,16 @@ const loadOperators = async () => {
 };
 
 // Fetch leads with pagination - optimized for speed
+// AbortController — oldingi fetchni bekor qilish (duplicate API call'larni oldini oladi)
+let fetchAbortController = null;
+
 const fetchLeads = async (page = 1, showLoading = true) => {
+    // Oldingi so'rovni bekor qilish
+    if (fetchAbortController) {
+        fetchAbortController.abort();
+    }
+    fetchAbortController = new AbortController();
+
     if (showLoading && !initialLoadComplete.value) {
         isLoading.value = true;
     }
@@ -397,14 +406,16 @@ const fetchLeads = async (page = 1, showLoading = true) => {
         const params = {
             page,
             per_page: pagination.value.per_page,
-            // Request minimal fields for kanban view
             fields: 'id,name,phone,email,company,status,source_id,assigned_to,estimated_value,created_at'
         };
         if (searchQuery.value) params.search = searchQuery.value;
         if (sourceFilter.value) params.source = sourceFilter.value;
         if (operatorFilter.value) params.operator = operatorFilter.value;
 
-        const response = await axios.get(getApiEndpoint('leads'), { params });
+        const response = await axios.get(getApiEndpoint('leads'), {
+            params,
+            signal: fetchAbortController.signal,
+        });
         loadedLeads.value = response.data.data || [];
         localStateInitialized.value = true;
 
@@ -467,12 +478,19 @@ const debouncedSearch = () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         fetchLeads(1, false); // Don't show full loading for search
-    }, 200); // Reduced from 300ms
+    }, 400); // Yanada kamroq duplicate request
+};
+
+// Filterlar uchun ham debounce — bir vaqtda bir nechta o'zgarish bo'lsa
+let filterTimeout;
+const debouncedFilterFetch = () => {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(() => fetchLeads(1, false), 300);
 };
 
 watch(searchQuery, debouncedSearch);
-watch(sourceFilter, () => fetchLeads(1, false)); // Silent refresh
-watch(operatorFilter, () => fetchLeads(1, false)); // Silent refresh
+watch(sourceFilter, debouncedFilterFetch);
+watch(operatorFilter, debouncedFilterFetch);
 
 // Filter leads based on search and source (for non-lazy mode)
 const filteredLeads = computed(() => {
@@ -519,15 +537,31 @@ const leadsByStatus = computed(() => {
     return grouped;
 });
 
-// Calculate totals for each column
+// Column totals — server-side stage_totals dan (filter yo'q bo'lsa real count/value)
+// Agar filter qo'llanilgan bo'lsa — filtered leads dan hisoblaymiz
+const hasActiveFilter = computed(() => {
+    return !!(searchQuery.value || sourceFilter.value || operatorFilter.value);
+});
+
 const columnTotals = computed(() => {
     const totals = {};
+    const serverStageTotals = stats.value?.stage_totals || {};
+
     pipelineStages.value.forEach(stage => {
-        const stageLeads = leadsByStatus.value[stage.value] || [];
-        totals[stage.value] = {
-            count: stageLeads.length,
-            value: stageLeads.reduce((sum, lead) => sum + (parseFloat(lead.estimated_value) || 0), 0)
-        };
+        // Filter yo'q — server totallarni ishlatamiz (real DB values)
+        if (!hasActiveFilter.value && serverStageTotals[stage.value]) {
+            totals[stage.value] = {
+                count: serverStageTotals[stage.value].count || 0,
+                value: serverStageTotals[stage.value].value || 0,
+            };
+        } else {
+            // Filter qo'llanilgan — ko'rinayotgan lidlardan hisoblaymiz
+            const stageLeads = leadsByStatus.value[stage.value] || [];
+            totals[stage.value] = {
+                count: stageLeads.length,
+                value: stageLeads.reduce((sum, lead) => sum + (parseFloat(lead.estimated_value) || 0), 0)
+            };
+        }
     });
     return totals;
 });

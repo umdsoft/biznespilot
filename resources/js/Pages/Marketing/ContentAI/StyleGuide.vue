@@ -213,11 +213,11 @@ Mahsulot yangiliklari"
                 v-model="form.ai_model"
                 class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500"
               >
-                <option value="claude-3-haiku">Claude 3 Haiku (Tez, arzon)</option>
-                <option value="claude-3-sonnet">Claude 3 Sonnet (O'rtacha)</option>
+                <option value="claude-haiku-4-5">Claude Haiku 4.5 (Tez, arzon)</option>
+                <option value="claude-sonnet-4-5">Claude Sonnet 4.5 (Kuchli)</option>
               </select>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Haiku: ~$0.002/so'rov | Sonnet: ~$0.012/so'rov
+                Haiku: ~$0.005/so'rov | Sonnet: ~$0.020/so'rov
               </p>
             </div>
 
@@ -375,7 +375,7 @@ const form = ref({
   common_hashtags: props.styleGuide?.common_hashtags || [],
   cta_patterns: props.styleGuide?.cta_patterns || [],
   content_pillars: props.styleGuide?.content_pillars || [],
-  ai_model: props.styleGuide?.ai_model || 'claude-3-haiku',
+  ai_model: props.styleGuide?.ai_model || 'claude-haiku-4-5',
   creativity_level: props.styleGuide?.creativity_level || 0.7,
   max_tokens_per_month: props.styleGuide?.max_tokens_per_month || 100000,
 });

@@ -38,14 +38,14 @@ return [
     |
     */
     'analysis' => [
-        'model' => env('CALL_CENTER_ANALYSIS_MODEL', 'claude-3-5-haiku-20241022'),
+        'model' => env('CALL_CENTER_ANALYSIS_MODEL', 'claude-haiku-4-5-20251001'),
         'max_tokens' => 2000,
         'temperature' => 0.3,
 
-        // Claude Haiku pricing (per million tokens)
+        // Claude Haiku 4.5 pricing (per million tokens)
         'pricing' => [
-            'input_per_million' => 0.25,   // $0.25 per 1M input tokens
-            'output_per_million' => 1.25,  // $1.25 per 1M output tokens
+            'input_per_million' => 0.80,   // $0.80 per 1M input tokens
+            'output_per_million' => 4.00,  // $4.00 per 1M output tokens
         ],
     ],
 

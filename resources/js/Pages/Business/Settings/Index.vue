@@ -926,11 +926,15 @@ const preferencesForm = useForm({
 });
 
 const updatePreferences = () => {
+  const oldLang = props.settings.language;
   preferencesForm.put(route('business.settings.preferences.update'), {
     preserveScroll: true,
     onSuccess: () => {
-      // Apply theme change immediately
       applyTheme(preferencesForm.theme);
+      // Til o'zgargan bo'lsa — sahifani qayta yuklash (cookie'dan yangi locale o'qiladi)
+      if (preferencesForm.language && preferencesForm.language !== oldLang) {
+        setTimeout(() => window.location.reload(), 300);
+      }
     },
   });
 };

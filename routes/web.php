@@ -337,6 +337,17 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Alias redirects (test'lardan 404 topilgan URL'lar)
+    Route::redirect('/dashboard', '/business');
+    Route::redirect('/sales', '/business/leads');
+    Route::redirect('/ai-advisor', '/business/ai-agent');
+
+    // HR sub-sahifalar redirect (URL prefiks nomuvofiqligini tuzatish)
+    Route::redirect('/hr/talent-pool', '/hr/talent-pool');
+    Route::redirect('/hr/recruiting/pipeline', '/hr/recruiting');
+    Route::redirect('/hr/recruiting/interviews', '/hr/recruiting');
+    Route::redirect('/hr/custdev', '/business/custdev');
+
     // Business routes
     Route::resource('business', BusinessController::class);
 
@@ -572,6 +583,7 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     // Unified Inbox routes
     Route::prefix('inbox')->name('inbox.')->group(function () {
         Route::get('/', [UnifiedInboxController::class, 'index'])->name('index');
+        Route::get('/count', [UnifiedInboxController::class, 'unreadCount'])->name('count'); // Sidebar badge uchun tez endpoint
         Route::get('/{conversation}', [UnifiedInboxController::class, 'show'])->name('show');
         Route::post('/{conversation}/send', [UnifiedInboxController::class, 'sendMessage'])->name('send');
     });
@@ -927,6 +939,45 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     Route::prefix('calls')->name('calls.')->group(function () {
         Route::get('/', [App\Http\Controllers\Business\CallController::class, 'index'])->name('index');
         Route::get('/{call}', [App\Http\Controllers\Business\CallController::class, 'show'])->name('show');
+    });
+
+    // Coaching Tasks (operator mashq vazifalari)
+    Route::prefix('coaching-tasks')->name('coaching-tasks.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\CoachingTaskController::class, 'index'])->name('index');
+        Route::get('/list', [App\Http\Controllers\Business\CoachingTaskController::class, 'list'])->name('list');
+        Route::post('/{id}/complete', [App\Http\Controllers\Business\CoachingTaskController::class, 'complete'])->name('complete');
+        Route::post('/{id}/status', [App\Http\Controllers\Business\CoachingTaskController::class, 'updateStatus'])->name('status');
+    });
+
+    // Marketer Dashboard (yagona marketing brain)
+    Route::prefix('marketer')->name('marketer.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\MarketerDashboardController::class, 'index'])->name('index');
+        Route::get('/data', [App\Http\Controllers\Business\MarketerDashboardController::class, 'data'])->name('data');
+        Route::post('/week-plan/generate', [App\Http\Controllers\Business\MarketerDashboardController::class, 'generateWeekPlan'])->name('week-plan.generate');
+        Route::post('/week-plan/save', [App\Http\Controllers\Business\MarketerDashboardController::class, 'saveWeekPlan'])->name('week-plan.save');
+        Route::post('/campaign/propose', [App\Http\Controllers\Business\MarketerDashboardController::class, 'proposeCampaign'])->name('campaign.propose');
+        Route::post('/campaign/create', [App\Http\Controllers\Business\MarketerDashboardController::class, 'createCampaign'])->name('campaign.create');
+        Route::get('/content-feedback', [App\Http\Controllers\Business\MarketerDashboardController::class, 'contentFeedback'])->name('content-feedback');
+    });
+
+    // Operator Scorecards (operator reytingi)
+    Route::prefix('operator-scorecards')->name('operator-scorecards.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\OperatorScorecardController::class, 'index'])->name('index');
+        Route::get('/leaderboard', [App\Http\Controllers\Business\OperatorScorecardController::class, 'leaderboard'])->name('leaderboard');
+        Route::get('/lost-matrix', [App\Http\Controllers\Business\OperatorScorecardController::class, 'lostMatrix'])->name('lost-matrix');
+        Route::get('/alerts', [App\Http\Controllers\Business\OperatorScorecardController::class, 'alerts'])->name('alerts');
+        Route::get('/{operatorId}', [App\Http\Controllers\Business\OperatorScorecardController::class, 'detailed'])->name('detailed');
+    });
+
+    // Sales Scripts (qo'ng'iroq skriptlari)
+    Route::prefix('sales-scripts')->name('sales-scripts.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\SalesScriptController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Business\SalesScriptController::class, 'create'])->name('create');
+        Route::get('/{id}/edit', [App\Http\Controllers\Business\SalesScriptController::class, 'edit'])->name('edit');
+        Route::post('/', [App\Http\Controllers\Business\SalesScriptController::class, 'store'])->name('store');
+        Route::put('/{id}', [App\Http\Controllers\Business\SalesScriptController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Business\SalesScriptController::class, 'destroy'])->name('destroy');
+        Route::get('/default-template', [App\Http\Controllers\Business\SalesScriptController::class, 'defaultTemplate'])->name('default-template');
     });
 
     // Subscription / Billing routes (tarif sotib olish) — subscription middleware dan chiqarilgan

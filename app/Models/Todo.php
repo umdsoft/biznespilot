@@ -421,11 +421,16 @@ class Todo extends Model
      */
     public function getTeamProgressAttribute(): int
     {
-        if ($this->assignees_count === 0) {
+        // assignees_count null yoki 0 bo'lsa — division by zero oldini olish
+        $total = (int) ($this->assignees_count ?? 0);
+
+        if ($total === 0) {
             return $this->status === self::STATUS_COMPLETED ? 100 : 0;
         }
 
-        return (int) round(($this->completed_assignees_count / $this->assignees_count) * 100);
+        $completed = (int) ($this->completed_assignees_count ?? 0);
+
+        return (int) round(($completed / $total) * 100);
     }
 
     /**

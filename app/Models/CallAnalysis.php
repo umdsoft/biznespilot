@@ -13,23 +13,34 @@ class CallAnalysis extends Model
     protected $table = 'call_analyses';
 
     protected $fillable = [
-        'call_log_id',
-        'transcript',
-        'formatted_transcript',
-        'overall_score',
-        'stage_scores',
-        'anti_patterns',
-        'recommendations',
-        'strengths',
-        'weaknesses',
-        'stt_cost',
-        'analysis_cost',
-        'input_tokens',
-        'output_tokens',
-        'stt_model',
-        'analysis_model',
-        'processing_time_ms',
-        'temp_audio_path',
+        // Bog'lanishlar
+        'call_log_id', 'business_id', 'operator_id', 'lead_id', 'script_id',
+
+        // Transcript
+        'transcript', 'formatted_transcript',
+
+        // Scoring
+        'overall_score', 'stage_scores', 'anti_patterns',
+        'recommendations', 'strengths', 'weaknesses',
+
+        // Outcome va bashorat
+        'outcome', 'predicted_outcome', 'win_probability',
+
+        // Sentiment
+        'sentiment_customer', 'sentiment_operator',
+
+        // Talk ratios
+        'talk_ratio_operator', 'operator_words', 'customer_words',
+
+        // Script compliance
+        'script_compliance_score', 'required_phrases_detected', 'forbidden_phrases_detected',
+
+        // Emotional moments
+        'emotional_moments',
+
+        // Xarajatlar va metadata
+        'stt_cost', 'analysis_cost', 'input_tokens', 'output_tokens',
+        'stt_model', 'analysis_model', 'processing_time_ms', 'temp_audio_path',
     ];
 
     protected $casts = [
@@ -39,6 +50,16 @@ class CallAnalysis extends Model
         'recommendations' => 'array',
         'strengths' => 'array',
         'weaknesses' => 'array',
+
+        'win_probability' => 'decimal:2',
+        'talk_ratio_operator' => 'decimal:2',
+        'operator_words' => 'integer',
+        'customer_words' => 'integer',
+        'script_compliance_score' => 'decimal:2',
+        'required_phrases_detected' => 'array',
+        'forbidden_phrases_detected' => 'array',
+        'emotional_moments' => 'array',
+
         'stt_cost' => 'decimal:6',
         'analysis_cost' => 'decimal:6',
         'input_tokens' => 'integer',
@@ -76,6 +97,47 @@ class CallAnalysis extends Model
     public function callLog(): BelongsTo
     {
         return $this->belongsTo(CallLog::class);
+    }
+
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
+    }
+
+    public function operator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
+    }
+
+    public function script(): BelongsTo
+    {
+        return $this->belongsTo(SalesScript::class, 'script_id');
+    }
+
+    // Scoping helpers
+    public function scopeForBusiness($query, string $businessId)
+    {
+        return $query->where('business_id', $businessId);
+    }
+
+    public function scopeForOperator($query, string $operatorId)
+    {
+        return $query->where('operator_id', $operatorId);
+    }
+
+    public function scopeLostLeads($query)
+    {
+        return $query->where('outcome', 'lost');
+    }
+
+    public function scopeLowScore($query, float $threshold = 60)
+    {
+        return $query->where('overall_score', '<', $threshold);
     }
 
     /**

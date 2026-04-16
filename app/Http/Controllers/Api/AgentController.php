@@ -31,7 +31,8 @@ class AgentController extends Controller
      */
     public function ask(Request $request): JsonResponse
     {
-        set_time_limit(120); // AI javob uchun yetarli vaqt
+        set_time_limit(180); // Sonnet + multi-agent uchun yetarli vaqt
+        ini_set('max_execution_time', 180);
 
         $request->validate([
             'message' => 'required|string|max:2000',

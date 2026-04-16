@@ -679,11 +679,13 @@ const fetchCurrentMessages = async () => {
 };
 
 const startPolling = () => {
-    // Poll conversations every 5 seconds
-    pollingInterval = setInterval(fetchConversations, 5000);
-
-    // Poll current conversation messages every 3 seconds
-    messagePollingInterval = setInterval(fetchCurrentMessages, 3000);
+    const pollIfVisible = (fn) => () => {
+        if (document.visibilityState === 'visible') fn();
+    };
+    // Inbox — faqat ochiq bo'lsa poll qilsin (5s → 15s)
+    pollingInterval = setInterval(pollIfVisible(fetchConversations), 15000);
+    // Suhbat xabarlari (3s → 8s)
+    messagePollingInterval = setInterval(pollIfVisible(fetchCurrentMessages), 8000);
 };
 
 const stopPolling = () => {

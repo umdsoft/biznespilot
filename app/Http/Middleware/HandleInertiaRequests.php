@@ -45,7 +45,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => fn () => $this->getAuthData($user),
             'businesses' => fn () => $this->getUserBusinesses($user),
             'currentBusiness' => fn () => $this->getCurrentBusiness($user),
-            'subscription' => fn () => $this->getSubscriptionData($user),
+            // subscription — to'liq ma'lumot faqat kerak bo'lganda (5KB lazy)
+            'subscription' => \Inertia\Inertia::lazy(fn () => $this->getSubscriptionData($user)),
+            // subscriptionStatus — TrialBanner uchun minimal (har doim, ~200 bayt)
+            'subscriptionStatus' => fn () => $this->getMinimalSubscriptionStatus($user),
             'activeStore' => fn () => $this->getActiveStore($user),
             'integrations' => fn () => $this->getIntegrationStatus($user),
             'locale' => fn () => $this->getLocale($request),
@@ -91,9 +94,28 @@ class HandleInertiaRequests extends Middleware
             ];
         });
 
+        // auth.business — TrialBanner va boshqa komponentlar uchun
+        $businessData = null;
+        try {
+            $businessId = session('current_business_id') ?: $user->businesses()->first()?->id;
+            if ($businessId) {
+                $businessData = Cache::remember("auth_business_{$businessId}", 300, function () use ($businessId) {
+                    $biz = \App\Models\Business::find($businessId);
+                    if (!$biz) return null;
+                    return [
+                        'id' => $biz->id,
+                        'name' => $biz->name,
+                        'category' => $biz->category ?? null,
+                        'industry_code' => $biz->industry_code ?? null,
+                    ];
+                });
+            }
+        } catch (\Exception $e) {}
+
         // Return with 'user' key for Vue compatibility ($page.props.auth.user.name)
         return [
             'user' => $userData,
+            'business' => $businessData,
         ];
     }
 
@@ -283,6 +305,45 @@ class HandleInertiaRequests extends Middleware
                 'ru' => ['code' => 'ru', 'name' => 'Русский', 'flag' => '🇷🇺'],
             ],
         ];
+    }
+
+    /**
+     * Minimal subscription status — TrialBanner uchun (har sahifada yuboriladi, 200 bayt)
+     */
+    private function getMinimalSubscriptionStatus($user): array
+    {
+        if (!$user) return ['has_subscription' => false, 'days_remaining' => 0];
+
+        try {
+            $businessId = session('current_business_id') ?: $user->businesses()->first()?->id;
+            if (!$businessId) return ['has_subscription' => false, 'days_remaining' => 0];
+
+            $cacheKey = "sub_minimal_{$businessId}";
+            return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($businessId) {
+                $sub = \App\Models\Subscription::where('business_id', $businessId)
+                    ->whereIn('status', ['active', 'trialing'])
+                    ->latest()
+                    ->first();
+
+                if (!$sub) return ['has_subscription' => false, 'days_remaining' => 0];
+
+                $endDate = ($sub->status === 'trialing' && $sub->trial_ends_at)
+                    ? $sub->trial_ends_at
+                    : $sub->ends_at;
+
+                $daysRemaining = $endDate ? max(0, (int) now()->diffInDays($endDate, false)) : 999;
+
+                return [
+                    'has_subscription' => true,
+                    'is_trial' => $sub->status === 'trialing',
+                    'status' => $sub->status,
+                    'days_remaining' => $daysRemaining,
+                    'plan_name' => $sub->plan?->name ?? 'Plan',
+                ];
+            });
+        } catch (\Exception $e) {
+            return ['has_subscription' => false, 'days_remaining' => 0];
+        }
     }
 
     /**

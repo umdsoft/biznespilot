@@ -168,8 +168,9 @@ const suggestions = [
 const getModelLabel = (model) => {
   if (model.includes('gpt-4')) return 'GPT-4';
   if (model.includes('gpt-3.5')) return 'GPT-3.5';
-  if (model.includes('claude-3-opus')) return 'Claude 3 Opus';
-  if (model.includes('claude-3-sonnet')) return 'Claude 3 Sonnet';
+  if (model.includes('opus')) return 'Claude Opus';
+  if (model.includes('sonnet')) return 'Claude Sonnet';
+  if (model.includes('haiku')) return 'Claude Haiku';
   return model;
 };
 

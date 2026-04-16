@@ -200,7 +200,7 @@ const sendMessage = async () => {
     const res = await axios.post('/api/v1/agent/ask', {
       message: text,
       conversation_id: activeConversationId.value,
-    }, { timeout: 120000 });
+    }, { timeout: 180000 });
 
     if (res.data.success) {
       if (res.data.conversation_id) {
@@ -290,7 +290,7 @@ const approveAllDeliverables = async () => {
     const res = await axios.post('/api/v1/agent/ask', {
       message: 'Ha, tasdiqlayman',
       conversation_id: activeConversationId.value,
-    }, { timeout: 120000 });
+    }, { timeout: 180000 });
 
     clearInterval(stepInterval);
 

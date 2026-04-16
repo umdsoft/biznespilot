@@ -65,30 +65,18 @@ class AgentResponseMerger
             $totalTime += $response->processingTimeMs;
         }
 
-        // Oddiy birlashtirish — agentlar soniga qarab
-        if (count($responses) <= 2) {
-            // 2 ta agentning javobini shunchaki birlashtirish
-            $mergedContent = implode("\n\n---\n\n", $parts);
-
-            return new AIResponse(
-                content: $mergedContent,
-                model: 'merged',
-                tokensInput: $totalInput,
-                tokensOutput: $totalOutput,
-                costUsd: $totalCost,
-                source: 'merged',
-                processingTimeMs: $totalTime,
-            );
-        }
-
-        // 3+ agent bo'lsa — Haiku bilan qisqartirib birlashtirish
+        // 2+ agent — Haiku bilan jamoaviy xulosa chiqarish
         $rawText = implode("\n\n", $parts);
 
         $summaryResponse = $this->aiService->ask(
-            prompt: "Quyidagi tahlillarni bitta izchil javobga birlashtir. Takrorlanishlarni olib tashla, eng muhim ma'lumotlarni birinchi o'ringa qo'y:\n\n{$rawText}",
-            systemPrompt: 'Sen BiznesPilot AI yordamchisisan. Bir nechta agent tahlilini foydalanuvchi uchun qulay formatda birlashtir. O\'zbek tilida yoz. Qisqa va aniq bo\'l.',
+            prompt: "Quyidagi agentlar tahlillarini chuqur o'qi. Cross-insights top — nima umumiy, nima farq, qaysi muammolar bog'liq.\n\n"
+                . "Tahlillar:\n{$rawText}\n\n"
+                . "Javobing: 3-4 jumla, eng muhim KROSS-INSIGHT (agentlar birlashgan xulosa). Aniq raqamlar ishlat.",
+            systemPrompt: "Sen BiznesPilot AI koordinatorisan. Bir nechta agent tahlilini O'QIB, ular orasidagi BOG'LIQLIKni topasan. "
+                . "Masalan: \"Marketing ROAS past (1.2x), sotuv konversiya past (9%), bu ikkisi bog'liq — ideal mijoz aniqlanmagan\". "
+                . "O'zbek tilida. Qisqa va aniq. HECH QACHON shunchaki takrorlama.",
             preferredModel: 'haiku',
-            maxTokens: 1500,
+            maxTokens: 800,
             businessId: $businessId,
             agentType: 'merger',
         );

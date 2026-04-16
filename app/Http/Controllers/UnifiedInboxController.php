@@ -16,6 +16,43 @@ class UnifiedInboxController extends Controller
         $this->inboxService = $inboxService;
     }
 
+    /**
+     * Sidebar badge uchun — faqat unread count (tez va yengil)
+     */
+    public function unreadCount(Request $request)
+    {
+        $user = Auth::user();
+        $businessId = session('current_business_id') ?: $user->businesses()->first()?->id;
+
+        if (!$businessId) {
+            return response()->json(['count' => 0]);
+        }
+
+        try {
+            $count = \Illuminate\Support\Facades\Cache::remember(
+                "inbox_unread_count:{$businessId}",
+                30, // 30 sekund kesh
+                function () use ($businessId) {
+                    // Faqat count — to'liq suhbatlar yuklanmaydi
+                    $total = 0;
+                    foreach (['telegram_messages', 'instagram_messages'] as $table) {
+                        if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                            $total += \Illuminate\Support\Facades\DB::table($table)
+                                ->where('business_id', $businessId)
+                                ->where('is_read', false)
+                                ->where('direction', 'incoming')
+                                ->count();
+                        }
+                    }
+                    return $total;
+                }
+            );
+            return response()->json(['count' => (int) $count]);
+        } catch (\Exception $e) {
+            return response()->json(['count' => 0]);
+        }
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();

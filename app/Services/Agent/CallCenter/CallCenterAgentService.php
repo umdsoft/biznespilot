@@ -4,6 +4,7 @@ namespace App\Services\Agent\CallCenter;
 
 use App\Services\Agent\CallCenter\Analysis\CallAnalyzer;
 use App\Services\Agent\CallCenter\Performance\OperatorScorer;
+use App\Services\Agent\CallCenter\Tools\OperatorDashboardTool;
 use App\Services\Agent\CallCenter\Transcription\GroqWhisperSTT;
 use App\Services\AI\AIResponse;
 use App\Services\AI\AIService;
@@ -170,8 +171,20 @@ class CallCenterAgentService
         $promptPath = __DIR__ . '/Prompts/call_analysis.txt';
         $systemPrompt = file_exists($promptPath) ? file_get_contents($promptPath) : "Sen sifat nazoratchi. O'zbek tilida yoz.";
 
+        // Operator dashboard kontekstini qo'shish
+        $dashboardContext = '';
+        try {
+            $dashboardContext = app(OperatorDashboardTool::class)->asContext($businessId);
+        } catch (\Exception $e) {
+            Log::warning('Operator dashboard xato', ['error' => $e->getMessage()]);
+        }
+
+        $prompt = $dashboardContext
+            ? "Foydalanuvchi savoli: {$message}\n\nOPERATOR MA'LUMOTLARI:\n{$dashboardContext}"
+            : $message;
+
         return $this->aiService->ask(
-            prompt: $message,
+            prompt: $prompt,
             systemPrompt: $systemPrompt,
             preferredModel: 'haiku',
             maxTokens: 1200,

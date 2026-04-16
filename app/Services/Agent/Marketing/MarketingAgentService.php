@@ -212,10 +212,26 @@ class MarketingAgentService
     {
         $dataText = $this->formatContentData($data);
 
+        // Marketing Orchestrator dan kontekst qo'shish (yagona marketing brain)
+        $orchestratorContext = '';
+        try {
+            $snapshot = app(\App\Services\Marketing\Orchestrator\MarketingOrchestrator::class)
+                ->getSnapshot($businessId);
+            if (!empty($snapshot['health'])) {
+                $orchestratorContext = "\n\nMARKETING SOG'LIK: {$snapshot['health']['overall']}/100 ({$snapshot['health']['grade']})";
+                if (!empty($snapshot['priorities']) && count($snapshot['priorities']) > 0) {
+                    $orchestratorContext .= "\nUSTUVOR ISHLAR:";
+                    foreach (array_slice($snapshot['priorities'], 0, 3) as $p) {
+                        $orchestratorContext .= "\n- " . $p['title'];
+                    }
+                }
+            }
+        } catch (\Exception $e) {}
+
         $model = 'haiku';
         $maxTokens = 1200;
 
-        $prompt = "Foydalanuvchi savoli: {$message}\n\nMavjud ma'lumotlar:\n{$dataText}";
+        $prompt = "Foydalanuvchi savoli: {$message}\n\nMavjud ma'lumotlar:\n{$dataText}{$orchestratorContext}";
 
         return $this->aiService->ask(
             prompt: $prompt,

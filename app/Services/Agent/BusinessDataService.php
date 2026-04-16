@@ -5,6 +5,7 @@ namespace App\Services\Agent;
 use App\Models\Business;
 use App\Models\DreamBuyer;
 use App\Models\Lead;
+use App\Services\Agent\Context\AgentContextEnricher;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,12 +16,39 @@ class BusinessDataService
     {
         return Cache::remember("agent_context:{$businessId}:{$agentType}", 300, function () use ($businessId) {
             try {
-                return $this->buildContext($businessId);
+                $base = $this->buildContext($businessId);
+                $health = $this->buildHealthContext($businessId);
+                return $health ? ($base . "\n\n" . $health) : $base;
             } catch (\Exception $e) {
                 Log::warning('BusinessDataService xato', ['error' => $e->getMessage()]);
                 return 'Biznes ma\'lumotlarini olishda xatolik.';
             }
         });
+    }
+
+    /**
+     * Biznes sog'ligi kontekstini olish (BusinessHealthService calculator'lari orqali)
+     */
+    private function buildHealthContext(string $businessId): string
+    {
+        $parts = [];
+        try {
+            $enricher = app(AgentContextEnricher::class);
+            $parts[] = $enricher->buildFullContext($businessId);
+        } catch (\Exception $e) {
+            Log::warning('Enrich context xato', ['error' => $e->getMessage()]);
+        }
+
+        // CRM kontekstini ham qo'shish
+        try {
+            $crm = app(\App\Services\CRM\CRMContextProvider::class);
+            $crmContext = $crm->buildBusinessCRMContext($businessId);
+            if ($crmContext) $parts[] = $crmContext;
+        } catch (\Exception $e) {
+            Log::warning('CRM context xato', ['error' => $e->getMessage()]);
+        }
+
+        return implode("\n\n", array_filter($parts));
     }
 
     private function buildContext(string $businessId): string

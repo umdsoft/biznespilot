@@ -1,71 +1,189 @@
-*.log
-.DS_Store
-storage/app/yt-dlp.exe
-.env
-.env.backup
-.env.production
-.env.staging
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
+# ==========================================
+# Laravel default
+# ==========================================
 /.phpunit.cache
-/.vscode
-/.zed
-/auth.json
 /node_modules
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
-
-# === CRITICAL: Server crash oldini olish uchun ===
-# Bu fayllar HECH QACHON gitda track qilinmasligi kerak.
-# PHP-FPM (www-data) bu fayllarni yozadi/o'qiydi,
-# git pull (root) bilan conflict bo'lib server qotib qoladi.
-# VFS deadlock va file descriptor conflictni oldini oladi.
-/storage/framework/cache/*
-/storage/framework/cache/data/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-/storage/framework/testing/*
-/storage/logs/*
-!/storage/framework/.gitkeep
-!/storage/framework/cache/.gitkeep
-!/storage/framework/cache/data/.gitkeep
-!/storage/framework/sessions/.gitkeep
-!/storage/framework/views/.gitkeep
-!/storage/logs/.gitignore
-
-# Bootstrap cache (Laravel auto-generated)
-/bootstrap/cache/*
-!/bootstrap/cache/.gitignore
-!/bootstrap/cache/.gitkeep
-
 /vendor
-
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+.phpactor.json
+.phpunit.result.cache
 Homestead.json
 Homestead.yaml
-Thumbs.db
-nul
+auth.json
+npm-debug.log
+yarn-error.log
 
-# Temp files
-tmpclaude-*
-*.tmp
-.tmp*
+# ==========================================
+# IDE / Editor
+# ==========================================
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+*.sublime-project
+*.sublime-workspace
 
-# === Development-only fayllar (serverda kerak emas) ===
-# Texnik hujjatlar va tahlil fayllari
-/tz
-
-# Dev utility skriptlar
-check_unused.sh
-/scripts/start-tunnel.bat
-/scripts/start-tunnel.ps1
-/scripts/verify_gap_analysis.php
-/scripts/generate-favicons.mjs
-
-# Claude Code local settings
+# ==========================================
+# Claude Code / AI Agent fayllar (serverga deploy bo'lmasin)
+# ==========================================
 /.claude
+/.claude/
+/.claude-flow
+/.claude-flow/
+/.swarm
+/.swarm/
+/.ruflo
+/.ruflo/
+/.cursor
+/.windsurf
+CLAUDE.md
+AGENTS.md
+.ai/
+.agent/
+.mcp.json
+claude-flow.config.json
+ruflo.config.json
+*.agent-state.json
+*-agent-memory.db
+memory.db
+
+# ==========================================
+# Node / NPM / Yarn
+# ==========================================
+.npm
+.yarn/
+.pnpm-store/
+node_modules/
+*.tsbuildinfo
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.turbo/
+
+# ==========================================
+# OS / System
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+.AppleDouble
+.LSOverride
+
+# ==========================================
+# Log fayllar
+# ==========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+storage/logs/*.log
+*.log.*
+
+# ==========================================
+# Temporary / Cache
+# ==========================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.tmp/
+tmp/
+temp/
+cache/
+.cache/
+.sass-cache/
+
+# ==========================================
+# Test / Coverage
+# ==========================================
+/coverage
+.phpunit.result.cache
+.phpunit.cache/
+phpunit.xml.local
+phpstan.neon.local
+.nyc_output/
+
+# ==========================================
+# Backup fayllar
+# ==========================================
+*.backup
+*.old
+*.orig
+*.rej
+*_backup.*
+*_old.*
+
+# ==========================================
+# Build artefaklari (serverda qayta yaratiladi)
+# ==========================================
+/public/build
+/public/hot
+*.min.js
+*.min.css
+dist/
+build/
+
+# ==========================================
+# Deploy / Secrets
+# ==========================================
+deploy.sh.local
+deploy-*.sh
+/.deploy
+/secrets
+/secret
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa
+id_rsa.pub
+known_hosts
+
+# ==========================================
+# Docker
+# ==========================================
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ==========================================
+# Database dumplar
+# ==========================================
+*.sql
+*.sql.gz
+*.dump
+database/backups/
+storage/app/backups/
+
+# ==========================================
+# User uploads (production alohida)
+# ==========================================
+storage/app/public/uploads/
+storage/app/private/
+storage/app/livewire-tmp/
+
+# ==========================================
+# Test / Demo ma'lumot (ixtiyoriy)
+# ==========================================
+database/seeders/Test*.php
+database/seeders/Demo*.php
+*.test.local.php

@@ -1,555 +1,115 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import axios from 'axios';
 
+import { createAsyncWrapper, createFetchWrapper } from './onboarding/shared.js';
+import { createProgressActions } from './onboarding/actions-progress.js';
+import { createBusinessActions } from './onboarding/actions-business.js';
+import {
+    createProblemsActions,
+    createCompetitorsActions,
+    createHypothesesActions,
+} from './onboarding/actions-crud.js';
+import { createDreamBuyerActions } from './onboarding/actions-dream-buyer.js';
+import { createMetricsActions } from './onboarding/actions-metrics.js';
+
+/**
+ * Onboarding store — Pinia store fasadi
+ *
+ * Kod domainlar bo'yicha onboarding/ papkada ajratilgan:
+ *   - shared.js           — async/fetch wrapper'lar
+ *   - actions-progress.js — progress, steps, industries, phase
+ *   - actions-business.js — business basic/details/maturity
+ *   - actions-crud.js     — problems/competitors/hypotheses CRUD
+ *   - actions-dream-buyer.js — ideal mijoz
+ *   - actions-metrics.js  — sales va marketing metrikalar
+ *
+ * Backward compatibility: eski `useOnboardingStore()` API o'zgarmagan.
+ */
 export const useOnboardingStore = defineStore('onboarding', () => {
-  // State
-  const progress = ref(null);
-  const steps = ref([]);
-  const industries = ref([]);
-  const currentStep = ref(null);
-  const loading = ref(false);
-  const error = ref(null);
+    // ═══ STATE ═══
+    const progress = ref(null);
+    const steps = ref([]);
+    const industries = ref([]);
+    const currentStep = ref(null);
+    const loading = ref(false);
+    const error = ref(null);
 
-  // Problems, Dream Buyer, Competitors, Hypotheses
-  const problems = ref([]);
-  const dreamBuyer = ref(null);
-  const competitors = ref([]);
-  const hypotheses = ref([]);
+    const problems = ref([]);
+    const dreamBuyer = ref(null);
+    const competitors = ref([]);
+    const hypotheses = ref([]);
+    const maturityScore = ref(null);
 
-  // Maturity
-  const maturityScore = ref(null);
-
-  // Computed
-  const overallPercent = computed(() => progress.value?.overall_percent || 0);
-  const currentPhase = computed(() => progress.value?.current_phase || 1);
-  const canStartPhase2 = computed(() => progress.value?.can_start_phase_2 || false);
-  const isLaunched = computed(() => progress.value?.is_launched || false);
-
-  const phase1Status = computed(() => progress.value?.phase_1?.status || 'pending');
-  const phase1Percent = computed(() => progress.value?.phase_1?.percent || 0);
-
-  const categoriesProgress = computed(() => progress.value?.categories || {});
-
-  const stepsGroupedByCategory = computed(() => {
-    const grouped = {
-      profile: [],
-      integration: [],
-      framework: []
+    const state = {
+        progress, steps, industries, currentStep,
+        problems, dreamBuyer, competitors, hypotheses,
+        maturityScore,
     };
 
-    if (progress.value?.steps) {
-      progress.value.steps.forEach(step => {
-        if (grouped[step.category]) {
-          grouped[step.category].push(step);
+    // ═══ COMPUTED ═══
+    const overallPercent = computed(() => progress.value?.overall_percent || 0);
+    const currentPhase = computed(() => progress.value?.current_phase || 1);
+    const canStartPhase2 = computed(() => progress.value?.can_start_phase_2 || false);
+    const isLaunched = computed(() => progress.value?.is_launched || false);
+    const phase1Status = computed(() => progress.value?.phase_1?.status || 'pending');
+    const phase1Percent = computed(() => progress.value?.phase_1?.percent || 0);
+    const categoriesProgress = computed(() => progress.value?.categories || {});
+
+    const stepsGroupedByCategory = computed(() => {
+        const grouped = { profile: [], integration: [], framework: [] };
+        if (progress.value?.steps) {
+            progress.value.steps.forEach(step => {
+                if (grouped[step.category]) {
+                    grouped[step.category].push(step);
+                }
+            });
         }
-      });
+        return grouped;
+    });
+
+    // ═══ ACTIONS ═══
+    const runAsync = createAsyncWrapper(loading, error);
+    const runFetch = createFetchWrapper(error);
+    const ctx = { state, runAsync, runFetch };
+
+    const progressActions = createProgressActions(ctx);
+    const businessActions = createBusinessActions(ctx);
+    const problemsActions = createProblemsActions(ctx);
+    const dreamBuyerActions = createDreamBuyerActions(ctx);
+    const competitorsActions = createCompetitorsActions(ctx);
+    const hypothesesActions = createHypothesesActions(ctx);
+    const metricsActions = createMetricsActions(ctx);
+
+    // Reset
+    function reset() {
+        progress.value = null;
+        steps.value = [];
+        currentStep.value = null;
+        problems.value = [];
+        dreamBuyer.value = null;
+        competitors.value = [];
+        hypotheses.value = [];
+        maturityScore.value = null;
+        error.value = null;
     }
 
-    return grouped;
-  });
+    return {
+        // State
+        progress, steps, industries, currentStep, loading, error,
+        problems, dreamBuyer, competitors, hypotheses, maturityScore,
 
-  // Actions
-  async function fetchProgress() {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.get('/api/v1/onboarding/progress');
-      progress.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
+        // Computed
+        overallPercent, currentPhase, canStartPhase2, isLaunched,
+        phase1Status, phase1Percent, categoriesProgress, stepsGroupedByCategory,
 
-  async function initializeOnboarding() {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.post('/api/v1/onboarding/initialize');
-      progress.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function fetchSteps() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/steps');
-      steps.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function fetchStepDetail(stepCode) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.get(`/api/v1/onboarding/steps/${stepCode}`);
-      currentStep.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function fetchIndustries() {
-    try {
-      const response = await axios.get('/api/v1/industries');
-      industries.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  // Business Basic (Step 1)
-  async function updateBusinessBasic(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put('/api/v1/onboarding/business/basic', data);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Business Details (Step 2)
-  async function updateBusinessDetails(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put('/api/v1/onboarding/business/details', data);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Maturity Assessment (Step 3)
-  async function updateMaturityAssessment(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put('/api/v1/onboarding/business/maturity', data);
-      progress.value = response.data.data.progress;
-      maturityScore.value = response.data.data.maturity;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function fetchMaturityScore() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/maturity-score');
-      maturityScore.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  // Problems (Step 6)
-  async function fetchProblems() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/problems');
-      problems.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function storeProblem(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.post('/api/v1/onboarding/problems', data);
-      problems.value.push(response.data.data.problem);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function updateProblem(id, data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put(`/api/v1/onboarding/problems/${id}`, data);
-      const index = problems.value.findIndex(p => p.id === id);
-      if (index !== -1) {
-        problems.value[index] = response.data.data.problem;
-      }
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function deleteProblem(id) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.delete(`/api/v1/onboarding/problems/${id}`);
-      problems.value = problems.value.filter(p => p.id !== id);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Dream Buyer (Step 7)
-  async function fetchDreamBuyer() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/dream-buyer');
-      dreamBuyer.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function updateDreamBuyer(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put('/api/v1/onboarding/dream-buyer', data);
-      dreamBuyer.value = response.data.data.dream_buyer;
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Competitors (Step 8)
-  async function fetchCompetitors() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/competitors');
-      competitors.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function storeCompetitor(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.post('/api/v1/onboarding/competitors', data);
-      competitors.value.push(response.data.data.competitor);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function updateCompetitor(id, data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put(`/api/v1/onboarding/competitors/${id}`, data);
-      const index = competitors.value.findIndex(c => c.id === id);
-      if (index !== -1) {
-        competitors.value[index] = response.data.data.competitor;
-      }
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function deleteCompetitor(id) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.delete(`/api/v1/onboarding/competitors/${id}`);
-      competitors.value = competitors.value.filter(c => c.id !== id);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Hypotheses (Step 9)
-  async function fetchHypotheses() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/hypotheses');
-      hypotheses.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function storeHypothesis(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.post('/api/v1/onboarding/hypotheses', data);
-      hypotheses.value.push(response.data.data.hypothesis);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function updateHypothesis(id, data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put(`/api/v1/onboarding/hypotheses/${id}`, data);
-      const index = hypotheses.value.findIndex(h => h.id === id);
-      if (index !== -1) {
-        hypotheses.value[index] = response.data.data.hypothesis;
-      }
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function deleteHypothesis(id) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.delete(`/api/v1/onboarding/hypotheses/${id}`);
-      hypotheses.value = hypotheses.value.filter(h => h.id !== id);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Start Phase 2
-  async function startPhase2() {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.post('/api/v1/onboarding/start-phase-2');
-      progress.value = response.data.data;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  // Sales Metrics
-  async function fetchSalesMetrics() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/sales-metrics');
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function updateSalesMetrics(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put('/api/v1/onboarding/sales-metrics', data);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function fetchSalesMetricsHistory() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/sales-metrics/history');
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  // Marketing Metrics
-  async function fetchMarketingMetrics() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/marketing-metrics');
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  async function updateMarketingMetrics(data) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.put('/api/v1/onboarding/marketing-metrics', data);
-      progress.value = response.data.data.progress;
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function fetchMarketingMetricsHistory() {
-    try {
-      const response = await axios.get('/api/v1/onboarding/marketing-metrics/history');
-      return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi';
-      throw err;
-    }
-  }
-
-  // Reset
-  function reset() {
-    progress.value = null;
-    steps.value = [];
-    currentStep.value = null;
-    problems.value = [];
-    dreamBuyer.value = null;
-    competitors.value = [];
-    hypotheses.value = [];
-    maturityScore.value = null;
-    error.value = null;
-  }
-
-  return {
-    // State
-    progress,
-    steps,
-    industries,
-    currentStep,
-    loading,
-    error,
-    problems,
-    dreamBuyer,
-    competitors,
-    hypotheses,
-    maturityScore,
-
-    // Computed
-    overallPercent,
-    currentPhase,
-    canStartPhase2,
-    isLaunched,
-    phase1Status,
-    phase1Percent,
-    categoriesProgress,
-    stepsGroupedByCategory,
-
-    // Actions
-    fetchProgress,
-    initializeOnboarding,
-    fetchSteps,
-    fetchStepDetail,
-    fetchIndustries,
-    updateBusinessBasic,
-    updateBusinessDetails,
-    updateMaturityAssessment,
-    fetchMaturityScore,
-    fetchProblems,
-    storeProblem,
-    updateProblem,
-    deleteProblem,
-    fetchDreamBuyer,
-    updateDreamBuyer,
-    fetchCompetitors,
-    storeCompetitor,
-    updateCompetitor,
-    deleteCompetitor,
-    fetchHypotheses,
-    storeHypothesis,
-    updateHypothesis,
-    deleteHypothesis,
-    startPhase2,
-    fetchSalesMetrics,
-    updateSalesMetrics,
-    fetchSalesMetricsHistory,
-    fetchMarketingMetrics,
-    updateMarketingMetrics,
-    fetchMarketingMetricsHistory,
-    reset,
-  };
+        // Actions (domainlar bo'yicha)
+        ...progressActions,
+        ...businessActions,
+        ...problemsActions,
+        ...dreamBuyerActions,
+        ...competitorsActions,
+        ...hypothesesActions,
+        ...metricsActions,
+        reset,
+    };
 });

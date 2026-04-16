@@ -312,7 +312,7 @@ import StatCard from '@/components/Dashboard/StatCard.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed, defineAsyncComponent } from 'vue';
 import axios from 'axios';
-import { formatNumber, formatFullCurrency, formatMoney as fmtMoney } from '@/utils/formatting';
+import { formatNumber, formatFullCurrency } from '@/utils/formatting';
 import {
   UsersIcon,
   BanknotesIcon,
@@ -565,10 +565,10 @@ const getRecIcon = (icon) => {
   return map[icon] || BoltIcon;
 };
 
-// Format helpers
+// Format helpers — Dashboard uchun to'liq raqam (vergul bilan)
 const formatMoney = (value) => {
   if (!value && value !== 0) return "0 so'm";
-  return fmtMoney(value, "so'm");
+  return formatFullCurrency(value, "so'm");
 };
 
 const formatCurrency = (value) => {

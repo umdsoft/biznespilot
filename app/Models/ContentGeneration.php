@@ -81,13 +81,13 @@ class ContentGeneration extends Model
      * AI Models with pricing (per 1M tokens)
      */
     public const AI_MODELS = [
-        'claude-3-haiku' => [
-            'name' => 'Claude 3 Haiku',
-            'input_price' => 0.25,
-            'output_price' => 1.25,
+        'claude-haiku-4-5' => [
+            'name' => 'Claude Haiku 4.5',
+            'input_price' => 0.80,
+            'output_price' => 4.00,
         ],
-        'claude-3-sonnet' => [
-            'name' => 'Claude 3.5 Sonnet',
+        'claude-sonnet-4-5' => [
+            'name' => 'Claude Sonnet 4.5',
             'input_price' => 3.00,
             'output_price' => 15.00,
         ],
@@ -151,7 +151,7 @@ class ContentGeneration extends Model
      */
     public function calculateCost(): float
     {
-        $model = self::AI_MODELS[$this->ai_model] ?? self::AI_MODELS['claude-3-haiku'];
+        $model = self::AI_MODELS[$this->ai_model] ?? self::AI_MODELS['claude-haiku-4-5'];
 
         $inputCost = ($this->input_tokens / 1000000) * $model['input_price'];
         $outputCost = ($this->output_tokens / 1000000) * $model['output_price'];

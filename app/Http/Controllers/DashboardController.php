@@ -150,9 +150,16 @@ class DashboardController extends Controller
                     ->sum('total')
                 : 0;
 
+            // CRM daromad — converted_at NULL bo'lsa updated_at ham tekshiriladi (fallback)
             $monthlyCrmRevenue = (float) Lead::where('business_id', $business->id)
                 ->where('status', 'won')
-                ->where('converted_at', '>=', $monthStart)
+                ->where(function ($q) use ($monthStart) {
+                    $q->where('converted_at', '>=', $monthStart)
+                      ->orWhere(function ($sq) use ($monthStart) {
+                          $sq->whereNull('converted_at')
+                             ->where('updated_at', '>=', $monthStart);
+                      });
+                })
                 ->sum('estimated_value');
 
             $monthlyRevenue = $monthlyStoreRevenue + $monthlyCrmRevenue;
@@ -167,7 +174,13 @@ class DashboardController extends Controller
 
             $prevMonthCrmRevenue = (float) Lead::where('business_id', $business->id)
                 ->where('status', 'won')
-                ->whereBetween('converted_at', [$prevMonthStart, $prevMonthEnd])
+                ->where(function ($q) use ($prevMonthStart, $prevMonthEnd) {
+                    $q->whereBetween('converted_at', [$prevMonthStart, $prevMonthEnd])
+                      ->orWhere(function ($sq) use ($prevMonthStart, $prevMonthEnd) {
+                          $sq->whereNull('converted_at')
+                             ->whereBetween('updated_at', [$prevMonthStart, $prevMonthEnd]);
+                      });
+                })
                 ->sum('estimated_value');
 
             $prevMonthRevenue = $prevMonthStoreRevenue + $prevMonthCrmRevenue;

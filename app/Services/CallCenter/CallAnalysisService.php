@@ -24,7 +24,7 @@ class CallAnalysisService
         $config = config('call-center.analysis');
 
         $this->apiKey = config('services.anthropic.api_key', env('ANTHROPIC_API_KEY', ''));
-        $this->model = $config['model'] ?? 'claude-3-5-haiku-20241022';
+        $this->model = $config['model'] ?? 'claude-haiku-4-5-20251001';
         $this->maxTokens = $config['max_tokens'] ?? 2000;
         $this->temperature = $config['temperature'] ?? 0.3;
     }

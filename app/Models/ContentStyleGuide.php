@@ -98,7 +98,7 @@ class ContentStyleGuide extends Model
                 'max_post_length' => 500,
                 'avg_hashtag_count' => 5,
                 'cta_style' => 'direct',
-                'ai_model' => 'claude-3-haiku',
+                'ai_model' => 'claude-haiku-4-5',
                 'creativity_level' => 0.7,
             ]
         );

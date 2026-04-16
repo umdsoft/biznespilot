@@ -85,9 +85,21 @@ class ProcessCallAnalysisJob implements ShouldQueue
             return; // Job'ni tugatish, retry qilmaslik
         }
 
-        // Initialize analysis record
+        // Auto-link call to lead (agar bog'lanmagan bo'lsa)
+        try {
+            $linker = app(\App\Services\Agent\CallCenter\CallLeadLinker::class);
+            $linker->linkCallToLead($this->callLog);
+            $this->callLog->refresh();
+        } catch (\Exception $e) {
+            Log::warning('Auto-link xato', ['call_id' => $this->callLog->id, 'error' => $e->getMessage()]);
+        }
+
+        // Initialize analysis record (business_id, operator_id, lead_id bilan)
         $analysis = CallAnalysis::create([
             'call_log_id' => $this->callLog->id,
+            'business_id' => $this->callLog->business_id,
+            'operator_id' => $this->callLog->user_id,
+            'lead_id' => $this->callLog->lead_id,
         ]);
 
         $tempAudioPath = null;
@@ -147,6 +159,44 @@ class ProcessCallAnalysisJob implements ShouldQueue
                 'analysis_model' => $analysisResult['model'],
                 'processing_time_ms' => $processingTime,
             ]);
+
+            // Step 4.5: Enhanced analysis — script compliance, talk ratio, sentiment
+            try {
+                $enhancer = app(\App\Services\Agent\CallCenter\Analysis\EnhancedCallAnalyzer::class);
+                $analysis->refresh();
+                $enhancer->enhance($analysis);
+                Log::info('Enhanced analysis applied', ['analysis_id' => $analysis->id]);
+            } catch (\Exception $e) {
+                Log::warning('Enhanced analysis xato', [
+                    'analysis_id' => $analysis->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            // Step 4.6: Auto-coaching tasks yaratish (past ball bo'lsa)
+            try {
+                $coaching = app(\App\Services\Agent\CallCenter\CoachingTaskGenerator::class);
+                $analysis->refresh();
+                $tasks = $coaching->generateFromAnalysis($analysis);
+                Log::info('Coaching tasks created', ['count' => count($tasks)]);
+            } catch (\Exception $e) {
+                Log::warning('Coaching generator xato', ['error' => $e->getMessage()]);
+            }
+
+            // Step 4.7: Predictive alertlar tekshiruvi
+            try {
+                $alerts = app(\App\Services\Agent\CallCenter\CallAlertService::class);
+                $detected = $alerts->checkForAlerts($analysis);
+                if (!empty($detected)) {
+                    Log::warning('Call alerts detected', [
+                        'analysis_id' => $analysis->id,
+                        'count' => count($detected),
+                        'types' => array_column($detected, 'type'),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Alert service xato', ['error' => $e->getMessage()]);
+            }
 
             // Step 5: Clean up temporary audio
             if ($tempAudioPath) {

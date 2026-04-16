@@ -282,16 +282,14 @@ let ordersPollingInterval = null;
 // Fetch functions
 const fetchInboxUnreadCount = async () => {
   try {
-    const response = await axios.get('/business/inbox', {
-      headers: { 'Accept': 'application/json' }
-    });
-    if (response.data.stats?.unread?.total !== undefined) {
-      inboxUnreadCount.value = response.data.stats.unread.total;
+    // Tez endpoint — faqat count (to'liq inbox data yuklanmaydi)
+    const response = await axios.get('/business/inbox/count');
+    if (typeof response.data.count === 'number') {
+      inboxUnreadCount.value = response.data.count;
     }
   } catch (error) {
-    // Silently fail - stats are optional UI enhancement
     if (error.response?.status !== 404) {
-      console.error('Failed to fetch inbox stats:', error);
+      console.error('Failed to fetch inbox count:', error);
     }
   }
 };
@@ -357,17 +355,32 @@ const fetchPendingOrdersCount = async () => {
 
 // Start polling
 const startPolling = () => {
+  // Dastlabki yuklash
   fetchInboxUnreadCount();
   fetchNewLeadsCount();
   fetchTaskStats();
   fetchTodoStats();
   fetchPendingOrdersCount();
 
-  inboxPollingInterval = setInterval(fetchInboxUnreadCount, 10000);
-  leadsPollingInterval = setInterval(fetchNewLeadsCount, 15000);
-  taskPollingInterval = setInterval(fetchTaskStats, 10000);
-  todoPollingInterval = setInterval(fetchTodoStats, 30000);
-  ordersPollingInterval = setInterval(fetchPendingOrdersCount, 20000);
+  // Poll faqat tab aktiv bo'lsa (visibility API)
+  const pollIfVisible = (fn) => () => {
+    if (document.visibilityState === 'visible') fn();
+  };
+
+  // Sekin polling — 60s/90s/120s (server yukini 3-4x kamaytiradi)
+  inboxPollingInterval = setInterval(pollIfVisible(fetchInboxUnreadCount), 60000);
+  leadsPollingInterval = setInterval(pollIfVisible(fetchNewLeadsCount), 90000);
+  taskPollingInterval = setInterval(pollIfVisible(fetchTaskStats), 60000);
+  todoPollingInterval = setInterval(pollIfVisible(fetchTodoStats), 120000);
+  ordersPollingInterval = setInterval(pollIfVisible(fetchPendingOrdersCount), 90000);
+
+  // Tab qaytganda darhol yangilash
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      fetchInboxUnreadCount();
+      fetchTaskStats();
+    }
+  });
 };
 
 // Stop polling
