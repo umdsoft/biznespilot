@@ -25,6 +25,8 @@ class BusinessChatHandlerService
 {
     public function __construct(
         protected AIService $ai,
+        protected SalesPromptBuilder $promptBuilder,
+        protected CreateLeadFromTelegram $createLead,
     ) {}
 
     /**
@@ -261,8 +263,8 @@ class BusinessChatHandlerService
             $api->forBusinessConnection($connection->connection_id)
                 ->sendChatAction($message['chat']['id'], 'typing');
 
-            // Build system prompt with persona
-            $systemPrompt = $this->buildSystemPrompt($connection, $bot->business);
+            // Build rich sales system prompt (DRY: reuses SalesScript, Offer, DreamBuyer, KB)
+            $systemPrompt = $this->promptBuilder->build($connection);
 
             // Fetch recent conversation history for context
             $history = $conversation->messages()
@@ -299,7 +301,23 @@ class BusinessChatHandlerService
                 return;
             }
 
-            $reply = $response->content;
+            $rawReply = $response->content;
+
+            // Extract [LEAD:...] marker → create Lead in CRM
+            $leadParsed = $this->createLead->parseMarker($rawReply);
+            $reply = $leadParsed['reply'];
+
+            // Extract [HANDOFF] marker → notify owner that customer wants human
+            $handoffParsed = $this->createLead->parseHandoff($reply);
+            $reply = $handoffParsed['reply'];
+
+            if ($leadParsed['lead_data']) {
+                $this->createLead->handle($connection, $customer, $conversation, $leadParsed['lead_data']);
+            }
+
+            if ($handoffParsed['handoff']) {
+                $this->notifyOwnerHandoff($bot, $connection, $customer, $userText);
+            }
 
             // Auto-send only in AUTO mode; HYBRID waits for owner confirmation
             if ($connection->ai_mode === TelegramBusinessConnection::AI_MODE_AUTO) {
@@ -319,26 +337,6 @@ class BusinessChatHandlerService
                 'connection_id' => $connection->connection_id,
             ]);
         }
-    }
-
-    protected function buildSystemPrompt(TelegramBusinessConnection $connection, $business): string
-    {
-        $businessName = $business->name ?? 'biznes';
-        $industry = $business->industry ?? '';
-        $ownerName = $connection->owner_first_name ?? 'egasiz';
-
-        $persona = $connection->persona_prompt ?? "Sen {$ownerName}, {$businessName} egasisan. "
-            ."Mijozlar bilan do'stona va professional muloqot qilasan. "
-            .'Qisqa va aniq javob berasan. O\'zbek tilida gaplashasan.';
-
-        $context = "Biznes: {$businessName}".($industry ? " ({$industry})" : '');
-
-        return "{$persona}\n\n{$context}\n\n"
-            ."MUHIM QOIDALAR:\n"
-            ."- Hech qachon \"Men AI/botman\" dema\n"
-            ."- Sen aslida biznes egasi — shunday javob ber\n"
-            ."- Narx va aniq savollar uchun \"Bir daqiqa, tekshirib aytaman\" de\n"
-            .'- Maksimum 2-3 jumla';
     }
 
     protected function logOutgoingMessage(
@@ -390,6 +388,30 @@ class BusinessChatHandlerService
             ."👤 {$customerName} ".($customer->username ? "(@{$customer->username})" : '')."\n"
             ."📨 _{$customerMsg}_\n\n"
             ."🤖 *AI tavsiya etadi:*\n{$aiSuggestion}";
+
+        $api = new TelegramApiService($bot);
+        $api->sendMessage($connection->user_chat_id, $text, ['parse_mode' => 'Markdown']);
+    }
+
+    /**
+     * Notify business owner that customer requested to speak with a human.
+     */
+    protected function notifyOwnerHandoff(
+        TelegramBot $bot,
+        TelegramBusinessConnection $connection,
+        TelegramUser $customer,
+        string $customerMsg,
+    ): void {
+        if (! $connection->user_chat_id) {
+            return;
+        }
+
+        $customerName = trim(($customer->first_name ?? '').' '.($customer->last_name ?? '')) ?: 'Mijoz';
+
+        $text = "🆘 *Mijoz operator so'ramoqda!*\n\n"
+            ."👤 {$customerName} ".($customer->username ? "(@{$customer->username})" : '')."\n"
+            ."📨 _{$customerMsg}_\n\n"
+            ."👉 Mijozga shaxsan javob bering.";
 
         $api = new TelegramApiService($bot);
         $api->sendMessage($connection->user_chat_id, $text, ['parse_mode' => 'Markdown']);

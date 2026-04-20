@@ -40,6 +40,11 @@ class TelegramBusinessConnection extends Model
         'ai_mode',
         'settings',
         'persona_prompt',
+        'sales_script_id',
+        'primary_offer_id',
+        'auto_create_lead',
+        'lead_initial_stage',
+        'knowledge_base',
         'connected_at',
         'disconnected_at',
         'last_activity_at',
@@ -49,8 +54,10 @@ class TelegramBusinessConnection extends Model
         'can_reply' => 'boolean',
         'is_enabled' => 'boolean',
         'ai_auto_reply' => 'boolean',
+        'auto_create_lead' => 'boolean',
         'rights' => 'array',
         'settings' => 'array',
+        'knowledge_base' => 'array',
         'connected_at' => 'datetime',
         'disconnected_at' => 'datetime',
         'last_activity_at' => 'datetime',
@@ -66,6 +73,16 @@ class TelegramBusinessConnection extends Model
     public function conversations(): HasMany
     {
         return $this->hasMany(TelegramConversation::class, 'business_connection_id', 'connection_id');
+    }
+
+    public function salesScript(): BelongsTo
+    {
+        return $this->belongsTo(SalesScript::class);
+    }
+
+    public function primaryOffer(): BelongsTo
+    {
+        return $this->belongsTo(Offer::class, 'primary_offer_id');
     }
 
     // ==================== Scopes ====================
