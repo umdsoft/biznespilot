@@ -8,6 +8,8 @@ use App\Models\Offer;
 use App\Models\SalesScript;
 use App\Models\Store\TelegramStore;
 use App\Models\TelegramBusinessConnection;
+use App\Models\TelegramFunnel;
+use App\Models\TelegramFunnelStep;
 
 /**
  * Builds a rich, context-aware system prompt for the Telegram Business Sales Bot.
@@ -42,6 +44,11 @@ class SalesPromptBuilder
             $parts[] = $this->salesScriptSection($script);
         }
 
+        // Funnel = business's own step-by-step sales flow
+        if ($funnel = $connection->funnel) {
+            $parts[] = $this->funnelSection($funnel);
+        }
+
         if ($kb = $connection->knowledge_base) {
             $parts[] = $this->knowledgeBaseSection($kb);
         }
@@ -63,11 +70,19 @@ class SalesPromptBuilder
         $businessName = $business->name ?? 'biznes';
 
         $persona = $c->persona_prompt
-            ?: "Sen {$ownerName} — {$businessName} egasisan. Mijozlar bilan do'stona, "
-            .'ishonchli va professional muloqot qilasan. Qisqa va aniq javob berasan. '
-            ."O'zbek tilida gaplashasan (zaruriyatda rus tiliga o'tasan).";
+            ?: "Sen {$ownerName} — {$businessName} egasi. "
+            ."O'zbek tilida tabiiy va iliq gaplashasan — aynan oddiy biznesmen kabi. "
+            .'Qisqa, aniq va samimiy javoblar berasan. Rasmiy emas, inson kabi.';
 
-        return "# PERSONA\n{$persona}";
+        return "# PERSONA\n{$persona}\n\n"
+            ."MUHIM: Ingliz yoki ruscha so'zlarni tarjima qilmasdan to'g'ridan-to'g'ri ishlatmay, "
+            ."haqiqiy O'zbek gapida natural ishla. Masalan:\n"
+            ."- YOMON: \"pitsa bordi\" (grammatika xato)\n"
+            ."- YAXSHI: \"Ha, pitsa bor\"\n"
+            ."- YOMON: \"chizmali pitsalar\" (tarjima xato)\n"
+            ."- YAXSHI: \"turli xil pitsalar\"\n"
+            ."- YOMON: \"Qaysi pitsa yoqadi sizga?\" (kalka)\n"
+            ."- YAXSHI: \"Qanday pitsa buyurtma qilmoqchisiz?\"";
     }
 
     protected function businessContextSection($business): string
@@ -239,13 +254,76 @@ class SalesPromptBuilder
 
     protected function rulesSection(TelegramBusinessConnection $c): string
     {
-        return "# QOIDALAR\n"
+        return "# MUHIM QOIDALAR\n\n"
+            ."## Til qoidalari (ENG MUHIM!)\n"
+            ."- Mijoz qaysi tilda yozsa, SHU TILDA javob ber (o'zbek, rus, ingliz)\n"
+            ."- O'zbek tilida yozganda — TO'G'RI va TABIIY grammatika ishlat\n"
+            ."- \"Pitsa bordi\" emas, \"pitsa bor\"; \"chizmali\" emas, \"turli xil\"\n"
+            ."- Mahalliy uslubda: \"aka\", \"opa\", \"hurmatli mijoz\" kabi murojaatlar\n"
+            ."- Tarjima qilgandek gap tuzmasin, tabiiy O'zbek gapi bo'lsin\n\n"
+            ."## Xatti-harakat\n"
             ."- Hech qachon \"Men AI/botman\" dema. Sen haqiqiy biznes egasisan.\n"
-            ."- Javoblar qisqa (1-3 jumla), tabiiy, inson kabi bo'lsin.\n"
-            ."- Narxni bilmasang \"Hozir tekshirib aytaman\" de, yolg'on aytma.\n"
-            ."- Mijoz qiziqsa — kontakt ma'lumotlarini (ism, telefon) so'ra.\n"
-            ."- Murakkab texnik savollarda \"Mutaxassisimiz bog'lanadi\" deb javob ber.\n"
-            ."- Agar mijoz 'operator', 'inson', 'menyejer' yoki 'Umidbek' so'rasa — [HANDOFF] marker qo'shib javob ber.";
+            ."- Javoblar QISQA (1-3 jumla), tabiiy, inson kabi\n"
+            ."- Emoji'lardan 1-2 tadan ishlat, ortiq emas\n"
+            ."- Narxni bilmasang \"Hozir tekshirib aytaman\" de, yolg'on aytma\n"
+            ."- Mijoz qiziqsa — KONTAKT ma'lumotlarini (ism, telefon) so'ra\n"
+            ."- Murakkab savollarda \"Mutaxassisimiz bog'lanadi\" deb javob ber\n"
+            ."- Agar mijoz 'operator', 'inson', 'menejer' so'rasa — [HANDOFF] marker qo'sh\n\n"
+            ."## Funnel rioya qilish\n"
+            ."- Agar yuqorida SOTUV FUNNEL bosqichlari ko'rsatilgan bo'lsa — SHU TARTIB bilan suhbat ol\n"
+            ."- Funnel bosqichini so'zma-so'z ko'chirma, lekin mohiyati va savollari aynan shu bo'lsin\n"
+            ."- Funnel savolini sazmakor qilib so'raganda, mijoz javobiga asoslanib keyingi bosqichga o't";
+    }
+
+    protected function funnelSection(TelegramFunnel $funnel): string
+    {
+        $steps = $funnel->steps()->orderBy('step_order')->limit(15)->get();
+        if ($steps->isEmpty()) {
+            return '';
+        }
+
+        $out = "# SOTUV FUNNEL: {$funnel->name}\n";
+        if ($funnel->description) {
+            $out .= "Maqsad: {$funnel->description}\n";
+        }
+        $out .= "\nSuhbatni shu funnel bosqichlari asosida olib bor:\n\n";
+
+        foreach ($steps as $i => $step) {
+            $num = $i + 1;
+            $out .= "## Bosqich {$num}: ".($step->name ?: 'Step '.$step->id)."\n";
+
+            // Content can be JSON with {text, media, ...}
+            $content = $step->content;
+            if (is_array($content)) {
+                if (! empty($content['text'])) {
+                    $out .= "Xabar: {$content['text']}\n";
+                }
+                if (! empty($content['caption'])) {
+                    $out .= "Caption: {$content['caption']}\n";
+                }
+            } elseif (is_string($content)) {
+                $out .= "Xabar: {$content}\n";
+            }
+
+            // Keyboard options — turn into free-form answer variants
+            if (! empty($step->keyboard)) {
+                $buttons = [];
+                foreach ((array) $step->keyboard as $row) {
+                    foreach ((array) $row as $btn) {
+                        if (! empty($btn['text'])) {
+                            $buttons[] = $btn['text'];
+                        }
+                    }
+                }
+                if ($buttons) {
+                    $out .= 'Variantlar: '.implode(' | ', $buttons)."\n";
+                }
+            }
+
+            $out .= "\n";
+        }
+
+        return trim($out);
     }
 
     protected function leadCaptureSection(): string

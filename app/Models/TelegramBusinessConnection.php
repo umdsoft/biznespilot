@@ -42,6 +42,7 @@ class TelegramBusinessConnection extends Model
         'persona_prompt',
         'sales_script_id',
         'primary_offer_id',
+        'funnel_id',
         'auto_create_lead',
         'lead_initial_stage',
         'knowledge_base',
@@ -83,6 +84,11 @@ class TelegramBusinessConnection extends Model
     public function primaryOffer(): BelongsTo
     {
         return $this->belongsTo(Offer::class, 'primary_offer_id');
+    }
+
+    public function funnel(): BelongsTo
+    {
+        return $this->belongsTo(TelegramFunnel::class);
     }
 
     // ==================== Scopes ====================

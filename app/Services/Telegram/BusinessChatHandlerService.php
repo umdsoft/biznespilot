@@ -284,10 +284,11 @@ class BusinessChatHandlerService
             $messages = array_merge($history, [['role' => 'user', 'content' => $userText]]);
 
             // Generate AI response via existing AIService (channel-agnostic)
+            // Sonnet used for better Uzbek language quality (Haiku is too literal in Uzbek)
             $response = $this->ai->chat(
                 messages: $messages,
                 systemPrompt: $systemPrompt,
-                preferredModel: 'haiku',
+                preferredModel: 'sonnet',
                 maxTokens: 400,
                 businessId: $bot->business_id,
                 agentType: 'business_chat',
