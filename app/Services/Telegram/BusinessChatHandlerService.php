@@ -39,12 +39,48 @@ class BusinessChatHandlerService
 
         $connection = TelegramBusinessConnection::where('connection_id', $connectionId)->first();
         if (! $connection) {
-            Log::warning('Business message received for unknown connection', [
+            // Auto-create connection on first message if business_connection event was missed
+            Log::info('Business message received for unknown connection — fetching from Telegram', [
                 'connection_id' => $connectionId,
                 'bot_id' => $bot->id,
             ]);
 
-            return;
+            $api = new TelegramApiService($bot);
+            $info = $api->getBusinessConnection($connectionId);
+
+            if (! ($info['success'] ?? false)) {
+                Log::warning('Failed to fetch business connection from Telegram', [
+                    'connection_id' => $connectionId,
+                    'error' => $info['description'] ?? 'unknown',
+                ]);
+
+                return;
+            }
+
+            $bc = $info['result'];
+            $rights = $bc['rights'] ?? null;
+            $user = $bc['user'] ?? [];
+
+            $connection = TelegramBusinessConnection::create([
+                'business_id' => $bot->business_id,
+                'telegram_bot_id' => $bot->id,
+                'connection_id' => $connectionId,
+                'telegram_user_id' => $user['id'] ?? 0,
+                'owner_first_name' => $user['first_name'] ?? null,
+                'owner_last_name' => $user['last_name'] ?? null,
+                'owner_username' => $user['username'] ?? null,
+                'user_chat_id' => $bc['user_chat_id'] ?? null,
+                'can_reply' => (bool) ($rights['can_reply'] ?? $bc['can_reply'] ?? true),
+                'rights' => $rights,
+                'is_enabled' => (bool) ($bc['is_enabled'] ?? true),
+                'connected_at' => now(),
+                'last_activity_at' => now(),
+            ]);
+
+            Log::info('Business connection auto-created from first message', [
+                'connection_id' => $connectionId,
+                'owner' => $connection->owner_username,
+            ]);
         }
 
         $fromUser = $message['from'] ?? [];
