@@ -4,6 +4,7 @@ import { router, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     CalendarIcon,
     ClockIcon,
@@ -15,6 +16,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     requests: { type: Array, default: () => [] },
@@ -49,8 +51,8 @@ const requestLeave = () => {
     });
 };
 
-const cancelRequest = (request) => {
-    if (confirm('Ta\'til so\'rovini bekor qilmoqchimisiz?')) {
+const cancelRequest = async (request) => {
+    if (await confirm({ title: 'So\'rovni bekor qilish', message: 'Ta\'til so\'rovini bekor qilmoqchimisiz?', type: 'warning', confirmText: 'Bekor qilish' })) {
         router.post(route('hr.leave.cancel', request.id), {}, {
             preserveScroll: true,
         });

@@ -183,8 +183,10 @@ import Modal from '@/components/Modal.vue';
 import Pagination from '@/components/Pagination.vue';
 import { CogIcon, BellSlashIcon } from '@heroicons/vue/24/outline';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 interface Props {
     alerts: {
@@ -273,7 +275,7 @@ async function snoozeAlert() {
 }
 
 async function dismissAlert(alertId: string) {
-    if (confirm(t('alerts.dismiss.confirm'))) {
+    if (await confirm({ title: t('alerts.dismiss.title', 'Ogohlantirishni yopish'), message: t('alerts.dismiss.confirm'), type: 'warning', confirmText: t('alerts.dismiss.action', 'Yopish') })) {
         router.post(`/business/alerts/${alertId}/dismiss`, {}, {
             preserveScroll: true,
         });

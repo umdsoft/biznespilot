@@ -4,8 +4,10 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { Doughnut, Bar, Line } from 'vue-chartjs';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 import {
     Chart as ChartJS,
     ArcElement,
@@ -531,8 +533,8 @@ const exportResults = () => {
     window.location.href = route('business.custdev.export', { custdev: props.survey.id });
 };
 
-const syncToDreamBuyer = () => {
-    if (confirm('Javoblarni Ideal Mijoz profiliga sinxronlashni xohlaysizmi?')) {
+const syncToDreamBuyer = async () => {
+    if (await confirm({ title: 'Sinxronlash', message: 'Javoblarni Ideal Mijoz profiliga sinxronlashni xohlaysizmi?', type: 'info', confirmText: 'Sinxronlash' })) {
         router.post(route('business.custdev.sync-dream-buyer', { custdev: props.survey.id }));
     }
 };

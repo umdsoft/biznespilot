@@ -113,6 +113,9 @@
 import { ref } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({ interviews: Object, applications: Array, interviewers: Array });
 
@@ -133,14 +136,14 @@ const submitSchedule = () => {
   });
 };
 
-const completeInterview = (iv) => {
-  if (confirm('Intervyuni yakunlaysizmi?')) {
+const completeInterview = async (iv) => {
+  if (await confirm({ title: 'Intervyuni yakunlash', message: 'Intervyuni yakunlaysizmi?', type: 'info', confirmText: 'Yakunlash' })) {
     router.post(route('hr.recruiting.interviews.complete', iv.id), { rating: iv.rating }, { preserveScroll: true });
   }
 };
 
-const cancelInterview = (id) => {
-  if (confirm('Intervyuni bekor qilasizmi?')) {
+const cancelInterview = async (id) => {
+  if (await confirm({ title: 'Intervyuni bekor qilish', message: 'Intervyuni bekor qilasizmi?', type: 'warning', confirmText: 'Bekor qilish' })) {
     router.post(route('hr.recruiting.interviews.cancel', id), {}, { preserveScroll: true });
   }
 };

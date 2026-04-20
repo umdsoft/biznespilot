@@ -404,6 +404,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
+import { useConfirm } from '@/composables/useConfirm';
 import GoalItem from '@/components/strategy/GoalItem.vue';
 import {
   ArrowLeftIcon,
@@ -416,6 +417,8 @@ import {
   CalendarIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   plan: Object,
@@ -549,8 +552,8 @@ function toggleObjective(index) {
   }, { preserveScroll: true });
 }
 
-function deleteObjective(index) {
-  if (!confirm('Bu maqsadni o\'chirmoqchimisiz?')) return;
+async function deleteObjective(index) {
+  if (!await confirm({ title: 'Maqsadni o\'chirish', message: 'Bu maqsadni o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   const objectives = [...(props.plan.quarterly_objectives || [])];
   objectives.splice(index, 1);
@@ -560,8 +563,8 @@ function deleteObjective(index) {
   }, { preserveScroll: true });
 }
 
-function deleteInitiative(index) {
-  if (!confirm('Bu tashabbusni o\'chirmoqchimisiz?')) return;
+async function deleteInitiative(index) {
+  if (!await confirm({ title: 'Tashabbusni o\'chirish', message: 'Bu tashabbusni o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   const initiatives = [...(props.plan.key_initiatives || [])];
   initiatives.splice(index, 1);

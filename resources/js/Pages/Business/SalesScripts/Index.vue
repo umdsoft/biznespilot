@@ -77,6 +77,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   scripts: { type: Array, default: () => [] },
@@ -92,7 +95,7 @@ const typeLabel = (type) => ({
 })[type] || type;
 
 const deleteScript = async (script) => {
-  if (!confirm(`"${script.name}" skriptini o'chirishni xohlaysizmi?`)) return;
+  if (!await confirm({ title: "O'chirishni tasdiqlang", message: `"${script.name}" skriptini o'chirishni xohlaysizmi?`, type: 'danger', confirmText: "O'chirish" })) return;
   try {
     await axios.delete(`/business/sales-scripts/${script.id}`);
     router.reload();

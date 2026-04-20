@@ -223,8 +223,10 @@ import { ref, reactive, onMounted } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 const store = useOnboardingStore();
 const toast = useToastStore();
 
@@ -313,7 +315,7 @@ async function saveProblem() {
 }
 
 async function deleteProblem(id) {
-  if (!confirm(t('onboarding.problems.delete_confirm'))) return;
+  if (!await confirm({ title: 'Muammoni o\'chirish', message: t('onboarding.problems.delete_confirm'), type: 'danger', confirmText: 'O\'chirish' })) return;
 
   try {
     await store.deleteProblem(id);

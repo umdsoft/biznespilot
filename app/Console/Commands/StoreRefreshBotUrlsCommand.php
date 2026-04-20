@@ -52,7 +52,7 @@ class StoreRefreshBotUrlsCommand extends Command
             $webhookUrl = "{$baseUrl}/webhooks/telegram-funnel/{$bot->id}";
             $webhookSecret = $bot->webhook_secret ?: bin2hex(random_bytes(32));
 
-            $webhookResponse = Http::post("https://api.telegram.org/bot{$botToken}/setWebhook", [
+            $webhookResponse = Http::withOptions(['verify' => false])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
                 'url' => $webhookUrl,
                 'secret_token' => $webhookSecret,
                 'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
@@ -73,7 +73,7 @@ class StoreRefreshBotUrlsCommand extends Command
 
             // 2. Update menu button
             $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
-            $menuResponse = Http::post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
+            $menuResponse = Http::withOptions(['verify' => false])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
                 'menu_button' => [
                     'type' => 'web_app',
                     'text' => 'Do\'kon',

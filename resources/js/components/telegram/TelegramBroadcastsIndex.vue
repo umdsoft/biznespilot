@@ -239,6 +239,7 @@
 import { computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   bot: Object,
@@ -261,6 +262,8 @@ const getRoute = (name, params = null) => {
   }
   return params ? route(prefix + name, params) : route(prefix + name);
 };
+
+const { confirm } = useConfirm()
 
 const scheduledCount = computed(() => props.broadcasts.filter(b => b.status === 'scheduled').length)
 const completedCount = computed(() => props.broadcasts.filter(b => b.status === 'completed').length)
@@ -319,7 +322,7 @@ const getStatusIconClass = (status) => {
 }
 
 const startBroadcast = async (broadcast) => {
-  if (confirm('Broadcastni boshlashni xohlaysizmi?')) {
+  if (await confirm({ title: 'Boshlashni tasdiqlang', message: 'Broadcastni boshlashni xohlaysizmi?', type: 'info', confirmText: 'Boshlash' })) {
     await axios.post(getRoute('telegram-funnels.broadcasts.start', [props.bot.id, broadcast.id]))
     router.reload()
   }
@@ -336,14 +339,14 @@ const resumeBroadcast = async (broadcast) => {
 }
 
 const cancelBroadcast = async (broadcast) => {
-  if (confirm('Broadcastni bekor qilishni xohlaysizmi?')) {
+  if (await confirm({ title: 'Bekor qilish', message: 'Broadcastni bekor qilishni xohlaysizmi?', type: 'warning', confirmText: 'Bekor qilish' })) {
     await axios.post(getRoute('telegram-funnels.broadcasts.cancel', [props.bot.id, broadcast.id]))
     router.reload()
   }
 }
 
 const deleteBroadcast = async (broadcast) => {
-  if (confirm('Broadcastni o\'chirishni xohlaysizmi?')) {
+  if (await confirm({ title: 'O\'chirishni tasdiqlang', message: 'Broadcastni o\'chirishni xohlaysizmi?', type: 'danger', confirmText: 'O\'chirish' })) {
     await axios.delete(getRoute('telegram-funnels.broadcasts.destroy', [props.bot.id, broadcast.id]))
     router.reload()
   }

@@ -3,8 +3,10 @@ import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 import {
     ArrowLeftIcon,
@@ -150,7 +152,7 @@ const addNote = async () => {
 
 // Delete feedback
 const deleteFeedback = async () => {
-    if (!confirm(t('admin.feedback.delete_confirm'))) return;
+    if (!await confirm({ title: t('admin.feedback.delete_title', 'O\'chirishni tasdiqlang'), message: t('admin.feedback.delete_confirm'), type: 'danger', confirmText: t('admin.feedback.delete_action', 'O\'chirish') })) return;
 
     try {
         const response = await fetch(route('admin.feedback.destroy', props.feedback.id), {

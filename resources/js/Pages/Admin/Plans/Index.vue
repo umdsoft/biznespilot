@@ -290,6 +290,9 @@ import { h } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import axios from 'axios';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   plans: Array,
@@ -392,7 +395,7 @@ const toggleStatus = async (plan) => {
 };
 
 const deletePlan = async (plan) => {
-  if (!confirm(`"${plan.name}" tarifini o'chirishni tasdiqlaysizmi?`)) return;
+  if (!await confirm({ title: 'Tarifni o\'chirish', message: `"${plan.name}" tarifini o'chirishni tasdiqlaysizmi?`, type: 'danger', confirmText: 'O\'chirish' })) return;
 
   try {
     await axios.delete(`/dashboard/plans/${plan.id}`);

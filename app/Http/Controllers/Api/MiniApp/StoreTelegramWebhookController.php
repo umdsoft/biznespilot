@@ -186,7 +186,7 @@ class StoreTelegramWebhookController extends Controller
 
         // Answer callback query to remove loading state
         $token = $bot->bot_token;
-        Http::post("https://api.telegram.org/bot{$token}/answerCallbackQuery", [
+        Http::withOptions(['verify' => false])->timeout(30)->post("https://api.telegram.org/bot{$token}/answerCallbackQuery", [
             'callback_query_id' => $query['id'],
         ]);
     }
@@ -194,7 +194,7 @@ class StoreTelegramWebhookController extends Controller
     protected function handlePreCheckoutQuery($bot, array $query): void
     {
         $token = $bot->bot_token;
-        Http::post("https://api.telegram.org/bot{$token}/answerPreCheckoutQuery", [
+        Http::withOptions(['verify' => false])->timeout(30)->post("https://api.telegram.org/bot{$token}/answerPreCheckoutQuery", [
             'pre_checkout_query_id' => $query['id'],
             'ok' => true,
         ]);
@@ -236,6 +236,6 @@ class StoreTelegramWebhookController extends Controller
             $payload['reply_markup'] = $replyMarkup;
         }
 
-        Http::post("https://api.telegram.org/bot{$token}/sendMessage", $payload);
+        Http::withOptions(['verify' => false])->timeout(30)->post("https://api.telegram.org/bot{$token}/sendMessage", $payload);
     }
 }

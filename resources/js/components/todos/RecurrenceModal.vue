@@ -1,10 +1,12 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     show: Boolean,
@@ -165,7 +167,7 @@ const submit = async () => {
 // Delete recurrence
 const deleteRecurrence = async () => {
     if (!props.todo?.recurrence) return;
-    if (!confirm(t('todos.recurrence.delete_confirm'))) return;
+    if (!await confirm({ title: t('todos.recurrence.delete_title') || 'Takrorlanishni o\'chirish', message: t('todos.recurrence.delete_confirm'), type: 'danger', confirmText: 'O\'chirish' })) return;
 
     try {
         // Refresh CSRF token before request

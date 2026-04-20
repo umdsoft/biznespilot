@@ -134,6 +134,7 @@
 import { computed, h } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { useI18n } from '@/i18n'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
     post: { type: Object, required: true },
@@ -141,6 +142,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const { confirm } = useConfirm()
 
 // Universal panel config for all 5 panels
 const panelConfig = computed(() => {
@@ -166,7 +168,7 @@ const hasStats = computed(() => props.post.views || props.post.likes || props.po
 
 const goBack = () => router.get(panelConfig.value.baseUrl)
 const editPost = () => router.get(`${panelConfig.value.baseUrl}/${props.post.id}/edit`)
-const deletePost = () => { if (confirm(t('content.confirm.delete'))) router.delete(`${panelConfig.value.baseUrl}/${props.post.id}`) }
+const deletePost = async () => { if (await confirm({ title: t('content.confirm.delete_title') || 'Postni o\'chirish', message: t('content.confirm.delete'), type: 'danger', confirmText: 'O\'chirish' })) router.delete(`${panelConfig.value.baseUrl}/${props.post.id}`) }
 
 const formatNumber = (num) => { if (!num) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString() }
 

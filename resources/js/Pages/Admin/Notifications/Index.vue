@@ -261,6 +261,9 @@ import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import axios from 'axios';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   notifications: Object,
@@ -375,7 +378,7 @@ const getTypeIcon = (type) => {
 };
 
 const deleteNotification = async (notification) => {
-  if (!confirm('Bildirishnomani o\'chirishni tasdiqlaysizmi?')) return;
+  if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: 'Bildirishnomani o\'chirishni tasdiqlaysizmi?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   try {
     await axios.delete(`/dashboard/notifications/${notification.id}`);

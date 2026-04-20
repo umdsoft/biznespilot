@@ -381,6 +381,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
+import { useConfirm } from '@/composables/useConfirm';
 import GoalItem from '@/components/strategy/GoalItem.vue';
 import KPICard from '@/components/strategy/KPICard.vue';
 import {
@@ -394,6 +395,8 @@ import {
   SparklesIcon,
   LightBulbIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   strategy: Object,
@@ -545,8 +548,8 @@ function editGoal(index) {
   // TODO: Implement goal editing
 }
 
-function deleteGoal(index) {
-  if (!confirm('Bu maqsadni o\'chirmoqchimisiz?')) return;
+async function deleteGoal(index) {
+  if (!await confirm({ title: 'Maqsadni o\'chirish', message: 'Bu maqsadni o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   const goals = [...(props.strategy.strategic_goals || [])];
   goals.splice(index, 1);

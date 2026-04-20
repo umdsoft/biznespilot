@@ -3,8 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { useI18n } from '@/i18n';
-
-const { t } = useI18n();
+import { useConfirm } from '@/composables/useConfirm';
 
 import {
     BugAntIcon,
@@ -22,6 +21,9 @@ import {
     PaperClipIcon,
     ChartBarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     feedbacks: Object,
@@ -122,7 +124,7 @@ const updateStatus = async (feedback, newStatus) => {
 
 // Delete feedback
 const deleteFeedback = async (feedback) => {
-    if (!confirm(t('admin.feedback.delete_confirm'))) return;
+    if (!await confirm({ title: t('admin.feedback.delete_title', 'O\'chirishni tasdiqlang'), message: t('admin.feedback.delete_confirm'), type: 'danger', confirmText: t('admin.feedback.delete_action', 'O\'chirish') })) return;
 
     try {
         const response = await fetch(route('admin.feedback.destroy', feedback.id), {

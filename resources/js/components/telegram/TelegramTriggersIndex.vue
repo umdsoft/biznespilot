@@ -425,6 +425,7 @@
 import { ref, reactive, computed, h } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   bot: Object,
@@ -451,6 +452,8 @@ const getRoute = (name, params = null) => {
   }
   return params ? route(prefix + name, params) : route(prefix + name);
 };
+
+const { confirm } = useConfirm()
 
 const triggersList = ref(props.triggers)
 const funnelsList = ref(props.funnels)
@@ -676,7 +679,7 @@ const toggleTriggerActive = async (trigger) => {
 }
 
 const deleteTrigger = async (trigger) => {
-  if (!confirm(`"${trigger.name}" triggerini o'chirishni xohlaysizmi?`)) return
+  if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: `"${trigger.name}" triggerini o'chirishni xohlaysizmi?`, type: 'danger', confirmText: 'O\'chirish' })) return
 
   try {
     await axios.delete(getRoute('telegram-funnels.triggers.destroy', [props.bot.id, trigger.id]))

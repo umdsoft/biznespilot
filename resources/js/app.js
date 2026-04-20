@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
 import { refreshCsrfToken, handleCsrfError } from '@/utils/csrf';
 import { i18nPlugin, loadTranslations, getCurrentLocale } from '@/i18n';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const pinia = createPinia();
 
@@ -74,7 +75,9 @@ createInertiaApp({
     title: (title) => title ? `${title} - BiznesPilot AI` : 'BiznesPilot AI',
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) })
+        const app = createApp({
+            render: () => h('div', [h(App, props), h(ConfirmModal)])
+        })
             .use(plugin)
             .use(pinia)
             .use(ZiggyVue)

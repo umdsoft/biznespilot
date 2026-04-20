@@ -852,8 +852,10 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import InviteTeamMemberModal from '@/components/InviteTeamMemberModal.vue';
 import IntegrationsContent from '@/components/IntegrationsContent.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
   user: Object,
@@ -977,8 +979,8 @@ const updateApiKeys = () => {
   });
 };
 
-const deleteKey = (keyType) => {
-  if (confirm('Haqiqatan ham bu API kalitini o\'chirmoqchimisiz?')) {
+const deleteKey = async (keyType) => {
+  if (await confirm({ title: 'API kalitini o\'chirish', message: 'Haqiqatan ham bu API kalitini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) {
     useForm({ key_type: keyType }).delete(route('business.settings.api-keys.delete'), {
       preserveScroll: true,
     });
@@ -1041,7 +1043,7 @@ const resendInvite = async (member) => {
 };
 
 const cancelInvite = async (member) => {
-  if (!confirm('Taklifni bekor qilmoqchimisiz?')) return;
+  if (!await confirm({ title: 'Taklifni bekor qilish', message: 'Taklifni bekor qilmoqchimisiz?', type: 'warning', confirmText: 'Bekor qilish' })) return;
   try {
     const response = await fetch(route('business.settings.team.cancel', member.id), {
       method: 'DELETE',
@@ -1060,7 +1062,7 @@ const cancelInvite = async (member) => {
 };
 
 const removeMember = async (member) => {
-  if (!confirm(`${member.name || member.email} ni jamoadan o'chirmoqchimisiz?`)) return;
+  if (!await confirm({ title: 'A\'zoni o\'chirish', message: `${member.name || member.email} ni jamoadan o'chirmoqchimisiz?`, type: 'danger', confirmText: 'O\'chirish' })) return;
   try {
     const response = await fetch(route('business.settings.team.remove', member.id), {
       method: 'DELETE',

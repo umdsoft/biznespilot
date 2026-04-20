@@ -494,6 +494,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
+import { useConfirm } from '@/composables/useConfirm';
 import GoalItem from '@/components/strategy/GoalItem.vue';
 import TaskItem from '@/components/strategy/TaskItem.vue';
 import {
@@ -509,6 +510,8 @@ import {
   SparklesIcon,
   ChartBarIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   plan: Object,
@@ -637,8 +640,8 @@ function togglePriorityTask(index) {
   }, { preserveScroll: true });
 }
 
-function deletePriorityTask(index) {
-  if (!confirm('Bu vazifani o\'chirmoqchimisiz?')) return;
+async function deletePriorityTask(index) {
+  if (!await confirm({ title: 'Vazifani o\'chirish', message: 'Bu vazifani o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   const tasks = [...(props.plan.priority_tasks || [])];
   tasks.splice(index, 1);
@@ -657,8 +660,8 @@ function toggleGoal(index) {
   }, { preserveScroll: true });
 }
 
-function deleteGoal(index) {
-  if (!confirm('Bu maqsadni o\'chirmoqchimisiz?')) return;
+async function deleteGoal(index) {
+  if (!await confirm({ title: 'Maqsadni o\'chirish', message: 'Bu maqsadni o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   const goals = [...(props.plan.goals || [])];
   goals.splice(index, 1);

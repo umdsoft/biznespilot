@@ -321,6 +321,17 @@ class TelegramBotManagementController extends Controller
             // Ignore webhook deletion errors
         }
 
+        // Clear active store session and delete all stores linked to this bot
+        $activeStoreId = session('active_store_id');
+        $stores = \App\Models\Store\TelegramStore::where('telegram_bot_id', $bot->id)->get();
+        foreach ($stores as $store) {
+            if ($activeStoreId && $activeStoreId === $store->id) {
+                \App\Http\Middleware\HandleInertiaRequests::clearActiveStoreCache($activeStoreId);
+                session()->forget('active_store_id');
+            }
+            $store->delete();
+        }
+
         $bot->delete();
 
         return response()->json([

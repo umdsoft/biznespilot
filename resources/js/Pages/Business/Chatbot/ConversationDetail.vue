@@ -2,6 +2,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, nextTick, onMounted } from 'vue';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     conversation: Object,
@@ -45,8 +48,8 @@ onMounted(() => {
     scrollToBottom();
 });
 
-const closeConversation = () => {
-    if (confirm('Suhbatni yopmoqchimisiz?')) {
+const closeConversation = async () => {
+    if (await confirm({ title: 'Yopishni tasdiqlang', message: 'Suhbatni yopmoqchimisiz?', type: 'warning', confirmText: 'Yopish' })) {
         router.post(route('business.customer-bot.conversation.close', props.conversation.id), {}, {
             preserveScroll: true,
         });
@@ -59,8 +62,8 @@ const reopenConversation = () => {
     });
 };
 
-const handoffToHuman = () => {
-    if (confirm('Suhbatni operatorga topshirmoqchimisiz?')) {
+const handoffToHuman = async () => {
+    if (await confirm({ title: 'Topshirishni tasdiqlang', message: 'Suhbatni operatorga topshirmoqchimisiz?', type: 'info', confirmText: 'Ha' })) {
         router.post(route('business.customer-bot.conversation.handoff', props.conversation.id), {}, {
             preserveScroll: true,
         });

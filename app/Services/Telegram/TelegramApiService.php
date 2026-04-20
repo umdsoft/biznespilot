@@ -29,7 +29,10 @@ class TelegramApiService
         $url = "{$this->baseUrl}{$this->token}/{$method}";
 
         try {
-            $response = Http::timeout(30)->post($url, $data);
+            $response = Http::withOptions([
+                'verify' => false,
+                'connect_timeout' => 15,
+            ])->timeout(30)->post($url, $data);
 
             $result = $response->json();
 

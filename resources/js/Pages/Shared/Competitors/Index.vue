@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
@@ -12,6 +13,7 @@ import CompetitorsIndex from '@/components/Competitors/CompetitorsIndex.vue';
 import CompetitorModal from '@/components/Competitors/CompetitorModal.vue';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     competitors: { type: [Array, Object], default: () => [] },
@@ -76,8 +78,8 @@ const submitForm = (formData) => {
     }
 };
 
-const deleteCompetitor = (competitor) => {
-    if (confirm(t('competitors.confirm_delete', { name: competitor.name }))) {
+const deleteCompetitor = async (competitor) => {
+    if (await confirm({ title: t('competitors.delete_title', 'Raqobatchini o\'chirish'), message: t('competitors.confirm_delete', { name: competitor.name }), type: 'danger', confirmText: t('competitors.delete_action', 'O\'chirish') })) {
         const prefix = getRoutePrefix();
         router.delete(`${prefix}/competitors/${competitor.id}`);
     }

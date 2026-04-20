@@ -3,8 +3,10 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, watch } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     knowledge_base: Object,
@@ -76,8 +78,8 @@ const submit = () => {
     }
 };
 
-const deleteKnowledge = (knowledge) => {
-    if (confirm(t('common.confirm_delete'))) {
+const deleteKnowledge = async (knowledge) => {
+    if (await confirm({ title: "O'chirishni tasdiqlang", message: t('common.confirm_delete'), type: 'danger', confirmText: "O'chirish" })) {
         router.delete(route('business.customer-bot.knowledge-base.destroy', knowledge.id));
     }
 };

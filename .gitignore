@@ -121,6 +121,11 @@ cache/
 phpunit.xml.local
 phpstan.neon.local
 .nyc_output/
+/test-results/
+/playwright-report/
+playwright.config.js
+tests/e2e/
+tests/chrome-extension/
 
 # ==========================================
 # Backup fayllar

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     PlusIcon,
     CheckCircleIcon,
@@ -10,6 +11,8 @@ import {
     PencilSquareIcon,
     TrashIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     tasks: Array,
@@ -73,8 +76,8 @@ const completeTask = (task) => {
     });
 };
 
-const deleteTask = (task) => {
-    if (!confirm('Vazifani o\'chirmoqchimisiz?')) return;
+const deleteTask = async (task) => {
+    if (!await confirm({ title: 'Vazifani o\'chirish', message: 'Vazifani o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
     router.delete(`/${panelConfig.value.routePrefix}/tasks/${task.id}`, {
         preserveScroll: true,
     });

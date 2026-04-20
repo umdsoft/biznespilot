@@ -425,6 +425,7 @@ import {
   TransitionChild,
 } from '@headlessui/vue'
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue'
+import { useConfirm } from '@/composables/useConfirm'
 import {
   PlusIcon,
   ArrowRightIcon,
@@ -440,6 +441,8 @@ import {
   XMarkIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline'
+
+const { confirm } = useConfirm()
 
 const props = defineProps({
   rules: Array,
@@ -521,16 +524,16 @@ const toggleRule = (rule) => {
   })
 }
 
-const deleteRule = (rule) => {
-  if (confirm('Bu qoidani o\'chirmoqchimisiz?')) {
+const deleteRule = async (rule) => {
+  if (await confirm({ title: 'Qoidani o\'chirish', message: 'Bu qoidani o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) {
     router.delete(route('sales-head.pipeline-automation.destroy', rule.id), {
       preserveScroll: true,
     })
   }
 }
 
-const resetToDefaults = () => {
-  if (confirm('Barcha qoidalar o\'chirilib, standart qoidalar tiklanadi. Davom etasizmi?')) {
+const resetToDefaults = async () => {
+  if (await confirm({ title: 'Standartga qaytarish', message: 'Barcha qoidalar o\'chirilib, standart qoidalar tiklanadi. Davom etasizmi?', type: 'warning', confirmText: 'Qaytarish' })) {
     router.post(route('sales-head.pipeline-automation.reset'), {}, {
       preserveScroll: true,
     })

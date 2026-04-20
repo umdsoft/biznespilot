@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed, h, watch } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     PlusIcon,
     MagnifyingGlassIcon,
@@ -17,6 +18,8 @@ import {
     ArrowRightIcon,
     XMarkIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     panelType: {
@@ -205,24 +208,24 @@ const budgetProgress = (campaign) => {
 };
 
 // Actions
-const launchCampaign = (campaignId) => {
-    if (confirm(t('marketing.confirm_launch_campaign'))) {
+const launchCampaign = async (campaignId) => {
+    if (await confirm({ title: 'Kampaniyani boshlash', message: t('marketing.confirm_launch_campaign'), type: 'info', confirmText: 'Boshlash' })) {
         router.post(getHref(`/campaigns/${campaignId}/launch`), {}, {
             preserveScroll: true
         });
     }
 };
 
-const pauseCampaign = (campaignId) => {
-    if (confirm(t('marketing.confirm_pause_campaign'))) {
+const pauseCampaign = async (campaignId) => {
+    if (await confirm({ title: 'Kampaniyani to\'xtatish', message: t('marketing.confirm_pause_campaign'), type: 'warning', confirmText: 'To\'xtatish' })) {
         router.post(getHref(`/campaigns/${campaignId}/pause`), {}, {
             preserveScroll: true
         });
     }
 };
 
-const deleteCampaign = (campaignId) => {
-    if (confirm(t('marketing.confirm_delete_campaign'))) {
+const deleteCampaign = async (campaignId) => {
+    if (await confirm({ title: 'Kampaniyani o\'chirish', message: t('marketing.confirm_delete_campaign'), type: 'danger', confirmText: 'O\'chirish' })) {
         router.delete(getHref(`/campaigns/${campaignId}`), {
             preserveScroll: true
         });

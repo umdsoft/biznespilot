@@ -446,6 +446,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   bot: Object,
@@ -468,6 +469,8 @@ const getRoute = (name, params = null) => {
   }
   return params ? route(prefix + name, params) : route(prefix + name);
 };
+
+const { confirm } = useConfirm()
 
 const showCreateModal = ref(false)
 const isCreating = ref(false)
@@ -543,7 +546,7 @@ const duplicateFunnel = async (funnel) => {
 }
 
 const deleteFunnel = async (funnel) => {
-  if (confirm(`"${funnel.name}" funnelini o'chirishni xohlaysizmi?`)) {
+  if (await confirm({ title: 'O\'chirishni tasdiqlang', message: `"${funnel.name}" funnelini o'chirishni xohlaysizmi?`, type: 'danger', confirmText: 'O\'chirish' })) {
     try {
       await axios.delete(getRoute('telegram-funnels.funnels.destroy', [props.bot.id, funnel.id]))
       router.reload()

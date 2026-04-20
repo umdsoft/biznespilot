@@ -1389,6 +1389,7 @@ import { ref, computed, h } from 'vue'
 import { router } from '@inertiajs/vue3'
 import axios from 'axios'
 import { useI18n } from '@/i18n'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
     posts: { type: Array, default: () => [] },
@@ -1400,6 +1401,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const { confirm } = useConfirm()
 
 // Panel config - universal for all 5 panels
 const panelConfig = computed(() => {
@@ -2074,6 +2076,6 @@ const submitPost = () => {
     }
 }
 
-const deletePost = (id) => { if (confirm(t('content.confirm.delete'))) router.delete(route(panelConfig.value.destroyRoute, id), { preserveScroll: true }) }
+const deletePost = async (id) => { if (await confirm({ title: t('content.confirm.delete_title') || 'Postni o\'chirish', message: t('content.confirm.delete'), type: 'danger', confirmText: 'O\'chirish' })) router.delete(route(panelConfig.value.destroyRoute, id), { preserveScroll: true }) }
 const togglePlatform = (platform) => { const index = postForm.value.platforms.indexOf(platform); if (index === -1) postForm.value.platforms.push(platform); else postForm.value.platforms.splice(index, 1) }
 </script>

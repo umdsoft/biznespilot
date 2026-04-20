@@ -545,7 +545,7 @@ class ContentController extends Controller
         // forwardMessage trick — xabar haqida ma'lumot olish
         // Telegram Bot API da to'g'ridan-to'g'ri message stats olish imkoni cheklangan
         // getChat + getChatMembersCount orqali channel info olish mumkin
-        $chatResponse = \Illuminate\Support\Facades\Http::get("https://api.telegram.org/bot{$bot->bot_token}/getChat", [
+        $chatResponse = \Illuminate\Support\Facades\Http::withOptions(['verify' => false])->timeout(30)->get("https://api.telegram.org/bot{$bot->bot_token}/getChat", [
             'chat_id' => '@' . $channelUsername,
         ]);
 

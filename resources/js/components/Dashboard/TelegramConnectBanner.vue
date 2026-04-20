@@ -201,8 +201,10 @@ import { ref, computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 const page = usePage();
 
 // State
@@ -259,7 +261,7 @@ const formatTime = (isoString) => {
 const disconnectTelegram = async () => {
   if (isDisconnecting.value) return;
 
-  if (!confirm(t('telegram.disconnect_confirm'))) return;
+  if (!await confirm({ title: t('telegram.disconnect_title') || 'Telegram uzish', message: t('telegram.disconnect_confirm'), type: 'danger', confirmText: 'Uzish' })) return;
 
   isDisconnecting.value = true;
   try {

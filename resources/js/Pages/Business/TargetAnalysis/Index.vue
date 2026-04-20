@@ -5,8 +5,10 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
 import CampaignsTab from '@/components/Meta/CampaignsTab.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     business: Object,
@@ -97,7 +99,7 @@ const connectMeta = async () => {
 };
 
 const disconnectMeta = async () => {
-    if (!confirm('Meta Ads integratsiyasini uzmoqchimisiz?')) return;
+    if (!await confirm({ title: 'Uzishni tasdiqlang', message: 'Meta Ads integratsiyasini uzmoqchimisiz?', type: 'danger', confirmText: 'Uzish' })) return;
     metaLoading.value = true;
     try {
         await axios.post('/business/target-analysis/meta/disconnect', {

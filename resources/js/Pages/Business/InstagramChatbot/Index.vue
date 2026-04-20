@@ -5,8 +5,10 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import InstagramFlowBuilder from '@/components/instagram/InstagramFlowBuilder.vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     business: Object,
@@ -259,7 +261,7 @@ const toggleAutomation = async (automation) => {
 };
 
 const deleteAutomation = async (automation) => {
-    if (!confirm('Rostdan ham o\'chirmoqchimisiz?')) return;
+    if (!await confirm({ title: 'Avtomatizatsiyani o\'chirish', message: 'Rostdan ham o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
     try {
         await axios.delete(`${apiBase}/automations/${automation.id}`);
         await loadAutomations();

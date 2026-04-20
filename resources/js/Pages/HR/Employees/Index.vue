@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     UsersIcon,
     PlusIcon,
@@ -29,6 +30,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     employees: { type: Array, default: () => [] },
@@ -352,7 +354,7 @@ const resetPassword = async () => {
 };
 
 const removeMember = async (employee) => {
-    if (!confirm(`${employee.name} ni o'chirishni tasdiqlaysizmi?`)) return;
+    if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: `${employee.name} ni o'chirishni tasdiqlaysizmi?`, type: 'danger', confirmText: 'O\'chirish' })) return;
     try {
         loading.value = true;
         const response = await fetch(route('hr.team.remove', employee.id), {
@@ -435,18 +437,18 @@ const createLeaveRequest = async () => {
 };
 
 const approveLeave = async (leaveId) => {
-    if (!confirm('Ushbu ta\'til so\'rovini tasdiqlaysizmi?')) return;
+    if (!await confirm({ title: 'Ta\'tilni tasdiqlash', message: 'Ushbu ta\'til so\'rovini tasdiqlaysizmi?', type: 'info', confirmText: 'Tasdiqlash' })) return;
     router.post(`/hr/leave/${leaveId}/approve`);
 };
 
 const rejectLeave = async (leaveId) => {
-    if (!confirm('Ushbu ta\'til so\'rovini rad etasizmi?')) return;
+    if (!await confirm({ title: 'Ta\'tilni rad etish', message: 'Ushbu ta\'til so\'rovini rad etasizmi?', type: 'warning', confirmText: 'Rad etish' })) return;
     router.post(`/hr/leave/${leaveId}/reject`);
 };
 
 const terminateEmployee = async () => {
     if (!selectedEmployee.value) return;
-    if (!confirm(`${selectedEmployee.value.name} ni ishdan bo'shatishni tasdiqlaysizmi?`)) return;
+    if (!await confirm({ title: 'Ishdan bo\'shatish', message: `${selectedEmployee.value.name} ni ishdan bo'shatishni tasdiqlaysizmi?`, type: 'danger', confirmText: 'Bo\'shatish' })) return;
 
     try {
         loading.value = true;

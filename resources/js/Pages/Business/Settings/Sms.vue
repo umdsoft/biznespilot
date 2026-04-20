@@ -3,8 +3,10 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     eskizAccount: Object,
@@ -82,8 +84,8 @@ const connectEskiz = () => {
     });
 };
 
-const disconnectEskiz = () => {
-    if (!confirm('Eskiz SMS integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectEskiz = async () => {
+    if (!await confirm({ title: 'Eskiz SMS uzish', message: 'Eskiz SMS integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('business.settings.sms.disconnect'), {}, {
@@ -106,8 +108,8 @@ const connectPlaymobile = () => {
     });
 };
 
-const disconnectPlaymobile = () => {
-    if (!confirm('PlayMobile SMS integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectPlaymobile = async () => {
+    if (!await confirm({ title: 'PlayMobile SMS uzish', message: 'PlayMobile SMS integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('business.settings.sms.playmobile.disconnect'), {}, {
@@ -185,7 +187,7 @@ const saveTemplate = async () => {
 };
 
 const deleteTemplate = async (template) => {
-    if (!confirm(`"${template.name}" shablonini o'chirmoqchimisiz?`)) return;
+    if (!await confirm({ title: 'Shablonni o\'chirish', message: `"${template.name}" shablonini o'chirmoqchimisiz?`, type: 'danger', confirmText: 'O\'chirish' })) return;
 
     try {
         const response = await fetch(route('business.sms.templates.destroy', template.id), {

@@ -150,6 +150,9 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
 import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   business: {
@@ -174,8 +177,8 @@ const submit = () => {
   form.put(`/business/${props.business.id}`);
 };
 
-const confirmDelete = () => {
-  if (confirm('Rostdan ham bu biznesni o\'chirmoqchimisiz? Bu amalni qaytarib bo\'lmaydi.')) {
+const confirmDelete = async () => {
+  if (await confirm({ title: "O'chirishni tasdiqlang", message: 'Rostdan ham bu biznesni o\'chirmoqchimisiz? Bu amalni qaytarib bo\'lmaydi.', type: 'danger', confirmText: "O'chirish" })) {
     router.delete(`/business/${props.business.id}`);
   }
 };

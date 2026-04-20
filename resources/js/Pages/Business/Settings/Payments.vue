@@ -3,8 +3,10 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, computed } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     paymeAccount: Object,
@@ -49,8 +51,8 @@ const connectPayme = () => {
     });
 };
 
-const disconnectPayme = () => {
-    if (!confirm('Payme integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectPayme = async () => {
+    if (!await confirm({ title: 'Payme uzish', message: 'Payme integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('business.settings.payments.payme.disconnect'), {}, {
@@ -73,8 +75,8 @@ const connectClick = () => {
     });
 };
 
-const disconnectClick = () => {
-    if (!confirm('Click integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectClick = async () => {
+    if (!await confirm({ title: 'Click uzish', message: 'Click integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('business.settings.payments.click.disconnect'), {}, {

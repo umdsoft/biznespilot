@@ -1420,7 +1420,7 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
 
         session()->forget('active_store_id');
 
-        return redirect()->route('business.telegram-bots.index');
+        return redirect()->route('business.telegram-funnels.index');
     })->name('store.deselect');
 
     // ========== Store Management (Telegram Mini App Do'kon) ==========

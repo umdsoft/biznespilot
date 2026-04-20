@@ -118,7 +118,7 @@ class StoreNotificationService
                 return false;
             }
 
-            $response = Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
+            $response = Http::withOptions(['verify' => false])->timeout(30)->post("https://api.telegram.org/bot{$token}/sendMessage", [
                 'chat_id' => $chatId,
                 'text' => $text,
                 'parse_mode' => 'Markdown',

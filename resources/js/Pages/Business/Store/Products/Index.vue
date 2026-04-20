@@ -271,6 +271,9 @@ import {
   StarIcon,
   CubeIcon,
 } from '@heroicons/vue/24/outline';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   products: { type: Object, default: () => ({ data: [], links: [] }) },
@@ -316,8 +319,8 @@ const toggleActive = (product) => {
   });
 };
 
-const confirmDelete = (product) => {
-  if (confirm(`"${product.name}" mahsulotini o'chirmoqchimisiz?`)) {
+const confirmDelete = async (product) => {
+  if (await confirm({ title: "O'chirishni tasdiqlang", message: `"${product.name}" mahsulotini o'chirmoqchimisiz?`, type: 'danger', confirmText: "O'chirish" })) {
     router.delete(route('business.store.products.destroy', product.id), {
       preserveScroll: true,
     });

@@ -227,6 +227,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   bot: Object,
@@ -249,6 +250,8 @@ const getRoute = (name, params = null) => {
   const prefix = props.panelType === 'business' ? 'business.' : 'marketing.'
   return params ? route(prefix + name, params) : route(prefix + name)
 }
+
+const { confirm } = useConfirm()
 
 const messagesContainer = ref(null)
 const newMessage = ref('')
@@ -404,7 +407,7 @@ const assignToMe = async () => {
 }
 
 const closeConversation = async () => {
-  if (confirm('Suhbatni yopishni xohlaysizmi?')) {
+  if (await confirm({ title: 'Suhbatni yopish', message: 'Suhbatni yopishni xohlaysizmi?', type: 'warning', confirmText: 'Yopish' })) {
     await fetch(getRoute('telegram-funnels.conversations.close', [props.bot.id, props.conversation.id]), {
       method: 'POST',
       headers: {

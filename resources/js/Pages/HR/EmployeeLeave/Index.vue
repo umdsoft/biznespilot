@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     CalendarIcon,
     UserIcon,
@@ -12,6 +13,8 @@ import {
     MagnifyingGlassIcon,
     FunnelIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     leaveRequests: Array,
@@ -58,14 +61,14 @@ const getStatusLabel = (status) => {
     return labels[status] || status;
 };
 
-const approveRequest = (id) => {
-    if (confirm('Ushbu ta\'til so\'rovini tasdiqlaysizmi?')) {
+const approveRequest = async (id) => {
+    if (await confirm({ title: 'Ta\'tilni tasdiqlash', message: 'Ushbu ta\'til so\'rovini tasdiqlaysizmi?', type: 'info', confirmText: 'Tasdiqlash' })) {
         router.post(`/hr/leave/${id}/approve`);
     }
 };
 
-const rejectRequest = (id) => {
-    if (confirm('Ushbu ta\'til so\'rovini rad etasizmi?')) {
+const rejectRequest = async (id) => {
+    if (await confirm({ title: 'Ta\'tilni rad etish', message: 'Ushbu ta\'til so\'rovini rad etasizmi?', type: 'warning', confirmText: 'Rad etish' })) {
         router.post(`/hr/leave/${id}/reject`);
     }
 };

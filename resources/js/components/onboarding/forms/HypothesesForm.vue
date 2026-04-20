@@ -274,8 +274,10 @@ import { ref, reactive, onMounted } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 const store = useOnboardingStore();
 const toast = useToastStore();
 
@@ -390,7 +392,7 @@ async function saveHypothesis() {
 }
 
 async function deleteHypothesis(id) {
-  if (!confirm(t('onboarding.hypotheses.delete_confirm'))) return;
+  if (!await confirm({ title: 'Gipotezani o\'chirish', message: t('onboarding.hypotheses.delete_confirm'), type: 'danger', confirmText: 'O\'chirish' })) return;
 
   try {
     await store.deleteHypothesis(id);

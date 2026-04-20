@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     UsersIcon,
     PlusIcon,
@@ -13,6 +14,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     members: { type: Array, default: () => [] },
@@ -170,7 +172,7 @@ const resetPassword = async () => {
 
 // Remove member
 const removeMember = async (member) => {
-    if (!confirm(`${member.name}${t('hr.remove_confirm')}`)) return;
+    if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: `${member.name}${t('hr.remove_confirm')}`, type: 'danger', confirmText: 'O\'chirish' })) return;
 
     try {
         const response = await fetch(route('hr.team.remove', member.id), {

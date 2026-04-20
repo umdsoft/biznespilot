@@ -3,8 +3,10 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, computed } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     currentBusiness: Object,
@@ -23,8 +25,8 @@ const connect = () => {
     window.location.href = props.oauthUrl;
 };
 
-const disconnect = () => {
-    if (confirm('Yandex Direct integratsiyasini o\'chirmoqchimisiz?')) {
+const disconnect = async () => {
+    if (await confirm({ title: 'Yandex Direct uzish', message: 'Yandex Direct integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) {
         isDisconnecting.value = true;
         router.post(route('business.settings.yandex-direct.disconnect'), {}, {
             onFinish: () => {

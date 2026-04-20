@@ -59,25 +59,60 @@
             </div>
 
             <!-- Navigation Items -->
-            <NavLink
-              v-for="item in section.items"
-              :key="item.href"
-              :href="item.href"
-              :active="isActive(item)"
-            >
-              <component :is="item.icon" class="w-5 h-5 mr-3" />
-              <span class="flex-1">{{ translateLabel(item) }}</span>
-              <span
-                v-if="item.badge && item.badge.value > 0"
-                :class="[
-                  'ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white rounded-full',
-                  item.badge.class || 'bg-red-500',
-                  item.badge.pulse ? 'animate-pulse' : ''
-                ]"
+            <template v-for="item in section.items" :key="item.href">
+              <!-- Item with children (expandable submenu) -->
+              <div v-if="item.children && item.children.length">
+                <button
+                  @click="toggleSubmenu(item.href)"
+                  :class="[
+                    'w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors',
+                    isActive(item)
+                      ? 'bg-blue-100 text-blue-700 font-semibold dark:bg-blue-900/30 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ]"
+                >
+                  <component :is="item.icon" class="w-5 h-5 mr-3" />
+                  <span class="flex-1 text-left">{{ translateLabel(item) }}</span>
+                  <svg
+                    :class="['w-4 h-4 transition-transform duration-200', isSubmenuOpen(item.href) ? 'rotate-90' : '']"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <div v-show="isSubmenuOpen(item.href)" class="ml-4 mt-0.5 space-y-0.5 border-l-2 border-gray-200 dark:border-gray-700 pl-2">
+                  <NavLink
+                    v-for="child in item.children"
+                    :key="child.href"
+                    :href="child.href"
+                    :active="isActive(child)"
+                  >
+                    <component v-if="child.icon" :is="child.icon" class="w-4 h-4 mr-2.5 opacity-70" />
+                    <span class="text-[13px]">{{ translateLabel(child) }}</span>
+                  </NavLink>
+                </div>
+              </div>
+
+              <!-- Regular item (no children) -->
+              <NavLink
+                v-else
+                :href="item.href"
+                :active="isActive(item)"
               >
-                {{ item.badge.value > 99 ? '99+' : item.badge.value }}
-              </span>
-            </NavLink>
+                <component :is="item.icon" class="w-5 h-5 mr-3" />
+                <span class="flex-1">{{ translateLabel(item) }}</span>
+                <span
+                  v-if="item.badge && item.badge.value > 0"
+                  :class="[
+                    'ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white rounded-full',
+                    item.badge.class || 'bg-red-500',
+                    item.badge.pulse ? 'animate-pulse' : ''
+                  ]"
+                >
+                  {{ item.badge.value > 99 ? '99+' : item.badge.value }}
+                </span>
+              </NavLink>
+            </template>
           </template>
         </slot>
       </nav>
@@ -409,6 +444,27 @@ const currentBusinessInitial = computed(() => {
   if (!business?.name) return '?';
   return business.name.charAt(0).toUpperCase();
 });
+
+// Submenu state
+const openSubmenus = ref({});
+const toggleSubmenu = (key) => {
+  openSubmenus.value[key] = !openSubmenus.value[key];
+};
+const isSubmenuOpen = (key) => {
+  // Auto-open if current page matches any child
+  if (openSubmenus.value[key] !== undefined) return openSubmenus.value[key];
+  const url = page.url;
+  const nav = config.value?.navigation || props.config?.navigation || [];
+  for (const section of nav) {
+    for (const item of section.items || []) {
+      if (item.href === key && item.children) {
+        const match = item.children.some(c => url.startsWith(c.href)) || (item.activeMatch ? item.activeMatch(url) : url.startsWith(key));
+        if (match) { openSubmenus.value[key] = true; return true; }
+      }
+    }
+  }
+  return false;
+};
 
 // Check if nav item is active
 const isActive = (item) => {

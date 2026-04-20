@@ -155,8 +155,10 @@ import Modal from '@/components/Modal.vue';
 import Pagination from '@/components/Pagination.vue';
 import { ArrowPathIcon, LightBulbIcon } from '@heroicons/vue/24/outline';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 interface Props {
     insights: {
@@ -237,7 +239,7 @@ async function markAsActed() {
 }
 
 async function dismissInsight(insightId: string) {
-    if (confirm(t('insights.dismiss.confirm'))) {
+    if (await confirm({ title: t('insights.dismiss.title', 'Tavsiyani yopish'), message: t('insights.dismiss.confirm'), type: 'warning', confirmText: t('insights.dismiss.action', 'Yopish') })) {
         router.post(`/business/insights/${insightId}/dismiss`, {}, {
             preserveScroll: true,
         });

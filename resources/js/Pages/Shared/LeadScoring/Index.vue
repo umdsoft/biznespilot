@@ -9,6 +9,7 @@ import {
     TransitionRoot,
     TransitionChild,
 } from '@headlessui/vue'
+import { useConfirm } from '@/composables/useConfirm'
 import {
     ChartBarIcon,
     PlusIcon,
@@ -23,6 +24,8 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
 } from '@heroicons/vue/24/outline'
+
+const { confirm } = useConfirm()
 
 const props = defineProps({
     rules: Array,
@@ -115,16 +118,16 @@ const toggleRule = (rule) => {
     })
 }
 
-const deleteRule = (rule) => {
-    if (confirm(`"${rule.name}" qoidasini o'chirishni xohlaysizmi?`)) {
+const deleteRule = async (rule) => {
+    if (await confirm({ title: 'Qoidani o\'chirish', message: `"${rule.name}" qoidasini o'chirishni xohlaysizmi?`, type: 'danger', confirmText: 'O\'chirish' })) {
         router.delete(route('sales-head.lead-scoring.destroy', rule.id), {
             preserveScroll: true,
         })
     }
 }
 
-const recalculateAll = () => {
-    if (confirm('Barcha leadlarni qayta baholashni xohlaysizmi? Bu biroz vaqt olishi mumkin.')) {
+const recalculateAll = async () => {
+    if (await confirm({ title: 'Qayta baholash', message: 'Barcha leadlarni qayta baholashni xohlaysizmi? Bu biroz vaqt olishi mumkin.', type: 'info', confirmText: 'Boshlash' })) {
         recalculating.value = true
         router.post(route('sales-head.lead-scoring.recalculate-all'), {}, {
             preserveScroll: true,
@@ -135,8 +138,8 @@ const recalculateAll = () => {
     }
 }
 
-const resetToDefaults = () => {
-    if (confirm('Barcha qoidalar o\'chiriladi va standart qoidalar tiklanadi. Davom etasizmi?')) {
+const resetToDefaults = async () => {
+    if (await confirm({ title: 'Standartga qaytarish', message: 'Barcha qoidalar o\'chiriladi va standart qoidalar tiklanadi. Davom etasizmi?', type: 'warning', confirmText: 'Qaytarish' })) {
         router.post(route('sales-head.lead-scoring.reset'), {}, {
             preserveScroll: true,
         })

@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     BriefcaseIcon,
     PlusIcon,
@@ -15,6 +16,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     jobDescriptions: { type: Array, default: () => [] },
@@ -157,7 +159,7 @@ const updateJobDescription = async () => {
 
 // Delete job description
 const deleteJobDescription = async (jobId) => {
-    if (!confirm('Rostdan ham bu lavozim majburiyatini o\'chirmoqchimisiz?')) {
+    if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: 'Rostdan ham bu lavozim majburiyatini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) {
         return;
     }
 

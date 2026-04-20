@@ -151,8 +151,10 @@ import Card from '@/components/Card.vue';
 import Input from '@/components/Input.vue';
 import Button from '@/components/Button.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
   business: {
@@ -177,8 +179,8 @@ const submit = () => {
   form.put(route('business.business.update', props.business.id));
 };
 
-const confirmDelete = () => {
-  if (confirm(t('business.delete_confirm'))) {
+const confirmDelete = async () => {
+  if (await confirm({ title: "O'chirishni tasdiqlang", message: t('business.delete_confirm'), type: 'danger', confirmText: "O'chirish" })) {
     router.delete(route('business.business.destroy', props.business.id));
   }
 };

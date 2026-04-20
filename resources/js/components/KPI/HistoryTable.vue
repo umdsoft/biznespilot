@@ -164,8 +164,10 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
   businessId: {
@@ -288,7 +290,7 @@ const editEntry = (entry) => {
 };
 
 const deleteEntry = async (entry) => {
-  if (!confirm('Bu ma\'lumotni o\'chirmoqchimisiz?')) return;
+  if (!await confirm({ title: 'Ma\'lumotni o\'chirish', message: 'Bu ma\'lumotni o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   try {
     const dateStr = entry.date.split('T')[0];

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { useConfirm } from '@/composables/useConfirm';
 import { refreshCsrfToken, isCsrfError } from '@/utils/csrf';
 import {
     PlusIcon,
@@ -14,6 +15,8 @@ import {
     UserIcon,
 } from '@heroicons/vue/24/outline';
 import TaskModal from '@/components/TaskModal.vue';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     tasks: Object,
@@ -115,7 +118,7 @@ const completeTask = async (task) => {
 
 // Delete task
 const deleteTask = async (task) => {
-    if (!confirm('Vazifani o\'chirmoqchimisiz?')) return;
+    if (!await confirm({ title: 'Vazifani o\'chirish', message: 'Vazifani o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     try {
         // Refresh CSRF token before request

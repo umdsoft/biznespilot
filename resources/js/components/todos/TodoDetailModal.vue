@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     XMarkIcon,
     CalendarIcon,
@@ -19,6 +20,7 @@ import {
 import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/vue/24/solid';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     show: Boolean,
@@ -108,8 +110,8 @@ const toggleComplete = () => {
     emit('toggle', props.todo);
 };
 
-const deleteTodo = () => {
-    if (confirm(t('todos.detail.delete_confirm'))) {
+const deleteTodo = async () => {
+    if (await confirm({ title: t('todos.detail.delete_title') || 'O\'chirish', message: t('todos.detail.delete_confirm'), type: 'danger', confirmText: 'O\'chirish' })) {
         emit('delete', props.todo);
     }
 };

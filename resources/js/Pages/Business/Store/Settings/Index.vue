@@ -565,6 +565,9 @@ import {
   PrinterIcon,
   InformationCircleIcon,
 } from '@heroicons/vue/24/outline';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   store: { type: Object, default: null },
@@ -778,8 +781,8 @@ const saveDeliveryZone = () => {
   }
 };
 
-const deleteDeliveryZone = (zone) => {
-  if (confirm("'" + zone.name + "' zonasini o'chirishni xohlaysizmi?")) {
+const deleteDeliveryZone = async (zone) => {
+  if (await confirm({ title: "O'chirishni tasdiqlang", message: "'" + zone.name + "' zonasini o'chirishni xohlaysizmi?", type: 'danger', confirmText: "O'chirish" })) {
     router.delete(route('business.store.delivery-zones.destroy', zone.id), {
       preserveScroll: true,
       onSuccess: () => notify('success', 'Zona o\'chirildi.'),

@@ -5,6 +5,7 @@ import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     PaperAirplaneIcon,
     ChartBarIcon,
@@ -24,6 +25,8 @@ import {
     XMarkIcon,
 } from '@heroicons/vue/24/outline';
 import { SparklesIcon } from '@heroicons/vue/24/solid';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     panelType: String,
@@ -119,8 +122,8 @@ const resendOffer = (id) => {
     router.post(route(`${getRoutePrefix()}.offer-automation.resend`, id));
 };
 
-const markConverted = (id) => {
-    if (confirm('Konversiya sifatida belgilaysizmi?')) {
+const markConverted = async (id) => {
+    if (await confirm({ title: 'Konversiya', message: 'Konversiya sifatida belgilaysizmi?', type: 'info', confirmText: 'Belgilash' })) {
         router.post(route(`${getRoutePrefix()}.offer-automation.convert`, id));
     }
 };

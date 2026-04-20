@@ -39,7 +39,7 @@ class StoreSetupService
     public function connectBot(TelegramStore $store, string $botToken): array
     {
         // Verify bot token with Telegram API
-        $response = Http::get("https://api.telegram.org/bot{$botToken}/getMe");
+        $response = Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->get("https://api.telegram.org/bot{$botToken}/getMe");
 
         if (! $response->successful()) {
             return ['success' => false, 'error' => 'Bot tokeni noto\'g\'ri. Telegram BotFather dan to\'g\'ri tokenni oling.'];
@@ -71,7 +71,7 @@ class StoreSetupService
         $webhookUrl = "{$baseUrl}/webhooks/telegram-funnel/{$bot->id}";
         $webhookSecret = $bot->webhook_secret ?: bin2hex(random_bytes(32));
 
-        $webhookResponse = Http::post("https://api.telegram.org/bot{$botToken}/setWebhook", [
+        $webhookResponse = Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
             'url' => $webhookUrl,
             'secret_token' => $webhookSecret,
             'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
@@ -86,7 +86,7 @@ class StoreSetupService
 
         // Set WebApp menu button
         $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
-        Http::post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
+        Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
             'menu_button' => [
                 'type' => 'web_app',
                 'text' => 'Do\'kon',
@@ -126,7 +126,7 @@ class StoreSetupService
             $webhookUrl = "{$baseUrl}/webhooks/telegram-funnel/{$bot->id}";
             $webhookSecret = $bot->webhook_secret ?: bin2hex(random_bytes(32));
 
-            $webhookResponse = Http::post("https://api.telegram.org/bot{$botToken}/setWebhook", [
+            $webhookResponse = Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
                 'url' => $webhookUrl,
                 'secret_token' => $webhookSecret,
                 'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
@@ -142,7 +142,7 @@ class StoreSetupService
 
         // Set WebApp menu button
         $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
-        Http::post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
+        Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
             'menu_button' => [
                 'type' => 'web_app',
                 'text' => 'Do\'kon',

@@ -274,6 +274,9 @@ import { ref, reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     reports: Array,
@@ -359,7 +362,7 @@ const toggleSchedule = async (id) => {
 };
 
 const deleteSchedule = async (id) => {
-    if (!confirm('Jadvalni o\'chirishni xohlaysizmi?')) return;
+    if (!await confirm({ title: "O'chirishni tasdiqlang", message: 'Jadvalni o\'chirishni xohlaysizmi?', type: 'danger', confirmText: "O'chirish" })) return;
 
     try {
         await axios.delete(route('business.reports.schedules.delete', id));

@@ -975,6 +975,7 @@
 import { ref, reactive, onMounted, h } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import axios from 'axios'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   bot: Object,
@@ -995,6 +996,8 @@ const getRoute = (name, params = null) => {
   const prefix = props.panelType === 'business' ? 'business.' : 'marketing.'
   return params ? route(prefix + name, params) : route(prefix + name)
 }
+
+const { confirm } = useConfirm()
 
 // Canvas state
 const canvasContainer = ref(null)
@@ -1137,8 +1140,8 @@ const startDragNode = (e, node) => {
 
 const selectNode = (node) => { selectedNode.value = node }
 
-const deleteNode = (nodeId) => {
-  if (!confirm("Bu qadamni o'chirishni xohlaysizmi?")) return
+const deleteNode = async (nodeId) => {
+  if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: "Bu qadamni o'chirishni xohlaysizmi?", type: 'danger', confirmText: 'O\'chirish' })) return
   const index = nodes.value.findIndex(n => n.id === nodeId)
   if (index > -1) {
     nodes.value.splice(index, 1)
@@ -1202,8 +1205,8 @@ const updateConditionConnection = (branchType) => {
   if (targetId) connections.value.push({ from: selectedNode.value.id, to: targetId, type: branchType })
 }
 
-const deleteConnection = (connection) => {
-  if (!confirm("Bu bog'lanishni o'chirishni xohlaysizmi?")) return
+const deleteConnection = async (connection) => {
+  if (!await confirm({ title: 'O\'chirishni tasdiqlang', message: "Bu bog'lanishni o'chirishni xohlaysizmi?", type: 'danger', confirmText: 'O\'chirish' })) return
   const sourceNode = nodes.value.find(n => n.id === connection.from)
 
   if (connection.type === 'true' && sourceNode) sourceNode.condition_true_step_id = null

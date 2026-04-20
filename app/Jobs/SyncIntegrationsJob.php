@@ -210,7 +210,7 @@ class SyncIntegrationsJob implements ShouldQueue
         }
 
         try {
-            $response = Http::get("https://api.telegram.org/bot{$token}/getChatMemberCount", [
+            $response = Http::withOptions(['verify' => false])->timeout(30)->get("https://api.telegram.org/bot{$token}/getChatMemberCount", [
                 'chat_id' => $channelId,
             ]);
 

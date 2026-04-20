@@ -12,8 +12,10 @@ import {
 } from '@heroicons/vue/24/outline';
 import TemplateModal from '@/components/todos/TemplateModal.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     templates: Array,
@@ -50,7 +52,7 @@ const changeCategory = (category) => {
 };
 
 const deleteTemplate = async (template) => {
-    if (!confirm(t('templates.delete_confirm'))) return;
+    if (!await confirm({ title: "O'chirishni tasdiqlang", message: t('templates.delete_confirm'), type: 'danger', confirmText: "O'chirish" })) return;
 
     try {
         const response = await fetch(route('business.todo-templates.destroy', template.id), {

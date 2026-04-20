@@ -9,6 +9,9 @@ import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
 import axios from 'axios';
 import CampaignsTab from '@/components/Meta/CampaignsTab.vue';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     business: Object,
@@ -124,7 +127,7 @@ const connectMeta = async () => {
 };
 
 const disconnectMeta = async () => {
-    if (!confirm('Meta Ads integratsiyasini uzmoqchimisiz?')) return;
+    if (!await confirm({ title: 'Integratsiyani uzish', message: 'Meta Ads integratsiyasini uzmoqchimisiz?', type: 'warning', confirmText: 'Uzish' })) return;
     metaLoading.value = true;
     try {
         await axios.post('/integrations/meta/disconnect', {

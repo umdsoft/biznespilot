@@ -318,8 +318,10 @@ import { router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     notifications: Object,
@@ -390,7 +392,7 @@ async function handleNotificationClick(notification) {
 }
 
 async function deleteNotification(id) {
-    if (!confirm(t('notifications.delete_confirm'))) return;
+    if (!await confirm({ title: t('notifications.delete_title', 'O\'chirishni tasdiqlang'), message: t('notifications.delete_confirm'), type: 'danger', confirmText: t('notifications.delete_action', 'O\'chirish') })) return;
 
     try {
         await axios.delete(`/business/notifications/${id}`);

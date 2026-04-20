@@ -487,6 +487,7 @@
 import { ref, reactive } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
+import { useConfirm } from '@/composables/useConfirm'
 
 const props = defineProps({
   bot: Object,
@@ -514,6 +515,8 @@ const getRoute = (name, params = null) => {
   const prefix = props.panelType === 'business' ? 'business.' : 'marketing.';
   return params ? route(prefix + name, params) : route(prefix + name);
 };
+
+const { confirm } = useConfirm()
 
 const settings = reactive({
   welcome_message: props.bot.settings?.welcome_message || 'Assalomu alaykum!',
@@ -593,7 +596,7 @@ const saveSettings = async () => {
 }
 
 const toggleActive = async () => {
-  if (confirm(props.bot.is_active ? 'Botni o\'chirishni xohlaysizmi?' : 'Botni yoqishni xohlaysizmi?')) {
+  if (await confirm({ title: props.bot.is_active ? 'O\'chirishni tasdiqlang' : 'Yoqishni tasdiqlang', message: props.bot.is_active ? 'Botni o\'chirishni xohlaysizmi?' : 'Botni yoqishni xohlaysizmi?', type: 'warning', confirmText: props.bot.is_active ? 'O\'chirish' : 'Yoqish' })) {
     try {
       await axios.post(getRoute('telegram-funnels.toggle-active', props.bot.id))
       router.reload()
@@ -606,7 +609,7 @@ const toggleActive = async () => {
 }
 
 const deleteBot = async () => {
-  if (confirm('Botni o\'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo\'lmaydi!')) {
+  if (await confirm({ title: 'O\'chirishni tasdiqlang', message: 'Botni o\'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo\'lmaydi!', type: 'danger', confirmText: 'O\'chirish' })) {
     try {
       await axios.delete(getRoute('telegram-funnels.destroy', props.bot.id))
       router.visit(getRoute('telegram-funnels.index'))

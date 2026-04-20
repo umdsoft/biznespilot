@@ -271,6 +271,9 @@
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import { useConfirm } from '@/composables/useConfirm';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
     report: Object,
@@ -320,7 +323,7 @@ const goBack = () => {
 };
 
 const deleteReport = async () => {
-    if (!confirm('Hisobotni o\'chirishni xohlaysizmi?')) return;
+    if (!await confirm({ title: "O'chirishni tasdiqlang", message: 'Hisobotni o\'chirishni xohlaysizmi?', type: 'danger', confirmText: "O'chirish" })) return;
 
     try {
         await axios.delete(route('business.reports.delete', props.report.id));

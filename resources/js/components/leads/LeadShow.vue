@@ -38,8 +38,10 @@ import {
 } from '@heroicons/vue/24/outline';
 import { ChatBubbleBottomCenterTextIcon, ChatBubbleOvalLeftIcon } from '@heroicons/vue/24/solid';
 import { formatFullCurrency } from '@/utils/formatting';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     lead: {
@@ -618,7 +620,7 @@ const completeTask = async (task) => {
 
 // Delete task
 const deleteTask = async (task) => {
-    if (!confirm('Vazifani o\'chirmoqchimisiz?')) return;
+    if (!await confirm({ title: 'Vazifani o\'chirish', message: 'Vazifani o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     try {
         const deleteUrl = props.panelType === 'saleshead'

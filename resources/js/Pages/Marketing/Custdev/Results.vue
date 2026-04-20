@@ -3,8 +3,10 @@ import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 import { Doughnut, Bar, Line } from 'vue-chartjs';
 import {
     Chart as ChartJS,
@@ -490,8 +492,8 @@ const exportResults = () => {
     window.location.href = route('marketing.custdev.export', { custdev: props.survey.id });
 };
 
-const syncToDreamBuyer = () => {
-    if (confirm('Javoblarni Ideal Mijoz profiliga sinxronlashni xohlaysizmi?')) {
+const syncToDreamBuyer = async () => {
+    if (await confirm({ title: 'Sinxronlash', message: 'Javoblarni Ideal Mijoz profiliga sinxronlashni xohlaysizmi?', type: 'info', confirmText: 'Sinxronlash' })) {
         router.post(route('marketing.custdev.sync-dream-buyer', { custdev: props.survey.id }));
     }
 };

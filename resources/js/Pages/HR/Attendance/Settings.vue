@@ -4,6 +4,7 @@ import { router, useForm } from '@inertiajs/vue3';
 import HRLayout from '@/layouts/HRLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import {
     ClockIcon,
     MapPinIcon,
@@ -13,6 +14,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     settings: { type: Object, required: true },
@@ -52,8 +54,8 @@ const workHoursText = computed(() => {
     return `${form.work_start_time} - ${form.work_end_time}`;
 });
 
-const resetToDefaults = () => {
-    if (confirm('Sozlamalarni standart qiymatlariga qaytarmoqchimisiz?')) {
+const resetToDefaults = async () => {
+    if (await confirm({ title: 'Sozlamalarni qaytarish', message: 'Sozlamalarni standart qiymatlariga qaytarmoqchimisiz?', type: 'warning', confirmText: 'Qaytarish' })) {
         form.work_start_time = '09:00';
         form.work_end_time = '18:00';
         form.work_hours_per_day = 8;

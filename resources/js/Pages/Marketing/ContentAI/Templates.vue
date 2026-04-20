@@ -356,6 +356,7 @@ import { Link, router } from '@inertiajs/vue3';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   ArrowLeftIcon,
   PlusIcon,
@@ -365,6 +366,8 @@ import {
   ShareIcon,
   FireIcon,
 } from '@heroicons/vue/24/outline';
+
+const { confirm } = useConfirm();
 
 const props = defineProps({
   templates: {
@@ -517,7 +520,7 @@ const saveTemplate = async () => {
 };
 
 const deleteTemplate = async (template) => {
-  if (!confirm('Bu shablonni o\'chirmoqchimisiz?')) return;
+  if (!await confirm({ title: 'Shablonni o\'chirish', message: 'Bu shablonni o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
   try {
     await axios.delete(route('business.marketing.content-ai.templates.destroy', template.id));

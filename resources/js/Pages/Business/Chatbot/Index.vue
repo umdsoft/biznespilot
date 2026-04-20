@@ -145,8 +145,10 @@ import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import Card from '@/components/Card.vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
   messages: Array,
@@ -217,7 +219,7 @@ const sendSuggestion = (suggestion) => {
 };
 
 const clearHistory = async () => {
-  if (!confirm(t('chatbot.confirm_clear'))) return;
+  if (!await confirm({ title: 'Tarixni tozalash', message: t('chatbot.confirm_clear'), type: 'danger', confirmText: 'Tozalash' })) return;
 
   try {
     await axios.delete(route('business.chatbot.clear'));

@@ -3,8 +3,10 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import { ref, computed } from 'vue';
 import { useI18n } from '@/i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const props = defineProps({
     pbxAccount: Object,
@@ -110,8 +112,8 @@ const connectPbx = () => {
     });
 };
 
-const disconnectPbx = () => {
-    if (!confirm('PBX integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectPbx = async () => {
+    if (!await confirm({ title: 'PBX uzish', message: 'PBX integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('integrations.telephony.pbx.disconnect'), {}, {
@@ -134,8 +136,8 @@ const connectSipuni = () => {
     });
 };
 
-const disconnectSipuni = () => {
-    if (!confirm('SipUni integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectSipuni = async () => {
+    if (!await confirm({ title: 'SipUni uzish', message: 'SipUni integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('integrations.telephony.sipuni.disconnect'), {}, {
@@ -158,8 +160,8 @@ const connectMoiZvonki = () => {
     });
 };
 
-const disconnectMoiZvonki = () => {
-    if (!confirm('MoiZvonki integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectMoiZvonki = async () => {
+    if (!await confirm({ title: 'MoiZvonki uzish', message: 'MoiZvonki integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('integrations.telephony.moizvonki.disconnect'), {}, {
@@ -212,8 +214,8 @@ const connectUtel = () => {
     });
 };
 
-const disconnectUtel = () => {
-    if (!confirm('UTEL integratsiyasini o\'chirmoqchimisiz?')) return;
+const disconnectUtel = async () => {
+    if (!await confirm({ title: 'UTEL uzish', message: 'UTEL integratsiyasini o\'chirmoqchimisiz?', type: 'danger', confirmText: 'O\'chirish' })) return;
 
     isDisconnecting.value = true;
     router.post(route('integrations.telephony.utel.disconnect'), {}, {
