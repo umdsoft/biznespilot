@@ -55,22 +55,33 @@ class TelegramFunnelWebhookController extends Controller
             // Get update data
             $update = $request->all();
 
+            // Detect update type for logging/routing
+            $isBusinessUpdate = isset($update['business_connection'])
+                || isset($update['business_message'])
+                || isset($update['edited_business_message'])
+                || isset($update['deleted_business_messages']);
+
             Log::info('Telegram funnel webhook received', [
                 'bot_id' => $botId,
                 'bot_username' => $bot->bot_username,
                 'update_id' => $update['update_id'] ?? null,
                 'has_message' => isset($update['message']),
                 'has_callback' => isset($update['callback_query']),
+                'is_business' => $isBusinessUpdate,
+                'update_keys' => array_keys($update),
                 'message_text' => $update['message']['text'] ?? null,
             ]);
 
-            // Check if this bot is associated with an active store — delegate to store handler
-            $linkedStore = TelegramStore::where('telegram_bot_id', $bot->id)
-                ->where('is_active', true)
-                ->first();
+            // Business Bot updates go directly to our handlers — skip store delegation
+            if (! $isBusinessUpdate) {
+                // Check if this bot is associated with an active store — delegate to store handler
+                $linkedStore = TelegramStore::where('telegram_bot_id', $bot->id)
+                    ->where('is_active', true)
+                    ->first();
 
-            if ($linkedStore) {
-                return app(StoreTelegramWebhookController::class)->handle($request, $linkedStore->id);
+                if ($linkedStore) {
+                    return app(StoreTelegramWebhookController::class)->handle($request, $linkedStore->id);
+                }
             }
 
             // Dispatch update to the appropriate handler
