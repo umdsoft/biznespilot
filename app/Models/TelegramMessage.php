@@ -12,10 +12,19 @@ class TelegramMessage extends Model
 
     const UPDATED_AT = null;
 
+    public const SENDER_USER = 'user';
+
+    public const SENDER_BOT = 'bot';
+
+    public const SENDER_OPERATOR = 'operator';
+
+    public const SENDER_BUSINESS_OWNER = 'business_owner'; // Business Bot mode: AI/owner replied as the business account
+
     protected $fillable = [
         'conversation_id',
         'telegram_message_id',
         'telegram_chat_id',
+        'business_connection_id',
         'direction',
         'sender_type',
         'operator_id',

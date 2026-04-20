@@ -108,6 +108,16 @@ class TelegramBot extends Model
         return $this->hasOne(Store\TelegramStore::class);
     }
 
+    public function businessConnections(): HasMany
+    {
+        return $this->hasMany(TelegramBusinessConnection::class);
+    }
+
+    public function activeBusinessConnections(): HasMany
+    {
+        return $this->businessConnections()->enabled();
+    }
+
     // Scopes
     public function scopeActive($query)
     {

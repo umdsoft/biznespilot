@@ -73,13 +73,27 @@ class TelegramFunnelWebhookController extends Controller
                 return app(StoreTelegramWebhookController::class)->handle($request, $linkedStore->id);
             }
 
-            // Process based on update type (funnel bots)
+            // Dispatch update to the appropriate handler
             if (isset($update['message'])) {
                 $this->processMessage($bot, $update['message']);
             } elseif (isset($update['callback_query'])) {
                 $this->processCallbackQuery($bot, $update['callback_query']);
             } elseif (isset($update['my_chat_member'])) {
                 $this->processChatMemberUpdate($bot, $update['my_chat_member']);
+            }
+            // Business Bot updates (Bot API 7.2+) — fire when bot is connected to a Premium business account
+            elseif (isset($update['business_connection'])) {
+                app(\App\Services\Telegram\BusinessConnectionService::class)
+                    ->handleConnectionUpdate($bot, $update['business_connection']);
+            } elseif (isset($update['business_message'])) {
+                app(\App\Services\Telegram\BusinessChatHandlerService::class)
+                    ->handleIncomingMessage($bot, $update['business_message']);
+            } elseif (isset($update['edited_business_message'])) {
+                app(\App\Services\Telegram\BusinessChatHandlerService::class)
+                    ->handleEditedMessage($bot, $update['edited_business_message']);
+            } elseif (isset($update['deleted_business_messages'])) {
+                app(\App\Services\Telegram\BusinessChatHandlerService::class)
+                    ->handleDeletedMessages($bot, $update['deleted_business_messages']);
             }
 
             return response()->json(['ok' => true]);

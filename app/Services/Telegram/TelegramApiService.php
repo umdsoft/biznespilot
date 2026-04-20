@@ -15,10 +15,49 @@ class TelegramApiService
 
     protected string $token;
 
+    protected ?string $businessConnectionId = null;
+
+    /**
+     * Telegram API methods that accept business_connection_id parameter.
+     * Source: https://core.telegram.org/bots/api#sendmessage (Bot API 7.2+)
+     */
+    protected const BUSINESS_CONNECTION_METHODS = [
+        'sendMessage', 'sendPhoto', 'sendVideo', 'sendVoice', 'sendVideoNote',
+        'sendDocument', 'sendAudio', 'sendAnimation', 'sendLocation', 'sendContact',
+        'sendChatAction', 'sendMediaGroup', 'sendSticker', 'sendPoll', 'sendDice',
+        'editMessageText', 'editMessageReplyMarkup', 'editMessageCaption',
+        'editMessageMedia', 'editMessageLiveLocation', 'stopMessageLiveLocation',
+        'deleteMessage', 'deleteMessages', 'copyMessage', 'forwardMessage',
+    ];
+
     public function __construct(TelegramBot $bot)
     {
         $this->bot = $bot;
         $this->token = $bot->bot_token;
+    }
+
+    /**
+     * Set business connection context — all subsequent send/edit/delete calls
+     * will include business_connection_id so the bot acts on behalf of the
+     * Telegram Premium business account.
+     *
+     * Fluent: $api->forBusinessConnection($id)->sendMessage(...)
+     */
+    public function forBusinessConnection(?string $connectionId): self
+    {
+        $this->businessConnectionId = $connectionId;
+
+        return $this;
+    }
+
+    /**
+     * Clear business connection context (useful when reusing same service instance).
+     */
+    public function asBot(): self
+    {
+        $this->businessConnectionId = null;
+
+        return $this;
     }
 
     /**
@@ -27,6 +66,14 @@ class TelegramApiService
     protected function request(string $method, array $data = []): array
     {
         $url = "{$this->baseUrl}{$this->token}/{$method}";
+
+        // Auto-inject business_connection_id for supported methods (DRY: single chokepoint)
+        if ($this->businessConnectionId
+            && in_array($method, self::BUSINESS_CONNECTION_METHODS, true)
+            && ! isset($data['business_connection_id'])
+        ) {
+            $data['business_connection_id'] = $this->businessConnectionId;
+        }
 
         try {
             $response = Http::withOptions([
@@ -86,7 +133,12 @@ class TelegramApiService
     {
         $data = [
             'url' => $url,
-            'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
+            'allowed_updates' => [
+                'message', 'callback_query', 'my_chat_member',
+                // Business Bot (Bot API 7.2+) — fires only if bot is connected to a Premium business account
+                'business_connection', 'business_message',
+                'edited_business_message', 'deleted_business_messages',
+            ],
             'drop_pending_updates' => false,
         ];
 
@@ -548,5 +600,43 @@ class TelegramApiService
         }
 
         return 5;
+    }
+
+    // ==================== Business Bot API (Bot API 7.2+) ====================
+
+    /**
+     * Get Business Connection info by its ID.
+     * https://core.telegram.org/bots/api#getbusinessconnection
+     */
+    public function getBusinessConnection(string $connectionId): array
+    {
+        return $this->request('getBusinessConnection', [
+            'business_connection_id' => $connectionId,
+        ]);
+    }
+
+    /**
+     * Mark an incoming business message as read.
+     * https://core.telegram.org/bots/api#readbusinessmessage
+     */
+    public function readBusinessMessage(string $connectionId, int $chatId, int $messageId): array
+    {
+        return $this->request('readBusinessMessage', [
+            'business_connection_id' => $connectionId,
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+        ]);
+    }
+
+    /**
+     * Delete messages on behalf of a business account.
+     * https://core.telegram.org/bots/api#deletebusinessmessages
+     */
+    public function deleteBusinessMessages(string $connectionId, array $messageIds): array
+    {
+        return $this->request('deleteBusinessMessages', [
+            'business_connection_id' => $connectionId,
+            'message_ids' => $messageIds,
+        ]);
     }
 }

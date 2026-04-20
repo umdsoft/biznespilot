@@ -12,10 +12,16 @@ class TelegramConversation extends Model
 {
     use BelongsToBusiness, HasUuids;
 
+    public const MODE_BOT = 'bot';
+
+    public const MODE_BUSINESS = 'business';
+
     protected $fillable = [
         'business_id',
         'telegram_user_id',
         'telegram_bot_id',
+        'business_connection_id',
+        'mode',
         'status',
         'assigned_operator_id',
         'handoff_at',
@@ -50,6 +56,16 @@ class TelegramConversation extends Model
     public function bot(): BelongsTo
     {
         return $this->belongsTo(TelegramBot::class, 'telegram_bot_id');
+    }
+
+    public function businessConnection(): BelongsTo
+    {
+        return $this->belongsTo(TelegramBusinessConnection::class, 'business_connection_id', 'connection_id');
+    }
+
+    public function isBusinessMode(): bool
+    {
+        return $this->mode === self::MODE_BUSINESS;
     }
 
     public function assignedOperator(): BelongsTo

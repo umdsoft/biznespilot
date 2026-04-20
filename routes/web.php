@@ -905,6 +905,14 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
             Route::post('/{conversation}/remove-tag', [TelegramConversationController::class, 'removeTag'])->name('remove-tag');
             Route::get('/{conversation}/messages', [TelegramConversationController::class, 'getNewMessages'])->name('messages');
         });
+
+        // Business Bot Connections (Bot API 7.2+) — bot connected to user's Premium business account
+        Route::prefix('{bot}/business-connections')->name('business-connections.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Telegram\BusinessConnectionController::class, 'index'])->name('index');
+            Route::put('/{connection}', [\App\Http\Controllers\Telegram\BusinessConnectionController::class, 'update'])->name('update');
+            Route::post('/{connection}/toggle-enabled', [\App\Http\Controllers\Telegram\BusinessConnectionController::class, 'toggleEnabled'])->name('toggle-enabled');
+            Route::delete('/{connection}', [\App\Http\Controllers\Telegram\BusinessConnectionController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Reports routes
