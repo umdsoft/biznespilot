@@ -395,6 +395,13 @@ class SystemBotService
 
     /**
      * Set webhook for the System Bot.
+     *
+     * allowed_updates is extended to include channel analytics events:
+     * - my_chat_member: bot added/removed as admin in a chat
+     * - chat_member: channel subscribers join/leave (requires admin + can_manage_chat)
+     * - channel_post / edited_channel_post: posts tracking
+     * - message_reaction / message_reaction_count: reactions tracking (Bot API 7.0+)
+     * - chat_boost / removed_chat_boost: boost tracking
      */
     public function setWebhook(string $webhookUrl): bool
     {
@@ -405,7 +412,18 @@ class SystemBotService
         try {
             $params = [
                 'url' => $webhookUrl,
-                'allowed_updates' => ['message', 'callback_query'],
+                'allowed_updates' => [
+                    'message',
+                    'callback_query',
+                    'my_chat_member',
+                    'chat_member',
+                    'channel_post',
+                    'edited_channel_post',
+                    'message_reaction',
+                    'message_reaction_count',
+                    'chat_boost',
+                    'removed_chat_boost',
+                ],
                 'drop_pending_updates' => true,
             ];
 
@@ -566,5 +584,125 @@ class SystemBotService
         return "🔓 <b>Telegram hisobingiz uzildi</b>\n\n"
             . "Siz endi BiznesPilot dan xabar olmaysiz.\n\n"
             . "Qayta ulash uchun dashboardga kiring.";
+    }
+
+    // ============================================
+    // CHANNEL ANALYTICS API METHODS
+    // ============================================
+
+    /**
+     * Generate deep link for adding bot as channel admin.
+     *
+     * Telegram Bot API deep-link format:
+     *   https://t.me/<bot_username>?startchannel=true&admin=<rights>
+     *
+     * User kanalga bot'ni admin qilganda Telegram bizga my_chat_member
+     * update yuboradi. Minimal admin-right: can_manage_chat (reactions + members).
+     */
+    public function generateChannelDeepLink(): ?string
+    {
+        if (empty($this->botUsername)) {
+            return null;
+        }
+
+        // Minimal admin rights for analytics:
+        //  - manage_chat: receive chat_member + message_reaction updates
+        // We explicitly avoid post/edit/delete rights.
+        $rights = 'manage_chat';
+
+        return "https://t.me/{$this->botUsername}?startchannel=true&admin={$rights}";
+    }
+
+    /**
+     * Get bot username (for generating deep links).
+     */
+    public function getBotUsername(): ?string
+    {
+        return $this->botUsername;
+    }
+
+    /**
+     * Get chat info.
+     *
+     * @return array|null Telegram Chat object
+     */
+    public function getChat(int|string $chatId): ?array
+    {
+        return $this->apiRequest('getChat', ['chat_id' => $chatId]);
+    }
+
+    /**
+     * Get chat member count.
+     */
+    public function getChatMemberCount(int|string $chatId): ?int
+    {
+        $result = $this->apiRequest('getChatMemberCount', ['chat_id' => $chatId]);
+
+        return is_int($result) ? $result : null;
+    }
+
+    /**
+     * Get list of chat administrators.
+     *
+     * @return array|null Array of ChatMember objects
+     */
+    public function getChatAdministrators(int|string $chatId): ?array
+    {
+        return $this->apiRequest('getChatAdministrators', ['chat_id' => $chatId]);
+    }
+
+    /**
+     * Leave a chat (used when user wants to stop tracking a channel).
+     */
+    public function leaveChat(int|string $chatId): bool
+    {
+        $result = $this->apiRequest('leaveChat', ['chat_id' => $chatId]);
+
+        return $result === true;
+    }
+
+    /**
+     * Generic Bot API request helper.
+     *
+     * Returns parsed `result` from Telegram response on success, null on failure.
+     */
+    protected function apiRequest(string $method, array $params = []): mixed
+    {
+        if (!$this->isConfigured()) {
+            Log::warning('SystemBot: Bot token not configured', ['method' => $method]);
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->retry(2, 500)
+                ->post(self::API_BASE_URL . $this->botToken . '/' . $method, $params);
+
+            if (!$response->successful()) {
+                Log::warning('SystemBot: API request failed', [
+                    'method' => $method,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+            if (!($data['ok'] ?? false)) {
+                Log::warning('SystemBot: API returned not-ok', [
+                    'method' => $method,
+                    'description' => $data['description'] ?? 'unknown',
+                ]);
+                return null;
+            }
+
+            return $data['result'] ?? null;
+        } catch (\Throwable $e) {
+            Log::error('SystemBot: API request exception', [
+                'method' => $method,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
     }
 }

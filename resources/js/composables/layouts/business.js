@@ -97,7 +97,8 @@ export const businessLayoutConfig = {
         { href: '/integrations', label: 'Integratsiyalar', labelKey: 'nav.integrations', icon: BoltIcon },
         { href: '/business/facebook-analysis', label: 'Target Analiz', labelKey: 'nav.target_analysis', icon: FacebookIcon, integration: 'facebook' },
         { href: '/integrations/instagram', label: 'Instagram', labelKey: 'nav.instagram', icon: InstagramIcon, integration: 'instagram' },
-        { href: '/business/telegram-funnels', label: 'Telegram Bot', labelKey: 'nav.telegram', icon: TelegramIcon, activeMatch: (url) => url.startsWith('/business/telegram-funnels') || url.startsWith('/business/telegram') },
+        { href: '/business/telegram-channels', label: 'Telegram Kanallar', labelKey: 'nav.telegram_channels', icon: TelegramIcon, activeMatch: (url) => url.startsWith('/business/telegram-channels') },
+        { href: '/business/telegram-funnels', label: 'Telegram Bot', labelKey: 'nav.telegram', icon: TelegramIcon, activeMatch: (url) => url.startsWith('/business/telegram-funnels') || (url.startsWith('/business/telegram') && !url.startsWith('/business/telegram-channels')) },
       ]
     },
     {

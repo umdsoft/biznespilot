@@ -105,14 +105,24 @@ class SalesController extends Controller
             return response()->json(['error' => 'Business not found'], 404);
         }
 
-        $perPage = $request->input('per_page', 25);
+        $perPage = min((int) $request->input('per_page', 25), 500);
         $status = $request->input('status');
         $source = $request->input('source');
         $search = $request->input('search');
         $operator = $request->input('operator');
+        $lightweight = $request->boolean('lightweight', false); // Kanban uchun slim payload
+        $requestedFields = $this->parseFieldsParam($request->input('fields'));
+
+        // PERFORMANCE: select() bilan column whitelist — og'ir data/notes JSON'larni yuklamaymiz.
+        // `data` va `notes` alohida so'rov bo'yicha detail sahifada yuklanadi.
+        $selectable = $this->leadSelectableColumns($lightweight, $requestedFields);
 
         $query = Lead::where('business_id', $currentBusiness->id)
-            ->with(['source', 'assignedTo:id,name']);
+            ->select($selectable)
+            ->with([
+                'source:id,name,code,icon,color',
+                'assignedTo:id,name',
+            ]);
 
         // Apply filters
         if ($status && $status !== 'all') {
@@ -139,45 +149,95 @@ class SalesController extends Controller
             });
         }
 
-        $leads = $query->latest()
+        // PERFORMANCE: `latest()` created_at DESC order'i — composite indeks
+        // leads_business_status_created_idx tomonidan qamrab olinadi.
+        $leads = $query->latest('created_at')
             ->paginate($perPage);
 
-        // Transform the data
-        $leads->getCollection()->transform(function ($lead) {
-            // Load source relationship if source_id exists but source is not loaded
-            if ($lead->source_id && ! $lead->relationLoaded('source')) {
-                $lead->load('source');
-            }
-
-            return [
+        // Transform the data — slim payload uchun
+        $leads->getCollection()->transform(function ($lead) use ($lightweight) {
+            $payload = [
                 'id' => $lead->id,
-                'uuid' => $lead->uuid,
                 'name' => $lead->name,
-                'email' => $lead->email,
                 'phone' => $lead->phone,
-                'company' => $lead->company,
                 'status' => $lead->status,
-                'score' => $lead->score,
                 'estimated_value' => $lead->estimated_value,
                 'source_id' => $lead->source_id,
-                'source' => $lead->source ? [
+                'created_at' => $lead->created_at?->toISOString(),
+            ];
+
+            // Source — slim (id, name, icon, color)
+            if ($lead->source_id && $lead->relationLoaded('source') && $lead->source) {
+                $payload['source'] = [
                     'id' => $lead->source->id,
                     'name' => $lead->source->name,
-                    'code' => $lead->source->code,
                     'icon' => $lead->source->icon,
                     'color' => $lead->source->color,
-                ] : null,
-                'assigned_to' => $lead->assignedTo ? [
-                    'id' => $lead->assignedTo->id,
-                    'name' => $lead->assignedTo->name,
-                ] : null,
-                'data' => $lead->data,
-                'last_contacted_at' => $lead->last_contacted_at?->format('d.m.Y H:i'),
-                'created_at' => $lead->created_at->toISOString(),
-            ];
+                ];
+            } else {
+                $payload['source'] = null;
+            }
+
+            // Operator — faqat id+name
+            $payload['assigned_to'] = $lead->assignedTo
+                ? ['id' => $lead->assignedTo->id, 'name' => $lead->assignedTo->name]
+                : null;
+
+            // Lightweight mode (Kanban) — email, company, uuid, score'ni o'tkazib yubor
+            if (!$lightweight) {
+                $payload['uuid'] = $lead->uuid;
+                $payload['email'] = $lead->email;
+                $payload['company'] = $lead->company;
+                $payload['score'] = $lead->score;
+                $payload['last_contacted_at'] = $lead->last_contacted_at?->format('d.m.Y H:i');
+                // `data` JSON og'ir — faqat alohida so'rov bo'yicha detail sahifada qaytariladi
+            }
+
+            return $payload;
         });
 
         return response()->json($leads);
+    }
+
+    /**
+     * Parse ?fields=name,phone,email parameter — whitelist ustun nomlarini qaytaradi.
+     */
+    private function parseFieldsParam(?string $fields): array
+    {
+        if (!$fields) {
+            return [];
+        }
+        $allowed = ['id', 'uuid', 'business_id', 'name', 'email', 'phone', 'company',
+            'status', 'score', 'estimated_value', 'source_id', 'assigned_to',
+            'last_contacted_at', 'created_at', 'updated_at', 'converted_at'];
+        return array_values(array_intersect(
+            array_map('trim', explode(',', $fields)),
+            $allowed
+        ));
+    }
+
+    /**
+     * Lead jadvalidan qaysi ustunlar tanlanishini aniqlaydi.
+     * Og'ir `data` va `notes` JSON ustunlari default'da chiqariladi.
+     */
+    private function leadSelectableColumns(bool $lightweight, array $requestedFields): array
+    {
+        // Transform loop uchun zarur bo'lgan minimum columnlar
+        $required = ['id', 'business_id', 'name', 'phone', 'status', 'estimated_value',
+            'source_id', 'assigned_to', 'created_at'];
+
+        if ($lightweight) {
+            return $required;
+        }
+
+        // Default (non-lightweight) — CRM list uchun
+        $defaults = array_merge($required, ['uuid', 'email', 'company', 'score', 'last_contacted_at']);
+
+        if (!empty($requestedFields)) {
+            return array_values(array_unique(array_merge($required, $requestedFields)));
+        }
+
+        return $defaults;
     }
 
     /**

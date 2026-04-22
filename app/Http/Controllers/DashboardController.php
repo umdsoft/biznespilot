@@ -13,6 +13,7 @@ use App\Models\KpiPlan;
 use App\Models\Lead;
 use App\Models\MarketingChannel;
 use App\Models\Offer;
+use App\Models\SalesKpiUserTarget;
 use App\Models\Store\StoreCustomer;
 use App\Models\Store\StoreOrder;
 use App\Models\Store\TelegramStore;
@@ -253,8 +254,8 @@ class DashboardController extends Controller
                 ->where('snapshot_date', $today)
                 ->value('health_score') ?? 0;
 
-            // === REVENUE CHART (14 kun) ===
-            $revenueChart = $this->buildRevenueChart($business, $storeIds, 14);
+            // === REVENUE CHART (30 kun — "Oylik daromad" kardi bilan mos) ===
+            $revenueChart = $this->buildRevenueChart($business, $storeIds, 30);
 
             // === PENDING ACTIONS ===
             $pendingOrders = $storeIds->isNotEmpty()
@@ -280,6 +281,35 @@ class DashboardController extends Controller
                 'unanswered_leads' => $unansweredLeads,
                 'today_tasks' => $todayTasks,
             ];
+
+            // === QUICK-LINK COUNTS (sidebar card'lari uchun) ===
+            // "Do'kon buyurtmalari" — jami aktiv buyurtmalar (30 kun)
+            // "Lidlar" — jami ochiq lidlar (new/qualified/proposal/negotiation)
+            // "Sotuvlar" — 30 kun ichida yopilgan ('won')
+            $openLeadStatuses = ['new', 'qualified', 'proposal', 'negotiation', 'contacted'];
+            $openLeads = Lead::where('business_id', $business->id)
+                ->whereIn('status', $openLeadStatuses)
+                ->count();
+
+            $wonSales30d = Lead::where('business_id', $business->id)
+                ->where('status', 'won')
+                ->where(function ($q) use ($monthStart) {
+                    $q->where('converted_at', '>=', $monthStart)
+                      ->orWhere(function ($sq) use ($monthStart) {
+                          $sq->whereNull('converted_at')
+                             ->where('updated_at', '>=', $monthStart);
+                      });
+                })
+                ->count();
+
+            $quickCounts = [
+                'store_orders' => $monthlyOrders,
+                'open_leads' => $openLeads,
+                'won_sales_30d' => $wonSales30d,
+            ];
+
+            // === TEAM KPI (joriy oy aktiv maqsadlar bo'yicha) ===
+            $teamKpi = $this->buildTeamKpi($business);
 
             // === RECOMMENDATIONS ===
             $recommendationService = app(DashboardRecommendationService::class);
@@ -317,6 +347,8 @@ class DashboardController extends Controller
                 'health_score' => $healthScore,
                 'revenue_chart' => $revenueChart,
                 'pending_actions' => $pendingActions,
+                'quick_counts' => $quickCounts,
+                'team_kpi' => $teamKpi,
                 'recommendations' => $recommendations,
                 'recent_orders' => $recentOrders,
             ];
@@ -342,11 +374,19 @@ class DashboardController extends Controller
                 ->keyBy('date');
         }
 
-        // CRM won leads — kunlik
+        // CRM won leads — kunlik.
+        // `converted_at` bo'sh bo'lsa `updated_at` fallback (monthly_revenue cardi bilan mos).
         $crmTrend = Lead::where('business_id', $business->id)
             ->where('status', 'won')
-            ->where('converted_at', '>=', now()->subDays($days))
-            ->selectRaw('DATE(converted_at) as date, COUNT(*) as orders, SUM(estimated_value) as revenue')
+            ->where(function ($q) use ($days) {
+                $from = now()->subDays($days);
+                $q->where('converted_at', '>=', $from)
+                  ->orWhere(function ($sq) use ($from) {
+                      $sq->whereNull('converted_at')
+                         ->where('updated_at', '>=', $from);
+                  });
+            })
+            ->selectRaw('DATE(COALESCE(converted_at, updated_at)) as date, COUNT(*) as orders, SUM(estimated_value) as revenue')
             ->groupBy('date')
             ->get()
             ->keyBy('date');
@@ -365,6 +405,98 @@ class DashboardController extends Controller
         }
 
         return $chart;
+    }
+
+    /**
+     * Jamoa KPI bajarilishi — joriy oy uchun aktiv SalesKpiUserTarget
+     * yozuvlari foydalanuvchi bo'yicha guruhlangan.
+     *
+     * Har bir user uchun barcha faol KPI'lar bo'yicha o'rtacha
+     * achievement_percent hisoblanadi va progress bar uchun qaytariladi.
+     *
+     * Natija — 3 ta kategoriya:
+     *   - behind      : < 70% (qizil)
+     *   - on_track    : 70-99% (sariq/ko'k)
+     *   - ahead       : >= 100% (yashil)
+     */
+    private function buildTeamKpi(Business $business): array
+    {
+        $targets = SalesKpiUserTarget::query()
+            ->withoutGlobalScope('business')
+            ->with(['user:id,name', 'kpiSetting:id,name'])
+            ->where('business_id', $business->id)
+            ->where('status', 'active')
+            ->currentMonth()
+            ->get();
+
+        if ($targets->isEmpty()) {
+            return [
+                'has_data' => false,
+                'summary' => null,
+                'behind' => [],
+                'on_track' => [],
+                'ahead' => [],
+                'total_users' => 0,
+            ];
+        }
+
+        // User bo'yicha guruhlash — bir user bir nechta KPI'ga ega bo'lishi mumkin
+        $byUser = $targets->groupBy('user_id')->map(function ($userTargets, $userId) {
+            $user = $userTargets->first()->user;
+            $count = $userTargets->count();
+            $avgPercent = (float) $userTargets->avg('achievement_percent') ?? 0;
+            $totalTarget = (float) $userTargets->sum(fn ($t) => $t->adjusted_target ?? $t->target_value);
+            $totalAchieved = (float) $userTargets->sum('achieved_value');
+
+            $kpiNames = $userTargets
+                ->map(fn ($t) => $t->kpiSetting?->name)
+                ->filter()
+                ->take(3)
+                ->values()
+                ->toArray();
+
+            return [
+                'user_id' => $userId,
+                'user_name' => $user?->name ?? 'Noma\'lum',
+                'achievement_percent' => round($avgPercent, 1),
+                'target_value' => $totalTarget,
+                'achieved_value' => $totalAchieved,
+                'kpi_count' => $count,
+                'kpi_names' => $kpiNames,
+            ];
+        })->values();
+
+        $behind = $byUser->filter(fn ($u) => $u['achievement_percent'] < 70)
+            ->sortBy('achievement_percent')
+            ->take(5)
+            ->values()
+            ->toArray();
+
+        $onTrack = $byUser->filter(fn ($u) => $u['achievement_percent'] >= 70 && $u['achievement_percent'] < 100)
+            ->sortByDesc('achievement_percent')
+            ->take(5)
+            ->values()
+            ->toArray();
+
+        $ahead = $byUser->filter(fn ($u) => $u['achievement_percent'] >= 100)
+            ->sortByDesc('achievement_percent')
+            ->take(5)
+            ->values()
+            ->toArray();
+
+        return [
+            'has_data' => true,
+            'summary' => [
+                'total_users' => $byUser->count(),
+                'avg_achievement' => round((float) $byUser->avg('achievement_percent'), 1),
+                'behind_count' => count($behind),
+                'ahead_count' => count($ahead),
+            ],
+            'behind' => $behind,
+            'on_track' => $onTrack,
+            'ahead' => $ahead,
+            'total_users' => $byUser->count(),
+        ];
     }
 
     /**

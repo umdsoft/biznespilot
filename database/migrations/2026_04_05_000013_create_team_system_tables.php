@@ -27,8 +27,8 @@ return new class extends Migration
             $table->boolean('sent_to_owner')->default(false);
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
-            $table->index(['business_id', 'meeting_date'], 'idx_business_date');
-            $table->index('meeting_type', 'idx_type');
+            $table->index(['business_id', 'meeting_date'], 'team_meetings_business_date_idx');
+            $table->index('meeting_type', 'team_meetings_type_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -44,8 +44,8 @@ return new class extends Migration
             $table->uuid('related_entity_id')->nullable();
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            $table->index('business_id', 'idx_business');
-            $table->index(['to_agent', 'read_at'], 'idx_to_agent');
+            $table->index('business_id', 'team_messages_business_idx');
+            $table->index(['to_agent', 'read_at'], 'team_messages_to_agent_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -63,8 +63,8 @@ return new class extends Migration
             $table->boolean('notified_owner')->default(false);
             $table->timestamp('notified_at')->nullable();
             $table->timestamps();
-            $table->index(['business_id', 'resolved'], 'idx_business_resolved');
-            $table->index('severity', 'idx_severity');
+            $table->index(['business_id', 'resolved'], 'team_alerts_business_resolved_idx');
+            $table->index('severity', 'team_alerts_severity_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -81,7 +81,7 @@ return new class extends Migration
             $table->json('tasks')->nullable();
             $table->integer('ai_tokens_used')->default(0);
             $table->timestamps();
-            $table->index(['business_id', 'period_start'], 'idx_business_period');
+            $table->index(['business_id', 'period_start'], 'team_plans_business_period_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
     }

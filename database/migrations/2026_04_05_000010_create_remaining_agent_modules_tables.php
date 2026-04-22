@@ -23,7 +23,7 @@ return new class extends Migration
             $table->json('recurring_expenses');
             $table->integer('alert_days_ahead')->default(7);
             $table->timestamps();
-            $table->unique('business_id', 'idx_business');
+            $table->unique('business_id', 'cash_flow_settings_business_unique');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -37,8 +37,8 @@ return new class extends Migration
             $table->decimal('confidence_level', 3, 2);
             $table->boolean('is_danger')->default(false);
             $table->timestamps();
-            $table->index(['business_id', 'forecast_date'], 'idx_business_date');
-            $table->index('is_danger', 'idx_danger');
+            $table->index(['business_id', 'forecast_date'], 'cash_flow_forecasts_business_date_idx');
+            $table->index('is_danger', 'cash_flow_forecasts_danger_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->json('recommendations')->nullable();
             $table->enum('status', ['active', 'resolved', 'ignored'])->default('active');
             $table->timestamps();
-            $table->index('business_id', 'idx_business');
+            $table->index('business_id', 'cash_flow_alerts_business_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -73,9 +73,9 @@ return new class extends Migration
             $table->boolean('flagged')->default(false);
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
-            $table->index('business_id', 'idx_business');
-            $table->index('sentiment', 'idx_sentiment');
-            $table->index('source', 'idx_source');
+            $table->index('business_id', 'customer_reviews_business_idx');
+            $table->index('sentiment', 'customer_reviews_sentiment_idx');
+            $table->index('source', 'customer_reviews_source_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -94,7 +94,7 @@ return new class extends Migration
             $table->json('top_praise_topics')->nullable();
             $table->json('top_complaint_topics')->nullable();
             $table->timestamps();
-            $table->index(['business_id', 'period_start'], 'idx_business_period');
+            $table->index(['business_id', 'period_start'], 'reputation_scores_business_period_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -116,8 +116,8 @@ return new class extends Migration
             $table->decimal('total_cost_usd', 8, 6)->default(0);
             $table->integer('processing_time_ms')->default(0);
             $table->timestamps();
-            $table->index('business_id', 'idx_business');
-            $table->index('user_id', 'idx_user');
+            $table->index('business_id', 'voice_interactions_business_idx');
+            $table->index('user_id', 'voice_interactions_user_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -139,8 +139,8 @@ return new class extends Migration
             $table->integer('ai_tokens_used')->default(0);
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            $table->index('business_id', 'idx_business');
-            $table->index('trainee_user_id', 'idx_trainee');
+            $table->index('business_id', 'training_sessions_business_idx');
+            $table->index('trainee_user_id', 'training_sessions_trainee_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -156,7 +156,7 @@ return new class extends Migration
             $table->boolean('ready_for_live')->default(false);
             $table->timestamp('last_session_at')->nullable();
             $table->timestamps();
-            $table->unique(['business_id', 'user_id'], 'idx_business_user');
+            $table->unique(['business_id', 'user_id'], 'trainee_progress_business_user_unique');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
     }

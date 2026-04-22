@@ -22,8 +22,8 @@ return new class extends Migration
             $table->integer('message_count')->default(0);
             $table->timestamps();
 
-            $table->index('business_id', 'idx_business');
-            $table->index('user_id', 'idx_user');
+            $table->index('business_id', 'agent_conversations_business_idx');
+            $table->index('user_id', 'agent_conversations_user_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
         });

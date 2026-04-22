@@ -286,7 +286,7 @@ const initialLoadComplete = ref(false);
 const pagination = ref({
     current_page: 1,
     last_page: 1,
-    per_page: 200, // Kanban uchun optimal (500 503 beryapti edi)
+    per_page: 150, // Kanban uchun optimal — payload ~40% qisqargan (lightweight + slim fields)
     total: 0,
 });
 
@@ -406,7 +406,10 @@ const fetchLeads = async (page = 1, showLoading = true) => {
         const params = {
             page,
             per_page: pagination.value.per_page,
-            fields: 'id,name,phone,email,company,status,source_id,assigned_to,estimated_value,created_at'
+            // PERFORMANCE: lightweight=1 → email/company/uuid/score o'tkaziladi,
+            // `data`/`notes` JSON columnlari umuman SELECT qilinmaydi.
+            // Payload ~60% qisqaradi, Vue DOM render tezlashadi.
+            lightweight: viewMode.value === 'kanban' ? 1 : 0,
         };
         if (searchQuery.value) params.search = searchQuery.value;
         if (sourceFilter.value) params.source = sourceFilter.value;

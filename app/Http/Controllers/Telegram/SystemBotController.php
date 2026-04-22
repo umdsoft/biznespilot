@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Services\Telegram\SystemBotConversationService;
 use App\Services\Telegram\SystemBotService;
+use App\Services\Telegram\TelegramChannelAnalyticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +31,8 @@ class SystemBotController extends Controller
 {
     public function __construct(
         protected SystemBotService $systemBot,
-        protected SystemBotConversationService $conversationService
+        protected SystemBotConversationService $conversationService,
+        protected TelegramChannelAnalyticsService $channelAnalytics,
     ) {}
 
     /**
@@ -48,7 +50,37 @@ class SystemBotController extends Controller
 
         Log::debug('SystemBot: Webhook received', [
             'update_id' => $update['update_id'] ?? null,
+            'type' => $this->detectUpdateType($update),
         ]);
+
+        // Channel analytics: bot promoted/demoted as admin
+        if (isset($update['my_chat_member'])) {
+            $this->channelAnalytics->onMyChatMemberUpdate($update['my_chat_member']);
+            return response()->json(['ok' => true]);
+        }
+
+        // Channel analytics: subscriber joined/left (bot must be admin w/ can_manage_chat)
+        if (isset($update['chat_member'])) {
+            $this->channelAnalytics->recordMembershipChange($update['chat_member']);
+            return response()->json(['ok' => true]);
+        }
+
+        // Channel analytics: new post in tracked channel
+        if (isset($update['channel_post'])) {
+            $this->channelAnalytics->recordChannelPost($update['channel_post']);
+            return response()->json(['ok' => true]);
+        }
+
+        if (isset($update['edited_channel_post'])) {
+            $this->channelAnalytics->recordChannelPost($update['edited_channel_post']);
+            return response()->json(['ok' => true]);
+        }
+
+        // Channel analytics: reaction totals updated
+        if (isset($update['message_reaction_count'])) {
+            $this->channelAnalytics->recordReactionCount($update['message_reaction_count']);
+            return response()->json(['ok' => true]);
+        }
 
         // Process callback query (inline button clicks)
         if (isset($update['callback_query'])) {
@@ -62,6 +94,26 @@ class SystemBotController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Detect update type for logging.
+     */
+    protected function detectUpdateType(array $update): string
+    {
+        foreach ([
+            'message', 'edited_message',
+            'channel_post', 'edited_channel_post',
+            'callback_query',
+            'my_chat_member', 'chat_member',
+            'message_reaction', 'message_reaction_count',
+            'chat_boost', 'removed_chat_boost',
+        ] as $type) {
+            if (isset($update[$type])) {
+                return $type;
+            }
+        }
+        return 'unknown';
     }
 
     /**

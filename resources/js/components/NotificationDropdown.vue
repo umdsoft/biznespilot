@@ -126,18 +126,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, h } from 'vue';
+import { ref, onMounted, onUnmounted, h, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
 
 const { t } = useI18n();
 
+// PERFORMANCE: Parent (BusinessLayout) layout-stats endpoint orqali
+// unread count'ni uzatishi mumkin — bu holatda biz o'z fetchUnreadCount
+// chaqirmaymiz (tarmoq chaqiruvini takrorlamaslik uchun).
+const props = defineProps({
+  externalUnreadCount: { type: Number, default: null },
+});
+
 const isOpen = ref(false);
 const loading = ref(false);
 const notifications = ref([]);
-const unreadCount = ref(0);
+const unreadCount = ref(props.externalUnreadCount ?? 0);
 let pollingInterval = null;
+
+// Parent prop o'zgarsa, unread count avtomatik yangilanadi
+watch(() => props.externalUnreadCount, (val) => {
+  if (typeof val === 'number') {
+    unreadCount.value = val;
+  }
+});
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
@@ -306,11 +320,12 @@ const getIconClass = (type) => {
 };
 
 onMounted(() => {
-  // Initial fetch
-  fetchUnreadCount();
-
-  // Poll for new notifications every 30 seconds
-  pollingInterval = setInterval(fetchUnreadCount, 30000);
+  // Agar parent externalUnreadCount bermagan bo'lsa, legacy fallback:
+  // alohida endpoint chaqiramiz. BusinessLayout bilan ishlatilsa — skip.
+  if (props.externalUnreadCount === null) {
+    fetchUnreadCount();
+    pollingInterval = setInterval(fetchUnreadCount, 60000);
+  }
 });
 
 onUnmounted(() => {

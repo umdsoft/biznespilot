@@ -27,9 +27,9 @@ return new class extends Migration
             $table->integer('processing_time_ms')->default(0);
             $table->timestamp('created_at')->nullable();
 
-            $table->index('business_id', 'idx_business');
-            $table->index('result', 'idx_result');
-            $table->index('agent_type', 'idx_agent_type');
+            $table->index('business_id', 'evaluator_checks_business_idx');
+            $table->index('result', 'evaluator_checks_result_idx');
+            $table->index('agent_type', 'evaluator_checks_agent_type_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
     }

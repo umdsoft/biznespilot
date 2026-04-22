@@ -33,7 +33,7 @@ return new class extends Migration
             $table->integer('ai_tokens_used')->default(0);
             $table->timestamps();
 
-            $table->index(['business_id', 'period_start'], 'idx_business_period');
+            $table->index(['business_id', 'period_start'], 'business_health_scores_period_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -58,9 +58,9 @@ return new class extends Migration
             $table->integer('lifecycle_score')->default(0);
             $table->timestamps();
 
-            $table->index('business_id', 'idx_business');
-            $table->index('current_stage', 'idx_stage');
-            $table->index('next_action_at', 'idx_next_action');
+            $table->index('business_id', 'customer_lifecycle_business_idx');
+            $table->index('current_stage', 'customer_lifecycle_stage_idx');
+            $table->index('next_action_at', 'customer_lifecycle_next_action_idx');
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });
 
@@ -82,8 +82,8 @@ return new class extends Migration
             $table->string('result_action', 50)->nullable();
             $table->timestamps();
 
-            $table->index('business_id', 'idx_business');
-            $table->index(['scheduled_at', 'status'], 'idx_scheduled');
+            $table->index('business_id', 'lifecycle_actions_business_idx');
+            $table->index(['scheduled_at', 'status'], 'lifecycle_actions_scheduled_idx');
             $table->foreign('lifecycle_id')->references('id')->on('customer_lifecycle')->cascadeOnDelete();
         });
 

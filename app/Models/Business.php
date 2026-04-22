@@ -250,6 +250,24 @@ class Business extends Model
     }
 
     /**
+     * Get the Telegram channels tracked by System Bot for this business.
+     */
+    public function telegramChannels(): HasMany
+    {
+        return $this->hasMany(TelegramChannel::class);
+    }
+
+    /**
+     * Get only currently-tracked (bot is still admin) channels.
+     */
+    public function activeTelegramChannels(): HasMany
+    {
+        return $this->hasMany(TelegramChannel::class)
+            ->where('is_active', true)
+            ->where('admin_status', TelegramChannel::STATUS_ADMIN);
+    }
+
+    /**
      * Get the chatbot configs for the business.
      */
     public function chatbotConfigs(): HasMany

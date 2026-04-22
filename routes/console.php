@@ -6,6 +6,9 @@ use App\Jobs\AnomalyDetectionJob;
 use App\Jobs\CustomerSegmentationJob;
 use App\Jobs\Marketing\CalculateMarketingKpiSnapshotsJob;
 use App\Jobs\SyncDailyKpisFromIntegrationsJob;
+use App\Jobs\Telegram\RollupTelegramChannelDailyStatsJob;
+use App\Jobs\Telegram\SendTelegramChannelDigestJob;
+use App\Jobs\Telegram\SyncTelegramChannelStatsJob;
 use App\Models\Business;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -14,6 +17,32 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// ==========================================
+// TELEGRAM CHANNEL ANALYTICS
+// ==========================================
+
+// Sync channel core info + snapshot post views — every 30 minutes
+Schedule::job(new SyncTelegramChannelStatsJob)
+    ->everyThirtyMinutes()
+    ->timezone('Asia/Tashkent')
+    ->name('telegram-channels-sync')
+    ->withoutOverlapping(15)
+    ->onOneServer();
+
+// Daily rollup at 23:55 — captures today's metrics
+Schedule::job(new RollupTelegramChannelDailyStatsJob)
+    ->dailyAt('23:55')
+    ->timezone('Asia/Tashkent')
+    ->name('telegram-channels-rollup')
+    ->onOneServer();
+
+// Daily digest to channel owner at 08:00 (yesterday's numbers)
+Schedule::job(new SendTelegramChannelDigestJob)
+    ->dailyAt('08:00')
+    ->timezone('Asia/Tashkent')
+    ->name('telegram-channels-digest')
+    ->onOneServer();
 
 // ==========================================
 // [FB/IG] DISABLED — Meta review kutilmoqda

@@ -1011,6 +1011,14 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
         Route::post('/telegram/connect', [SettingsController::class, 'telegramConnect'])->name('telegram.connect');
         Route::delete('/telegram/disconnect', [SettingsController::class, 'telegramDisconnect'])->name('telegram.disconnect');
 
+        // Telegram Channel Analytics (System Bot kanalga admin qilinadi)
+        Route::get('/telegram/channels', [SettingsController::class, 'telegramChannelsIndex'])
+            ->name('telegram.channels.index');
+        Route::post('/telegram/channels/connect-link', [SettingsController::class, 'telegramChannelConnectLink'])
+            ->name('telegram.channels.connect-link');
+        Route::delete('/telegram/channels/{channel}', [SettingsController::class, 'telegramChannelDisconnect'])
+            ->name('telegram.channels.disconnect');
+
         // Instagram Integration
         Route::get('/instagram-ai', [SettingsController::class, 'instagramAI'])->name('instagram-ai');
 
@@ -1323,6 +1331,25 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     // ============================================
     // FAZA 4: Dashboard, Alerts, Insights, Reports
     // ============================================
+
+    // Layout sidebar stats — 1 endpoint replaces 5-6 parallel polls
+    Route::get('/api/layout-stats', [App\Http\Controllers\Business\LayoutStatsController::class, 'index'])
+        ->name('api.layout-stats');
+
+    // ==================== TELEGRAM KANALLAR (System Bot Analytics) ====================
+    // Instagram Analysis'ga mos pattern — kanallar ro'yxati + batafsil grafiklar
+    Route::prefix('telegram-channels')->name('telegram-channels.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\TelegramChannelsController::class, 'index'])
+            ->name('index');
+        Route::post('/connect-link', [App\Http\Controllers\Business\TelegramChannelsController::class, 'connectLink'])
+            ->name('connect-link');
+        Route::get('/{id}', [App\Http\Controllers\Business\TelegramChannelsController::class, 'show'])
+            ->name('show');
+        Route::post('/{id}/refresh', [App\Http\Controllers\Business\TelegramChannelsController::class, 'refresh'])
+            ->name('refresh');
+        Route::delete('/{id}', [App\Http\Controllers\Business\TelegramChannelsController::class, 'disconnect'])
+            ->name('disconnect');
+    });
 
     // Dashboard API routes
     Route::prefix('api/dashboard')->name('api.dashboard.')->group(function () {

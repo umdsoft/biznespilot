@@ -35,9 +35,9 @@ return new class extends Migration
                 $table->timestamp('processed_at')->nullable();
                 $table->timestamps();
 
-                $table->index('business_id', 'idx_business');
-                $table->index('operator_id', 'idx_operator');
-                $table->index('outcome', 'idx_outcome');
+                $table->index('business_id', 'call_analyses_business_idx');
+                $table->index('operator_id', 'call_analyses_operator_idx');
+                $table->index('outcome', 'call_analyses_outcome_idx');
                 $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
             });
         }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TelegramChannel;
 use App\Models\UserSetting;
+use App\Services\Telegram\SystemBotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -301,6 +303,107 @@ class SettingsController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Telegram uzildi. Endi kunlik hisobotlar yuborilmaydi.',
+        ]);
+    }
+
+    // ==========================================
+    // TELEGRAM CHANNEL ANALYTICS
+    // ==========================================
+
+    /**
+     * Get deep link to add System Bot as admin to a user's channel.
+     */
+    public function telegramChannelConnectLink(SystemBotService $bot)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasTelegramLinked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Avval Telegram hisobingizni ulang.',
+                'requires_telegram_link' => true,
+            ], 400);
+        }
+
+        $link = $bot->generateChannelDeepLink();
+
+        if (!$link) {
+            return response()->json([
+                'success' => false,
+                'message' => 'System Bot sozlanmagan. Administratorga murojaat qiling.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'link' => $link,
+            'bot_username' => $bot->getBotUsername(),
+            'instructions' => [
+                "1. Quyidagi havolani bosing.",
+                "2. Kanalni tanlang (yoki yangi kanal yarating).",
+                "3. Botga faqat «Kanalni boshqarish» huquqini bering — post yozish yoki o'chirish kerak emas.",
+                "4. Bot avtomatik ravishda ulanadi — sizga Telegram orqali tasdiq xabari keladi.",
+            ],
+        ]);
+    }
+
+    /**
+     * List user's tracked Telegram channels.
+     */
+    public function telegramChannelsIndex()
+    {
+        $user = Auth::user();
+        $businessId = session('current_business_id');
+
+        $channels = TelegramChannel::query()
+            ->where('business_id', $businessId)
+            ->orderByDesc('is_active')
+            ->orderByDesc('subscriber_count')
+            ->get()
+            ->map(fn ($channel) => [
+                'id' => $channel->id,
+                'title' => $channel->title,
+                'username' => $channel->chat_username,
+                'public_link' => $channel->publicLink(),
+                'photo_url' => $channel->photo_url,
+                'subscriber_count' => $channel->subscriber_count,
+                'type' => $channel->type,
+                'admin_status' => $channel->admin_status,
+                'is_active' => $channel->is_active,
+                'connected_at' => $channel->connected_at?->toIso8601String(),
+                'last_synced_at' => $channel->last_synced_at?->toIso8601String(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'channels' => $channels,
+        ]);
+    }
+
+    /**
+     * Remove a tracked channel (soft-disable).
+     * Note: bot must be removed from admin manually by user in Telegram.
+     */
+    public function telegramChannelDisconnect(TelegramChannel $channel, SystemBotService $bot)
+    {
+        $user = Auth::user();
+        $businessId = session('current_business_id');
+
+        if ($channel->business_id !== $businessId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ruxsat yo\'q',
+            ], 403);
+        }
+
+        // Try to leave the chat from bot's side (best-effort)
+        $bot->leaveChat($channel->telegram_chat_id);
+
+        $channel->markDisconnected(TelegramChannel::STATUS_LEFT);
+
+        return response()->json([
+            'success' => true,
+            'message' => "«{$channel->title}» kanali uzildi.",
         ]);
     }
 }

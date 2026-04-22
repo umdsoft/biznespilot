@@ -29,8 +29,8 @@ return new class extends Migration
             $table->integer('processing_time_ms')->default(0);
             $table->timestamps();
 
-            $table->index('conversation_id', 'idx_conversation');
-            $table->index('business_id', 'idx_business');
+            $table->index('conversation_id', 'agent_messages_conversation_idx');
+            $table->index('business_id', 'agent_messages_business_idx');
             $table->foreign('conversation_id')->references('id')->on('agent_conversations')->cascadeOnDelete();
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
         });

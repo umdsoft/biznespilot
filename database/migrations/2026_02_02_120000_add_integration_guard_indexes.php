@@ -13,6 +13,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite (used in tests) - SHOW INDEX not supported
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (!$this->indexExists('instagram_accounts', 'instagram_accounts_instagram_id_index')) {
             Schema::table('instagram_accounts', function (Blueprint $table) {
                 $table->index('instagram_id');
@@ -28,6 +33,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if ($this->indexExists('instagram_accounts', 'instagram_accounts_instagram_id_index')) {
             Schema::table('instagram_accounts', function (Blueprint $table) {
                 $table->dropIndex(['instagram_id']);

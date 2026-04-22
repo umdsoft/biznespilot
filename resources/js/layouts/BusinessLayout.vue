@@ -279,106 +279,49 @@ let taskPollingInterval = null;
 let todoPollingInterval = null;
 let ordersPollingInterval = null;
 
-// Fetch functions
-const fetchInboxUnreadCount = async () => {
+// PERFORMANCE: Bitta /business/api/layout-stats endpoint 5-6 parallel API
+// call'ni almashtiradi. Dev'da ~500ms framework boot har request'da bo'lgani
+// uchun bu 5-6x tez yuklanishni beradi. Natija 30s cachelanadi.
+const fetchLayoutStats = async () => {
   try {
-    // Tez endpoint — faqat count (to'liq inbox data yuklanmaydi)
-    const response = await axios.get('/business/inbox/count');
-    if (typeof response.data.count === 'number') {
-      inboxUnreadCount.value = response.data.count;
-    }
-  } catch (error) {
-    if (error.response?.status !== 404) {
-      console.error('Failed to fetch inbox count:', error);
-    }
-  }
-};
+    const response = await axios.get('/business/api/layout-stats');
+    const d = response.data || {};
 
-const fetchNewLeadsCount = async () => {
-  try {
-    const response = await axios.get('/business/api/sales/stats');
-    if (response.data?.new_leads !== undefined) {
-      newLeadsCount.value = response.data.new_leads;
-    }
+    inboxUnreadCount.value = d.inbox_unread ?? 0;
+    newLeadsCount.value = d.new_leads ?? 0;
+    taskStats.value = {
+      total: d.tasks?.total ?? 0,
+      overdue: d.tasks?.overdue ?? 0,
+    };
+    todoStats.value = {
+      total: d.todos?.total_today ?? 0,
+      overdue: d.todos?.overdue ?? 0,
+    };
+    pendingOrdersCount.value = d.pending_orders ?? 0;
   } catch (error) {
-    // Silently fail - stats are optional UI enhancement
-    if (error.response?.status !== 404) {
-      console.error('Failed to fetch leads stats:', error);
+    // Silently fail — badge'lar UI bezagi, page funksionalligi buzilmaydi
+    if (error.response?.status !== 404 && error.response?.status !== 401) {
+      console.error('Failed to fetch layout stats:', error);
     }
-  }
-};
-
-const fetchTaskStats = async () => {
-  try {
-    const response = await axios.get('/business/tasks/stats');
-    if (response.data) {
-      taskStats.value = {
-        total: response.data.total || 0,
-        overdue: response.data.overdue || 0,
-      };
-    }
-  } catch (error) {
-    // Silently fail - stats are optional UI enhancement
-    if (error.response?.status !== 404) {
-      console.error('Failed to fetch task stats:', error);
-    }
-  }
-};
-
-const fetchTodoStats = async () => {
-  try {
-    const response = await axios.get('/business/todos/api/dashboard');
-    if (response.data?.stats) {
-      todoStats.value = {
-        total: response.data.stats.total_today || 0,
-        overdue: response.data.stats.overdue || 0,
-      };
-    }
-  } catch (error) {
-    // Silently fail - stats are optional UI enhancement
-    if (error.response?.status !== 404) {
-      console.error('Failed to fetch todo stats:', error);
-    }
-  }
-};
-
-const fetchPendingOrdersCount = async () => {
-  try {
-    const response = await axios.get('/business/store/orders/pending-count');
-    if (response.data?.count !== undefined) {
-      pendingOrdersCount.value = response.data.count;
-    }
-  } catch (error) {
-    // Silently fail - store may not be set up
   }
 };
 
 // Start polling
 const startPolling = () => {
-  // Dastlabki yuklash
-  fetchInboxUnreadCount();
-  fetchNewLeadsCount();
-  fetchTaskStats();
-  fetchTodoStats();
-  fetchPendingOrdersCount();
+  // Dastlabki yuklash — bitta request
+  fetchLayoutStats();
 
-  // Poll faqat tab aktiv bo'lsa (visibility API)
   const pollIfVisible = (fn) => () => {
     if (document.visibilityState === 'visible') fn();
   };
 
-  // Sekin polling — 60s/90s/120s (server yukini 3-4x kamaytiradi)
-  inboxPollingInterval = setInterval(pollIfVisible(fetchInboxUnreadCount), 60000);
-  leadsPollingInterval = setInterval(pollIfVisible(fetchNewLeadsCount), 90000);
-  taskPollingInterval = setInterval(pollIfVisible(fetchTaskStats), 60000);
-  todoPollingInterval = setInterval(pollIfVisible(fetchTodoStats), 120000);
-  ordersPollingInterval = setInterval(pollIfVisible(fetchPendingOrdersCount), 90000);
+  // Har 60 sekund (server 30s kesh qaytaradi — actual DB hit har 30s)
+  inboxPollingInterval = setInterval(pollIfVisible(fetchLayoutStats), 60000);
 
   // Tab qaytganda darhol yangilash
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      fetchInboxUnreadCount();
-      fetchTaskStats();
+      fetchLayoutStats();
     }
   });
 };

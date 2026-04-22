@@ -84,7 +84,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden">
       <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Daromad dinamikasi</h3>
-        <span class="text-xs text-gray-400 dark:text-gray-500">Oxirgi 14 kun</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500">Oxirgi 30 kun</span>
       </div>
       <div class="p-4">
         <div v-if="isLoading" class="h-56 flex items-center justify-center">
@@ -179,8 +179,149 @@
           <div :class="action.bgClass" class="w-10 h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
             <component :is="action.icon" :class="action.iconClass" class="w-5 h-5" />
           </div>
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ action.label }}</span>
+          <div class="flex-1 min-w-0">
+            <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ action.label }}</span>
+            <span v-if="action.count !== null && action.count !== undefined"
+                  class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {{ action.countLabel }}
+            </span>
+          </div>
+          <span v-if="action.count !== null && action.count !== undefined && action.count > 0"
+                :class="['px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap', action.badgeClass]">
+            {{ formatNumber(action.count) }}
+          </span>
         </Link>
+      </div>
+    </div>
+
+    <!-- 4b. Jamoa KPI Bajarilishi -->
+    <div v-if="teamKpi.has_data" class="mb-6">
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Jamoa KPI bajarilishi</h3>
+            <p v-if="teamKpi.summary" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {{ teamKpi.summary.total_users }} ta xodim
+              • O'rtacha: <span :class="avgKpiColor(teamKpi.summary.avg_achievement)">{{ teamKpi.summary.avg_achievement }}%</span>
+              <span v-if="teamKpi.summary.behind_count > 0" class="ml-2 text-red-600 dark:text-red-400">
+                • {{ teamKpi.summary.behind_count }} ta ortda
+              </span>
+              <span v-if="teamKpi.summary.ahead_count > 0" class="ml-2 text-green-600 dark:text-green-400">
+                • {{ teamKpi.summary.ahead_count }} ta oldinda
+              </span>
+            </p>
+          </div>
+          <Link href="/business/kpi" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700">
+            Batafsil &rarr;
+          </Link>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <!-- Rejadan ortda qolganlar -->
+          <div v-if="teamKpi.behind.length > 0">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-2 h-2 rounded-full bg-red-500"></div>
+              <h4 class="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+                Rejadan ortda ({{ teamKpi.behind.length }})
+              </h4>
+            </div>
+            <div class="space-y-2">
+              <div v-for="user in teamKpi.behind" :key="`behind-${user.user_id}`"
+                   class="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center flex-shrink-0">
+                      <span class="text-xs font-bold text-red-700 dark:text-red-300">{{ initials(user.user_name) }}</span>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.user_name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {{ user.kpi_count }} KPI{{ user.kpi_names.length > 0 ? ': ' + user.kpi_names.join(', ') : '' }}
+                      </p>
+                    </div>
+                  </div>
+                  <span class="text-sm font-bold text-red-600 dark:text-red-400 flex-shrink-0 ml-2">
+                    {{ user.achievement_percent }}%
+                  </span>
+                </div>
+                <div class="h-1.5 rounded-full bg-red-200/60 dark:bg-red-900/40 overflow-hidden">
+                  <div class="h-full bg-red-500 dark:bg-red-400 transition-all"
+                       :style="{ width: Math.min(user.achievement_percent, 100) + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Yo'lda ketayotganlar -->
+          <div v-if="teamKpi.on_track.length > 0">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+              <h4 class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                Yo'lda ({{ teamKpi.on_track.length }})
+              </h4>
+            </div>
+            <div class="space-y-2">
+              <div v-for="user in teamKpi.on_track" :key="`ontrack-${user.user_id}`"
+                   class="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
+                      <span class="text-xs font-bold text-amber-700 dark:text-amber-300">{{ initials(user.user_name) }}</span>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.user_name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {{ user.kpi_count }} KPI{{ user.kpi_names.length > 0 ? ': ' + user.kpi_names.join(', ') : '' }}
+                      </p>
+                    </div>
+                  </div>
+                  <span class="text-sm font-bold text-amber-600 dark:text-amber-400 flex-shrink-0 ml-2">
+                    {{ user.achievement_percent }}%
+                  </span>
+                </div>
+                <div class="h-1.5 rounded-full bg-amber-200/60 dark:bg-amber-900/40 overflow-hidden">
+                  <div class="h-full bg-amber-500 dark:bg-amber-400 transition-all"
+                       :style="{ width: user.achievement_percent + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Liderlar -->
+          <div v-if="teamKpi.ahead.length > 0">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-2 h-2 rounded-full bg-green-500"></div>
+              <h4 class="text-xs font-semibold uppercase tracking-wide text-green-600 dark:text-green-400">
+                Liderlar ({{ teamKpi.ahead.length }})
+              </h4>
+            </div>
+            <div class="space-y-2">
+              <div v-for="user in teamKpi.ahead" :key="`ahead-${user.user_id}`"
+                   class="p-3 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
+                      <span class="text-xs font-bold text-green-700 dark:text-green-300">{{ initials(user.user_name) }}</span>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.user_name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {{ user.kpi_count }} KPI{{ user.kpi_names.length > 0 ? ': ' + user.kpi_names.join(', ') : '' }}
+                      </p>
+                    </div>
+                  </div>
+                  <span class="text-sm font-bold text-green-600 dark:text-green-400 flex-shrink-0 ml-2">
+                    {{ user.achievement_percent }}%
+                  </span>
+                </div>
+                <div class="h-1.5 rounded-full bg-green-200/60 dark:bg-green-900/40 overflow-hidden">
+                  <div class="h-full bg-green-500 dark:bg-green-400 transition-all"
+                       :style="{ width: Math.min(user.achievement_percent, 150) * (100/150) + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -358,6 +499,8 @@ const stats = computed(() => data.value?.stats || {});
 const healthScore = computed(() => data.value?.health_score || 0);
 const revenueChart = computed(() => data.value?.revenue_chart || []);
 const pendingActions = computed(() => data.value?.pending_actions || {});
+const quickCounts = computed(() => data.value?.quick_counts || {});
+const teamKpi = computed(() => data.value?.team_kpi || { has_data: false, behind: [], on_track: [], ahead: [], summary: null });
 const recommendations = computed(() => data.value?.recommendations || []);
 const recentOrders = computed(() => data.value?.recent_orders || []);
 const recentActivities = computed(() => props.recentActivities || []);
@@ -415,7 +558,13 @@ const healthScoreLabel = computed(() => {
 });
 
 // Revenue chart
-const hasRevenueData = computed(() => revenueChart.value.some(d => d.revenue > 0 || d.orders > 0));
+// Agar oylik daromad bor bo'lsa chart ko'rsatiladi (zero-baseline bo'lsa ham),
+// bu user'ga trend yo'q kunlarda ham vizualni beradi.
+const hasRevenueData = computed(() => {
+  if (revenueChart.value.some(d => d.revenue > 0 || d.orders > 0)) return true;
+  // Agar jami oylik daromad bor bo'lsa — chart ko'rsatiladi
+  return (stats.value.monthly_revenue || 0) > 0;
+});
 
 const chartSeries = computed(() => [{
   name: 'Daromad',
@@ -476,21 +625,37 @@ const chartOptions = computed(() => ({
   },
 }));
 
-// Quick links
-const quickLinks = [
+// Quick links — count'lar bilan (quick_counts dan to'ldiriladi)
+const quickLinks = computed(() => [
   {
     href: '/business/store/orders',
     label: "Do'kon buyurtmalari",
     icon: ShoppingBagIcon,
     bgClass: 'bg-purple-100 dark:bg-purple-900/30',
     iconClass: 'text-purple-600 dark:text-purple-400',
+    count: quickCounts.value.store_orders ?? null,
+    countLabel: 'oxirgi 30 kun',
+    badgeClass: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300',
   },
   {
     href: '/business/sales',
-    label: 'Lidlar va sotuvlar',
+    label: 'Lidlar (ochiq)',
     icon: UsersIcon,
     bgClass: 'bg-blue-100 dark:bg-blue-900/30',
     iconClass: 'text-blue-600 dark:text-blue-400',
+    count: quickCounts.value.open_leads ?? null,
+    countLabel: 'hozir ochiq',
+    badgeClass: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+  },
+  {
+    href: '/business/sales?status=won',
+    label: 'Sotuvlar',
+    icon: CheckCircleIcon,
+    bgClass: 'bg-emerald-100 dark:bg-emerald-900/30',
+    iconClass: 'text-emerald-600 dark:text-emerald-400',
+    count: quickCounts.value.won_sales_30d ?? null,
+    countLabel: '30 kun ichida',
+    badgeClass: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
   },
   {
     href: '/business/marketing/content-ai',
@@ -498,15 +663,24 @@ const quickLinks = [
     icon: BoltIcon,
     bgClass: 'bg-green-100 dark:bg-green-900/30',
     iconClass: 'text-green-600 dark:text-green-400',
+    count: null,
+    countLabel: null,
+    badgeClass: '',
   },
-  {
-    href: '/business/settings',
-    label: 'Sozlamalar',
-    icon: CogIcon,
-    bgClass: 'bg-gray-100 dark:bg-gray-700',
-    iconClass: 'text-gray-600 dark:text-gray-400',
-  },
-];
+]);
+
+// Initials for avatar placeholder
+const initials = (name) => {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).slice(0, 2).map(s => s[0]).join('').toUpperCase();
+};
+
+// Avg KPI color based on percentage
+const avgKpiColor = (pct) => {
+  if (pct >= 100) return 'text-green-600 dark:text-green-400 font-semibold';
+  if (pct >= 70) return 'text-amber-600 dark:text-amber-400 font-semibold';
+  return 'text-red-600 dark:text-red-400 font-semibold';
+};
 
 // Order status colors
 const getStatusColor = (status) => {
