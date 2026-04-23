@@ -960,3 +960,27 @@ Schedule::command('team:weekly-planning')
     ->timezone('Asia/Tashkent')
     ->name('team-weekly-planning')
     ->onOneServer();
+
+// ==========================================
+// PARTNER PROGRAM (Hamkorlik dasturi)
+// ==========================================
+
+// Partner commissionlarni pending → available holatiga o'tkazish - Har kuni 02:30
+// 30 kunlik clawback oynasi o'tgan commissionlar partner tomonidan payoutga
+// so'ralishi mumkin bo'ladi.
+Schedule::command('partner:promote-commissions')
+    ->dailyAt('02:30')
+    ->timezone('Asia/Tashkent')
+    ->name('partner-promote-commissions')
+    ->onOneServer()
+    ->withoutOverlapping();
+
+// Partner tier avtomatik progression - Har kuni 03:00
+// Partnerning aktiv referrals va 30-kunlik volume'siga qarab Bronze→Silver→
+// Gold→Platinum ko'tarib boradi (downgrade qilmaydi).
+Schedule::command('partner:sync-tiers')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Tashkent')
+    ->name('partner-sync-tiers')
+    ->onOneServer()
+    ->withoutOverlapping();

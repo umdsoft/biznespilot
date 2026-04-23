@@ -57,19 +57,28 @@ return Application::configure(basePath: dirname(__DIR__))
             'locale',
         ]);
 
-        // CSRF verification — faqat external webhook'lar bypass qilinadi.
-        // Inertia Axios XSRF-TOKEN cookie + X-XSRF-TOKEN header bilan avtomatik
-        // CSRF yuboradi, shuning uchun foydalanuvchi endpoint'larida ishlaydi.
-        $middleware->validateCsrfTokens(except: [
-            // External webhook'lar — imzo/secret tomonidan himoyalangan
-            'webhooks/*',
-            'api/webhooks/*',
-            'api/billing/payme',
-            'api/billing/click/*',
-            'api/store-webhooks/*',
-            // Public lead form (external saytlardan embed)
-            'api/lead-forms/*/submit',
-        ]);
+        // ═══════════════════════════════════════════════════════════════════
+        // ⚠️  CSRF TO'LIQ O'CHIRILGAN — FOYDALANUVCHI TALABI BO'YICHA
+        // ═══════════════════════════════════════════════════════════════════
+        //
+        // HAM local HAM production'da barcha route'lar uchun CSRF verification
+        // o'chirilgan. Foydalanuvchi buni explicit talab qildi va xavfni qabul
+        // qildi (2026-04-23).
+        //
+        // CSRF HIMOYASINI QAYTA YOQISH uchun `except: ['*']` ni quyidagiga
+        // o'zgartiring (yoki men'ga "CSRF'ni qayta yoq" deb ayting):
+        //
+        //     $middleware->validateCsrfTokens(except: [
+        //         'webhooks/*',
+        //         'api/webhooks/*',
+        //         'api/billing/payme',
+        //         'api/billing/click/*',
+        //         'api/store-webhooks/*',
+        //         'api/lead-forms/*/submit',
+        //     ]);
+        //
+        // ═══════════════════════════════════════════════════════════════════
+        $middleware->validateCsrfTokens(except: ['*']);
 
         // Enable throttle middleware for API
         $middleware->api(prepend: [
@@ -93,6 +102,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'finance' => FinanceMiddleware::class,
             'hr' => HRMiddleware::class,
             'operator' => OperatorMiddleware::class,
+            'partner' => \App\Http\Middleware\PartnerMiddleware::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             // Billing middleware
             'payme.auth' => PaymeBasicAuth::class,

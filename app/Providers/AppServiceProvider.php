@@ -150,6 +150,12 @@ class AppServiceProvider extends ServiceProvider
         // (Payme/Click → PaymentSuccessEvent → ActivateSubscriptionListener)
         Event::listen(PaymentSuccessEvent::class, ActivateSubscriptionListener::class);
 
+        // Partner Program: har to'lovdan 10%/5% commission yozib borish
+        Event::listen(
+            PaymentSuccessEvent::class,
+            \App\Listeners\Partner\RecordPartnerCommissionListener::class
+        );
+
         // Production optimizations
         $this->configureProductionSettings();
 

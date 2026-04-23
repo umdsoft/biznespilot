@@ -175,6 +175,13 @@ class LandingController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        // Partner (hamkor) — alohida panel, biznes yaratish shart emas.
+        // Agar user partner roliga ega bo'lsa VA biznes yo'q bo'lsa → partner dashboard.
+        // Biznes bor bo'lsa → business dashboard (ikki rolni birga olib boradi).
+        if ($user->hasRole('partner') && ! $user->businesses()->exists()) {
+            return redirect()->route('partner.dashboard');
+        }
+
         if (! $user->businesses()->exists()) {
             return redirect()->route('welcome.index');
         }

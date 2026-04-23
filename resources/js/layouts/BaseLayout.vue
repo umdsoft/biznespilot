@@ -307,8 +307,8 @@
         </div>
       </header>
 
-      <!-- Trial Banner -->
-      <TrialBanner />
+      <!-- Trial Banner — partner panelda biznes obunasi kerak emas, shuning uchun pinhon -->
+      <TrialBanner v-if="config.hideTrialBanner !== true" />
 
       <!-- Page Content -->
       <main :class="config.mainClass">

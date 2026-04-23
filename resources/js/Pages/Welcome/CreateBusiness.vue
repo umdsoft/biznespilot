@@ -261,6 +261,8 @@
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+// Biznes kategoriyalari va viloyatlar — yagona manba (DRY)
+import { BUSINESS_CATEGORIES as businessCategories, UZBEKISTAN_REGIONS as regions } from '@/constants/businessCategories';
 
 const { t } = useI18n();
 
@@ -282,55 +284,6 @@ const form = useForm({
   target_audience: '',
   main_goals: [],
 });
-
-// Biznes kategoriyalari
-const businessCategories = [
-  { value: 'retail', label: 'Chakana savdo (Do\'konlar, supermarketlar)' },
-  { value: 'wholesale', label: 'Ulgurji savdo' },
-  { value: 'ecommerce', label: 'Onlayn savdo (E-commerce)' },
-  { value: 'food_service', label: 'Oziq-ovqat xizmati (Restoranlar, kafelar)' },
-  { value: 'manufacturing', label: 'Ishlab chiqarish' },
-  { value: 'construction', label: 'Qurilish va ta\'mirlash' },
-  { value: 'it_services', label: 'IT xizmatlari va dasturlash' },
-  { value: 'education', label: 'Ta\'lim va o\'quv markazlari' },
-  { value: 'healthcare', label: 'Sog\'liqni saqlash va tibbiyot' },
-  { value: 'beauty_wellness', label: 'Go\'zallik va salomatlik (Salonlar, SPA)' },
-  { value: 'real_estate', label: 'Ko\'chmas mulk' },
-  { value: 'transportation', label: 'Transport va logistika' },
-  { value: 'agriculture', label: 'Qishloq xo\'jaligi' },
-  { value: 'tourism', label: 'Turizm va mehmonxonalar' },
-  { value: 'finance', label: 'Moliya va sug\'urta' },
-  { value: 'consulting', label: 'Konsalting va biznes xizmatlari' },
-  { value: 'marketing_agency', label: 'Marketing va reklama agentligi' },
-  { value: 'media', label: 'Media va ko\'ngilochar sanoat' },
-  { value: 'fitness', label: 'Sport va fitness' },
-  { value: 'automotive', label: 'Avtomobil xizmatlari' },
-  { value: 'textile', label: 'To\'qimachilik va kiyim-kechak' },
-  { value: 'furniture', label: 'Mebel ishlab chiqarish va savdosi' },
-  { value: 'electronics', label: 'Elektronika va texnika' },
-  { value: 'cleaning', label: 'Tozalash xizmatlari' },
-  { value: 'event_services', label: 'Tadbirlar va to\'yxonalar' },
-  { value: 'legal', label: 'Yuridik xizmatlar' },
-  { value: 'other', label: 'Boshqa' },
-];
-
-// O'zbekiston viloyatlari
-const regions = [
-  { value: 'toshkent_shahar', label: 'Toshkent shahri' },
-  { value: 'toshkent_viloyati', label: 'Toshkent viloyati' },
-  { value: 'andijon', label: 'Andijon viloyati' },
-  { value: 'buxoro', label: 'Buxoro viloyati' },
-  { value: 'fargona', label: 'Farg\'ona viloyati' },
-  { value: 'jizzax', label: 'Jizzax viloyati' },
-  { value: 'xorazm', label: 'Xorazm viloyati' },
-  { value: 'namangan', label: 'Namangan viloyati' },
-  { value: 'navoiy', label: 'Navoiy viloyati' },
-  { value: 'qashqadaryo', label: 'Qashqadaryo viloyati' },
-  { value: 'samarqand', label: 'Samarqand viloyati' },
-  { value: 'sirdaryo', label: 'Sirdaryo viloyati' },
-  { value: 'surxondaryo', label: 'Surxondaryo viloyati' },
-  { value: 'qoraqalpogiston', label: 'Qoraqalpog\'iston Respublikasi' },
-];
 
 const availableGoals = [
   { value: 'increase_sales', label: 'Sotuvlarni oshirish' },

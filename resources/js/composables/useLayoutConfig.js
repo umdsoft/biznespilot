@@ -24,6 +24,7 @@ export { financeLayoutConfig } from './layouts/finance.js';
 export { hrLayoutConfig } from './layouts/hr.js';
 export { operatorLayoutConfig } from './layouts/operator.js';
 export { appLayoutConfig } from './layouts/app.js';
+export { partnerLayoutConfig } from './layouts/partner.js';
 
 // Imports (helper uchun)
 import { businessLayoutConfig } from './layouts/business.js';
@@ -34,6 +35,7 @@ import { financeLayoutConfig } from './layouts/finance.js';
 import { hrLayoutConfig } from './layouts/hr.js';
 import { operatorLayoutConfig } from './layouts/operator.js';
 import { appLayoutConfig } from './layouts/app.js';
+import { partnerLayoutConfig } from './layouts/partner.js';
 
 const configByType = {
     business: businessLayoutConfig,
@@ -44,6 +46,7 @@ const configByType = {
     operator: operatorLayoutConfig,
     admin: adminLayoutConfig,
     app: appLayoutConfig,
+    partner: partnerLayoutConfig,
 };
 
 /**

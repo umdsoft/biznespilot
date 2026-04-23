@@ -168,6 +168,11 @@ class AuthController extends Controller
             return route('business.dashboard');
         }
 
+        // Partner (hamkor) roli — biznes yaratish shart emas, o'z panel'iga yo'naltiriladi
+        if ($user->hasRole('partner')) {
+            return route('partner.dashboard');
+        }
+
         // New user without business, redirect to welcome page
         return route('welcome.index');
     }

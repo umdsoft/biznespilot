@@ -141,6 +141,8 @@ import { ref, reactive, watch } from 'vue';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import { useI18n } from '@/i18n';
+// Business categories — yagona manba (DRY)
+import { BUSINESS_CATEGORIES as _sharedCategories } from '@/constants/businessCategories';
 
 const { t } = useI18n();
 
@@ -159,36 +161,9 @@ const emit = defineEmits(['submit', 'cancel', 'skip']);
 const loading = ref(false);
 const errors = reactive({});
 
-// Business categories - values only, labels from i18n
-const businessCategories = [
-  { value: 'retail' },
-  { value: 'wholesale' },
-  { value: 'ecommerce' },
-  { value: 'food_service' },
-  { value: 'manufacturing' },
-  { value: 'construction' },
-  { value: 'it_services' },
-  { value: 'education' },
-  { value: 'healthcare' },
-  { value: 'beauty_wellness' },
-  { value: 'real_estate' },
-  { value: 'transportation' },
-  { value: 'agriculture' },
-  { value: 'tourism' },
-  { value: 'finance' },
-  { value: 'consulting' },
-  { value: 'marketing_agency' },
-  { value: 'media' },
-  { value: 'fitness' },
-  { value: 'automotive' },
-  { value: 'textile' },
-  { value: 'furniture' },
-  { value: 'electronics' },
-  { value: 'cleaning' },
-  { value: 'event_services' },
-  { value: 'legal' },
-  { value: 'other' },
-];
+// Business categories — yagona manba (DRY). Labels i18n'dan keladi, lekin
+// kategoriya ro'yxati constants faylidan: yangi qo'shilsa avtomatik bu yerda.
+const businessCategories = _sharedCategories.map((c) => ({ value: c.value }));
 
 const businessTypes = [
   { value: 'b2b' },

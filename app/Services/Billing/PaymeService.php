@@ -346,8 +346,18 @@ class PaymeService
 
                 // Agar to'lov bo'lgan bo'lsa (refund holati)
                 if ($paymeTransaction->state === BillingPaymeTransaction::STATE_CANCELLED_AFTER_COMPLETE) {
-                    // TODO: Obunani to'xtatish yoki pulni qaytarish logikasi
-                    // Bu yerda RefundEvent dispatch qilish mumkin
+                    // Partner commission clawback — to'lov qaytarilganda
+                    // shu to'lov uchun yozilgan barcha commissionlar reverse qilinadi.
+                    try {
+                        app(\App\Services\Partner\PartnerCommissionService::class)
+                            ->reverseForRefund($transaction, 'payme-cancel-after-complete');
+                    } catch (\Throwable $e) {
+                        \Log::error('Partner commission clawback failed', [
+                            'transaction_id' => $transaction->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+
                     $this->log('CancelTransaction: Refund required', [
                         'order_id' => $transaction->order_id,
                         'amount' => $transaction->amount,

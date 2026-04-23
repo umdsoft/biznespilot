@@ -94,6 +94,36 @@ Route::get('/blog/{blogPost:slug}', [\App\Http\Controllers\BlogController::class
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
 // ==============================================
+// PARTNER PROGRAM — Public referral tracking + Apply
+// ==============================================
+// Public referral link: /refer/{code} → cookie + redirect
+Route::get('/refer/{code}', [\App\Http\Controllers\Partner\PartnerReferralController::class, 'track'])
+    ->where('code', '[A-Z0-9]{3,32}')
+    ->name('partner.refer');
+
+// Partner dashboard (authenticated, no business required — partner o'z account'i bilan kiradi)
+Route::middleware(['auth'])->prefix('partner')->name('partner.')->group(function () {
+    // Apply sahifasi — partner roli YO'Q userlar uchun ham ochiq (ariza topshirish).
+    // Shuning uchun 'partner' middleware'dan TASHQARIDA.
+    Route::get('/apply', [\App\Http\Controllers\Partner\PartnerApplyController::class, 'show'])->name('apply');
+    Route::post('/apply', [\App\Http\Controllers\Partner\PartnerApplyController::class, 'submit'])->name('apply.submit');
+
+    // Dashboard va undagi barcha sahifalar — faqat 'partner' / 'admin' / 'super_admin' roli bo'lganlar uchun.
+    Route::middleware('partner')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'dashboard'])->name('dashboard');
+        Route::get('/referrals', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'referrals'])->name('referrals');
+        Route::post('/referrals/invite', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'inviteReferral'])
+            ->middleware('throttle:10,1440') // 10 urinish / 1440 daqiqa (24 soat)
+            ->name('referrals.invite');
+        Route::get('/commissions', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'commissions'])->name('commissions');
+        Route::get('/payouts', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'payouts'])->name('payouts');
+        Route::post('/payouts/request', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'requestPayout'])->name('payouts.request');
+        Route::get('/settings', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'settings'])->name('settings');
+        Route::put('/settings', [\App\Http\Controllers\Partner\PartnerDashboardController::class, 'updateSettings'])->name('settings.update');
+    });
+});
+
+// ==============================================
 // Health Check Routes (No Authentication)
 // ==============================================
 Route::prefix('health')->group(function () {
@@ -1556,6 +1586,18 @@ Route::middleware(['auth', 'admin'])->prefix('dashboard')->name('admin.')->group
         Route::put('/{business}/status', [BusinessManagementController::class, 'updateStatus'])->name('update-status');
         Route::post('/{business}/assign-subscription', [BusinessManagementController::class, 'assignSubscription'])->name('assign-subscription');
         Route::delete('/{business}', [BusinessManagementController::class, 'destroy'])->name('destroy');
+    });
+
+    // Partner Program Management
+    Route::prefix('partners')->name('partners.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'index'])->name('index');
+        Route::get('/payouts', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'payoutsQueue'])->name('payouts');
+        Route::post('/payouts/{payout}/approve', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'approvePayout'])->name('payouts.approve');
+        Route::post('/payouts/{payout}/mark-paid', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'markPayoutPaid'])->name('payouts.mark-paid');
+        Route::post('/payouts/{payout}/reject', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'rejectPayout'])->name('payouts.reject');
+        Route::get('/{partner}', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'show'])->name('show');
+        Route::put('/{partner}/status', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'updateStatus'])->name('update-status');
+        Route::put('/{partner}/tier', [\App\Http\Controllers\Admin\PartnerManagementController::class, 'updateTier'])->name('update-tier');
     });
 
     // User Management

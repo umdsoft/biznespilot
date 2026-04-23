@@ -58,6 +58,7 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn () => $request->session()->get('warning'),
                 'info' => fn () => $request->session()->get('info'),
                 'upgrade_required' => fn () => $request->session()->get('upgrade_required'),
+                'invite_success' => fn () => $request->session()->get('invite_success'),
             ],
         ];
     }

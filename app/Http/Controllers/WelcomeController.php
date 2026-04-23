@@ -26,6 +26,11 @@ class WelcomeController extends Controller
             return redirect()->route('business.dashboard');
         }
 
+        // Partner — biznes yaratish shart emas, partner dashboard'iga
+        if ($user->hasRole('partner')) {
+            return redirect()->route('partner.dashboard');
+        }
+
         // Redirect to create business page directly
         return redirect()->route('welcome.create-business');
     }
@@ -40,6 +45,11 @@ class WelcomeController extends Controller
         // If user already has a business, redirect to new-business route
         if ($user->businesses()->exists()) {
             return redirect()->route('new-business');
+        }
+
+        // Partner — biznes yaratishga kerak emas
+        if ($user->hasRole('partner')) {
+            return redirect()->route('partner.dashboard');
         }
 
         return Inertia::render('Welcome/CreateBusiness');
@@ -144,6 +154,13 @@ class WelcomeController extends Controller
             'role' => 'owner',
             'joined_at' => now(),
         ]);
+
+        // Partner referral attribution — cookie'dan yoki query'dan keladi
+        $tracker = app(\App\Services\Partner\PartnerReferralTracker::class);
+        $refCode = $tracker->getCodeFromRequest($request);
+        if ($refCode) {
+            $tracker->attachToBusiness($business, $refCode, 'link');
+        }
 
         // Assign owner role using Spatie Permission (if not already)
         if (! Auth::user()->hasRole('owner')) {
