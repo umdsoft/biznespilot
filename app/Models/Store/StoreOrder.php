@@ -39,12 +39,17 @@ class StoreOrder extends Model
         self::STATUS_REFUNDED,
     ];
 
-    // Valid status transitions
+    // Delivery types
+    const DELIVERY_DELIVERY = 'delivery';
+    const DELIVERY_PICKUP = 'pickup';
+
+    // Valid status transitions — SHIPPED -> CANCELLED added for real-world
+    // cases: kuryer can't deliver (customer absent, wrong address, refused).
     const STATUS_TRANSITIONS = [
         self::STATUS_PENDING => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
         self::STATUS_CONFIRMED => [self::STATUS_PROCESSING, self::STATUS_CANCELLED],
         self::STATUS_PROCESSING => [self::STATUS_SHIPPED, self::STATUS_CANCELLED],
-        self::STATUS_SHIPPED => [self::STATUS_DELIVERED],
+        self::STATUS_SHIPPED => [self::STATUS_DELIVERED, self::STATUS_CANCELLED],
         self::STATUS_DELIVERED => [self::STATUS_REFUNDED],
     ];
 
@@ -59,6 +64,7 @@ class StoreOrder extends Model
         'total',
         'payment_method',
         'payment_status',
+        'delivery_type',
         'delivery_address',
         'notes',
         'promo_code',

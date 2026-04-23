@@ -145,18 +145,19 @@ class CheckoutController extends Controller
             }
         }
 
-        // Apply promo code discount
+        // Apply promo code — atomically claim a usage slot under lock
         $discountAmount = 0;
         $promoCode = null;
         if (! empty($validated['promo_code'])) {
-            $promoResult = $this->cartService->applyPromoCode($cart, $validated['promo_code']);
+            $claim = $this->cartService->claimPromoCode(
+                $store,
+                $validated['promo_code'],
+                (float) $subtotal
+            );
 
-            if ($promoResult['success']) {
-                $discountAmount = $promoResult['discount'];
-                $promoCode = $validated['promo_code'];
-
-                // Increment promo usage
-                $promoResult['promo']->incrementUsage();
+            if ($claim) {
+                $discountAmount = $claim['discount'];
+                $promoCode = $claim['code'];
             }
         }
 
@@ -187,6 +188,7 @@ class CheckoutController extends Controller
         try {
             $order = $this->orderService->createOrder($store, $customer, $orderItems, [
                 'delivery_address' => $validated['delivery_address'],
+                'delivery_type' => $validated['delivery_type'] ?? 'delivery',
                 'payment_method' => $validated['payment_method'],
                 'notes' => $validated['notes'] ?? null,
                 'delivery_fee' => $deliveryFee,
@@ -229,6 +231,11 @@ class CheckoutController extends Controller
                 ],
             ], 201);
 
+        } catch (\App\Exceptions\Store\OutOfStockException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Checkout failed', [
                 'store_id' => $store->id,

@@ -10,6 +10,7 @@ use App\Models\Store\StoreCategory;
 use App\Models\Store\StoreProduct;
 use App\Models\Store\StoreProductImage;
 use App\Models\Store\TelegramStore;
+use App\Services\PlanLimitService;
 use App\Services\Store\StoreProductService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +20,8 @@ class StoreProductController extends Controller
     use HasActiveStore, HasCurrentBusiness, HasStorePanelType;
 
     public function __construct(
-        protected StoreProductService $productService
+        protected StoreProductService $productService,
+        protected PlanLimitService $planLimits
     ) {}
 
     /**
@@ -202,6 +204,20 @@ class StoreProductController extends Controller
             if (! $categoryBelongsToStore) {
                 return back()->withErrors(['category_id' => 'Noto\'g\'ri kategoriya.']);
             }
+        }
+
+        // Plan quota enforcement — block over-limit product creation
+        if (! $this->planLimits->canAdd($business, 'store_products')) {
+            $limit = $this->planLimits->getPlanLimit(
+                $this->planLimits->getCurrentPlan($business),
+                'store_products'
+            );
+
+            return back()->with(
+                'error',
+                "Joriy tarif rejangizda {$limit} ta mahsulot limiti to'lgan. "
+                . "Ko'proq mahsulot qo'shish uchun tarifni oshiring."
+            );
         }
 
         $product = $this->productService->createProduct($store, $validated);

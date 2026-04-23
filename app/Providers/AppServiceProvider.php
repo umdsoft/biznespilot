@@ -182,6 +182,33 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(100)->by($request->ip());
         });
 
+        // Mini App public catalog — cheap reads, higher ceiling per store slug
+        RateLimiter::for('miniapp-public', function (Request $request) {
+            $storeKey = $request->route('store') instanceof \App\Models\Store\TelegramStore
+                ? $request->route('store')->slug
+                : (string) $request->route('store');
+
+            return Limit::perMinute(180)->by(($storeKey ?: 'anon') . '|' . $request->ip());
+        });
+
+        // Mini App authenticated writes — checkout, cart mutations, profile
+        // Scoped per (telegram user | ip) to block scripted flooding.
+        RateLimiter::for('miniapp-auth', function (Request $request) {
+            $customer = $request->attributes->get('store_customer');
+            $identity = $customer?->id ?: $request->ip();
+
+            return Limit::perMinute(60)->by('miniapp-auth:' . $identity);
+        });
+
+        // Checkout endpoint gets its own tight bucket — prevents rapid-fire
+        // duplicate orders from the same customer.
+        RateLimiter::for('miniapp-checkout', function (Request $request) {
+            $customer = $request->attributes->get('store_customer');
+            $identity = $customer?->id ?: $request->ip();
+
+            return Limit::perMinute(10)->by('miniapp-checkout:' . $identity);
+        });
+
         RateLimiter::for('kpi-sync', function (Request $request) {
             return Limit::perHour(5)->by($request->user()?->id ?: $request->ip());
         });

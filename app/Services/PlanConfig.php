@@ -120,6 +120,13 @@ class PlanConfig
                 'suffix' => 'ta',
                 'unlimited_value' => -1,
             ],
+            'store_products' => [
+                'label' => 'Do\'kon mahsulotlari',
+                'method' => 'getStoreProductsCount',
+                'icon' => 'shopping-bag',
+                'suffix' => 'ta',
+                'unlimited_value' => -1,
+            ],
         ];
     }
 

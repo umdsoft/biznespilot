@@ -65,15 +65,16 @@ class StorePaymentService
      */
     protected function generatePaymeUrl(StoreOrder $order, PaymentAccount $account): string
     {
-        $amountInTiyin = (int) ($order->total * 100);
+        $amountInTiyin = (int) round((float) $order->total * 100);
         $merchantId = $account->merchant_id;
 
         $params = "m={$merchantId};ac.order_id={$order->id};a={$amountInTiyin}";
         $encoded = base64_encode($params);
 
+        // Payme dev portal documents test.paycom.uz as the sandbox host
         $baseUrl = $account->is_test_mode
-            ? 'https://test.payme.uz'
-            : 'https://checkout.payme.uz';
+            ? 'https://test.paycom.uz'
+            : 'https://checkout.paycom.uz';
 
         return "{$baseUrl}/{$encoded}";
     }

@@ -415,6 +415,16 @@ class PlanLimitService
     }
 
     /**
+     * Do'kon mahsulotlari sonini olish (barcha telegram stores bo'yicha).
+     */
+    protected function getStoreProductsCount(Business $business): int
+    {
+        return \App\Models\Store\StoreProduct::whereHas('store', function ($q) use ($business) {
+            $q->where('business_id', $business->id);
+        })->count();
+    }
+
+    /**
      * Bu oydagi chatbot xabarlari sonini olish.
      */
     protected function getChatMessagesMonthlyCount(Business $business): int

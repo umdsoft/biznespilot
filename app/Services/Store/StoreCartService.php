@@ -9,6 +9,7 @@ use App\Models\Store\StoreProduct;
 use App\Models\Store\StoreProductVariant;
 use App\Models\Store\StorePromoCode;
 use App\Models\Store\TelegramStore;
+use Illuminate\Support\Facades\DB;
 
 class StoreCartService
 {
@@ -111,7 +112,10 @@ class StoreCartService
     }
 
     /**
-     * Apply promo code
+     * Apply promo code — read-only preview (cart UI).
+     *
+     * Does NOT increment usage. Use claimPromoCode() inside the checkout
+     * transaction to atomically reserve a slot against max_uses.
      */
     public function applyPromoCode(StoreCart $cart, string $code): array
     {
@@ -144,6 +148,42 @@ class StoreCartService
             'subtotal' => $subtotal,
             'total' => max(0, $subtotal - $discount),
         ];
+    }
+
+    /**
+     * Atomically claim one promo code usage slot under a row lock.
+     *
+     * Race-safe: two concurrent checkouts for the last max_uses slot cannot
+     * both succeed — the loser gets `null` and the caller skips the discount.
+     *
+     * Returns the claimed discount + promo, or null if claim failed.
+     */
+    public function claimPromoCode(TelegramStore $store, string $code, float $subtotal): ?array
+    {
+        return DB::transaction(function () use ($store, $code, $subtotal) {
+            $promo = StorePromoCode::where('store_id', $store->id)
+                ->where('code', strtoupper(trim($code)))
+                ->lockForUpdate()
+                ->first();
+
+            if (! $promo || ! $promo->isValid()) {
+                return null;
+            }
+
+            $discount = $promo->calculateDiscount($subtotal);
+            if ($discount <= 0) {
+                return null;
+            }
+
+            // Atomic slot claim (under lock, so max_uses is authoritative here)
+            $promo->increment('used_count');
+
+            return [
+                'promo' => $promo,
+                'discount' => $discount,
+                'code' => $promo->code,
+            ];
+        });
     }
 
     /**

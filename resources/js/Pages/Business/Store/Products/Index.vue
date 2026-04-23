@@ -282,7 +282,7 @@ const props = defineProps({
 });
 
 const search = ref(props.filters?.search || '');
-const selectedCategory = ref(props.filters?.category || '');
+const selectedCategory = ref(props.filters?.category_id || '');
 const selectedStatus = ref(props.filters?.status || '');
 const viewMode = ref('table');
 
@@ -303,7 +303,7 @@ const debouncedSearch = () => {
 const applyFilters = () => {
   router.get(route('business.store.products.index'), {
     search: search.value || undefined,
-    category: selectedCategory.value || undefined,
+    category_id: selectedCategory.value || undefined,
     status: selectedStatus.value || undefined,
   }, {
     preserveState: true,

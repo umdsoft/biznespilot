@@ -112,15 +112,25 @@ class StorePaymeWebhookController extends Controller
             return false;
         }
 
-        $decoded = base64_decode(substr($authHeader, 6));
-        $parts = explode(':', $decoded, 2);
-
-        if (count($parts) !== 2) {
+        $decoded = base64_decode(substr($authHeader, 6), true);
+        if ($decoded === false || ! str_contains($decoded, ':')) {
             return false;
         }
 
+        [$login, $key] = explode(':', $decoded, 2);
+
         // Payme sends: "Paycom:{merchant_key}"
-        return $parts[1] === $account->merchant_key;
+        if ($login !== 'Paycom') {
+            return false;
+        }
+
+        $expectedKey = (string) $account->merchant_key;
+        if ($expectedKey === '') {
+            return false;
+        }
+
+        // Timing-safe comparison — prevents character-by-character key brute-force
+        return hash_equals($expectedKey, $key);
     }
 
     /**
@@ -148,7 +158,7 @@ class StorePaymeWebhookController extends Controller
             }
 
             // Amount check (tiyin)
-            $expectedAmount = (int) ($order->total * 100);
+            $expectedAmount = (int) round((float) $order->total * 100);
             if ((int) $amountInTiyin !== $expectedAmount) {
                 return $this->error(
                     self::ERROR_INVALID_AMOUNT,
@@ -206,7 +216,7 @@ class StorePaymeWebhookController extends Controller
             }
 
             // Amount check
-            $expectedAmount = (int) ($order->total * 100);
+            $expectedAmount = (int) round((float) $order->total * 100);
             if ((int) $amountInTiyin !== $expectedAmount) {
                 return $this->error(self::ERROR_INVALID_AMOUNT, 'Invalid amount');
             }
@@ -288,43 +298,48 @@ class StorePaymeWebhookController extends Controller
                 return $this->error(self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction ID required');
             }
 
-            $transaction = StorePaymentTransaction::where('provider_transaction_id', $paymeId)
-                ->where('store_id', $store->id)
-                ->first();
+            // Everything under a row lock — concurrent retries are serialized,
+            // preventing double markPaid / double notification.
+            return DB::transaction(function () use ($store, $paymeId) {
+                $transaction = StorePaymentTransaction::where('provider_transaction_id', $paymeId)
+                    ->where('store_id', $store->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            if (! $transaction) {
-                return $this->error(self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found');
-            }
+                if (! $transaction) {
+                    return $this->error(self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found');
+                }
 
-            $state = $this->getTransactionState($transaction);
+                $state = $this->getTransactionState($transaction);
 
-            // Already completed - idempotency
-            if ($state === self::STATE_COMPLETED) {
-                return $this->success($this->buildPerformResponse($transaction));
-            }
+                // Already completed - idempotency
+                if ($state === self::STATE_COMPLETED) {
+                    return $this->success($this->buildPerformResponse($transaction));
+                }
 
-            // Cancelled
-            if ($state < 0) {
-                return $this->error(self::ERROR_CANNOT_PERFORM, 'Transaction cancelled');
-            }
+                // Cancelled
+                if ($state < 0) {
+                    return $this->error(self::ERROR_CANNOT_PERFORM, 'Transaction cancelled');
+                }
 
-            // Must be in created state
-            if ($state !== self::STATE_CREATED) {
-                return $this->error(self::ERROR_INVALID_STATE, 'Invalid transaction state');
-            }
+                // Must be in created state
+                if ($state !== self::STATE_CREATED) {
+                    return $this->error(self::ERROR_INVALID_STATE, 'Invalid transaction state');
+                }
 
-            // Check timeout (12 hours)
-            $createTime = data_get($transaction->metadata, 'create_time', 0);
-            if ($createTime > 0 && ($this->currentTimeMs() - $createTime) > 43200000) {
-                $this->cancelTransactionRecord($transaction, self::REASON_TIMEOUT);
+                // Check timeout (12 hours) — fallback to created_at if metadata missing
+                $createTime = (int) data_get(
+                    $transaction->metadata,
+                    'create_time',
+                    $transaction->created_at ? (int) ($transaction->created_at->getTimestamp() * 1000) : 0
+                );
+                if ($createTime > 0 && ($this->currentTimeMs() - $createTime) > 43200000) {
+                    $this->cancelTransactionRecord($transaction, self::REASON_TIMEOUT);
 
-                return $this->error(self::ERROR_CANNOT_PERFORM, 'Transaction timeout');
-            }
+                    return $this->error(self::ERROR_CANNOT_PERFORM, 'Transaction timeout');
+                }
 
-            return DB::transaction(function () use ($transaction) {
                 $performTime = $this->currentTimeMs();
-
-                // Update transaction
                 $metadata = $transaction->metadata ?? [];
                 $metadata['perform_time'] = $performTime;
                 $metadata['state'] = self::STATE_COMPLETED;
@@ -335,7 +350,6 @@ class StorePaymeWebhookController extends Controller
                     'metadata' => $metadata,
                 ]);
 
-                // Mark order as paid
                 $order = $transaction->order;
                 if ($order) {
                     $this->orderService->handlePaymentCompleted($order, 'payme', $transaction->provider_transaction_id);

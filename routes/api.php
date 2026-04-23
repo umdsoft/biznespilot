@@ -668,28 +668,30 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
 // Telegram Mini App do'kon API'lari
 // Store route model binding: {store:slug} orqali TelegramStore topiladi
 Route::prefix('miniapp/v1/{store:slug}')->group(function () {
-    // Public (autentifikatsiya shart emas)
-    Route::get('/info', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'info']);
-    Route::get('/categories', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'categories']);
-    Route::get('/delivery-zones', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'deliveryZones']);
-    Route::get('/regions', [\App\Http\Controllers\Api\MiniApp\RegionController::class, 'regions']);
-    Route::get('/regions/{key}/districts', [\App\Http\Controllers\Api\MiniApp\RegionController::class, 'districts']);
+    // Public (autentifikatsiya shart emas) — tight-but-generous per-slug throttle
+    Route::middleware('throttle:miniapp-public')->group(function () {
+        Route::get('/info', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'info']);
+        Route::get('/categories', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'categories']);
+        Route::get('/delivery-zones', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'deliveryZones']);
+        Route::get('/regions', [\App\Http\Controllers\Api\MiniApp\RegionController::class, 'regions']);
+        Route::get('/regions/{key}/districts', [\App\Http\Controllers\Api\MiniApp\RegionController::class, 'districts']);
 
-    // Unified Catalog API (barcha bot turlari uchun)
-    Route::get('/catalog', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'index']);
-    Route::get('/catalog/search', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'search']);
-    Route::get('/catalog/featured', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'featured']);
-    Route::get('/catalog/filters', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'filterOptions']);
-    Route::get('/catalog/{slug}', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'show']);
+        // Unified Catalog API (barcha bot turlari uchun)
+        Route::get('/catalog', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'index']);
+        Route::get('/catalog/search', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'search']);
+        Route::get('/catalog/featured', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'featured']);
+        Route::get('/catalog/filters', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'filterOptions']);
+        Route::get('/catalog/{slug}', [\App\Http\Controllers\Api\MiniApp\MiniAppCatalogController::class, 'show']);
 
-    // Legacy product routes (backward compat)
-    Route::get('/featured', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'featured']);
-    Route::get('/products', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'index']);
-    Route::get('/products/search', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'search']);
-    Route::get('/products/{product:slug}', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'show']);
+        // Legacy product routes (backward compat)
+        Route::get('/featured', [\App\Http\Controllers\Api\MiniApp\StoreController::class, 'featured']);
+        Route::get('/products', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'index']);
+        Route::get('/products/search', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'search']);
+        Route::get('/products/{product:slug}', [\App\Http\Controllers\Api\MiniApp\ProductController::class, 'show']);
+    });
 
     // Authenticated (Telegram initData talab qilinadi)
-    Route::middleware('miniapp.auth')->group(function () {
+    Route::middleware(['miniapp.auth', 'throttle:miniapp-auth'])->group(function () {
         Route::post('/auth', [\App\Http\Controllers\Api\MiniApp\AuthController::class, 'authenticate']);
         Route::get('/profile', [\App\Http\Controllers\Api\MiniApp\ProfileController::class, 'show']);
         Route::post('/profile/addresses', [\App\Http\Controllers\Api\MiniApp\ProfileController::class, 'storeAddress']);
@@ -701,7 +703,8 @@ Route::prefix('miniapp/v1/{store:slug}')->group(function () {
         Route::delete('/cart/{item}', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'removeItem']);
         Route::post('/cart/sync', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'sync']);
         Route::post('/cart/promo', [\App\Http\Controllers\Api\MiniApp\CartController::class, 'applyPromo']);
-        Route::post('/checkout', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'checkout']);
+        Route::post('/checkout', [\App\Http\Controllers\Api\MiniApp\CheckoutController::class, 'checkout'])
+            ->middleware('throttle:miniapp-checkout');
         Route::get('/orders', [\App\Http\Controllers\Api\MiniApp\OrderController::class, 'index']);
         Route::get('/orders/{order:order_number}', [\App\Http\Controllers\Api\MiniApp\OrderController::class, 'show']);
 

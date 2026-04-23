@@ -98,8 +98,10 @@ class StoreClickWebhookController extends Controller
                 );
             }
 
-            // Amount check
-            if ((float) $order->total !== $amount) {
+            // Amount check — integer tiyin compare to avoid float precision bugs
+            $expectedTiyin = (int) round((float) $order->total * 100);
+            $actualTiyin = (int) round($amount * 100);
+            if ($expectedTiyin !== $actualTiyin) {
                 return response()->json(
                     $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_INCORRECT_AMOUNT, 'Incorrect amount')
                 );
@@ -218,47 +220,52 @@ class StoreClickWebhookController extends Controller
                 );
             }
 
-            // Find transaction by click_trans_id
-            $transaction = StorePaymentTransaction::where('store_id', $store->id)
-                ->where('provider', 'click')
-                ->where('metadata->click_trans_id', $clickTransId)
-                ->first();
+            // Everything under a row lock — concurrent Click retries serialize,
+            // preventing double markPaid / double notification.
+            return DB::transaction(function () use ($store, $clickTransId, $clickPaydocId, $merchantTransId, $amount) {
+                $transaction = StorePaymentTransaction::where('store_id', $store->id)
+                    ->where('provider', 'click')
+                    ->where('metadata->click_trans_id', $clickTransId)
+                    ->lockForUpdate()
+                    ->first();
 
-            if (! $transaction) {
-                return response()->json(
-                    $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found')
-                );
-            }
+                if (! $transaction) {
+                    return response()->json(
+                        $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_TRANSACTION_NOT_FOUND, 'Transaction not found')
+                    );
+                }
 
-            $order = $transaction->order;
+                $order = $transaction->order;
 
-            // Already paid - idempotency
-            if ($order && $order->isPaid()) {
-                return response()->json($this->buildCompleteResponse($transaction, $clickTransId, $merchantTransId));
-            }
+                // Already paid - idempotency
+                if ($order && $order->isPaid()) {
+                    return response()->json($this->buildCompleteResponse($transaction, $clickTransId, $merchantTransId));
+                }
 
-            if ($order && in_array($order->status, [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED])) {
-                return response()->json(
-                    $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_TRANSACTION_CANCELLED, 'Order cancelled')
-                );
-            }
+                if ($order && in_array($order->status, [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED])) {
+                    return response()->json(
+                        $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_TRANSACTION_CANCELLED, 'Order cancelled')
+                    );
+                }
 
-            // Transaction must be in processing (prepared) state
-            if ($transaction->status !== StorePaymentTransaction::STATUS_PROCESSING) {
-                return response()->json(
-                    $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_PAYMENT_FAILED, 'Transaction not prepared')
-                );
-            }
+                // Transaction must be in processing (prepared) state
+                if ($transaction->status !== StorePaymentTransaction::STATUS_PROCESSING) {
+                    return response()->json(
+                        $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_PAYMENT_FAILED, 'Transaction not prepared')
+                    );
+                }
 
-            // Amount check
-            if ($order && (float) $order->total !== $amount) {
-                return response()->json(
-                    $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_INCORRECT_AMOUNT, 'Amount mismatch')
-                );
-            }
+                // Amount check — integer tiyin compare to avoid float precision bugs
+                if ($order) {
+                    $expectedTiyin = (int) round((float) $order->total * 100);
+                    $actualTiyin = (int) round($amount * 100);
+                    if ($expectedTiyin !== $actualTiyin) {
+                        return response()->json(
+                            $this->buildResponse($clickTransId, $merchantTransId, self::ERROR_INCORRECT_AMOUNT, 'Amount mismatch')
+                        );
+                    }
+                }
 
-            // Complete the payment
-            return DB::transaction(function () use ($transaction, $order, $clickTransId, $clickPaydocId, $merchantTransId) {
                 $metadata = $transaction->metadata ?? [];
                 $metadata['click_paydoc_id'] = $clickPaydocId;
                 $metadata['action'] = 1; // complete
@@ -269,7 +276,6 @@ class StoreClickWebhookController extends Controller
                     'metadata' => $metadata,
                 ]);
 
-                // Mark order as paid
                 if ($order) {
                     $this->orderService->handlePaymentCompleted(
                         $order,
@@ -342,7 +348,9 @@ class StoreClickWebhookController extends Controller
 
         $expectedSign = md5(implode('', $parts));
 
-        return $signString === $expectedSign;
+        // Timing-safe comparison — Click secret_key must not be brute-forceable
+        // via HMAC string side-channel.
+        return hash_equals($expectedSign, (string) $signString);
     }
 
     // ========== ERROR HANDLING ==========
