@@ -25,7 +25,9 @@ class ProductController extends Controller
     {
         $query = $store->products()
             ->active()
-            ->with(['primaryImage', 'category', 'approvedReviews']);
+            ->with(['primaryImage', 'category'])
+            ->withCount('approvedReviews as reviews_count')
+            ->withAvg('approvedReviews as reviews_avg_rating', 'rating');
 
         // Category filter
         if ($request->filled('category_id')) {

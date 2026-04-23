@@ -38,8 +38,11 @@ class StoreOrderController extends Controller
             return $this->redirectToStoreSetup('Avval do\'kon yarating.');
         }
 
+        // Use withCount for the item count (was hydrating every line item just
+        // to call ->count() per row). Customer is still needed for display.
         $query = StoreOrder::where('store_id', $store->id)
-            ->with(['customer', 'items']);
+            ->with(['customer:id,name,phone,telegram_username'])
+            ->withCount('items');
 
         // Status filter
         if ($request->filled('status')) {
@@ -98,7 +101,7 @@ class StoreOrderController extends Controller
             'delivery_fee' => $order->delivery_fee,
             'discount_amount' => $order->discount_amount,
             'total' => $order->total,
-            'items_count' => $order->items->count(),
+            'items_count' => $order->items_count,
             'customer' => $order->customer ? [
                 'id' => $order->customer->id,
                 'name' => $order->customer->getDisplayName(),
@@ -327,8 +330,10 @@ class StoreOrderController extends Controller
             return back()->with('error', 'Do\'kon topilmadi.');
         }
 
+        // Export uses withCount + chunk so large catalogs don't OOM.
         $query = StoreOrder::where('store_id', $store->id)
-            ->with(['customer', 'items']);
+            ->with(['customer:id,name,phone,telegram_username'])
+            ->withCount('items');
 
         // Apply same filters as index
         if ($request->filled('status')) {
@@ -348,7 +353,14 @@ class StoreOrderController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $orders = $query->latest()->get();
+        // Stream-collect rows via chunk — avoids holding 10k orders + line items
+        // in memory for stores with long history.
+        $orders = collect();
+        $query->latest()->chunk(500, function ($batch) use (&$orders) {
+            foreach ($batch as $order) {
+                $orders->push($order);
+            }
+        });
 
         $filename = 'buyurtmalar_' . $store->slug . '_' . now()->format('Y-m-d') . '.xls';
 
@@ -375,7 +387,7 @@ class StoreOrderController extends Controller
             $order->customer?->phone ?? '-',
             $order->getStatusLabel(),
             $order->payment_status === 'paid' ? "To'langan" : 'Kutilmoqda',
-            $order->items->count(),
+            $order->items_count,
             $order->subtotal ?? 0,
             $order->delivery_fee ?? 0,
             $order->discount_amount ?? 0,

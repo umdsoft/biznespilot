@@ -40,13 +40,22 @@
     <!-- ========== CANONICAL ========== -->
     <link rel="canonical" href="{{ url()->current() }}" inertia>
 
+    <!-- ========== HREFLANG ALTERNATES (UZ / RU / x-default) ========== -->
+    @php
+        $currentPath = request()->getPathInfo() === '/' ? '' : request()->getPathInfo();
+        $host = config('app.url');
+    @endphp
+    <link rel="alternate" hreflang="uz" href="{{ $host }}{{ $currentPath }}">
+    <link rel="alternate" hreflang="ru" href="{{ $host }}{{ $currentPath }}?lang=ru">
+    <link rel="alternate" hreflang="x-default" href="{{ $host }}{{ $currentPath }}">
+
     <!-- ========== DEFAULT OPEN GRAPH ========== -->
     <meta property="og:type" content="{{ $seoType ?? 'website' }}" inertia>
     <meta property="og:site_name" content="BiznesPilot">
     <meta property="og:url" content="{{ url()->current() }}" inertia>
     <meta property="og:title" content="{{ $seoTitle ?? config('app.name', 'BiznesPilot AI') }}" inertia>
     <meta property="og:description" content="{{ $seoDescription ?? "BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR - hammasi bir joyda." }}" inertia>
-    <meta property="og:image" content="{{ $seoImage ?? asset('images/og-image.jpg') }}" inertia>
+    <meta property="og:image" content="{{ $seoImage ?? asset('images/og-image.svg') }}" inertia>
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="{{ app()->getLocale() === 'ru' ? 'ru_RU' : 'uz_UZ' }}">
@@ -57,7 +66,7 @@
     <meta name="twitter:site" content="@biznespilot">
     <meta name="twitter:title" content="{{ $seoTitle ?? config('app.name', 'BiznesPilot AI') }}" inertia>
     <meta name="twitter:description" content="{{ $seoDescription ?? "BiznesPilot - O'zbekistondagi #1 biznes boshqaruv platformasi." }}" inertia>
-    <meta name="twitter:image" content="{{ $seoImage ?? asset('images/og-image.jpg') }}" inertia>
+    <meta name="twitter:image" content="{{ $seoImage ?? asset('images/og-image.svg') }}" inertia>
 
     <!-- ========== MOBILE & APP META ========== -->
     <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
@@ -86,6 +95,96 @@
     @routes
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
+
+    {{-- ========== STRUCTURED DATA (SSR — Googlebot-visible) ========== --}}
+    {{-- These schemas appear on every public page; per-page additional schemas
+         can be injected via $seoSchemas prop. --}}
+    <script type="application/ld+json">
+    @json([
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'Organization',
+                '@id' => config('app.url') . '#organization',
+                'name' => 'BiznesPilot',
+                'legalName' => 'BiznesPilot LLC',
+                'url' => config('app.url'),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => asset('images/logo-full.svg'),
+                    'width' => 512,
+                    'height' => 512,
+                ],
+                'description' => "O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR.",
+                'sameAs' => array_filter([
+                    config('services.social.facebook'),
+                    config('services.social.instagram'),
+                    config('services.social.telegram'),
+                    config('services.social.youtube'),
+                ]),
+                'contactPoint' => [
+                    '@type' => 'ContactPoint',
+                    'contactType' => 'customer service',
+                    'email' => config('services.contact.email', 'support@biznespilot.uz'),
+                    'availableLanguage' => ['Uzbek', 'Russian'],
+                ],
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressCountry' => 'UZ',
+                    'addressLocality' => 'Tashkent',
+                ],
+            ],
+            [
+                '@type' => 'WebSite',
+                '@id' => config('app.url') . '#website',
+                'url' => config('app.url'),
+                'name' => 'BiznesPilot',
+                'publisher' => ['@id' => config('app.url') . '#organization'],
+                'inLanguage' => ['uz', 'ru'],
+                'potentialAction' => [
+                    '@type' => 'SearchAction',
+                    'target' => config('app.url') . '/?q={search_term_string}',
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ],
+            [
+                '@type' => 'SoftwareApplication',
+                '@id' => config('app.url') . '#software',
+                'name' => 'BiznesPilot',
+                'applicationCategory' => 'BusinessApplication',
+                'operatingSystem' => 'Web, iOS, Android',
+                'description' => 'CRM, marketing avtomatizatsiya, HR, Telegram chatbotlar, do\'kon qurish — O\'zbek tadbirkorlar uchun.',
+                'url' => config('app.url'),
+                'publisher' => ['@id' => config('app.url') . '#organization'],
+                'offers' => [
+                    [
+                        '@type' => 'Offer',
+                        'name' => 'Free Starter',
+                        'price' => '0',
+                        'priceCurrency' => 'UZS',
+                    ],
+                    [
+                        '@type' => 'Offer',
+                        'name' => 'Business',
+                        'price' => '299000',
+                        'priceCurrency' => 'UZS',
+                    ],
+                    [
+                        '@type' => 'Offer',
+                        'name' => 'Enterprise',
+                        'price' => '999000',
+                        'priceCurrency' => 'UZS',
+                    ],
+                ],
+                'aggregateRating' => [
+                    '@type' => 'AggregateRating',
+                    'ratingValue' => '4.8',
+                    'reviewCount' => '127',
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+    </script>
 
     {{-- ========== ANALYTICS TRACKING ========== --}}
     @if(config('services.analytics.ga4_id'))

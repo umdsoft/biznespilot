@@ -25,6 +25,27 @@ class StoreProductController extends Controller
     ) {}
 
     /**
+     * Single-query product stats — replaces 3 serial COUNT(*) calls.
+     */
+    protected function productStats(string $storeId): array
+    {
+        $row = \DB::table('store_products')
+            ->where('store_id', $storeId)
+            ->selectRaw(
+                'COUNT(*) AS total, '
+                . 'SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) AS active, '
+                . 'SUM(CASE WHEN track_stock = 1 AND stock_quantity <= 0 THEN 1 ELSE 0 END) AS out_of_stock'
+            )
+            ->first();
+
+        return [
+            'total' => (int) ($row->total ?? 0),
+            'active' => (int) ($row->active ?? 0),
+            'out_of_stock' => (int) ($row->out_of_stock ?? 0),
+        ];
+    }
+
+    /**
      * List products with pagination and filters
      */
     public function index(Request $request)
@@ -41,8 +62,10 @@ class StoreProductController extends Controller
             return $this->redirectToStoreSetup('Avval do\'kon yarating.');
         }
 
+        // withCount instead of loading every image row just to get a count.
         $query = StoreProduct::where('store_id', $store->id)
-            ->with(['category', 'primaryImage', 'images']);
+            ->with(['category:id,name', 'primaryImage'])
+            ->withCount('images');
 
         // Search filter
         if ($request->filled('search')) {
@@ -99,7 +122,7 @@ class StoreProductController extends Controller
                 'name' => $product->category->name,
             ] : null,
             'primary_image' => $product->primaryImage?->image_url,
-            'images_count' => $product->images->count(),
+            'images_count' => $product->images_count,
             'has_discount' => $product->hasDiscount(),
             'discount_percent' => $product->getDiscountPercent(),
             'is_in_stock' => $product->isInStock(),
@@ -115,14 +138,9 @@ class StoreProductController extends Controller
             'products' => $products,
             'categories' => $categories,
             'filters' => $request->only(['search', 'category_id', 'status', 'sort', 'direction']),
-            'stats' => [
-                'total' => StoreProduct::where('store_id', $store->id)->count(),
-                'active' => StoreProduct::where('store_id', $store->id)->where('is_active', true)->count(),
-                'out_of_stock' => StoreProduct::where('store_id', $store->id)
-                    ->where('track_stock', true)
-                    ->where('stock_quantity', '<=', 0)
-                    ->count(),
-            ],
+            // Single-query stats — collapses 3 serial COUNT(*) into one SELECT
+            // with conditional aggregates. Saves 2 DB round-trips per page load.
+            'stats' => $this->productStats($store->id),
             'panelType' => $this->getStorePanelTypeForInertia(),
         ]);
     }
@@ -250,12 +268,18 @@ class StoreProductController extends Controller
             return $this->redirectToStoreSetup();
         }
 
+        // Aggregate reviews + orderItems at query time instead of firing 2
+        // separate subqueries after the fetch.
         $product = StoreProduct::where('store_id', $store->id)
-            ->with(['category', 'images', 'variants', 'approvedReviews'])
+            ->with(['category:id,name', 'images', 'variants', 'approvedReviews'])
+            ->withCount(['orderItems as orders_count', 'approvedReviews as reviews_count'])
+            ->withAvg('approvedReviews as reviews_avg_rating', 'rating')
             ->findOrFail($id);
 
-        $orderItemsCount = $product->orderItems()->count();
-        $averageRating = $product->getAverageRating();
+        $orderItemsCount = (int) ($product->orders_count ?? 0);
+        $averageRating = $product->reviews_avg_rating !== null
+            ? round((float) $product->reviews_avg_rating, 1)
+            : 0.0;
 
         return Inertia::render('Business/Store/Products/Form', [
             'product' => [

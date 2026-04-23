@@ -40,16 +40,13 @@ class ProductListResource extends JsonResource
             'stock' => $this->track_stock ? $this->stock_quantity : 99,
             'in_stock' => $this->isInStock(),
             'is_featured' => $this->is_featured,
-            'rating' => $this->when(
-                $this->relationLoaded('approvedReviews'),
-                fn () => $this->approvedReviews->count() > 0
-                    ? round($this->approvedReviews->avg('rating'), 1)
-                    : 0
-            ),
-            'reviews_count' => $this->when(
-                $this->relationLoaded('approvedReviews'),
-                fn () => $this->approvedReviews->count()
-            ),
+            // Pre-computed via withAvg/withCount — avoids hydrating every review
+            // row just to aggregate. Falls back to 0 when the caller forgot to
+            // eager-load the aggregates.
+            'rating' => $this->reviews_avg_rating !== null
+                ? round((float) $this->reviews_avg_rating, 1)
+                : 0,
+            'reviews_count' => (int) ($this->reviews_count ?? 0),
         ];
     }
 }

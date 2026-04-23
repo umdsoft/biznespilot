@@ -46,6 +46,16 @@ class BookingController extends Controller
         }
         $staffMembers = $staffQuery->with(['schedules', 'timeOffs'])->get();
 
+        // Pre-fetch ALL bookings for the day in one query, grouped by staff.
+        // Avoids N+1 (one bookings SELECT per staff member in the loop below).
+        $bookingsByStaff = $staffMembers->isEmpty()
+            ? collect()
+            : StoreBooking::whereIn('staff_id', $staffMembers->pluck('id'))
+                ->whereDate('booked_at', $date)
+                ->whereNotIn('status', ['cancelled', 'no_show'])
+                ->get(['staff_id', 'booked_at', 'ends_at'])
+                ->groupBy('staff_id');
+
         if ($staffMembers->isEmpty()) {
             // No staff — generate default 9-18 slots
             return response()->json([
@@ -73,11 +83,8 @@ class BookingController extends Controller
             $breakStart = $schedule->break_start ? Carbon::parse($date->format('Y-m-d') . ' ' . $schedule->break_start) : null;
             $breakEnd = $schedule->break_end ? Carbon::parse($date->format('Y-m-d') . ' ' . $schedule->break_end) : null;
 
-            // Get existing bookings for this staff on this date
-            $existingBookings = StoreBooking::where('staff_id', $staff->id)
-                ->whereDate('booked_at', $date)
-                ->whereNotIn('status', ['cancelled', 'no_show'])
-                ->get(['booked_at', 'ends_at']);
+            // Use pre-fetched bookings for this staff (from the grouped collection)
+            $existingBookings = $bookingsByStaff->get($staff->id, collect());
 
             $current = $start->copy();
             while ($current->copy()->addMinutes($duration)->lte($end)) {

@@ -23,8 +23,13 @@ class StoreController extends Controller
     public function info(TelegramStore $store): JsonResponse
     {
         $store->load([
+            // Categories with pre-computed active product count — kills N+1 in
+            // StoreInfoResource (was doing one COUNT per category per request).
             'categories' => function ($q) {
-                $q->active()->ordered();
+                $q->active()->ordered()
+                    ->withCount(['products as active_products_count' => function ($qq) {
+                        $qq->where('is_active', true);
+                    }]);
             },
             'products' => function ($q) {
                 $q->active()->with('primaryImage');
@@ -46,15 +51,17 @@ class StoreController extends Controller
             ->active()
             ->root()
             ->ordered()
+            // Pre-compute child product counts at query time instead of firing
+            // one COUNT(*) per category in the Resource (was N+1 before).
+            ->withCount(['products as active_products_count' => function ($q) {
+                $q->where('is_active', true);
+            }])
             ->with([
                 'children' => function ($q) {
-                    $q->active()->ordered();
-                },
-                'children.products' => function ($q) {
-                    $q->active();
-                },
-                'products' => function ($q) {
-                    $q->active();
+                    $q->active()->ordered()
+                        ->withCount(['products as active_products_count' => function ($qq) {
+                            $qq->where('is_active', true);
+                        }]);
                 },
             ])
             ->get();
@@ -73,7 +80,11 @@ class StoreController extends Controller
         $products = $store->products()
             ->active()
             ->featured()
-            ->with(['primaryImage', 'category', 'approvedReviews'])
+            ->with(['primaryImage', 'category'])
+            // Aggregate reviews at query time — avoids hydrating every review row
+            // just to call ->avg()/->count() in the resource.
+            ->withCount('approvedReviews as reviews_count')
+            ->withAvg('approvedReviews as reviews_avg_rating', 'rating')
             ->orderBy('sort_order')
             ->limit(20)
             ->get();

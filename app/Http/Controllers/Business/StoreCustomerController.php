@@ -72,24 +72,27 @@ class StoreCustomerController extends Controller
             'created_at' => $customer->created_at?->format('d.m.Y'),
         ]);
 
-        // Customer statistics
-        $totalCustomers = StoreCustomer::where('store_id', $store->id)->count();
-        $activeCustomers = StoreCustomer::where('store_id', $store->id)
-            ->where('last_order_at', '>=', now()->subDays(30))
-            ->count();
-        $totalRevenue = StoreCustomer::where('store_id', $store->id)->sum('total_spent');
-        $avgOrderValue = StoreCustomer::where('store_id', $store->id)
-            ->where('orders_count', '>', 0)
-            ->avg('total_spent');
+        // Single-query stats — collapses 4 serial aggregates into one SELECT.
+        $activeThreshold = now()->subDays(30)->toDateTimeString();
+        $statsRow = \DB::table('store_customers')
+            ->where('store_id', $store->id)
+            ->selectRaw(
+                'COUNT(*) AS total_customers, '
+                . 'SUM(CASE WHEN last_order_at >= ? THEN 1 ELSE 0 END) AS active_customers, '
+                . 'COALESCE(SUM(total_spent), 0) AS total_revenue, '
+                . 'COALESCE(AVG(CASE WHEN orders_count > 0 THEN total_spent END), 0) AS avg_order_value',
+                [$activeThreshold]
+            )
+            ->first();
 
         return Inertia::render('Business/Store/Customers/Index', [
             'customers' => $customers,
             'filters' => $request->only(['search', 'sort', 'direction']),
             'stats' => [
-                'total_customers' => $totalCustomers,
-                'active_customers' => $activeCustomers,
-                'total_revenue' => round($totalRevenue, 2),
-                'avg_customer_value' => $avgOrderValue ? round($avgOrderValue, 2) : 0,
+                'total_customers' => (int) ($statsRow->total_customers ?? 0),
+                'active_customers' => (int) ($statsRow->active_customers ?? 0),
+                'total_revenue' => round((float) ($statsRow->total_revenue ?? 0), 2),
+                'avg_customer_value' => round((float) ($statsRow->avg_order_value ?? 0), 2),
             ],
             'panelType' => $this->getStorePanelTypeForInertia(),
         ]);
@@ -116,10 +119,10 @@ class StoreCustomerController extends Controller
             ->with('telegramUser')
             ->findOrFail($id);
 
-        // Get customer's orders with pagination
+        // Get customer's orders with pagination — withCount instead of hydrating items
         $orders = StoreOrder::where('store_id', $store->id)
             ->where('customer_id', $customer->id)
-            ->with('items')
+            ->withCount('items')
             ->latest()
             ->paginate(15)
             ->through(fn ($order) => [
@@ -129,27 +132,33 @@ class StoreCustomerController extends Controller
                 'status_label' => $order->getStatusLabel(),
                 'payment_status' => $order->payment_status,
                 'total' => $order->total,
-                'items_count' => $order->items->count(),
+                'items_count' => $order->items_count,
                 'is_paid' => $order->isPaid(),
                 'created_at' => $order->created_at?->toISOString(),
             ]);
 
-        // Customer order statistics
+        // Customer order statistics — merged into one SELECT
+        $aggRow = \DB::table('store_orders')
+            ->where('customer_id', $customer->id)
+            ->selectRaw(
+                'SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS completed_orders, '
+                . 'SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS cancelled_orders, '
+                . 'MIN(created_at) AS first_order_at',
+                [StoreOrder::STATUS_DELIVERED, StoreOrder::STATUS_CANCELLED]
+            )
+            ->first();
+
         $orderStats = [
             'total_orders' => $customer->orders_count,
             'total_spent' => $customer->total_spent,
-            'completed_orders' => StoreOrder::where('customer_id', $customer->id)
-                ->where('status', StoreOrder::STATUS_DELIVERED)
-                ->count(),
-            'cancelled_orders' => StoreOrder::where('customer_id', $customer->id)
-                ->where('status', StoreOrder::STATUS_CANCELLED)
-                ->count(),
+            'completed_orders' => (int) ($aggRow->completed_orders ?? 0),
+            'cancelled_orders' => (int) ($aggRow->cancelled_orders ?? 0),
             'avg_order_value' => $customer->orders_count > 0
                 ? round($customer->total_spent / $customer->orders_count, 2)
                 : 0,
-            'first_order_at' => StoreOrder::where('customer_id', $customer->id)
-                ->oldest()
-                ->value('created_at')?->format('d.m.Y'),
+            'first_order_at' => $aggRow->first_order_at
+                ? \Carbon\Carbon::parse($aggRow->first_order_at)->format('d.m.Y')
+                : null,
         ];
 
         // Get reviews by this customer

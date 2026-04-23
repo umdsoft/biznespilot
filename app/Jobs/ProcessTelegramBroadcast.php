@@ -96,10 +96,12 @@ class ProcessTelegramBroadcast implements ShouldQueue
         $recipientsQuery->orderBy('id')
             ->skip($processedCount)
             ->chunk(100, function ($users) use ($broadcast, $api, &$processedCount) {
-                foreach ($users as $user) {
-                    // Refresh broadcast to check if paused/cancelled
-                    $broadcast->refresh();
+                // Refresh ONCE per chunk (not per recipient) — at 100k recipients
+                // the per-user refresh was 100k extra SELECTs. Check cadence is
+                // still every ~100 sends, which is responsive enough for pause/cancel.
+                $broadcast->refresh();
 
+                foreach ($users as $user) {
                     if ($broadcast->status === 'paused') {
                         Log::info('ProcessTelegramBroadcast: Paused', [
                             'broadcast_id' => $broadcast->id,

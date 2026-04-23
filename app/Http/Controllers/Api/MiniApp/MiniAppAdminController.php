@@ -21,36 +21,34 @@ class MiniAppAdminController extends Controller
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
+        // Single-query dashboard aggregates — replaces 5 separate SELECTs.
         $today = now()->toDateString();
-        $ordersToday = StoreOrder::where('store_id', $store->id)
-            ->whereDate('created_at', $today)
-            ->count();
+        $activeStatuses = StoreOrder::ACTIVE_STATUSES;
+        $activePlaceholders = implode(',', array_fill(0, count($activeStatuses), '?'));
 
-        $revenueToday = StoreOrder::where('store_id', $store->id)
-            ->whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
-            ->sum('total');
-
-        $pendingOrders = StoreOrder::where('store_id', $store->id)
-            ->whereIn('status', StoreOrder::ACTIVE_STATUSES)
-            ->count();
-
-        $totalOrders = StoreOrder::where('store_id', $store->id)->count();
-        $totalRevenue = StoreOrder::where('store_id', $store->id)
-            ->where('payment_status', 'paid')
-            ->sum('total');
+        $row = \DB::table('store_orders')
+            ->where('store_id', $store->id)
+            ->selectRaw(
+                "SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) AS orders_today, "
+                . "SUM(CASE WHEN DATE(created_at) = ? AND payment_status = 'paid' THEN total ELSE 0 END) AS revenue_today, "
+                . "SUM(CASE WHEN status IN ($activePlaceholders) THEN 1 ELSE 0 END) AS pending_orders, "
+                . "COUNT(*) AS total_orders, "
+                . "SUM(CASE WHEN payment_status = 'paid' THEN total ELSE 0 END) AS total_revenue",
+                array_merge([$today, $today], $activeStatuses)
+            )
+            ->first();
 
         return response()->json([
             'store_name' => $store->name,
             'store_type' => $store->store_type,
             'today' => [
-                'orders' => $ordersToday,
-                'revenue' => (float) $revenueToday,
+                'orders' => (int) ($row->orders_today ?? 0),
+                'revenue' => (float) ($row->revenue_today ?? 0),
             ],
-            'pending_orders' => $pendingOrders,
+            'pending_orders' => (int) ($row->pending_orders ?? 0),
             'total' => [
-                'orders' => $totalOrders,
-                'revenue' => (float) $totalRevenue,
+                'orders' => (int) ($row->total_orders ?? 0),
+                'revenue' => (float) ($row->total_revenue ?? 0),
             ],
         ]);
     }
@@ -198,14 +196,28 @@ class MiniAppAdminController extends Controller
             return response()->json(['error' => 'Ruxsat yo\'q'], 403);
         }
 
-        // Last 7 days revenue
+        // Single-query 7-day stats — was 14 queries (2 per day), now 1.
+        $startDate = now()->subDays(6)->startOfDay();
+        $rows = \DB::table('store_orders')
+            ->where('store_id', $store->id)
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw(
+                "DATE(created_at) AS bucket, "
+                . "COUNT(*) AS orders, "
+                . "SUM(CASE WHEN payment_status = 'paid' THEN total ELSE 0 END) AS revenue"
+            )
+            ->groupBy('bucket')
+            ->get()
+            ->keyBy(fn ($r) => (string) $r->bucket);
+
         $daily = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->toDateString();
+            $r = $rows->get($date);
             $daily[] = [
                 'date' => $date,
-                'orders' => StoreOrder::where('store_id', $store->id)->whereDate('created_at', $date)->count(),
-                'revenue' => (float) StoreOrder::where('store_id', $store->id)->whereDate('created_at', $date)->where('payment_status', 'paid')->sum('total'),
+                'orders' => (int) ($r->orders ?? 0),
+                'revenue' => (float) ($r->revenue ?? 0),
             ];
         }
 

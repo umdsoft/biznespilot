@@ -1,0 +1,1 @@
+import{u,c,b as r}from"./app-BdGLfdGY.js";import{o as m,e as h,I as i}from"./chunk-CWl7brmE.js";const k={__name:"BackButton",setup(p){const e=u(),t=c(),{showBackButton:o,hideBackButton:n,hapticImpact:a}=r();function s(){a("light"),window.history.length>1?e.back():e.push({name:"home"})}return m(()=>{t.name!=="home"&&o(s)}),h(()=>{n()}),(_,B)=>i("",!0)}};export{k as _};

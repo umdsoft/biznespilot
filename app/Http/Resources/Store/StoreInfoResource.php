@@ -58,7 +58,9 @@ class StoreInfoResource extends JsonResource
                         'slug' => $cat->slug,
                         'icon' => $cat->image_url,
                         'emoji' => null,
-                        'products_count' => $cat->products()->where('is_active', true)->count(),
+                        // Pre-computed via loadCount — avoids N+1 when called via
+                        // StoreController::info() which loads the categories relation.
+                        'products_count' => $cat->active_products_count ?? $cat->products_count ?? 0,
                     ]),
                 []
             ),

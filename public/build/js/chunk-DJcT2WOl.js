@@ -1,0 +1,1 @@
+const n=(r,t="so'm")=>{if(!r&&r!==0)return`0 ${t}`;const e=Number(r);return isNaN(e)?`0 ${t}`:new Intl.NumberFormat("uz-UZ").format(e)+` ${t}`},o=r=>{if(!r&&r!==0)return"0";const t=Number(r);return isNaN(t)?"0":new Intl.NumberFormat("uz-UZ").format(t)},s=(r,t=1)=>{if(!r&&r!==0)return"0%";const e=Number(r);return isNaN(e)?"0%":e.toFixed(t)+"%"};export{n as a,s as b,o as f};

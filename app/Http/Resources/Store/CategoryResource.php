@@ -18,11 +18,11 @@ class CategoryResource extends JsonResource
             'slug' => $this->slug,
             'image_url' => $this->image_url,
             'sort_order' => $this->sort_order,
-            'products_count' => $this->when(
-                $this->relationLoaded('products'),
-                fn () => $this->products->where('is_active', true)->count(),
-                fn () => $this->products()->where('is_active', true)->count()
-            ),
+            // Callers MUST use withCount or loadCount — the lazy fallback was
+            // silently firing one count() per category (N+1). Use:
+            //   $store->categories()->withCount(['products as active_products_count'
+            //     => fn ($q) => $q->where('is_active', true)])
+            'products_count' => $this->active_products_count ?? $this->products_count ?? 0,
             'children' => $this->when(
                 $this->relationLoaded('children'),
                 fn () => CategoryResource::collection(

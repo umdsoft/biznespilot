@@ -55,8 +55,8 @@ class StorePromoCodeController extends Controller
         }
 
         $promoCodes = $query->latest()
-            ->get()
-            ->map(fn ($promo) => [
+            ->paginate(30)
+            ->through(fn ($promo) => [
                 'id' => $promo->id,
                 'code' => $promo->code,
                 'type' => $promo->type,
@@ -77,18 +77,23 @@ class StorePromoCodeController extends Controller
                 'created_at' => $promo->created_at?->format('d.m.Y'),
             ]);
 
-        // Stats
-        $totalCodes = StorePromoCode::where('store_id', $store->id)->count();
-        $activeCodes = StorePromoCode::where('store_id', $store->id)->where('is_active', true)->count();
-        $totalUsed = StorePromoCode::where('store_id', $store->id)->sum('used_count');
+        // Single-query stats — 3 serial aggregates → 1 SELECT
+        $statsRow = \DB::table('store_promo_codes')
+            ->where('store_id', $store->id)
+            ->selectRaw(
+                'COUNT(*) AS total_codes, '
+                . 'SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) AS active_codes, '
+                . 'COALESCE(SUM(used_count), 0) AS total_used'
+            )
+            ->first();
 
         return Inertia::render('Business/Store/PromoCodes/Index', [
             'promoCodes' => $promoCodes,
             'filters' => $request->only(['status']),
             'stats' => [
-                'total_codes' => $totalCodes,
-                'active_codes' => $activeCodes,
-                'total_used' => $totalUsed,
+                'total_codes' => (int) ($statsRow->total_codes ?? 0),
+                'active_codes' => (int) ($statsRow->active_codes ?? 0),
+                'total_used' => (int) ($statsRow->total_used ?? 0),
             ],
             'panelType' => $this->getStorePanelTypeForInertia(),
         ]);
