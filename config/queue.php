@@ -7,13 +7,19 @@ return [
     | Default Queue Connection Name
     |--------------------------------------------------------------------------
     |
-    | Laravel's queue supports a variety of backends via a single, unified
-    | API, giving you convenient access to each backend using identical
-    | syntax for each. The default queue connection is defined below.
+    | Environment-aware default:
+    |   - local / dev            → 'sync' (joblar darhol ishga tushadi — worker yo'q)
+    |   - testing                → 'sync' (tezkor testlar)
+    |   - production / staging   → 'redis' (async workers bilan)
+    |
+    | `.env`da `QUEUE_CONNECTION=xxx` aniq belgilansa — o'sha qiymat ustun.
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'database'),
+    'default' => env('QUEUE_CONNECTION', match (env('APP_ENV', 'local')) {
+        'production', 'staging' => 'redis',
+        default => 'sync',
+    }),
 
     /*
     |--------------------------------------------------------------------------

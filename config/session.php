@@ -9,16 +9,23 @@ return [
     | Default Session Driver
     |--------------------------------------------------------------------------
     |
-    | This option determines the default session driver that is utilized for
-    | incoming requests. Laravel supports a variety of storage options to
-    | persist session data. Database storage is a great default choice.
+    | Environment-aware default:
+    |   - local / dev            → 'file' (disk'ga yoziladi, Redis kerak emas)
+    |   - testing                → 'array' (tezkor testlar, persistence yo'q)
+    |   - production / staging   → 'redis' (multi-server ready, tezroq)
+    |
+    | `.env`da `SESSION_DRIVER=xxx` aniq belgilansa — o'sha qiymat ustun.
     |
     | Supported: "file", "cookie", "database", "memcached",
     |            "redis", "dynamodb", "array"
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    'driver' => env('SESSION_DRIVER', match (env('APP_ENV', 'local')) {
+        'production', 'staging' => 'redis',
+        'testing' => 'array',
+        default => 'file',
+    }),
 
     /*
     |--------------------------------------------------------------------------

@@ -9,13 +9,19 @@ return [
     | Default Cache Store
     |--------------------------------------------------------------------------
     |
-    | This option controls the default cache store that will be used by the
-    | framework. This connection is utilized if another isn't explicitly
-    | specified when running a cache operation inside the application.
+    | Environment-aware default:
+    |   - local / testing / dev → 'file' (Redis kerak emas)
+    |   - production / staging  → 'redis' (yuqori performance)
+    |
+    | `.env`da `CACHE_STORE=xxx` aniq belgilansa — o'sha qiymat ustunlik qiladi.
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_STORE', match (env('APP_ENV', 'local')) {
+        'production', 'staging' => 'redis',
+        'testing' => 'array',
+        default => 'file',
+    }),
 
     /*
     |--------------------------------------------------------------------------
