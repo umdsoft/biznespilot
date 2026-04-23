@@ -97,12 +97,14 @@
     @inertiaHead
 
     {{-- ========== STRUCTURED DATA (SSR — Googlebot-visible) ========== --}}
-    {{-- These schemas appear on every public page; per-page additional schemas
-         can be injected via $seoSchemas prop. --}}
-    <script type="application/ld+json">
-    @json([
-        '@context' => 'https://schema.org',
-        '@graph' => [
+    @php
+        $seoSameAs = array_values(array_filter([
+            config('services.social.facebook'),
+            config('services.social.instagram'),
+            config('services.social.telegram'),
+            config('services.social.youtube'),
+        ]));
+        $seoSchemaGraph = [
             [
                 '@type' => 'Organization',
                 '@id' => config('app.url') . '#organization',
@@ -116,12 +118,7 @@
                     'height' => 512,
                 ],
                 'description' => "O'zbekistondagi #1 biznes boshqaruv platformasi. Marketing, Sotuv, Moliya, HR.",
-                'sameAs' => array_filter([
-                    config('services.social.facebook'),
-                    config('services.social.instagram'),
-                    config('services.social.telegram'),
-                    config('services.social.youtube'),
-                ]),
+                'sameAs' => $seoSameAs,
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'contactType' => 'customer service',
@@ -153,28 +150,13 @@
                 'name' => 'BiznesPilot',
                 'applicationCategory' => 'BusinessApplication',
                 'operatingSystem' => 'Web, iOS, Android',
-                'description' => 'CRM, marketing avtomatizatsiya, HR, Telegram chatbotlar, do\'kon qurish — O\'zbek tadbirkorlar uchun.',
+                'description' => "CRM, marketing avtomatizatsiya, HR, Telegram chatbotlar, do'kon qurish.",
                 'url' => config('app.url'),
                 'publisher' => ['@id' => config('app.url') . '#organization'],
                 'offers' => [
-                    [
-                        '@type' => 'Offer',
-                        'name' => 'Free Starter',
-                        'price' => '0',
-                        'priceCurrency' => 'UZS',
-                    ],
-                    [
-                        '@type' => 'Offer',
-                        'name' => 'Business',
-                        'price' => '299000',
-                        'priceCurrency' => 'UZS',
-                    ],
-                    [
-                        '@type' => 'Offer',
-                        'name' => 'Enterprise',
-                        'price' => '999000',
-                        'priceCurrency' => 'UZS',
-                    ],
+                    ['@type' => 'Offer', 'name' => 'Free Starter', 'price' => '0', 'priceCurrency' => 'UZS'],
+                    ['@type' => 'Offer', 'name' => 'Business', 'price' => '299000', 'priceCurrency' => 'UZS'],
+                    ['@type' => 'Offer', 'name' => 'Enterprise', 'price' => '999000', 'priceCurrency' => 'UZS'],
                 ],
                 'aggregateRating' => [
                     '@type' => 'AggregateRating',
@@ -182,9 +164,13 @@
                     'reviewCount' => '127',
                 ],
             ],
-        ],
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-    </script>
+        ];
+        $seoSchemaJson = json_encode(
+            ['@context' => 'https://schema.org', '@graph' => $seoSchemaGraph],
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        );
+    @endphp
+    <script type="application/ld+json">{!! $seoSchemaJson !!}</script>
 
     {{-- ========== ANALYTICS TRACKING ========== --}}
     @if(config('services.analytics.ga4_id'))
