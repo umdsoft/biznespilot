@@ -110,26 +110,26 @@ class PbxWebhookController extends Controller
             ?? $request->header('X-PBX-Signature')
             ?? null;
 
-        if (! $signature) {
-            // Allow if no signature (for backwards compatibility)
-            // In production, consider requiring signatures
-            return true;
-        }
-
-        // Get configured webhook secret
         $secret = config('services.onlinepbx.webhook_secret');
 
-        if (! $secret) {
-            Log::warning('OnlinePBX webhook secret not configured');
-
-            return true; // Allow if not configured
+        // Agar secret `.env`da sozlangan bo'lsa — signature MAJBURIY.
+        // Eski "no signature = allow" xulqi CRITICAL xavfsizlik bug edi.
+        if ($secret) {
+            if (! $signature) {
+                Log::warning('OnlinePBX webhook: secret configured but signature missing — rejected', [
+                    'ip' => $request->ip(),
+                ]);
+                return false;
+            }
+            $payload = $request->getContent();
+            $expectedSignature = hash_hmac('sha256', $payload, $secret);
+            return hash_equals($expectedSignature, $signature);
         }
 
-        // Verify signature (adjust based on OnlinePBX documentation)
-        $payload = $request->getContent();
-        $expectedSignature = hash_hmac('sha256', $payload, $secret);
-
-        return hash_equals($expectedSignature, $signature);
+        // Secret hali sozlanmagan — eski integratsiyani buzmasdan log yozamiz.
+        // Deploy oldin `.env`da `ONLINEPBX_WEBHOOK_SECRET=...` MAJBURIY sozlash kerak.
+        Log::warning('OnlinePBX webhook: secret not configured — allowing without verification (FIX THIS)');
+        return true;
     }
 
     /**

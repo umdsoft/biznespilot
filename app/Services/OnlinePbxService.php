@@ -8,6 +8,7 @@ use App\Models\CallLog;
 use App\Models\Lead;
 use App\Models\LeadSource;
 use App\Models\PbxAccount;
+use App\Services\Traits\EnforcesLeadQuota;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -16,6 +17,8 @@ use Illuminate\Support\Str;
 
 class OnlinePbxService implements PbxServiceInterface
 {
+    use EnforcesLeadQuota;
+
     protected ?PbxAccount $account = null;
 
     protected ?string $authKey = null;
@@ -602,7 +605,7 @@ class OnlinePbxService implements PbxServiceInterface
         $answeredCalls = in_array($callStatus, ['completed', 'answered']) ? 1 : 0;
         $missedCalls = in_array($callStatus, ['missed', 'no_answer']) ? 1 : 0;
 
-        return Lead::create([
+        return $this->createLeadWithQuotaCheck([
             'business_id' => $businessId,
             'source_id' => $source?->id,
             'name' => $this->formatPhoneDisplay($originalPhone),
@@ -825,7 +828,7 @@ class OnlinePbxService implements PbxServiceInterface
         $answeredCalls = in_array($callStatus, ['completed', 'answered']) ? 1 : 0;
         $missedCalls = in_array($callStatus, ['missed', 'no_answer']) ? 1 : 0;
 
-        return Lead::create([
+        return $this->createLeadWithQuotaCheck([
             'business_id' => $businessId,
             'source_id' => $source?->id,
             'name' => $this->formatPhoneDisplay($originalPhone),
@@ -1817,9 +1820,9 @@ class OnlinePbxService implements PbxServiceInterface
                     $call->update(['lead_id' => $lead->id]);
                     $linked++;
                 } else {
-                    // Create a new lead for this call
+                    // Create a new lead for this call (quota-gated)
                     $source = $this->getOrCreatePhoneSource($businessId);
-                    $lead = Lead::create([
+                    $lead = $this->createLeadWithQuotaCheck([
                         'business_id' => $businessId,
                         'source_id' => $source?->id,
                         'name' => $this->formatPhoneDisplay($phoneNumber),
@@ -1841,8 +1844,10 @@ class OnlinePbxService implements PbxServiceInterface
                         ],
                     ]);
 
-                    $call->update(['lead_id' => $lead->id]);
-                    $linked++;
+                    if ($lead) {
+                        $call->update(['lead_id' => $lead->id]);
+                        $linked++;
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('OnlinePBX: Failed to link orphan call', [

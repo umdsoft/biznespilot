@@ -57,9 +57,18 @@ return Application::configure(basePath: dirname(__DIR__))
             'locale',
         ]);
 
-        // CSRF verification temporarily disabled
+        // CSRF verification — faqat external webhook'lar bypass qilinadi.
+        // Inertia Axios XSRF-TOKEN cookie + X-XSRF-TOKEN header bilan avtomatik
+        // CSRF yuboradi, shuning uchun foydalanuvchi endpoint'larida ishlaydi.
         $middleware->validateCsrfTokens(except: [
-            '*',
+            // External webhook'lar — imzo/secret tomonidan himoyalangan
+            'webhooks/*',
+            'api/webhooks/*',
+            'api/billing/payme',
+            'api/billing/click/*',
+            'api/store-webhooks/*',
+            // Public lead form (external saytlardan embed)
+            'api/lead-forms/*/submit',
         ]);
 
         // Enable throttle middleware for API

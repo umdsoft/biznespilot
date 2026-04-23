@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Plan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -95,18 +97,7 @@ class PlanController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:plans,slug',
-            'description' => 'nullable|string',
-            'price_monthly' => 'required|numeric|min:0',
-            'price_yearly' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
-            'limits' => 'required|array',
-            'features' => 'required|array',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
+        $validated = $request->validate($this->validationRules());
 
         // Generate slug if not provided
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
@@ -115,6 +106,59 @@ class PlanController extends Controller
 
         return redirect()->route('admin.plans.index')
             ->with('success', 'Tarif rejasi muvaffaqiyatli yaratildi');
+    }
+
+    /**
+     * Centralised validation rules with strict whitelist for `limits` and
+     * `features` JSON keys — prevents typos that silently persist and make
+     * downstream `hasFeature()`/`hasReachedLimit()` checks fail forever.
+     */
+    protected function validationRules(?string $ignoreId = null): array
+    {
+        $allowedLimitKeys = array_keys($this->limitConfig);
+        $allowedFeatureKeys = array_keys($this->featureConfig);
+
+        $slugRule = $ignoreId
+            ? ['nullable', 'string', 'max:255', Rule::unique('plans')->ignore($ignoreId)]
+            : 'nullable|string|max:255|unique:plans,slug';
+
+        return [
+            'name' => 'required|string|max:255',
+            'slug' => $slugRule,
+            'description' => 'nullable|string',
+            'price_monthly' => 'required|numeric|min:0',
+            'price_yearly' => 'required|numeric|min:0',
+            'currency' => 'required|string|size:3',
+            'limits' => 'required|array',
+            // Whitelist: faqat ruxsat etilgan kalitlar qabul qilinadi
+            'limits.*' => 'nullable|integer|min:-1',
+            'features' => 'required|array',
+            'features.*' => 'boolean',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer|min:0',
+        ] + [
+            // Laravel nested key validation: reject unknown keys explicitly
+            'limits' => [
+                'required',
+                'array',
+                function ($attribute, $value, $fail) use ($allowedLimitKeys) {
+                    $unknown = array_diff(array_keys($value ?: []), $allowedLimitKeys);
+                    if (!empty($unknown)) {
+                        $fail("Noma'lum limit kalitlari: ".implode(', ', $unknown));
+                    }
+                },
+            ],
+            'features' => [
+                'required',
+                'array',
+                function ($attribute, $value, $fail) use ($allowedFeatureKeys) {
+                    $unknown = array_diff(array_keys($value ?: []), $allowedFeatureKeys);
+                    if (!empty($unknown)) {
+                        $fail("Noma'lum feature kalitlari: ".implode(', ', $unknown));
+                    }
+                },
+            ],
+        ];
     }
 
     /**
@@ -150,18 +194,7 @@ class PlanController extends Controller
     {
         $plan = Plan::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('plans')->ignore($plan->id)],
-            'description' => 'nullable|string',
-            'price_monthly' => 'required|numeric|min:0',
-            'price_yearly' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
-            'limits' => 'required|array',
-            'features' => 'required|array',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
+        $validated = $request->validate($this->validationRules($plan->id));
 
         // Also update legacy columns for backward compatibility
         $legacyMapping = [
@@ -177,8 +210,29 @@ class PlanController extends Controller
 
         $plan->update(array_merge($validated, $legacyMapping));
 
+        // Har aktiv obunadagi biznesning Inertia-shared subscription cache'ini
+        // tozalaymiz — shunda foydalanuvchilar yangi limitni reload'siz ko'radi.
+        $this->invalidateSubscribersCache($plan);
+
         return redirect()->route('admin.plans.index')
             ->with('success', 'Tarif rejasi muvaffaqiyatli yangilandi');
+    }
+
+    /**
+     * Tariffga bog'langan barcha aktiv biznes-subscription cachelarini tozalash.
+     * HandleInertiaRequests'da `subscription_data_{businessId}` kaliti 5 daqiqa
+     * cachelanadi — admin limitni o'zgartirganda darhol kuchga kirishi kerak.
+     */
+    protected function invalidateSubscribersCache(Plan $plan): void
+    {
+        $plan->subscriptions()
+            ->whereIn('status', ['active', 'trialing'])
+            ->pluck('business_id')
+            ->unique()
+            ->each(function ($businessId) {
+                Cache::forget("subscription_data_{$businessId}");
+                Cache::forget("dashboard_subscription_status_{$businessId}");
+            });
     }
 
     /**

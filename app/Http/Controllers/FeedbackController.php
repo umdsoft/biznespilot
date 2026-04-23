@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\QuotaExceededException;
+use App\Models\Business;
 use App\Models\FeedbackAttachment;
 use App\Models\FeedbackReport;
+use App\Services\SubscriptionGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -46,10 +49,31 @@ class FeedbackController extends Controller
             ],
         ]);
 
-        // Handle attachments
+        // Handle attachments — quota-gated on `storage_mb`
         if ($request->hasFile('attachments')) {
+            $business = $businessId ? Business::find($businessId) : null;
+            $gate = app(SubscriptionGate::class);
+
             foreach ($request->file('attachments') as $file) {
                 $fileName = $file->getClientOriginalName();
+                $sizeMb = max(1, (int) ceil($file->getSize() / 1048576));
+
+                // Tarif limit tekshiruvi — agar business bor bo'lsa va limit tugagan bo'lsa,
+                // fayl yuklamaymiz (xabarni feedback o'z-o'zidan keltirgan bo'ladi).
+                if ($business) {
+                    try {
+                        $gate->checkQuota($business, 'storage_mb', null, $sizeMb);
+                    } catch (QuotaExceededException $e) {
+                        // Quota tugagan — fayl yuklanmaydi, feedback'ning o'zi yaratildi
+                        \Illuminate\Support\Facades\Log::notice('Feedback attachment skipped — storage quota', [
+                            'feedback_id' => $feedback->id,
+                            'file_size_mb' => $sizeMb,
+                            'business_id' => $business->id,
+                        ]);
+                        continue;
+                    }
+                }
+
                 $filePath = $file->store('feedback/'.$feedback->id, 'public');
 
                 FeedbackAttachment::create([

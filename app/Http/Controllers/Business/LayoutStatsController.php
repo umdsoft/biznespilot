@@ -55,13 +55,13 @@ class LayoutStatsController extends Controller
 
     private function inboxUnread(string $businessId): int
     {
-        // UnifiedInbox — hozircha lightweight COUNT: chatbot conversations + telegram
-        // Agar maxsus unified model yo'q bo'lsa, 0 qaytaramiz (graceful)
+        // UnifiedInbox — chatbot conversations'da status != 'resolved' bo'lganlar.
+        // Avval `is_resolved` ustuni ishlatilgan edi — u mavjud emas (silent bug).
         if (!class_exists(\App\Models\ChatbotConversation::class)) {
             return 0;
         }
         return \App\Models\ChatbotConversation::where('business_id', $businessId)
-            ->where('is_resolved', false)
+            ->whereNotIn('status', ['resolved', 'closed', 'archived'])
             ->count();
     }
 

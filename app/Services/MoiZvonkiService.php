@@ -7,6 +7,7 @@ use App\Models\CallLog;
 use App\Models\Lead;
 use App\Models\LeadSource;
 use App\Models\MoiZvonkiAccount;
+use App\Services\Traits\EnforcesLeadQuota;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +15,8 @@ use Illuminate\Support\Str;
 
 class MoiZvonkiService
 {
+    use EnforcesLeadQuota;
+
     protected ?MoiZvonkiAccount $account = null;
 
     /**
@@ -495,7 +498,7 @@ class MoiZvonkiService
                     ->first();
             }
 
-            $newLead = Lead::create([
+            $newLead = $this->createLeadWithQuotaCheck([
                 'id' => Str::uuid(),
                 'business_id' => $businessId,
                 'lead_source_id' => $leadSource?->id,

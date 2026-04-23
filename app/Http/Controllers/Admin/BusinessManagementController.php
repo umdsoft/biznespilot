@@ -168,9 +168,28 @@ class BusinessManagementController extends Controller
             'plan_id' => 'required|exists:plans,id',
             'billing_cycle' => 'required|in:monthly,yearly',
             'duration_months' => 'required|integer|min:1|max:36',
+            'force' => 'sometimes|boolean', // Admin over-limit downgrade uchun majburiy bayroq
         ]);
 
         $plan = Plan::findOrFail($validated['plan_id']);
+
+        // Downgrade himoyasi — agar biznes hozirgi resurslari yangi tarif limitidan ortiq
+        // bo'lsa, admin 'force' bayrog'ini tasdiqlaganda yana o'tkazamiz, aks holda
+        // konkret issues ro'yxati qaytariladi.
+        $downgrade = app(\App\Services\PlanLimitService::class)->canDowngradeToPlan($business, $plan);
+        if (!$downgrade['can_downgrade'] && !($validated['force'] ?? false)) {
+            $issues = collect($downgrade['issues'] ?? [])
+                ->map(fn ($i) => "{$i['label']}: {$i['current']} → yangi limit {$i['new_limit']}")
+                ->values()
+                ->all();
+
+            return response()->json([
+                'success' => false,
+                'message' => "«{$plan->name}» tarifi hozirgi holatga mos kelmaydi. Ortiqcha resurslar mavjud.",
+                'issues' => $issues,
+                'requires_force' => true,
+            ], 422);
+        }
 
         // Avvalgi faol obunalarni bekor qilish
         Subscription::where('business_id', $business->id)

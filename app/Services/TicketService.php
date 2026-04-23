@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\InstagramConversation;
 use App\Models\Lead;
 use App\Models\LeadSource;
+use App\Services\Traits\EnforcesLeadQuota;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,8 @@ use Illuminate\Support\Facades\Log;
  */
 class TicketService
 {
+    use EnforcesLeadQuota;
+
     /**
      * Chatbot manba kodlari
      */
@@ -128,8 +131,8 @@ class TicketService
             $sourceCode = $this->resolveSourceCode($data['source_type'] ?? 'dm', $data['intent'] ?? null);
             $source = LeadSource::where('code', $sourceCode)->first();
 
-            // 5. Lead yaratish
-            $lead = Lead::create([
+            // 5. Lead yaratish (quota-gated)
+            $lead = $this->createLeadWithQuotaCheck([
                 'business_id' => $conversation->business_id,
                 'source_id' => $source?->id,
 
@@ -154,6 +157,11 @@ class TicketService
                 'first_touch_source' => 'instagram_chatbot',
                 'acquisition_source_type' => 'chatbot',
             ]);
+
+            // Agar quota tugagan bo'lsa — lead null qaytariladi, log yozilgan.
+            if (!$lead) {
+                return null;
+            }
 
             // 6. Lock qo'yish (dublikat oldini olish)
             Cache::put($lockKey, true, self::DUPLICATE_PREVENTION_SECONDS);

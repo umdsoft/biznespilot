@@ -2,6 +2,7 @@
 
 namespace App\Services\ContentAI;
 
+use App\Exceptions\QuotaExceededException;
 use App\Models\Business;
 use App\Models\ContentGeneration;
 use App\Models\ContentIdea;
@@ -10,6 +11,8 @@ use App\Models\ContentTemplate;
 use App\Models\Offer;
 use App\Models\PainPointContentMap;
 use App\Services\KPI\BusinessCategoryMapper;
+use App\Services\SubscriptionGate;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -34,6 +37,26 @@ class ContentGeneratorService
     }
 
     /**
+     * AI so'rov quota'sini tekshiradi va uni oshirish mumkin emas bo'lsa
+     * QuotaExceededException otadi. Shuningdek, hisob-kitob kesh'ini ham tozalaydi
+     * (keyingi chaqiruvda yangilangan qiymat ko'rsatilsin).
+     */
+    protected function enforceAiRequestsQuota(string $businessId): void
+    {
+        $business = Business::find($businessId);
+        if (!$business) {
+            return;
+        }
+
+        app(SubscriptionGate::class)->checkQuota($business, 'ai_requests');
+
+        // Cache bust — yangi ContentGeneration yozuv kiritilgandan keyin
+        // getAiRequestsCount() eski (stale) qiymatni qaytarmasin.
+        $monthKey = now()->format('Y_m');
+        Cache::forget("business_{$businessId}_ai_requests_{$monthKey}");
+    }
+
+    /**
      * Yangi kontent generatsiya qilish
      */
     public function generate(
@@ -46,6 +69,9 @@ class ContentGeneratorService
         ?string $additionalPrompt = null,
         ?string $offerId = null
     ): ContentGeneration {
+        // Tarif quota tekshiruvi — AI chaqiruvidan oldin
+        $this->enforceAiRequestsQuota($businessId);
+
         // Input sanitization (prompt injection himoyasi)
         $topic = $this->sanitizeUserInput($topic, 300);
         $additionalPrompt = $additionalPrompt ? $this->sanitizeUserInput($additionalPrompt, 500) : null;
@@ -147,6 +173,8 @@ class ContentGeneratorService
         int $variationsCount = 3,
         ?string $targetChannel = null
     ): ContentGeneration {
+        $this->enforceAiRequestsQuota($businessId);
+
         $generation = ContentGeneration::create([
             'business_id' => $businessId,
             'user_id' => $userId,
@@ -195,6 +223,8 @@ class ContentGeneratorService
         string $style = 'improve',
         ?string $targetChannel = null
     ): ContentGeneration {
+        $this->enforceAiRequestsQuota($businessId);
+
         $generation = ContentGeneration::create([
             'business_id' => $businessId,
             'user_id' => $userId,

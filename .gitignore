@@ -48,6 +48,39 @@ yarn-error.log
 /.windsurf
 CLAUDE.md
 AGENTS.md
+
+# ==========================================
+# AGENT-CREATED JUNK FAYLLARI OLDINI OLISH
+# Shell escaping xatolari PHP kod parchalarini fayl sifatida yaratib qo'yadi.
+# Bu pattern'lar root'da hech qachon normal fayl emas — hammasini ignore.
+# ==========================================
+/$*
+/'*
+/*()
+/*()]
+/*()}
+/*())
+/*[*
+/*{*
+/count
+/count()
+/toArray*
+/group\(*
+/getMessage*
+/getName*
+/id
+/id]*
+/now*
+/diffForHumans*
+/formatPhoneDisplay*
+/onOneServer*
+/withoutOverlapping*
+/status\(*
+/canUseFeature*
+/name*\»
+/0
+/required*
+/chatbot*
 .ai/
 .agent/
 .mcp.json

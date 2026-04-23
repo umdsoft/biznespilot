@@ -204,17 +204,18 @@ class FacebookWebhookController extends Controller
         $signature = $request->header('X-Hub-Signature-256');
         $appSecret = config('services.facebook.app_secret');
 
-        // Development muhitda skip
-        if (app()->environment('local', 'development')) {
-            Log::info('Facebook webhook signature verification skipped (development mode)');
+        // Faqat lokal muhitda skip (staging/production emas)
+        if (app()->environment('local')) {
+            Log::info('Facebook webhook signature verification skipped (local dev)');
 
             return true;
         }
 
+        // Signature yo'q — REJECT (avval return true edi — CRITICAL BUG)
         if (! $signature) {
-            Log::warning('Facebook webhook received without signature header');
+            Log::warning('Facebook webhook received without signature header — rejected');
 
-            return true;
+            return false;
         }
 
         if (! $appSecret) {

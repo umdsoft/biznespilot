@@ -103,15 +103,17 @@ Route::prefix('health')->group(function () {
     Route::get('/live', [HealthCheckController::class, 'live'])->name('health.live');
 });
 
-// Guest routes
+// Guest routes — brute-force/credential-stuffing himoyasi uchun throttle
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:10,1');
 
     // Registration - can be disabled via REGISTRATION_ENABLED=false
     if (config('app.registration_enabled', true)) {
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/register', [AuthController::class, 'register'])
+            ->middleware('throttle:5,1');
     } else {
         // Redirect to waitlist when registration is disabled
         Route::get('/register', fn () => \Inertia\Inertia::render('Auth/ComingSoon'))->name('register');
@@ -123,9 +125,10 @@ Route::middleware('guest')->group(function () {
 Route::get('/invite/{token}', [TeamController::class, 'showAcceptInvite'])->name('invite.show');
 Route::post('/invite/{token}/accept', [TeamController::class, 'acceptInvite'])->name('invite.accept');
 
-// 2FA verification routes (accessible without full auth)
+// 2FA verification routes (accessible without full auth) — throttle bilan
 Route::get('/two-factor/verify', [AuthController::class, 'showTwoFactorVerify'])->name('two-factor.verify');
-Route::post('/two-factor/verify', [AuthController::class, 'verifyTwoFactor']);
+Route::post('/two-factor/verify', [AuthController::class, 'verifyTwoFactor'])
+    ->middleware('throttle:5,1');
 
 // Logout route (accessible from both panels)
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -1363,14 +1366,18 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
         Route::post('/refresh', [DashboardController::class, 'refresh'])->name('refresh');
     });
 
-    // Alerts routes (FAZA 4)
+    // Alerts routes (FAZA 4) — anti_fraud feature required for creating custom rules
+    // Basic alert viewing available to all; rule management requires anti_fraud feature
     Route::prefix('alerts')->name('alerts.')->group(function () {
         Route::get('/', [AlertController::class, 'index'])->name('index');
         Route::get('/active', [AlertController::class, 'getActive'])->name('active');
-        Route::get('/rules', [AlertController::class, 'rules'])->name('rules');
-        Route::post('/rules', [AlertController::class, 'createRule'])->name('rules.store');
-        Route::put('/rules/{rule}', [AlertController::class, 'updateRule'])->name('rules.update');
-        Route::delete('/rules/{rule}', [AlertController::class, 'deleteRule'])->name('rules.destroy');
+        // Rule management — anti_fraud feature only
+        Route::middleware('feature:anti_fraud')->group(function () {
+            Route::get('/rules', [AlertController::class, 'rules'])->name('rules');
+            Route::post('/rules', [AlertController::class, 'createRule'])->name('rules.store');
+            Route::put('/rules/{rule}', [AlertController::class, 'updateRule'])->name('rules.update');
+            Route::delete('/rules/{rule}', [AlertController::class, 'deleteRule'])->name('rules.destroy');
+        });
         Route::get('/{alert}', [AlertController::class, 'show'])->name('show');
         Route::post('/{alert}/acknowledge', [AlertController::class, 'acknowledge'])->name('acknowledge');
         Route::post('/{alert}/resolve', [AlertController::class, 'resolve'])->name('resolve');
@@ -2639,37 +2646,39 @@ Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->gr
         Route::post('/{id}/toggle-status', [App\Http\Controllers\HR\JobDescriptionsController::class, 'toggleStatus'])->name('toggle-status');
     });
 
-    // Recruiting (Ishga Qabul)
-    Route::prefix('recruiting')->name('recruiting.')->group(function () {
-        Route::get('/', [App\Http\Controllers\HR\RecruitingController::class, 'index'])->name('index');
-        Route::get('/applications', [App\Http\Controllers\HR\RecruitingController::class, 'applications'])->name('applications');
-        Route::post('/job-postings', [App\Http\Controllers\HR\RecruitingController::class, 'storeJobPosting'])->name('job-postings.store');
-        Route::post('/job-postings/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateJobPostingStatus'])->name('job-postings.update-status');
-        Route::delete('/job-postings/{id}', [App\Http\Controllers\HR\RecruitingController::class, 'destroyJobPosting'])->name('job-postings.destroy');
-        Route::post('/applications/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateApplicationStatus'])->name('applications.update-status');
-        Route::post('/applications/{id}/talent-pool', [App\Http\Controllers\HR\TalentPoolController::class, 'addFromApplication'])->name('applications.talent-pool');
-        // Pipeline Kanban
-        Route::get('/pipeline', [App\Http\Controllers\HR\InterviewPipelineController::class, 'index'])->name('pipeline');
-        Route::post('/pipeline/{id}/move', [App\Http\Controllers\HR\InterviewPipelineController::class, 'moveStage'])->name('pipeline.move');
-        // Interviews
-        Route::prefix('interviews')->name('interviews.')->group(function () {
-            Route::get('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'index'])->name('index');
-            Route::post('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'store'])->name('store');
-            Route::post('/{id}/complete', [App\Http\Controllers\HR\InterviewScheduleController::class, 'complete'])->name('complete');
-            Route::post('/{id}/cancel', [App\Http\Controllers\HR\InterviewScheduleController::class, 'cancel'])->name('cancel');
+    // Recruiting (Ishga Qabul) — hr_bot feature bilan gate'langan
+    Route::middleware('feature:hr_bot')->group(function () {
+        Route::prefix('recruiting')->name('recruiting.')->group(function () {
+            Route::get('/', [App\Http\Controllers\HR\RecruitingController::class, 'index'])->name('index');
+            Route::get('/applications', [App\Http\Controllers\HR\RecruitingController::class, 'applications'])->name('applications');
+            Route::post('/job-postings', [App\Http\Controllers\HR\RecruitingController::class, 'storeJobPosting'])->name('job-postings.store');
+            Route::post('/job-postings/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateJobPostingStatus'])->name('job-postings.update-status');
+            Route::delete('/job-postings/{id}', [App\Http\Controllers\HR\RecruitingController::class, 'destroyJobPosting'])->name('job-postings.destroy');
+            Route::post('/applications/{id}/status', [App\Http\Controllers\HR\RecruitingController::class, 'updateApplicationStatus'])->name('applications.update-status');
+            Route::post('/applications/{id}/talent-pool', [App\Http\Controllers\HR\TalentPoolController::class, 'addFromApplication'])->name('applications.talent-pool');
+            // Pipeline Kanban
+            Route::get('/pipeline', [App\Http\Controllers\HR\InterviewPipelineController::class, 'index'])->name('pipeline');
+            Route::post('/pipeline/{id}/move', [App\Http\Controllers\HR\InterviewPipelineController::class, 'moveStage'])->name('pipeline.move');
+            // Interviews
+            Route::prefix('interviews')->name('interviews.')->group(function () {
+                Route::get('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'index'])->name('index');
+                Route::post('/', [App\Http\Controllers\HR\InterviewScheduleController::class, 'store'])->name('store');
+                Route::post('/{id}/complete', [App\Http\Controllers\HR\InterviewScheduleController::class, 'complete'])->name('complete');
+                Route::post('/{id}/cancel', [App\Http\Controllers\HR\InterviewScheduleController::class, 'cancel'])->name('cancel');
+            });
         });
-    });
 
-    // Talent Pool (Kadrlar Zaxirasi)
-    Route::prefix('talent-pool')->name('talent-pool.')->group(function () {
-        Route::get('/', [App\Http\Controllers\HR\TalentPoolController::class, 'index'])->name('index');
-        Route::get('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'show'])->name('show');
-        Route::post('/', [App\Http\Controllers\HR\TalentPoolController::class, 'store'])->name('store');
-        Route::put('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'update'])->name('update');
-        Route::post('/{id}/status', [App\Http\Controllers\HR\TalentPoolController::class, 'updateStatus'])->name('update-status');
-        Route::post('/{id}/note', [App\Http\Controllers\HR\TalentPoolController::class, 'addNote'])->name('add-note');
-        Route::delete('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'destroy'])->name('destroy');
-    });
+        // Talent Pool (Kadrlar Zaxirasi) — hr_bot bilan bog'liq
+        Route::prefix('talent-pool')->name('talent-pool.')->group(function () {
+            Route::get('/', [App\Http\Controllers\HR\TalentPoolController::class, 'index'])->name('index');
+            Route::get('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'show'])->name('show');
+            Route::post('/', [App\Http\Controllers\HR\TalentPoolController::class, 'store'])->name('store');
+            Route::put('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'update'])->name('update');
+            Route::post('/{id}/status', [App\Http\Controllers\HR\TalentPoolController::class, 'updateStatus'])->name('update-status');
+            Route::post('/{id}/note', [App\Http\Controllers\HR\TalentPoolController::class, 'addNote'])->name('add-note');
+            Route::delete('/{id}', [App\Http\Controllers\HR\TalentPoolController::class, 'destroy'])->name('destroy');
+        });
+    }); // end feature:hr_bot
 
     // HR So'rovnomalar (CustDev pattern — shared controller)
     Route::prefix('custdev')->name('custdev.')->group(function () {
@@ -2751,8 +2760,10 @@ Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->gr
     Route::get('/surveys/{surveyId}/fill', [App\Http\Controllers\HR\SurveyWebController::class, 'fill'])->name('surveys.fill');
     Route::get('/surveys/{surveyId}/results', [App\Http\Controllers\HR\SurveyWebController::class, 'results'])->name('surveys.results');
 
-    // Onboarding (30-60-90)
-    Route::get('/onboarding', [App\Http\Controllers\HR\OnboardingWebController::class, 'index'])->name('onboarding.index');
+    // Onboarding (30-60-90) — onboarding feature required
+    Route::middleware('feature:onboarding')->group(function () {
+        Route::get('/onboarding', [App\Http\Controllers\HR\OnboardingWebController::class, 'index'])->name('onboarding.index');
+    });
 
     // ==================== Business Systematization (Denis Shenukov) ====================
 

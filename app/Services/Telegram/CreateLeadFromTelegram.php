@@ -6,6 +6,7 @@ use App\Models\Lead;
 use App\Models\TelegramBusinessConnection;
 use App\Models\TelegramConversation;
 use App\Models\TelegramUser;
+use App\Services\Traits\EnforcesLeadQuota;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Log;
  */
 class CreateLeadFromTelegram
 {
+    use EnforcesLeadQuota;
+
     /**
      * Parse [LEAD:name=X;phone=Y;product=Z;intent=HOT;note=...] marker from AI reply.
      *
@@ -108,13 +111,22 @@ class CreateLeadFromTelegram
             $lead = $existing;
             Log::info('Lead updated from Telegram business chat', ['lead_id' => $lead->id]);
         } else {
-            $lead = Lead::create($payload);
-            Log::info('Lead created from Telegram business chat', [
-                'lead_id' => $lead->id,
-                'name' => $name,
-                'phone' => $phone,
-                'intent' => $intent,
-            ]);
+            // Quota-gated lead creation (tarif limiti tugagan bo'lsa null qaytaradi)
+            $lead = $this->createLeadWithQuotaCheck($payload);
+            if ($lead) {
+                Log::info('Lead created from Telegram business chat', [
+                    'lead_id' => $lead->id,
+                    'name' => $name,
+                    'phone' => $phone,
+                    'intent' => $intent,
+                ]);
+            } else {
+                Log::notice('Lead skipped from Telegram business chat — quota exhausted', [
+                    'phone' => $phone,
+                    'intent' => $intent,
+                ]);
+                return null;
+            }
         }
 
         // Link conversation → lead

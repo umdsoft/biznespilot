@@ -8,6 +8,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Billing\BillingTransaction;
 use App\Models\Plan;
 use App\Services\Billing\PaymentRedirectService;
+use App\Services\PlanLimitService;
 use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -79,6 +80,23 @@ class SubscriptionController extends Controller
         if ($plan->slug === 'trial-pack' || ! $plan->is_active) {
             return redirect()->route('business.subscription.index')
                 ->with('error', 'Bu tarif mavjud emas.');
+        }
+
+        // Downgrade himoyasi: agar user tanlagan tarif hozirgi foydalanishdan
+        // kichikroq limitga ega bo'lsa (masalan 10 xodim bor, yangi tarif 2 max)
+        // to'lovga ruxsat bermaymiz. Foydalanuvchi avval ortiqcha resurslarni
+        // tozalashi kerak.
+        $downgradeCheck = app(PlanLimitService::class)->canDowngradeToPlan($business, $plan);
+        if (!$downgradeCheck['can_downgrade']) {
+            $issuesList = collect($downgradeCheck['issues'] ?? [])
+                ->map(fn ($i) => "• {$i['label']}: {$i['current']} / yangi limit {$i['new_limit']}")
+                ->implode("\n");
+
+            return redirect()->route('business.subscription.index')
+                ->with('error',
+                    "«{$plan->name}» tarifiga o'tish uchun avval ortiqcha resurslarni kamaytiring:\n"
+                    . $issuesList
+                );
         }
 
         $paymentService = app(PaymentRedirectService::class);

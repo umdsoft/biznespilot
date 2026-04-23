@@ -410,6 +410,21 @@ class SocialAccountController extends Controller
                     ], 403);
                 }
 
+                // Tarif quota tekshiruvi (oldingi faqat global unikalligini tekshirar edi)
+                try {
+                    app(\App\Services\SubscriptionGate::class)->checkQuota(
+                        $business,
+                        'instagram_accounts'
+                    );
+                } catch (\App\Exceptions\QuotaExceededException $e) {
+                    return response()->json([
+                        'error' => $e->getMessage(),
+                        'error_code' => 'QUOTA_EXCEEDED',
+                        'limit_key' => 'instagram_accounts',
+                        'upgrade_required' => true,
+                    ], 403);
+                }
+
                 $igAccountData = $this->facebookService->getInstagramAccountDetails(
                     $finalToken,
                     $request->selected_instagram_id

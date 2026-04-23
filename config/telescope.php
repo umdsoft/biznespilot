@@ -16,7 +16,10 @@ return [
     |
     */
 
-    'enabled' => env('TELESCOPE_ENABLED', true),
+    // SECURITY: Default `false` — production'da TELESCOPE_ENABLED=true bo'lsa
+    // admin allowlist bo'sh bo'lgan holda hamma ko'ra olmaydi, lekin DB ga
+    // sezgir ma'lumot yoziladi. Explicit opt-in xavfsizroq.
+    'enabled' => env('TELESCOPE_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------

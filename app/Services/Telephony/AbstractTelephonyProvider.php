@@ -7,6 +7,7 @@ use App\Models\CallDailyStat;
 use App\Models\CallLog;
 use App\Models\Lead;
 use App\Models\LeadSource;
+use App\Services\Traits\EnforcesLeadQuota;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -16,6 +17,8 @@ use Illuminate\Support\Str;
  */
 abstract class AbstractTelephonyProvider implements TelephonyProviderInterface
 {
+    use EnforcesLeadQuota;
+
     /**
      * Get webhook URL for this provider
      */
@@ -166,9 +169,9 @@ abstract class AbstractTelephonyProvider implements TelephonyProviderInterface
         // Get or create phone lead source
         $source = $this->getOrCreatePhoneSource($businessId);
 
-        // Create new lead
+        // Create new lead (quota-gated via trait)
         $providerName = $this->getDisplayName();
-        $newLead = Lead::create([
+        $newLead = $this->createLeadWithQuotaCheck([
             'id' => Str::uuid(),
             'business_id' => $businessId,
             'lead_source_id' => $source?->id,
@@ -182,10 +185,12 @@ abstract class AbstractTelephonyProvider implements TelephonyProviderInterface
             ]),
         ]);
 
-        Log::info("Created lead from {$this->getName()} incoming call", [
-            'lead_id' => $newLead->id,
-            'phone' => $normalizedPhone,
-        ]);
+        if ($newLead) {
+            Log::info("Created lead from {$this->getName()} incoming call", [
+                'lead_id' => $newLead->id,
+                'phone' => $normalizedPhone,
+            ]);
+        }
 
         return $newLead;
     }

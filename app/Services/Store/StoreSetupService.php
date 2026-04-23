@@ -2,9 +2,11 @@
 
 namespace App\Services\Store;
 
+use App\Exceptions\QuotaExceededException;
 use App\Models\Business;
 use App\Models\Store\TelegramStore;
 use App\Models\TelegramBot;
+use App\Services\SubscriptionGate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -55,6 +57,21 @@ class StoreSetupService
         if ($existingBot) {
             $bot = $existingBot;
         } else {
+            // Tarif quota tekshiruvi — shu yo'ldan bot yaratilishi ham hisoblansin
+            try {
+                app(SubscriptionGate::class)->checkQuota(
+                    $store->business,
+                    'telegram_bots'
+                );
+            } catch (QuotaExceededException $e) {
+                return [
+                    'success' => false,
+                    'error' => "Telegram bot limiti tugagan. {$e->getMessage()}",
+                    'error_code' => 'LIMIT_REACHED',
+                    'upgrade_required' => true,
+                ];
+            }
+
             $bot = TelegramBot::create([
                 'business_id' => $store->business_id,
                 'bot_token' => $botToken,

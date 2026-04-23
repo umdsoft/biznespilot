@@ -18,6 +18,10 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// NOTE: Subscription lifecycle schedule already registered at end of file
+// (subscriptions:check-expired, trial-expiry-notify, apply-scheduled).
+// See: "MUHIM: SUBSCRIPTION LIFECYCLE" block near bottom of this file.
+
 // ==========================================
 // TELEGRAM CHANNEL ANALYTICS
 // ==========================================
@@ -833,12 +837,15 @@ Schedule::job(new \App\Jobs\Store\UpdateStoreAnalyticsJob)
 // SUBSCRIPTION MANAGEMENT
 // ==========================================
 
-// Muddati o'tgan subscriptionlarni expired qilish - Har kuni 00:30
+// Muddati o'tgan subscriptionlarni expired qilish - Har soat (trial tugashi
+// aniqroq aniqlanishi uchun, avval kunlik edi — tezroq o'tgan trial'lar
+// lockout'ga tushadi)
 Schedule::command('subscriptions:check-expired')
-    ->dailyAt('00:30')
+    ->hourly()
     ->timezone('Asia/Tashkent')
     ->name('subscriptions-check-expired')
-    ->onOneServer();
+    ->onOneServer()
+    ->withoutOverlapping(10);
 
 // Rejalashtirilgan tarif o'zgarishlarni bajarish - Har kuni 01:00
 Schedule::command('subscriptions:apply-scheduled')

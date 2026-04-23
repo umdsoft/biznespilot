@@ -8,6 +8,7 @@ use App\Models\Lead;
 use App\Models\LeadSource;
 use App\Models\Task;
 use App\Models\UtelAccount;
+use App\Services\Traits\EnforcesLeadQuota;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -17,6 +18,8 @@ use Illuminate\Support\Str;
 
 class UtelService
 {
+    use EnforcesLeadQuota;
+
     protected ?UtelAccount $account = null;
 
     protected string $baseUrl = 'https://api.utel.uz/api'; // Default, should be set per business
@@ -1068,7 +1071,7 @@ class UtelService
             // Format phone as +998XXXXXXXXX for consistency
             $formattedPhone = '+998' . $last9Digits;
 
-            $newLead = Lead::create([
+            $newLead = $this->createLeadWithQuotaCheck([
                 'id' => Str::uuid(),
                 'business_id' => $businessId,
                 'source_id' => $leadSource?->id,
