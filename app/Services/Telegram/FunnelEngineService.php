@@ -5,6 +5,7 @@ namespace App\Services\Telegram;
 use App\Models\Business;
 use App\Models\Lead;
 use App\Models\LeadSource;
+use App\Models\PipelineStage;
 use App\Models\TelegramBot;
 use App\Models\TelegramConversation;
 use App\Models\TelegramDailyStat;
@@ -504,11 +505,17 @@ class FunnelEngineService
             'user_id' => $this->user->id,
         ]);
 
-        $funnel = TelegramFunnel::find($funnelId);
+        // SECURITY: tenant scoping — faqat shu bot'ga tegishli funnel'ni olish.
+        // Aks holda malicious user callback_data'da boshqa biznes funnel_id'sini
+        // kiritib, cross-tenant o'tish qilishi mumkin.
+        $funnel = TelegramFunnel::where('id', $funnelId)
+            ->where('telegram_bot_id', $this->bot->id)
+            ->first();
 
         if (! $funnel || ! $funnel->is_active) {
-            Log::warning('FunnelEngine: Funnel not found or inactive', [
+            Log::warning('FunnelEngine: Funnel not found, inactive, or cross-tenant', [
                 'funnel_id' => $funnelId,
+                'bot_id' => $this->bot->id,
                 'funnel_exists' => $funnel !== null,
                 'is_active' => $funnel?->is_active,
                 'user_id' => $this->user->id,
@@ -517,9 +524,9 @@ class FunnelEngineService
             return;
         }
 
-        // Get first step or specified step
+        // Get first step or specified step — step ham scope ichida bo'lishi kerak
         $step = $stepId
-            ? TelegramFunnelStep::find($stepId)
+            ? $this->findScopedStep($stepId, $funnel->id)
             : $funnel->firstStep();
 
         Log::info('FunnelEngine: Got first step', [
@@ -561,20 +568,46 @@ class FunnelEngineService
     }
 
     /**
-     * Go to step
+     * Go to step — cross-tenant scoping HIMOYA QILINGAN.
+     *
+     * Step faqat shu bot'ning faol funnel'iga tegishli bo'lishi kerak.
+     * Malicious callback_data="step:<boshqa tenant UUID>" bloklanadi.
      */
     public function goToStep(string $stepId): void
     {
-        $step = TelegramFunnelStep::find($stepId);
+        $step = $this->findScopedStep($stepId);
 
         if (! $step) {
-            Log::warning('Step not found', ['step_id' => $stepId]);
+            Log::warning('FunnelEngine: Step not found or cross-tenant access blocked', [
+                'step_id' => $stepId,
+                'bot_id' => $this->bot->id,
+                'user_id' => $this->user->id,
+            ]);
 
             return;
         }
 
         $this->state->moveTo($step);
         $this->executeStep($step);
+    }
+
+    /**
+     * Step'ni bu bot'ning funnel'lari ichidan topish — tenant scoping.
+     *
+     * Optional $funnelId berilsa, step shu funnel ichida bo'lishi kerak.
+     * Barcha kritik step topish joylarida ishlatilishi kerak.
+     */
+    protected function findScopedStep(string $stepId, ?string $funnelId = null): ?TelegramFunnelStep
+    {
+        $query = TelegramFunnelStep::where('id', $stepId)
+            ->whereHas('funnel', function ($q) use ($funnelId) {
+                $q->where('telegram_bot_id', $this->bot->id);
+                if ($funnelId !== null) {
+                    $q->where('id', $funnelId);
+                }
+            });
+
+        return $query->first();
     }
 
     /**
@@ -616,6 +649,22 @@ class FunnelEngineService
                 // This step is primarily used as an entry point
                 $this->executeTriggerKeywordStep($step);
 
+                return;
+
+            case 'delay':
+                // Delay step — kechikish bilan keyingi step'ga o'tish.
+                // delay_seconds yoki delay_ms qiymatlari qabul qilinadi.
+                $this->executeDelayStep($step);
+
+                return;
+
+            case 'action':
+                // Action step — create_lead, send_notification, webhook, va h.k.
+                $this->executeAction($step);
+                if ($step->next_step_id) {
+                    usleep(200000);
+                    $this->goToStep($step->next_step_id);
+                }
                 return;
         }
 
@@ -993,6 +1042,50 @@ class FunnelEngineService
     }
 
     /**
+     * Execute delay step — kechikish bilan keyingi step'ga o'tish.
+     *
+     * Hozirgi implementatsiya: sinxron `usleep()` ishlatadi (eski inline
+     * behaviour). Bu PHP-FPM worker'ni bloklaydi — 5+ soniyalik delay
+     * bo'lsa webhook timeout'ga tushishi mumkin. TIER-3 refactor'da bu
+     * `ExecuteFunnelStepJob::dispatch()->delay(...)` bo'lishi kerak.
+     *
+     * Qabul qilinadigan maydonlar (prioritet bo'yicha):
+     *   - `delay_ms` (integer, millisekund — DB column)
+     *   - `content.delay_seconds` (integer, sekund — builder yuboradi)
+     *   - default: 0
+     */
+    protected function executeDelayStep(TelegramFunnelStep $step): void
+    {
+        $content = $step->getContent() ?? [];
+        $delayMs = 0;
+
+        if (! empty($step->delay_ms)) {
+            $delayMs = (int) $step->delay_ms;
+        } elseif (isset($content['delay_seconds'])) {
+            $delayMs = (int) $content['delay_seconds'] * 1000;
+        } elseif (isset($content['delay_ms'])) {
+            $delayMs = (int) $content['delay_ms'];
+        }
+
+        // Xavfsiz chegara — webhook timeout oldini olish (Laravel default 30s)
+        $delayMs = max(0, min($delayMs, 10000)); // 0..10s inline
+
+        Log::info('FunnelEngine: delay step', [
+            'step_id' => $step->id,
+            'delay_ms' => $delayMs,
+            'user_id' => $this->user->id,
+        ]);
+
+        if ($delayMs > 0) {
+            usleep($delayMs * 1000);
+        }
+
+        if ($step->next_step_id) {
+            $this->goToStep($step->next_step_id);
+        }
+    }
+
+    /**
      * Send step content
      */
     protected function sendStepContent(
@@ -1338,7 +1431,7 @@ class FunnelEngineService
      */
     protected function sendValidationError(TelegramFunnelStep $step, int $chatId): void
     {
-        $errorMessage = $step->getValidationError() ?? "Noto'g'ri format. Iltimos qaytadan urinib ko'ring.";
+        $errorMessage = $step->getValidationErrorMessage() ?? "Noto'g'ri format. Iltimos qaytadan urinib ko'ring.";
         $this->api->sendMessage($chatId, $errorMessage);
     }
 
@@ -1405,18 +1498,25 @@ class FunnelEngineService
             $sourceId = $source?->id;
         }
 
+        // Status biznesning birinchi PipelineStage slug'idan olinadi.
+        // Eski "new" hardcoded bo'lgani sabab, biznes pipeline'ini o'zgartirsa
+        // lead ko'rinmay qolar edi.
+        $defaultStatus = PipelineStage::where('business_id', $this->bot->business_id)
+            ->orderBy('order')
+            ->value('slug') ?? 'new';
+
         $leadData = [
             'business_id' => $this->bot->business_id,
             'source_id' => $sourceId,
             'name' => $collectedData[$config['name_field'] ?? 'name'] ?? $this->user->getFullName(),
             'phone' => $collectedData[$config['phone_field'] ?? 'phone'] ?? $this->user->phone,
             'email' => $collectedData[$config['email_field'] ?? 'email'] ?? null,
-            'status' => 'new',
+            'status' => $defaultStatus,
             'notes' => json_encode([
                 'telegram_user_id' => $this->user->telegram_id,
                 'funnel' => $this->state->currentFunnel?->name,
                 'collected_data' => $collectedData,
-            ]),
+            ], JSON_UNESCAPED_UNICODE),
             'data' => [
                 'source' => 'telegram_funnel',
                 'bot_id' => $this->bot->id,
@@ -1599,9 +1699,14 @@ class FunnelEngineService
      */
     protected function processQuizAnswer(string $stepId, int $optionIndex): void
     {
-        $step = TelegramFunnelStep::find($stepId);
+        // SECURITY: step faqat shu bot'ning funnel'iga tegishli bo'lishi kerak
+        $step = $this->findScopedStep($stepId);
 
         if (! $step || $step->step_type !== 'quiz') {
+            Log::warning('FunnelEngine: Quiz answer rejected (not found or cross-tenant)', [
+                'step_id' => $stepId,
+                'bot_id' => $this->bot->id,
+            ]);
             return;
         }
 
@@ -1647,7 +1752,8 @@ class FunnelEngineService
      */
     protected function recheckSubscription(string $stepId, string $callbackQueryId): void
     {
-        $step = TelegramFunnelStep::find($stepId);
+        // SECURITY: tenant scoping
+        $step = $this->findScopedStep($stepId);
 
         if (! $step || $step->step_type !== 'subscribe_check') {
             $this->api->answerCallbackQuery($callbackQueryId);
@@ -1849,23 +1955,37 @@ class FunnelEngineService
     }
 
     /**
-     * Process variables in content
+     * Process variables in content.
+     *
+     * SECURITY: foydalanuvchidan olingan qiymatlar (first_name, last_name,
+     * quiz javoblari) Telegram tomonidan parse_mode='HTML' bilan render
+     * qilinadi. Agar user ismida `<a href="evil">` bo'lsa — clickable link
+     * bo'lib ko'rinadi (XSS/social engineering). Shuning uchun HTML special
+     * characters'ni escape qilamiz.
+     *
+     * Telegram HTML escape: faqat `< > &` kerak.
      */
     protected function processVariables(array $content): array
     {
+        $esc = fn ($v) => str_replace(
+            ['&', '<', '>'],
+            ['&amp;', '&lt;', '&gt;'],
+            (string) $v
+        );
+
         $replacements = [
-            '{first_name}' => $this->user->first_name ?? '',
-            '{last_name}' => $this->user->last_name ?? '',
-            '{full_name}' => $this->user->getFullName(),
-            '{username}' => $this->user->username ? '@'.$this->user->username : '',
-            '{phone}' => $this->user->phone ?? '',
-            '{bot_name}' => $this->bot->bot_first_name ?? '',
+            '{first_name}' => $esc($this->user->first_name ?? ''),
+            '{last_name}' => $esc($this->user->last_name ?? ''),
+            '{full_name}' => $esc($this->user->getFullName()),
+            '{username}' => $this->user->username ? '@'.$esc($this->user->username) : '',
+            '{phone}' => $esc($this->user->phone ?? ''),
+            '{bot_name}' => $esc($this->bot->bot_first_name ?? ''),
         ];
 
-        // Add collected data variables
+        // Add collected data variables (user-provided quiz answers, inputs, etc.)
         foreach ($this->state->collected_data ?? [] as $key => $value) {
             if (is_string($value)) {
-                $replacements['{'.$key.'}'] = $value;
+                $replacements['{'.$key.'}'] = $esc($value);
             }
         }
 

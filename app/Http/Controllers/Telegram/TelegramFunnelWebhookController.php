@@ -55,6 +55,23 @@ class TelegramFunnelWebhookController extends Controller
             // Get update data
             $update = $request->all();
 
+            // SECURITY: update_id deduplication.
+            // Telegram re-delivers webhook update up to 24h if we don't return 200.
+            // Without dedup: duplicate messages to user, duplicate Lead::create,
+            // duplicate quota burn. 5 min Redis lock.
+            $updateId = $update['update_id'] ?? null;
+            if ($updateId !== null) {
+                $dedupKey = "tg:webhook:{$bot->id}:upd:{$updateId}";
+                // Cache::add returns false if key already exists (atomic)
+                if (! \Cache::add($dedupKey, 1, now()->addMinutes(5))) {
+                    Log::info('Telegram webhook: duplicate update skipped', [
+                        'bot_id' => $bot->id,
+                        'update_id' => $updateId,
+                    ]);
+                    return response()->json(['ok' => true, 'skipped' => 'duplicate']);
+                }
+            }
+
             // Detect update type for logging/routing
             $isBusinessUpdate = isset($update['business_connection'])
                 || isset($update['business_message'])
@@ -64,7 +81,7 @@ class TelegramFunnelWebhookController extends Controller
             Log::info('Telegram funnel webhook received', [
                 'bot_id' => $botId,
                 'bot_username' => $bot->bot_username,
-                'update_id' => $update['update_id'] ?? null,
+                'update_id' => $updateId,
                 'has_message' => isset($update['message']),
                 'has_callback' => isset($update['callback_query']),
                 'is_business' => $isBusinessUpdate,
@@ -292,24 +309,28 @@ class TelegramFunnelWebhookController extends Controller
     }
 
     /**
-     * Verify webhook secret token
+     * Verify webhook secret token.
+     *
+     * SECURITY: fail-closed. Bot'da webhook_secret konfiguratsiya qilinmagan
+     * bo'lsa — webhook REJECTS qilinadi (avvalgi "backwards compatibility"
+     * yo'li spoof uchun ochiq edi: kim bot UUID'sini bilsa, arbitrary
+     * updates POST qilishi mumkin edi).
+     *
+     * Bot sozlash paytida setup() avtomatik random secret yaratadi.
      */
     protected function verifySecretToken(Request $request, TelegramBot $bot): bool
     {
-        $secretToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
-
-        // If no secret token in request
-        if (! $secretToken) {
-            // Allow if bot doesn't have secret configured (backwards compatibility)
-            if (! $bot->webhook_secret) {
-                return true;
-            }
-
+        // Bot'da secret bo'lmasa — fail closed. Setup() orqali webhook
+        // register qilinganida secret avtomatik yaratilgan bo'lishi kerak.
+        if (empty($bot->webhook_secret)) {
+            Log::warning('Webhook rejected: bot has no secret configured', [
+                'bot_id' => $bot->id,
+            ]);
             return false;
         }
 
-        // Verify against bot's webhook secret
-        if (! $bot->webhook_secret) {
+        $secretToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
+        if (empty($secretToken)) {
             return false;
         }
 
