@@ -31,6 +31,18 @@ class FunnelEngineService
 
     protected TelegramConversation $conversation;
 
+    /**
+     * Bitta webhook request davomida ishlagan step'lar ro'yxati.
+     * Tag → Tag self-loop yoki condition → condition cycle'dan himoya qiladi.
+     * PHP-FPM stack overflow oldini oladi.
+     */
+    protected array $visitedSteps = [];
+
+    /**
+     * Maksimum step-chain uzunligi — bundan katta bo'lsa loop detect etiladi.
+     */
+    protected const MAX_STEP_CHAIN = 50;
+
     public function __construct(TelegramBot $bot, TelegramUser $user)
     {
         $this->bot = $bot;
@@ -38,6 +50,23 @@ class FunnelEngineService
         $this->api = new TelegramApiService($bot);
         $this->state = $user->state ?? $this->createState();
         $this->conversation = $this->getOrCreateConversation();
+
+        // Agar kontekst (conversation) Business Connection orqali bo'lgan bo'lsa —
+        // API servisini shu connection'ga bog'laymiz, shunda barcha sendMessage'lar
+        // business account nomidan yuboriladi.
+        if (! empty($this->conversation->business_connection_id)) {
+            $this->api->forBusinessConnection($this->conversation->business_connection_id);
+        }
+    }
+
+    /**
+     * ExecuteFunnelStepJob chaqirganda manual override — conversation loaded bo'lmasligi
+     * yoki eski bo'lishi mumkin. Job payload'idan keladigan ishonchli connectionId.
+     */
+    public function setBusinessConnection(?string $connectionId): self
+    {
+        $this->api->forBusinessConnection($connectionId);
+        return $this;
     }
 
     protected function createState(): TelegramUserState
@@ -354,8 +383,13 @@ class FunnelEngineService
             ->where('is_active', true)
             ->first();
 
-        $botName = $this->bot->bot_first_name ?: $this->bot->bot_username;
-        $userName = $this->user->first_name ?: '';
+        // SECURITY: user-controlled fields (first_name) Telegram HTML parse_mode bilan render
+        // qilinadi. Agar user ismida `<a href="evil">` bo'lsa — clickable link bo'lib ko'rinadi.
+        // Shuning uchun inline interpolationdan avval HTML special charachters'ni escape qilamiz.
+        $esc = fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $botName = $esc($this->bot->bot_first_name ?: $this->bot->bot_username);
+        $userName = $this->user->first_name ? $esc($this->user->first_name) : '';
         $isNewUser = ! $this->user->first_interaction_at
             || $this->user->first_interaction_at->diffInMinutes(now()) < 2;
 
@@ -364,9 +398,10 @@ class FunnelEngineService
             $text = "👋 Assalomu alaykum" . ($userName ? ", <b>{$userName}</b>" : '') . "!\n\n";
             $text .= "🤖 <b>{$botName}</b> ga xush kelibsiz!\n";
             if ($store) {
-                $text .= "\n🛍 <b>{$store->name}</b> — sizning shaxsiy do'koningiz.\n";
+                $storeName = $esc($store->name);
+                $text .= "\n🛍 <b>{$storeName}</b> — sizning shaxsiy do'koningiz.\n";
                 if ($store->description) {
-                    $text .= "{$store->description}\n";
+                    $text .= $esc($store->description) . "\n";
                 }
             }
             $text .= "\nQuyidagi menyudan kerakli bo'limni tanlang:";
@@ -407,7 +442,13 @@ class FunnelEngineService
             ->where('is_active', true)
             ->first();
 
-        $botName = $this->bot->bot_first_name ?: $this->bot->bot_username;
+        // SECURITY: parse_mode=HTML bilan yuboriladi — business'ning admin-kiritadigan
+        // matnlarini ham escape qilamiz. Admin malicious emasligini taxmin qilmaymiz
+        // (defense-in-depth) — lekin asosan user-controlled fields HTML injection oldini
+        // olish uchun.
+        $esc = fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $botName = $esc($this->bot->bot_first_name ?: $this->bot->bot_username);
         $business = $this->bot->business;
 
         switch ($action) {
@@ -436,16 +477,16 @@ class FunnelEngineService
                 $text = "📞 <b>Bog'lanish</b>\n\n";
                 if ($business) {
                     if ($business->phone) {
-                        $text .= "📱 Telefon: {$business->phone}\n";
+                        $text .= "📱 Telefon: " . $esc($business->phone) . "\n";
                     }
                     if ($business->email) {
-                        $text .= "📧 Email: {$business->email}\n";
+                        $text .= "📧 Email: " . $esc($business->email) . "\n";
                     }
                     if ($business->address) {
-                        $text .= "📍 Manzil: {$business->address}\n";
+                        $text .= "📍 Manzil: " . $esc($business->address) . "\n";
                     }
                     if ($business->website) {
-                        $text .= "🌐 Sayt: {$business->website}\n";
+                        $text .= "🌐 Sayt: " . $esc($business->website) . "\n";
                     }
                 }
                 if ($text === "📞 <b>Bog'lanish</b>\n\n") {
@@ -461,9 +502,9 @@ class FunnelEngineService
                 $text = "ℹ️ <b>Biz haqimizda</b>\n\n";
                 $text .= "<b>{$botName}</b>";
                 if ($business && $business->description) {
-                    $text .= "\n\n{$business->description}";
+                    $text .= "\n\n" . $esc($business->description);
                 } elseif ($store && $store->description) {
-                    $text .= "\n\n{$store->description}";
+                    $text .= "\n\n" . $esc($store->description);
                 }
                 $keyboard = ['inline_keyboard' => [
                     [['text' => '◀️ Asosiy menyu', 'callback_data' => 'menu_main']],
@@ -615,6 +656,28 @@ class FunnelEngineService
      */
     protected function executeStep(TelegramFunnelStep $step): void
     {
+        // LOOP GUARD — step bir webhook davomida ikki marta ishlasa yoki zanjir
+        // MAX_STEP_CHAIN dan oshsa, to'xtatamiz. Bu tag→tag, condition→condition,
+        // yoki misconfigured A/B variant→o'zi o'ziga pointing holatlardan himoya qiladi.
+        $stepKey = (string) $step->id;
+        if (isset($this->visitedSteps[$stepKey])) {
+            Log::warning('FunnelEngine: loop detected — step visited twice in same run', [
+                'step_id' => $stepKey,
+                'user_id' => $this->user->id,
+                'visited' => array_keys($this->visitedSteps),
+            ]);
+            return;
+        }
+        if (count($this->visitedSteps) >= self::MAX_STEP_CHAIN) {
+            Log::warning('FunnelEngine: step chain exceeded limit — aborting', [
+                'limit' => self::MAX_STEP_CHAIN,
+                'user_id' => $this->user->id,
+                'last_step' => $stepKey,
+            ]);
+            return;
+        }
+        $this->visitedSteps[$stepKey] = true;
+
         $chatId = $this->user->telegram_id;
 
         // Handle special step types
@@ -779,13 +842,43 @@ class FunnelEngineService
      */
     protected function getFieldValue(string $field): mixed
     {
-        // First check collected data
         $collectedData = $this->state->collected_data ?? [];
-        if (isset($collectedData[$field])) {
+
+        // has_tag:<tag_name> — spetsifik tag nomini tekshirish.
+        // "has_tag" yolg'iz bo'lsa — eski xulq (har qanday tag mavjudmi).
+        if (str_starts_with($field, 'has_tag:')) {
+            $needle = substr($field, strlen('has_tag:'));
+            $needle = trim($needle);
+            $tags = is_array($this->user->tags) ? $this->user->tags : [];
+            return in_array($needle, $tags, true);
+        }
+
+        // Dotted notation: `user.first_name`, `variables.score`, `lead.phone`, `context.xxx`.
+        if (str_contains($field, '.')) {
+            [$ns, $path] = explode('.', $field, 2);
+            switch ($ns) {
+                case 'user':
+                    return $this->resolveUserField($path);
+                case 'lead':
+                    return $this->resolveLeadField($path);
+                case 'variables':
+                case 'vars':
+                case 'collected':
+                    return data_get($collectedData, $path);
+                case 'bot':
+                    return data_get([
+                        'name' => $this->bot->bot_first_name,
+                        'username' => $this->bot->bot_username,
+                        'id' => $this->bot->id,
+                    ], $path);
+            }
+        }
+
+        // First check collected data (bare key).
+        if (array_key_exists($field, $collectedData)) {
             return $collectedData[$field];
         }
 
-        // Check for marketing-specific fields
         if ($field === 'has_tag') {
             return ! empty($this->user->tags);
         }
@@ -796,18 +889,35 @@ class FunnelEngineService
             return TelegramMessage::where('telegram_user_id', $this->user->id)->count();
         }
 
-        // Then check user model
-        return match ($field) {
+        // Bare key → user model fallback.
+        return $this->resolveUserField($field) ?? ($this->user->custom_data[$field] ?? null);
+    }
+
+    protected function resolveUserField(string $path): mixed
+    {
+        return match ($path) {
             'first_name' => $this->user->first_name,
             'last_name' => $this->user->last_name,
             'username' => $this->user->username,
             'phone' => $this->user->phone,
             'email' => $this->user->email ?? null,
             'language_code' => $this->user->language_code,
-            'is_premium' => $this->user->is_premium ?? false,
-            'user_id' => $this->user->telegram_id,
-            default => $this->user->custom_data[$field] ?? null,
+            'is_premium' => (bool) ($this->user->is_premium ?? false),
+            'id', 'user_id', 'telegram_id' => $this->user->telegram_id,
+            default => data_get($this->user->custom_data ?? [], $path),
         };
+    }
+
+    protected function resolveLeadField(string $path): mixed
+    {
+        if (empty($this->user->lead_id)) {
+            return null;
+        }
+        $lead = Lead::find($this->user->lead_id);
+        if (! $lead) {
+            return null;
+        }
+        return data_get($lead->toArray(), $path);
     }
 
     /**
@@ -855,10 +965,20 @@ class FunnelEngineService
             $message = $config['not_subscribed_message'] ?? "Davom etish uchun kanalga obuna bo'ling!";
             $buttonText = $config['subscribe_button_text'] ?? "Obuna bo'lish";
 
+            // URL injection oldini olish — faqat xavfsiz belgilar.
+            $cleanChannel = preg_replace('/[^a-zA-Z0-9_]/', '', ltrim($channelUsername, '@'));
+            if ($cleanChannel === '') {
+                Log::warning('FunnelEngine: subscribe_check invalid channel_username', [
+                    'step_id' => $step->id,
+                    'raw' => $channelUsername,
+                ]);
+                return;
+            }
+
             $keyboard = [
                 'inline_keyboard' => [
                     [
-                        ['text' => $buttonText, 'url' => "https://t.me/{$channelUsername}"],
+                        ['text' => $buttonText, 'url' => "https://t.me/{$cleanChannel}"],
                     ],
                     [
                         ['text' => 'Tekshirish ✓', 'callback_data' => "recheck_subscribe:{$step->id}"],
@@ -866,9 +986,11 @@ class FunnelEngineService
                 ],
             ];
 
-            $this->api->sendMessage($chatId, $message, [
-                'reply_markup' => json_encode($keyboard),
-            ]);
+            // TUZATISH: sendMessage($chatId, $text, $keyboard) — $keyboard to'g'ridan-to'g'ri
+            // inline_keyboard arrayi, sendMessage ichida json_encode qilinadi.
+            // Avval bu yerda `['reply_markup' => json_encode($keyboard)]` bo'lgan — bu double-wrap
+            // edi va Telegram tugmalarni ko'rsatmay qo'ygan.
+            $this->api->sendMessage($chatId, $message, $keyboard);
 
             // Save step ID to recheck later
             $this->state->update([
@@ -909,9 +1031,8 @@ class FunnelEngineService
             usleep($this->bot->getTypingDelay() * 1000);
         }
 
-        $result = $this->api->sendMessage($chatId, $question, [
-            'reply_markup' => json_encode($keyboard),
-        ]);
+        // $keyboard to'g'ridan-to'g'ri — sendMessage ichida json_encode qilinadi.
+        $result = $this->api->sendMessage($chatId, $question, $keyboard);
 
         if ($result['success']) {
             $this->state->update([
@@ -935,37 +1056,53 @@ class FunnelEngineService
             return;
         }
 
-        // Calculate random selection based on percentages
-        $random = mt_rand(1, 100);
-        $cumulative = 0;
+        $stickyKey = "ab_test_{$step->id}";
+        $collectedData = $this->state->collected_data ?? [];
         $selectedVariant = null;
 
-        foreach ($variants as $variant) {
-            $cumulative += $variant['percentage'] ?? 0;
-            if ($random <= $cumulative) {
-                $selectedVariant = $variant;
-                break;
+        // Agar foydalanuvchi ushbu step'ga avval kirgan bo'lsa — xuddi o'sha variant.
+        // Bu funnel'ga qayta kirganda (recheck / restart) A/B natijalar buzilmasligiga kafolat beradi.
+        if (! empty($collectedData[$stickyKey])) {
+            $previousName = $collectedData[$stickyKey];
+            foreach ($variants as $v) {
+                if (($v['name'] ?? null) === $previousName) {
+                    $selectedVariant = $v;
+                    break;
+                }
             }
         }
 
-        // Fallback to first variant
+        // Birinchi kirish — deterministic bucket (crc32 user_id + step_id).
+        // Shu user har doim bir xil variantga tushadi. mt_rand() o'rniga.
         if (! $selectedVariant) {
-            $selectedVariant = $variants[0];
+            $bucketSeed = (string) $this->user->id . ':' . (string) $step->id;
+            $bucket = (int) (crc32($bucketSeed) % 100) + 1; // 1..100
+            $cumulative = 0;
+            foreach ($variants as $variant) {
+                $cumulative += (int) ($variant['percentage'] ?? 0);
+                if ($bucket <= $cumulative) {
+                    $selectedVariant = $variant;
+                    break;
+                }
+            }
+            if (! $selectedVariant) {
+                $selectedVariant = $variants[0];
+            }
         }
 
         Log::info('A/B test variant selected', [
             'user_id' => $this->user->id,
             'step_id' => $step->id,
             'variant' => $selectedVariant['name'] ?? 'Unknown',
-            'random' => $random,
+            'sticky' => isset($collectedData[$stickyKey]),
         ]);
 
-        // Save variant selection to user data for analytics
-        $collectedData = $this->state->collected_data ?? [];
-        $collectedData["ab_test_{$step->id}"] = $selectedVariant['name'] ?? 'A';
-        $this->state->update(['collected_data' => $collectedData]);
+        // Sticky yozuv — keyingi re-entry'larda o'qiladi.
+        if (! isset($collectedData[$stickyKey])) {
+            $collectedData[$stickyKey] = $selectedVariant['name'] ?? 'A';
+            $this->state->update(['collected_data' => $collectedData]);
+        }
 
-        // Go to selected variant's next step
         if (! empty($selectedVariant['next_step_id'])) {
             usleep(200000);
             $this->goToStep($selectedVariant['next_step_id']);
@@ -1067,22 +1204,66 @@ class FunnelEngineService
             $delayMs = (int) $content['delay_ms'];
         }
 
-        // Xavfsiz chegara — webhook timeout oldini olish (Laravel default 30s)
-        $delayMs = max(0, min($delayMs, 10000)); // 0..10s inline
+        // Maksimum 1 soat delay — nazorat ostida saqlaymiz.
+        $delayMs = max(0, min($delayMs, 3600_000));
 
-        Log::info('FunnelEngine: delay step', [
+        if (! $step->next_step_id) {
+            Log::info('FunnelEngine: delay step has no next_step_id — terminal, completing funnel', [
+                'step_id' => $step->id,
+            ]);
+            $this->completeFunnel();
+            return;
+        }
+
+        // Qisqa delay (<1s) — inline. PHP-FPM ga deyarli ta'sir qilmaydi.
+        if ($delayMs > 0 && $delayMs < 1000) {
+            usleep($delayMs * 1000);
+            $this->goToStep($step->next_step_id);
+            return;
+        }
+
+        // Uzun delay — queue'ga dispatch qilib darhol webhook'dan chiqamiz.
+        // `delay()` uchun sekund; ms dan konvertatsiya.
+        $delaySeconds = (int) ceil($delayMs / 1000);
+
+        // Current step'ni belgilab qo'yamiz — job idempotency uchun.
+        $this->state->update(['current_step_id' => $step->id]);
+
+        \App\Jobs\ExecuteFunnelStepJob::dispatch(
+            (string) $this->bot->id,
+            (string) $this->user->id,
+            (string) $step->next_step_id,
+            (string) $step->id, // expectedCurrentStepId — job ishga tushganda shu bo'lishi kerak
+            $this->conversation->business_connection_id, // Business Bot connection propagation
+        )->delay(now()->addSeconds($delaySeconds));
+
+        Log::info('FunnelEngine: delay step dispatched', [
             'step_id' => $step->id,
-            'delay_ms' => $delayMs,
+            'next_step_id' => $step->next_step_id,
+            'delay_seconds' => $delaySeconds,
             'user_id' => $this->user->id,
         ]);
+    }
 
-        if ($delayMs > 0) {
-            usleep($delayMs * 1000);
+    /**
+     * Job tomonidan chaqiriladi — kelgusi step'ni bajarish uchun.
+     * Bu public, chunki ExecuteFunnelStepJob uni boshqa process'da chaqiradi.
+     *
+     * Cross-tenant tekshiruv job ichida allaqachon bajarilgan — shu yerda
+     * step'ni to'g'ridan-to'g'ri ishga tushiramiz (goToStep pipeline'iga kiramiz).
+     */
+    public function executeDeferredStep(string $stepId): void
+    {
+        $step = $this->findScopedStep($stepId);
+        if (! $step) {
+            Log::warning('FunnelEngine: deferred step not found', [
+                'step_id' => $stepId,
+                'bot_id' => $this->bot->id,
+            ]);
+            return;
         }
 
-        if ($step->next_step_id) {
-            $this->goToStep($step->next_step_id);
-        }
+        $this->executeStep($step);
     }
 
     /**
@@ -1097,40 +1278,78 @@ class FunnelEngineService
         $type = $content['type'] ?? 'text';
         $text = $content['text'] ?? '';
         $caption = $content['caption'] ?? $text;
-        $fileId = $content['file_id'] ?? $content['url'] ?? null;
+        // `??` empty string'ni null emas deb qabul qiladi — shu bois file_id='' holatda
+        // url forward qilinmasdi. Bu yerda empty tekshirish bilan to'g'ri fallback:
+        // Telegram file_id oldin, agar u bo'sh bo'lsa — URL.
+        $fileId = null;
+        if (! empty($content['file_id'])) {
+            $fileId = $content['file_id'];
+        } elseif (! empty($content['url'])) {
+            $fileId = $content['url'];
+        }
+
+        // parse_mode — UI content.parse_mode ni forward qilamiz. Default HTML.
+        // Telegram qabul qiladi: 'HTML', 'Markdown', 'MarkdownV2'.
+        $allowedParseModes = ['HTML', 'Markdown', 'MarkdownV2'];
+        $parseMode = $content['parse_mode'] ?? 'HTML';
+        if (! in_array($parseMode, $allowedParseModes, true)) {
+            $parseMode = 'HTML';
+        }
 
         // Build keyboard if needed
         $replyMarkup = null;
         if ($keyboard) {
             $replyMarkup = $this->buildKeyboard($keyboard, $step);
+            // Bo'sh inline_keyboard Telegram tomonidan rad etiladi — fallback null.
+            if (isset($replyMarkup['inline_keyboard']) && empty(array_filter($replyMarkup['inline_keyboard']))) {
+                $replyMarkup = null;
+            }
+        }
+
+        // Media turlari uchun file_id/url bo'sh bo'lsa — matnga tushirib yuboramiz (silent fail oldini olish).
+        $mediaTypes = ['photo', 'video', 'voice', 'video_note', 'document'];
+        if (in_array($type, $mediaTypes, true) && empty($fileId)) {
+            Log::warning('FunnelEngine: media step has no file/url — fallback to text', [
+                'step_id' => $step->id,
+                'type' => $type,
+            ]);
+            $type = 'text';
         }
 
         switch ($type) {
             case 'photo':
-                return $this->api->sendPhoto($chatId, $fileId, $caption, $replyMarkup);
+                return $this->api->sendPhoto($chatId, $fileId, $caption, $replyMarkup, $parseMode);
 
             case 'video':
-                return $this->api->sendVideo($chatId, $fileId, $caption, $replyMarkup);
+                return $this->api->sendVideo($chatId, $fileId, $caption, $replyMarkup, $parseMode);
 
             case 'voice':
-                return $this->api->sendVoice($chatId, $fileId, $caption, $replyMarkup);
+                return $this->api->sendVoice($chatId, $fileId, $caption, $replyMarkup, $parseMode);
 
             case 'video_note':
                 return $this->api->sendVideoNote($chatId, $fileId, $content['duration'] ?? null, $replyMarkup);
 
             case 'document':
-                return $this->api->sendDocument($chatId, $fileId, $caption, $replyMarkup);
+                return $this->api->sendDocument($chatId, $fileId, $caption, $replyMarkup, $parseMode);
 
             case 'location':
+                if (! isset($content['latitude'], $content['longitude'])) {
+                    Log::warning('FunnelEngine: location step missing coords — fallback to text', [
+                        'step_id' => $step->id,
+                    ]);
+                    return $this->api->sendMessage($chatId, $text !== '' ? $text : 'Lokatsiya belgilanmagan', $replyMarkup, $parseMode);
+                }
                 return $this->api->sendLocation(
                     $chatId,
-                    $content['latitude'],
-                    $content['longitude'],
+                    (float) $content['latitude'],
+                    (float) $content['longitude'],
                     $replyMarkup
                 );
 
             default:
-                return $this->api->sendMessage($chatId, $text, $replyMarkup);
+                // Bo'sh matn bilan sendMessage Telegram'da 400 — fallback placeholder.
+                $body = $text !== '' ? $text : '...';
+                return $this->api->sendMessage($chatId, $body, $replyMarkup, $parseMode);
         }
     }
 
@@ -1251,18 +1470,30 @@ class FunnelEngineService
         // Extract input based on type
         $value = $this->extractInput($message, $inputType);
 
-        if ($value === null) {
-            // Invalid input, send error message
-            $this->sendValidationError($step, $message['chat']['id']);
+        $validation = $step->validation ?? [];
+        $retryLimit = isset($validation['retry_count']) && $validation['retry_count'] !== null
+            ? (int) $validation['retry_count']
+            : null;
 
+        $retryKey = "__retry:{$step->id}";
+        $currentRetries = (int) ($this->state->collected_data[$retryKey] ?? 0);
+
+        if ($value === null) {
+            $this->handleInputFailure($step, $message['chat']['id'], $retryKey, $currentRetries, $retryLimit);
             return;
         }
 
         // Validate input
         if (! $this->validateInput($value, $step)) {
-            $this->sendValidationError($step, $message['chat']['id']);
-
+            $this->handleInputFailure($step, $message['chat']['id'], $retryKey, $currentRetries, $retryLimit);
             return;
+        }
+
+        // Validatsiya muvaffaqiyatli — retry counter'ni tozalaymiz.
+        if ($currentRetries > 0) {
+            $cleared = $this->state->collected_data ?? [];
+            unset($cleared[$retryKey]);
+            $this->state->update(['collected_data' => $cleared]);
         }
 
         // Store collected data
@@ -1383,6 +1614,42 @@ class FunnelEngineService
         $validation = $step->validation ?? [];
         $inputType = $step->input_type;
 
+        // Required — bo'sh bo'lsa rad qilish.
+        if (! empty($validation['required'])) {
+            if ($value === null || $value === '' || (is_array($value) && empty($value))) {
+                return false;
+            }
+        }
+
+        // Hamma input type uchun umumiy uzunlik tekshiruvi (skalar bo'lsa).
+        if (is_scalar($value)) {
+            $strValue = (string) $value;
+            $length = mb_strlen($strValue);
+            if (isset($validation['min_length']) && $length < (int) $validation['min_length']) {
+                return false;
+            }
+            if (isset($validation['max_length']) && $length > (int) $validation['max_length']) {
+                return false;
+            }
+            if (! empty($validation['pattern'])) {
+                // Xavfsiz regex: UI pattern faqat o'zagi — delimiter + `u` modifier qo'shamiz.
+                // Noto'g'ri regex `@preg_match` bilan qoplansa E_WARNING keltiradi; biz yo'q desak ham PHP 8'da `preg_last_error()` tekshirsak bas.
+                $pattern = '@' . str_replace('@', '\\@', (string) $validation['pattern']) . '@u';
+                $result = @preg_match($pattern, $strValue);
+                if ($result === false) {
+                    // Invalid regex — admin xatosi; logga qo'yib true qaytaramiz (blokirovka qilmaslik uchun).
+                    Log::warning('FunnelEngine: invalid validation regex', [
+                        'step_id' => $step->id,
+                        'pattern' => $validation['pattern'],
+                    ]);
+                    return true;
+                }
+                if ($result === 0) {
+                    return false;
+                }
+            }
+        }
+
         // Type-specific validation
         switch ($inputType) {
             case 'email':
@@ -1392,7 +1659,7 @@ class FunnelEngineService
                 break;
 
             case 'phone':
-                if (! preg_match('/^[\+]?[0-9\s\-\(\)]{7,20}$/', $value)) {
+                if (! preg_match('/^[\+]?[0-9\s\-\(\)]{7,20}$/', (string) $value)) {
                     return false;
                 }
                 break;
@@ -1401,29 +1668,61 @@ class FunnelEngineService
                 if (! is_numeric($value)) {
                     return false;
                 }
-                $value = (float) $value;
-                if (isset($validation['min']) && $value < $validation['min']) {
+                $numeric = (float) $value;
+                if (isset($validation['min']) && $numeric < (float) $validation['min']) {
                     return false;
                 }
-                if (isset($validation['max']) && $value > $validation['max']) {
-                    return false;
-                }
-                break;
-
-            case 'text':
-                if (isset($validation['min_length']) && strlen($value) < $validation['min_length']) {
-                    return false;
-                }
-                if (isset($validation['max_length']) && strlen($value) > $validation['max_length']) {
-                    return false;
-                }
-                if (isset($validation['pattern']) && ! preg_match($validation['pattern'], $value)) {
+                if (isset($validation['max']) && $numeric > (float) $validation['max']) {
                     return false;
                 }
                 break;
         }
 
         return true;
+    }
+
+    /**
+     * Noto'g'ri input uchun markaziy handler — retry_count'ni oshiradi, limit
+     * oshgan bo'lsa funnel'ni to'xtatadi, aks holda xato xabari yuboradi.
+     */
+    protected function handleInputFailure(
+        TelegramFunnelStep $step,
+        int $chatId,
+        string $retryKey,
+        int $currentRetries,
+        ?int $retryLimit
+    ): void {
+        $newCount = $currentRetries + 1;
+
+        // Limit oshgan bo'lsa — waiting_for ni tozalab, funnel'dan chiqaramiz.
+        if ($retryLimit !== null && $newCount > $retryLimit) {
+            Log::info('FunnelEngine: input retry limit exceeded', [
+                'step_id' => $step->id,
+                'user_id' => $this->user->id,
+                'limit' => $retryLimit,
+            ]);
+
+            // Counter'ni tozalaymiz.
+            $cleared = $this->state->collected_data ?? [];
+            unset($cleared[$retryKey]);
+            $this->state->update([
+                'collected_data' => $cleared,
+                'waiting_for' => 'none',
+            ]);
+
+            // Final xatolik xabari va completeFunnel.
+            $finalMsg = $step->getValidationErrorMessage() ?? "Kiritish noto'g'ri. Keyinroq qayta urinib ko'ring.";
+            $this->api->sendMessage($chatId, $finalMsg);
+            $this->completeFunnel();
+            return;
+        }
+
+        // Hali limit ostida — counter'ni oshirib, error xabar yuboramiz.
+        $updatedData = $this->state->collected_data ?? [];
+        $updatedData[$retryKey] = $newCount;
+        $this->state->update(['collected_data' => $updatedData]);
+
+        $this->sendValidationError($step, $chatId);
     }
 
     /**
@@ -1462,8 +1761,11 @@ class FunnelEngineService
                 break;
         }
 
-        // Complete funnel
-        $this->completeFunnel();
+        // Complete the funnel ONLY if this is a terminal step (no next step).
+        // Otherwise preserve collected_data and let the caller navigate to next_step_id.
+        if (! $step->next_step_id) {
+            $this->completeFunnel();
+        }
     }
 
     /**
@@ -1505,6 +1807,30 @@ class FunnelEngineService
             ->orderBy('order')
             ->value('slug') ?? 'new';
 
+        // Agar shu TelegramUser uchun allaqachon Lead mavjud bo'lsa — qayta yaratmasdan
+        // mavjud record'ni yangilaymiz. Bu race condition va ikkita parallel webhook
+        // update'ni dedup qiladi.
+        $existingLead = null;
+        if (! empty($this->user->lead_id)) {
+            $existingLead = Lead::where('id', $this->user->lead_id)
+                ->where('business_id', $this->bot->business_id)
+                ->first();
+        }
+        if (! $existingLead) {
+            // Fallback qidirish — collected_data da phone/email yozilgan bo'lsa.
+            $phone = $collectedData[$config['phone_field'] ?? 'phone'] ?? $this->user->phone;
+            $email = $collectedData[$config['email_field'] ?? 'email'] ?? null;
+            $query = Lead::where('business_id', $this->bot->business_id);
+            if ($phone) {
+                $query->where('phone', $phone);
+            } elseif ($email) {
+                $query->where('email', $email);
+            } else {
+                $query->whereJsonContains('data->telegram_user_id', $this->user->telegram_id);
+            }
+            $existingLead = $query->first();
+        }
+
         $leadData = [
             'business_id' => $this->bot->business_id,
             'source_id' => $sourceId,
@@ -1525,17 +1851,32 @@ class FunnelEngineService
             ],
         ];
 
-        $lead = Lead::create($leadData);
+        if ($existingLead) {
+            // Mavjud lead uchun — faqat qo'shimcha qiymatlar bilan to'ldiramiz:
+            // bo'sh/null field'lar eski qiymatni saqlaydi; business_id, source_id, status'ni
+            // o'zgartirmaymiz (context'da stage allaqachon o'zgargan bo'lishi mumkin).
+            $fillable = [];
+            foreach (['name', 'phone', 'email'] as $f) {
+                if (! empty($leadData[$f])) {
+                    $fillable[$f] = $leadData[$f];
+                }
+            }
+            // `notes` va `data` — har safar yangilanadi (funnel progress uchun).
+            $fillable['notes'] = $leadData['notes'];
+            $fillable['data'] = array_merge($existingLead->data ?? [], $leadData['data']);
+            $existingLead->update($fillable);
+            $lead = $existingLead;
+        } else {
+            $lead = Lead::create($leadData);
+            $this->incrementDailyStat('leads_captured');
+            $this->incrementFunnelStat($this->state->current_funnel_id, 'leads');
+        }
 
         // Link lead to conversation
         $this->conversation->update(['lead_id' => $lead->id]);
 
         // Update user
         $this->user->update(['lead_id' => $lead->id]);
-
-        // Increment stat
-        $this->incrementDailyStat('leads_captured');
-        $this->incrementFunnelStat($this->state->current_funnel_id, 'leads');
     }
 
     /**
@@ -1731,19 +2072,51 @@ class FunnelEngineService
         $saveField = $quiz['save_answer_to'] ?? 'quiz_answer';
         $collectedData[$saveField] = $selectedOption['text'] ?? 'Variant '.($optionIndex + 1);
         $collectedData[$saveField.'_index'] = $optionIndex;
+
+        // Correct-answer rejimi: correct_option_index o'rnatilgan bo'lsa — score yig'iladi,
+        // natija collected_data'ga yoziladi, routing correct_step_id/wrong_step_id orqali boradi.
+        $hasCorrectMode = array_key_exists('correct_option_index', $quiz)
+            && $quiz['correct_option_index'] !== null
+            && $quiz['correct_option_index'] !== '';
+        $isCorrect = null;
+        if ($hasCorrectMode) {
+            $correctIdx = (int) $quiz['correct_option_index'];
+            $isCorrect = ($optionIndex === $correctIdx);
+            $collectedData[$saveField.'_is_correct'] = $isCorrect;
+
+            if ($isCorrect) {
+                $scoreField = $quiz['score_field'] ?? 'quiz_score';
+                $scoreOnCorrect = (int) ($quiz['score_on_correct'] ?? 1);
+                $currentScore = (int) ($collectedData[$scoreField] ?? 0);
+                $collectedData[$scoreField] = $currentScore + $scoreOnCorrect;
+            }
+        }
+
         $this->state->update([
             'collected_data' => $collectedData,
             'waiting_for' => 'none',
         ]);
 
-        // Go to the option's next step if configured
-        if (! empty($selectedOption['next_step_id'])) {
+        // Routing priority:
+        //   1. correct-mode'da — correct_step_id / wrong_step_id
+        //   2. optionning o'z next_step_id
+        //   3. step-level fallback next_step_id
+        $targetStepId = null;
+        if ($hasCorrectMode) {
+            $targetStepId = $isCorrect
+                ? ($quiz['correct_step_id'] ?? null)
+                : ($quiz['wrong_step_id'] ?? null);
+        }
+        if (! $targetStepId && ! empty($selectedOption['next_step_id'])) {
+            $targetStepId = $selectedOption['next_step_id'];
+        }
+        if (! $targetStepId && $step->next_step_id) {
+            $targetStepId = $step->next_step_id;
+        }
+
+        if ($targetStepId) {
             usleep(200000);
-            $this->goToStep($selectedOption['next_step_id']);
-        } elseif ($step->next_step_id) {
-            // Fall back to default next step
-            usleep(200000);
-            $this->goToStep($step->next_step_id);
+            $this->goToStep($targetStepId);
         }
     }
 
@@ -2292,29 +2665,268 @@ class FunnelEngineService
         $stat->incrementTriggerStat($triggerId, $count);
     }
 
+    /**
+     * SSRF himoyasi — tashqariga yuborilayotgan URL private/loopback/link-local
+     * IP'ga resolve qilmasligini tekshiradi.
+     *
+     * Bloklaydi:
+     *  - loopback: 127.0.0.0/8, ::1
+     *  - private: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+     *  - link-local / cloud metadata: 169.254.0.0/16 (AWS metadata 169.254.169.254)
+     *  - IPv6 private: fc00::/7, fe80::/10
+     *  - multicast/reserved
+     */
+    protected function isUrlSafeForOutbound(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (! $parts || empty($parts['host'])) {
+            return false;
+        }
+        $host = $parts['host'];
+
+        // DNS orqali barcha IP'larga resolve — birortasi ham xavfli bo'lmasin.
+        $records = @dns_get_record($host, DNS_A + DNS_AAAA);
+        $ips = [];
+        if (is_array($records)) {
+            foreach ($records as $r) {
+                if (! empty($r['ip'])) {
+                    $ips[] = $r['ip'];
+                } elseif (! empty($r['ipv6'])) {
+                    $ips[] = $r['ipv6'];
+                }
+            }
+        }
+        // Agar host allaqachon IP bo'lsa — uning o'zini ishlatamiz.
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        }
+        if (empty($ips)) {
+            // DNS fail — ruxsat bermaymiz (xavfsizlik default).
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            // filter_var FILTER_VALIDATE_IP with no_priv/no_res flags — barcha private/reserved/loopback'ni bloklaydi.
+            if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Notification methods
 
+    /**
+     * Notify operators via the system/support bot about a funnel event.
+     *
+     * action_config maydonlari:
+     *   - operator_ids: int[] (optional) — biznesning qaysi user'lariga yuboriladi.
+     *                   Bo'sh bo'lsa hamma `telegram_chat_id` o'rnatilgan user'larga.
+     *   - message: string (optional) — operator ko'radigan xabar matni.
+     *              `{variables}` placeholder'lari processVariables orqali ishlaydi.
+     *   - include_collected_data: bool (default true) — collected_data'ni xabarga qo'shadi.
+     */
     protected function sendNotification(TelegramFunnelStep $step): void
     {
-        // TODO: Implement notification to operators
         $config = $step->action_config ?? [];
-        Log::info('Funnel notification', [
+        $message = $config['message'] ?? '🔔 Funnel event';
+        $includeData = (bool) ($config['include_collected_data'] ?? true);
+
+        // Placeholder'larni to'ldirib olamiz (first_name, collected inputs, va h.k.)
+        $processed = $this->processVariables(['text' => $message]);
+        $body = $processed['text'] ?? $message;
+
+        if ($includeData && ! empty($this->state->collected_data)) {
+            $lines = [];
+            foreach ($this->state->collected_data as $k => $v) {
+                // Internal `__` prefix'li kalitlar (retry counter va h.k.) operatorga ko'rsatilmasligi kerak.
+                if (is_string($k) && str_starts_with($k, '__')) {
+                    continue;
+                }
+                if (is_scalar($v)) {
+                    $lines[] = htmlspecialchars($k, ENT_QUOTES, 'UTF-8') . ': ' . htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+                }
+            }
+            if ($lines) {
+                $body .= "\n\n" . implode("\n", $lines);
+            }
+        }
+
+        // Adresatlarni topamiz — aniq operator_ids yoki biznesning barcha aktiv user'lari.
+        $operatorIds = $config['operator_ids'] ?? [];
+        $business = Business::find($this->bot->business_id);
+        if (! $business) {
+            Log::warning('Funnel notification: business not found', ['bot_id' => $this->bot->id]);
+            return;
+        }
+
+        $query = $business->users()->whereNotNull('telegram_chat_id');
+        if (! empty($operatorIds) && is_array($operatorIds)) {
+            $query->whereIn('users.id', $operatorIds);
+        }
+        $recipients = $query->get();
+
+        if ($recipients->isEmpty()) {
+            Log::info('Funnel notification: no recipients with telegram_chat_id', [
+                'bot_id' => $this->bot->id,
+                'business_id' => $business->id,
+            ]);
+            return;
+        }
+
+        foreach ($recipients as $user) {
+            $this->api->sendMessage((int) $user->telegram_chat_id, $body);
+        }
+
+        Log::info('Funnel notification delivered', [
             'step_id' => $step->id,
-            'user_id' => $this->user->id,
-            'config' => $config,
-            'collected_data' => $this->state->collected_data,
+            'recipients' => $recipients->count(),
+            'business_id' => $business->id,
         ]);
     }
 
+    /**
+     * Fire outbound webhook (HTTP POST) with optional HMAC signature.
+     *
+     * action_config maydonlari:
+     *   - url: string (required) — endpoint
+     *   - method: string ('POST' default, 'PUT' yoki 'PATCH')
+     *   - headers: array (optional) — qo'shimcha header'lar
+     *   - secret: string (optional) — HMAC-SHA256 imzo uchun.
+     *             `X-BiznesPilot-Signature: sha256=<hex>` header qo'shiladi.
+     *   - include_user: bool (default true) — user payload'da bo'ladi
+     *
+     * Xavfsizlik: 5s timeout, TLS verify enabled, faqat http(s) sxemalari.
+     */
     protected function sendWebhook(TelegramFunnelStep $step): void
     {
-        // TODO: Implement webhook sending
         $config = $step->action_config ?? [];
-        Log::info('Funnel webhook', [
+        $url = $config['url'] ?? null;
+
+        if (! $url || ! is_string($url) || ! preg_match('#^https?://#i', $url)) {
+            Log::warning('Funnel webhook: invalid or missing url', [
+                'step_id' => $step->id,
+                'url' => $url,
+            ]);
+            return;
+        }
+
+        // SSRF himoyasi — xost DNS orqali private/loopback/link-local IP'ga
+        // resolve qilmasligi kerak. Bu AWS metadata (169.254.169.254),
+        // internal API'lar (10.x / 192.168.x / 172.16-31.x), va localhost'ni
+        // bloklaydi. Webhook payload'i collected_data + user PII'ni olib
+        // tashqariga chiqaradi, shuning uchun DNS rebinding hujumiga
+        // qarshi ham bir marta resolve qilib tekshiramiz.
+        if (! $this->isUrlSafeForOutbound($url)) {
+            Log::warning('Funnel webhook: unsafe URL blocked', [
+                'step_id' => $step->id,
+                'url' => $url,
+            ]);
+            return;
+        }
+
+        $method = strtoupper($config['method'] ?? 'POST');
+        if (! in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
+            $method = 'POST';
+        }
+
+        // Engine'ning ichki `__retry:...` counter'larini va boshqa `__` prefix'li
+        // maydonlarni tashqariga chiqarmaymiz — bular internal state.
+        $cleanCollected = [];
+        foreach (($this->state->collected_data ?? []) as $k => $v) {
+            if (is_string($k) && str_starts_with($k, '__')) {
+                continue;
+            }
+            $cleanCollected[$k] = $v;
+        }
+
+        $payload = [
+            'event' => 'funnel.step',
+            'timestamp' => now()->toIso8601String(),
+            'bot_id' => $this->bot->id,
+            'business_id' => $this->bot->business_id,
+            'funnel_id' => $this->state->current_funnel_id,
             'step_id' => $step->id,
-            'user_id' => $this->user->id,
-            'config' => $config,
-            'collected_data' => $this->state->collected_data,
-        ]);
+            'step_name' => $step->name,
+            'collected_data' => $cleanCollected,
+        ];
+
+        if ((bool) ($config['include_user'] ?? true)) {
+            $payload['user'] = [
+                'telegram_id' => $this->user->telegram_id,
+                'first_name' => $this->user->first_name,
+                'last_name' => $this->user->last_name,
+                'username' => $this->user->username,
+                'phone' => $this->user->phone,
+                'language_code' => $this->user->language_code,
+            ];
+        }
+
+        $headers = [
+            'Content-Type' => 'application/json',
+            'User-Agent' => 'BiznesPilot-Funnel/1.0',
+        ];
+        if (! empty($config['headers']) && is_array($config['headers'])) {
+            foreach ($config['headers'] as $name => $value) {
+                if (is_string($name) && is_scalar($value)) {
+                    $headers[$name] = (string) $value;
+                }
+            }
+        }
+
+        // HMAC-SHA256 imzo (ixtiyoriy). Controller saqlashda `enc:v1:<cipher>` prefix
+        // bilan encrypt qilgan — shu yerda decrypt qilamiz. Legacy plain secret ham qo'llab-quvvatlanadi.
+        $body = json_encode($payload, JSON_UNESCAPED_UNICODE);
+        if (! empty($config['secret']) && is_string($config['secret'])) {
+            $secret = $config['secret'];
+            if (str_starts_with($secret, 'enc:v1:')) {
+                try {
+                    $secret = \Illuminate\Support\Facades\Crypt::decryptString(substr($secret, 7));
+                } catch (\Throwable $e) {
+                    Log::warning('Funnel webhook: secret decrypt failed', ['step_id' => $step->id]);
+                    $secret = null;
+                }
+            }
+            if ($secret) {
+                $signature = hash_hmac('sha256', $body, $secret);
+                $headers['X-BiznesPilot-Signature'] = 'sha256=' . $signature;
+            }
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders($headers)
+                ->withOptions([
+                    'verify' => true,
+                    'connect_timeout' => 5,
+                    'timeout' => 10,
+                    'http_errors' => false,
+                    // Redirect'ni o'chiramiz — aks holda server public URL'dan
+                    // 127.0.0.1 ga 302 qilib SSRF filtrlarini aylanib o'tishi mumkin.
+                    'allow_redirects' => false,
+                ])
+                ->withBody($body, 'application/json')
+                ->send($method, $url);
+
+            Log::info('Funnel webhook sent', [
+                'step_id' => $step->id,
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+            if ($response->status() >= 400) {
+                Log::warning('Funnel webhook non-2xx response', [
+                    'step_id' => $step->id,
+                    'url' => $url,
+                    'status' => $response->status(),
+                    'body_preview' => substr((string) $response->body(), 0, 500),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Funnel webhook failed', [
+                'step_id' => $step->id,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

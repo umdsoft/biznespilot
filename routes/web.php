@@ -887,6 +887,8 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
             Route::post('/{funnel}/toggle-active', [TelegramFunnelController::class, 'toggleActive'])->name('toggle-active');
             Route::post('/{funnel}/duplicate', [TelegramFunnelController::class, 'duplicate'])->name('duplicate');
             Route::post('/{funnel}/save-steps', [TelegramFunnelController::class, 'saveSteps'])->name('save-steps');
+            Route::post('/{funnel}/test-run', [TelegramFunnelController::class, 'testRun'])->name('test-run');
+            Route::post('/upload-media', [TelegramFunnelController::class, 'uploadMedia'])->name('upload-media');
         });
 
         // Triggers for bot
@@ -2317,6 +2319,7 @@ Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->n
             Route::post('/{funnel}/toggle-active', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'toggleActive'])->name('toggle-active');
             Route::post('/{funnel}/duplicate', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'duplicate'])->name('duplicate');
             Route::post('/{funnel}/save-steps', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'saveSteps'])->name('save-steps');
+            Route::post('/{funnel}/test-run', [App\Http\Controllers\Marketing\TelegramFunnelController::class, 'testRun'])->name('test-run');
         });
 
         // Triggers for bot

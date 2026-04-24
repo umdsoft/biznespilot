@@ -124,29 +124,38 @@ class TelegramFunnelStep extends Model
         return data_get($this->content, 'parse_mode');
     }
 
+    /**
+     * Media helpers.
+     *
+     * Schema bridge: Funnel Builder content'ni top-level'da yozadi
+     * (`content.url`, `content.file_id`, `content.type`, `content.caption`).
+     * Eski kod `content.media.*` sub-objectini ham qo'llab-quvvatlaydi (backward-compat).
+     * Accessorlar ikkala yo'lni birlashtirib, avval top-level, keyin media.*'ni o'qiydi.
+     */
     public function hasMedia(): bool
     {
-        return ! empty(data_get($this->content, 'media.type'));
+        $type = data_get($this->content, 'type') ?? data_get($this->content, 'media.type');
+        return in_array($type, ['photo', 'video', 'voice', 'video_note', 'document', 'location'], true);
     }
 
     public function getMediaType(): ?string
     {
-        return data_get($this->content, 'media.type');
+        return data_get($this->content, 'type') ?? data_get($this->content, 'media.type');
     }
 
     public function getMediaUrl(): ?string
     {
-        return data_get($this->content, 'media.url');
+        return data_get($this->content, 'url') ?? data_get($this->content, 'media.url');
     }
 
     public function getMediaFileId(): ?string
     {
-        return data_get($this->content, 'media.file_id');
+        return data_get($this->content, 'file_id') ?? data_get($this->content, 'media.file_id');
     }
 
     public function getMediaCaption(): ?string
     {
-        return data_get($this->content, 'media.caption');
+        return data_get($this->content, 'caption') ?? data_get($this->content, 'media.caption');
     }
 
     // Keyboard helpers

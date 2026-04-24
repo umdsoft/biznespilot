@@ -61,12 +61,22 @@ class TelegramFunnelWebhookController extends Controller
             // duplicate quota burn. 5 min Redis lock.
             $updateId = $update['update_id'] ?? null;
             if ($updateId !== null) {
-                $dedupKey = "tg:webhook:{$bot->id}:upd:{$updateId}";
+                // Business Bot (Bot API 7.2+) update'lari boshqa namespace'da bo'ladi:
+                // direct update_id va business update_id bir xil qiymatga ega bo'lishi mumkin.
+                // `business_connection_id` mavjud bo'lsa dedup kaliti uni hisobga oladi.
+                $businessConnectionId = $update['business_connection']['id']
+                    ?? $update['business_message']['business_connection_id']
+                    ?? $update['edited_business_message']['business_connection_id']
+                    ?? $update['deleted_business_messages']['business_connection_id']
+                    ?? null;
+                $namespace = $businessConnectionId ? "bc:{$businessConnectionId}" : 'bot';
+                $dedupKey = "tg:webhook:{$bot->id}:{$namespace}:upd:{$updateId}";
                 // Cache::add returns false if key already exists (atomic)
                 if (! \Cache::add($dedupKey, 1, now()->addMinutes(5))) {
                     Log::info('Telegram webhook: duplicate update skipped', [
                         'bot_id' => $bot->id,
                         'update_id' => $updateId,
+                        'namespace' => $namespace,
                     ]);
                     return response()->json(['ok' => true, 'skipped' => 'duplicate']);
                 }

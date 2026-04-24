@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\TelegramBot;
 use App\Models\TelegramFunnel;
 use App\Models\TelegramFunnelStep;
+use App\Models\TelegramUser;
+use App\Services\Telegram\FunnelEngineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -89,6 +92,7 @@ class TelegramFunnelController extends Controller
             'ab_test' => $step->ab_test,
             'tag' => $step->tag,
             'trigger' => $step->trigger,
+            'delay_seconds' => (int) floor(((int) $step->delay_ms) / 1000),
         ]);
 
         return Inertia::render('Business/Telegram/Funnels/Builder', [
@@ -964,8 +968,85 @@ class TelegramFunnelController extends Controller
             'steps.*.ab_test' => 'nullable|array',
             'steps.*.tag' => 'nullable|array',
             'steps.*.trigger' => 'nullable|array',
+            'steps.*.delay_seconds' => 'nullable|integer|min:0|max:86400',
             'first_step_id' => 'nullable|string',
         ]);
+
+        // Qo'shimcha domen tekshiruvlar — kontroller'ga kelgan saytdagi validator qolmaydi.
+        foreach ($request->input('steps', []) as $idx => $step) {
+            // A/B test: variantlar percentage yig'indisi 100 bo'lishi shart.
+            if (($step['step_type'] ?? null) === 'ab_test' && ! empty($step['ab_test']['variants'])) {
+                $sum = 0;
+                foreach ($step['ab_test']['variants'] as $v) {
+                    $sum += (int) ($v['percentage'] ?? 0);
+                }
+                if ($sum !== 100) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "A/B test step #{$idx}: variantlar % yig'indisi 100 bo'lishi kerak (hozir {$sum}%)",
+                    ], 422);
+                }
+            }
+            // Quiz: kamida 2 variant va bo'sh bo'lmasligi kerak.
+            if (($step['step_type'] ?? null) === 'quiz') {
+                $options = $step['quiz']['options'] ?? [];
+                if (count($options) < 2) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Quiz step #{$idx}: kamida 2 ta variant bo'lishi kerak",
+                    ], 422);
+                }
+                foreach ($options as $oi => $opt) {
+                    if (empty(trim((string) ($opt['text'] ?? '')))) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Quiz step #{$idx}: variant {$oi} matni bo'sh",
+                        ], 422);
+                    }
+                }
+                // correct_option_index mavjud bo'lsa, options ichida bo'lishi kerak.
+                if (isset($step['quiz']['correct_option_index']) && $step['quiz']['correct_option_index'] !== null) {
+                    $cIdx = (int) $step['quiz']['correct_option_index'];
+                    if ($cIdx < 0 || $cIdx >= count($options)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Quiz step #{$idx}: correct_option_index noto'g'ri",
+                        ], 422);
+                    }
+                }
+            }
+            // Webhook: URL mavjud bo'lsa https? sxemada bo'lishi shart.
+            if (($step['action_type'] ?? null) === 'webhook') {
+                $url = $step['action_config']['url'] ?? null;
+                if (! $url || ! preg_match('#^https?://#i', (string) $url)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Webhook step #{$idx}: to'g'ri URL kiriting (https://…)",
+                    ], 422);
+                }
+            }
+        }
+
+        // HMAC secret maydonini encrypt qilamiz — JSON'da plaintext yotmasin.
+        // Format: `enc:v1:<ciphertext>` — engine'da shu prefix tekshirilib decrypt bo'ladi.
+        // Foydalanuvchi qayta kiritmasa, avval encrypted turgan qiymat o'zgarmaydi
+        // (prefix bilan kelgan payload'ni 2-marta encrypt qilmaymiz).
+        $stepsInput = $request->input('steps', []);
+        foreach ($stepsInput as $i => $step) {
+            if (($step['action_type'] ?? null) === 'webhook'
+                && ! empty($step['action_config']['secret'])
+            ) {
+                $secret = (string) $step['action_config']['secret'];
+                if (! str_starts_with($secret, 'enc:v1:')) {
+                    try {
+                        $stepsInput[$i]['action_config']['secret'] = 'enc:v1:' . \Illuminate\Support\Facades\Crypt::encryptString($secret);
+                    } catch (\Throwable $e) {
+                        Log::warning('Funnel webhook secret encrypt failed', ['step_idx' => $i]);
+                    }
+                }
+            }
+        }
+        $request->merge(['steps' => $stepsInput]);
 
         $existingStepIds = $funnel->steps()->pluck('id')->toArray();
         $updatedStepIds = [];
@@ -1006,6 +1087,7 @@ class TelegramFunnelController extends Controller
                     'position_x' => $stepData['position_x'] ?? 0,
                     'position_y' => $stepData['position_y'] ?? $index * 150,
                     'order' => $stepData['order'] ?? $index,
+                    'delay_ms' => isset($stepData['delay_seconds']) ? (int) $stepData['delay_seconds'] * 1000 : 0,
                     // Marketing features
                     'subscribe_check' => $stepData['subscribe_check'] ?? null,
                     'quiz' => $stepData['quiz'] ?? null,
@@ -1020,33 +1102,48 @@ class TelegramFunnelController extends Controller
                 $updatedStepIds[] = $step->id;
             } else {
                 // Update existing step
-                TelegramFunnelStep::where('id', $stepId)
-                    ->update([
-                        'name' => $stepData['name'],
-                        'step_type' => $stepData['step_type'],
-                        'content' => $stepData['content'] ?? ['type' => 'text', 'text' => ''],
-                        'keyboard' => $stepData['keyboard'] ?? null,
-                        'input_type' => $inputType,
-                        'input_field' => $stepData['input_field'] ?? null,
-                        'validation' => $stepData['validation'] ?? null,
-                        'action_type' => $stepData['action_type'] ?? 'none',
-                        'action_config' => $stepData['action_config'] ?? null,
-                        'condition' => $stepData['condition'] ?? null,
-                        'position_x' => $stepData['position_x'] ?? 0,
-                        'position_y' => $stepData['position_y'] ?? $index * 150,
-                        'order' => $stepData['order'] ?? $index,
-                        // Marketing features
-                        'subscribe_check' => $stepData['subscribe_check'] ?? null,
-                        'quiz' => $stepData['quiz'] ?? null,
-                        'ab_test' => $stepData['ab_test'] ?? null,
-                        'tag' => $stepData['tag'] ?? null,
-                        'trigger' => $stepData['trigger'] ?? null,
-                    ]);
+                $updatePayload = [
+                    'name' => $stepData['name'],
+                    'step_type' => $stepData['step_type'],
+                    'content' => $stepData['content'] ?? ['type' => 'text', 'text' => ''],
+                    'keyboard' => $stepData['keyboard'] ?? null,
+                    'input_type' => $inputType,
+                    'input_field' => $stepData['input_field'] ?? null,
+                    'validation' => $stepData['validation'] ?? null,
+                    'action_type' => $stepData['action_type'] ?? 'none',
+                    'action_config' => $stepData['action_config'] ?? null,
+                    'condition' => $stepData['condition'] ?? null,
+                    'position_x' => $stepData['position_x'] ?? 0,
+                    'position_y' => $stepData['position_y'] ?? $index * 150,
+                    'order' => $stepData['order'] ?? $index,
+                    // Marketing features
+                    'subscribe_check' => $stepData['subscribe_check'] ?? null,
+                    'quiz' => $stepData['quiz'] ?? null,
+                    'ab_test' => $stepData['ab_test'] ?? null,
+                    'tag' => $stepData['tag'] ?? null,
+                    'trigger' => $stepData['trigger'] ?? null,
+                ];
+                if (array_key_exists('delay_seconds', $stepData)) {
+                    $updatePayload['delay_ms'] = (int) ($stepData['delay_seconds'] ?? 0) * 1000;
+                }
+                TelegramFunnelStep::where('id', $stepId)->update($updatePayload);
 
                 $tempIdMap[$stepId] = $stepId;
                 $updatedStepIds[] = $stepId;
             }
         }
+
+        // Shu funnel ichidagi haqiqiy step ID'lari to'plami — cross-funnel o'tishlarni
+        // bloklash uchun ishlatiladi. Ushbu to'plamda yo'q bo'lgan har qanday next_step_id
+        // yoki branch ID sanitizatsiya paytida null'ga aylanadi.
+        $validFunnelStepIds = array_flip(array_values($updatedStepIds));
+        $sanitizeRef = function ($ref) use ($tempIdMap, $validFunnelStepIds) {
+            if (empty($ref)) {
+                return null;
+            }
+            $mapped = $tempIdMap[$ref] ?? $ref;
+            return isset($validFunnelStepIds[$mapped]) ? $mapped : null;
+        };
 
         // Second pass: update next_step_id and branch references
         foreach ($request->steps as $stepData) {
@@ -1060,23 +1157,23 @@ class TelegramFunnelController extends Controller
 
             // Regular next_step_id
             if (isset($stepData['next_step_id']) && $stepData['next_step_id']) {
-                $updateData['next_step_id'] = $tempIdMap[$stepData['next_step_id']] ?? $stepData['next_step_id'];
+                $updateData['next_step_id'] = $sanitizeRef($stepData['next_step_id']);
             }
 
             // Condition branches
             if (isset($stepData['condition_true_step_id']) && $stepData['condition_true_step_id']) {
-                $updateData['condition_true_step_id'] = $tempIdMap[$stepData['condition_true_step_id']] ?? $stepData['condition_true_step_id'];
+                $updateData['condition_true_step_id'] = $sanitizeRef($stepData['condition_true_step_id']);
             }
             if (isset($stepData['condition_false_step_id']) && $stepData['condition_false_step_id']) {
-                $updateData['condition_false_step_id'] = $tempIdMap[$stepData['condition_false_step_id']] ?? $stepData['condition_false_step_id'];
+                $updateData['condition_false_step_id'] = $sanitizeRef($stepData['condition_false_step_id']);
             }
 
             // Subscribe check branches
             if (isset($stepData['subscribe_true_step_id']) && $stepData['subscribe_true_step_id']) {
-                $updateData['subscribe_true_step_id'] = $tempIdMap[$stepData['subscribe_true_step_id']] ?? $stepData['subscribe_true_step_id'];
+                $updateData['subscribe_true_step_id'] = $sanitizeRef($stepData['subscribe_true_step_id']);
             }
             if (isset($stepData['subscribe_false_step_id']) && $stepData['subscribe_false_step_id']) {
-                $updateData['subscribe_false_step_id'] = $tempIdMap[$stepData['subscribe_false_step_id']] ?? $stepData['subscribe_false_step_id'];
+                $updateData['subscribe_false_step_id'] = $sanitizeRef($stepData['subscribe_false_step_id']);
             }
 
             // Quiz option next_step_ids need to be remapped
@@ -1084,8 +1181,15 @@ class TelegramFunnelController extends Controller
                 $quiz = $stepData['quiz'];
                 foreach ($quiz['options'] as $i => $option) {
                     if (! empty($option['next_step_id'])) {
-                        $quiz['options'][$i]['next_step_id'] = $tempIdMap[$option['next_step_id']] ?? $option['next_step_id'];
+                        $quiz['options'][$i]['next_step_id'] = $sanitizeRef($option['next_step_id']);
                     }
+                }
+                // Correct/wrong step'lar ham shu funnel ichida bo'lishi kerak.
+                if (! empty($quiz['correct_step_id'])) {
+                    $quiz['correct_step_id'] = $sanitizeRef($quiz['correct_step_id']);
+                }
+                if (! empty($quiz['wrong_step_id'])) {
+                    $quiz['wrong_step_id'] = $sanitizeRef($quiz['wrong_step_id']);
                 }
                 $updateData['quiz'] = $quiz;
             }
@@ -1095,7 +1199,7 @@ class TelegramFunnelController extends Controller
                 $abTest = $stepData['ab_test'];
                 foreach ($abTest['variants'] as $i => $variant) {
                     if (! empty($variant['next_step_id'])) {
-                        $abTest['variants'][$i]['next_step_id'] = $tempIdMap[$variant['next_step_id']] ?? $variant['next_step_id'];
+                        $abTest['variants'][$i]['next_step_id'] = $sanitizeRef($variant['next_step_id']);
                     }
                 }
                 $updateData['ab_test'] = $abTest;
@@ -1152,6 +1256,230 @@ class TelegramFunnelController extends Controller
             'steps' => $steps,
             'first_step_id' => $funnel->fresh()->first_step_id,
             'message' => 'Funnel saqlandi',
+        ]);
+    }
+
+    /**
+     * Test-run the funnel against the authenticated operator's Telegram account.
+     *
+     * Looks up a TelegramUser record matching the operator's linked
+     * telegram_chat_id (from the System Bot link flow) for this specific bot.
+     * If one is not found, returns a clear error prompting the operator to
+     * start the bot first.
+     *
+     * Security:
+     *  - Verifies the business owns the bot and the bot owns the funnel
+     *    (same pattern as every other method in this controller).
+     *  - Temporarily flips is_active when needed so FunnelEngine's
+     *    strict cross-tenant/activation checks still apply and the funnel
+     *    state is left exactly as it was.
+     */
+    public function testRun(Request $request, string $botId, string $funnelId): JsonResponse
+    {
+        $user = $request->user();
+        $business = $user->currentBusiness;
+
+        if (! $business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Biznes topilmadi',
+            ], 403);
+        }
+
+        $bot = TelegramBot::where('business_id', $business->id)
+            ->where('id', $botId)
+            ->firstOrFail();
+
+        $funnel = TelegramFunnel::where('telegram_bot_id', $bot->id)
+            ->where('id', $funnelId)
+            ->firstOrFail();
+
+        // Operator must have linked their Telegram via system bot AND must
+        // be a registered TelegramUser on THIS bot (i.e. they /started it).
+        $operatorChatId = $user->telegram_chat_id ?? null;
+
+        if (! $operatorChatId) {
+            return response()->json([
+                'success' => false,
+                'code' => 'telegram_not_linked',
+                'message' => "Telegramga bog'lanmagansiz — avval Telegram hisobingizni ulang",
+                'connect_url' => '/settings/telegram',
+            ], 422);
+        }
+
+        $telegramUser = TelegramUser::where('telegram_bot_id', $bot->id)
+            ->where('telegram_id', $operatorChatId)
+            ->first();
+
+        if (! $telegramUser) {
+            return response()->json([
+                'success' => false,
+                'code' => 'bot_not_started',
+                'message' => "Bu botni oldin ishga tushiring (@{$bot->bot_username} botga /start yuboring)",
+            ], 422);
+        }
+
+        $step = $funnel->firstStep();
+        if (! $step) {
+            return response()->json([
+                'success' => false,
+                'message' => "Funnelda qadam yo'q — avval qadam qo'shing",
+            ], 422);
+        }
+
+        // Run funnel — temporarily flip is_active if needed so FunnelEngine's
+        // safety gate passes, then restore original state.
+        $wasActive = (bool) $funnel->is_active;
+        try {
+            if (! $wasActive) {
+                $funnel->forceFill(['is_active' => true])->saveQuietly();
+            }
+
+            $engine = new FunnelEngineService($bot, $telegramUser);
+            $engine->startFunnel($funnel->id);
+        } catch (\Throwable $e) {
+            Log::error('Funnel test-run failed', [
+                'bot_id' => $bot->id,
+                'funnel_id' => $funnel->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Sinov yuborishda xatolik: '.$e->getMessage(),
+            ], 500);
+        } finally {
+            if (! $wasActive) {
+                $funnel->forceFill(['is_active' => false])->saveQuietly();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Testga botga yuborildi',
+        ]);
+    }
+
+    /**
+     * Store a builder media file on the public disk and return a stable URL.
+     *
+     * Xavfsizlik:
+     *  - Faqat shu biznesning bot'iga bog'liq fayllar yuklanadi (bot_id scope).
+     *  - MIME + size limits — `image/*` 5MB, `video/*` 30MB, `audio/*` 10MB, `application/*` 15MB.
+     *  - Fayl nomi random hash bilan almashtiriladi — path traversal va conflict yo'q.
+     *  - Tarif tekshiruvi (storage_gb) kerak bo'lsa SubscriptionGate orqali qo'shish mumkin.
+     */
+    public function uploadMedia(Request $request, string $botId): JsonResponse
+    {
+        $business = $request->user()->currentBusiness;
+
+        if (! $business) {
+            return response()->json(['success' => false, 'message' => 'Biznes topilmadi'], 403);
+        }
+
+        $bot = TelegramBot::where('business_id', $business->id)
+            ->where('id', $botId)
+            ->firstOrFail();
+
+        $request->validate([
+            'file' => 'required|file|max:30720', // 30MB umumiy cheklov
+            'kind' => 'nullable|in:photo,video,voice,video_note,document',
+        ]);
+
+        $file = $request->file('file');
+        $kind = $request->input('kind', 'photo');
+
+        // MIME allow-list — har qanday "document" ham cheksiz emas.
+        // Kalit: kind → [MIME allow-list prefixes, explicit MIMEs, max size, MIME→ext map, human label]
+        $mime = $file->getMimeType() ?? '';
+        $maxMap = [
+            'photo' => [
+                ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+                5 * 1024 * 1024,
+                ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'],
+                'rasm',
+            ],
+            'video' => [
+                ['video/mp4', 'video/quicktime', 'video/webm'],
+                30 * 1024 * 1024,
+                ['video/mp4' => 'mp4', 'video/quicktime' => 'mov', 'video/webm' => 'webm'],
+                'video',
+            ],
+            'voice' => [
+                ['audio/ogg', 'audio/mpeg', 'audio/mp4', 'audio/webm', 'audio/wav', 'audio/x-wav'],
+                10 * 1024 * 1024,
+                ['audio/ogg' => 'ogg', 'audio/mpeg' => 'mp3', 'audio/mp4' => 'm4a', 'audio/webm' => 'weba', 'audio/wav' => 'wav', 'audio/x-wav' => 'wav'],
+                'audio',
+            ],
+            'video_note' => [
+                ['video/mp4', 'video/quicktime'],
+                10 * 1024 * 1024,
+                ['video/mp4' => 'mp4', 'video/quicktime' => 'mov'],
+                'video_note',
+            ],
+            'document' => [
+                [
+                    'application/pdf', 'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/zip', 'application/x-zip-compressed',
+                    'text/plain', 'text/csv',
+                ],
+                15 * 1024 * 1024,
+                [
+                    'application/pdf' => 'pdf',
+                    'application/msword' => 'doc',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                    'application/vnd.ms-excel' => 'xls',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+                    'application/zip' => 'zip',
+                    'application/x-zip-compressed' => 'zip',
+                    'text/plain' => 'txt',
+                    'text/csv' => 'csv',
+                ],
+                'hujjat',
+            ],
+        ];
+        $rule = $maxMap[$kind] ?? $maxMap['photo'];
+        [$allowedMimes, $maxSize, $extMap, $label] = $rule;
+
+        if (! in_array($mime, $allowedMimes, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Fayl turi qo'llab-quvvatlanmaydi: kelgan {$mime} (kerak: {$label})",
+            ], 422);
+        }
+        if ($file->getSize() > $maxSize) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fayl hajmi cheklovdan oshdi',
+            ], 422);
+        }
+
+        // Fayl kengaytmasi — faqat MIME asosida, user input'ga ishonmaymiz
+        // (`getClientOriginalExtension()` XSS/RCE vektoriga aylanishi mumkin:
+        // `.php`, `.htaccess` va boshqa dangerous kengaytmalarni oladi).
+        $ext = $extMap[$mime] ?? 'bin';
+        $hash = bin2hex(random_bytes(16));
+        $dir = "telegram/funnel/{$bot->id}";
+        $stored = $file->storeAs($dir, "{$hash}.{$ext}", 'public');
+
+        if (! $stored) {
+            return response()->json(['success' => false, 'message' => 'Saqlashda xatolik'], 500);
+        }
+
+        $url = \Illuminate\Support\Facades\Storage::disk('public')->url($stored);
+
+        return response()->json([
+            'success' => true,
+            'url' => $url,
+            'path' => $stored,
+            'size' => $file->getSize(),
+            'mime' => $mime,
+            'original_name' => $file->getClientOriginalName(),
+            'file_id' => '', // Real file_id Telegram API uses lazy — client may save empty
         ]);
     }
 }
