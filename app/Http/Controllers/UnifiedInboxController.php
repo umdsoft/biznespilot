@@ -93,6 +93,7 @@ class UnifiedInboxController extends Controller
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,
             ],
+            'panelType' => $this->detectPanelType($currentBusiness),
         ]);
     }
 

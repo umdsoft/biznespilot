@@ -156,11 +156,13 @@ class ContentController extends Controller
             }
         }
 
-        // Industry topic suggestions (from IndustryContentLibrary)
+        // Industry topic suggestions (IndustryContentLibrary)
+        // - getIndustryLibrary() private — public API: getTopicsForIndustry()
+        // - service container'dan instans olamiz, statik chaqirish ishlamaydi
         $industry = BusinessCategoryMapper::detectFromBusiness($business);
-        $industryTopics = IndustryContentLibrary::getIndustryLibrary($industry);
+        $industryTopics = app(IndustryContentLibrary::class)->getTopicsForIndustry($industry, 20);
         $topicSuggestions = collect($industryTopics)->map(fn ($t) => [
-            'topic' => $t['topic'],
+            'topic' => $t['topic'] ?? ($t['title'] ?? ''),
             'category' => $t['category'] ?? '',
             'content_type' => $t['content_type'] ?? 'post',
             'hooks' => array_slice($t['hooks'] ?? [], 0, 2),

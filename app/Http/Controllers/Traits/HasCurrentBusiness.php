@@ -63,6 +63,54 @@ trait HasCurrentBusiness
     }
 
     /**
+     * Foydalanuvchining biznesdagi roli (department) asosida frontend layout panelType.
+     *
+     * - Owner (Business.user_id == User.id) → 'business'
+     * - Team member (BusinessUser.department) → role-based:
+     *     marketing → 'marketing'
+     *     sales_head → 'saleshead'
+     *     sales_operator → 'operator'
+     *     hr → 'hr'
+     *     finance → 'finance'
+     * - Default → 'business'
+     *
+     * Vue component'da: layouts[panelType] || BusinessLayout
+     */
+    protected function detectPanelType(?Business $business = null): string
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return 'business';
+        }
+        $business ??= $this->getCurrentBusiness();
+        if (! $business) {
+            return 'business';
+        }
+
+        // Owner — har doim business panel
+        if ($business->user_id === $user->id) {
+            return 'business';
+        }
+
+        // Team member — department asosida
+        $member = BusinessUser::where('business_id', $business->id)
+            ->where('user_id', $user->id)
+            ->first();
+        if (! $member) {
+            return 'business';
+        }
+
+        return match ($member->department) {
+            'marketing' => 'marketing',
+            'sales_head' => 'saleshead',
+            'sales_operator' => 'operator',
+            'hr' => 'hr',
+            'finance' => 'finance',
+            default => 'business',
+        };
+    }
+
+    /**
      * Get all business IDs user has access to
      */
     private function getAccessibleBusinessIds($user): \Illuminate\Support\Collection
