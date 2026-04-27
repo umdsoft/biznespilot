@@ -83,6 +83,8 @@ class MarketingInfoController extends Controller
             'offers' => $offers,
             'competitors' => $competitors,
             'activeTab' => $activeTab,
+            // panelType — agar boshqa panel'dan kirilsa Vue dynamic layout ishlatadi
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 }

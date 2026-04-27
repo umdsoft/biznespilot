@@ -151,10 +151,13 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 
-// Layouts
+// Layouts — barcha 6 rolni qo'llab-quvvatlash
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue'
 import BusinessLayout from '@/layouts/BusinessLayout.vue'
 import OperatorLayout from '@/layouts/OperatorLayout.vue'
+import MarketingLayout from '@/layouts/MarketingLayout.vue'
+import HRLayout from '@/layouts/HRLayout.vue'
+import FinanceLayout from '@/layouts/FinanceLayout.vue'
 
 // Components
 import AlertBanner from '@/components/Sales/Alerts/AlertBanner.vue'
@@ -186,17 +189,36 @@ const props = defineProps({
   weeklyProgress: {
     type: Object,
     default: () => ({ days: [], average: 0 })
-  }
+  },
+  // Yangi: backend HasCurrentBusiness::detectPanelType() asosida — universal konvensiya
+  panelType: { type: String, default: '' }
 })
 
-// Dynamic layout
+// Dynamic layout — panelType (yangi) yoki role (legacy fallback) asosida.
+// Backend panelType jo'natgan bo'lsa shu, aks holda role'dan map qilinadi.
 const layoutComponent = computed(() => {
-  const layouts = {
+  // panelType yangi standard
+  const panelMap = {
+    business: BusinessLayout,
+    saleshead: SalesHeadLayout,
+    operator: OperatorLayout,
+    marketing: MarketingLayout,
+    hr: HRLayout,
+    finance: FinanceLayout,
+  }
+  if (props.panelType && panelMap[props.panelType]) {
+    return panelMap[props.panelType]
+  }
+  // Legacy role fallback
+  const roleMap = {
     owner: BusinessLayout,
     sales_head: SalesHeadLayout,
-    sales_operator: OperatorLayout
+    sales_operator: OperatorLayout,
+    marketing: MarketingLayout,
+    hr: HRLayout,
+    finance: FinanceLayout,
   }
-  return layouts[props.role] || SalesHeadLayout
+  return roleMap[props.role] || SalesHeadLayout
 })
 
 // Handlers

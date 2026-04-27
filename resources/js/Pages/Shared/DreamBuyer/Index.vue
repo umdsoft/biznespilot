@@ -8,6 +8,7 @@ import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import HRLayout from '@/layouts/HRLayout.vue';
 import DreamBuyerIndex from '@/components/dream-buyer/DreamBuyerIndex.vue';
 
 const { t } = useI18n();
@@ -17,7 +18,8 @@ const props = defineProps({
     panelType: {
         type: String,
         default: 'business',
-        validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead'].includes(v),
+        // 6 rolni qo'llab-quvvatlash (HR ham qo'shildi)
+        validator: (v) => ['business', 'marketing', 'finance', 'operator', 'saleshead', 'hr'].includes(v),
     },
 });
 
@@ -28,6 +30,7 @@ const layoutComponent = computed(() => {
         finance: FinanceLayout,
         operator: OperatorLayout,
         saleshead: SalesHeadLayout,
+        hr: HRLayout,
     };
     return layouts[props.panelType] || BaseLayout;
 });

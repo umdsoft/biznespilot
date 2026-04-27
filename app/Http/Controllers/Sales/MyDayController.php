@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Services\Sales\MyDayService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,28 +11,31 @@ use Inertia\Response;
 
 class MyDayController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function __construct(
         private MyDayService $myDayService
     ) {}
 
     /**
-     * My Day dashboard
-     * Barcha rollar uchun bitta endpoint
+     * My Day dashboard — barcha rollar uchun bitta endpoint
      */
     public function index(Request $request): Response
     {
         $user = $request->user();
-        $business = $user->currentBusiness;
-        $role = $this->getUserSalesRole($user, $business);
+        $business = $this->getCurrentBusiness($request);
+        $role = $business ? $this->getUserSalesRole($user, $business) : 'guest';
 
-        $data = $this->myDayService->getMyDayData($user, $business);
+        $data = $business ? $this->myDayService->getMyDayData($user, $business) : [];
 
         return Inertia::render('Sales/MyDay/Index', [
             'data' => $data,
             'role' => $role,
-            'followups' => $this->myDayService->getUpcomingFollowups($user, $business),
-            'schedule' => $this->myDayService->getTodaySchedule($user, $business),
-            'weeklyProgress' => $this->myDayService->getWeeklyProgress($user, $business),
+            'followups' => $business ? $this->myDayService->getUpcomingFollowups($user, $business) : [],
+            'schedule' => $business ? $this->myDayService->getTodaySchedule($user, $business) : [],
+            'weeklyProgress' => $business ? $this->myDayService->getWeeklyProgress($user, $business) : [],
+            // Layout panelType — barcha 6 rolni qo'llab-quvvatlash uchun
+            'panelType' => $business ? $this->detectPanelType($business) : 'business',
         ]);
     }
 

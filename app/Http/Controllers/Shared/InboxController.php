@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
+/**
+ * Shared Inbox — saleshead/operator (va boshqa rollar) uchun.
+ *
+ * Avval har panel uchun alohida Vue sahifa render qilinardi
+ * ('SalesHead/Inbox/Index', 'Operator/Inbox/Index'). Endi `Business/Inbox/Index`
+ * dynamic layoutComponent bilan barcha rollarga xizmat qiladi
+ * — `panelType` propi orqali (HasCurrentBusiness::detectPanelType).
+ */
 class InboxController extends Controller
 {
     use HasCurrentBusiness;
@@ -20,24 +28,10 @@ class InboxController extends Controller
         $this->inboxService = $inboxService;
     }
 
-    protected function getPanelType(Request $request): string
-    {
-        $prefix = $request->route()->getPrefix();
-
-        if (str_contains($prefix, 'sales-head')) {
-            return 'SalesHead';
-        }
-        if (str_contains($prefix, 'operator')) {
-            return 'Operator';
-        }
-
-        return 'SalesHead';
-    }
-
     public function index(Request $request)
     {
-        $currentBusiness = $this->getCurrentBusiness();
-        $panelType = $this->getPanelType($request);
+        $currentBusiness = $this->getCurrentBusiness($request);
+        $panelType = $currentBusiness ? $this->detectPanelType($currentBusiness) : 'business';
 
         if (! $currentBusiness) {
             if (! $request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
@@ -47,11 +41,12 @@ class InboxController extends Controller
                 ]);
             }
 
-            return Inertia::render($panelType.'/Inbox/Index', [
+            return Inertia::render('Business/Inbox/Index', [
                 'conversations' => [],
                 'stats' => ['total' => 0, 'unread' => ['total' => 0]],
                 'filters' => [],
                 'currentBusiness' => null,
+                'panelType' => $panelType,
             ]);
         }
 
@@ -77,7 +72,7 @@ class InboxController extends Controller
             ]);
         }
 
-        return Inertia::render($panelType.'/Inbox/Index', [
+        return Inertia::render('Business/Inbox/Index', [
             'conversations' => $conversations->values()->toArray(),
             'stats' => $stats,
             'filters' => $filters,
@@ -85,6 +80,7 @@ class InboxController extends Controller
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,
             ],
+            'panelType' => $panelType,
         ]);
     }
 

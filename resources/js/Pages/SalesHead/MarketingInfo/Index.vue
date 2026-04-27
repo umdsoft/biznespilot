@@ -1,5 +1,5 @@
 <template>
-  <SalesHeadLayout :title="t('marketing_info.title')">
+  <component :is="layoutComponent" :title="t('marketing_info.title')">
     <div class="space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
@@ -63,7 +63,7 @@
         </div>
       </div>
     </div>
-  </SalesHeadLayout>
+  </component>
 </template>
 
 <script setup>
@@ -71,6 +71,8 @@ import { ref, computed, onMounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import { UserGroupIcon, TagIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
 
 // Simple list components - inline
@@ -85,6 +87,17 @@ const props = defineProps({
   offers: { type: Array, default: () => [] },
   competitors: { type: Array, default: () => [] },
   activeTab: { type: String, default: 'dream-buyer' },
+  panelType: { type: String, default: 'saleshead' },
+});
+
+// Marketing Info — saleshead default, lekin marketolog/owner ham kira oladi
+const layoutComponent = computed(() => {
+  const map = {
+    business: BusinessLayout,
+    marketing: MarketingLayout,
+    saleshead: SalesHeadLayout,
+  };
+  return map[props.panelType] || SalesHeadLayout;
 });
 
 const activeTab = ref(props.activeTab);
