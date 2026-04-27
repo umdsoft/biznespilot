@@ -307,6 +307,9 @@
         </div>
       </header>
 
+      <!-- Beta Banner — platforma sinov rejimida (har doim ko'rinadi, dismiss qilish mumkin) -->
+      <BetaBanner />
+
       <!-- Trial Banner — partner panelda biznes obunasi kerak emas, shuning uchun pinhon -->
       <TrialBanner v-if="config.hideTrialBanner !== true" />
 
@@ -335,6 +338,7 @@ import NotificationDropdown from '@/components/NotificationDropdown.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import UpgradeModal from '@/components/UpgradeModal.vue';
 import TrialBanner from '@/components/TrialBanner.vue';
+import BetaBanner from '@/components/BetaBanner.vue';
 import { useI18n } from '@/i18n';
 import axios from 'axios';
 

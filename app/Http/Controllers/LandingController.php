@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BusinessUser;
 use App\Services\PlanDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -173,6 +174,24 @@ class LandingController extends Controller
 
         if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
             return redirect()->route('admin.dashboard');
+        }
+
+        // Team member (xodim) — o'z department panelidan boshlasin
+        $membership = BusinessUser::where('user_id', $user->id)
+            ->whereNotNull('department')
+            ->first();
+
+        if ($membership) {
+            session(['current_business_id' => $membership->business_id]);
+
+            return match ($membership->department) {
+                'sales_head' => redirect()->route('sales-head.dashboard'),
+                'sales_operator', 'operator' => redirect()->route('operator.dashboard'),
+                'marketing' => redirect()->route('marketing.hub'),
+                'finance' => redirect()->route('finance.dashboard'),
+                'hr' => redirect()->route('hr.dashboard'),
+                default => redirect()->route('business.dashboard'),
+            };
         }
 
         // Partner (hamkor) — alohida panel, biznes yaratish shart emas.

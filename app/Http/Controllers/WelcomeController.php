@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
+use App\Models\BusinessUser;
 use App\Models\Plan;
 use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
@@ -20,6 +21,11 @@ class WelcomeController extends Controller
     public function index()
     {
         $user = Auth::user();
+
+        // Team member (xodim) — o'z department panelidan boshlasin
+        if ($redirect = $this->teamMemberRedirect($user)) {
+            return $redirect;
+        }
 
         // If user already has a business, redirect to dashboard
         if ($user->businesses()->exists()) {
@@ -42,6 +48,11 @@ class WelcomeController extends Controller
     {
         $user = Auth::user();
 
+        // Team member (xodim) hech qachon "biznes yarat" formasiga tushmasligi kerak
+        if ($redirect = $this->teamMemberRedirect($user)) {
+            return $redirect;
+        }
+
         // If user already has a business, redirect to new-business route
         if ($user->businesses()->exists()) {
             return redirect()->route('new-business');
@@ -53,6 +64,32 @@ class WelcomeController extends Controller
         }
 
         return Inertia::render('Welcome/CreateBusiness');
+    }
+
+    /**
+     * Agar user xodim (team member) bo'lsa — o'z department dashboard'iga yo'naltiradi.
+     * Aks holda null qaytaradi (chaqiruvchi default oqimini davom ettiradi).
+     */
+    protected function teamMemberRedirect($user)
+    {
+        $membership = BusinessUser::where('user_id', $user->id)
+            ->whereNotNull('department')
+            ->first();
+
+        if (! $membership) {
+            return null;
+        }
+
+        session(['current_business_id' => $membership->business_id]);
+
+        return match ($membership->department) {
+            'sales_head' => redirect()->route('sales-head.dashboard'),
+            'sales_operator', 'operator' => redirect()->route('operator.dashboard'),
+            'marketing' => redirect()->route('marketing.hub'),
+            'finance' => redirect()->route('finance.dashboard'),
+            'hr' => redirect()->route('hr.dashboard'),
+            default => redirect()->route('business.dashboard'),
+        };
     }
 
     /**
