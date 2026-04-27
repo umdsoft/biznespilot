@@ -22,19 +22,15 @@ class WelcomeController extends Controller
     {
         $user = Auth::user();
 
-        // Team member (xodim) — o'z department panelidan boshlasin
-        if ($redirect = $this->teamMemberRedirect($user)) {
+        // Owner bo'lmagan foydalanuvchilar uchun guard:
+        // team member, role bilan xodim, partner — hech qaysi "biznes yarat" formasiga tushmasin
+        if ($redirect = $this->nonOwnerRedirect($user)) {
             return $redirect;
         }
 
         // If user already has a business, redirect to dashboard
         if ($user->businesses()->exists()) {
             return redirect()->route('business.dashboard');
-        }
-
-        // Partner — biznes yaratish shart emas, partner dashboard'iga
-        if ($user->hasRole('partner')) {
-            return redirect()->route('partner.dashboard');
         }
 
         // Redirect to create business page directly
@@ -48,8 +44,8 @@ class WelcomeController extends Controller
     {
         $user = Auth::user();
 
-        // Team member (xodim) hech qachon "biznes yarat" formasiga tushmasligi kerak
-        if ($redirect = $this->teamMemberRedirect($user)) {
+        // Owner bo'lmagan foydalanuvchilar uchun guard
+        if ($redirect = $this->nonOwnerRedirect($user)) {
             return $redirect;
         }
 
@@ -58,38 +54,74 @@ class WelcomeController extends Controller
             return redirect()->route('new-business');
         }
 
-        // Partner — biznes yaratishga kerak emas
-        if ($user->hasRole('partner')) {
-            return redirect()->route('partner.dashboard');
-        }
-
         return Inertia::render('Welcome/CreateBusiness');
     }
 
     /**
-     * Agar user xodim (team member) bo'lsa — o'z department dashboard'iga yo'naltiradi.
-     * Aks holda null qaytaradi (chaqiruvchi default oqimini davom ettiradi).
+     * Faqat owner bo'lishi kerak bo'lgan flow ichida non-owner userlarni
+     * o'z dashboard'iga yo'naltiradi. "Biznes yarat" formasi faqat hali biznesi yo'q,
+     * roli yo'q, partner emas yangi foydalanuvchilar uchun.
+     *
+     * Owner bo'lmasa redirect qaytaradi, owner yoki to'liq yangi user bo'lsa null.
      */
-    protected function teamMemberRedirect($user)
+    protected function nonOwnerRedirect($user)
     {
+        // 1. Team member (business_user.department) — eng aniq signal
         $membership = BusinessUser::where('user_id', $user->id)
             ->whereNotNull('department')
             ->first();
 
-        if (! $membership) {
-            return null;
+        if ($membership) {
+            session(['current_business_id' => $membership->business_id]);
+
+            return match ($membership->department) {
+                'sales_head' => redirect()->route('sales-head.dashboard'),
+                'sales_operator', 'operator' => redirect()->route('operator.dashboard'),
+                'marketing' => redirect()->route('marketing.hub'),
+                'finance' => redirect()->route('finance.dashboard'),
+                'hr' => redirect()->route('hr.dashboard'),
+                default => redirect()->route('business.dashboard'),
+            };
         }
 
-        session(['current_business_id' => $membership->business_id]);
+        // 2. Spatie role bilan biriktirilgan xodim (business_user yo'q bo'lsa ham)
+        $roleRoutes = [
+            'sales_head' => 'sales-head.dashboard',
+            'sales_operator' => 'operator.dashboard',
+            'operator' => 'operator.dashboard',
+            'marketing' => 'marketing.hub',
+            'finance' => 'finance.dashboard',
+            'hr' => 'hr.dashboard',
+        ];
 
-        return match ($membership->department) {
-            'sales_head' => redirect()->route('sales-head.dashboard'),
-            'sales_operator', 'operator' => redirect()->route('operator.dashboard'),
-            'marketing' => redirect()->route('marketing.hub'),
-            'finance' => redirect()->route('finance.dashboard'),
-            'hr' => redirect()->route('hr.dashboard'),
-            default => redirect()->route('business.dashboard'),
-        };
+        foreach ($roleRoutes as $role => $route) {
+            if ($user->hasRole($role)) {
+                return redirect()->route($route);
+            }
+        }
+
+        // 3. Partner — alohida panel
+        if ($user->hasRole('partner')) {
+            return redirect()->route('partner.dashboard');
+        }
+
+        // 4. Admin/super_admin — admin panel
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Owner yoki yangi user — biznes yaratish flow'iga ruxsat
+        return null;
+    }
+
+    /**
+     * Backward compatibility — eski chaqiruvlar uchun
+     *
+     * @deprecated nonOwnerRedirect() ishlating
+     */
+    protected function teamMemberRedirect($user)
+    {
+        return $this->nonOwnerRedirect($user);
     }
 
     /**
@@ -97,6 +129,17 @@ class WelcomeController extends Controller
      */
     public function newBusiness()
     {
+        $user = Auth::user();
+
+        // Faqat hozirgi owner (kamida bitta biznesi bor) qo'shimcha biznes yarata oladi
+        if (! $user->businesses()->exists()) {
+            if ($redirect = $this->nonOwnerRedirect($user)) {
+                return $redirect;
+            }
+
+            return redirect()->route('welcome.create-business');
+        }
+
         return Inertia::render('Welcome/CreateBusiness', [
             'isAdditionalBusiness' => true,
         ]);
@@ -107,6 +150,13 @@ class WelcomeController extends Controller
      */
     public function storeBusiness(Request $request)
     {
+        $user = Auth::user();
+
+        // Server-side guard — POST ham himoyalanadi (UI bypass qilinsa ham)
+        if ($redirect = $this->nonOwnerRedirect($user)) {
+            return $redirect;
+        }
+
         return $this->createAndStoreBusiness($request);
     }
 
@@ -115,6 +165,15 @@ class WelcomeController extends Controller
      */
     public function storeNewBusiness(Request $request)
     {
+        $user = Auth::user();
+
+        // Faqat hozirgi owner qo'shimcha biznes yarata oladi
+        if (! $user->businesses()->exists()) {
+            if ($redirect = $this->nonOwnerRedirect($user)) {
+                return $redirect;
+            }
+        }
+
         return $this->createAndStoreBusiness($request);
     }
 
