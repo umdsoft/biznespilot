@@ -35,13 +35,19 @@ class SecurityHeaders
             // Content Security Policy (adjust as needed for your app)
             // Note: This is a basic CSP, you may need to adjust based on your frontend needs
             if (! $request->is('api/*')) {
+                // Tracking script'lar uchun ruxsat:
+                //  - Meta Pixel:    connect.facebook.net + facebook.com (img tr-pixel)
+                //  - Google Analytics 4 + Tag Manager: googletagmanager.com + google-analytics.com
+                //  - Yandex Metrika: mc.yandex.ru + mc.yandex.com (CDN)
                 $response->headers->set('Content-Security-Policy', implode('; ', [
                     "default-src 'self'",
-                    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.tailwindcss.com",
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com https://mc.yandex.ru https://mc.yandex.com",
+                    "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com https://mc.yandex.ru https://mc.yandex.com",
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.tailwindcss.com",
                     "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net",
                     "img-src 'self' data: https: blob:",
-                    "connect-src 'self' https://api.anthropic.com https://graph.facebook.com https://api.telegram.org wss:",
+                    "connect-src 'self' https://api.anthropic.com https://graph.facebook.com https://www.facebook.com https://www.google-analytics.com https://mc.yandex.ru https://mc.yandex.com https://api.telegram.org wss:",
+                    "frame-src 'self' https://www.facebook.com https://www.googletagmanager.com",
                     "frame-ancestors 'self'",
                     "form-action 'self'",
                     "base-uri 'self'",

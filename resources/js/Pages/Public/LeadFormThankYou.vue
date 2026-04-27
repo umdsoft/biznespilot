@@ -1,14 +1,28 @@
 <script setup>
+import { onMounted } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
+import { useMetaPixel } from '@/composables/useMetaPixel';
 
 const { t } = useI18n();
+const pixel = useMetaPixel();
 
 const props = defineProps({
     leadForm: Object,
 });
 
 const themeColor = props.leadForm?.theme_color || '#6366f1';
+
+// "Rahmat" sahifasi ochilganda CompleteRegistration jonatamiz —
+// agar foydalanuvchi LeadForm.vue ichidagi tracking'ni o'tkazib yuborgan bo'lsa
+// (mas. redirect bilan boshqa sahifaga otib ketgan) bu nusxa qo'shimcha kafolat.
+onMounted(() => {
+    pixel.trackCompleteRegistration({
+        content_name: 'lead_form_thank_you',
+        content_category: props.leadForm?.title || 'lead_form',
+    });
+    pixel.trackLead({ content_name: props.leadForm?.title || 'lead_form' });
+});
 </script>
 
 <template>

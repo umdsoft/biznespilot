@@ -114,7 +114,7 @@
             </div>
           </div>
 
-          <form @submit.prevent="form.post('/register')" class="space-y-4">
+          <form @submit.prevent="submitRegister" class="space-y-4">
             <!-- Name Field -->
             <div>
               <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
@@ -277,8 +277,10 @@
 import { useForm, Head, Link } from '@inertiajs/vue3';
 import TestimonialCarousel from '@/components/Auth/TestimonialCarousel.vue';
 import { useI18n } from '@/i18n';
+import { useMetaPixel } from '@/composables/useMetaPixel';
 
 const { t } = useI18n();
+const pixel = useMetaPixel();
 
 const form = useForm({
   name: '',
@@ -289,4 +291,19 @@ const form = useForm({
   password_confirmation: '',
   terms: false,
 });
+
+// Meta Pixel funnel tracking:
+//  - "Ro'yxatdan o'tish" tugmasi bosilganda → AddToCart (form yuborish niyati)
+//  - Muvaffaqiyatli ro'yxatdan o'tilganda → CompleteRegistration
+const submitRegister = () => {
+  pixel.trackAddToCart({ content_name: 'register_intent' });
+
+  form.post('/register', {
+    onSuccess: () => {
+      pixel.trackCompleteRegistration({
+        content_name: 'business_owner_signup',
+      });
+    },
+  });
+};
 </script>

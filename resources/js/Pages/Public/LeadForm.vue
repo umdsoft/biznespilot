@@ -3,8 +3,10 @@ import { ref, computed, onMounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useI18n } from '@/i18n';
 import { useTrackingScripts, trackFormSubmit } from '@/composables/useTrackingScripts';
+import { useMetaPixel } from '@/composables/useMetaPixel';
 
 const { t } = useI18n();
+const pixel = useMetaPixel();
 
 const props = defineProps({
     leadForm: Object,
@@ -87,6 +89,12 @@ const validateForm = () => {
 const submitForm = async () => {
     if (!validateForm()) return;
 
+    // Meta Pixel: tugma bosildi (form yuborish niyati)
+    pixel.trackAddToCart({
+        content_name: 'lead_form_submit_intent',
+        content_category: props.leadForm.title || props.slug,
+    });
+
     isSubmitting.value = true;
 
     try {
@@ -107,6 +115,15 @@ const submitForm = async () => {
         if (result.success) {
             submitResult.value = result;
             isSubmitted.value = true;
+
+            // Meta Pixel: muvaffaqiyatli ro'yxatdan o'tilgan / lead yaratilgan
+            pixel.trackCompleteRegistration({
+                content_name: 'lead_form_submitted',
+                content_category: props.leadForm.title || props.slug,
+            });
+            pixel.trackLead({
+                content_name: props.leadForm.title || props.slug,
+            });
 
             // Track form submission for analytics
             trackFormSubmit('lead_form', props.leadForm.title || props.slug);
