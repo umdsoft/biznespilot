@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\TelegramBot;
 use App\Models\TelegramFunnel;
 use App\Models\TelegramFunnelStep;
@@ -16,6 +17,8 @@ use Inertia\Response as InertiaResponse;
 
 class TelegramFunnelController extends Controller
 {
+    use HasCurrentBusiness;
+
     /**
      * List all funnels for a bot
      */
@@ -47,6 +50,7 @@ class TelegramFunnelController extends Controller
                 'first_name' => $bot->bot_first_name,
             ],
             'funnels' => $funnels,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 
@@ -110,6 +114,7 @@ class TelegramFunnelController extends Controller
                 'completion_message' => $funnel->completion_message,
             ],
             'steps' => $steps,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 

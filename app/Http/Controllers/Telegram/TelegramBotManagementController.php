@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Exceptions\IntegrationAbuseException;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Store\TelegramStore;
 use App\Models\TelegramBot;
 use App\Services\IntegrationGuardService;
@@ -16,6 +17,8 @@ use Inertia\Response as InertiaResponse;
 
 class TelegramBotManagementController extends Controller
 {
+    use HasCurrentBusiness;
+
     /**
      * List all bots for business
      */
@@ -64,6 +67,7 @@ class TelegramBotManagementController extends Controller
                 'can_add' => $business->canAdd('telegram_bots'),
                 'plan_name' => $currentPlan ? $currentPlan->name : 'Trial',
             ],
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 
@@ -234,6 +238,7 @@ class TelegramBotManagementController extends Controller
                 'products_count' => $store->getActiveCatalogItemsCount(),
                 'catalog_label' => $store->getCatalogLabel(),
             ] : null,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 

@@ -1,23 +1,45 @@
 <script setup>
+import { computed } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import BusinessLayout from '@/layouts/BusinessLayout.vue'
+import MarketingLayout from '@/layouts/MarketingLayout.vue'
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue'
+import OperatorLayout from '@/layouts/OperatorLayout.vue'
+import HRLayout from '@/layouts/HRLayout.vue'
+import FinanceLayout from '@/layouts/FinanceLayout.vue'
 import TelegramFunnelsIndex from '@/components/telegram/TelegramFunnelsIndex.vue'
 import { useI18n } from '@/i18n';
 
 const { t } = useI18n();
 
-defineProps({
+const props = defineProps({
   bot: Object,
   funnels: {
     type: Array,
     default: () => []
+  },
+  panelType: {
+    type: String,
+    default: 'business'
   }
+})
+
+const layoutComponent = computed(() => {
+  const map = {
+    business: BusinessLayout,
+    marketing: MarketingLayout,
+    saleshead: SalesHeadLayout,
+    operator: OperatorLayout,
+    hr: HRLayout,
+    finance: FinanceLayout,
+  }
+  return map[props.panelType] || BusinessLayout
 })
 </script>
 
 <template>
-  <BusinessLayout :title="`${bot.first_name} - Funnellar`">
+  <component :is="layoutComponent" :title="`${bot.first_name} - Funnellar`">
     <Head :title="`${bot.first_name} - Funnellar`" />
-    <TelegramFunnelsIndex :bot="bot" :funnels="funnels" panel-type="business" />
-  </BusinessLayout>
+    <TelegramFunnelsIndex :bot="bot" :funnels="funnels" :panel-type="panelType" />
+  </component>
 </template>

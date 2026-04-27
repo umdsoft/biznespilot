@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import {
     SparklesIcon,
     PhoneIcon,
@@ -24,6 +26,21 @@ import {
 } from '@heroicons/vue/24/outline';
 import { StarIcon } from '@heroicons/vue/24/solid';
 import axios from 'axios';
+
+// Props — panelType orqali rolga mos layout
+const props = defineProps({
+    panelType: { type: String, default: 'business' },
+});
+
+// Rolga qarab tegishli layout — operator/saleshead/owner kira oladi
+const layoutComponent = computed(() => {
+    const map = {
+        operator: OperatorLayout,
+        saleshead: SalesHeadLayout,
+        business: BusinessLayout,
+    };
+    return map[props.panelType] || BusinessLayout;
+});
 
 // State
 const loading = ref(true);
@@ -190,7 +207,7 @@ onMounted(() => {
 <template>
     <Head title="Qo'ng'iroq Tahlili" />
 
-    <BusinessLayout title="Qo'ng'iroq Tahlili">
+    <component :is="layoutComponent" title="Qo'ng'iroq Tahlili">
         <div class="space-y-6">
             <!-- Hero Header -->
             <div class="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8">
@@ -709,5 +726,5 @@ onMounted(() => {
                 </div>
             </div>
         </Teleport>
-    </BusinessLayout>
+    </component>
 </template>

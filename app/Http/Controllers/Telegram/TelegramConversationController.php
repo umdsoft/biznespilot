@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\TelegramBot;
 use App\Models\TelegramConversation;
 use App\Models\TelegramMessage;
@@ -14,6 +15,8 @@ use Inertia\Response as InertiaResponse;
 
 class TelegramConversationController extends Controller
 {
+    use HasCurrentBusiness;
+
     /**
      * List all conversations for a bot
      */
@@ -81,6 +84,7 @@ class TelegramConversationController extends Controller
             'conversations' => $conversations,
             'stats' => $stats,
             'filters' => $request->only(['status', 'operator_id']),
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 
@@ -147,6 +151,7 @@ class TelegramConversationController extends Controller
                 'name' => $conversation->lead->name,
                 'status' => $conversation->lead->status,
             ] : null,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 

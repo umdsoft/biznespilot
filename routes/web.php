@@ -976,7 +976,10 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     Route::post('/kpi/save-plan', [DashboardController::class, 'saveKPIPlan'])->name('kpi.save-plan');
 
     // Call Center Analytics (AI qo'ng'iroq tahlili)
-    Route::get('/call-center', fn() => \Inertia\Inertia::render('Business/CallCenter/Index'))->name('call-center');
+    // Bitta Business/CallCenter/Index sahifa — dynamic layout panelType orqali
+    Route::get('/call-center', fn() => \Inertia\Inertia::render('Business/CallCenter/Index', [
+        'panelType' => 'business',
+    ]))->name('call-center');
 
     // Calls Management (with Smart Audit)
     Route::prefix('calls')->name('calls.')->group(function () {
@@ -1929,7 +1932,11 @@ Route::middleware(['auth', 'sales.head', 'subscription'])->prefix('sales-head')-
     });
 
     // Call Center Analytics (AI qo'ng'iroq tahlili)
-    Route::get('/call-center', fn() => \Inertia\Inertia::render('SalesHead/CallCenter/Index'))->name('call-center');
+    // SalesHead panel — Business/CallCenter/Index sahifa SalesHeadLayout bilan
+    // (avval SalesHead/CallCenter/Index nusxasi bor edi, hozir konsolidatsiya qilingan)
+    Route::get('/call-center', fn() => \Inertia\Inertia::render('Business/CallCenter/Index', [
+        'panelType' => 'saleshead',
+    ]))->name('call-center');
 
     // Profile & Settings
     Route::get('/profile', [App\Http\Controllers\SalesHead\ProfileController::class, 'index'])->name('profile');
@@ -2490,9 +2497,11 @@ Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->n
 
     // ==================== Business Systematization (Denis Shenukov) ====================
     // Marketing-Sales Integration Dashboard (70/30 rule)
+    // currentBusiness — User accessor (owner + team membership ikkalasi qo'llab-quvvatlanadi)
     Route::get('/sales-integration', function () {
         return inertia('Marketing/Integration/Dashboard', [
             'currentBusiness' => auth()->user()?->currentBusiness,
+            'panelType' => 'marketing',
         ]);
     })->name('sales-integration');
 });

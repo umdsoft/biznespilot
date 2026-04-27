@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Telegram;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Jobs\ProcessTelegramBroadcast;
 use App\Models\TelegramBot;
 use App\Models\TelegramBroadcast;
@@ -14,6 +15,8 @@ use Inertia\Response as InertiaResponse;
 
 class TelegramBroadcastController extends Controller
 {
+    use HasCurrentBusiness;
+
     /**
      * List all broadcasts for a bot
      */
@@ -53,6 +56,7 @@ class TelegramBroadcastController extends Controller
                 'first_name' => $bot->bot_first_name,
             ],
             'broadcasts' => $broadcasts,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 
@@ -89,6 +93,7 @@ class TelegramBroadcastController extends Controller
             ],
             'availableTags' => $tags,
             'totalUsers' => $totalUsers,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 
