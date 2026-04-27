@@ -30,7 +30,6 @@ const props = defineProps({
         validator: (value) => ['business', 'marketing'].includes(value),
     },
     stats: Object,
-    recentCampaigns: Array,
     upcomingContent: Array,
     currentBusiness: Object,
 });
@@ -350,66 +349,8 @@ const formatDate = (dateStr) => {
             </div>
         </div>
 
-        <!-- Campaigns & Content Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Recent Campaigns -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-purple-100 dark:border-purple-900/30 overflow-hidden">
-                <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Faol Kampaniyalar</h3>
-                    <Link :href="getHref('/campaigns')" class="text-purple-600 hover:text-purple-700 dark:text-purple-400 text-sm font-medium flex items-center gap-1">
-                        Barchasi
-                        <ArrowRightIcon class="w-4 h-4" />
-                    </Link>
-                </div>
-
-                <!-- Empty State -->
-                <div v-if="!recentCampaigns || recentCampaigns.length === 0" class="p-8 text-center">
-                    <div class="w-16 h-16 mx-auto rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-4">
-                        <MegaphoneIcon class="w-8 h-8 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Kampaniyalar yo'q</h4>
-                    <p class="text-gray-500 dark:text-gray-400 mb-4">Birinchi marketing kampaniyangizni yarating</p>
-                    <Link
-                        :href="getHref('/campaigns/create')"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors"
-                    >
-                        <PlusIcon class="w-5 h-5" />
-                        Kampaniya yaratish
-                    </Link>
-                </div>
-
-                <!-- Campaign List -->
-                <div v-else class="divide-y divide-gray-100 dark:divide-gray-700">
-                    <div v-for="campaign in recentCampaigns" :key="campaign.id" class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-medium text-gray-900 dark:text-white truncate">{{ campaign.name }}</h4>
-                                <div class="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                    <span>{{ campaign.leads }} lead</span>
-                                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                                    <span>{{ formatCurrency(campaign.spent) }}</span>
-                                </div>
-                            </div>
-                            <span :class="['px-2.5 py-1 text-xs font-medium rounded-full', getStatusColor(campaign.status)]">
-                                {{ getStatusLabel(campaign.status) }}
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                <span>Byudjet ishlatilishi</span>
-                                <span>{{ campaign.progress || 0 }}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                <div
-                                    class="bg-gradient-to-r from-purple-600 to-pink-600 h-1.5 rounded-full transition-all"
-                                    :style="{ width: (campaign.progress || 0) + '%' }"
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+        <!-- Upcoming Content (Faol Kampaniyalar olib tashlandi — alohida /campaigns sahifasida) -->
+        <div class="grid grid-cols-1 gap-6">
             <!-- Upcoming Content -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-purple-100 dark:border-purple-900/30 overflow-hidden">
                 <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">

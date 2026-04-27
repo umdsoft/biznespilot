@@ -51,9 +51,6 @@ class DashboardController extends Controller
         // Social stats (using centralized service)
         $socialStats = $this->contentStats->getSocialStats($business->id);
 
-        // Recent active campaigns
-        $recentCampaigns = $this->getRecentCampaigns($business->id);
-
         // Upcoming content
         $upcomingContent = $this->getUpcomingContent($business->id);
 
@@ -69,7 +66,6 @@ class DashboardController extends Controller
                 'social' => $socialStats,
                 'tasks' => $taskStats,
             ],
-            'recentCampaigns' => $recentCampaigns,
             'upcomingContent' => $upcomingContent,
             'currentBusiness' => [
                 'id' => $business->id,
@@ -111,46 +107,14 @@ class DashboardController extends Controller
             $spentBudget += $settings['spent'] ?? 0;
         }
 
-        // If no campaign budget, use default
-        if ($totalBudget === 0) {
-            $totalBudget = 5000000; // Default 5M so'm
-            $spentBudget = 0;
-        }
-
+        // Haqiqiy ma'lumot — kampaniyalar yo'q bo'lsa 0 ko'rsatiladi
+        // (avval 5,000,000 so'm hardcoded default qo'yilgan, foydalanuvchi
+        //  uni qayerdan kelganini bilolmasdi — olib tashlandi)
         return [
             'total' => $totalBudget,
             'spent' => $spentBudget,
             'remaining' => $totalBudget - $spentBudget,
         ];
-    }
-
-    private function getRecentCampaigns($businessId): array
-    {
-        return Campaign::where('business_id', $businessId)
-            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function ($campaign) {
-                $settings = $campaign->settings ?? [];
-                $budget = $settings['budget'] ?? 0;
-                $spent = $settings['spent'] ?? 0;
-
-                return [
-                    'id' => $campaign->id,
-                    'uuid' => $campaign->uuid,
-                    'name' => $campaign->name,
-                    'type' => $campaign->type,
-                    'channel' => $campaign->channel,
-                    'status' => $campaign->status,
-                    'budget' => $budget,
-                    'spent' => $spent,
-                    'leads' => $campaign->sent_count ?? 0,
-                    'progress' => $budget > 0 ? round(($spent / $budget) * 100, 1) : 0,
-                    'created_at' => $campaign->created_at->format('Y-m-d'),
-                ];
-            })
-            ->toArray();
     }
 
     private function getUpcomingContent($businessId): array

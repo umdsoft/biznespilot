@@ -3,7 +3,6 @@
         <MarketingDashboard
             panel-type="marketing"
             :stats="stats"
-            :recent-campaigns="recentCampaigns"
             :upcoming-content="upcomingContent"
             :current-business="currentBusiness"
         />
@@ -19,7 +18,6 @@ const { t } = useI18n();
 
 defineProps({
     stats: Object,
-    recentCampaigns: Array,
     upcomingContent: Array,
     currentBusiness: Object,
 });
