@@ -48,6 +48,17 @@ return [
         'webhook_verify_token' => env('INSTAGRAM_WEBHOOK_VERIFY_TOKEN', 'biznespilot_webhook_token'),
     ],
 
+    'youtube' => [
+        'client_id' => env('YOUTUBE_CLIENT_ID'),
+        'client_secret' => env('YOUTUBE_CLIENT_SECRET'),
+        'redirect_uri' => env('YOUTUBE_REDIRECT_URI', '/business/integrations/youtube/callback'),
+        'api_key' => env('YOUTUBE_API_KEY'), // Public data uchun (kanal qidiruv)
+        'scopes' => [
+            'https://www.googleapis.com/auth/youtube.readonly',
+            'https://www.googleapis.com/auth/youtube.upload',
+        ],
+    ],
+
     'meta' => [
         'app_id' => env('META_APP_ID'),
         'app_secret' => env('META_APP_SECRET'),

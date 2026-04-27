@@ -6,8 +6,12 @@ namespace App\Services\Content;
 
 use App\Models\ContentCalendar;
 use App\Models\ContentPostLink;
+use App\Models\InstagramAccount;
+use App\Models\InstagramMedia;
 use App\Models\TelegramChannel;
 use App\Models\TelegramChannelPost;
+use App\Models\YoutubeChannel;
+use App\Models\YoutubeVideo;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
@@ -102,6 +106,121 @@ class ContentMatcher
         Log::info('ContentMatcher: no match for Telegram channel post', [
             'channel_id' => $channel->id,
             'post_message_id' => $post->message_id,
+            'fuzzy_score' => $byFuzzy['score'] ?? 0,
+        ]);
+
+        return $this->result(false);
+    }
+
+    /**
+     * Instagram media (yangi yoki yangilangan) ContentCalendar bilan match qiladi.
+     *
+     * @return array{matched: bool, content_id: ?string, method: ?string, score: ?float}
+     */
+    public function matchInstagramMedia(InstagramMedia $media): array
+    {
+        $account = $media->instagramAccount ?? InstagramAccount::find($media->account_id);
+        if (! $account || empty($account->business_id)) {
+            return $this->result(false);
+        }
+
+        $businessId = $account->business_id;
+        $caption = (string) ($media->caption ?? '');
+
+        // 1) HASHTAG (eng aniq)
+        $byHashtag = $this->matchByHashtag($businessId, $caption);
+        if ($byHashtag) {
+            return $this->finalizeInstagram($byHashtag, $media, 'hashtag', 1.0);
+        }
+
+        // 2) WATERMARK (invisible Unicode)
+        $byWatermark = $this->matchByWatermark($businessId, $caption);
+        if ($byWatermark) {
+            return $this->finalizeInstagram($byWatermark, $media, 'watermark', 1.0);
+        }
+
+        // 3) FUZZY fallback
+        $postedAt = $media->posted_at instanceof Carbon
+            ? $media->posted_at
+            : Carbon::parse((string) $media->posted_at);
+
+        $contentType = match (strtoupper((string) $media->media_type)) {
+            'IMAGE' => 'photo',
+            'VIDEO', 'REELS' => 'video',
+            'CAROUSEL_ALBUM' => 'carousel',
+            default => 'post',
+        };
+
+        $byFuzzy = $this->matchByFuzzy(
+            businessId: $businessId,
+            postedAt: $postedAt,
+            text: $caption,
+            contentType: $contentType,
+            platform: 'instagram',
+        );
+
+        if ($byFuzzy && $byFuzzy['score'] >= self::AUTO_MATCH_THRESHOLD) {
+            return $this->finalizeInstagram($byFuzzy['item'], $media, 'fuzzy', $byFuzzy['score']);
+        }
+
+        Log::info('ContentMatcher: no match for Instagram media', [
+            'account_id' => $account->id,
+            'media_id' => $media->media_id,
+            'fuzzy_score' => $byFuzzy['score'] ?? 0,
+        ]);
+
+        return $this->result(false);
+    }
+
+    /**
+     * YouTube video matching — title + description orqali.
+     *
+     * @return array{matched: bool, content_id: ?string, method: ?string, score: ?float}
+     */
+    public function matchYoutubeVideo(YoutubeVideo $video): array
+    {
+        $channel = $video->channel ?? YoutubeChannel::find($video->youtube_channel_id);
+        if (! $channel || empty($channel->business_id)) {
+            return $this->result(false);
+        }
+
+        $businessId = $channel->business_id;
+        $haystack = trim((string) $video->title . "\n" . (string) $video->description);
+
+        // 1) HASHTAG
+        $byHashtag = $this->matchByHashtag($businessId, $haystack);
+        if ($byHashtag) {
+            return $this->finalizeYoutube($byHashtag, $video, 'hashtag', 1.0);
+        }
+
+        // 2) WATERMARK
+        $byWatermark = $this->matchByWatermark($businessId, $haystack);
+        if ($byWatermark) {
+            return $this->finalizeYoutube($byWatermark, $video, 'watermark', 1.0);
+        }
+
+        // 3) FUZZY
+        $postedAt = $video->published_at instanceof Carbon
+            ? $video->published_at
+            : Carbon::parse((string) $video->published_at);
+
+        $contentType = $video->is_short ? 'short' : 'video';
+
+        $byFuzzy = $this->matchByFuzzy(
+            businessId: $businessId,
+            postedAt: $postedAt,
+            text: $haystack,
+            contentType: $contentType,
+            platform: 'youtube',
+        );
+
+        if ($byFuzzy && $byFuzzy['score'] >= self::AUTO_MATCH_THRESHOLD) {
+            return $this->finalizeYoutube($byFuzzy['item'], $video, 'fuzzy', $byFuzzy['score']);
+        }
+
+        Log::info('ContentMatcher: no match for YouTube video', [
+            'channel_id' => $channel->id,
+            'video_id' => $video->video_id,
             'fuzzy_score' => $byFuzzy['score'] ?? 0,
         ]);
 
@@ -303,6 +422,120 @@ class ContentMatcher
             'method' => $method,
             'score' => $score,
             'message_id' => $post->message_id,
+        ]);
+
+        return $this->result(true, (string) $item->id, $method, $score);
+    }
+
+    /**
+     * Instagram media uchun match natijasini saqlash.
+     */
+    protected function finalizeInstagram(
+        ContentCalendar $item,
+        InstagramMedia $media,
+        string $method,
+        float $score,
+    ): array {
+        $postUrl = (string) ($media->permalink ?? '');
+
+        $item->update([
+            'status' => 'published',
+            'published_at' => $media->posted_at ?? now(),
+            'external_post_id' => (string) $media->media_id,
+            'post_url' => $postUrl,
+            'match_method' => $method,
+            'match_score' => $score,
+            'matched_post_id' => (string) $media->id,
+            'matched_post_text' => Str::limit((string) $media->caption, 1000, ''),
+            'matched_at' => now(),
+            'views' => $media->reach ?? 0,
+            'likes' => $media->like_count ?? 0,
+            'comments' => $media->comments_count ?? 0,
+            'reach' => $media->reach ?? 0,
+            'saves' => $media->saved ?? 0,
+        ]);
+
+        try {
+            ContentPostLink::updateOrCreate(
+                [
+                    'business_id' => $item->business_id,
+                    'platform' => 'instagram',
+                    'external_id' => (string) $media->media_id,
+                ],
+                [
+                    'external_url' => $postUrl,
+                    'views' => $media->reach ?? 0,
+                    'likes' => $media->like_count ?? 0,
+                    'comments' => $media->comments_count ?? 0,
+                    'reach' => $media->reach ?? 0,
+                    'saves' => $media->saved ?? 0,
+                    'sync_status' => 'pending',
+                ],
+            );
+        } catch (\Throwable $e) {
+            Log::debug('ContentPostLink (Instagram) not created', ['error' => $e->getMessage()]);
+        }
+
+        Log::info('ContentMatcher: matched Instagram media', [
+            'content_id' => $item->id,
+            'method' => $method,
+            'score' => $score,
+            'media_id' => $media->media_id,
+        ]);
+
+        return $this->result(true, (string) $item->id, $method, $score);
+    }
+
+    /**
+     * YouTube video uchun match natijasini saqlash.
+     */
+    protected function finalizeYoutube(
+        ContentCalendar $item,
+        YoutubeVideo $video,
+        string $method,
+        float $score,
+    ): array {
+        $postUrl = "https://www.youtube.com/watch?v={$video->video_id}";
+
+        $item->update([
+            'status' => 'published',
+            'published_at' => $video->published_at ?? now(),
+            'external_post_id' => (string) $video->video_id,
+            'post_url' => $postUrl,
+            'match_method' => $method,
+            'match_score' => $score,
+            'matched_post_id' => (string) $video->id,
+            'matched_post_text' => Str::limit((string) ($video->title . ' ' . $video->description), 1000, ''),
+            'matched_at' => now(),
+            'views' => $video->view_count ?? 0,
+            'likes' => $video->like_count ?? 0,
+            'comments' => $video->comment_count ?? 0,
+        ]);
+
+        try {
+            ContentPostLink::updateOrCreate(
+                [
+                    'business_id' => $item->business_id,
+                    'platform' => 'youtube',
+                    'external_id' => (string) $video->video_id,
+                ],
+                [
+                    'external_url' => $postUrl,
+                    'views' => $video->view_count ?? 0,
+                    'likes' => $video->like_count ?? 0,
+                    'comments' => $video->comment_count ?? 0,
+                    'sync_status' => 'pending',
+                ],
+            );
+        } catch (\Throwable $e) {
+            Log::debug('ContentPostLink (YouTube) not created', ['error' => $e->getMessage()]);
+        }
+
+        Log::info('ContentMatcher: matched YouTube video', [
+            'content_id' => $item->id,
+            'method' => $method,
+            'score' => $score,
+            'video_id' => $video->video_id,
         ]);
 
         return $this->result(true, (string) $item->id, $method, $score);

@@ -46,6 +46,18 @@ Schedule::job(new \App\Jobs\PublishScheduledContentJob)
     ->withoutOverlapping(2)
     ->onOneServer();
 
+// ==========================================
+// YOUTUBE — Kanal sinxronlash
+// ==========================================
+// YouTube kanaldan yangi videolarni olish + ContentCalendar bilan match.
+// Har 30 daqiqada — quota tejaydi (har kanal ~3 unit, 10K/kun limit).
+Schedule::job(new \App\Jobs\SyncYoutubeChannelJob)
+    ->everyThirtyMinutes()
+    ->timezone('Asia/Tashkent')
+    ->name('youtube-channels-sync')
+    ->withoutOverlapping(20)
+    ->onOneServer();
+
 // Daily rollup at 23:55 — captures today's metrics
 Schedule::job(new RollupTelegramChannelDailyStatsJob)
     ->dailyAt('23:55')

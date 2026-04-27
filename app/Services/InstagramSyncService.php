@@ -329,7 +329,7 @@ class InstagramSyncService
         $engagement = ($mediaData['like_count'] ?? 0) + ($mediaData['comments_count'] ?? 0);
         $engagementRate = round(($engagement / $followersCount) * 100, 4);
 
-        return InstagramMedia::updateOrCreate(
+        $media = InstagramMedia::updateOrCreate(
             ['media_id' => $mediaData['id']],
             [
                 'account_id' => $account->id,
@@ -348,6 +348,21 @@ class InstagramSyncService
                 'posted_at' => isset($mediaData['timestamp']) ? Carbon::parse($mediaData['timestamp']) : now(),
             ]
         );
+
+        // Content reja bilan avtomatik match — yangi yoki tahrir qilingan media kelganda.
+        // wasRecentlyCreated yoki wasChanged orqali tekshirib, faqat zarur paytda chaqiramiz.
+        if ($media->wasRecentlyCreated || $media->wasChanged('caption')) {
+            try {
+                app(\App\Services\Content\ContentMatcher::class)->matchInstagramMedia($media);
+            } catch (\Throwable $e) {
+                Log::warning('ContentMatcher: instagram media match failed', [
+                    'media_id' => $media->media_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $media;
     }
 
     /**

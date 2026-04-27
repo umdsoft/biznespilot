@@ -7,7 +7,9 @@ use App\Models\MonthlyPlan;
 use App\Models\WeeklyPlan;
 use App\Services\Content\ContentHashtagGenerator;
 use App\Services\Content\ContentWatermarker;
+use App\Services\Content\Publishers\InstagramPublisher;
 use App\Services\Content\Publishers\TelegramChannelPublisher;
+use App\Services\Content\Publishers\YoutubePublisher;
 use App\Services\ContentStrategyService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -439,6 +441,7 @@ class ContentCalendarController extends Controller
         Request $request,
         ContentCalendar $content,
         TelegramChannelPublisher $telegramPublisher,
+        InstagramPublisher $instagramPublisher,
     ): JsonResponse {
         $business = $request->user()->currentBusiness;
         if (! $business || $content->business_id !== $business->id) {
@@ -457,10 +460,12 @@ class ContentCalendarController extends Controller
 
         $result = match ($platform) {
             'telegram' => $telegramPublisher->publish($content->fresh()),
+            'instagram' => $instagramPublisher->publish($content->fresh()),
+            'youtube' => $this->tryYoutubePublish($content->fresh()),
             default => [
                 'success' => false,
                 'error' => 'unsupported_platform',
-                'message' => "Hozircha faqat Telegram qo'llab-quvvatlanadi (kelajakda: Instagram, YouTube)",
+                'message' => "Hozircha qo'llab-quvvatlanmaydi: {$platform}",
             ],
         };
 
@@ -469,7 +474,15 @@ class ContentCalendarController extends Controller
             $message = match ($errorCode) {
                 'no_channel_connected' => "Telegram kanal ulanmagan — avval kanalni ulang",
                 'bot_not_admin' => "@biznespilot_bot kanalingizda admin emas — uni admin qiling",
-                'photo_url_missing', 'video_url_missing', 'document_url_missing' => "Media fayl topilmadi",
+                'photo_url_missing', 'video_url_missing', 'document_url_missing', 'media_url_missing' => "Media fayl topilmadi",
+                'no_instagram_account' => "Instagram akkaunt ulanmagan — avval Meta integratsiyasini ulang",
+                'no_access_token' => "Instagram tokeni yo'q yoki muddati tugagan — qayta ulang",
+                'instagram_requires_media' => "Instagram faqat rasm yoki video bilan post qabul qiladi",
+                'container_creation_failed' => "Instagram konteyner yaratilmadi — URL ochiq HTTPS ekanini tekshiring",
+                'container_processing_timeout' => "Video Instagram tomonidan tayyorlanmadi (90s timeout)",
+                'publish_failed' => "Publish xatosi: " . json_encode($result['details'] ?? null, JSON_UNESCAPED_UNICODE),
+                'no_youtube_channel' => "YouTube kanali ulanmagan",
+                'youtube_not_implemented' => "YouTube avtomatik post hozircha ulanish bosqichida — Faza 2.5",
                 'telegram_api_error' => "Telegram xatosi: " . ($result['description'] ?? 'noma\'lum'),
                 default => "Publish qilinmadi: {$errorCode}",
             };
@@ -489,6 +502,27 @@ class ContentCalendarController extends Controller
             'post_url' => $result['post_url'] ?? null,
             'item' => $content->fresh(),
         ]);
+    }
+
+    /**
+     * YouTube publish — agar `YoutubePublisher` mavjud bo'lsa chaqiramiz, aks holda
+     * faza 2.5 stub xabari. Container ResolutionException'ni oldini olish uchun
+     * try/catch bilan o'ralgan.
+     */
+    protected function tryYoutubePublish(ContentCalendar $content): array
+    {
+        try {
+            if (! class_exists(YoutubePublisher::class)) {
+                return ['success' => false, 'error' => 'youtube_not_implemented'];
+            }
+            return app(YoutubePublisher::class)->publish($content);
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'error' => 'youtube_error',
+                'message' => $e->getMessage(),
+            ];
+        }
     }
 
     /**

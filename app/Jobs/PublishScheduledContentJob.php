@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\ContentCalendar;
+use App\Services\Content\Publishers\InstagramPublisher;
 use App\Services\Content\Publishers\TelegramChannelPublisher;
+use App\Services\Content\Publishers\YoutubePublisher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -94,8 +96,8 @@ class PublishScheduledContentJob implements ShouldQueue
 
         $result = match ($platform) {
             'telegram' => app(TelegramChannelPublisher::class)->publish($item),
-            // 'instagram' => app(InstagramPublisher::class)->publish($item),
-            // 'youtube' => app(YoutubePublisher::class)->publish($item),
+            'instagram' => app(InstagramPublisher::class)->publish($item),
+            'youtube' => app(YoutubePublisher::class)->publish($item),
             default => ['success' => false, 'error' => 'unsupported_platform'],
         };
 
