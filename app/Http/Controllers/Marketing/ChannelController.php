@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HasCurrentBusiness;
+use App\Models\InstagramAccount;
 use App\Models\MarketingChannel;
+use App\Models\TelegramChannel;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -20,12 +22,14 @@ class ChannelController extends Controller
             return redirect()->route('login');
         }
 
-        $channels = MarketingChannel::where('business_id', $business->id)
+        // 1) Manual marketing channels (legacy)
+        $manualChannels = MarketingChannel::where('business_id', $business->id)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($channel) {
                 return [
-                    'id' => $channel->id,
+                    'id' => 'manual_' . $channel->id,
+                    'source' => 'manual',
                     'name' => $channel->name,
                     'type' => $channel->type,
                     'platform' => $channel->platform,
@@ -38,6 +42,53 @@ class ChannelController extends Controller
                     'created_at' => $channel->created_at->format('d.m.Y'),
                 ];
             });
+
+        // 2) Live Telegram channels — System Bot orqali ulangan
+        $telegramChannels = TelegramChannel::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->orderBy('connected_at', 'desc')
+            ->get()
+            ->map(function ($channel) {
+                return [
+                    'id' => 'telegram_' . $channel->id,
+                    'source' => 'telegram',
+                    'name' => $channel->title,
+                    'type' => $channel->type, // channel | supergroup
+                    'platform' => 'telegram',
+                    'status' => $channel->admin_status === 'administrator' ? 'active' : 'inactive',
+                    'followers_count' => (int) ($channel->subscriber_count ?? 0),
+                    'monthly_reach' => null,
+                    'engagement_rate' => null,
+                    'url' => $channel->chat_username ? 'https://t.me/' . ltrim($channel->chat_username, '@') : null,
+                    'notes' => $channel->description,
+                    'created_at' => $channel->connected_at?->format('d.m.Y') ?? $channel->created_at->format('d.m.Y'),
+                ];
+            });
+
+        // 3) Live Instagram accounts
+        $instagramChannels = InstagramAccount::where('business_id', $business->id)
+            ->where('is_active', true)
+            ->orderBy('connected_at', 'desc')
+            ->get()
+            ->map(function ($account) {
+                return [
+                    'id' => 'instagram_' . $account->id,
+                    'source' => 'instagram',
+                    'name' => $account->name ?: ('@' . $account->username),
+                    'type' => 'business',
+                    'platform' => 'instagram',
+                    'status' => 'active',
+                    'followers_count' => (int) ($account->followers_count ?? 0),
+                    'monthly_reach' => null,
+                    'engagement_rate' => $account->engagement_rate ? round((float) $account->engagement_rate, 2) : null,
+                    'url' => $account->username ? 'https://instagram.com/' . $account->username : null,
+                    'notes' => $account->biography,
+                    'created_at' => optional($account->connected_at ?? $account->created_at)->format('d.m.Y'),
+                ];
+            });
+
+        // Merge — live integrations birinchi (foydalanuvchi ulagan), keyin manual
+        $channels = $telegramChannels->concat($instagramChannels)->concat($manualChannels)->values();
 
         return Inertia::render('Marketing/Channels', [
             'channels' => $channels,

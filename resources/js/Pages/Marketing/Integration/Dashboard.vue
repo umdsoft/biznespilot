@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import {
     ChartBarIcon,
     CurrencyDollarIcon,
@@ -121,7 +121,7 @@ const getQualityColor = (score) => {
 </script>
 
 <template>
-    <AppLayout>
+    <MarketingLayout>
         <Head title="Marketing Dashboard - Sotuv bilan integratsiya" />
 
         <div class="py-6 px-4 sm:px-6 lg:px-8">
@@ -580,5 +580,5 @@ const getQualityColor = (score) => {
                 </button>
             </div>
         </div>
-    </AppLayout>
+    </MarketingLayout>
 </template>

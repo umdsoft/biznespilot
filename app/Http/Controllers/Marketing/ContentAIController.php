@@ -86,7 +86,7 @@ class ContentAIController extends Controller
             'tones' => ContentStyleGuide::TONES,
             'languageStyles' => ContentStyleGuide::LANGUAGE_STYLES,
             'ctaStyles' => ContentStyleGuide::CTA_STYLES,
-            'panelType' => 'business',
+            'panelType' => 'marketing',
         ]);
     }
 
@@ -321,7 +321,7 @@ class ContentAIController extends Controller
             'tones' => ContentStyleGuide::TONES,
             'languageStyles' => ContentStyleGuide::LANGUAGE_STYLES,
             'ctaStyles' => ContentStyleGuide::CTA_STYLES,
-            'panelType' => 'business',
+            'panelType' => 'marketing',
         ]);
     }
 
@@ -408,7 +408,7 @@ class ContentAIController extends Controller
                 'purpose' => $request->purpose,
                 'top_only' => $request->top_only,
             ],
-            'panelType' => 'business',
+            'panelType' => 'marketing',
         ]);
     }
 
@@ -506,7 +506,7 @@ class ContentAIController extends Controller
             'generations' => $generations,
             'monthlyStats' => $monthlyStats,
             'statuses' => ContentGeneration::STATUSES,
-            'panelType' => 'business',
+            'panelType' => 'marketing',
         ]);
     }
 
@@ -573,7 +573,7 @@ class ContentAIController extends Controller
 
         return Inertia::render('Marketing/ContentAI/VideoToContent', [
             'recentRequests' => $recentRequests,
-            'panelType' => 'business',
+            'panelType' => 'marketing',
         ]);
     }
 

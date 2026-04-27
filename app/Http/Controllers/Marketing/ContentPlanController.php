@@ -32,9 +32,13 @@ class ContentPlanController extends Controller
 
     protected function getPanelType(Request $request): string
     {
+        // URL prefix `business/marketing/content-ai/...` ko'rinishida bo'ladi.
+        // Marketing modulda bo'lsa — MarketingLayout chiqarish; faqat sof
+        // `/business/...` bo'lsa BusinessLayout. `str_starts_with('business')`
+        // har doim true qaytarardi va MarketingLayout hech qachon ishlamasdi.
         $prefix = $request->route()->getPrefix() ?? '';
 
-        return str_starts_with($prefix, 'business') ? 'business' : 'marketing';
+        return str_contains($prefix, 'marketing') ? 'marketing' : 'business';
     }
 
     /**

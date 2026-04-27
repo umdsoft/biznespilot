@@ -5741,14 +5741,14 @@
     ]
   },
   "resources/js/Pages/Marketing/Integration/Dashboard.vue": {
-    "file": "js/Dashboard-B7Z0ygbl.js",
+    "file": "js/Dashboard-xaNuQlNB.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Marketing/Integration/Dashboard.vue",
     "isDynamicEntry": true,
     "imports": [
       "_chunk-ZKf8fHaM.js",
       "_chunk-DwtwlmzV.js",
-      "_chunk-D3egvESF.js",
+      "_chunk-DiajxWWE.js",
       "resources/js/app.js",
       "_chunk-BetwS6Uc.js",
       "_chunk-B8A_R0gj.js",
