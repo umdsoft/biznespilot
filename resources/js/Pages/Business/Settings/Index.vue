@@ -464,6 +464,67 @@
                       </div>
                     </div>
 
+                    <!-- Login (per-business unique) -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Login
+                        <span class="text-xs text-gray-400 font-normal">(ixtiyoriy — biznesingizda unikal)</span>
+                      </label>
+                      <input
+                        :value="editForm.login"
+                        @input="onEditLoginInput"
+                        type="text"
+                        placeholder="masalan: manager, operator1"
+                        autocomplete="off"
+                        class="w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 font-mono focus:ring-2 focus:ring-blue-500"
+                        :class="editLoginError ? 'border-red-400' : 'border-gray-200 dark:border-gray-600'"
+                      />
+                      <p v-if="editLoginError" class="mt-1 text-xs text-red-500">{{ editLoginError }}</p>
+                      <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Bo'sh qoldirilsa xodim faqat telefon orqali kiradi.
+                      </p>
+                    </div>
+
+                    <!-- Reset Password -->
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                      <button
+                        v-if="!showResetPassword"
+                        type="button"
+                        @click="showResetPassword = true"
+                        class="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1.5"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        Parolni o'zgartirish
+                      </button>
+
+                      <div v-else class="space-y-3">
+                        <div class="flex items-center justify-between">
+                          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Yangi parol</label>
+                          <button type="button" @click="showResetPassword = false; editForm.new_password = ''; editForm.new_password_confirmation = ''" class="text-xs text-gray-400 hover:text-gray-600">
+                            Bekor qilish
+                          </button>
+                        </div>
+                        <input
+                          v-model="editForm.new_password"
+                          type="password"
+                          placeholder="Yangi parol (kamida 6 ta belgi)"
+                          autocomplete="new-password"
+                          class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          v-model="editForm.new_password_confirmation"
+                          type="password"
+                          placeholder="Parolni qayta kiriting"
+                          autocomplete="new-password"
+                          class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        />
+                        <p v-if="editForm.new_password && editForm.new_password.length < 6" class="text-xs text-red-500">Kamida 6 ta belgi</p>
+                        <p v-if="editForm.new_password && editForm.new_password_confirmation && editForm.new_password !== editForm.new_password_confirmation" class="text-xs text-red-500">Parollar mos kelmayapti</p>
+                      </div>
+                    </div>
+
                     <!-- Error -->
                     <p v-if="editError" class="text-sm text-red-500">{{ editError }}</p>
                   </div>
@@ -995,9 +1056,28 @@ const isLoadingTeam = ref(false);
 const showInviteModal = ref(false);
 const editingMember = ref(null);
 const showEditModal = ref(false);
-const editForm = ref({ department: '' });
+const showResetPassword = ref(false);
+const editForm = ref({
+  department: '',
+  login: '',
+  new_password: '',
+  new_password_confirmation: '',
+});
 const editError = ref('');
 const isEditLoading = ref(false);
+
+// Login validation (edit modal) — faqat lotin harf, raqam, _
+const editLoginError = computed(() => {
+  const v = (editForm.value.login || '').trim();
+  if (!v) return ''; // optional
+  if (v.length < 3) return "Login kamida 3 ta belgi bo'lishi kerak";
+  if (!/^[a-zA-Z0-9_]+$/.test(v)) return "Faqat lotin harf, raqam va _";
+  return '';
+});
+
+const onEditLoginInput = (e) => {
+  editForm.value.login = (e.target.value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 50);
+};
 
 const fetchTeamMembers = async () => {
   isLoadingTeam.value = true;
@@ -1082,7 +1162,13 @@ const removeMember = async (member) => {
 
 const openEditMemberModal = (member) => {
   editingMember.value = member;
-  editForm.value = { department: member.department };
+  editForm.value = {
+    department: member.department,
+    login: member.login || '',
+    new_password: '',
+    new_password_confirmation: '',
+  };
+  showResetPassword.value = false;
   editError.value = '';
   showEditModal.value = true;
 };
@@ -1090,38 +1176,88 @@ const openEditMemberModal = (member) => {
 const updateMember = async () => {
   if (!editingMember.value || isEditLoading.value) return;
 
+  // Login error?
+  if (editLoginError.value) {
+    editError.value = editLoginError.value;
+    return;
+  }
+
+  // Parol o'zgartirilayotgan bo'lsa — validatsiya
+  const wantsPasswordChange = showResetPassword.value && editForm.value.new_password.length > 0;
+  if (wantsPasswordChange) {
+    if (editForm.value.new_password.length < 6) {
+      editError.value = "Yangi parol kamida 6 ta belgi bo'lishi kerak";
+      return;
+    }
+    if (editForm.value.new_password !== editForm.value.new_password_confirmation) {
+      editError.value = "Parollar mos kelmayapti";
+      return;
+    }
+  }
+
   isEditLoading.value = true;
   editError.value = '';
 
   try {
-    const response = await fetch(route('business.settings.team.update', editingMember.value.id), {
+    // 1. Department + Login update
+    const updatePayload = {
+      department: editForm.value.department,
+      login: editForm.value.login || null,
+    };
+
+    const updateResp = await fetch(route('business.settings.team.update', editingMember.value.id), {
       method: 'PUT',
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        department: editForm.value.department,
-      }),
+      body: JSON.stringify(updatePayload),
     });
 
-    const data = await response.json();
+    const updateData = await updateResp.json();
 
-    if (response.ok && data.success) {
-      // Update local member data
-      const index = teamMembers.value.findIndex(m => m.id === editingMember.value.id);
-      if (index !== -1) {
-        teamMembers.value[index] = {
-          ...teamMembers.value[index],
-          department: data.member.department,
-          department_label: data.member.department_label,
-        };
-      }
-      showEditModal.value = false;
-    } else {
-      editError.value = data.error || data.message || 'Xatolik yuz berdi';
+    if (!updateResp.ok || !updateData.success) {
+      const fieldErr = updateData.errors?.login?.[0];
+      editError.value = fieldErr || updateData.error || updateData.message || 'Xatolik yuz berdi';
+      isEditLoading.value = false;
+      return;
     }
+
+    // 2. Parol o'zgartirilishi kerak bo'lsa — alohida endpoint
+    if (wantsPasswordChange) {
+      const pwdResp = await fetch(route('business.settings.team.reset-password', editingMember.value.id), {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: editForm.value.new_password,
+          password_confirmation: editForm.value.new_password_confirmation,
+        }),
+      });
+
+      const pwdData = await pwdResp.json();
+      if (!pwdResp.ok || !pwdData.success) {
+        editError.value = pwdData.error || pwdData.message || 'Parolni saqlashda xatolik';
+        isEditLoading.value = false;
+        return;
+      }
+    }
+
+    // Local state ni yangilash
+    const index = teamMembers.value.findIndex(m => m.id === editingMember.value.id);
+    if (index !== -1) {
+      teamMembers.value[index] = {
+        ...teamMembers.value[index],
+        department: updateData.member.department,
+        department_label: updateData.member.department_label,
+        login: updateData.member.login,
+      };
+    }
+    showEditModal.value = false;
   } catch (error) {
     console.error('Failed to update member:', error);
     editError.value = 'Tarmoq xatosi';

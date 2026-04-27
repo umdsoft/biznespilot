@@ -60,12 +60,18 @@ class BusinessUser extends Pivot
         'contract_start_date',
         'contract_end_date',
         'permissions',
+        'login',
+        'login_password',
         'invited_at',
         'accepted_at',
         'joined_at',
         'invited_by',
         'invitation_token',
         'invitation_expires_at',
+    ];
+
+    protected $hidden = [
+        'login_password',
     ];
 
     protected $casts = [

@@ -29,6 +29,7 @@ const emit = defineEmits(['close', 'added']);
 const form = ref({
     name: '',
     phone: '',
+    login: '',
     password: '',
     password_confirmation: '',
     department: '',
@@ -53,6 +54,7 @@ watch(() => props.show, (newVal) => {
         form.value = {
             name: '',
             phone: '',
+            login: '',
             password: '',
             password_confirmation: '',
             department: Object.keys(props.departments)[0] || '',
@@ -61,6 +63,20 @@ watch(() => props.show, (newVal) => {
         showPassword.value = false;
     }
 });
+
+// Login validation — faqat lotin harf, raqam, _
+const loginError = computed(() => {
+    const v = (form.value.login || '').trim();
+    if (!v) return ''; // optional
+    if (v.length < 3) return "Login kamida 3 ta belgi bo'lishi kerak";
+    if (!/^[a-zA-Z0-9_]+$/.test(v)) return "Faqat lotin harf, raqam va _";
+    return '';
+});
+
+const onLoginInput = (e) => {
+    // Lowercase + only allowed chars (cleanup as user types)
+    form.value.login = (e.target.value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 50);
+};
 
 // Format phone number
 const formatPhone = (value) => {
@@ -81,13 +97,14 @@ const onPhoneInput = (e) => {
     form.value.phone = formatPhone(e.target.value);
 };
 
-// Check if form is valid
+// Check if form is valid — login optional, lekin berilgan bo'lsa noto'g'ri bo'lmasin
 const isValid = computed(() => {
     return form.value.name.trim() &&
            form.value.phone.length >= 12 &&
            form.value.password.length >= 6 &&
            form.value.password === form.value.password_confirmation &&
-           form.value.department;
+           form.value.department &&
+           !loginError.value;
 });
 
 // Password validation
@@ -115,6 +132,7 @@ const submit = async () => {
         const response = await window.axios.post(route('business.settings.team.invite'), {
             name: form.value.name,
             phone: form.value.phone,
+            login: form.value.login || null,
             password: form.value.password,
             password_confirmation: form.value.password_confirmation,
             department: form.value.department,
@@ -235,6 +253,30 @@ const close = () => {
                                     />
                                 </div>
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ t('components.invite.phone_hint') }}</p>
+                            </div>
+
+                            <!-- Login (optional, per-business unique) -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <span class="flex items-center gap-2">
+                                        <UserIcon class="w-4 h-4 text-blue-500" />
+                                        Login
+                                        <span class="text-xs text-gray-400 font-normal">(ixtiyoriy)</span>
+                                    </span>
+                                </label>
+                                <input
+                                    :value="form.login"
+                                    @input="onLoginInput"
+                                    type="text"
+                                    placeholder="masalan: manager, operator1"
+                                    autocomplete="off"
+                                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                                    :class="loginError ? 'border-red-400' : 'border-gray-200 dark:border-gray-600'"
+                                />
+                                <p v-if="loginError" class="mt-1 text-xs text-red-500">{{ loginError }}</p>
+                                <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    Bo'sh qoldirilsa xodim faqat telefon raqam orqali kiradi. Login kiritilsa bu username + parol orqali ham kira oladi (faqat sizning biznesingizga).
+                                </p>
                             </div>
 
                             <!-- Password -->

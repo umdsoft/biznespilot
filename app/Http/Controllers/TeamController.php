@@ -88,6 +88,8 @@ class TeamController extends Controller
                     'user_id' => $member->user_id,
                     'name' => $member->user->name ?? null,
                     'phone' => $member->user->phone ?? $member->user->login ?? null,
+                    'login' => $member->login,
+                    'has_login_password' => ! empty($member->login_password),
                     'role' => $member->role,
                     'role_label' => $member->role_label,
                     'department' => $member->department,
@@ -172,6 +174,7 @@ class TeamController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|min:12|max:12',
             'password' => ['required', 'confirmed', Password::min(6)],
+            'login' => ['nullable', 'string', 'min:3', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/'],
             'department' => 'required|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
             'job_description_id' => 'nullable|uuid|exists:job_descriptions,id',
             'salary' => 'nullable|numeric|min:0',
@@ -183,9 +186,25 @@ class TeamController extends Controller
             'password.required' => 'Parol kiritilishi shart',
             'password.confirmed' => 'Parollar mos kelmayapti',
             'password.min' => 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak',
+            'login.regex' => 'Login faqat lotin harflari, raqamlar va pastki chiziq (_) dan iborat bo\'lishi kerak',
+            'login.min' => 'Login kamida 3 ta belgidan iborat bo\'lishi kerak',
             'department.required' => 'Bo\'lim tanlanishi shart',
             'salary.numeric' => 'Oylik raqam bo\'lishi kerak',
         ]);
+
+        // Per-business login uniqueness — bir biznes ichida login takrorlanmasin
+        if (! empty($validated['login'])) {
+            $exists = BusinessUser::where('business_id', $business->id)
+                ->where('login', $validated['login'])
+                ->exists();
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Bu login allaqachon biznesingizda ishlatilgan',
+                    'errors' => ['login' => ['Bu login allaqachon biznesingizda ishlatilgan']],
+                ], 422);
+            }
+        }
 
         // Check if user with this phone already exists
         $existingUser = User::where('phone', $validated['phone'])
@@ -217,7 +236,10 @@ class TeamController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Add to team
+        // Add to team — agar login berilgan bo'lsa, parol ham per-business saqlanadi
+        // (foydalanuvchi loginni ham, telefonni ham ishlatib kira oladi)
+        $loginAlias = ! empty($validated['login']) ? $validated['login'] : null;
+
         $member = BusinessUser::create([
             'business_id' => $business->id,
             'user_id' => $user->id,
@@ -228,6 +250,8 @@ class TeamController extends Controller
             'employment_type' => $validated['employment_type'] ?? 'full_time',
             'contract_type' => 'unlimited',
             'contract_start_date' => now()->format('Y-m-d'),
+            'login' => $loginAlias,
+            'login_password' => $loginAlias ? Hash::make($validated['password']) : null,
             'joined_at' => now(),
             'accepted_at' => now(),
             'invited_by' => Auth::id(),
@@ -241,6 +265,7 @@ class TeamController extends Controller
                 'user_id' => $user->id,
                 'name' => $user->name,
                 'phone' => $user->phone,
+                'login' => $member->login,
                 'role' => $member->role,
                 'role_label' => $member->role_label,
                 'department' => $member->department,
@@ -271,7 +296,33 @@ class TeamController extends Controller
         $validated = $request->validate([
             'department' => 'sometimes|in:'.implode(',', array_keys(BusinessUser::DEPARTMENTS)),
             'role' => 'sometimes|in:'.implode(',', array_keys(BusinessUser::ROLES)),
+            // Login per-business unique — bo'sh string yoki null bo'lsa olib tashlaymiz.
+            'login' => ['sometimes', 'nullable', 'string', 'min:3', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/'],
+        ], [
+            'login.regex' => 'Login faqat lotin harflari, raqamlar va pastki chiziq (_) dan iborat bo\'lishi kerak',
+            'login.min' => 'Login kamida 3 ta belgidan iborat bo\'lishi kerak',
         ]);
+
+        // Login uniqueness — boshqa member bu loginni egallamaganligini tekshirish
+        if (array_key_exists('login', $validated) && ! empty($validated['login'])) {
+            $loginExists = BusinessUser::where('business_id', $business->id)
+                ->where('login', $validated['login'])
+                ->where('id', '!=', $member->id)
+                ->exists();
+            if ($loginExists) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Bu login allaqachon biznesingizda ishlatilgan',
+                    'errors' => ['login' => ['Bu login allaqachon biznesingizda ishlatilgan']],
+                ], 422);
+            }
+        }
+
+        // Login bo'sh stringga o'rnatilgan bo'lsa — uni NULL qilamiz (alias o'chirish)
+        if (array_key_exists('login', $validated) && empty($validated['login'])) {
+            $validated['login'] = null;
+            $validated['login_password'] = null; // login alias o'chsa, parol ham bekor
+        }
 
         $member->update($validated);
 
@@ -284,6 +335,7 @@ class TeamController extends Controller
                 'role_label' => $member->role_label,
                 'department' => $member->department,
                 'department_label' => $member->department_label,
+                'login' => $member->login,
             ],
         ]);
     }
@@ -344,9 +396,23 @@ class TeamController extends Controller
             'password.min' => 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak',
         ]);
 
-        $member->user->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+        $newHash = Hash::make($validated['password']);
+
+        // Per-business login alias bor bo'lsa — alias parolini ham yangilaymiz.
+        // Aks holda — global users.password yangilanadi (legacy phone-login).
+        if (! empty($member->login)) {
+            $member->update(['login_password' => $newHash]);
+        }
+
+        // Har holda global parolni ham yangilaymiz — chunki user telefon orqali ham
+        // kirishi mumkin, va parol bir xil bo'lishi tabiiy (faqat shu biznes a'zosi bo'lsa).
+        $otherBusinessMemberships = BusinessUser::where('user_id', $member->user_id)
+            ->where('id', '!=', $member->id)
+            ->count();
+        if ($otherBusinessMemberships === 0) {
+            // User faqat shu biznesda — global parolni xavfsiz yangilash mumkin
+            $member->user->update(['password' => $newHash]);
+        }
 
         return response()->json([
             'success' => true,

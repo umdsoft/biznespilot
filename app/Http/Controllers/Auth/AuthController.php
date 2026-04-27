@@ -33,8 +33,25 @@ class AuthController extends Controller
 
         $loginField = str_starts_with($request->login, '+') ? 'phone' : 'login';
 
-        // Find user
+        // Find user (global users.login yoki phone bo'yicha)
         $user = User::where($loginField, $request->login)->first();
+
+        // Per-business login alias fallback — global users.login topilmasa, biznes ichidagi
+        // business_user.login ustunini tekshiramiz. Bu xodimga global telefonsiz alohida
+        // login berish imkonini beradi (mas: "manager" + per-biz parol).
+        $useBusinessAlias = false;
+        $aliasBusinessId = null;
+        if (! $user && $loginField === 'login') {
+            $aliasMember = BusinessUser::where('login', $request->login)
+                ->whereNotNull('login_password')
+                ->whereNotNull('user_id')
+                ->first();
+            if ($aliasMember && Hash::check($request->password, $aliasMember->login_password)) {
+                $user = User::find($aliasMember->user_id);
+                $useBusinessAlias = true;
+                $aliasBusinessId = $aliasMember->business_id;
+            }
+        }
 
         // Check if account is locked
         if ($user && $user->locked_until && now()->lt($user->locked_until)) {
@@ -48,12 +65,18 @@ class AuthController extends Controller
             return back()->withErrors(['login' => $error])->onlyInput('login');
         }
 
+        // Business alias orqali topilgan bo'lsa — bevosita Auth::loginUsingId,
+        // oddiy holatda esa standart Auth::attempt
         $credentials = [
             $loginField => $request->login,
             'password' => $request->password,
         ];
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $authSucceeded = $useBusinessAlias
+            ? (bool) Auth::loginUsingId($user->id, $request->boolean('remember'))
+            : Auth::attempt($credentials, $request->boolean('remember'));
+
+        if ($authSucceeded) {
             $authenticatedUser = Auth::user();
 
             // Check if user has 2FA enabled
@@ -83,6 +106,11 @@ class AuthController extends Controller
             ]);
 
             $request->session()->regenerate();
+
+            // Business alias orqali kirgan xodim aynan o'sha biznes konteksiga tushishi kerak.
+            if ($useBusinessAlias && $aliasBusinessId) {
+                session(['current_business_id' => $aliasBusinessId]);
+            }
 
             // Get redirect URL based on user role/department
             $redirectUrl = $this->getRedirectUrl($authenticatedUser);
