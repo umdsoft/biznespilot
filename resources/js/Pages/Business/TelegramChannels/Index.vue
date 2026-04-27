@@ -1,5 +1,5 @@
 <template>
-  <BusinessLayout title="Telegram Kanallar">
+  <component :is="layoutComponent" title="Telegram Kanallar">
     <!-- Header -->
     <div class="mb-6 flex items-start justify-between flex-wrap gap-4">
       <div>
@@ -45,7 +45,7 @@
         <p class="font-medium text-blue-800 dark:text-blue-300">Telegram hisob ulanmagan</p>
         <p class="text-blue-700 dark:text-blue-400 mt-1">
           Kanal kuzatish uchun avval Telegram hisobingizni ulang.
-          <Link href="/business/settings" class="underline font-medium">Sozlamalarga o'tish</Link>
+          <Link :href="`/${panelType === 'marketing' ? 'marketing' : 'business'}/settings`" class="underline font-medium">Sozlamalarga o'tish</Link>
         </p>
       </div>
     </div>
@@ -139,7 +139,7 @@
           </p>
           <div class="flex items-center gap-2">
             <Link
-              :href="`/business/telegram-channels/${channel.id}`"
+              :href="`${routePrefix}/telegram-channels/${channel.id}`"
               class="text-sm font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300"
             >
               Batafsil &rarr;
@@ -204,14 +204,19 @@
         </div>
       </div>
     </Teleport>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import OperatorLayout from '@/layouts/OperatorLayout.vue';
+import HRLayout from '@/layouts/HRLayout.vue';
+import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import {
   PaperAirplaneIcon,
   PlusIcon,
@@ -227,7 +232,23 @@ const props = defineProps({
   botUsername: { type: String, default: null },
   isSystemBotConfigured: { type: Boolean, default: false },
   userTelegramLinked: { type: Boolean, default: false },
+  panelType: { type: String, default: 'business' },
 });
+
+const layoutComponent = computed(() => {
+  const map = {
+    business: BusinessLayout,
+    marketing: MarketingLayout,
+    saleshead: SalesHeadLayout,
+    operator: OperatorLayout,
+    hr: HRLayout,
+    finance: FinanceLayout,
+  };
+  return map[props.panelType] || BusinessLayout;
+});
+
+// URL prefix — marketolog `/marketing/...` ostida, owner `/business/...` ostida
+const routePrefix = computed(() => `/${props.panelType === 'marketing' ? 'marketing' : 'business'}`);
 
 const showConnectModal = ref(false);
 const connectLoading = ref(false);
@@ -241,7 +262,7 @@ const openConnectModal = async () => {
   connectLoading.value = true;
 
   try {
-    const response = await axios.post('/business/telegram-channels/connect-link');
+    const response = await axios.post(`${routePrefix.value}/telegram-channels/connect-link`);
     connectData.value = response.data;
   } catch (err) {
     connectError.value = err.response?.data?.message || 'Havolani olishda xatolik';

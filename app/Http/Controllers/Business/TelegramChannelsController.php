@@ -59,6 +59,7 @@ class TelegramChannelsController extends Controller
             'botUsername' => $this->bot->getBotUsername(),
             'isSystemBotConfigured' => $this->bot->isConfigured(),
             'userTelegramLinked' => (bool) $user?->telegram_chat_id,
+            'panelType' => $business ? $this->detectPanelType($business) : 'business',
         ]);
     }
 
@@ -133,6 +134,7 @@ class TelegramChannelsController extends Controller
             'dailyStats' => $last30Days,
             'recentPosts' => $recentPosts,
             'summary' => $summary,
+            'panelType' => $this->detectPanelType($business),
         ]);
     }
 

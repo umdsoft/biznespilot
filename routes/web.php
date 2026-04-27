@@ -2413,6 +2413,17 @@ Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->n
         Route::post('/{conversation}/mark-read', [InboxController::class, 'markRead'])->name('mark-read');
     });
 
+    // Telegram Kanallar — Business\TelegramChannelsController shared (marketing)
+    // System Bot orqali ulangan kanallar statistikasi — owner panelidan ham,
+    // marketolog panelidan ham bir xil ma'lumot ko'rinadi.
+    Route::prefix('telegram-channels')->name('telegram-channels.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Business\TelegramChannelsController::class, 'index'])->name('index');
+        Route::post('/connect-link', [App\Http\Controllers\Business\TelegramChannelsController::class, 'connectLink'])->name('connect-link');
+        Route::get('/{id}', [App\Http\Controllers\Business\TelegramChannelsController::class, 'show'])->name('show');
+        Route::post('/{id}/refresh', [App\Http\Controllers\Business\TelegramChannelsController::class, 'refresh'])->name('refresh');
+        Route::delete('/{id}', [App\Http\Controllers\Business\TelegramChannelsController::class, 'disconnect'])->name('disconnect');
+    });
+
     // Chatbot (Read-only for Marketing)
     Route::prefix('chatbot')->name('chatbot.')->group(function () {
         Route::get('/', [ChatbotController::class, 'index'])->name('index');

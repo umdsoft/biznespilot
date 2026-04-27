@@ -1,8 +1,8 @@
 <template>
-  <BusinessLayout :title="`${channel.title} — Telegram Kanal`">
+  <component :is="layoutComponent" :title="`${channel.title} — Telegram Kanal`">
     <!-- Header -->
     <div class="mb-6">
-      <Link href="/business/telegram-channels" class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 inline-flex items-center gap-1 mb-3">
+      <Link :href="`${routePrefix}/telegram-channels`" class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 inline-flex items-center gap-1 mb-3">
         <ChevronLeftIcon class="w-4 h-4" /> Barcha kanallar
       </Link>
 
@@ -266,7 +266,7 @@
         </div>
       </div>
     </Teleport>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
@@ -274,6 +274,11 @@ import { ref, computed, defineAsyncComponent } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import OperatorLayout from '@/layouts/OperatorLayout.vue';
+import HRLayout from '@/layouts/HRLayout.vue';
+import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import {
   ChevronLeftIcon,
   ArrowPathIcon,
@@ -290,7 +295,22 @@ const props = defineProps({
   dailyStats: { type: Array, default: () => [] },
   recentPosts: { type: Array, default: () => [] },
   summary: { type: Object, required: true },
+  panelType: { type: String, default: 'business' },
 });
+
+const layoutComponent = computed(() => {
+  const map = {
+    business: BusinessLayout,
+    marketing: MarketingLayout,
+    saleshead: SalesHeadLayout,
+    operator: OperatorLayout,
+    hr: HRLayout,
+    finance: FinanceLayout,
+  };
+  return map[props.panelType] || BusinessLayout;
+});
+
+const routePrefix = computed(() => `/${props.panelType === 'marketing' ? 'marketing' : 'business'}`);
 
 const isRefreshing = ref(false);
 const isDisconnecting = ref(false);
@@ -352,7 +372,7 @@ const viewsChartOptions = computed(() => ({
 const refreshChannel = async () => {
   isRefreshing.value = true;
   try {
-    await axios.post(`/business/telegram-channels/${props.channel.id}/refresh`);
+    await axios.post(`${routePrefix.value}/telegram-channels/${props.channel.id}/refresh`);
     router.reload({ only: ['channel', 'summary'] });
   } catch (err) {
     alert('Yangilashda xatolik: ' + (err.response?.data?.message || err.message));
@@ -368,8 +388,8 @@ const confirmDisconnect = () => {
 const disconnectChannel = async () => {
   isDisconnecting.value = true;
   try {
-    await axios.delete(`/business/telegram-channels/${props.channel.id}`);
-    router.visit('/business/telegram-channels');
+    await axios.delete(`${routePrefix.value}/telegram-channels/${props.channel.id}`);
+    router.visit(`${routePrefix.value}/telegram-channels`);
   } catch (err) {
     alert('Uzishda xatolik: ' + (err.response?.data?.message || err.message));
   } finally {

@@ -91,7 +91,15 @@ export const marketingLayoutConfig = {
         { href: '/marketing/inbox', label: 'Yagona Inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
         { href: '/marketing/lead-forms', label: 'Lead Formalar', icon: DocumentTextIcon },
         { href: '/marketing/chatbot', label: 'Chatbot', icon: ChatBubbleLeftRightIcon },
-        { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon, integration: 'telegram' },
+      ]
+    },
+    {
+      title: 'Integratsiyalar',
+      items: [
+        { href: '/integrations', label: 'Integratsiyalar', icon: BoltIcon },
+        { href: '/integrations/instagram', label: 'Instagram', icon: InstagramIcon, integration: 'instagram' },
+        { href: '/marketing/telegram-channels', label: 'Telegram Kanallar', icon: TelegramIcon, activeMatch: (url) => url.startsWith('/marketing/telegram-channels') },
+        { href: '/marketing/telegram-funnels', label: 'Telegram Bot', icon: TelegramIcon, integration: 'telegram', activeMatch: (url) => url.startsWith('/marketing/telegram-funnels') },
       ]
     },
     {
