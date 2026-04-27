@@ -12,6 +12,17 @@ use Inertia\Inertia;
 class LeadFormController extends Controller
 {
     /**
+     * URL prefix asosida layout panelTypeni aniqlaydi.
+     * /marketing/lead-forms/... -> 'marketing'
+     * /business/lead-forms/...  -> 'business'
+     */
+    protected function detectPanelType(Request $request): string
+    {
+        $url = (string) $request->path();
+        return str_contains($url, 'marketing/') ? 'marketing' : 'business';
+    }
+
+    /**
      * Display a listing of lead forms.
      */
     public function index(Request $request)
@@ -54,6 +65,7 @@ class LeadFormController extends Controller
         return Inertia::render('Business/LeadForms/Index', [
             'leadForms' => $leadForms,
             'stats' => $stats,
+            'panelType' => $this->detectPanelType($request),
         ]);
     }
 
@@ -81,6 +93,7 @@ class LeadFormController extends Controller
             'leadSources' => $leadSources,
             'fieldTypes' => LeadForm::getFieldTypes(),
             'defaultFields' => LeadForm::getDefaultFields(),
+            'panelType' => $this->detectPanelType($request),
         ]);
     }
 
@@ -225,6 +238,7 @@ class LeadFormController extends Controller
             ]),
             'dailyStats' => $dailyStats,
             'utmStats' => $utmStats,
+            'panelType' => $this->detectPanelType($request),
         ]);
     }
 
@@ -254,6 +268,7 @@ class LeadFormController extends Controller
             'leadForm' => $leadForm,
             'leadSources' => $leadSources,
             'fieldTypes' => LeadForm::getFieldTypes(),
+            'panelType' => $this->detectPanelType($request),
         ]);
     }
 

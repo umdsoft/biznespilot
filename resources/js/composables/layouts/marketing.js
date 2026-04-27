@@ -68,7 +68,6 @@ export const marketingLayoutConfig = {
         { href: '/marketing/dashboard', label: 'Bosh sahifa', icon: ChartBarIcon },
         { href: '/marketing/campaigns', label: 'Kampaniyalar', icon: PresentationChartLineIcon },
         { href: '/marketing/content', label: 'Kontent Reja', icon: CalendarIcon, activeMatch: (url) => url.startsWith('/marketing/content') },
-        { href: '/marketing/channels', label: 'Kanallar', icon: UsersIcon },
       ]
     },
     {
@@ -76,16 +75,14 @@ export const marketingLayoutConfig = {
       items: [
         { href: '/marketing/dream-buyer', label: 'Ideal Mijoz', icon: UserGroupIcon },
         { href: '/marketing/custdev', label: 'CustDev So\'rovnoma', icon: ClipboardDocumentListIcon },
+        { href: '/marketing/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
       ]
     },
     {
       title: 'Strategiya',
       items: [
-        { href: '/marketing/competitors', label: 'Raqobatchilar', icon: ChartBarIcon },
-        { href: '/marketing/competitors/dashboard', label: 'Raqobat Dashboard', icon: PresentationChartLineIcon },
         { href: '/marketing/offers', label: 'Takliflar', icon: TagIcon },
         { href: '/marketing/swot', label: 'SWOT Tahlil', icon: AdjustmentsHorizontalIcon },
-        { href: '/marketing/competitor-insights', label: 'AI Tavsiyalar', icon: LightBulbIcon },
       ]
     },
     {
@@ -94,6 +91,7 @@ export const marketingLayoutConfig = {
         { href: '/marketing/inbox', label: 'Yagona Inbox', icon: InboxIcon },
         { href: '/marketing/lead-forms', label: 'Lead Formalar', icon: DocumentTextIcon },
         { href: '/marketing/chatbot', label: 'Chatbot', icon: ChatBubbleLeftRightIcon },
+        { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon, integration: 'telegram' },
       ]
     },
     {
@@ -101,29 +99,6 @@ export const marketingLayoutConfig = {
       items: [
         { href: '/marketing/tasks', label: 'Vazifalar', icon: ClipboardDocumentListIcon },
         { href: '/marketing/todos', label: 'Kunlik vazifalar', icon: CheckCircleIcon },
-      ]
-    },
-    {
-      title: 'Integratsiyalar',
-      items: [
-        { href: '/integrations', label: 'Integratsiyalar', icon: BoltIcon },
-        { href: '/marketing/facebook-analysis', label: 'Target analiz', icon: FacebookIcon, integration: 'facebook' },
-        { href: '/integrations/instagram', label: 'Instagram Tahlili', icon: InstagramIcon, integration: 'instagram' },
-        { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon, integration: 'telegram' },
-      ]
-    },
-    {
-      title: 'Tahlillar',
-      items: [
-        { href: '/marketing/analytics', label: 'Umumiy Analitika', icon: ChartBarIcon },
-        { href: '/marketing/analytics/campaigns', label: 'Kampaniya Analitika', icon: PresentationChartLineIcon },
-        { href: '/marketing/sales-integration', label: 'Sotuv Integratsiyasi (70/30)', icon: ChartPieIcon },
-      ]
-    },
-    {
-      title: null,
-      items: [
-        { href: '/marketing/settings', label: 'Sozlamalar', icon: CogIcon },
       ]
     },
   ],

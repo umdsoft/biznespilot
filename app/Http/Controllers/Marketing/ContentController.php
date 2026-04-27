@@ -157,7 +157,7 @@ class ContentController extends Controller
         }
 
         // Industry topic suggestions (from IndustryContentLibrary)
-        $industry = BusinessCategoryMapper::detectIndustry($business);
+        $industry = BusinessCategoryMapper::detectFromBusiness($business);
         $industryTopics = IndustryContentLibrary::getIndustryLibrary($industry);
         $topicSuggestions = collect($industryTopics)->map(fn ($t) => [
             'topic' => $t['topic'],

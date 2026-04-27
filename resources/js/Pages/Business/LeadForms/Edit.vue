@@ -2,12 +2,16 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
 
 const props = defineProps({
     leadForm: Object,
     leadSources: Object,
     fieldTypes: Object,
+    panelType: { type: String, default: 'business' },
 });
+
+const layoutComponent = computed(() => props.panelType === 'marketing' ? MarketingLayout : BusinessLayout);
 
 const form = useForm({
     name: props.leadForm.name,
@@ -132,7 +136,7 @@ const handleFileChange = (event) => {
 </script>
 
 <template>
-    <BusinessLayout title="Formani Tahrirlash">
+    <component :is="layoutComponent" title="Formani Tahrirlash">
         <Head :title="`${leadForm.name} - Tahrirlash`" />
 
         <div class="max-w-4xl mx-auto">
@@ -788,5 +792,5 @@ const handleFileChange = (event) => {
                 </div>
             </div>
         </Teleport>
-    </BusinessLayout>
+    </component>
 </template>

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
 import { useI18n } from '@/i18n';
 
 const { t } = useI18n();
@@ -9,7 +10,11 @@ const { t } = useI18n();
 const props = defineProps({
     leadForms: Array,
     stats: Object,
+    panelType: { type: String, default: 'business' },
 });
+
+// URL prefix asosida layout — /marketing/lead-forms uchun MarketingLayout, aks holda BusinessLayout
+const layoutComponent = computed(() => props.panelType === 'marketing' ? MarketingLayout : BusinessLayout);
 
 const deletingForm = ref(null);
 const copiedLink = ref(null);
@@ -69,7 +74,7 @@ const getLeadMagnetLabel = (type) => {
 </script>
 
 <template>
-    <BusinessLayout :title="t('nav.lead_forms')">
+    <component :is="layoutComponent" :title="t('nav.lead_forms')">
         <Head :title="t('nav.lead_forms')" />
 
         <div class="p-6 space-y-6">
@@ -458,5 +463,5 @@ const getLeadMagnetLabel = (type) => {
                 </div>
             </div>
         </Teleport>
-    </BusinessLayout>
+    </component>
 </template>

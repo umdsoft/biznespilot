@@ -2,12 +2,16 @@
 import { ref, computed, watch } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
 
 const props = defineProps({
     leadSources: Object,
     fieldTypes: Object,
     defaultFields: Array,
+    panelType: { type: String, default: 'business' },
 });
+
+const layoutComponent = computed(() => props.panelType === 'marketing' ? MarketingLayout : BusinessLayout);
 
 const form = useForm({
     name: '',
@@ -147,7 +151,7 @@ const handleFileChange = (event) => {
 </script>
 
 <template>
-    <BusinessLayout title="Forma Yaratish">
+    <component :is="layoutComponent" title="Forma Yaratish">
         <Head title="Lead Forma Yaratish" />
 
         <div class="max-w-4xl mx-auto">
@@ -801,5 +805,5 @@ const handleFileChange = (event) => {
                 </div>
             </div>
         </Teleport>
-    </BusinessLayout>
+    </component>
 </template>

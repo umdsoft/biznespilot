@@ -1,14 +1,18 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
 
 const props = defineProps({
     leadForm: Object,
     recentSubmissions: Array,
     dailyStats: Array,
     utmStats: Array,
+    panelType: { type: String, default: 'business' },
 });
+
+const layoutComponent = computed(() => props.panelType === 'marketing' ? MarketingLayout : BusinessLayout);
 
 const copiedLink = ref(false);
 const copiedEmbed = ref(false);
@@ -89,7 +93,7 @@ const getStatusColor = (status) => {
 </script>
 
 <template>
-    <BusinessLayout title="Lead Forma">
+    <component :is="layoutComponent" title="Lead Forma">
         <Head :title="leadForm.name" />
 
         <div class="p-6 space-y-6">
@@ -558,5 +562,5 @@ const getStatusColor = (status) => {
                 </div>
             </div>
         </Teleport>
-    </BusinessLayout>
+    </component>
 </template>

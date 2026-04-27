@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,15 +10,16 @@ use Inertia\Inertia;
 
 class ChatbotController extends Controller
 {
+    use HasCurrentBusiness;
+
     public function index()
     {
         $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // Team-member ham team membership business'ni ko'ra olishi uchun trait orqali.
+        $currentBusiness = $this->getCurrentBusiness();
 
         if (! $currentBusiness) {
-            return redirect()->route('business.index');
+            return redirect()->route('login');
         }
 
         // Get recent chat messages

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Services\UnifiedInboxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,8 @@ use Inertia\Inertia;
 
 class UnifiedInboxController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected UnifiedInboxService $inboxService;
 
     public function __construct(UnifiedInboxService $inboxService)
@@ -22,7 +25,10 @@ class UnifiedInboxController extends Controller
     public function unreadCount(Request $request)
     {
         $user = Auth::user();
-        $businessId = session('current_business_id') ?: $user->businesses()->first()?->id;
+        // HasCurrentBusiness trait — owner + team membership ikkalasini qo'llab-quvvatlaydi.
+        // `$user->businesses()` faqat OWNED business'larni qaytaradi (team-member uchun null).
+        $business = $this->getCurrentBusiness($request);
+        $businessId = $business?->id;
 
         if (!$businessId) {
             return response()->json(['count' => 0]);
@@ -55,10 +61,12 @@ class UnifiedInboxController extends Controller
 
     public function index(Request $request)
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // HasCurrentBusiness — team-member ham accessible (faqat owned emas).
+        $currentBusiness = $this->getCurrentBusiness($request);
+
+        if (! $currentBusiness) {
+            return redirect()->route('login');
+        }
 
         $filters = [
             'channel' => $request->get('channel'),
