@@ -67,7 +67,7 @@ use App\Http\Controllers\TelephonyController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\TodoTemplateController;
 use App\Http\Controllers\TwoFactorAuthController;
-use App\Http\Controllers\UnifiedInboxController;
+use App\Http\Controllers\Business\InboxController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -613,12 +613,13 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
         Route::post('/{campaign}/launch', [MarketingCampaignController::class, 'launch'])->name('launch');
     });
 
-    // Unified Inbox routes
+    // Yagona Inbox — barcha rollar uchun bitta umumiy controller (Business\InboxController)
     Route::prefix('inbox')->name('inbox.')->group(function () {
-        Route::get('/', [UnifiedInboxController::class, 'index'])->name('index');
-        Route::get('/count', [UnifiedInboxController::class, 'unreadCount'])->name('count'); // Sidebar badge uchun tez endpoint
-        Route::get('/{conversation}', [UnifiedInboxController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [UnifiedInboxController::class, 'sendMessage'])->name('send');
+        Route::get('/', [InboxController::class, 'index'])->name('index');
+        Route::get('/count', [InboxController::class, 'unreadCount'])->name('count'); // Sidebar badge
+        Route::get('/{conversation}', [InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [InboxController::class, 'sendMessage'])->name('send');
+        Route::post('/{conversation}/mark-read', [InboxController::class, 'markRead'])->name('mark-read');
     });
 
     // Channel Analytics routes
@@ -1815,11 +1816,13 @@ Route::middleware(['auth', 'sales.head', 'subscription'])->prefix('sales-head')-
         Route::post('/{todo}/subtasks/{subtask}/toggle', [App\Http\Controllers\SalesHead\TodoController::class, 'toggleSubtask'])->name('subtasks.toggle');
     });
 
-    // Unified Inbox
+    // Yagona Inbox — Business\InboxController shared (sales-head)
     Route::prefix('inbox')->name('inbox.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Shared\InboxController::class, 'index'])->name('index');
-        Route::get('/{conversation}', [App\Http\Controllers\Shared\InboxController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [App\Http\Controllers\Shared\InboxController::class, 'sendMessage'])->name('send');
+        Route::get('/', [InboxController::class, 'index'])->name('index');
+        Route::get('/count', [InboxController::class, 'unreadCount'])->name('count');
+        Route::get('/{conversation}', [InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [InboxController::class, 'sendMessage'])->name('send');
+        Route::post('/{conversation}/mark-read', [InboxController::class, 'markRead'])->name('mark-read');
     });
 
     // Performance Tracking
@@ -2401,12 +2404,13 @@ Route::middleware(['auth', 'marketing', 'subscription'])->prefix('marketing')->n
         Route::get('/{leadForm}/responses', [LeadFormController::class, 'responses'])->name('responses');
     });
 
-    // Unified Inbox
+    // Yagona Inbox — Business\InboxController shared (marketing)
     Route::prefix('inbox')->name('inbox.')->group(function () {
-        Route::get('/', [UnifiedInboxController::class, 'index'])->name('index');
-        Route::get('/{conversation}', [UnifiedInboxController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [UnifiedInboxController::class, 'sendMessage'])->name('send');
-        Route::post('/{conversation}/mark-read', [UnifiedInboxController::class, 'markRead'])->name('mark-read');
+        Route::get('/', [InboxController::class, 'index'])->name('index');
+        Route::get('/count', [InboxController::class, 'unreadCount'])->name('count');
+        Route::get('/{conversation}', [InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [InboxController::class, 'sendMessage'])->name('send');
+        Route::post('/{conversation}/mark-read', [InboxController::class, 'markRead'])->name('mark-read');
     });
 
     // Chatbot (Read-only for Marketing)
@@ -2894,11 +2898,13 @@ Route::middleware(['auth', 'operator', 'subscription'])->prefix('operator')->nam
         Route::post('/{lead}/call', [App\Http\Controllers\Operator\LeadController::class, 'logCall'])->name('call');
     });
 
-    // Unified Inbox
+    // Yagona Inbox — Business\InboxController shared (operator)
     Route::prefix('inbox')->name('inbox.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Shared\InboxController::class, 'index'])->name('index');
-        Route::get('/{conversation}', [App\Http\Controllers\Shared\InboxController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [App\Http\Controllers\Shared\InboxController::class, 'sendMessage'])->name('send');
+        Route::get('/', [InboxController::class, 'index'])->name('index');
+        Route::get('/count', [InboxController::class, 'unreadCount'])->name('count');
+        Route::get('/{conversation}', [InboxController::class, 'show'])->name('show');
+        Route::post('/{conversation}/send', [InboxController::class, 'sendMessage'])->name('send');
+        Route::post('/{conversation}/mark-read', [InboxController::class, 'markRead'])->name('mark-read');
     });
 
     // My KPI - using SalesKpiController's myKpi method
