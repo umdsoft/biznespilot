@@ -88,7 +88,7 @@ export const marketingLayoutConfig = {
     {
       title: 'Kommunikatsiya',
       items: [
-        { href: '/marketing/inbox', label: 'Yagona Inbox', icon: InboxIcon },
+        { href: '/marketing/inbox', label: 'Yagona Inbox', icon: InboxIcon, badgeKey: 'unread_messages' },
         { href: '/marketing/lead-forms', label: 'Lead Formalar', icon: DocumentTextIcon },
         { href: '/marketing/chatbot', label: 'Chatbot', icon: ChatBubbleLeftRightIcon },
         { href: '/marketing/telegram-funnels', label: 'Telegram Funnel', icon: TelegramIcon, integration: 'telegram' },
