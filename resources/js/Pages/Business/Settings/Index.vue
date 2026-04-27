@@ -907,7 +907,7 @@
 </template>
 
 <script setup>
-import { ref, h, watch } from 'vue';
+import { ref, h, watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import InviteTeamMemberModal from '@/components/InviteTeamMemberModal.vue';
