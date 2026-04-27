@@ -411,7 +411,7 @@ const props = defineProps({
     panelType: {
         type: String,
         default: 'business',
-        validator: (value) => ['business', 'saleshead', 'operator'].includes(value),
+        validator: (value) => ['business', 'saleshead', 'operator', 'marketing', 'hr', 'finance'].includes(value),
     },
 });
 
@@ -466,8 +466,57 @@ const panelConfig = computed(() => {
             outboundTimeClass: 'text-blue-200',
             sendButtonClass: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30',
         },
+        marketing: {
+            routePrefix: 'marketing',
+            buttonClass: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/30',
+            filterActiveClass: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30',
+            statsBorderHover: 'hover:border-purple-300 dark:hover:border-purple-600',
+            statsIconBg: 'bg-gradient-to-br from-purple-100 to-pink-200 dark:from-purple-900/30 dark:to-pink-800/30',
+            statsIconColor: 'text-purple-600 dark:text-purple-400',
+            statsValueColor: 'text-purple-600 dark:text-purple-400',
+            emptyStatePulseBg: 'bg-purple-500/20',
+            emptyStateIconBg: 'bg-gradient-to-br from-purple-100 to-pink-200 dark:from-purple-900/30 dark:to-pink-800/30',
+            emptyStateIconColor: 'text-purple-500 dark:text-purple-400',
+            loadingSpinnerColor: 'text-purple-500',
+            outboundMessageClass: 'bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-br-md',
+            outboundTimeClass: 'text-purple-200',
+            sendButtonClass: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/30',
+        },
+        hr: {
+            routePrefix: 'hr',
+            buttonClass: 'bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 shadow-rose-500/30',
+            filterActiveClass: 'bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-lg shadow-rose-500/30',
+            statsBorderHover: 'hover:border-rose-300 dark:hover:border-rose-600',
+            statsIconBg: 'bg-gradient-to-br from-rose-100 to-orange-200 dark:from-rose-900/30 dark:to-orange-800/30',
+            statsIconColor: 'text-rose-600 dark:text-rose-400',
+            statsValueColor: 'text-rose-600 dark:text-rose-400',
+            emptyStatePulseBg: 'bg-rose-500/20',
+            emptyStateIconBg: 'bg-gradient-to-br from-rose-100 to-orange-200 dark:from-rose-900/30 dark:to-orange-800/30',
+            emptyStateIconColor: 'text-rose-500 dark:text-rose-400',
+            loadingSpinnerColor: 'text-rose-500',
+            outboundMessageClass: 'bg-gradient-to-br from-rose-600 to-orange-600 text-white rounded-br-md',
+            outboundTimeClass: 'text-rose-200',
+            sendButtonClass: 'bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 shadow-rose-500/30',
+        },
+        finance: {
+            routePrefix: 'finance',
+            buttonClass: 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-emerald-500/30',
+            filterActiveClass: 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-lg shadow-emerald-500/30',
+            statsBorderHover: 'hover:border-emerald-300 dark:hover:border-emerald-600',
+            statsIconBg: 'bg-gradient-to-br from-emerald-100 to-green-200 dark:from-emerald-900/30 dark:to-green-800/30',
+            statsIconColor: 'text-emerald-600 dark:text-emerald-400',
+            statsValueColor: 'text-emerald-600 dark:text-emerald-400',
+            emptyStatePulseBg: 'bg-emerald-500/20',
+            emptyStateIconBg: 'bg-gradient-to-br from-emerald-100 to-green-200 dark:from-emerald-900/30 dark:to-green-800/30',
+            emptyStateIconColor: 'text-emerald-500 dark:text-emerald-400',
+            loadingSpinnerColor: 'text-emerald-500',
+            outboundMessageClass: 'bg-gradient-to-br from-emerald-600 to-green-600 text-white rounded-br-md',
+            outboundTimeClass: 'text-emerald-200',
+            sendButtonClass: 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-emerald-500/30',
+        },
     };
-    return configs[props.panelType];
+    // Fallback to business config to prevent blank-page render if unknown panelType
+    return configs[props.panelType] || configs.business;
 });
 
 const selectedConversationId = ref(null);
