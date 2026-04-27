@@ -57,9 +57,9 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // currentBusiness accessor — owner + team membership ikkalasi qo'llab-quvvatlanadi.
+        // Avvalgi $user->businesses() faqat OWNED qaytarib, team-member uchun null edi.
+        $currentBusiness = $user?->currentBusiness;
 
         if (! $currentBusiness) {
             return redirect()->route('business.business.create');
@@ -677,9 +677,9 @@ class DashboardController extends Controller
     public function kpi(Request $request)
     {
         $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // currentBusiness accessor — owner + team membership ikkalasi qo'llab-quvvatlanadi.
+        // Avvalgi $user->businesses() faqat OWNED qaytarib, team-member uchun null edi.
+        $currentBusiness = $user?->currentBusiness;
 
         if (! $currentBusiness) {
             return redirect()->route('business.business.create');
@@ -765,9 +765,9 @@ class DashboardController extends Controller
     public function kpiDataEntry(Request $request)
     {
         $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // currentBusiness accessor — owner + team membership ikkalasi qo'llab-quvvatlanadi.
+        // Avvalgi $user->businesses() faqat OWNED qaytarib, team-member uchun null edi.
+        $currentBusiness = $user?->currentBusiness;
 
         if (! $currentBusiness) {
             return redirect()->route('business.business.create');

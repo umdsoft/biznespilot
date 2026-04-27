@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Services\ChannelAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -10,6 +11,8 @@ use Inertia\Inertia;
 
 class ChannelAnalyticsController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected ChannelAnalyticsService $analyticsService;
 
     public function __construct(ChannelAnalyticsService $analyticsService)
@@ -19,10 +22,11 @@ class ChannelAnalyticsController extends Controller
 
     public function index(Request $request)
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // HasCurrentBusiness — owner + team-member ikkalasi qo'llab-quvvatlanadi
+        $currentBusiness = $this->getCurrentBusiness($request);
+        if (! $currentBusiness) {
+            return redirect()->route('login');
+        }
 
         $channel = $request->get('channel', 'whatsapp');
         $startDate = $request->get('start_date')
@@ -55,10 +59,10 @@ class ChannelAnalyticsController extends Controller
 
     public function compare(Request $request)
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        $currentBusiness = $this->getCurrentBusiness($request);
+        if (! $currentBusiness) {
+            return redirect()->route('login');
+        }
 
         $startDate = $request->get('start_date')
             ? Carbon::parse($request->get('start_date'))

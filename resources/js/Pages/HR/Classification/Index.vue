@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import HRLayout from '@/layouts/HRLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
 import {
     UserGroupIcon,
     AcademicCapIcon,
@@ -25,6 +26,12 @@ const page = usePage();
 
 const props = defineProps({
     currentBusiness: { type: Object, default: null },
+    panelType: { type: String, default: 'hr' },
+});
+
+// HR sahifasi — HR yoki Owner kira oladi
+const layoutComponent = computed(() => {
+    return props.panelType === 'business' ? BusinessLayout : HRLayout;
 });
 
 // Data
@@ -142,7 +149,7 @@ const getPriorityColor = (priority) => {
 </script>
 
 <template>
-    <AppLayout>
+    <component :is="layoutComponent">
         <Head title="Xodim klassifikatsiyasi - HR" />
 
         <div class="py-6 px-4 sm:px-6 lg:px-8">
@@ -711,5 +718,5 @@ const getPriorityColor = (priority) => {
                 </form>
             </div>
         </div>
-    </AppLayout>
+    </component>
 </template>

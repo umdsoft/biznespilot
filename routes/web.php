@@ -2036,9 +2036,23 @@ Route::middleware(['auth', 'sales.head', 'subscription'])->prefix('sales-head')-
 
     // ==================== Business Systematization (Denis Shenukov) ====================
     // Sotuv Analitikasi Dashboard (ROP - Sotuv bo'limi rahbari uchun)
+    // Sahifa SalesHead/Operator/Business panellaridan kirilishi mumkin — panelType
+    // role bo'yicha aniqlanadi (Vue dynamic layoutComponent).
     Route::get('/sales-analytics', function () {
+        $user = auth()->user();
+        $business = $user?->currentBusiness;
+
+        // URL prefix asosida panelType (sales-head/operator/business)
+        $prefix = request()->route()?->getPrefix() ?? '';
+        $panelType = match (true) {
+            str_contains($prefix, 'sales-head') => 'saleshead',
+            str_contains($prefix, 'operator') => 'operator',
+            default => 'business',
+        };
+
         return inertia('Sales/Dashboard', [
-            'currentBusiness' => auth()->user()?->currentBusiness,
+            'currentBusiness' => $business,
+            'panelType' => $panelType,
         ]);
     })->name('sales-analytics');
 
@@ -2586,7 +2600,10 @@ Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->gr
     // Invitations (Taklifnomalar)
     Route::prefix('invitations')->name('invitations.')->group(function () {
         Route::get('/', function () {
-            $business = auth()->user()->ownedBusinesses()->first() ?? auth()->user()->businesses()->first();
+            // `ownedBusinesses()` va `businesses()` ikkalasi ham OWNED qaytaradi
+            // (User modelda hasMany — team-member uchun null). currentBusiness accessor
+            // owned + team membership ikkalasini ham qo'llab-quvvatlaydi.
+            $business = auth()->user()->currentBusiness;
 
             if (! $business) {
                 return redirect()->route('login');
@@ -2818,9 +2835,12 @@ Route::middleware(['auth', 'hr', 'subscription'])->prefix('hr')->name('hr.')->gr
     // ==================== Business Systematization (Denis Shenukov) ====================
 
     // Employee Classification (Думатель vs Делатель)
+    // panelType — URL prefix asosida: /hr/classification → 'hr', boshqa joydan → 'business'
     Route::get('/classification', function () {
+        $prefix = request()->route()?->getPrefix() ?? '';
         return inertia('HR/Classification/Index', [
             'currentBusiness' => auth()->user()?->currentBusiness,
+            'panelType' => str_contains($prefix, 'hr') ? 'hr' : 'business',
         ]);
     })->name('classification.index');
 });

@@ -6,30 +6,34 @@ import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue'
 /**
  * Composable for Store panel pages.
  *
- * Resolves the correct layout component and route names based on panelType
- * ('business', 'operator', or 'sales-head').
+ * Resolves the correct layout component and route names based on panelType.
+ * `panelType` ikkala konvensiyani ham qabul qiladi:
+ *   - 'sales-head' (URL prefix konvensiyasi) — eski kod
+ *   - 'saleshead' (Vue layoutComponent konvensiyasi) — yangi `detectPanelType()`
  */
 export function useStorePanel(panelType = 'business') {
+    // Vue konvensiyasini birlashtirish: 'saleshead' va 'sales-head' ikkalasi ham SalesHead
+    const isSalesHead = panelType === 'sales-head' || panelType === 'saleshead'
+
     const layoutComponent = computed(() => {
-        switch (panelType) {
-            case 'operator': return OperatorLayout
-            case 'sales-head': return SalesHeadLayout
-            default: return BusinessLayout
-        }
+        if (panelType === 'operator') return OperatorLayout
+        if (isSalesHead) return SalesHeadLayout
+        return BusinessLayout
     })
 
     /**
      * Generate store route URL with correct panel prefix.
-     * storeRoute('orders.index') → route('operator.store.orders.index')
+     * Route names URL-style chiziqli konvensiyani saqlaydi: 'sales-head.store.*'
      */
     const storeRoute = (suffix, params) => {
-        const prefix = panelType || 'business'
-        return route(`${prefix}.store.${suffix}`, params)
+        // Route name konvensiyasi 'sales-head.store.*' (chiziqli) saqlanadi
+        const routePrefix = isSalesHead ? 'sales-head' : (panelType || 'business')
+        return route(`${routePrefix}.store.${suffix}`, params)
     }
 
     const isBusinessPanel = panelType === 'business'
     const isOperatorPanel = panelType === 'operator'
-    const isSalesHeadPanel = panelType === 'sales-head'
+    const isSalesHeadPanel = isSalesHead
 
     return {
         layoutComponent,

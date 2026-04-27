@@ -1,5 +1,5 @@
 <template>
-  <BusinessLayout :title="t('chatbot.ai_chatbot')">
+  <component :is="layoutComponent" :title="t('chatbot.ai_chatbot')">
   <div class="flex flex-col h-[calc(100vh-12rem)]">
     <div class="mb-4 flex items-center justify-between">
       <div>
@@ -135,13 +135,18 @@
       </div>
     </Card>
   </div>
-  </BusinessLayout>
+  </component>
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue';
+import { ref, computed, nextTick, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import MarketingLayout from '@/layouts/MarketingLayout.vue';
+import OperatorLayout from '@/layouts/OperatorLayout.vue';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import HRLayout from '@/layouts/HRLayout.vue';
+import FinanceLayout from '@/layouts/FinanceLayout.vue';
 import Card from '@/components/Card.vue';
 import axios from 'axios';
 import { useI18n } from '@/i18n';
@@ -153,6 +158,20 @@ const { confirm } = useConfirm();
 const props = defineProps({
   messages: Array,
   hasApiKey: Boolean,
+  panelType: { type: String, default: 'business' },
+});
+
+// Rolga qarab tegishli layout — har xodim profilidan kirsa o'z paneli ko'rinadi
+const layoutComponent = computed(() => {
+  const map = {
+    marketing: MarketingLayout,
+    operator: OperatorLayout,
+    saleshead: SalesHeadLayout,
+    hr: HRLayout,
+    finance: FinanceLayout,
+    business: BusinessLayout,
+  };
+  return map[props.panelType] || BusinessLayout;
 });
 
 const chatMessages = ref([...props.messages]);

@@ -42,6 +42,7 @@ class ChatbotController extends Controller
             'messages' => $messages,
             'hasApiKey' => false, // AI is disabled
             'aiDisabled' => true,
+            'panelType' => $this->detectPanelType($currentBusiness),
         ]);
     }
 
@@ -52,9 +53,11 @@ class ChatbotController extends Controller
         ]);
 
         $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // HasCurrentBusiness: $user->businesses() faqat OWNED qaytaradi (team-member uchun null).
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return response()->json(['success' => false, 'message' => 'Biznes topilmadi'], 403);
+        }
 
         // Save user message
         $userMessage = ChatMessage::create([
@@ -94,9 +97,10 @@ class ChatbotController extends Controller
     public function clearHistory(Request $request)
     {
         $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return response()->json(['success' => false, 'message' => 'Biznes topilmadi'], 403);
+        }
 
         ChatMessage::where('user_id', $user->id)
             ->where('business_id', $currentBusiness->id)

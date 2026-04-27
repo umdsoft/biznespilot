@@ -35,11 +35,16 @@ trait HasStorePanelType
     /**
      * Get the Inertia panelType value for Vue components.
      *
-     * Maps route prefix to the panelType prop used by Vue layouts.
+     * Vue layoutComponent map konvensiyasi: 'business', 'operator', 'saleshead'
+     * (chiziqsiz). URL prefix esa 'sales-head' (chiziqli). Bu funksiya Vue uchun
+     * to'g'ri qiymatni qaytaradi — boshqa controllerlardagi `detectPanelType()`
+     * konvensiyasiga moslashadi.
      */
     protected function getStorePanelTypeForInertia(): string
     {
-        return $this->getStorePanelType();
+        $type = $this->getStorePanelType();
+        // 'sales-head' (URL) -> 'saleshead' (Vue layout map)
+        return $type === 'sales-head' ? 'saleshead' : $type;
     }
 
     /**

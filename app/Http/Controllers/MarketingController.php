@@ -20,9 +20,7 @@ class MarketingController extends Controller
      */
     public function index()
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if (! $currentBusiness) {
             return redirect()->route('business.index')
@@ -92,9 +90,7 @@ class MarketingController extends Controller
      */
     public function channels()
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if (! $currentBusiness) {
             return redirect()->route('business.index');
@@ -128,9 +124,7 @@ class MarketingController extends Controller
      */
     public function storeChannel(Request $request)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -157,9 +151,7 @@ class MarketingController extends Controller
      */
     public function updateChannel(Request $request, MarketingChannel $channel)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if ($channel->business_id !== $currentBusiness->id) {
             abort(403);
@@ -188,9 +180,7 @@ class MarketingController extends Controller
      */
     public function destroyChannel(MarketingChannel $channel)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if ($channel->business_id !== $currentBusiness->id) {
             abort(403);
@@ -207,9 +197,7 @@ class MarketingController extends Controller
      */
     public function content()
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if (! $currentBusiness) {
             return redirect()->route('business.index');
@@ -322,9 +310,7 @@ class MarketingController extends Controller
      */
     public function storeContent(Request $request)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -384,9 +370,7 @@ class MarketingController extends Controller
      */
     public function showContent(ContentPost $content)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if ($content->business_id !== $currentBusiness->id) {
             abort(403);
@@ -431,9 +415,7 @@ class MarketingController extends Controller
      */
     public function editContent(ContentPost $content)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if ($content->business_id !== $currentBusiness->id) {
             abort(403);
@@ -469,9 +451,7 @@ class MarketingController extends Controller
      */
     public function updateContent(Request $request, ContentPost $content)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if ($content->business_id !== $currentBusiness->id) {
             abort(403);
@@ -530,9 +510,7 @@ class MarketingController extends Controller
      */
     public function deleteContent(ContentPost $content)
     {
-        $currentBusiness = session('current_business_id')
-            ? Auth::user()->businesses()->find(session('current_business_id'))
-            : Auth::user()->businesses()->first();
+        $currentBusiness = Auth::user()?->currentBusiness;
 
         if ($content->business_id !== $currentBusiness->id) {
             abort(403);

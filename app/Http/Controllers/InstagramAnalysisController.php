@@ -657,7 +657,8 @@ class InstagramAnalysisController extends Controller
         $businessId = $request->input('business_id') ?? session('current_business_id');
 
         if (! $businessId) {
-            $business = auth()->user()->businesses()->first();
+            // currentBusiness accessor — owner + team membership ikkalasi ham
+            $business = auth()->user()->currentBusiness;
             if (! $business) {
                 abort(400, 'Biznes tanlanmagan');
             }

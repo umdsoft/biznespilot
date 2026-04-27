@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasCurrentBusiness;
 use App\Models\Campaign;
 use App\Services\MarketingAutomationService;
 use Illuminate\Http\Request;
@@ -10,6 +11,8 @@ use Inertia\Inertia;
 
 class MarketingCampaignController extends Controller
 {
+    use HasCurrentBusiness;
+
     protected MarketingAutomationService $automationService;
 
     public function __construct(MarketingAutomationService $automationService)
@@ -19,10 +22,12 @@ class MarketingCampaignController extends Controller
 
     public function index()
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        // HasCurrentBusiness — owner + team-member ikkalasi ham qo'llab-quvvatlanadi.
+        // Avvalgi $user->businesses() faqat OWNED qaytarib, finance team-member uchun null edi.
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return redirect()->route('login');
+        }
 
         $campaigns = Campaign::where('business_id', $currentBusiness->id)
             ->with('messages')
@@ -46,30 +51,32 @@ class MarketingCampaignController extends Controller
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,
             ],
+            'panelType' => $this->detectPanelType($currentBusiness),
         ]);
     }
 
     public function create()
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return redirect()->route('login');
+        }
 
         return Inertia::render('Business/Marketing/Campaigns/Create', [
             'currentBusiness' => [
                 'id' => $currentBusiness->id,
                 'name' => $currentBusiness->name,
             ],
+            'panelType' => $this->detectPanelType($currentBusiness),
         ]);
     }
 
     public function store(Request $request)
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return redirect()->route('login');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -106,10 +113,10 @@ class MarketingCampaignController extends Controller
 
     public function generateAI(Request $request)
     {
-        $user = Auth::user();
-        $currentBusiness = session('current_business_id')
-            ? $user->businesses()->find(session('current_business_id'))
-            : $user->businesses()->first();
+        $currentBusiness = $this->getCurrentBusiness();
+        if (! $currentBusiness) {
+            return response()->json(['success' => false, 'message' => 'Biznes topilmadi'], 403);
+        }
 
         $validated = $request->validate([
             'campaign_goal' => 'required|string',

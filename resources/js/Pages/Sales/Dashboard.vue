@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import BusinessLayout from '@/layouts/BusinessLayout.vue';
+import SalesHeadLayout from '@/layouts/SalesHeadLayout.vue';
+import OperatorLayout from '@/layouts/OperatorLayout.vue';
 import {
     ChartBarIcon,
     CurrencyDollarIcon,
@@ -25,6 +27,18 @@ const page = usePage();
 
 const props = defineProps({
     currentBusiness: { type: Object, default: null },
+    panelType: { type: String, default: 'saleshead' },
+});
+
+// Rolga qarab tegishli layout — saleshead/operator/business uchun.
+// Sales analitika dashboardi asosan SalesHead/Operator/Owner uchun mo'ljallangan.
+const layoutComponent = computed(() => {
+    const map = {
+        saleshead: SalesHeadLayout,
+        operator: OperatorLayout,
+        business: BusinessLayout,
+    };
+    return map[props.panelType] || SalesHeadLayout;
 });
 
 // Data
@@ -100,7 +114,7 @@ const formatCurrency = (amount) => {
 </script>
 
 <template>
-    <AppLayout>
+    <component :is="layoutComponent">
         <Head title="Sotuv Dashboardi - ROP" />
 
         <div class="py-6 px-4 sm:px-6 lg:px-8">
@@ -560,5 +574,5 @@ const formatCurrency = (amount) => {
                 </Link>
             </div>
         </div>
-    </AppLayout>
+    </component>
 </template>

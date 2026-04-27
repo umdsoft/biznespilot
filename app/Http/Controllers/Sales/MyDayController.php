@@ -57,7 +57,9 @@ class MyDayController extends Controller
      */
     protected function getUserSalesRole($user, $business): string
     {
-        if ($business->owner_id === $user->id) {
+        // Business modelida `owner_id` mavjud emas — to'g'risi `user_id`.
+        // Avvalgi kod har doim false qaytarib, owner ham 'guest' rolni olardi.
+        if ($business->user_id === $user->id) {
             return 'owner';
         }
 
