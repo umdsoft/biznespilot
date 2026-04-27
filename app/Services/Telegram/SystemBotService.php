@@ -41,6 +41,19 @@ class SystemBotService
     }
 
     /**
+     * Bot token getter — Publisher servislari uchun.
+     */
+    public function getToken(): ?string
+    {
+        return $this->botToken;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->botUsername;
+    }
+
+    /**
      * Generate deep link for user authentication.
      *
      * Foydalanuvchi bu link orqali botni ochganda,

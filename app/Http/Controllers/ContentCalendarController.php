@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\ContentCalendar;
 use App\Models\MonthlyPlan;
 use App\Models\WeeklyPlan;
+use App\Services\Content\ContentHashtagGenerator;
+use App\Services\Content\ContentWatermarker;
+use App\Services\Content\Publishers\TelegramChannelPublisher;
 use App\Services\ContentStrategyService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -369,6 +373,141 @@ class ContentCalendarController extends Controller
             'analytics' => $analytics,
             'start_date' => $startDate,
             'end_date' => $endDate,
+        ]);
+    }
+
+    // ================================================================
+    // AVTOMATIK PUBLISH va MATCHING uchun yangi endpointlar
+    // ================================================================
+
+    /**
+     * "Copy text" tugmasi uchun — sistema generatsiya qilgan
+     * hashtag + watermark bilan boyitilgan matnni qaytaradi.
+     *
+     * Foydalanuvchi clipboard'ga oladi va tashqarida (Telegram/Instagram'da) paste qiladi.
+     */
+    public function publishText(
+        Request $request,
+        ContentCalendar $content,
+        ContentHashtagGenerator $hashtagGenerator,
+        ContentWatermarker $watermarker,
+    ): JsonResponse {
+        $business = $request->user()->currentBusiness;
+        if (! $business || $content->business_id !== $business->id) {
+            return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
+        // Auto-hashtag mavjud bo'lmasa generatsiya qilamiz
+        $hashtag = $hashtagGenerator->ensureForItem($content);
+
+        $base = trim((string) ($content->content_text ?? $content->content ?? $content->description ?? $content->title ?? ''));
+
+        // Foydalanuvchi qo'lda yozgan hashtag'lar
+        $userHashtags = is_array($content->hashtags) ? $content->hashtags : [];
+        $userHashtags = array_filter(array_map(
+            fn ($t) => '#' . ltrim((string) $t, '#'),
+            $userHashtags,
+        ));
+
+        $parts = [$base];
+        if (! empty($userHashtags)) {
+            $parts[] = implode(' ', array_unique($userHashtags));
+        }
+        if (! empty($hashtag) && ! str_contains($base, $hashtag)) {
+            $parts[] = $hashtag;
+        }
+
+        $combined = trim(implode("\n\n", array_filter($parts)));
+        $watermarked = $watermarker->embed($combined, (string) $content->id);
+
+        return response()->json([
+            'success' => true,
+            'text' => $watermarked,
+            'visible_text' => $combined, // foydalanuvchiga ko'rsatish uchun (watermark'siz)
+            'hashtag' => $hashtag,
+            'has_watermark' => true,
+            'media_urls' => is_array($content->media_urls) ? $content->media_urls : [],
+            'platform' => (string) ($content->platform ?? 'telegram'),
+        ]);
+    }
+
+    /**
+     * "Avtomatik post" tugmasi uchun — sistema o'zi platformaga post qiladi.
+     * 100% aniq match kafolatlanadi (API javobida message_id qaytariladi).
+     */
+    public function autoPublish(
+        Request $request,
+        ContentCalendar $content,
+        TelegramChannelPublisher $telegramPublisher,
+    ): JsonResponse {
+        $business = $request->user()->currentBusiness;
+        if (! $business || $content->business_id !== $business->id) {
+            return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
+        if ($content->status === 'published') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu kontent allaqachon chop etilgan',
+                'post_url' => $content->post_url,
+            ], 422);
+        }
+
+        $platform = strtolower((string) ($content->platform ?? $content->channel ?? ''));
+
+        $result = match ($platform) {
+            'telegram' => $telegramPublisher->publish($content->fresh()),
+            default => [
+                'success' => false,
+                'error' => 'unsupported_platform',
+                'message' => "Hozircha faqat Telegram qo'llab-quvvatlanadi (kelajakda: Instagram, YouTube)",
+            ],
+        };
+
+        if (! ($result['success'] ?? false)) {
+            $errorCode = (string) ($result['error'] ?? 'unknown');
+            $message = match ($errorCode) {
+                'no_channel_connected' => "Telegram kanal ulanmagan — avval kanalni ulang",
+                'bot_not_admin' => "@biznespilot_bot kanalingizda admin emas — uni admin qiling",
+                'photo_url_missing', 'video_url_missing', 'document_url_missing' => "Media fayl topilmadi",
+                'telegram_api_error' => "Telegram xatosi: " . ($result['description'] ?? 'noma\'lum'),
+                default => "Publish qilinmadi: {$errorCode}",
+            };
+
+            return response()->json([
+                'success' => false,
+                'error' => $errorCode,
+                'message' => $message,
+                'details' => $result,
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Muvaffaqiyatli chop etildi",
+            'message_id' => $result['message_id'] ?? null,
+            'post_url' => $result['post_url'] ?? null,
+            'item' => $content->fresh(),
+        ]);
+    }
+
+    /**
+     * Item save qilinganda yoki yangilanganda auto_hashtag'ni
+     * tezlik bilan generatsiya qilish (UI preview uchun).
+     */
+    public function previewHashtag(
+        Request $request,
+        ContentCalendar $content,
+        ContentHashtagGenerator $generator,
+    ): JsonResponse {
+        $business = $request->user()->currentBusiness;
+        if (! $business || $content->business_id !== $business->id) {
+            return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'hashtag' => $generator->ensureForItem($content),
         ]);
     }
 }

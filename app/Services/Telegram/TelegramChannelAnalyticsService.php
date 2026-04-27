@@ -262,7 +262,9 @@ class TelegramChannelAnalyticsService
             'message_id' => $messageId,
         ]);
 
-        if (!$post->exists) {
+        $isNew = ! $post->exists;
+
+        if ($isNew) {
             $post->fill([
                 'posted_at' => isset($message['date'])
                     ? Carbon::createFromTimestamp((int) $message['date'])
@@ -280,6 +282,19 @@ class TelegramChannelAnalyticsService
             $post->update([
                 'text_preview' => $this->extractTextPreview($message),
                 'raw_payload' => $message,
+            ]);
+        }
+
+        // Content reja bilan avtomatik match — yangi post bo'lsa va edit bo'lganda
+        // ham (foydalanuvchi hashtag/watermark'ni keyinroq qo'shgan bo'lishi mumkin).
+        try {
+            $matcher = app(\App\Services\Content\ContentMatcher::class);
+            $matcher->matchTelegramChannelPost($post->refresh());
+        } catch (\Throwable $e) {
+            Log::warning('ContentMatcher: telegram channel post match failed', [
+                'post_id' => $post->id,
+                'message_id' => $messageId,
+                'error' => $e->getMessage(),
             ]);
         }
 

@@ -867,7 +867,7 @@
     "src": "node_modules/leaflet/dist/images/marker-icon.png"
   },
   "resources/css/app.css": {
-    "file": "css/app-Db8vOvhU.css",
+    "file": "css/app-DQX33UM2.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -876,7 +876,7 @@
     ]
   },
   "resources/css/miniapp.css": {
-    "file": "css/miniapp-Cfit0IQ_.css",
+    "file": "css/miniapp-3fAsyb4Q.css",
     "src": "resources/css/miniapp.css",
     "isEntry": true,
     "name": "miniapp",

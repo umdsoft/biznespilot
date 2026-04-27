@@ -1355,6 +1355,11 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
         Route::put('/{content}/metrics', [ContentCalendarController::class, 'updateMetrics'])->name('metrics');
         Route::post('/{content}/generate-ai', [ContentCalendarController::class, 'generateAI'])->name('generate-ai');
 
+        // Avtomatik publish + tracking (hashtag/watermark/direct-API)
+        Route::get('/{content}/publish-text', [ContentCalendarController::class, 'publishText'])->name('publish-text');
+        Route::post('/{content}/auto-publish', [ContentCalendarController::class, 'autoPublish'])->name('auto-publish');
+        Route::get('/{content}/preview-hashtag', [ContentCalendarController::class, 'previewHashtag'])->name('preview-hashtag');
+
         // Bulk actions
         Route::post('/bulk-status', [ContentCalendarController::class, 'bulkUpdateStatus'])->name('bulk-status');
 

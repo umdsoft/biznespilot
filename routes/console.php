@@ -34,6 +34,18 @@ Schedule::job(new SyncTelegramChannelStatsJob)
     ->withoutOverlapping(15)
     ->onOneServer();
 
+// ==========================================
+// CONTENT CALENDAR — Avtomatik publish
+// ==========================================
+// Reja qilingan content item'larni scheduled_at vaqti yetganda
+// avtomatik chop etish. Har daqiqada — yetishmagan post max 60s kechikadi.
+Schedule::job(new \App\Jobs\PublishScheduledContentJob)
+    ->everyMinute()
+    ->timezone('Asia/Tashkent')
+    ->name('content-publish-scheduled')
+    ->withoutOverlapping(2)
+    ->onOneServer();
+
 // Daily rollup at 23:55 — captures today's metrics
 Schedule::job(new RollupTelegramChannelDailyStatsJob)
     ->dailyAt('23:55')
