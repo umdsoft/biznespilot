@@ -8,6 +8,7 @@ import PaymentModal from '@/components/PaymentModal.vue';
 import CallWidget from '@/components/CallWidget.vue';
 import TaskModal from '@/components/TaskModal.vue';
 import LeadAssignModal from '@/components/LeadAssignModal.vue';
+import TelegramSalesBotCard from '@/components/leads/TelegramSalesBotCard.vue';
 import {
     ArrowLeftIcon,
     PencilSquareIcon,
@@ -1390,6 +1391,9 @@ onUnmounted(() => {
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- AI Sales Bot Customer Profile (faqat telegram_sales_bot manbasi uchun) -->
+                                    <TelegramSalesBotCard :lead="lead" />
 
                                     <!-- Source & Notes Card -->
                                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">

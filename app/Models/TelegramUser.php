@@ -31,16 +31,29 @@ class TelegramUser extends Model
         'first_interaction_at',
         'last_interaction_at',
         'total_messages',
+        // AI Sales Bot — mijoz portreti (marketing uchun)
+        'customer_profile',
+        'lifetime_value',
+        'purchase_count',
+        'last_purchase_at',
+        'dormant_score',
+        'last_recommended_at',
     ];
 
     protected $casts = [
         'tags' => 'array',
         'custom_data' => 'array',
+        'customer_profile' => 'array',
         'is_blocked' => 'boolean',
         'is_subscribed' => 'boolean',
         'first_interaction_at' => 'datetime',
         'last_interaction_at' => 'datetime',
         'total_messages' => 'integer',
+        'lifetime_value' => 'decimal:2',
+        'purchase_count' => 'integer',
+        'last_purchase_at' => 'datetime',
+        'dormant_score' => 'integer',
+        'last_recommended_at' => 'datetime',
     ];
 
     // Relations

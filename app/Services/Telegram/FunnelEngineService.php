@@ -729,6 +729,12 @@ class FunnelEngineService
                     $this->goToStep($step->next_step_id);
                 }
                 return;
+
+            case 'ai_consultant':
+                // AI Maslahatchi — mijoz bilan tabiiy dialog, mahsulot tavsiyasi.
+                // ConversationEngine markaziy mantiqni boshqaradi.
+                $this->executeAiConsultantStep($step);
+                return;
         }
 
         // Process content variables
@@ -1461,6 +1467,16 @@ class FunnelEngineService
         if (! $step) {
             $this->state->update(['waiting_for' => 'none']);
 
+            return;
+        }
+
+        // ─── AI CONSULTANT MESSAGE ROUTING ──────────────────────────────
+        // Mijoz xabari ai_consultant step uchun kelganda — ConversationEngine'ga uzatish.
+        if ($this->state->waiting_for === 'ai_consultant_message' || $step->step_type === 'ai_consultant') {
+            $userText = $this->getMessageText($message) ?: ($message['text'] ?? '');
+            if ($userText !== '') {
+                $this->processAiConsultantInput($userText);
+            }
             return;
         }
 
@@ -2928,5 +2944,178 @@ class FunnelEngineService
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * AI Maslahatchi step — mijoz bilan dialog, mahsulot tavsiyasi.
+     *
+     * Conversation Engine markaziy mantiqni boshqaradi:
+     *   - Foydalanuvchi xabarini olib, ehtiyojni AI orqali aniqlaydi
+     *   - Yetarli ma'lumot bo'lsa — mahsulot tavsiya qiladi
+     *   - Lead avtomatik yaratiladi (marketing data)
+     *
+     * Step content (ai_consultant) konfiguratsiyasi (kelajakda):
+     *   - greeting_message: birinchi salomlashish
+     *   - max_questions: necha savol berish (default 4)
+     *   - product_category: qaysi toifadan tavsiya
+     */
+    protected function executeAiConsultantStep(TelegramFunnelStep $step): void
+    {
+        $chatId = $this->user->telegram_id;
+
+        // 1. Boshlash: greeting xabari (faqat birinchi marta — profile mavjud emas)
+        $existingProfile = \App\Models\CustomerNeedProfile::where('telegram_user_id', $this->user->id)
+            ->where('conversation_id', $this->conversation->id)
+            ->first();
+
+        if (! $existingProfile) {
+            // step->content array bo'lsa, undan text olib processVariables uchun array shaklida yuborish
+            $contentArray = is_array($step->content) ? $step->content : [];
+            $rawText = $contentArray['text'] ?? '👋 Salom! Sizga to\'g\'ri tanlov qilishda yordam beraman. Avval ayting — bugun nima izlayapsiz?';
+            $processed = $this->processVariables(['text' => $rawText]);
+            $greeting = $processed['text'] ?? $rawText;
+
+            if ($this->bot->hasTypingAction()) {
+                $this->api->sendChatAction($chatId, 'typing');
+                usleep($this->bot->getTypingDelay() * 1000);
+            }
+
+            $this->api->sendMessage($chatId, $greeting);
+            $this->logOutgoingMessage($step, ['text' => $greeting], null);
+            $this->incrementDailyStat('messages_out');
+
+            // Profile yaratish + state'ni waiting_for=ai_consultant_message ga qo'yish
+            \App\Models\CustomerNeedProfile::create([
+                'business_id' => $this->user->business_id,
+                'telegram_user_id' => $this->user->id,
+                'conversation_id' => $this->conversation->id,
+                'current_state' => 'greeting',
+                'info_completeness' => 0.00,
+                'ready_to_buy' => false,
+                'constraints' => [],
+                'viewed_products' => [],
+                'rejected_products' => [],
+                'recommended_products' => [],
+                'blockers' => [],
+            ]);
+
+            $this->state->update([
+                'current_funnel_id' => $step->funnel_id,
+                'current_step_id' => $step->id,
+                'waiting_for' => 'ai_consultant_message',
+            ]);
+
+            return;
+        }
+
+        // Bu step user input bilan chaqirilsa (router bilan), processAiConsultantInput ishlatiladi
+    }
+
+    /**
+     * Foydalanuvchining xabari ai_consultant_message kutilayotganda — shu metod chaqiriladi.
+     * Router (processInput) bu metodni waiting_for='ai_consultant_message' bo'lsa chaqiradi.
+     */
+    public function processAiConsultantInput(string $userMessage): void
+    {
+        $chatId = $this->user->telegram_id;
+        $step = TelegramFunnelStep::find($this->state->current_step_id);
+
+        if (! $step || $step->step_type !== 'ai_consultant') {
+            // Step yo'q — fallback
+            $this->state->update(['waiting_for' => 'none']);
+            return;
+        }
+
+        try {
+            $engine = app(\App\Services\Telegram\SalesBot\ConversationEngine::class);
+            $result = $engine->handleMessage($this->user, $userMessage, $this->conversation);
+
+            $reply = $result['reply'] ?? '🤖 Kechirasiz, qayta urinib ko\'ring.';
+            $products = $result['products'] ?? [];
+
+            if ($this->bot->hasTypingAction()) {
+                $this->api->sendChatAction($chatId, 'typing');
+                usleep($this->bot->getTypingDelay() * 1000);
+            }
+
+            // sendMessage signature: ($chatId, $text, ?$keyboard, $parseMode)
+            // Markdown ishlatsak parse mode'ni Markdown qilamiz
+            $this->api->sendMessage($chatId, $reply, null, 'Markdown');
+            $this->logOutgoingMessage($step, ['text' => $reply], null);
+            $this->incrementDailyStat('messages_out');
+
+            if (! empty($products)) {
+                $this->sendProductCards($chatId, $products, $step);
+            }
+
+            if (($result['state'] ?? null) === 'checkout') {
+                $this->sendCheckoutKeyboard($chatId);
+            }
+
+            // Dialog davom etadi — waiting_for'ni saqlash
+            $this->state->update(['waiting_for' => 'ai_consultant_message']);
+
+        } catch (\Throwable $e) {
+            Log::error('AI Consultant input error', [
+                'user_id' => $this->user->id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            $this->api->sendMessage($chatId, '🤖 Texnik nosozlik. "operator" deb yozsangiz menejer bilan bog\'laymiz.');
+        }
+    }
+
+    /**
+     * AI tavsiya qilgan mahsulotlarni Telegram kartalari shaklida yuborish.
+     * sendPhoto/sendMessage signature: positional argumentlar.
+     */
+    protected function sendProductCards(int|string $chatId, array $products, TelegramFunnelStep $step): void
+    {
+        foreach ($products as $product) {
+            $price = number_format((float) $product['price'], 0, '.', ' ');
+            $caption = "*{$product['name']}*\n";
+            $caption .= "💰 {$price} so'm\n\n";
+            if (! empty($product['description'])) {
+                $caption .= mb_substr($product['description'], 0, 200) . "\n\n";
+            }
+            $caption .= "✓ " . ($product['reason'] ?? '');
+
+            $keyboard = [
+                'inline_keyboard' => [[
+                    ['text' => '🛒 Sotib olish', 'callback_data' => "product_buy:{$product['id']}"],
+                    ['text' => '👀 Boshqa variant', 'callback_data' => "product_other:{$product['id']}"],
+                ]],
+            ];
+
+            try {
+                if (! empty($product['image_url'])) {
+                    // sendPhoto($chatId, $photo, ?$caption, ?$keyboard, $parseMode)
+                    $this->api->sendPhoto($chatId, $product['image_url'], $caption, $keyboard, 'Markdown');
+                } else {
+                    // sendMessage($chatId, $text, ?$keyboard, $parseMode)
+                    $this->api->sendMessage($chatId, $caption, $keyboard, 'Markdown');
+                }
+                $this->incrementDailyStat('messages_out');
+            } catch (\Throwable $e) {
+                Log::warning('Product card send fail', [
+                    'product_id' => $product['id'],
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    protected function sendCheckoutKeyboard(int|string $chatId): void
+    {
+        $keyboard = [
+            'inline_keyboard' => [
+                [['text' => '💳 Click bilan to\'lash', 'callback_data' => 'checkout:click']],
+                [['text' => '💳 Payme bilan to\'lash', 'callback_data' => 'checkout:payme']],
+                [['text' => '👤 Operator bilan suhbat', 'callback_data' => 'request_operator']],
+            ],
+        ];
+
+        $this->api->sendMessage($chatId, "Quyidagi to'lov turlaridan birini tanlang:", $keyboard);
     }
 }
