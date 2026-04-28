@@ -19,7 +19,10 @@ class AIService
 
     private string $apiKey;
     private string $apiUrl = 'https://api.anthropic.com/v1/messages';
-    private int $maxRetries = 2;
+    // Production'da bir AI chaqiruv max ~45s (22s + 1s sleep + 22s) qiladi.
+    // Avval 2 retry + 45s timeout = 135s+ edi → nginx 504 Gateway Timeout.
+    private int $maxRetries = 1;
+    private int $httpTimeout = 22;
 
     public function __construct()
     {
@@ -88,7 +91,7 @@ class AIService
                     'x-api-key' => $this->apiKey,
                     'anthropic-version' => '2023-06-01',
                     'content-type' => 'application/json',
-                ])->timeout(45)->post($this->apiUrl, [
+                ])->timeout($this->httpTimeout)->connectTimeout(5)->post($this->apiUrl, [
                     'model' => $currentModel,
                     'max_tokens' => $maxTokens,
                     'system' => $systemPrompt,
@@ -179,7 +182,7 @@ class AIService
                     'x-api-key' => $this->apiKey,
                     'anthropic-version' => '2023-06-01',
                     'content-type' => 'application/json',
-                ])->timeout(45)->post($this->apiUrl, [
+                ])->timeout($this->httpTimeout)->connectTimeout(5)->post($this->apiUrl, [
                     'model' => $currentModel,
                     'max_tokens' => $maxTokens,
                     'system' => $systemPrompt,

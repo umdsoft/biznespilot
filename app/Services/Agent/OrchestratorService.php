@@ -161,9 +161,15 @@ class OrchestratorService
         }
 
         // Multi-agent javob — EXECUTOR paradigma
-        // Timeout oldini olish: 4 agent o'rniga eng mos 2 ta + director
-        // Har bir Haiku call ~5-8 sek, jami: 2 agent + 1 director = ~20-25 sek
-        set_time_limit(180); // Sonnet chuqur tahlil uchun yetarli vaqt
+        // Time budget: nginx send_timeout=60s, fastcgi=300s. Foydalanuvchi 60s'gacha kutadi.
+        // Har bir Haiku call ~5-12s, max 22s+1s+22s=45s. 2 agent + Merger + Director ko'p
+        // bo'lsa nginx 504 chiqaradi. Shuning uchun elapsed time bo'yicha shartli skip qilamiz.
+        $totalStartTime = microtime(true);
+        $TIME_BUDGET_TOTAL_S = 50;       // Jami response budjeti
+        $TIME_BUDGET_MERGER_S = 30;      // Merger chaqirilishidan oldin shu vaqt o'tgan bo'lmasligi kerak
+        $TIME_BUDGET_DIRECTOR_S = 35;    // Director chaqirilishidan oldin shu vaqt o'tgan bo'lmasligi kerak
+
+        set_time_limit(180);
         ini_set('max_execution_time', 180);
 
         $inspector = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class);
@@ -200,40 +206,55 @@ class OrchestratorService
         }
 
         // Cross-agent xulosa — Merger orqali (agentlar orasidagi bog'liqlik)
-        if (count($agentResponses) >= 2) {
+        // Time budget: agar agentlar Merger budjetidan ko'p vaqt olgan bo'lsa skip qilamiz
+        $elapsedSec = microtime(true) - $totalStartTime;
+        if (count($agentResponses) >= 2 && $elapsedSec < $TIME_BUDGET_MERGER_S) {
             try {
                 $merged = $this->merger->merge($agentResponses, $businessId);
                 if ($merged->success && $merged->source === 'merged_ai') {
                     $parts[] = "---";
                     $parts[] = "🔗 **Jamoaviy xulosa:**\n\n{$merged->content}";
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::warning('Merger xato', ['error' => $e->getMessage()]);
             }
+        } elseif (count($agentResponses) >= 2) {
+            Log::info('Merger skipped — time budget exceeded', ['elapsed_s' => round($elapsedSec, 2)]);
         }
 
         // Director xulosa — Sonnet bilan chuqur strategik tahlil
-        try {
-            $agentSummary = implode("\n", array_slice($parts, 3));
-            $directorResponse = $this->aiService->ask(
-                prompt: "Agent tavsiyalari:\n{$agentSummary}\n\n"
-                    . "Chuqur strategik tahlil qil. ENG MUHIM 3 ta harakatni tanla. "
-                    . "Har biri uchun: NIMA va NEGA aniq yoz. Aniq raqamlar ishlat (lidlar, foizlar, valyuta).",
-                systemPrompt: "Sen Umidbek — BiznesPilot AI bosh direktorisan. 15 yillik tajribali biznes strategisan.\n"
-                    . "O'zbek tilida, professional. Sen jamoang ISHINI ko'rib chiqib, STRATEGIK qaror qabul qilasan.\n"
-                    . "'Qiling' DEMA. 'Men tayyorladim', 'Biz bajardik' de. Faqat TASDIQLASH so'ra.\n"
-                    . "Har harakatda: muammo, yechim, kutilgan natija (raqam bilan).\n"
-                    . "Format: 🔥 3 ta strategik harakat (har biri 3-4 jumla). Oxirida: ❓ Tasdiqlaymi?",
-                preferredModel: 'sonnet',
-                maxTokens: 1500,
-                businessId: $businessId,
-                agentType: 'director',
-            );
+        // Time budget: agar Director budjetidan ko'p vaqt o'tgan bo'lsa skip qilamiz
+        // Sababi: Sonnet sekinroq (10-25s) + nginx send_timeout=60s → 504 xavfi
+        $elapsedSec = microtime(true) - $totalStartTime;
+        if ($elapsedSec < $TIME_BUDGET_DIRECTOR_S) {
+            try {
+                $agentSummary = implode("\n", array_slice($parts, 3));
+                $directorResponse = $this->aiService->ask(
+                    prompt: "Agent tavsiyalari:\n{$agentSummary}\n\n"
+                        . "Chuqur strategik tahlil qil. ENG MUHIM 3 ta harakatni tanla. "
+                        . "Har biri uchun: NIMA va NEGA aniq yoz. Aniq raqamlar ishlat (lidlar, foizlar, valyuta).",
+                    systemPrompt: "Sen Umidbek — BiznesPilot AI bosh direktorisan. 15 yillik tajribali biznes strategisan.\n"
+                        . "O'zbek tilida, professional. Sen jamoang ISHINI ko'rib chiqib, STRATEGIK qaror qabul qilasan.\n"
+                        . "'Qiling' DEMA. 'Men tayyorladim', 'Biz bajardik' de. Faqat TASDIQLASH so'ra.\n"
+                        . "Har harakatda: muammo, yechim, kutilgan natija (raqam bilan).\n"
+                        . "Format: 🔥 3 ta strategik harakat (har biri 3-4 jumla). Oxirida: ❓ Tasdiqlaymi?",
+                    preferredModel: 'sonnet',
+                    maxTokens: 1500,
+                    businessId: $businessId,
+                    agentType: 'director',
+                );
+                $parts[] = "---";
+                $parts[] = "✅ **Umidbek (Bosh direktor):**\n\n{$directorResponse->content}";
+            } catch (\Throwable $e) {
+                $parts[] = "---";
+                $parts[] = "✅ **Umidbek (Bosh direktor):**\n\nYuqoridagi ishlar tayyor. **Tasdiqlaymi?**";
+                Log::warning('Director xato', ['error' => $e->getMessage()]);
+            }
+        } else {
+            // Time budget tugadi — Director'siz tayyor javob beramiz (504 oldini olish)
             $parts[] = "---";
-            $parts[] = "✅ **Umidbek (Bosh direktor):**\n\n{$directorResponse->content}";
-        } catch (\Exception $e) {
-            $parts[] = "---";
-            $parts[] = "✅ **Umidbek (Bosh direktor):**\n\nYuqoridagi ishlar tayyor. **Tasdiqlaymi?**";
+            $parts[] = "✅ **Umidbek (Bosh direktor):**\n\nYuqoridagi tahlillar asosida harakat qiling. **Tasdiqlaymi?**";
+            Log::info('Director skipped — time budget exceeded', ['elapsed_s' => round($elapsedSec, 2)]);
         }
 
         return AIResponse::fromRule(implode("\n", $parts));
