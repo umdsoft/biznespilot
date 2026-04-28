@@ -15,7 +15,7 @@
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         <a
-          href="https://t.me/biznespilot_support"
+          href="https://t.me/boss_adminbek"
           target="_blank"
           rel="noopener"
           class="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-md transition-colors"
