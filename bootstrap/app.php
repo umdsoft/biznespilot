@@ -210,21 +210,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 402);
             }
 
-            // Inertia so'rovlari uchun - pricing sahifasiga yo'naltirish
-            if ($request->hasHeader('X-Inertia')) {
-                return redirect()->route('pricing')->with([
-                    'warning' => $e->getMessage(),
-                    'upgrade_required' => true,
-                    'upgrade_data' => [
-                        'type' => 'no_subscription',
-                    ],
-                ]);
-            }
-
-            // Oddiy web so'rovlar uchun
-            return redirect()->route('pricing')->with([
+            // Inertia va oddiy web so'rovlar uchun — tarif sahifasiga yo'naltirish
+            return redirect()->route('business.subscription.index')->with([
                 'warning' => $e->getMessage(),
                 'upgrade_required' => true,
+                'upgrade_data' => [
+                    'type' => 'no_subscription',
+                ],
             ]);
         });
 
