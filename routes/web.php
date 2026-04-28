@@ -372,7 +372,7 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
 
     // Alias redirects (test'lardan 404 topilgan URL'lar)
     Route::redirect('/dashboard', '/business');
-    Route::redirect('/sales', '/business/leads');
+    // /sales redirect olib tashlandi — Route::resource('sales') bilan conflict qilardi
     Route::redirect('/ai-advisor', '/business/ai-agent');
 
     // HR sub-sahifalar redirect (URL prefiks nomuvofiqligini tuzatish)
