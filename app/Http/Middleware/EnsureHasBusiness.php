@@ -70,13 +70,8 @@ class EnsureHasBusiness
         // Set business context
         $this->setBusinessContext($userContext);
 
-        // Subscription tekshirish — trial tugagan bo'lsa subscription sahifasiga yo'naltirish
-        if (! $this->isSubscriptionExemptRoute($request) && $userContext['business_id']) {
-            if (! $this->hasActiveSubscription($userContext['business_id'])) {
-                return redirect()->route('business.subscription.index')
-                    ->with('warning', 'Sinov davri tugadi. Davom etish uchun tarif tanlang.');
-            }
-        }
+        // Subscription tekshiruvi CheckSubscription middleware da amalga oshiriladi
+        // Bu yerda takrorlash shart emas — ikki middleware conflict hosil qiladi
 
         return $next($request);
     }
