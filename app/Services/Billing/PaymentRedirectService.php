@@ -191,18 +191,22 @@ class PaymentRedirectService
         Business $business,
         Plan $plan,
         string $provider = 'payme',
-        string $billingCycle = 'monthly'
+        string $billingCycle = 'monthly',
+        bool $skipConcurrencyCheck = false
     ): array {
         // Boshqa providerda pending tranzaksiya bormi tekshirish (concurrent to'lov oldini olish)
-        $otherProviderPending = BillingTransaction::where('business_id', $business->id)
-            ->where('plan_id', $plan->id)
-            ->where('provider', '!=', $provider)
-            ->where('status', BillingTransaction::STATUS_CREATED)
-            ->where('expires_at', '>', now())
-            ->exists();
+        // Checkout sahifasida ikkala provider ham ko'rsatiladi, shuning uchun skip qilinishi mumkin
+        if (!$skipConcurrencyCheck) {
+            $otherProviderPending = BillingTransaction::where('business_id', $business->id)
+                ->where('plan_id', $plan->id)
+                ->where('provider', '!=', $provider)
+                ->where('status', BillingTransaction::STATUS_CREATED)
+                ->where('expires_at', '>', now())
+                ->exists();
 
-        if ($otherProviderPending) {
-            throw new \RuntimeException("Boshqa to'lov tizimida kutilayotgan tranzaksiya mavjud. Avval uni yakunlang yoki bekor qiling.");
+            if ($otherProviderPending) {
+                throw new \RuntimeException("Boshqa to'lov tizimida kutilayotgan tranzaksiya mavjud. Avval uni yakunlang yoki bekor qiling.");
+            }
         }
 
         // Mavjud pending tranzaksiyani tekshirish (billing_cycle bo'yicha ham filter)
@@ -246,11 +250,11 @@ class PaymentRedirectService
      */
     public function getCheckoutData(Business $business, Plan $plan): array
     {
-        // Payme URL
-        $payme = $this->getOrCreatePaymentUrl($business, $plan, 'payme');
+        // Checkout sahifasida ikkala provider ham ko'rsatiladi
+        // Concurrency tekshiruvini o'tkazib yuboramiz — foydalanuvchi faqat bittasini tanlaydi
+        $payme = $this->getOrCreatePaymentUrl($business, $plan, 'payme', 'monthly', true);
 
-        // Click URL
-        $click = $this->getOrCreatePaymentUrl($business, $plan, 'click');
+        $click = $this->getOrCreatePaymentUrl($business, $plan, 'click', 'monthly', true);
 
         return [
             'plan' => [

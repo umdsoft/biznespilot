@@ -313,7 +313,7 @@ class SalesFlowSeeder extends Seeder
             'data' => [
                 'message' => "📞 Biz bilan bog'lanish:\n\n"
                     . "☎️ Telefon: +998 90 123 45 67\n"
-                    . "📱 Telegram: @biznespilot_support\n"
+                    . "📱 Telegram: @boss_adminbek\n"
                     . "📧 Email: info@biznespilot.uz\n"
                     . "🌐 Sayt: biznespilot.uz\n\n"
                     . "Ish vaqti: Du-Ju 9:00 - 18:00\n\n"

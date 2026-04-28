@@ -108,7 +108,7 @@ const organizationSchema = computed(() => ({
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer service',
-    url: 'https://t.me/biznespilot_support',
+    url: 'https://t.me/boss_adminbek',
     availableLanguage: ['uz', 'ru'],
   },
 }))

@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class NoActiveSubscriptionException extends Exception
@@ -17,9 +18,17 @@ class NoActiveSubscriptionException extends Exception
 
     /**
      * Render the exception as an HTTP response.
+     * Inertia so'rovlari uchun subscription sahifasiga redirect qiladi.
      */
-    public function render(Request $request): JsonResponse
+    public function render(Request $request): JsonResponse|RedirectResponse
     {
+        // Inertia yoki oddiy web so'rov — subscription sahifasiga yo'naltirish
+        if ($request->header('X-Inertia') || !$request->expectsJson()) {
+            return redirect()->route('business.subscription.index')
+                ->with('error', $this->getMessage());
+        }
+
+        // API so'rovlari uchun JSON javob
         return response()->json([
             'success' => false,
             'message' => $this->getMessage(),

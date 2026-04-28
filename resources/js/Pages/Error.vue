@@ -60,7 +60,7 @@
         <span>|</span>
         <a href="/blog" class="hover:text-blue-600 transition-colors">Blog</a>
         <span>|</span>
-        <a href="https://t.me/biznespilot_support" target="_blank" class="hover:text-blue-600 transition-colors">Yordam</a>
+        <a href="https://t.me/boss_adminbek" target="_blank" class="hover:text-blue-600 transition-colors">Yordam</a>
       </div>
     </div>
   </div>
