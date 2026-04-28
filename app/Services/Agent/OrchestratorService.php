@@ -97,10 +97,9 @@ class OrchestratorService
             AgentJobState::setLayer($jobId, 'primary', $primaryPayload);
 
             // Layer 2 javobini "agent message" sifatida saqlash (UI tarix uchun)
+            // AIResponse readonly properties — fromRule() ni to'g'ridan-to'g'ri ishlatamiz.
             if (! ($primaryPayload['skipped'] ?? false)) {
                 $primaryAiResponse = AIResponse::fromRule($primaryPayload['content'] ?? '');
-                $primaryAiResponse->source = $primaryPayload['source'] ?? 'agent';
-                $primaryAiResponse->model = $primaryPayload['model'] ?? null;
                 $processingMs = (int) ((microtime(true) - $startTime) * 1000);
                 $this->saveAgentMessage($conversation, $businessId, $primaryAiResponse, $routing, $processingMs);
             }
