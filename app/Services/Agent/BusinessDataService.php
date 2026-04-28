@@ -19,7 +19,9 @@ class BusinessDataService
                 $base = $this->buildContext($businessId);
                 $health = $this->buildHealthContext($businessId);
                 return $health ? ($base . "\n\n" . $health) : $base;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                // \Throwable — TypeError, Error va Exception barchasini tutadi.
+                // Agent context xatosi user'ga ko'rinadigan 500 chiqarmasligi kerak.
                 Log::warning('BusinessDataService xato', ['error' => $e->getMessage()]);
                 return 'Biznes ma\'lumotlarini olishda xatolik.';
             }
@@ -35,7 +37,7 @@ class BusinessDataService
         try {
             $enricher = app(AgentContextEnricher::class);
             $parts[] = $enricher->buildFullContext($businessId);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('Enrich context xato', ['error' => $e->getMessage()]);
         }
 
@@ -44,7 +46,7 @@ class BusinessDataService
             $crm = app(\App\Services\CRM\CRMContextProvider::class);
             $crmContext = $crm->buildBusinessCRMContext($businessId);
             if ($crmContext) $parts[] = $crmContext;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('CRM context xato', ['error' => $e->getMessage()]);
         }
 

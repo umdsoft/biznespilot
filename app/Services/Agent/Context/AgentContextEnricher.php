@@ -117,7 +117,9 @@ class AgentContextEnricher
                     ')->first();
 
                 if (!$data || $data->days == 0) {
-                    return null;
+                    // MUHIM: method imzosi `: array` deb e'lon qilingan, null TypeError chaqiradi.
+                    // Bo'sh array qaytaramiz — caller `if (!$c)` bilan tekshiradi.
+                    return [];
                 }
 
                 $netFlow = ($data->total_revenue ?? 0) - ($data->total_spend ?? 0);
@@ -137,7 +139,7 @@ class AgentContextEnricher
                 ];
             } catch (\Exception $e) {
                 Log::warning('CashFlow snapshot xato', ['error' => $e->getMessage()]);
-                return null;
+                return [];
             }
         });
     }
