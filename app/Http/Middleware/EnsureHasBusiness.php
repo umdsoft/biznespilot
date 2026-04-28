@@ -134,6 +134,15 @@ class EnsureHasBusiness
 
     /**
      * Check if route should skip business check
+     *
+     * MUHIM: Subscription/billing sahifalari team-member uchun ham ochiq bo'lishi kerak.
+     * Aks holda CheckSubscription middleware'i obunasiz team-member'ni
+     * /business/subscription ga yo'naltiradi → bu yerda EnsureHasBusiness uni
+     * department panel'iga qaytaradi → /marketing/... → CheckSubscription rad etadi
+     * → /business/subscription → ... → INFINITE LOOP.
+     *
+     * Subscription va billing sahifalari skip qilinishi bilan team-member ham
+     * "obuna kerak" xabarini ko'radi (lekin to'lay olmaydi — owner kerak).
      */
     private function shouldSkipCheck(Request $request): bool
     {
@@ -143,7 +152,9 @@ class EnsureHasBusiness
                $request->is('_debugbar/*') ||
                $request->is('integrations/*/auth-url') ||
                $request->is('integrations/*/callback') ||
-               $request->is('business/notifications*'); // Allow notifications for all departments
+               $request->is('business/notifications*') || // All departments
+               $request->is('business/subscription*') ||  // Team-member loop oldini olish
+               $request->is('business/billing*');         // Team-member loop oldini olish
     }
 
     /**
