@@ -103,7 +103,9 @@ class SubscriptionController extends Controller
         $result = $paymentService->getOrCreatePaymentUrl(
             $business,
             $plan,
-            $request->input('provider')
+            $request->input('provider'),
+            'monthly',
+            true // Checkout sahifasida ikkala provider uchun tranzaksiya yaratilgan, shuning uchun skip
         );
 
         // Tashqi to'lov sahifasiga to'liq redirect (Inertia::location)
