@@ -44,7 +44,9 @@ class ClickService
             $clickTransId = (int) ($params['click_trans_id'] ?? 0);
             $serviceId = (int) ($params['service_id'] ?? 0);
             $merchantTransId = $params['merchant_trans_id'] ?? ''; // Bizning order_id
-            $amount = (float) ($params['amount'] ?? 0);
+            // MUHIM: amount RAW STRING saqlaymiz signature uchun, va alohida float qiyoslash uchun.
+            $amountRaw = (string) ($params['amount'] ?? '0');
+            $amount = (float) $amountRaw;
             $action = (int) ($params['action'] ?? 0);
             $signTime = $params['sign_time'] ?? '';
             $signString = $params['sign_string'] ?? '';
@@ -56,8 +58,8 @@ class ClickService
                 return $this->buildResponse($clickTransId, $merchantTransId, $error, $errorNote);
             }
 
-            // Imzo tekshiruvi
-            if (!$this->verifySignature($clickTransId, $serviceId, $merchantTransId, $amount, $action, $signTime, $signString)) {
+            // Imzo tekshiruvi (raw string amount bilan)
+            if (!$this->verifySignature($clickTransId, $serviceId, $merchantTransId, $amountRaw, $action, $signTime, $signString)) {
                 $this->log('Prepare: Sign check failed', [
                     'click_trans_id' => $clickTransId,
                     'merchant_trans_id' => $merchantTransId,
@@ -82,8 +84,8 @@ class ClickService
                 );
             }
 
-            // Summa tekshiruvi
-            if ((float) $transaction->amount !== $amount) {
+            // Summa tekshiruvi — bccomp 2 kasr aniqligida (float `!==` xavfli)
+            if (bccomp((string) $transaction->amount, $amountRaw, 2) !== 0) {
                 return $this->buildResponse(
                     $clickTransId,
                     $merchantTransId,
@@ -197,7 +199,9 @@ class ClickService
             $clickPaydocId = (int) ($params['click_paydoc_id'] ?? 0);
             $merchantTransId = $params['merchant_trans_id'] ?? '';
             $merchantPrepareId = $params['merchant_prepare_id'] ?? '';
-            $amount = (float) ($params['amount'] ?? 0);
+            // MUHIM: amount RAW STRING saqlaymiz signature uchun
+            $amountRaw = (string) ($params['amount'] ?? '0');
+            $amount = (float) $amountRaw;
             $action = (int) ($params['action'] ?? 1);
             $signTime = $params['sign_time'] ?? '';
             $signString = $params['sign_string'] ?? '';
@@ -211,8 +215,8 @@ class ClickService
                 return $this->buildResponse($clickTransId, $merchantTransId, $error, $errorNote);
             }
 
-            // Imzo tekshiruvi (complete uchun merchant_prepare_id ham kerak)
-            if (!$this->verifySignature($clickTransId, $serviceId, $merchantTransId, $amount, $action, $signTime, $signString, $merchantPrepareId)) {
+            // Imzo tekshiruvi (raw string amount bilan)
+            if (!$this->verifySignature($clickTransId, $serviceId, $merchantTransId, $amountRaw, $action, $signTime, $signString, $merchantPrepareId)) {
                 $this->log('Complete: Sign check failed', [
                     'click_trans_id' => $clickTransId,
                     'merchant_trans_id' => $merchantTransId,
@@ -264,8 +268,8 @@ class ClickService
                 );
             }
 
-            // Summa tekshiruvi
-            if ((float) $transaction->amount !== $amount) {
+            // Summa tekshiruvi — bccomp 2 kasr aniqligida
+            if (bccomp((string) $transaction->amount, $amountRaw, 2) !== 0) {
                 return $this->buildResponse(
                     $clickTransId,
                     $merchantTransId,
@@ -311,12 +315,15 @@ class ClickService
 
     /**
      * Verify Click signature
+     *
+     * MUHIM: $amount RAW STRING bo'lishi kerak (Click jo'natgan asl qiymat).
+     * Float ga cast qilsak, "1699000.00" → "1699000" bo'lib MD5 mismatch.
      */
     protected function verifySignature(
         int $clickTransId,
         int $serviceId,
         string $merchantTransId,
-        float $amount,
+        string|float $amount,
         int $action,
         string $signTime,
         string $signString,

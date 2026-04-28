@@ -167,10 +167,13 @@ class PaymentRedirectService
             : config('billing.click.checkout_url', 'https://my.click.uz/services/pay');
 
         // Parametrlar
+        // MUHIM: Click checkout integer so'm kutadi. `decimal:2` cast tufayli
+        // `amount` "1699000.00" kabi keladi va Click `-5555` rad etadi.
+        // Shuning uchun integer ga aylantirib jo'natamiz.
         $params = [
             'service_id' => $serviceId,
             'merchant_id' => $merchantId,
-            'amount' => $transaction->amount, // So'mda
+            'amount' => (int) round((float) $transaction->amount),
             'transaction_param' => $transaction->order_id,
         ];
 

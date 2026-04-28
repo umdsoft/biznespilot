@@ -119,16 +119,24 @@ class BillingClickTransaction extends Model
      * For Complete:
      * md5(click_trans_id + service_id + secret_key + merchant_trans_id + merchant_prepare_id + amount + action + sign_time)
      */
+    /**
+     * MUHIM: $amount RAW STRING shaklida bo'lishi kerak (request'dan kelgan asl qiymat).
+     * Float ga cast qilsak, "1699000.00" → 1699000.0 → "1699000" bo'lib MD5 mismatch chiqadi.
+     * Click o'z signature'ini original string bilan hisoblaydi, biz ham xuddi shunday qilishimiz shart.
+     */
     public static function generateSignString(
         int $clickTransId,
         int $serviceId,
         string $secretKey,
         string $merchantTransId,
-        float $amount,
+        string|float $amount,
         int $action,
         string $signTime,
         ?string $merchantPrepareId = null
     ): string {
+        // Amount string'ni o'zgartirmasdan ishlatamiz — Click jo'natgan asl qiymat
+        $amountStr = is_string($amount) ? $amount : (string) $amount;
+
         if ($action === self::ACTION_COMPLETE && $merchantPrepareId) {
             return md5(
                 $clickTransId .
@@ -136,7 +144,7 @@ class BillingClickTransaction extends Model
                 $secretKey .
                 $merchantTransId .
                 $merchantPrepareId .
-                $amount .
+                $amountStr .
                 $action .
                 $signTime
             );
@@ -147,7 +155,7 @@ class BillingClickTransaction extends Model
             $serviceId .
             $secretKey .
             $merchantTransId .
-            $amount .
+            $amountStr .
             $action .
             $signTime
         );
@@ -162,7 +170,7 @@ class BillingClickTransaction extends Model
         int $serviceId,
         string $secretKey,
         string $merchantTransId,
-        float $amount,
+        string|float $amount,
         int $action,
         string $signTime,
         ?string $merchantPrepareId = null
