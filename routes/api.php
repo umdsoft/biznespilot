@@ -282,6 +282,9 @@ Route::prefix('v1')->middleware(['web', 'auth', 'throttle:120,1'])->group(functi
         Route::post('/ask', [AgentController::class, 'ask'])
             ->middleware('agent.access:ask')
             ->name('api.agent.ask');
+        Route::get('/job/{jobId}', [AgentController::class, 'jobStatus'])
+            ->middleware('agent.access:ask')
+            ->name('api.agent.job');
         Route::get('/conversations', [AgentController::class, 'conversations'])
             ->middleware('agent.access:view_conversations')
             ->name('api.agent.conversations');

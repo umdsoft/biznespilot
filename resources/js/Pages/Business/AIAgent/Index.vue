@@ -181,6 +181,64 @@ const loadConversation = async (id) => {
   }
 };
 
+// Layered Pipeline polling helper.
+// Ask endpoint L1+L2 ni darhol qaytaradi va job_id beradi.
+// L3 (secondary) + L4 (director) async background'da yuklanadi.
+// Bu funksiya har 3 sekundda job holatini tekshiradi va yangi
+// tayyor bo'lgan layer'larni progressive ravishda render qiladi.
+const POLL_INTERVAL_MS = 3000;
+const POLL_MAX_DURATION_MS = 90000; // 90s — ko'pi bilan kutamiz
+
+const pollDeepLayers = async (jobId) => {
+  const renderedLayers = new Set();
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < POLL_MAX_DURATION_MS) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+
+    let res;
+    try {
+      res = await axios.get(`/api/v1/agent/job/${jobId}`, { timeout: 8000 });
+    } catch (e) {
+      // 404 = expired/not found, polling to'xtaydi
+      if (e.response?.status === 404) break;
+      continue; // network glitch — keyingi iteratsiya
+    }
+
+    if (!res.data?.success) break;
+
+    // Yangi layer'lar tayyor bo'lsa render qilamiz
+    const layers = res.data.layers || {};
+    for (const layerName of ['secondary', 'director']) {
+      const layer = layers[layerName];
+      if (!layer || renderedLayers.has(layerName)) continue;
+
+      // skipped layer'larni render qilmaymiz
+      if (layer.skipped) {
+        renderedLayers.add(layerName);
+        continue;
+      }
+
+      if (layer.content) {
+        messages.value.push({
+          id: Date.now() + Math.random(),
+          role: 'assistant',
+          content: layer.content,
+          layer: layerName,
+          created_at: new Date().toISOString(),
+        });
+        renderedLayers.add(layerName);
+        scrollToBottom();
+      }
+    }
+
+    // Tugagan bo'lsa polling to'xtaydi
+    if (res.data.status === 'completed' || res.data.status === 'failed' || res.data.pending_layers.length === 0) {
+      break;
+    }
+  }
+};
+
 const sendMessage = async () => {
   const text = inputMessage.value.trim();
   if (!text || sending.value) return;
@@ -197,30 +255,58 @@ const sendMessage = async () => {
   scrollToBottom();
 
   try {
+    // ─── Layer 1+2: Sync POST (5-15s) ────────────────────────────
     const res = await axios.post('/api/v1/agent/ask', {
       message: text,
       conversation_id: activeConversationId.value,
-    }, { timeout: 180000 });
+    }, { timeout: 45000 }); // 45s — server side ham 45s
 
-    if (res.data.success) {
-      if (res.data.conversation_id) {
-        activeConversationId.value = res.data.conversation_id;
-      }
-      messages.value.push({
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: res.data.message || res.data.response || 'Javob olinmadi.',
-        agent_type: res.data.agent_type,
-        created_at: new Date().toISOString(),
-      });
-    } else {
+    if (!res.data.success) {
       messages.value.push({
         id: Date.now() + 1,
         role: 'assistant',
         content: res.data.message || 'Xatolik yuz berdi.',
         created_at: new Date().toISOString(),
       });
+      return;
     }
+
+    if (res.data.conversation_id) {
+      activeConversationId.value = res.data.conversation_id;
+    }
+
+    const layers = res.data.layers || {};
+
+    // Layer 1 (instant) — KPI snapshot (faqat agar mazmunli bo'lsa)
+    if (layers.instant?.summary) {
+      messages.value.push({
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: layers.instant.summary,
+        layer: 'instant',
+        created_at: new Date().toISOString(),
+      });
+    }
+
+    // Layer 2 (primary agent) — asosiy javob
+    if (layers.primary?.content) {
+      messages.value.push({
+        id: Date.now() + 2,
+        role: 'assistant',
+        content: layers.primary.content,
+        layer: 'primary',
+        agent_type: layers.primary.agent,
+        created_at: new Date().toISOString(),
+      });
+    }
+
+    scrollToBottom();
+
+    // ─── Layer 3+4: Async polling background'da ──────────────────
+    if (res.data.pending_layers?.length > 0 && res.data.job_id) {
+      pollDeepLayers(res.data.job_id); // fire-and-forget
+    }
+
   } catch (e) {
     messages.value.push({
       id: Date.now() + 1,

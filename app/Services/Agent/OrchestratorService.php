@@ -10,6 +10,7 @@ use App\Services\Agent\Deliverables\DeliverableGenerator;
 use App\Services\Agent\Marketing\MarketingAgentService;
 use App\Services\Agent\Memory\BusinessContextMemory;
 use App\Services\Agent\Memory\ShortTermMemory;
+use App\Services\Agent\Pipeline\AgentJobState;
 use App\Services\Agent\Sales\SalesAgentService;
 use App\Services\AI\AIResponse;
 use App\Services\AI\AIService;
@@ -42,10 +43,285 @@ class OrchestratorService
     ) {}
 
     /**
-     * Foydalanuvchi xabarini qayta ishlash — asosiy kirish nuqtasi
+     * Layered Pipeline: Layer 1 (instant) + Layer 2 (primary agent) — sync.
+     *
+     * Bu metod 5-15s ichida ishlaydi va foydalanuvchiga darhol javob beradi.
+     * Layer 3 (secondary+merger) va Layer 4 (director) async background'da
+     * dispatchAfterResponse orqali bajariladi.
+     *
+     * @return array ['job_id', 'conversation_id', 'layers' => ['instant', 'primary'], 'pending_layers']
      */
+    public function handleQuickResponse(
+        string $message,
+        string $businessId,
+        string $userId,
+        ?string $conversationId = null,
+        ?array $allowedAgents = null,
+    ): array {
+        $startTime = microtime(true);
+
+        try {
+            // 1. Suhbatni olish yoki yaratish
+            $conversation = $this->getOrCreateConversation($businessId, $userId, $conversationId);
+
+            // 2. Foydalanuvchi xabarini saqlash
+            $this->saveUserMessage($conversation, $businessId, $message);
+
+            // 3. Lahzalik xotiraga qo'shish
+            $this->shortTermMemory->addMessage($businessId, $conversation->id, [
+                'role' => 'user',
+                'content' => $message,
+                'timestamp' => now()->toISOString(),
+            ]);
+
+            // 4. Job state yaratish
+            $jobId = AgentJobState::create($businessId, $userId, $conversation->id);
+
+            // 5. Yo'naltirish
+            $routing = $this->router->route($message, $businessId);
+
+            // 6. Ruxsat etilgan agentlar bilan filtrlash
+            if ($allowedAgents !== null) {
+                $routing['agents'] = array_values(array_intersect($routing['agents'], $allowedAgents));
+                if (empty($routing['agents'])) {
+                    $routing['agents'] = [AgentRouter::AGENT_ORCHESTRATOR];
+                }
+            }
+
+            // ─── LAYER 1: INSTANT CONTEXT (DB only, ~200ms-2s) ───────────────
+            $instantPayload = $this->layerInstantContext($businessId);
+            AgentJobState::setLayer($jobId, 'instant', $instantPayload);
+
+            // ─── LAYER 2: PRIMARY AGENT (1 AI call, 5-15s) ──────────────────
+            $primaryPayload = $this->layerPrimaryAgent($message, $businessId, $conversation->id, $routing);
+            AgentJobState::setLayer($jobId, 'primary', $primaryPayload);
+
+            // Layer 2 javobini "agent message" sifatida saqlash (UI tarix uchun)
+            if (! ($primaryPayload['skipped'] ?? false)) {
+                $primaryAiResponse = AIResponse::fromRule($primaryPayload['content'] ?? '');
+                $primaryAiResponse->source = $primaryPayload['source'] ?? 'agent';
+                $primaryAiResponse->model = $primaryPayload['model'] ?? null;
+                $processingMs = (int) ((microtime(true) - $startTime) * 1000);
+                $this->saveAgentMessage($conversation, $businessId, $primaryAiResponse, $routing, $processingMs);
+            }
+
+            // Multi-agent kerak emas (1 ta agent yoki orchestrator) → Layer 3+4 skip
+            $needDeepLayers = count($routing['agents']) >= 2 && ! in_array(AgentRouter::AGENT_ORCHESTRATOR, $routing['agents']);
+            $pendingLayers = $needDeepLayers ? ['secondary', 'director'] : [];
+
+            if (! $needDeepLayers) {
+                AgentJobState::skipLayer($jobId, 'secondary', 'Single agent — multi-layer not needed');
+                AgentJobState::skipLayer($jobId, 'director', 'Single agent — director not needed');
+            }
+
+            return [
+                'success' => true,
+                'job_id' => $jobId,
+                'conversation_id' => $conversation->id,
+                'layers' => [
+                    'instant' => $instantPayload,
+                    'primary' => $primaryPayload,
+                ],
+                'pending_layers' => $pendingLayers,
+                'routing' => [
+                    'agents' => $routing['agents'],
+                    'method' => $routing['method'] ?? 'rule',
+                ],
+                'elapsed_s' => round(microtime(true) - $startTime, 2),
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('OrchestratorService::handleQuickResponse', [
+                'error' => $e->getMessage(),
+                'business_id' => $businessId,
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Kechirasiz, texnik muammo. Qayta urinib ko\'ring.',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
     /**
-     * Foydalanuvchi xabarini qayta ishlash — asosiy kirish nuqtasi.
+     * Layered Pipeline: Layer 3 (secondary+merger) + Layer 4 (director) — async.
+     *
+     * Bu metod ProcessDeepAnalysisJob orqali dispatchAfterResponse bilan
+     * background'da ishlaydi. Natijalar AgentJobState ga yoziladi va
+     * frontend polling orqali oladi.
+     */
+    public function handleDeepLayers(
+        string $jobId,
+        string $message,
+        string $businessId,
+        string $conversationId,
+        array $routing,
+    ): void {
+        set_time_limit(120);
+        ini_set('max_execution_time', 120);
+
+        $startTime = microtime(true);
+        $TIME_BUDGET_DIRECTOR_S = 60; // job uchun yana ko'p vaqt bor (background)
+
+        try {
+            // ─── LAYER 3: SECONDARY AGENTS + MERGER ──────────────────────────
+            $secondaryPayload = $this->layerSecondaryAgents($message, $businessId, $conversationId, $routing);
+            AgentJobState::setLayer($jobId, 'secondary', $secondaryPayload);
+
+            // ─── LAYER 4: DIRECTOR (Sonnet) ──────────────────────────────────
+            $elapsed = microtime(true) - $startTime;
+            if ($elapsed < $TIME_BUDGET_DIRECTOR_S) {
+                $directorPayload = $this->layerDirector($message, $businessId, $secondaryPayload);
+                AgentJobState::setLayer($jobId, 'director', $directorPayload);
+            } else {
+                AgentJobState::skipLayer($jobId, 'director', 'Time budget exceeded');
+            }
+
+        } catch (\Throwable $e) {
+            Log::error('OrchestratorService::handleDeepLayers', [
+                'error' => $e->getMessage(),
+                'job_id' => $jobId,
+            ]);
+            AgentJobState::fail($jobId, $e->getMessage());
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // LAYER METHODS — har biri mustaqil, fail-isolated, payload qaytaradi
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private function layerInstantContext(string $businessId): array
+    {
+        try {
+            $inspector = app(\App\Services\Agent\Knowledge\BusinessDataInspector::class);
+            $data = $inspector->inspect($businessId);
+            $sales = $data['sales'] ?? [];
+
+            return [
+                'completeness' => $data['completeness'] ?? 0,
+                'leads_total' => $sales['leads_total'] ?? 0,
+                'leads_won' => $sales['leads_won'] ?? 0,
+                'summary' => "📊 Biznesingiz: to'liqlik **" . ($data['completeness'] ?? 0) . "%**, "
+                    . "lidlar **" . ($sales['leads_total'] ?? 0) . " ta**, "
+                    . "yutilgan **" . ($sales['leads_won'] ?? 0) . " ta**",
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Layer1 instant xato', ['error' => $e->getMessage()]);
+            return ['summary' => '📊 Biznes ma\'lumoti yuklanmoqda...', 'error' => $e->getMessage()];
+        }
+    }
+
+    private function layerPrimaryAgent(string $message, string $businessId, string $conversationId, array $routing): array
+    {
+        try {
+            $agents = $routing['agents'];
+
+            // Salomlashish — oddiy javob (AI emas)
+            if (count($agents) === 1 && $agents[0] === AgentRouter::AGENT_ORCHESTRATOR) {
+                $response = $this->handleSimpleMessage($message, $businessId, $conversationId);
+                return [
+                    'content' => $response->content,
+                    'source' => $response->source,
+                    'agent' => 'orchestrator',
+                    'agent_name' => 'BiznesPilot',
+                ];
+            }
+
+            // Birinchi (eng mos) agent
+            $primaryAgent = $agents[0];
+            $response = $this->callAgent($primaryAgent, $message, $businessId, $conversationId);
+            $agentName = $this->getAgentName($primaryAgent);
+            $agentEmoji = $this->getAgentEmoji($primaryAgent);
+
+            return [
+                'content' => "{$agentEmoji} **{$agentName}:**\n\n{$response->content}",
+                'source' => $response->source,
+                'model' => $response->model,
+                'agent' => $primaryAgent,
+                'agent_name' => $agentName,
+                'tokens' => [
+                    'input' => $response->tokensInput,
+                    'output' => $response->tokensOutput,
+                ],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Layer2 primary xato', ['error' => $e->getMessage()]);
+            return [
+                'content' => "⚠️ Asosiy tahlil hozir tayyorlanayapti, biroz kuting...",
+                'skipped' => true,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    private function layerSecondaryAgents(string $message, string $businessId, string $conversationId, array $routing): array
+    {
+        try {
+            $agents = array_slice($routing['agents'], 1, 1); // 2-chi agent (1-chi Layer 2 da edi)
+            if (empty($agents)) {
+                return ['skipped' => true, 'reason' => 'Faqat 1 ta agent'];
+            }
+
+            $secondaryAgent = $agents[0];
+            $response = $this->callAgent($secondaryAgent, $message, $businessId, $conversationId);
+            $agentName = $this->getAgentName($secondaryAgent);
+            $agentEmoji = $this->getAgentEmoji($secondaryAgent);
+
+            return [
+                'content' => "{$agentEmoji} **{$agentName}:**\n\n{$response->content}",
+                'agent' => $secondaryAgent,
+                'agent_name' => $agentName,
+                'tokens' => [
+                    'input' => $response->tokensInput,
+                    'output' => $response->tokensOutput,
+                ],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Layer3 secondary xato', ['error' => $e->getMessage()]);
+            return ['skipped' => true, 'error' => $e->getMessage()];
+        }
+    }
+
+    private function layerDirector(string $message, string $businessId, array $secondaryPayload): array
+    {
+        try {
+            // Agent javoblarining qisqa xulosasini tayyorlash
+            $context = $secondaryPayload['content'] ?? '';
+
+            $directorResponse = $this->aiService->ask(
+                prompt: "Foydalanuvchi savoli: {$message}\n\nQuyidagi tahlil asosida 3 ta strategik harakat tavsiya qil. Aniq raqamlar va deadline bilan.\n\n{$context}",
+                systemPrompt: "Sen Umidbek — BiznesPilot AI bosh direktorisan. Strategik, qisqa, raqamli javob ber.\n"
+                    . "Format: 🔥 3 ta harakat (har biri 2-3 jumla). Oxirida: ❓ Tasdiqlaymi?",
+                preferredModel: 'sonnet',
+                maxTokens: 1000,
+                businessId: $businessId,
+                agentType: 'director',
+            );
+
+            return [
+                'content' => "✅ **Umidbek (Bosh direktor):**\n\n{$directorResponse->content}",
+                'agent' => 'director',
+                'agent_name' => 'Umidbek',
+                'model' => $directorResponse->model,
+                'tokens' => [
+                    'input' => $directorResponse->tokensInput,
+                    'output' => $directorResponse->tokensOutput,
+                ],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Layer4 director xato', ['error' => $e->getMessage()]);
+            return [
+                'content' => "✅ **Umidbek (Bosh direktor):**\n\nYuqoridagi tahlillar asosida harakat qiling. **Tasdiqlaymi?**",
+                'fallback' => true,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Foydalanuvchi xabarini qayta ishlash — asosiy kirish nuqtasi
+     * (LEGACY — yangi flow handleQuickResponse ishlatadi)
      *
      * @param array|null $allowedAgents Ruxsat etilgan agentlar (null = barchasi)
      * @param string $dataScope Ma'lumot doirasi: all/department/own/summary

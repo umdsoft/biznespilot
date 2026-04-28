@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessAgentDeepLayersJob;
 use App\Models\AgentConversation;
 use App\Models\AgentMessage;
 use App\Services\Agent\Access\AgentAccessService;
 use App\Services\Agent\OrchestratorService;
+use App\Services\Agent\Pipeline\AgentJobState;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,8 +33,14 @@ class AgentController extends Controller
      */
     public function ask(Request $request): JsonResponse
     {
-        set_time_limit(180); // Sonnet + multi-agent uchun yetarli vaqt
-        ini_set('max_execution_time', 180);
+        // Yangi LAYERED FLOW: Layer 1 (instant) + Layer 2 (primary) sync,
+        // Layer 3 (secondary) + Layer 4 (director) async (dispatchAfterResponse).
+        //
+        // Foydalanuvchi 5-15s ichida javob oladi, qo'shimcha tahlillar
+        // background'da yuklanadi va frontend polling orqali oladi.
+
+        set_time_limit(45); // Faqat L1+L2 uchun — 504 oldini olish
+        ini_set('max_execution_time', 45);
 
         $request->validate([
             'message' => 'required|string|max:2000',
@@ -59,22 +67,58 @@ class AgentController extends Controller
             ], 403);
         }
 
-        // Ruxsat etilgan agentlar ro'yxatini Orchestrator ga uzatish
         $allowedAgents = $this->accessService->getAllowedAgents($access['context']);
-        $dataScope = $this->accessService->getDataScope($user, $business);
 
-        $result = $this->orchestrator->handleUserMessage(
+        // ─── SYNC: Layer 1 (instant) + Layer 2 (primary agent) ──────────────
+        $result = $this->orchestrator->handleQuickResponse(
             message: $request->input('message'),
             businessId: $business->id,
             userId: $user->id,
             conversationId: $request->input('conversation_id'),
             allowedAgents: $allowedAgents,
-            dataScope: $dataScope,
         );
 
-        $statusCode = ($result['success'] ?? false) ? 200 : 500;
+        if (! ($result['success'] ?? false)) {
+            return response()->json($result, 500);
+        }
 
-        return response()->json($result, $statusCode);
+        // ─── ASYNC: Layer 3 (secondary) + Layer 4 (director) ────────────────
+        // dispatchAfterResponse() — PHP response'ni clientga jo'natgandan keyin
+        // background'da ishlaydi (queue worker shart emas, register_shutdown_function).
+        if (! empty($result['pending_layers'])) {
+            ProcessAgentDeepLayersJob::dispatchAfterResponse(
+                $result['job_id'],
+                $request->input('message'),
+                $business->id,
+                $result['conversation_id'],
+                $result['routing'],
+            );
+        }
+
+        return response()->json($result, 200);
+    }
+
+    /**
+     * GET /api/v1/agent/job/{jobId} — async layer'lar holatini polling.
+     *
+     * Frontend bu endpointni har 3-5s'da chaqiradi va yangi tayyor bo'lgan
+     * layer'larni renderlaydi. Tugagandan keyin polling to'xtaydi.
+     */
+    public function jobStatus(string $jobId): JsonResponse
+    {
+        $state = AgentJobState::toResponse($jobId);
+
+        if (! $state) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Job topilmadi yoki muddati tugagan',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            ...$state,
+        ]);
     }
 
     /**
