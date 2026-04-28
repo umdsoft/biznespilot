@@ -431,7 +431,9 @@ const fetchLeads = async (page = 1, showLoading = true) => {
             };
         }
     } catch (err) {
-        console.error('Error fetching leads:', err);
+        if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+            console.error('Error fetching leads:', err);
+        }
     } finally {
         if (showLoading) {
             isLoading.value = false;
