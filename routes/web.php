@@ -634,8 +634,10 @@ Route::middleware(['auth', 'has.business', 'subscription'])->prefix('business')-
     // AI Agent
     Route::get('/ai-agent', [App\Http\Controllers\Business\AIAgentController::class, 'index'])->name('ai-agent.index');
 
-    // /business/leads → /business/sales ga redirect (foydalanuvchilar uchun qulay)
-    Route::redirect('leads', '/business/sales', 301);
+    // /business/leads → /business/sales ga redirect
+    Route::get('leads', function () {
+        return redirect()->route('business.sales.index');
+    })->name('leads.redirect');
 
     // Sales routes (Lead management)
     Route::resource('sales', SalesController::class)->parameters([
