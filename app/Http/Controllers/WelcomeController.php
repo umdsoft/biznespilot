@@ -275,19 +275,11 @@ class WelcomeController extends Controller
             'onboarding_completed_at' => now(),
         ]);
 
-        // Avtomatik 14 kunlik trial subscription yaratish
-        try {
-            $trialPlan = Plan::where('slug', 'trial-pack')->first();
-            if ($trialPlan) {
-                app(SubscriptionService::class)->create($business, $trialPlan, 'monthly', 14);
-                Log::info('Trial subscription yaratildi', ['business_id' => $business->id]);
-            }
-        } catch (\Exception $e) {
-            Log::warning('Trial subscription yaratishda xatolik', [
-                'business_id' => $business->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        // MUHIM: Trial subscription BusinessObserver tomonidan AVTOMAT yaratiladi
+        // (app/Observers/BusinessObserver.php — Business plan bilan 14 kunlik trial).
+        // Bu yerda qayta create() chaqirsak, Observer yaratgan Business trialingni
+        // cancelActive cancelled qiladi va yangi Trial pack yaratadi → DUPLIKAT.
+        // Shuning uchun bu yerda hech narsa yaratmaymiz.
 
         // Cache ni tozalash (yangi subscription ko'rinishi uchun)
         HandleInertiaRequests::clearSubscriptionCache($business->id);

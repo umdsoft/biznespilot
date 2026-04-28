@@ -50,10 +50,11 @@ const selectedStatus = ref('all');
 const selectedPlan = ref('all');
 const isLoading = ref(false);
 
+// MUHIM: DB enum status — 'trialing' (NOT 'trial'). Subscription::STATUS_TRIALING.
 const statusFilters = [
     { value: 'all', label: 'Barchasi', count: props.stats.total },
     { value: 'active', label: 'Faol', count: props.stats.active },
-    { value: 'trial', label: 'Sinov', count: props.stats.trial },
+    { value: 'trialing', label: 'Sinov', count: props.stats.trial },
     { value: 'cancelled', label: 'Bekor', count: props.stats.cancelled },
     { value: 'expired', label: 'Tugagan', count: props.stats.expired }
 ];
@@ -83,7 +84,8 @@ const filteredSubscriptions = computed(() => {
 const getStatusConfig = (status) => {
     const configs = {
         active: { bg: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400', label: 'Faol' },
-        trial: { bg: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400', label: 'Sinov' },
+        trialing: { bg: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400', label: 'Sinov' },
+        trial: { bg: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400', label: 'Sinov' }, // legacy
         cancelled: { bg: 'bg-red-500', text: 'text-red-700 dark:text-red-400', label: 'Bekor' },
         expired: { bg: 'bg-gray-400', text: 'text-gray-600 dark:text-gray-400', label: 'Tugagan' },
         pending: { bg: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400', label: 'Kutilmoqda' }

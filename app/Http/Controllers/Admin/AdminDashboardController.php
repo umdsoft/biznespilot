@@ -428,10 +428,12 @@ class AdminDashboardController extends Controller
                 'auto_renew' => $sub->metadata['auto_renew'] ?? true,
             ]);
 
+        // MUHIM: DB'da status enum 'trialing' (mavjud Subscription::STATUS_TRIALING).
+        // Avval 'trial' qidirilardi → har doim 0 chiqardi.
         $stats = [
             'total' => Subscription::count(),
             'active' => Subscription::where('status', 'active')->count(),
-            'trial' => Subscription::where('status', 'trial')->count(),
+            'trial' => Subscription::where('status', 'trialing')->count(),
             'cancelled' => Subscription::where('status', 'cancelled')->count(),
             'expired' => Subscription::where('status', 'expired')->count(),
             'total_revenue' => Subscription::where('status', 'active')
