@@ -212,6 +212,11 @@ class PaymentRedirectService
             }
         }
 
+        // HOZIRGI plan narxi (admin o'zgartirgan bo'lishi mumkin)
+        $currentAmount = $billingCycle === 'yearly'
+            ? (float) $plan->price_yearly
+            : (float) $plan->price_monthly;
+
         // Mavjud pending tranzaksiyani tekshirish (billing_cycle bo'yicha ham filter)
         $existingTransaction = BillingTransaction::where('business_id', $business->id)
             ->where('plan_id', $plan->id)
@@ -222,24 +227,38 @@ class PaymentRedirectService
             ->first();
 
         if ($existingTransaction) {
-            // Mavjud URL ni qaytarish
-            $paymentUrl = match ($provider) {
-                'payme' => $this->generatePaymeUrl($existingTransaction),
-                'click' => $this->generateClickUrl($existingTransaction),
-                default => throw new \InvalidArgumentException("Unknown provider: {$provider}"),
-            };
+            // MUHIM: agar admin tarif narxini o'zgartirgan bo'lsa, eski tranzaksiya
+            // amount eski narxga ega bo'lib qoladi. Bu holatda eski tranzaksiyani
+            // bekor qilib, yangi narxda yangisini yaratamiz. Aks holda foydalanuvchi
+            // Click/Payme ga o'tganda eski narxni ko'radi (admin yangi narx qo'ygan
+            // bo'lsa ham).
+            if (bccomp((string) $existingTransaction->amount, (string) $currentAmount, 2) !== 0) {
+                $existingTransaction->update([
+                    'status' => BillingTransaction::STATUS_CANCELLED,
+                    'cancelled_at' => now(),
+                    'cancel_reason' => 'Plan price changed — invalidated',
+                ]);
+                // Yangi tranzaksiya yaratamiz keyingi blokda
+            } else {
+                // Narx mos — mavjud URL ni qaytarish
+                $paymentUrl = match ($provider) {
+                    'payme' => $this->generatePaymeUrl($existingTransaction),
+                    'click' => $this->generateClickUrl($existingTransaction),
+                    default => throw new \InvalidArgumentException("Unknown provider: {$provider}"),
+                };
 
-            return [
-                'transaction' => $existingTransaction,
-                'payment_url' => $paymentUrl,
-                'order_id' => $existingTransaction->order_id,
-                'amount' => $existingTransaction->amount,
-                'provider' => $provider,
-                'is_existing' => true,
-            ];
+                return [
+                    'transaction' => $existingTransaction,
+                    'payment_url' => $paymentUrl,
+                    'order_id' => $existingTransaction->order_id,
+                    'amount' => $existingTransaction->amount,
+                    'provider' => $provider,
+                    'is_existing' => true,
+                ];
+            }
         }
 
-        // Yangi yaratish
+        // Yangi yaratish (current amount bilan)
         $result = $this->createPaymentUrl($business, $plan, $provider, null, $billingCycle);
         $result['is_existing'] = false;
 
