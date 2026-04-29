@@ -209,7 +209,8 @@ class SubscriptionService
             // Cancel any existing active subscription
             $this->cancelActive($business);
 
-            $amount = $billingCycle === 'yearly'
+            // Plan narxi (yearly/monthly bo'yicha)
+            $planPrice = $billingCycle === 'yearly'
                 ? $plan->price_yearly
                 : $plan->price_monthly;
 
@@ -227,6 +228,12 @@ class SubscriptionService
             // Trial uchun ends_at = trial_ends_at (14 kun), pullik uchun billing cycle bo'yicha
             $endsAt = $trialEndsAt
                 ?? ($billingCycle === 'yearly' ? now()->addYear() : now()->addMonth());
+
+            // MUHIM: Trial paytda foydalanuvchi HECH NIMA TO'LAMAGAN, shuning uchun
+            // amount=0. Plan narxi `plan_id` orqali ko'rinadi (ko'rinishda kerak bo'lsa
+            // accessor planPrice() ishlatish mumkin). Faqat to'lov bo'lganda
+            // (activatePaymentSubscription) amount=plan_price o'rnatiladi.
+            $amount = $trialEndsAt ? 0 : $planPrice;
 
             $subscription = Subscription::create([
                 'business_id' => $business->id,

@@ -420,7 +420,10 @@ class AdminDashboardController extends Controller
                 'plan_id' => $sub->plan_id,
                 'status' => $sub->status,
                 'billing_cycle' => $sub->metadata['billing_cycle'] ?? 'monthly',
+                // amount: TO'LANGAN summa (trialing → 0, active → haqiqiy)
+                // plan_price: tarif rejaviy narxi (admin "tarif narxi" ko'rsatishi uchun)
                 'amount' => $sub->amount,
+                'plan_price' => $sub->plan_price,
                 'currency' => $sub->currency ?? 'UZS',
                 'starts_at' => $sub->starts_at,
                 'ends_at' => $sub->ends_at,

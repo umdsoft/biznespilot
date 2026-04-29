@@ -59,6 +59,33 @@ class Subscription extends Model
     ];
 
     /**
+     * Plan narxini qaytarish (billing_cycle bo'yicha).
+     * Trial paytida amount=0, ammo plan'ning rejaviy narxini bilish kerak bo'ladi
+     * (admin sahifada "tarif narxi" ko'rsatish uchun).
+     */
+    public function getPlanPriceAttribute(): float
+    {
+        if (! $this->plan) {
+            return 0;
+        }
+
+        return $this->billing_cycle === 'yearly'
+            ? (float) $this->plan->price_yearly
+            : (float) $this->plan->price_monthly;
+    }
+
+    /**
+     * Foydalanuvchi haqiqatan TO'LAGAN summa.
+     * - active → amount (haqiqiy to'lov)
+     * - trialing → 0 (hali to'lamagan)
+     * - cancelled/expired → 0 (saqlanadi tarix uchun)
+     */
+    public function getPaidAmountAttribute(): float
+    {
+        return $this->status === 'active' ? (float) $this->amount : 0.0;
+    }
+
+    /**
      * Get the business that owns the subscription.
      */
     public function business(): BelongsTo

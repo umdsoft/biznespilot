@@ -304,8 +304,17 @@ const refreshData = () => {
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatCurrency(sub.amount) }}</span>
-                                    <span class="text-xs text-gray-500 ml-1">{{ sub.currency }}</span>
+                                    <!-- Trialing → tarif narxi (foydalanuvchi sinab ko'rgan rejaviy narx) ko'rsatamiz,
+                                         lekin "sinov" badge bilan. Active/cancelled → haqiqiy to'langan amount. -->
+                                    <template v-if="sub.status === 'trialing'">
+                                        <span class="text-sm font-medium text-blue-600 dark:text-blue-400">{{ formatCurrency(sub.plan_price || sub.amount) }}</span>
+                                        <span class="text-xs text-gray-500 ml-1">{{ sub.currency }}</span>
+                                        <span class="block text-xs text-blue-500 dark:text-blue-400 mt-0.5">sinov (to'lanmagan)</span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatCurrency(sub.amount) }}</span>
+                                        <span class="text-xs text-gray-500 ml-1">{{ sub.currency }}</span>
+                                    </template>
                                 </td>
                                 <td class="px-4 py-3">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">
