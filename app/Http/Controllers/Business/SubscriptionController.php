@@ -82,6 +82,20 @@ class SubscriptionController extends Controller
                 ->with('error', 'Bu tarif mavjud emas.');
         }
 
+        // Provider sozlanganligini tekshirish — credentialsiz to'lov mumkin emas
+        $provider = $request->input('provider');
+        $providerEnabled = match ($provider) {
+            'payme' => ! empty(config('billing.payme.merchant_id')),
+            'click' => ! empty(config('billing.click.service_id')),
+            default => false,
+        };
+
+        if (! $providerEnabled) {
+            $providerName = $provider === 'payme' ? 'Payme' : 'Click';
+            return redirect()->route('business.subscription.index')
+                ->with('error', "{$providerName} hozircha mavjud emas. Iltimos boshqa to'lov turini tanlang yoki keyinroq urinib ko'ring.");
+        }
+
         // Downgrade himoyasi: agar user tanlagan tarif hozirgi foydalanishdan
         // kichikroq limitga ega bo'lsa (masalan 10 xodim bor, yangi tarif 2 max)
         // to'lovga ruxsat bermaymiz. Foydalanuvchi avval ortiqcha resurslarni

@@ -250,14 +250,23 @@ class PaymentRedirectService
      * Generate checkout page data for frontend
      *
      * Bu metod frontend uchun to'liq ma'lumot qaytaradi.
+     * MUHIM: agar provider sozlanmagan bo'lsa (credentialsiz) — transaction
+     * YARATILMAYDI. Aks holda DB'da hech qachon to'lanmaydigan bo'sh
+     * tranzaksiyalar to'planib qoladi.
      */
     public function getCheckoutData(Business $business, Plan $plan): array
     {
-        // Checkout sahifasida ikkala provider ham ko'rsatiladi
-        // Concurrency tekshiruvini o'tkazib yuboramiz — foydalanuvchi faqat bittasini tanlaydi
-        $payme = $this->getOrCreatePaymentUrl($business, $plan, 'payme', 'monthly', true);
+        $paymeEnabled = !empty(config('billing.payme.merchant_id'));
+        $clickEnabled = !empty(config('billing.click.service_id'));
 
-        $click = $this->getOrCreatePaymentUrl($business, $plan, 'click', 'monthly', true);
+        // Faqat sozlanган providerlar uchun tranzaksiya yaratamiz
+        $payme = $paymeEnabled
+            ? $this->getOrCreatePaymentUrl($business, $plan, 'payme', 'monthly', true)
+            : null;
+
+        $click = $clickEnabled
+            ? $this->getOrCreatePaymentUrl($business, $plan, 'click', 'monthly', true)
+            : null;
 
         return [
             'plan' => [
@@ -273,16 +282,16 @@ class PaymentRedirectService
             ],
             'providers' => [
                 'payme' => [
-                    'enabled' => !empty(config('billing.payme.merchant_id')),
-                    'payment_url' => $payme['payment_url'],
-                    'order_id' => $payme['order_id'],
-                    'transaction_id' => $payme['transaction']->id,
+                    'enabled' => $paymeEnabled,
+                    'payment_url' => $payme['payment_url'] ?? null,
+                    'order_id' => $payme['order_id'] ?? null,
+                    'transaction_id' => $payme['transaction']->id ?? null,
                 ],
                 'click' => [
-                    'enabled' => !empty(config('billing.click.service_id')),
-                    'payment_url' => $click['payment_url'],
-                    'order_id' => $click['order_id'],
-                    'transaction_id' => $click['transaction']->id,
+                    'enabled' => $clickEnabled,
+                    'payment_url' => $click['payment_url'] ?? null,
+                    'order_id' => $click['order_id'] ?? null,
+                    'transaction_id' => $click['transaction']->id ?? null,
                 ],
             ],
             'amount' => $plan->price_monthly,
