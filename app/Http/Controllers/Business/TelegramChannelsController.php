@@ -324,6 +324,7 @@ class TelegramChannelsController extends Controller
             'top_post_30d' => $topPost ? [
                 'id' => $topPost->id,
                 'text_preview' => $topPost->text_preview,
+                'content_type' => $topPost->content_type,
                 'views' => (int) $topPost->views,
                 'reactions_count' => (int) $topPost->reactions_count,
                 'telegram_link' => $topPost->telegramLink(),

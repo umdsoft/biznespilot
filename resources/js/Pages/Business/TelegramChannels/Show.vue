@@ -123,36 +123,71 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
       <!-- Top post -->
       <div class="lg:col-span-1">
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden h-full">
-          <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">🔥 Oyning top posti</h3>
+        <div class="relative bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-900/10 dark:via-gray-800 dark:to-orange-900/10 rounded-xl border border-amber-200/60 dark:border-amber-700/40 overflow-hidden h-full shadow-sm">
+          <!-- Decorative gradient -->
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="relative px-5 py-4 border-b border-amber-200/50 dark:border-amber-700/30 flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+              <FireIcon class="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">Oyning top posti</h3>
+              <p class="text-xs text-amber-700/70 dark:text-amber-400/70">Eng ko'p ko'rishli</p>
+            </div>
           </div>
-          <div v-if="summary.top_post_30d" class="p-5">
-            <p class="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-4">
-              {{ summary.top_post_30d.text_preview || '(media post)' }}
+
+          <div v-if="summary.top_post_30d" class="relative p-5 flex flex-col h-[calc(100%-65px)]">
+            <!-- Type badge + date -->
+            <div class="flex items-center gap-2 mb-3 text-xs">
+              <span :class="contentTypeBadge(summary.top_post_30d.content_type)" class="inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium">
+                <component :is="contentTypeIcon(summary.top_post_30d.content_type)" class="w-3.5 h-3.5" />
+                {{ contentTypeLabel(summary.top_post_30d.content_type) }}
+              </span>
+              <span class="text-gray-400 dark:text-gray-500">·</span>
+              <span class="text-gray-500 dark:text-gray-400">{{ summary.top_post_30d.posted_at_human }}</span>
+            </div>
+
+            <!-- Text preview -->
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 line-clamp-5 flex-1">
+              {{ summary.top_post_30d.text_preview || '(media post — matn yo\'q)' }}
             </p>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-              <div>
-                <p class="text-lg font-bold text-sky-600 dark:text-sky-400">{{ formatNumber(summary.top_post_30d.views) }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">ko'rish</p>
+
+            <!-- Stats grid -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+              <div class="bg-white/70 dark:bg-gray-900/30 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-1.5 text-sky-600 dark:text-sky-400 mb-1">
+                  <EyeIcon class="w-4 h-4" />
+                  <span class="text-xs font-medium uppercase tracking-wide">Ko'rish</span>
+                </div>
+                <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(summary.top_post_30d.views) }}</p>
               </div>
-              <div>
-                <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ formatNumber(summary.top_post_30d.reactions_count) }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">reaksiya</p>
+              <div class="bg-white/70 dark:bg-gray-900/30 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 mb-1">
+                  <HeartIcon class="w-4 h-4" />
+                  <span class="text-xs font-medium uppercase tracking-wide">Reaksiya</span>
+                </div>
+                <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(summary.top_post_30d.reactions_count) }}</p>
               </div>
             </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-gray-400">{{ summary.top_post_30d.posted_at_human }}</span>
-              <a v-if="summary.top_post_30d.telegram_link"
-                 :href="summary.top_post_30d.telegram_link" target="_blank" rel="noopener"
-                 class="text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1">
-                Ochish <ArrowTopRightOnSquareIcon class="w-3 h-3" />
-              </a>
-            </div>
+
+            <!-- CTA -->
+            <a v-if="summary.top_post_30d.telegram_link"
+               :href="summary.top_post_30d.telegram_link" target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md">
+              <PaperAirplaneIcon class="w-4 h-4" />
+              Telegram'da ochish
+            </a>
           </div>
-          <div v-else class="p-8 text-center">
-            <DocumentTextIcon class="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-            <p class="text-sm text-gray-400 dark:text-gray-500">Hali postlar yo'q</p>
+
+          <div v-else class="relative p-8 text-center flex flex-col items-center justify-center h-[calc(100%-65px)]">
+            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+              <DocumentTextIcon class="w-7 h-7 text-gray-400 dark:text-gray-500" />
+            </div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Hali postlar yo'q</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-[200px]">
+              Kanalga post chiqaring — top post avtomatik aniqlanadi
+            </p>
           </div>
         </div>
       </div>
@@ -195,55 +230,96 @@
       </div>
     </div>
 
-    <!-- Recent posts table -->
+    <!-- Recent posts -->
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">So'nggi postlar</h3>
+      <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">So'nggi postlar</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ recentPosts.length }} ta post · ko'rish, reaksiya va engagement</p>
+        </div>
+        <span class="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline-flex items-center gap-1.5">
+          <ClockIcon class="w-3.5 h-3.5" />
+          Yangidan eski tartibida
+        </span>
       </div>
-      <div v-if="recentPosts.length === 0" class="p-8 text-center">
-        <DocumentTextIcon class="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-        <p class="text-sm text-gray-400 dark:text-gray-500">Hali postlar yo'q</p>
+
+      <!-- Empty state -->
+      <div v-if="recentPosts.length === 0" class="p-12 text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+          <DocumentTextIcon class="w-7 h-7 text-gray-400 dark:text-gray-500" />
+        </div>
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Hali postlar yo'q</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          Kanalga birinchi post chiqaring — bir necha soniyada bu yerda paydo bo'ladi
+        </p>
       </div>
-      <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-700/50">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Post</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ko'rish</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">24s Δ</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">❤️</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">↗️</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ER</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Vaqt</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-            <tr v-for="post in recentPosts" :key="post.id" class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-              <td class="px-4 py-3 max-w-md">
-                <div class="flex items-center gap-2">
-                  <span :class="contentTypeBadge(post.content_type)" class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium">
-                    {{ contentTypeLabel(post.content_type) }}
-                  </span>
-                  <a v-if="post.telegram_link" :href="post.telegram_link" target="_blank" rel="noopener" class="text-sm text-gray-900 dark:text-gray-100 hover:text-sky-600 dark:hover:text-sky-400 truncate">
-                    {{ post.text_preview || '(media)' }}
-                  </a>
-                  <span v-else class="text-sm text-gray-900 dark:text-gray-100 truncate">
-                    {{ post.text_preview || '(media)' }}
-                  </span>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-100">{{ formatNumber(post.views) }}</td>
-              <td class="px-4 py-3 text-right text-xs" :class="post.views_delta_24h > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'">
-                {{ post.views_delta_24h > 0 ? '+' + formatNumber(post.views_delta_24h) : '—' }}
-              </td>
-              <td class="px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">{{ formatNumber(post.reactions_count) }}</td>
-              <td class="px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">{{ formatNumber(post.forwards_count) }}</td>
-              <td class="px-4 py-3 text-right text-sm font-medium text-amber-600 dark:text-amber-400">{{ post.engagement_rate }}%</td>
-              <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ post.posted_at_human }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+
+      <!-- Post cards -->
+      <ul v-else class="divide-y divide-gray-100 dark:divide-gray-700">
+        <li v-for="post in recentPosts" :key="post.id"
+            class="group relative px-5 py-4 hover:bg-gray-50/60 dark:hover:bg-gray-700/20 transition-colors">
+          <div class="flex items-start gap-4">
+            <!-- Content type icon -->
+            <div :class="contentTypeIconWrapper(post.content_type)" class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center">
+              <component :is="contentTypeIcon(post.content_type)" class="w-5 h-5" />
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 min-w-0">
+              <!-- Top row: type label + date + delta + telegram link -->
+              <div class="flex items-center flex-wrap gap-2 mb-1.5 text-xs">
+                <span :class="contentTypeBadge(post.content_type)" class="inline-flex items-center px-1.5 py-0.5 rounded font-medium uppercase tracking-wide">
+                  {{ contentTypeLabel(post.content_type) }}
+                </span>
+                <span class="text-gray-400 dark:text-gray-500">·</span>
+                <time class="text-gray-500 dark:text-gray-400" :title="post.posted_at">
+                  {{ post.posted_at_human }}
+                </time>
+                <span v-if="post.views_delta_24h > 0"
+                      class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-medium">
+                  <ArrowTrendingUpIcon class="w-3 h-3" />
+                  +{{ formatNumber(post.views_delta_24h) }} 24s
+                </span>
+                <a v-if="post.telegram_link" :href="post.telegram_link" target="_blank" rel="noopener"
+                   class="ml-auto text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 inline-flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                  <span class="hidden sm:inline">Ochish</span>
+                  <ArrowTopRightOnSquareIcon class="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              <!-- Text preview -->
+              <p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed line-clamp-2 mb-3">
+                {{ post.text_preview || '(media post — matn yo\'q)' }}
+              </p>
+
+              <!-- Stats row -->
+              <div class="flex items-center flex-wrap gap-x-5 gap-y-1.5 text-xs">
+                <span class="inline-flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+                  <EyeIcon class="w-4 h-4" />
+                  <span class="font-semibold tabular-nums">{{ formatNumber(post.views) }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">ko'rish</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5"
+                      :class="post.reactions_count > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 dark:text-gray-500'">
+                  <HeartIcon class="w-4 h-4" />
+                  <span class="font-semibold tabular-nums">{{ formatNumber(post.reactions_count) }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">reaksiya</span>
+                </span>
+                <span v-if="post.forwards_count > 0" class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                  <ShareIcon class="w-4 h-4" />
+                  <span class="font-semibold tabular-nums">{{ formatNumber(post.forwards_count) }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">forward</span>
+                </span>
+                <span v-if="post.engagement_rate > 0" class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 ml-auto">
+                  <BoltIcon class="w-4 h-4" />
+                  <span class="font-semibold tabular-nums">{{ post.engagement_rate }}%</span>
+                  <span class="text-gray-500 dark:text-gray-400">engagement</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
 
     <!-- Disconnect confirm modal -->
@@ -286,6 +362,23 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   ArrowTopRightOnSquareIcon,
+  EyeIcon,
+  HeartIcon,
+  ShareIcon,
+  BoltIcon,
+  FireIcon,
+  PaperAirplaneIcon,
+  PhotoIcon,
+  VideoCameraIcon,
+  MusicalNoteIcon,
+  MicrophoneIcon,
+  PaperClipIcon,
+  ChartBarSquareIcon,
+  MapPinIcon,
+  FilmIcon,
+  ArrowTrendingUpIcon,
+  ClockIcon,
+  CubeIcon,
 } from '@heroicons/vue/24/outline';
 
 const apexchart = defineAsyncComponent(() => import('vue3-apexcharts').then(m => m.default || m));
@@ -416,7 +509,7 @@ const initials = (name) => {
 };
 
 const contentTypeLabel = (type) => {
-  const map = { text: 'matn', photo: 'rasm', video: 'video', animation: 'gif', audio: 'audio', voice: 'ovoz', document: 'fayl', poll: 'so\'rov', location: 'joy', other: 'boshqa' };
+  const map = { text: 'Matn', photo: 'Rasm', video: 'Video', animation: 'GIF', audio: 'Audio', voice: 'Ovoz', document: 'Fayl', poll: 'So\'rov', location: 'Joylashuv', other: 'Boshqa' };
   return map[type] || type;
 };
 
@@ -430,7 +523,41 @@ const contentTypeBadge = (type) => {
     voice: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
     document: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
     poll: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
+    location: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
   };
   return map[type] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+};
+
+// Returns the Heroicon component for a content type (used in post cards & top post)
+const contentTypeIcon = (type) => {
+  const map = {
+    text: DocumentTextIcon,
+    photo: PhotoIcon,
+    video: VideoCameraIcon,
+    animation: FilmIcon,
+    audio: MusicalNoteIcon,
+    voice: MicrophoneIcon,
+    document: PaperClipIcon,
+    poll: ChartBarSquareIcon,
+    location: MapPinIcon,
+    other: CubeIcon,
+  };
+  return map[type] || CubeIcon;
+};
+
+// Returns Tailwind classes for the icon wrapper (post list leading icon)
+const contentTypeIconWrapper = (type) => {
+  const map = {
+    text: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
+    photo: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+    video: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    animation: 'bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400',
+    audio: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    voice: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    document: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+    poll: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+    location: 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400',
+  };
+  return map[type] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
 };
 </script>
