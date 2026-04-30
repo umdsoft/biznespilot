@@ -252,4 +252,30 @@ return [
         'has_variants' => false,
         'has_stock' => false,
     ],
+
+    // MUHIM: leadcapture — katalogsiz maxsus tur. Mahsulot/xizmat sotish o'rniga
+    // /start bosgan foydalanuvchidan ism+telefon yig'ib Lead modelda yozadi va
+    // owner'ga System Bot orqali xabar yuboradi. WebApp/MiniApp menu button
+    // qo'yilmaydi — faqat Telegram chat funnel'i ishlaydi.
+    'leadcapture' => [
+        'label' => 'Mijozlar bazasi',
+        'label_uz' => 'Mijozlar bazasi',
+        'label_ru' => 'База клиентов',
+        'description' => 'Oddiy bot — kontakt yig\'uvchi funnel. Katalog yo\'q, faqat lead\'lar bazasi.',
+        'icon' => 'UserGroupIcon',
+        'catalog_model' => null,
+        'catalog_table' => null,
+        'catalog_label' => 'Lead\'lar',
+        'catalog_label_singular' => 'Lead',
+        'service_class' => null,
+        'features' => ['lead_capture', 'funnel'],
+        'catalog_fields' => [],
+        'search_fields' => [],
+        'filter_fields' => [],
+        'sort_fields' => [],
+        'has_images' => false,
+        'has_variants' => false,
+        'has_stock' => false,
+        'has_catalog' => false, // explicit flag — hech qanday katalog tabledan o'qish kerak emas
+    ],
 ];

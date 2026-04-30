@@ -13,6 +13,12 @@ use Illuminate\Support\Str;
 
 class StoreSetupService
 {
+    public function __construct(
+        protected ?LeadCaptureFunnelSeeder $leadCaptureFunnelSeeder = null
+    ) {
+        $this->leadCaptureFunnelSeeder ??= new LeadCaptureFunnelSeeder();
+    }
+
     /**
      * Create a new store for a business
      */
@@ -101,21 +107,25 @@ class StoreSetupService
             ]);
         }
 
-        // Set WebApp menu button
-        $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
-        Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
-            'menu_button' => [
-                'type' => 'web_app',
-                'text' => 'Do\'kon',
-                'web_app' => ['url' => $miniAppUrl],
-            ],
-        ]);
+        // Set WebApp menu button — leadcapture turida MiniApp yo'q,
+        // shuning uchun menu button qo'yilmaydi (faqat funnel chat ishlaydi).
+        if ($store->store_type !== 'leadcapture') {
+            $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
+            Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
+                'menu_button' => [
+                    'type' => 'web_app',
+                    'text' => 'Do\'kon',
+                    'web_app' => ['url' => $miniAppUrl],
+                ],
+            ]);
+        }
 
         $store->update(['telegram_bot_id' => $bot->id]);
 
         Log::info('Store bot connected', [
             'store_id' => $store->id,
             'bot_username' => $botData['username'],
+            'store_type' => $store->store_type,
         ]);
 
         return [
@@ -157,15 +167,17 @@ class StoreSetupService
             }
         }
 
-        // Set WebApp menu button
-        $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
-        Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
-            'menu_button' => [
-                'type' => 'web_app',
-                'text' => 'Do\'kon',
-                'web_app' => ['url' => $miniAppUrl],
-            ],
-        ]);
+        // Set WebApp menu button (skip for leadcapture — no MiniApp)
+        if ($store->store_type !== 'leadcapture') {
+            $miniAppUrl = "{$baseUrl}/miniapp/{$store->slug}";
+            Http::withOptions(['verify' => false, 'connect_timeout' => 15])->timeout(30)->post("https://api.telegram.org/bot{$botToken}/setChatMenuButton", [
+                'menu_button' => [
+                    'type' => 'web_app',
+                    'text' => 'Do\'kon',
+                    'web_app' => ['url' => $miniAppUrl],
+                ],
+            ]);
+        }
 
         Log::info('Existing bot connected to store', [
             'store_id' => $store->id,
@@ -176,6 +188,10 @@ class StoreSetupService
 
     /**
      * Activate the store
+     *
+     * leadcapture turida default funnel auto-seed qilinadi (agar hali yo'q bo'lsa) —
+     * bu bot /start bosgan foydalanuvchidan ism+telefon yig'ib Lead yaratishi
+     * uchun zarur. Boshqa turlar uchun foydalanuvchi funnel'ni qo'lda yaratadi.
      */
     public function activateStore(TelegramStore $store): bool
     {
@@ -184,6 +200,18 @@ class StoreSetupService
         }
 
         $store->update(['is_active' => true]);
+
+        if ($store->store_type === 'leadcapture') {
+            try {
+                $this->leadCaptureFunnelSeeder->seedForStore($store->fresh());
+            } catch (\Throwable $e) {
+                // Activate'ni bloklamaymiz — funnel keyin qo'lda ham yaratilishi mumkin
+                Log::error('[StoreSetupService] Lead capture funnel seed failed', [
+                    'store_id' => $store->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return true;
     }

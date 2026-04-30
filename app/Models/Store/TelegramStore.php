@@ -182,7 +182,7 @@ class TelegramStore extends Model
         return app(BotTypeRegistry::class)->getFeatures($this->store_type);
     }
 
-    public function getCatalogModelClass(): string
+    public function getCatalogModelClass(): ?string
     {
         return app(BotTypeRegistry::class)->getCatalogModel($this->store_type);
     }
@@ -197,9 +197,22 @@ class TelegramStore extends Model
         return app(BotTypeRegistry::class)->getCatalogLabelSingular($this->store_type);
     }
 
+    /**
+     * Whether this store has a catalog (products/services). False for
+     * catalog-less types like 'leadcapture' — callers should check before
+     * touching catalog tables/relations.
+     */
+    public function hasCatalog(): bool
+    {
+        return app(BotTypeRegistry::class)->hasCatalog($this->store_type);
+    }
+
     public function getActiveCatalogItemsCount(): int
     {
         $modelClass = $this->getCatalogModelClass();
+        if ($modelClass === null) {
+            return 0;
+        }
 
         return $modelClass::where('store_id', $this->id)
             ->where('is_active', true)

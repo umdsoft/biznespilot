@@ -9,8 +9,20 @@ class BotTypeRegistry
     /**
      * Bot types that have full MiniApp frontend implementation.
      * Only these are shown in the setup wizard.
+     *
+     * MUHIM: 'leadcapture' MiniApp emas — u faqat Telegram chat funnel'i orqali
+     * ishlaydi (katalog, savat, mahsulotlar yo'q). Lekin wizard'da ko'rinishi
+     * uchun ro'yxatda turadi. WebApp menu button qo'yilmaydi (StoreSetupService
+     * leadcapture turi uchun setChatMenuButton'ni o'tkazib yuboradi).
      */
-    public const IMPLEMENTED_TYPES = ['ecommerce', 'service', 'delivery', 'queue', 'course'];
+    public const IMPLEMENTED_TYPES = ['ecommerce', 'service', 'delivery', 'queue', 'course', 'leadcapture'];
+
+    /**
+     * Bot types without a catalog (no products/services table to query).
+     * Frontend dashboard, MiniApp catalog routes, and admin catalog UI must
+     * check this and skip catalog-related operations.
+     */
+    public const NO_CATALOG_TYPES = ['leadcapture'];
 
     protected array $config;
 
@@ -28,14 +40,42 @@ class BotTypeRegistry
         return $this->config[$botType];
     }
 
-    public function getCatalogModel(string $botType): string
+    /**
+     * Get the catalog Eloquent model class for this bot type.
+     * Returns NULL for catalog-less types (e.g., 'leadcapture').
+     * Callers MUST check for null OR use hasCatalog() before invoking.
+     */
+    public function getCatalogModel(string $botType): ?string
     {
-        return $this->getConfig($botType)['catalog_model'];
+        return $this->getConfig($botType)['catalog_model'] ?? null;
     }
 
-    public function getServiceClass(string $botType): string
+    /**
+     * Get the catalog service class for this bot type.
+     * Returns NULL for catalog-less types.
+     */
+    public function getServiceClass(string $botType): ?string
     {
-        return $this->getConfig($botType)['service_class'];
+        return $this->getConfig($botType)['service_class'] ?? null;
+    }
+
+    /**
+     * Whether this bot type has a catalog (products/services/etc.) table.
+     * Used by MiniApp/admin/dashboard layers to decide if catalog UI is shown.
+     */
+    public function hasCatalog(string $botType): bool
+    {
+        if (in_array($botType, self::NO_CATALOG_TYPES, true)) {
+            return false;
+        }
+
+        // Explicit config flag wins; otherwise fall back to catalog_model presence
+        $config = $this->getConfig($botType);
+        if (array_key_exists('has_catalog', $config)) {
+            return (bool) $config['has_catalog'];
+        }
+
+        return ! empty($config['catalog_model']);
     }
 
     public function hasFeature(string $botType, string $feature): bool
@@ -116,6 +156,7 @@ class BotTypeRegistry
             'BoltIcon' => "\xE2\x9A\xA1",                   // bolt
             'CreditCardIcon' => "\xF0\x9F\x92\xB3",         // credit card
             'PuzzlePieceIcon' => "\xF0\x9F\xA7\xA9",        // puzzle
+            'UserGroupIcon' => "\xF0\x9F\x91\xA5",          // people (lead capture)
         ];
 
         $result = [];

@@ -95,7 +95,7 @@ class StoreSetupController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'currency' => 'required|string|in:UZS,USD,RUB',
-            'store_type' => 'required|string|in:ecommerce,service,delivery,course,fitness,realestate,auto,event,travel,ondemand,subscription,custom',
+            'store_type' => 'required|string|in:ecommerce,service,delivery,course,fitness,realestate,auto,event,travel,ondemand,subscription,custom,leadcapture',
             'enabled_features' => 'nullable|array',
         ]);
 
