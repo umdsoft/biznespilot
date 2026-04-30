@@ -198,6 +198,12 @@ class TelegramChannelPublicScraperService
             // Bu CDN URL public va token kerak emas.
             $mediaUrl = $this->extractMediaUrl($xpath, $node);
 
+            // Reactions — HTML'da .tgme_reacted_btn elementlari bo'lsa
+            // ulardagi counter raqamlarini yig'amiz. Empty container bo'lsa 0 qaytadi
+            // (=> hech kim reaksiya qo'ymagan, message_reaction_count webhook orqali
+            // keyin yangilanishi mumkin).
+            $reactionsCount = $this->extractReactionsCount($xpath, $node);
+
             $results[] = [
                 'message_id' => $messageId,
                 'text' => $text,
@@ -207,10 +213,47 @@ class TelegramChannelPublicScraperService
                 'has_photo' => $hasPhoto,
                 'has_video' => $hasVideo,
                 'media_url' => $mediaUrl,
+                'reactions_count' => $reactionsCount,
             ];
         }
 
         return $results;
+    }
+
+    /**
+     * Reactions to'plamini hisoblaydi. Telegram public preview'da
+     * tgme_reacted_btn elementlari bor bo'lsa — har bir reactionning counter'idan.
+     * Format namunasi (Telegram tomonidan ekspermental — o'zgarishi mumkin):
+     *   <span class="tgme_reacted_btn">
+     *     <span class="tgme_reacted_emoji">❤</span>
+     *     <span class="tgme_reacted_counter">5</span>
+     *   </span>
+     *
+     * Empty `<div class="tgme_widget_message_reactions"></div>` bo'lsa — 0 qaytadi.
+     */
+    protected function extractReactionsCount(DOMXPath $xpath, \DOMNode $node): int
+    {
+        $counterNodes = $xpath->query(".//*[contains(@class, 'tgme_reacted_counter')]", $node);
+        if ($counterNodes === false || $counterNodes->length === 0) {
+            // Telegram bazi marta `data-counter` atributini qo'yadi
+            $counterAttrs = $xpath->query(".//*[@data-counter]", $node);
+            if ($counterAttrs && $counterAttrs->length > 0) {
+                $total = 0;
+                foreach ($counterAttrs as $el) {
+                    if ($el instanceof \DOMElement) {
+                        $total += (int) $el->getAttribute('data-counter');
+                    }
+                }
+                return $total;
+            }
+            return 0;
+        }
+
+        $total = 0;
+        foreach ($counterNodes as $el) {
+            $total += $this->parseViewCount($el->textContent);
+        }
+        return $total;
     }
 
     /**
@@ -300,7 +343,7 @@ class TelegramChannelPublicScraperService
                 'text_preview' => $msg['text'],
                 'media_url' => $msg['media_url'] ?? null,
                 'views' => $msg['views'],
-                'reactions_count' => 0,
+                'reactions_count' => (int) ($msg['reactions_count'] ?? 0),
                 'forwards_count' => 0,
                 'raw_payload' => [
                     'source' => 't.me/s scraper',
@@ -315,6 +358,13 @@ class TelegramChannelPublicScraperService
         $patch = [];
         if ($msg['views'] > (int) $post->views) {
             $patch['views'] = $msg['views'];
+        }
+        // Reactions: scraper faqat ko'pligini yozadi. Webhook (message_reaction_count)
+        // real-time yangilaydi va aniqroq — agar webhook'dan kelgan qiymat ortiq bo'lsa
+        // saqlaymiz.
+        $scrapedReactions = (int) ($msg['reactions_count'] ?? 0);
+        if ($scrapedReactions > (int) $post->reactions_count) {
+            $patch['reactions_count'] = $scrapedReactions;
         }
         // Text webhook'dan kelmasa va scraper'dan bor bo'lsa
         if (! $post->text_preview && $msg['text']) {
