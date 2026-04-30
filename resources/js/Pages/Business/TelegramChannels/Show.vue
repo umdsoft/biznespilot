@@ -120,10 +120,10 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
       <!-- Top post -->
       <div class="lg:col-span-1">
-        <div class="relative bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-900/10 dark:via-gray-800 dark:to-orange-900/10 rounded-xl border border-amber-200/60 dark:border-amber-700/40 overflow-hidden h-full shadow-sm">
+        <div class="relative bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-900/10 dark:via-gray-800 dark:to-orange-900/10 rounded-xl border border-amber-200/60 dark:border-amber-700/40 overflow-hidden shadow-sm">
           <!-- Decorative gradient -->
           <div class="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -137,75 +137,78 @@
             </div>
           </div>
 
-          <div v-if="summary.top_post_30d" class="relative p-5 flex flex-col h-[calc(100%-65px)]">
-            <!-- Media thumbnail (rasm/video) — agar bor bo'lsa.
-                 Ixcham balandlik (h-32 = 128px) — hammasi sig'sin: rasm + matn + stats + CTA. -->
-            <a v-if="summary.top_post_30d.media_url"
-               :href="summary.top_post_30d.telegram_link || '#'"
-               target="_blank" rel="noopener"
-               class="relative block w-full h-32 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-gray-700 group/topthumb shadow-sm">
-              <img :src="summary.top_post_30d.media_url"
-                   :alt="summary.top_post_30d.text_preview || 'Top post'"
-                   loading="lazy"
-                   class="w-full h-full object-cover transition-transform group-hover/topthumb:scale-105"
-                   @error="onMediaError" />
-              <div v-if="summary.top_post_30d.content_type === 'video' || summary.top_post_30d.content_type === 'animation'"
-                   class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/topthumb:bg-black/40 transition-colors">
-                <div class="w-10 h-10 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
-                  <PlayIcon class="w-4 h-4 text-gray-900 ml-0.5" />
+          <div v-if="summary.top_post_30d" class="relative p-5">
+            <!-- Pastdagi post cardlari bilan bir xil gorizontal layout:
+                 [thumbnail] [type+date+link | text | stats] -->
+            <div class="flex items-start gap-4">
+              <!-- Thumbnail (rasm/video) yoki content type icon -->
+              <a v-if="summary.top_post_30d.media_url"
+                 :href="summary.top_post_30d.telegram_link || '#'"
+                 target="_blank" rel="noopener"
+                 class="relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 group/topthumb shadow-sm">
+                <img :src="summary.top_post_30d.media_url"
+                     :alt="summary.top_post_30d.text_preview || 'Top post'"
+                     loading="lazy"
+                     class="w-full h-full object-cover transition-transform group-hover/topthumb:scale-105"
+                     @error="onMediaError" />
+                <div v-if="summary.top_post_30d.content_type === 'video' || summary.top_post_30d.content_type === 'animation'"
+                     class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/topthumb:bg-black/40 transition-colors">
+                  <div class="w-7 h-7 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
+                    <PlayIcon class="w-3.5 h-3.5 text-gray-900 ml-0.5" />
+                  </div>
+                </div>
+              </a>
+              <div v-else :class="contentTypeIconWrapper(summary.top_post_30d.content_type)"
+                   class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center">
+                <component :is="contentTypeIcon(summary.top_post_30d.content_type)" class="w-5 h-5" />
+              </div>
+
+              <!-- Body -->
+              <div class="flex-1 min-w-0">
+                <!-- Top row: type badge + date + telegram link -->
+                <div class="flex items-center flex-wrap gap-2 mb-1.5 text-xs">
+                  <span :class="contentTypeBadge(summary.top_post_30d.content_type)" class="inline-flex items-center px-1.5 py-0.5 rounded font-medium uppercase tracking-wide">
+                    {{ contentTypeLabel(summary.top_post_30d.content_type) }}
+                  </span>
+                  <span class="text-gray-400 dark:text-gray-500">·</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ summary.top_post_30d.posted_at_human }}</span>
+                  <a v-if="summary.top_post_30d.telegram_link" :href="summary.top_post_30d.telegram_link" target="_blank" rel="noopener"
+                     class="ml-auto text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 inline-flex items-center gap-1 font-medium">
+                    <span class="hidden sm:inline">Ochish</span>
+                    <ArrowTopRightOnSquareIcon class="w-3.5 h-3.5" />
+                  </a>
+                </div>
+
+                <!-- Text preview -->
+                <p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed line-clamp-2 mb-3">
+                  {{ summary.top_post_30d.text_preview || '(media post — matn yo\'q)' }}
+                </p>
+
+                <!-- Stats row -->
+                <div class="flex items-center flex-wrap gap-x-5 gap-y-1.5 text-xs">
+                  <span class="inline-flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+                    <EyeIcon class="w-4 h-4" />
+                    <span class="font-semibold tabular-nums">{{ formatNumber(summary.top_post_30d.views) }}</span>
+                    <span class="text-gray-500 dark:text-gray-400">ko'rish</span>
+                  </span>
+                  <span class="inline-flex items-center gap-1.5"
+                        :class="summary.top_post_30d.reactions_count > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 dark:text-gray-500'">
+                    <HeartIcon class="w-4 h-4" />
+                    <span class="font-semibold tabular-nums">{{ formatNumber(summary.top_post_30d.reactions_count) }}</span>
+                    <span class="text-gray-500 dark:text-gray-400">reaksiya</span>
+                  </span>
                 </div>
               </div>
-            </a>
-
-            <!-- Type badge + date -->
-            <div class="flex items-center gap-2 mb-3 text-xs">
-              <span :class="contentTypeBadge(summary.top_post_30d.content_type)" class="inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium">
-                <component :is="contentTypeIcon(summary.top_post_30d.content_type)" class="w-3.5 h-3.5" />
-                {{ contentTypeLabel(summary.top_post_30d.content_type) }}
-              </span>
-              <span class="text-gray-400 dark:text-gray-500">·</span>
-              <span class="text-gray-500 dark:text-gray-400">{{ summary.top_post_30d.posted_at_human }}</span>
             </div>
-
-            <!-- Text preview -->
-            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 line-clamp-3 flex-1">
-              {{ summary.top_post_30d.text_preview || '(media post — matn yo\'q)' }}
-            </p>
-
-            <!-- Stats grid -->
-            <div class="grid grid-cols-2 gap-2 mb-4">
-              <div class="bg-white/70 dark:bg-gray-900/30 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
-                <div class="flex items-center gap-1.5 text-sky-600 dark:text-sky-400 mb-1">
-                  <EyeIcon class="w-4 h-4" />
-                  <span class="text-xs font-medium uppercase tracking-wide">Ko'rish</span>
-                </div>
-                <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(summary.top_post_30d.views) }}</p>
-              </div>
-              <div class="bg-white/70 dark:bg-gray-900/30 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
-                <div class="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 mb-1">
-                  <HeartIcon class="w-4 h-4" />
-                  <span class="text-xs font-medium uppercase tracking-wide">Reaksiya</span>
-                </div>
-                <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatNumber(summary.top_post_30d.reactions_count) }}</p>
-              </div>
-            </div>
-
-            <!-- CTA -->
-            <a v-if="summary.top_post_30d.telegram_link"
-               :href="summary.top_post_30d.telegram_link" target="_blank" rel="noopener"
-               class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md">
-              <PaperAirplaneIcon class="w-4 h-4" />
-              Telegram'da ochish
-            </a>
           </div>
 
-          <div v-else class="relative p-8 text-center flex flex-col items-center justify-center h-[calc(100%-65px)]">
-            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
-              <DocumentTextIcon class="w-7 h-7 text-gray-400 dark:text-gray-500" />
+          <div v-else class="relative p-6 text-center flex flex-col items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-2">
+              <DocumentTextIcon class="w-6 h-6 text-gray-400 dark:text-gray-500" />
             </div>
             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Hali postlar yo'q</p>
-            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-[200px]">
-              Kanalga post chiqaring — top post avtomatik aniqlanadi
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Kanalga post chiqaring
             </p>
           </div>
         </div>
