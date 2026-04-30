@@ -138,11 +138,12 @@
           </div>
 
           <div v-if="summary.top_post_30d" class="relative p-5 flex flex-col h-[calc(100%-65px)]">
-            <!-- Media thumbnail (rasm/video) — agar bor bo'lsa -->
+            <!-- Media thumbnail (rasm/video) — agar bor bo'lsa.
+                 Ixcham balandlik (h-32 = 128px) — hammasi sig'sin: rasm + matn + stats + CTA. -->
             <a v-if="summary.top_post_30d.media_url"
                :href="summary.top_post_30d.telegram_link || '#'"
                target="_blank" rel="noopener"
-               class="relative block w-full aspect-video rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-gray-700 group/topthumb shadow-sm">
+               class="relative block w-full h-32 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-gray-700 group/topthumb shadow-sm">
               <img :src="summary.top_post_30d.media_url"
                    :alt="summary.top_post_30d.text_preview || 'Top post'"
                    loading="lazy"
@@ -150,8 +151,8 @@
                    @error="onMediaError" />
               <div v-if="summary.top_post_30d.content_type === 'video' || summary.top_post_30d.content_type === 'animation'"
                    class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/topthumb:bg-black/40 transition-colors">
-                <div class="w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
-                  <PlayIcon class="w-5 h-5 text-gray-900 ml-0.5" />
+                <div class="w-10 h-10 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
+                  <PlayIcon class="w-4 h-4 text-gray-900 ml-0.5" />
                 </div>
               </div>
             </a>
