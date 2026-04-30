@@ -121,14 +121,40 @@ class ActivateSubscriptionListener implements ShouldQueue
 
     /**
      * Obunani aktivlashtirish
+     *
+     * Routing logic:
+     * - status=trialing → activate() (trial bekor qilinadi, yangi paid subscription yaratiladi
+     *   starts_at=now, ends_at=now+period, trial_ends_at=NULL bilan)
+     * - status=active   → renewFromPayment() (mavjud paid muddatga davr qo'shiladi)
+     * - obuna yo'q      → activate() (birinchi paid subscription)
+     *
+     * MUHIM: Trial → Paid o'tishida renewFromPayment ISHLATILMASIN, chunki u
+     * trial_ends_at ni saqlab qoladi (banner yo'qolmaydi) va ends_at ni mavjud
+     * trial_ends_at dan boshlab uzaytiradi (30 kun emas, 14+30=44 kun chiqadi).
      */
     protected function activateSubscription($transaction, $business, $plan): Subscription
     {
-        // Mavjud aktiv obunani tekshirish
+        // Mavjud obuna (active YOKI trialing — Subscription::scopeActive ikkalasini ham qaytaradi)
         $existingSubscription = $business->activeSubscription();
 
+        // Trial → Paid: yangi paid subscription, trialni cancel qilamiz
+        if ($existingSubscription && $existingSubscription->status === 'trialing') {
+            Log::channel('billing')->info('[Listener] Converting trial → paid subscription', [
+                'business_id' => $business->id,
+                'old_subscription_id' => $existingSubscription->id,
+                'old_trial_ends_at' => $existingSubscription->trial_ends_at?->toIso8601String(),
+            ]);
+
+            return $this->subscriptionService->activate(
+                business: $business,
+                plan: $plan,
+                paymentProvider: $transaction->provider,
+                transactionId: $transaction->id
+            );
+        }
+
+        // Active → Active: paid muddatga davr qo'shish (renewal/upgrade)
         if ($existingSubscription && $existingSubscription->isActive()) {
-            // Mavjud obunani yangilash (upgrade/renew)
             return $this->subscriptionService->renewFromPayment(
                 subscription: $existingSubscription,
                 plan: $plan,
@@ -137,7 +163,7 @@ class ActivateSubscriptionListener implements ShouldQueue
             );
         }
 
-        // Yangi obuna yaratish
+        // Obuna yo'q yoki muddati o'tgan: birinchi paid subscription
         return $this->subscriptionService->activate(
             business: $business,
             plan: $plan,

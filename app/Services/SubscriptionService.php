@@ -142,9 +142,19 @@ class SubscriptionService
 
             $addPeriod = $billingCycle === 'yearly' ? 'addYear' : 'addMonth';
 
-            $newEndsAt = $lockedSubscription->ends_at > now()
-                ? $lockedSubscription->ends_at->$addPeriod() // Muddati tugamagan - qo'shish
-                : now()->$addPeriod(); // Muddati tugagan - yangi boshlanish
+            // MUHIM: Trial → Paid o'tishi normalda Listener'da activate()'ga yo'naltiriladi.
+            // Lekin defensiv ravishda bu yerda ham tekshiramiz: agar trialing subscription
+            // shu metodga kelib qolsa, ends_at uni `trial_ends_at`gacha cho'zilgan bo'lardi
+            // (masalan, 14 kun keyin), va biz unga yana 30 kun qo'shsak — 44 kun chiqadi.
+            // Trial holatida starts_at=now, ends_at=now+period bo'lishi kerak.
+            $isTrialConversion = $lockedSubscription->status === 'trialing';
+
+            $newStartsAt = $isTrialConversion ? now() : $lockedSubscription->starts_at;
+            $newEndsAt = $isTrialConversion
+                ? now()->$addPeriod() // Trial → Paid: now dan boshlab
+                : ($lockedSubscription->ends_at > now()
+                    ? $lockedSubscription->ends_at->$addPeriod() // Muddati tugamagan - qo'shish
+                    : now()->$addPeriod()); // Muddati tugagan - yangi boshlanish
 
             $amount = $billingCycle === 'yearly'
                 ? (float) $plan->price_yearly
@@ -154,7 +164,9 @@ class SubscriptionService
                 'plan_id' => $plan->id,
                 'status' => 'active',
                 'billing_cycle' => $billingCycle,
+                'starts_at' => $newStartsAt,
                 'ends_at' => $newEndsAt,
+                'trial_ends_at' => null, // Paid bo'lgandan keyin trial banneri ko'rinmasligi uchun
                 'amount' => $amount,
                 'payment_provider' => $paymentProvider,
                 'last_payment_at' => now(),
@@ -163,6 +175,7 @@ class SubscriptionService
                     'last_billing_transaction_id' => $transactionId,
                     'renewed_at' => now()->toISOString(),
                     'billing_cycle' => $billingCycle,
+                    'converted_from_trial' => $isTrialConversion,
                 ]),
             ]);
 
