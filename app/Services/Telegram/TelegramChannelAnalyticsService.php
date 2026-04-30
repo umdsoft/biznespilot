@@ -28,7 +28,10 @@ class TelegramChannelAnalyticsService
 {
     public function __construct(
         protected SystemBotService $bot,
-    ) {}
+        protected ?TelegramChannelPublicScraperService $publicScraper = null,
+    ) {
+        $this->publicScraper ??= new TelegramChannelPublicScraperService();
+    }
 
     // =================================================================
     // LIFECYCLE: Bot promoted / demoted in a channel
@@ -183,6 +186,27 @@ class TelegramChannelAnalyticsService
 
         // Confirm to the user via DM on System Bot
         $this->sendChannelConnectedNotification($user, $channel);
+
+        // Public kanal bo'lsa — eski postlarni darhol backfill qilamiz.
+        // Bot API kanal post tarixini bermaydi, shuning uchun t.me/s/{username}
+        // HTML preview'dan oxirgi ~20 ta postni tortamiz. Bu user "Hali postlar
+        // yo'q" o'rniga bog'lash bilan birga 30 soniyadan keyin postlarini
+        // ko'rishini ta'minlaydi.
+        if ($channel->chat_username) {
+            try {
+                $stats = $this->publicScraper->syncChannel($channel);
+                Log::info('[TelegramChannelAnalytics] Initial backfill done', [
+                    'channel_id' => $channel->id,
+                    'username' => $channel->chat_username,
+                    'stats' => $stats,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('[TelegramChannelAnalytics] Initial backfill failed (non-fatal)', [
+                    'channel_id' => $channel->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return $channel;
     }
@@ -452,6 +476,22 @@ class TelegramChannelAnalyticsService
             'subscriber_count' => $memberCount,
             'last_synced_at' => now(),
         ]);
+
+        // Public kanal bo'lsa — t.me/s/{username} dan postlarni va views'ni
+        // qayta o'qib chiqamiz. Bot API views'ning o'sishini push qilmaydi —
+        // har 30 daqiqalik sinx paytida HTML scrape orqali yangilab boramiz.
+        // Bu webhook orqali kelgan boshlang'ich views qiymatini ham keyin
+        // o'sib boruvchi qiymat bilan to'g'rilaydi.
+        if ($channel->chat_username && ! empty($chatInfo['username'])) {
+            try {
+                $this->publicScraper->syncChannel($channel->refresh());
+            } catch (\Throwable $e) {
+                Log::info('[TelegramChannelAnalytics] Public scraper sync skipped (non-fatal)', [
+                    'channel_id' => $channel->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**
