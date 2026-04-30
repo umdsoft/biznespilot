@@ -440,6 +440,16 @@ class SystemBotService
                 'drop_pending_updates' => true,
             ];
 
+            // MUHIM: Telegram'ning DNS resolveri ba'zan .uz TLD bilan
+            // ishlamaydi ("Failed to resolve host: Temporary failure in name
+            // resolution"). Bu setWebhook'ni butunlay buzadi va eski webhook'ni
+            // ham o'chirib yuboradi. ip_address parametri Telegram'ga to'g'ridan-
+            // to'g'ri shu IP'ga ulanishni aytadi (DNS resolve'ni bypass qiladi).
+            $ipAddress = config('services.telegram.webhook_ip_address');
+            if ($ipAddress) {
+                $params['ip_address'] = $ipAddress;
+            }
+
             // Add secret token if configured
             $secret = config('services.telegram.webhook_secret');
             if ($secret) {

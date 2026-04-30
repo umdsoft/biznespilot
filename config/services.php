@@ -143,6 +143,10 @@ return [
         'system_bot_username' => env('TELEGRAM_SYSTEM_BOT_USERNAME', 'BiznesPilotBot'),
         'webhook_secret' => env('TELEGRAM_SYSTEM_WEBHOOK_SECRET'),
         'webhook_url' => env('TELEGRAM_SYSTEM_WEBHOOK_URL'),
+        // Telegram DNS ba'zan .uz TLD'ni resolve qila olmaydi (Failed to resolve
+        // host). ip_address parametri DNS'ni bypass qiladi. .env'da
+        // TELEGRAM_SYSTEM_WEBHOOK_IP_ADDRESS=83.69.136.22 sifatida o'rnating.
+        'webhook_ip_address' => env('TELEGRAM_SYSTEM_WEBHOOK_IP_ADDRESS'),
     ],
 
     /*

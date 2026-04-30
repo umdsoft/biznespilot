@@ -272,15 +272,22 @@ class TelegramChannelAnalyticsService
                 'content_type' => $this->detectContentType($message),
                 'media_count' => $this->countMedia($message),
                 'text_preview' => $this->extractTextPreview($message),
-                'views' => $message['views'] ?? 0,
+                // Bot API'da channel_post update'ida `views` keladi.
+                // `reactions` — alohida `message_reaction_count` event orqali yangilanadi.
+                // `forwards` count — Bot API'da umuman yo'q (faqat MTProto/Client API
+                // orqali olinadi), shuning uchun 0'da boshlanadi.
+                'views' => (int) ($message['views'] ?? 0),
                 'reactions_count' => 0,
-                'forwards_count' => $message['forward_signature'] ?? 0,
+                'forwards_count' => 0,
                 'raw_payload' => $message,
             ])->save();
         } else {
             // Edited post — refresh preview if text changed
+            // Views ham yangilanishi mumkin (Telegram views'ni edited_channel_post'da
+            // qaytaradi).
             $post->update([
                 'text_preview' => $this->extractTextPreview($message),
+                'views' => (int) ($message['views'] ?? $post->views),
                 'raw_payload' => $message,
             ]);
         }
