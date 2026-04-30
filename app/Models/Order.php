@@ -70,6 +70,7 @@ class Order extends Model
         'billing_address',
         'notes',
         'metadata',
+        'ordered_at',
         'paid_at',
         'shipped_at',
         'delivered_at',
@@ -89,10 +90,24 @@ class Order extends Model
         'attributed_acquisition_cost' => 'decimal:2',
         'attribution_data' => 'array',
         'metadata' => 'array',
+        'ordered_at' => 'datetime',
         'paid_at' => 'datetime',
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];
+
+    /**
+     * Yangi order yaratilganda ordered_at avtomat to'ldirish.
+     * Agar fillable orqali aniq qiymat berilgan bo'lsa — uni saqlab qolamiz.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $order): void {
+            if (empty($order->ordered_at)) {
+                $order->ordered_at = $order->freshTimestamp();
+            }
+        });
+    }
 
     // ==========================================
     // RELATIONSHIPS
