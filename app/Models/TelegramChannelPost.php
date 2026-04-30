@@ -48,6 +48,7 @@ class TelegramChannelPost extends Model
         'content_type',
         'media_count',
         'text_preview',
+        'media_url',
         'views',
         'reactions_count',
         'forwards_count',

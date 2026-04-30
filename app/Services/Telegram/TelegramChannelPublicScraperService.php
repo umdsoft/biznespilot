@@ -193,6 +193,11 @@ class TelegramChannelPublicScraperService
                 default => TelegramChannelPost::TYPE_OTHER,
             };
 
+            // Media URL — t.me/s sahifasida photo va video thumb'lar
+            // background-image:url('https://cdn4.cdn-telegram.org/...') sifatida keladi.
+            // Bu CDN URL public va token kerak emas.
+            $mediaUrl = $this->extractMediaUrl($xpath, $node);
+
             $results[] = [
                 'message_id' => $messageId,
                 'text' => $text,
@@ -201,10 +206,53 @@ class TelegramChannelPublicScraperService
                 'content_type' => $contentType,
                 'has_photo' => $hasPhoto,
                 'has_video' => $hasVideo,
+                'media_url' => $mediaUrl,
             ];
         }
 
         return $results;
+    }
+
+    /**
+     * Birinchi rasm/video thumbnail URL'ni style atributidan extract qiladi.
+     * t.me/s formati:
+     *   <a class="tgme_widget_message_photo_wrap" style="background-image:url('https://...')"></a>
+     *   <i class="tgme_widget_message_video_thumb" style="background-image:url('https://...')"></i>
+     */
+    protected function extractMediaUrl(DOMXPath $xpath, \DOMNode $node): ?string
+    {
+        // Photo va video thumb wrapper'larini bitta query bilan topamiz
+        $mediaNodes = $xpath->query(
+            ".//a[contains(@class, 'tgme_widget_message_photo_wrap')]"
+            . " | .//i[contains(@class, 'tgme_widget_message_video_thumb')]"
+            . " | .//*[contains(@class, 'link_preview_image')]",
+            $node
+        );
+
+        if ($mediaNodes === false || $mediaNodes->length === 0) {
+            return null;
+        }
+
+        foreach ($mediaNodes as $mediaNode) {
+            if (! $mediaNode instanceof \DOMElement) {
+                continue;
+            }
+            $style = $mediaNode->getAttribute('style');
+            if (! $style) {
+                continue;
+            }
+
+            // background-image:url('https://...')
+            // Q'avs ichidagi qiymatni olamiz — single quote, double quote yoki bo'sh
+            if (preg_match("/background-image\s*:\s*url\(\s*['\"]?([^'\"\\)]+)['\"]?\s*\)/iu", $style, $m)) {
+                $url = trim($m[1]);
+                if (preg_match('#^https?://#i', $url)) {
+                    return mb_substr($url, 0, 1000); // DB column limit
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -250,6 +298,7 @@ class TelegramChannelPublicScraperService
                 'content_type' => $msg['content_type'],
                 'media_count' => ($msg['has_photo'] || $msg['has_video']) ? 1 : 0,
                 'text_preview' => $msg['text'],
+                'media_url' => $msg['media_url'] ?? null,
                 'views' => $msg['views'],
                 'reactions_count' => 0,
                 'forwards_count' => 0,
@@ -270,6 +319,12 @@ class TelegramChannelPublicScraperService
         // Text webhook'dan kelmasa va scraper'dan bor bo'lsa
         if (! $post->text_preview && $msg['text']) {
             $patch['text_preview'] = $msg['text'];
+        }
+        // Media URL: webhook'dan kelmaydigan ma'lumot — scraper birinchi marta
+        // topganda yoki yangilangan bo'lsa, doim yangilab boramiz (URL Telegram CDN'da
+        // ba'zan o'zgaradi).
+        if (! empty($msg['media_url']) && $msg['media_url'] !== $post->media_url) {
+            $patch['media_url'] = $msg['media_url'];
         }
 
         if (! empty($patch)) {

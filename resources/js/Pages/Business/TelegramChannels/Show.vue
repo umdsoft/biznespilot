@@ -138,6 +138,24 @@
           </div>
 
           <div v-if="summary.top_post_30d" class="relative p-5 flex flex-col h-[calc(100%-65px)]">
+            <!-- Media thumbnail (rasm/video) — agar bor bo'lsa -->
+            <a v-if="summary.top_post_30d.media_url"
+               :href="summary.top_post_30d.telegram_link || '#'"
+               target="_blank" rel="noopener"
+               class="relative block w-full aspect-video rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-gray-700 group/topthumb shadow-sm">
+              <img :src="summary.top_post_30d.media_url"
+                   :alt="summary.top_post_30d.text_preview || 'Top post'"
+                   loading="lazy"
+                   class="w-full h-full object-cover transition-transform group-hover/topthumb:scale-105"
+                   @error="onMediaError" />
+              <div v-if="summary.top_post_30d.content_type === 'video' || summary.top_post_30d.content_type === 'animation'"
+                   class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/topthumb:bg-black/40 transition-colors">
+                <div class="w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
+                  <PlayIcon class="w-5 h-5 text-gray-900 ml-0.5" />
+                </div>
+              </div>
+            </a>
+
             <!-- Type badge + date -->
             <div class="flex items-center gap-2 mb-3 text-xs">
               <span :class="contentTypeBadge(summary.top_post_30d.content_type)" class="inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium">
@@ -149,7 +167,7 @@
             </div>
 
             <!-- Text preview -->
-            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 line-clamp-5 flex-1">
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 line-clamp-3 flex-1">
               {{ summary.top_post_30d.text_preview || '(media post — matn yo\'q)' }}
             </p>
 
@@ -259,8 +277,26 @@
         <li v-for="post in recentPosts" :key="post.id"
             class="group relative px-5 py-4 hover:bg-gray-50/60 dark:hover:bg-gray-700/20 transition-colors">
           <div class="flex items-start gap-4">
-            <!-- Content type icon -->
-            <div :class="contentTypeIconWrapper(post.content_type)" class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center">
+            <!-- Thumbnail (rasm/video) yoki content type icon -->
+            <a v-if="post.media_url"
+               :href="post.telegram_link || '#'"
+               target="_blank" rel="noopener"
+               class="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 group/thumb"
+               :title="post.text_preview || 'Postni ochish'">
+              <img :src="post.media_url" :alt="post.text_preview || 'Post media'"
+                   loading="lazy"
+                   class="w-full h-full object-cover transition-transform group-hover/thumb:scale-105"
+                   @error="onMediaError" />
+              <!-- Video play overlay -->
+              <div v-if="post.content_type === 'video' || post.content_type === 'animation'"
+                   class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/thumb:bg-black/40 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                  <PlayIcon class="w-4 h-4 text-gray-900 ml-0.5" />
+                </div>
+              </div>
+            </a>
+            <div v-else :class="contentTypeIconWrapper(post.content_type)"
+                 class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center">
               <component :is="contentTypeIcon(post.content_type)" class="w-5 h-5" />
             </div>
 
@@ -380,6 +416,7 @@ import {
   ClockIcon,
   CubeIcon,
 } from '@heroicons/vue/24/outline';
+import { PlayIcon } from '@heroicons/vue/24/solid';
 
 const apexchart = defineAsyncComponent(() => import('vue3-apexcharts').then(m => m.default || m));
 
@@ -501,6 +538,16 @@ const formatDateShort = (date) => {
   const d = typeof date === 'string' ? date.substring(0, 10) : date;
   const [_, m, dd] = d.split('-');
   return `${dd}/${m}`;
+};
+
+// Media URL Telegram CDN'ida ba'zan o'lib qoladi (cache rotation, expired
+// signed URL va h.k.). Buni handle qilish: <img> ni o'rab turuvchi <a>'ni
+// to'liq yashirib, fallback (icon) ko'rinishini berish.
+const onMediaError = (event) => {
+  const wrapper = event.target?.closest('a');
+  if (wrapper) {
+    wrapper.style.display = 'none';
+  }
 };
 
 const initials = (name) => {
