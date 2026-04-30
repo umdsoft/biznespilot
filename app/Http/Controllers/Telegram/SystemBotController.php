@@ -47,11 +47,22 @@ class SystemBotController extends Controller
         }
 
         $update = $request->all();
+        $updateType = $this->detectUpdateType($update);
 
-        Log::debug('SystemBot: Webhook received', [
-            'update_id' => $update['update_id'] ?? null,
-            'type' => $this->detectUpdateType($update),
-        ]);
+        // Reaction event'lar uchun INFO darajasida log — debug filter'idan o'tib boradi.
+        // Boshqa event'lar uchun debug saqlanadi.
+        if (in_array($updateType, ['message_reaction_count', 'message_reaction', 'channel_post'], true)) {
+            Log::info('SystemBot: Webhook received', [
+                'update_id' => $update['update_id'] ?? null,
+                'type' => $updateType,
+                'payload_keys' => array_keys($update[$updateType] ?? []),
+            ]);
+        } else {
+            Log::debug('SystemBot: Webhook received', [
+                'update_id' => $update['update_id'] ?? null,
+                'type' => $updateType,
+            ]);
+        }
 
         // Channel analytics: bot promoted/demoted as admin
         if (isset($update['my_chat_member'])) {
@@ -76,9 +87,15 @@ class SystemBotController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        // Channel analytics: reaction totals updated
+        // Channel analytics: reaction totals updated (anonimous reactions in channel)
         if (isset($update['message_reaction_count'])) {
             $this->channelAnalytics->recordReactionCount($update['message_reaction_count']);
+            return response()->json(['ok' => true]);
+        }
+
+        // Channel analytics: per-user reaction (signed — kanal admin reaktsiyasida keladi)
+        if (isset($update['message_reaction'])) {
+            $this->channelAnalytics->recordUserReaction($update['message_reaction']);
             return response()->json(['ok' => true]);
         }
 

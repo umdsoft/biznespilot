@@ -378,6 +378,72 @@ class TelegramChannelAnalyticsService
         $messageId = $update['message_id'] ?? null;
         $reactions = $update['reactions'] ?? [];
 
+        Log::info('[ChannelAnalytics] recordReactionCount called', [
+            'chat_id' => $chat['id'] ?? null,
+            'message_id' => $messageId,
+            'reactions_payload' => $reactions,
+        ]);
+
+        if (!($chat['id'] ?? null) || !$messageId) {
+            Log::warning('[ChannelAnalytics] recordReactionCount: missing chat_id or message_id');
+            return;
+        }
+
+        $channel = TelegramChannel::where('telegram_chat_id', $chat['id'])->first();
+        if (!$channel) {
+            Log::warning('[ChannelAnalytics] recordReactionCount: channel not found', [
+                'chat_id' => $chat['id'],
+            ]);
+            return;
+        }
+
+        $post = TelegramChannelPost::where('telegram_channel_id', $channel->id)
+            ->where('message_id', $messageId)
+            ->first();
+
+        if (!$post) {
+            Log::warning('[ChannelAnalytics] recordReactionCount: post not found', [
+                'channel_id' => $channel->id,
+                'message_id' => $messageId,
+            ]);
+            return;
+        }
+
+        $total = 0;
+        foreach ($reactions as $r) {
+            $total += (int) ($r['total_count'] ?? 0);
+        }
+
+        $post->update(['reactions_count' => $total]);
+
+        Log::info('[ChannelAnalytics] reactions_count updated', [
+            'post_id' => $post->id,
+            'message_id' => $messageId,
+            'old' => $post->getOriginal('reactions_count'),
+            'new' => $total,
+        ]);
+    }
+
+    /**
+     * Per-user message reaction (signed). Telegram channellarda bu event
+     * faqat botda admin reagent foydalanuvchisi bo'lsa keladi. Bu yerda
+     * post ko'rinishini yangilab boramiz — har user reaktsiyasini hisoblab
+     * total reactions_count ni qaytadan o'rnatamiz.
+     */
+    public function recordUserReaction(array $update): void
+    {
+        $chat = $update['chat'] ?? [];
+        $messageId = $update['message_id'] ?? null;
+        $oldReaction = $update['old_reaction'] ?? [];
+        $newReaction = $update['new_reaction'] ?? [];
+
+        Log::info('[ChannelAnalytics] recordUserReaction called', [
+            'chat_id' => $chat['id'] ?? null,
+            'message_id' => $messageId,
+            'old' => $oldReaction,
+            'new' => $newReaction,
+        ]);
+
         if (!($chat['id'] ?? null) || !$messageId) {
             return;
         }
@@ -392,15 +458,25 @@ class TelegramChannelAnalyticsService
             ->first();
 
         if (!$post) {
+            Log::warning('[ChannelAnalytics] recordUserReaction: post not found', [
+                'channel_id' => $channel->id,
+                'message_id' => $messageId,
+            ]);
             return;
         }
 
-        $total = 0;
-        foreach ($reactions as $r) {
-            $total += (int) ($r['total_count'] ?? 0);
-        }
+        // Delta: yangi - eski reaktsiya soni (1 yoki -1 yoki 0)
+        // old/new reaction'lar massiv: [{'type': 'emoji', 'emoji': '❤'}]
+        $delta = count($newReaction) - count($oldReaction);
+        $newCount = max(0, (int) $post->reactions_count + $delta);
+        $post->update(['reactions_count' => $newCount]);
 
-        $post->update(['reactions_count' => $total]);
+        Log::info('[ChannelAnalytics] reactions_count updated (user reaction)', [
+            'post_id' => $post->id,
+            'message_id' => $messageId,
+            'delta' => $delta,
+            'new_count' => $newCount,
+        ]);
     }
 
     // =================================================================
