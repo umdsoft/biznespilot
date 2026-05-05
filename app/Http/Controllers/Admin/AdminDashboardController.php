@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Billing\BillingTransaction;
 use App\Models\Business;
 use App\Models\Campaign;
@@ -15,7 +16,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
-use Spatie\Activitylog\Models\Activity;
 
 class AdminDashboardController extends Controller
 {
@@ -269,38 +269,46 @@ class AdminDashboardController extends Controller
 
     /**
      * Activity logs page
+     *
+     * Mahalliy `App\Models\ActivityLog`'dan o'qiydi va frontend kutgan
+     * Spatie format'iga (`event`, `properties`, `user`) map qiladi.
+     * Spatie packagi loyihada o'rnatilmagan — uni ishlatishga urinish
+     * `class_exists()` orqali silent fail bo'lardi va sahifa bo'sh chiqardi.
      */
     public function activityLogs()
     {
-        $logs = [];
+        $logs = ActivityLog::with('user:id,name,email')
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(fn (ActivityLog $log) => [
+                'id' => $log->id,
+                'description' => $log->description,
+                // Vue `log.event` field'ni filter/badge uchun ishlatadi.
+                // DB'da `action` (login, create, ...) bu role'ni bajaradi.
+                'event' => $log->action ?: ($log->type ?: 'info'),
+                'user' => $log->user ? [
+                    'name' => $log->user->name,
+                    'email' => $log->user->email,
+                ] : null,
+                // Vue `log.properties.ip` deb o'qiydi — DB'dagi properties JSON
+                // ustuniga ip va user_agent'ni qo'shib jo'natamiz.
+                'properties' => array_merge(
+                    is_array($log->properties) ? $log->properties : [],
+                    array_filter([
+                        'ip' => $log->ip_address,
+                        'user_agent' => $log->user_agent,
+                    ])
+                ),
+                'created_at' => $log->created_at?->format('Y-m-d H:i:s'),
+            ]);
+
         $stats = [
-            'today' => 0,
-            'this_week' => 0,
-            'errors' => 0,
+            'today' => ActivityLog::whereDate('created_at', today())->count(),
+            'this_week' => ActivityLog::where('created_at', '>=', now()->startOfWeek())->count(),
+            'errors' => ActivityLog::whereIn('action', ['login_failed', 'error'])->count(),
             'active_users' => User::where('last_login_at', '>=', now()->subDay())->count(),
         ];
-
-        // Check if Activity model exists
-        if (class_exists(Activity::class)) {
-            $logs = Activity::with('causer')
-                ->latest()
-                ->limit(100)
-                ->get()
-                ->map(fn ($log) => [
-                    'id' => $log->id,
-                    'description' => $log->description,
-                    'event' => $log->event ?? 'action',
-                    'user' => $log->causer ? [
-                        'name' => $log->causer->name,
-                        'email' => $log->causer->email,
-                    ] : null,
-                    'properties' => $log->properties,
-                    'created_at' => $log->created_at->format('Y-m-d H:i:s'),
-                ]);
-
-            $stats['today'] = Activity::whereDate('created_at', today())->count();
-            $stats['this_week'] = Activity::where('created_at', '>=', now()->startOfWeek())->count();
-        }
 
         return Inertia::render('Admin/ActivityLogs/Index', [
             'logs' => $logs,

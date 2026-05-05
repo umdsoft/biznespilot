@@ -49,6 +49,7 @@ use App\Listeners\HR\HRIntegrationListener;
 use App\Observers\LeadActivityObserver;
 use App\Events\PaymentReceived;
 use App\Events\PaymentSuccessEvent;
+use App\Listeners\LogAuthActivity;
 use App\Listeners\SendPaymentNotification;
 use App\Listeners\ActivateSubscriptionListener;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -149,6 +150,10 @@ class AppServiceProvider extends ServiceProvider
         // SaaS Billing: To'lov muvaffaqiyatli bo'lganda obunani aktivlashtirish
         // (Payme/Click → PaymentSuccessEvent → ActivateSubscriptionListener)
         Event::listen(PaymentSuccessEvent::class, ActivateSubscriptionListener::class);
+
+        // Auth activity log: Login, Logout, Failed events → ActivityLog jadvali
+        // (admin "Faoliyat jurnali" sahifasi ma'lumot manbasi)
+        Event::subscribe(LogAuthActivity::class);
 
         // Partner Program: har to'lovdan 10%/5% commission yozib borish
         Event::listen(

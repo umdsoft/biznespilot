@@ -10,41 +10,29 @@ class ActivityLog extends Model
 {
     use BelongsToBusiness;
 
+    /**
+     * MUHIM: Bu fillable DB schema'siga mos. activity_logs jadvali Spatie
+     * formatda dizayn qilingan: type, action, subject_*, properties (JSON),
+     * changes (JSON). Eski extra columnlar (action_type, entity_type, metadata)
+     * jadvalda yo'q — agar fillable'ga qo'shilsa Eloquent xato qaytaradi.
+     */
     protected $fillable = [
         'business_id',
         'user_id',
-        'action',
-        'action_category',
-        'action_type',
-        'model_type',
-        'model_id',
-        'entity_type',
-        'entity_id',
-        'entity_name',
+        'type',          // 'auth' | 'crud' | 'integration' | ...
+        'action',        // 'login' | 'logout' | 'create' | 'update' | ...
+        'subject_type',  // Eloquent morph type (Lead, Order, va h.k.)
+        'subject_id',
         'description',
-        'changes',
-        'old_values',
-        'new_values',
-        'metadata',
+        'properties',    // JSON — IP/UA tashqaridagi har qanday qo'shimcha
+        'changes',       // JSON — old/new values diff
         'ip_address',
         'user_agent',
-        'session_id',
-        'device_type',
-        'browser',
-        'os',
-        'country',
-        'city',
-        'is_important',
-        'is_system',
     ];
 
     protected $casts = [
+        'properties' => 'array',
         'changes' => 'array',
-        'old_values' => 'array',
-        'new_values' => 'array',
-        'metadata' => 'array',
-        'is_important' => 'boolean',
-        'is_system' => 'boolean',
     ];
 
     public function business(): BelongsTo
@@ -59,15 +47,20 @@ class ActivityLog extends Model
 
     public function scopeByType($query, $type)
     {
-        return $query->where('activity_type', $type);
+        return $query->where('type', $type);
     }
 
-    public function scopeByEntity($query, $entityType, $entityId = null)
+    public function scopeByAction($query, $action)
     {
-        $query->where('entity_type', $entityType);
+        return $query->where('action', $action);
+    }
 
-        if ($entityId) {
-            $query->where('entity_id', $entityId);
+    public function scopeBySubject($query, $subjectType, $subjectId = null)
+    {
+        $query->where('subject_type', $subjectType);
+
+        if ($subjectId) {
+            $query->where('subject_id', $subjectId);
         }
 
         return $query;
@@ -83,33 +76,40 @@ class ActivityLog extends Model
         return $query->where('user_id', $userId);
     }
 
+    /**
+     * Convenience: yozuv yaratish.
+     * action — 'login', 'create', 'update' va h.k.
+     * type   — kategoriya: 'auth', 'crud', 'integration', va h.k.
+     */
     public static function log(
-        $businessId,
-        $activityType,
-        $description,
-        $entityType = null,
-        $entityId = null,
-        $metadata = null
-    ) {
+        ?string $businessId,
+        string $action,
+        string $description,
+        ?string $type = null,
+        ?string $subjectType = null,
+        $subjectId = null,
+        array $properties = []
+    ): self {
         return static::create([
             'business_id' => $businessId,
             'user_id' => auth()->id(),
-            'activity_type' => $activityType,
-            'entity_type' => $entityType,
-            'entity_id' => $entityId,
+            'type' => $type,
+            'action' => $action,
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
             'description' => $description,
+            'properties' => $properties,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'metadata' => $metadata,
-            'created_at' => now(),
         ]);
     }
 
-    public function getActivityTypeIcon()
+    public function getActionIcon(): string
     {
-        return match ($this->activity_type) {
+        return match ($this->action) {
             'login' => 'arrow-right-on-rectangle',
             'logout' => 'arrow-left-on-rectangle',
+            'login_failed' => 'shield-exclamation',
             'create' => 'plus-circle',
             'update' => 'pencil',
             'delete' => 'trash',
@@ -124,11 +124,12 @@ class ActivityLog extends Model
         };
     }
 
-    public function getActivityTypeName()
+    public function getActionName(): string
     {
-        return match ($this->activity_type) {
+        return match ($this->action) {
             'login' => 'Kirish',
             'logout' => 'Chiqish',
+            'login_failed' => 'Muvaffaqiyatsiz kirish',
             'create' => 'Yaratish',
             'update' => 'Yangilash',
             'delete' => 'O\'chirish',
@@ -139,7 +140,7 @@ class ActivityLog extends Model
             'alert' => 'Ogohlantirish',
             'report' => 'Hisobot',
             'ai_generate' => 'AI generatsiya',
-            default => $this->activity_type,
+            default => (string) $this->action,
         };
     }
 }
