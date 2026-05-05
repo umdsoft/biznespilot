@@ -82,7 +82,7 @@ const updateStatus = async () => {
     isSaving.value = true;
     try {
         const response = await fetch(route('admin.feedback.update-status', props.feedback.id), {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json',
@@ -105,7 +105,7 @@ const updatePriority = async () => {
     isSaving.value = true;
     try {
         const response = await fetch(route('admin.feedback.update-priority', props.feedback.id), {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json',
