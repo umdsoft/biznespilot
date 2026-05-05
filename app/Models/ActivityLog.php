@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToBusiness;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityLog extends Model
 {
-    use BelongsToBusiness;
+    use BelongsToBusiness, HasUuids;
 
     /**
      * MUHIM: Bu fillable DB schema'siga mos. activity_logs jadvali Spatie
