@@ -15,6 +15,18 @@ class YandexOAuthService
     private const TOKEN_URL = 'https://oauth.yandex.ru/token';
     private const USERINFO_URL = 'https://login.yandex.ru/info';
 
+    /**
+     * Yandex OAuth scope'lari. Ushbu scope'lar Yandex OAuth ilova
+     * settings'da ham yoqilgan bo'lishi shart (oauth.yandex.ru'da
+     * ilovani yaratganda Permissions bo'limidan tanlanadi).
+     */
+    private const SCOPES = [
+        'login:email',     // Foydalanuvchi email
+        'login:info',      // Foydalanuvchi ismi va id
+        'metrika:read',    // Yandex Metrika — counterlar va analytics
+        'direct:api',      // Yandex Direct — reklama kampaniyalari (alohida API access kerak)
+    ];
+
     public function __construct()
     {
         $this->clientId = config('services.yandex.client_id', '');
@@ -32,6 +44,7 @@ class YandexOAuthService
             'client_id' => $this->clientId,
             'redirect_uri' => $this->redirectUri,
             'state' => $state,
+            'scope' => implode(' ', self::SCOPES),
             'force_confirm' => 'yes',
         ];
 
