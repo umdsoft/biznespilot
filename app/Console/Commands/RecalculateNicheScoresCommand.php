@@ -25,7 +25,11 @@ class RecalculateNicheScoresCommand extends Command
                 $this->info("Yakunlandi: {$updated} ta mavzu yangilandi");
             } else {
                 $stats = $service->recalculateAllScores();
-                $this->info("Yakunlandi: {$stats['industries_processed']} ta soha, {$stats['topics_updated']} ta mavzu yangilandi");
+                // Service `processed`/`updated`/`errors` qaytaradi (industries_processed emas).
+                $processed = $stats['processed'] ?? 0;
+                $updated = $stats['updated'] ?? 0;
+                $errors = $stats['errors'] ?? 0;
+                $this->info("Yakunlandi: {$processed} ta soha qayta ishlandi, {$updated} ta yangilandi, {$errors} ta xato");
             }
 
             return Command::SUCCESS;

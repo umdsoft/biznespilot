@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -520,6 +521,16 @@ class Lead extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(LeadActivity::class)->latest();
+    }
+
+    /**
+     * Polymorphic alerts (SalesAlert) — bu Lead bilan bog'liq
+     * follow-up va boshqa eslatmalar. AlertService whereDoesntHave('alerts')
+     * orqali tekshiradi (har Lead uchun avval yuborilgan eslatmalar).
+     */
+    public function alerts(): MorphMany
+    {
+        return $this->morphMany(SalesAlert::class, 'alertable');
     }
 
     /**

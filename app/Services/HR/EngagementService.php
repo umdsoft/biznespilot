@@ -44,10 +44,14 @@ class EngagementService
      */
     public function updateFromSurvey(User $employee, Business $business, string $surveyType, float $score, array $responses = []): float
     {
+        // employee_engagements jadvalida `period` ustun NOT NULL — har joriy
+        // oy uchun alohida yozuv saqlanadi (YYYY-MM format).
+        $period = now()->format('Y-m');
         $engagement = EmployeeEngagement::firstOrCreate(
             [
                 'business_id' => $business->id,
                 'user_id' => $employee->id,
+                'period' => $period,
             ],
             [
                 'overall_score' => 50.0,
@@ -80,10 +84,14 @@ class EngagementService
      */
     public function boostEngagement(User $employee, Business $business, string $reason, int $points): void
     {
+        // employee_engagements jadvalida `period` ustun NOT NULL — har joriy
+        // oy uchun alohida yozuv saqlanadi (YYYY-MM format).
+        $period = now()->format('Y-m');
         $engagement = EmployeeEngagement::firstOrCreate(
             [
                 'business_id' => $business->id,
                 'user_id' => $employee->id,
+                'period' => $period,
             ],
             [
                 'overall_score' => 50.0,

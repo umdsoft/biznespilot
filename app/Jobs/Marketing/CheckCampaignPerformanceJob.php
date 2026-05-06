@@ -45,12 +45,28 @@ class CheckCampaignPerformanceJob implements ShouldQueue
 
     protected function processAllBusinesses(NotificationService $notificationService): void
     {
-        $businesses = Business::where('status', 'active')
-            ->where(function ($q) {
-                $q->whereHas('metaAdAccounts')
-                    ->orWhereHas('googleAdsAccounts');
-            })
-            ->get();
+        // metaAdAccounts/googleAdsAccounts relationship'lari Business model'da
+        // hali aniqlanmagan (integratsiya alohida hali implement qilinmagan).
+        // Crash o'rniga: relationship mavjud bo'lsa filter, bo'lmasa shunchaki
+        // status=active barcha bizneslar.
+        $query = Business::where('status', 'active');
+
+        if (method_exists(Business::class, 'metaAdAccounts') || method_exists(Business::class, 'googleAdsAccounts')) {
+            $query->where(function ($q) {
+                if (method_exists(Business::class, 'metaAdAccounts')) {
+                    $q->whereHas('metaAdAccounts');
+                }
+                if (method_exists(Business::class, 'googleAdsAccounts')) {
+                    $q->orWhereHas('googleAdsAccounts');
+                }
+            });
+        } else {
+            // Hech qaysi integratsiya yo'q — kampaniya tekshirishga hech narsa yo'q.
+            Log::info('CheckCampaignPerformanceJob: no ad account integrations available, skipping');
+            return;
+        }
+
+        $businesses = $query->get();
 
         foreach ($businesses as $business) {
             try {

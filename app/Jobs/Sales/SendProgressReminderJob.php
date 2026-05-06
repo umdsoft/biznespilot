@@ -74,9 +74,10 @@ class SendProgressReminderJob implements ShouldQueue
     protected function processForBusiness(AlertService $alertService, Business $business): void
     {
         try {
-            // Sotuv operatorlarini olish
+            // Sotuv operatorlarini olish.
+            // business_user jadvalida `role` ustuni mavjud (`sales_role` emas).
             $operators = $business->users()
-                ->wherePivot('sales_role', 'sales_operator')
+                ->wherePivot('role', 'sales_operator')
                 ->get();
 
             foreach ($operators as $operator) {
