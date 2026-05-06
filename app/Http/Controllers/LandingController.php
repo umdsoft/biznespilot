@@ -52,19 +52,26 @@ class LandingController extends Controller
     }
 
     /**
-     * Detect known search engine bots and OAuth verification crawlers.
+     * Detect known search engine bots, OAuth verifiers, and headless crawlers.
      *
-     * Google OAuth verifier User-Agent: "Google-InspectionTool/1.0" yoki
-     * "Mozilla/5.0 (compatible; Google-Verifier; +http://...)" kabi.
+     * Google OAuth verification "unresponsive" qaytargach pattern kengaytirildi:
+     * - Aniq bot nomlari (googlebot, bingbot, yandexbot, ...)
+     * - Generic markerlar: "bot/", "+http", "crawler", "spider", "verifier"
+     * - Headless: "headless", "phantomjs", "puppeteer"
+     * - Google'ning rasmiy bo'lmagan verifier UA: ko'pincha "Mozilla/5.0
+     *   (compatible; ...)" formatda keladi va "+http" link qo'yadi
+     *
+     * Real brauzerlar (Chrome, Firefox, Safari) bu markerlarni ishlatmaydi —
+     * shu bois false-positive risk minimal.
      */
     protected function isCrawler(?string $userAgent): bool
     {
-        if (! $userAgent) {
-            return true; // UA yo'q — ehtimol bot, xavfsizlik uchun static qaytaramiz
+        if (! $userAgent || strlen($userAgent) < 10) {
+            return true; // UA yo'q yoki juda qisqa — bot deb hisoblaymiz
         }
 
         return (bool) preg_match(
-            '#(googlebot|google-verifier|google-inspectiontool|adsbot-google|mediapartners-google|bingbot|yandexbot|yandexverifier|duckduckbot|baiduspider|slurp|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|applebot|petalbot)#i',
+            '#(googlebot|google-verifier|google-inspectiontool|google-oauth|google\s*oauth|adsbot-google|mediapartners-google|bingbot|yandexbot|yandex-verifier|duckduckbot|baiduspider|slurp|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|applebot|petalbot|bot/|/bot|crawler|spider|verifier|headless|phantomjs|puppeteer|playwright|chrome-lighthouse|\+https?://|http\.client|python-requests|curl/|wget/|go-http-client|java/|node-fetch|axios/)#i',
             $userAgent
         );
     }
