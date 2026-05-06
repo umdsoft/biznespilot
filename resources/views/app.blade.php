@@ -226,14 +226,81 @@
     @endif
 </head>
 <body class="antialiased bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100">
+    {{--
+        SEO/Crawler-visible content (Google OAuth verifier, search engines).
+        Inertia mounts to <div id="app"> and replaces its content via JavaScript.
+        Bu blok #app dan TASHQARIDA — har doim initial HTML'da bo'ladi.
+        Vue ishga tushgandan keyin sr-only class'i orqali ekrandan yashirinadi.
+    --}}
+    <div id="seo-fallback" class="seo-fallback" aria-hidden="false">
+        <header>
+            <h1>BiznesPilot AI — O'zbekistondagi #1 biznes boshqaruv platformasi</h1>
+        </header>
+        <main>
+            <p><strong>BiznesPilot</strong> — O'zbekiston bizneslari uchun yaratilgan kompleks biznes operatsion tizimi.
+                Marketing, sotuvlar, moliya, HR boshqaruvi, mijozlar bazasi va AI yordamchi — barchasi bitta platformada.</p>
+            <p>BiznesPilot is a comprehensive business management platform for SMEs in Uzbekistan.
+                It provides CRM, marketing automation, sales pipeline, HR management, finance tracking,
+                Telegram bot integration, Google Ads / Yandex Direct campaign analytics, and AI-powered
+                business assistant — all in one unified workspace.</p>
+            <p><strong>Asosiy imkoniyatlar / Key features:</strong></p>
+            <ul>
+                <li>CRM tizimi va mijozlar bazasi (Customer Relationship Management)</li>
+                <li>Sotuvlar pipeline va lead management</li>
+                <li>Marketing kampaniyalari va ROI analytics</li>
+                <li>Telegram bot orqali do'kon yaratish (e-commerce, services, delivery, courses, lead capture)</li>
+                <li>Google Ads, Google Analytics, YouTube va Yandex Direct/Metrika integratsiyalari</li>
+                <li>HR boshqaruvi: xodimlar, KPI, davomat, ish haqi</li>
+                <li>Moliya: kassa, daromad/xarajatlar, hisobotlar</li>
+                <li>AI biznes maslahatchi va avtomatlashtirish</li>
+            </ul>
+        </main>
+        <footer>
+            <nav aria-label="Legal links">
+                <a href="/privacy-policy" rel="nofollow">Privacy Policy / Maxfiylik siyosati</a> |
+                <a href="/terms" rel="nofollow">Terms of Service / Xizmat shartlari</a> |
+                <a href="/data-deletion" rel="nofollow">Data Deletion / Ma'lumotlarni o'chirish</a> |
+                <a href="/about" rel="nofollow">About Us / Biz haqimizda</a> |
+                <a href="/pricing" rel="nofollow">Pricing / Narxlar</a>
+            </nav>
+            <p>&copy; {{ date('Y') }} BiznesPilot. Barcha huquqlar himoyalangan.
+                Operated by BiznesPilot LLC, Uzbekistan.</p>
+        </footer>
+    </div>
+    <style>
+        /* Vue ishga tushgandan keyin SEO blok yashirinadi —
+           foydalanuvchi takror ko'rinishni ko'rmaydi, faqat crawler/verifier ko'radi */
+        .seo-fallback {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+
     @inertia
 
-    <!-- ========== NO-SCRIPT FALLBACK ========== -->
+    <!-- ========== NO-SCRIPT FALLBACK (JS o'chirilgan brauzerlar uchun) ========== -->
     <noscript>
         <div style="padding: 20px; text-align: center; background: #fef2f2; color: #991b1b;">
             {{ app()->getLocale() === 'ru'
                 ? 'Для работы BiznesPilot требуется JavaScript. Пожалуйста, включите JavaScript в настройках браузера.'
                 : 'BiznesPilot ishlashi uchun JavaScript kerak. Iltimos, brauzer sozlamalarida JavaScript ni yoqing.' }}
+        </div>
+        <hr>
+        <div style="padding: 20px;">
+            <h1>BiznesPilot AI</h1>
+            <p>O'zbekistondagi #1 biznes boshqaruv platformasi.
+                CRM, marketing, moliya, HR — bitta platformada.</p>
+            <p>
+                <a href="/privacy-policy">Privacy Policy</a> |
+                <a href="/terms">Terms of Service</a> |
+                <a href="/data-deletion">Data Deletion</a> |
+                <a href="/about">About Us</a>
+            </p>
         </div>
     </noscript>
 </body>
