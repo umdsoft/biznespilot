@@ -39,12 +39,19 @@ export default defineConfig({
     build: {
         // Enable source maps for debugging (disable in production for smaller bundles)
         sourcemap: false,
-        emptyOutDir: false,
+        // PERF: emptyOutDir=true — har deploy'da eski hash'lar tozalanadi.
+        // Ilgari false bo'lganda public/build/js/ 800MB+ stale chunklar yig'ilardi.
+        // Inertia manifest har build'da yangi nomlar yaratadi, eskilari foydasiz.
+        emptyOutDir: true,
         // Chunk size warning limit (in KB)
         chunkSizeWarningLimit: 500,
         rollupOptions: {
             output: {
-                // Manual chunk splitting for better caching
+                // Manual chunk splitting for better caching.
+                // PERF: vendor-charts olib tashlandi — chart.js va apexcharts
+                // birga 789KB chunk yaratardi, har sahifaga yuklanardi. Endi
+                // Rollup avtomatik route bo'yicha lazy-split qiladi (faqat
+                // analytics sahifalarida yuklanadi).
                 manualChunks: {
                     'vendor-vue': ['vue', '@vue/runtime-dom', '@vue/runtime-core'],
                     'vendor-inertia': ['@inertiajs/vue3'],
@@ -53,7 +60,6 @@ export default defineConfig({
                     'vendor-icons': ['@heroicons/vue/24/outline', '@heroicons/vue/24/solid'],
                     'vendor-ziggy': ['ziggy-js'],
                     'vendor-marked': ['marked'],
-                    'vendor-charts': ['chart.js', 'apexcharts', 'vue3-apexcharts'],
                 },
                 // Dynamic chunk naming for lazy-loaded modules
                 chunkFileNames: (chunkInfo) => {

@@ -20,7 +20,7 @@ class CheckUpcomingSeasons extends Command
     {
         $this->info('Mavsumiy voqealar tekshirilmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $totalEvents = 0;
 
         foreach ($businesses as $business) {

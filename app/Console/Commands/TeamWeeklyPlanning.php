@@ -22,7 +22,7 @@ class TeamWeeklyPlanning extends Command
     {
         $this->info('Haftalik reja yaratilmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
 
         foreach ($businesses as $business) {
             try {

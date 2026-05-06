@@ -20,7 +20,7 @@ class GenerateWeeklyReports extends Command
     {
         $this->info('Haftalik hisobotlar yaratilmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $success = 0;
         $failed = 0;
 

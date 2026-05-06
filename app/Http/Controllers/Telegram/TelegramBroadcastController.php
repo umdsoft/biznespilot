@@ -301,13 +301,10 @@ class TelegramBroadcastController extends Controller
 
         $broadcast->start();
 
-        // For small broadcasts (< 50 users), process synchronously
-        // For larger broadcasts, use queue
-        if ($broadcast->total_recipients < 50) {
-            ProcessTelegramBroadcast::dispatchSync($broadcast->id);
-        } else {
-            ProcessTelegramBroadcast::dispatch($broadcast->id);
-        }
+        // PERF: dispatchSync olib tashlandi — har Telegram API call 200-500ms,
+        // 50 user × 400ms = 20s PHP-FPM worker block. Ko'p concurrent broadcast'lar
+        // worker pool'ni tugatib 502 qaytaradi. Endi har doim queue orqali.
+        ProcessTelegramBroadcast::dispatch($broadcast->id);
 
         return response()->json([
             'success' => true,
@@ -369,14 +366,9 @@ class TelegramBroadcastController extends Controller
 
         $broadcast->resume();
 
-        // For small broadcasts (< 50 users), process synchronously
-        // For larger broadcasts, use queue
-        $remaining = $broadcast->total_recipients - $broadcast->sent_count;
-        if ($remaining < 50) {
-            ProcessTelegramBroadcast::dispatchSync($broadcast->id);
-        } else {
-            ProcessTelegramBroadcast::dispatch($broadcast->id);
-        }
+        // PERF: dispatchSync olib tashlandi — har doim queue orqali (PHP-FPM
+        // workerni bloklamaslik uchun).
+        ProcessTelegramBroadcast::dispatch($broadcast->id);
 
         return response()->json([
             'success' => true,

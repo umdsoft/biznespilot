@@ -64,8 +64,12 @@ class BusinessController extends Controller
             'country' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Create the business
-        $business = Business::create($validated);
+        // SECURITY: $validated faqat validation rule'larida bo'lgan field'larni
+        // qaytaradi (Laravel 12 strict). user_id mass-assignment xavfsiz, lekin
+        // defensive ravishda explicit set qilamiz.
+        $business = Business::create($validated + [
+            'user_id' => Auth::id(),
+        ]);
 
         // Attach the current user as owner
         $business->users()->attach(Auth::id(), [

@@ -20,7 +20,7 @@ class TeamMorningStandup extends Command
     {
         $this->info('Ertalabki majlis tayyorlanmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $success = 0;
 
         foreach ($businesses as $business) {

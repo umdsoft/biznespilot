@@ -49,11 +49,15 @@ class ValidateBusinessAccess
      * Check if user has access to business
      *
      * @param  \App\Models\User  $user
+     * @param  string|int  $businessId  UUID string yoki legacy int
      */
-    protected function userHasAccessToBusiness($user, int $businessId): bool
+    protected function userHasAccessToBusiness($user, $businessId): bool
     {
-        // Option 1: User owns the business
-        if ($user->business_id == $businessId) {
+        // Option 1: User owns the business.
+        // SECURITY: `==` loose comparison UUID string'larda yoki int/string
+        // mismatch'da kutilmagan natija beradi (PHP type juggling).
+        // `===` strict comparison — UUID hammasi string sifatida solishtiriladi.
+        if ((string) ($user->business_id ?? '') === (string) $businessId) {
             return true;
         }
 

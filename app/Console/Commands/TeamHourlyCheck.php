@@ -19,7 +19,7 @@ class TeamHourlyCheck extends Command
 
     public function handle(EmergencyDetector $detector): int
     {
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $totalAlerts = 0;
 
         foreach ($businesses as $business) {

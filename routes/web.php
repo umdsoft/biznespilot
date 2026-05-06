@@ -1706,7 +1706,11 @@ Route::prefix('offer')->name('offers.public.')->group(function () {
 });
 
 // API endpoint for lead form webhooks (Facebook, Google Ads, etc.)
-Route::post('/api/lead-forms/{slug}/submit', [PublicLeadFormController::class, 'apiSubmit'])->name('api.lead-form.submit');
+// SECURITY: throttle qo'shildi — public endpoint, CSRF off, lead-flood DoS oldini olish.
+// Per IP: 30 submit/daqiqa (Facebook bulk submit'lar uchun yetadi, hujumchi limit'ga uradi).
+Route::post('/api/lead-forms/{slug}/submit', [PublicLeadFormController::class, 'apiSubmit'])
+    ->middleware('throttle:30,1')
+    ->name('api.lead-form.submit');
 
 // Webhook routes (public, no authentication required)
 // NOTE: System Bot webhook is in routes/api.php: POST /api/webhooks/system-bot

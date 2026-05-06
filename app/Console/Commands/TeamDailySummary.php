@@ -20,7 +20,7 @@ class TeamDailySummary extends Command
     {
         $this->info('Kunlik xulosa tayyorlanmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $success = 0;
 
         foreach ($businesses as $business) {

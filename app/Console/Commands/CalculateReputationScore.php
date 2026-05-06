@@ -20,7 +20,7 @@ class CalculateReputationScore extends Command
     {
         $this->info("Obro' ballari hisoblanmoqda...");
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
 
         foreach ($businesses as $business) {
             try {

@@ -20,7 +20,7 @@ class GenerateDailyBrief extends Command
     {
         $this->info('Kundalik hisobot yaratilmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $success = 0;
         $failed = 0;
 

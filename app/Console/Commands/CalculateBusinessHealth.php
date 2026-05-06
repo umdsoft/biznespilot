@@ -20,7 +20,7 @@ class CalculateBusinessHealth extends Command
     {
         $this->info("Biznes sog'ligi hisoblanmoqda...");
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $success = 0;
 
         foreach ($businesses as $business) {

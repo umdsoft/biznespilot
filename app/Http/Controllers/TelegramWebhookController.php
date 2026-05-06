@@ -99,11 +99,17 @@ class TelegramWebhookController extends Controller
         $secretToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
 
         if (! $secretToken) {
-            // Allow if no secret token header (for backwards compatibility)
-            // In production, you should return false here after setting secret_token
-            Log::warning('Telegram webhook received without secret token header');
+            // SECURITY: Header yo'q bo'lsa rad qilamiz. Telegram setWebhook'da
+            // secret_token bilan o'rnatilgan bo'lishi shart. Aks holda hujumchi
+            // business_id ni topib (UUID enumeration), arbitrary update yuborib
+            // chatbot orqali spam, AI quota tugatish yoki user'larga xato
+            // xabar yuborish mumkin.
+            Log::warning('Telegram webhook rejected: missing secret token header', [
+                'business_id' => $businessId,
+                'ip' => $request->ip(),
+            ]);
 
-            return true; // Change to false in production after setup
+            return false;
         }
 
         // Get the expected secret token for this business

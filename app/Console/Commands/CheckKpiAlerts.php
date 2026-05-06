@@ -38,7 +38,7 @@ class CheckKpiAlerts extends Command
         if ($businessId) {
             $businesses = Business::where('id', $businessId)->get();
         } else {
-            $businesses = Business::all();
+            $businesses = Business::where('status', 'active')->lazyById(50);
         }
 
         $totalAlerts = 0;

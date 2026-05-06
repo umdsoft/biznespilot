@@ -20,7 +20,7 @@ class ForecastCashFlow extends Command
     {
         $this->info('Pul oqimi bashorati yaratilmoqda...');
 
-        $businesses = Business::all();
+        $businesses = Business::where('status', 'active')->lazyById(50);
         $dangers = 0;
 
         foreach ($businesses as $business) {
