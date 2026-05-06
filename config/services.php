@@ -125,6 +125,52 @@ return [
         'api_key' => env('GROQ_API_KEY'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google Gemini AI
+    |--------------------------------------------------------------------------
+    |
+    | Chatbot uchun arzon alternativ — Claude Haiku 4.5 ($0.80/$4.00 per 1M)
+    | o'rniga Gemini 2.0 Flash ($0.10/$0.40 per 1M) — taxminan 89% tejash.
+    |
+    | Free tier (Google AI Studio): 1M tokens/kun BEPUL — kredit karta
+    | kerak emas. Faqat API key olish kifoya: https://aistudio.google.com/
+    |
+    | Paid tier (Google Cloud Vertex AI yoki Gen AI API): O'zbekistondan
+    | Visa/Mastercard ishlaydi — DeepSeek (UnionPay) muammosi yo'q.
+    |
+    | default_model — model nomini env orqali override qilish:
+    |   - 'gemini-2.0-flash' (default): yaxshi narx/sifat
+    |   - 'gemini-1.5-flash-8b': yana 50% arzon, basic chat uchun
+    |   - 'gemini-1.5-pro': premium, $1.25/$5.00
+    |
+    */
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'default_model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chatbot AI Provider Switching
+    |--------------------------------------------------------------------------
+    |
+    | ChatbotService::generateAIResponse uchun provider tanlash:
+    |   - 'anthropic' (default): Claude Haiku 4.5 — eng yuqori sifat, qimmat
+    |   - 'gemini': Gemini 2.0 Flash — sifat yaqin, 89% arzon, free tier bor
+    |
+    | fallback_enabled — agar primary provider xato bersa, anthropic'ga
+    | avtomatik o'tish (Gemini API uzilsa servis to'xtab qolmasligi uchun).
+    |
+    | Boshqa AI funksiyalar (Dream Buyer, Competitor Analysis, Call Analysis)
+    | hali Anthropic'da qoladi — bu sozlama faqat suhbat-bot uchun.
+    |
+    */
+    'chatbot_ai' => [
+        'provider' => env('CHATBOT_AI_PROVIDER', 'anthropic'),
+        'fallback_enabled' => env('CHATBOT_AI_FALLBACK_ENABLED', true),
+    ],
+
     'telegram-bot-api' => [
         'token' => env('TELEGRAM_BOT_TOKEN'),
     ],

@@ -8,6 +8,7 @@ use App\Models\ChatbotConversation;
 use App\Models\ChatbotKnowledge;
 use App\Models\ChatbotMessage;
 use App\Models\ChatbotTemplate;
+use App\Services\AI\GeminiService;
 use Illuminate\Support\Facades\Log;
 
 class ChatbotService
@@ -18,14 +19,18 @@ class ChatbotService
 
     protected ClaudeAIService $claudeAI;
 
+    protected GeminiService $gemini;
+
     public function __construct(
         ChatbotIntentService $intentService,
         ChatbotFunnelService $funnelService,
-        ClaudeAIService $claudeAI
+        ClaudeAIService $claudeAI,
+        GeminiService $gemini
     ) {
         $this->intentService = $intentService;
         $this->funnelService = $funnelService;
         $this->claudeAI = $claudeAI;
+        $this->gemini = $gemini;
     }
 
     /**
@@ -226,7 +231,18 @@ class ChatbotService
     }
 
     /**
-     * Generate AI response using Claude
+     * Generate AI response.
+     *
+     * Provider tanlanishi config('services.chatbot_ai.provider') orqali —
+     * ('gemini' yoki 'anthropic'). Default: 'anthropic' (orqa-moslik).
+     *
+     * Xarajat solishtiruvi (1M tokens uchun):
+     *   - Anthropic Claude Haiku: $0.80 input, $4.00 output
+     *   - Gemini 2.0 Flash:       $0.10 input, $0.40 output  (~89% arzon)
+     *   - Gemini Free tier: 1M tokens/kun BEPUL (Google AI Studio)
+     *
+     * Muvaffaqiyatsiz bo'lganda fallback chain:
+     *   gemini → anthropic (config'da fallback yoqilgan bo'lsa) → static error
      */
     private function generateAIResponse(
         Business $business,
@@ -248,19 +264,59 @@ class ChatbotService
             ])
             ->toArray();
 
+        $provider = (string) config('services.chatbot_ai.provider', 'anthropic');
+        $fallbackEnabled = (bool) config('services.chatbot_ai.fallback_enabled', true);
+
         try {
-            $response = $this->claudeAI->chat($conversationHistory, $systemPrompt);
+            $response = $this->callAIProvider(
+                $provider,
+                $conversationHistory,
+                $systemPrompt,
+                $conversation
+            );
 
             return [
                 'content' => $response,
                 'type' => 'text',
                 'source' => 'ai',
+                'ai_provider' => $provider,
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('AI response generation failed', [
                 'conversation_id' => $conversation->id,
+                'provider' => $provider,
                 'error' => $e->getMessage(),
             ]);
+
+            // Fallback — agar primary provider 'gemini' bo'lsa va
+            // fallback yoqilgan bo'lsa, anthropic'ga sinab ko'ramiz.
+            if ($fallbackEnabled && $provider !== 'anthropic') {
+                try {
+                    $response = $this->callAIProvider(
+                        'anthropic',
+                        $conversationHistory,
+                        $systemPrompt,
+                        $conversation
+                    );
+
+                    Log::info('AI fallback succeeded (' . $provider . ' → anthropic)', [
+                        'conversation_id' => $conversation->id,
+                    ]);
+
+                    return [
+                        'content' => $response,
+                        'type' => 'text',
+                        'source' => 'ai',
+                        'ai_provider' => 'anthropic',
+                        'fallback_used' => true,
+                    ];
+                } catch (\Throwable $fallbackError) {
+                    Log::error('AI fallback also failed', [
+                        'conversation_id' => $conversation->id,
+                        'error' => $fallbackError->getMessage(),
+                    ]);
+                }
+            }
 
             return [
                 'content' => 'Uzr, xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.',
@@ -268,6 +324,32 @@ class ChatbotService
                 'source' => 'error_fallback',
             ];
         }
+    }
+
+    /**
+     * Tanlangan provider orqali chat so'rovi yuborish.
+     */
+    private function callAIProvider(
+        string $provider,
+        array $conversationHistory,
+        string $systemPrompt,
+        ChatbotConversation $conversation
+    ): string {
+        return match ($provider) {
+            'gemini' => $this->gemini->chat(
+                messages: $conversationHistory,
+                systemPrompt: $systemPrompt,
+                maxTokens: 512,
+                usePremiumModel: false,
+                temperature: 0.7,
+            ),
+            'anthropic', default => $this->claudeAI->chat(
+                messages: $conversationHistory,
+                systemPrompt: $systemPrompt,
+                maxTokens: 512,
+                usePremiumModel: false,
+            ),
+        };
     }
 
     /**
