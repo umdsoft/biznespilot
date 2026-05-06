@@ -22,6 +22,15 @@ class LandingController extends Controller
 
     /**
      * Show the landing page
+     *
+     * Crawler/Bot detection: Google OAuth verifier, Googlebot, Bingbot va boshqalar
+     * JavaScript run qilmaydi yoki Vue render bo'lishini kutmaydi. Ular uchun
+     * to'liq server-rendered static HTML qaytaramiz (resources/views/landing-static.blade.php).
+     * Real foydalanuvchilar Inertia/Vue ko'radi.
+     *
+     * Bu Google'ning rasmiy ravishda tavsiyalanadigan "dynamic rendering"
+     * yondashuvi — cloaking emas, content bir xil, faqat render texnologiyasi farq qiladi.
+     * https://developers.google.com/search/docs/crawling-indexing/javascript/dynamic-rendering
      */
     public function index(Request $request)
     {
@@ -30,12 +39,34 @@ class LandingController extends Controller
             return $this->redirectAuthenticatedUser();
         }
 
+        if ($this->isCrawler($request->userAgent())) {
+            return response()->view('landing-static');
+        }
+
         return inertia('LandingPage', [
             'plans' => app(PlanDataService::class)->getPublicPlans(),
         ])->withViewData([
             'seoTitle' => "BiznesPilot AI — O'zbekistondagi #1 biznes boshqaruv platformasi",
             'seoDescription' => "Marketing, Sotuv, Moliya, HR — hammasi bir joyda. CRM tizimi, AI yordamchi, Telegram bot integratsiya. 14 kun bepul sinab ko'ring.",
         ]);
+    }
+
+    /**
+     * Detect known search engine bots and OAuth verification crawlers.
+     *
+     * Google OAuth verifier User-Agent: "Google-InspectionTool/1.0" yoki
+     * "Mozilla/5.0 (compatible; Google-Verifier; +http://...)" kabi.
+     */
+    protected function isCrawler(?string $userAgent): bool
+    {
+        if (! $userAgent) {
+            return true; // UA yo'q — ehtimol bot, xavfsizlik uchun static qaytaramiz
+        }
+
+        return (bool) preg_match(
+            '#(googlebot|google-verifier|google-inspectiontool|adsbot-google|mediapartners-google|bingbot|yandexbot|yandexverifier|duckduckbot|baiduspider|slurp|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|applebot|petalbot)#i',
+            $userAgent
+        );
     }
 
     /**
@@ -56,9 +87,16 @@ class LandingController extends Controller
 
     /**
      * Show the privacy policy page
+     *
+     * Crawler-friendly fallback (Google OAuth verifier uchun) — to'liq
+     * server-rendered HTML qaytaradi. Real foydalanuvchilar Vue ko'radi.
      */
     public function privacy(Request $request)
     {
+        if ($this->isCrawler($request->userAgent())) {
+            return response()->view('privacy-static');
+        }
+
         return inertia('PrivacyPolicy');
     }
 
@@ -67,6 +105,10 @@ class LandingController extends Controller
      */
     public function terms(Request $request)
     {
+        if ($this->isCrawler($request->userAgent())) {
+            return response()->view('terms-static');
+        }
+
         return inertia('TermsOfService');
     }
 
