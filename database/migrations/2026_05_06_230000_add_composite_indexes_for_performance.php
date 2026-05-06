@@ -29,8 +29,12 @@ return new class extends Migration
         $this->addIndexIfNotExists('leads', 'leads_biz_status_converted_idx', ['business_id', 'status', 'converted_at']);
         $this->addIndexIfNotExists('leads', 'leads_biz_status_created_idx', ['business_id', 'status', 'created_at']);
 
-        if (Schema::hasTable('store_orders')) {
+        // store_orders'da business_id bo'lmasligi mumkin (faqat store_id bor) —
+        // har case'ga moslashamiz, columns mavjud bo'lganda yaratamiz.
+        if (Schema::hasTable('store_orders') && Schema::hasColumn('store_orders', 'business_id')) {
             $this->addIndexIfNotExists('store_orders', 'store_orders_biz_status_created_idx', ['business_id', 'status', 'created_at']);
+        } elseif (Schema::hasTable('store_orders') && Schema::hasColumn('store_orders', 'store_id')) {
+            $this->addIndexIfNotExists('store_orders', 'store_orders_store_status_created_idx', ['store_id', 'status', 'created_at']);
         }
 
         if (Schema::hasTable('customers') && Schema::hasColumn('customers', 'segment_id')) {
@@ -48,6 +52,7 @@ return new class extends Migration
         $this->dropIndexIfExists('leads', 'leads_biz_status_converted_idx');
         $this->dropIndexIfExists('leads', 'leads_biz_status_created_idx');
         $this->dropIndexIfExists('store_orders', 'store_orders_biz_status_created_idx');
+        $this->dropIndexIfExists('store_orders', 'store_orders_store_status_created_idx');
         $this->dropIndexIfExists('customers', 'customers_biz_segment_idx');
         $this->dropIndexIfExists('call_logs', 'call_logs_biz_created_idx');
     }
