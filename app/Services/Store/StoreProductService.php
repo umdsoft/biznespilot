@@ -13,6 +13,13 @@ class StoreProductService
 {
     public function createProduct(TelegramStore $store, array $data): StoreProduct
     {
+        // multipart/form-data Form'da images bilan birga kelgan paytda
+        // nested array'lar (variants, metadata) JSON string sifatida keladi —
+        // PHP'ning native FormData parser nested object'larni qo'llab-quvvatlamaydi.
+        // Defensive decode: string → array.
+        $variants = $this->decodeIfJsonString($data['variants'] ?? []);
+        $metadata = $this->decodeIfJsonString($data['metadata'] ?? null);
+
         $product = StoreProduct::create([
             'store_id' => $store->id,
             'category_id' => $data['category_id'] ?? null,
@@ -23,26 +30,60 @@ class StoreProductService
             'compare_price' => $data['compare_price'] ?? null,
             'sku' => $data['sku'] ?? null,
             'stock_quantity' => $data['stock_quantity'] ?? 0,
-            'track_stock' => $data['track_stock'] ?? true,
-            'is_active' => $data['is_active'] ?? true,
-            'is_featured' => $data['is_featured'] ?? false,
-            'metadata' => $data['metadata'] ?? null,
+            'track_stock' => $this->toBool($data['track_stock'] ?? true),
+            'is_active' => $this->toBool($data['is_active'] ?? true),
+            'is_featured' => $this->toBool($data['is_featured'] ?? false),
+            'metadata' => $metadata,
         ]);
 
         // Create variants if provided
-        if (! empty($data['variants'])) {
-            foreach ($data['variants'] as $variantData) {
+        if (is_array($variants) && ! empty($variants)) {
+            foreach ($variants as $variantData) {
+                if (! is_array($variantData) || empty($variantData['name'] ?? null)) {
+                    continue; // Bo'sh yoki noto'g'ri variantni o'tkazib yuboramiz
+                }
                 $product->variants()->create([
                     'name' => $variantData['name'],
                     'sku' => $variantData['sku'] ?? null,
-                    'price' => $variantData['price'],
+                    'price' => $variantData['price'] ?? $data['price'],
                     'stock_quantity' => $variantData['stock_quantity'] ?? 0,
-                    'attributes' => $variantData['attributes'] ?? null,
+                    'attributes' => $this->decodeIfJsonString($variantData['attributes'] ?? null),
                 ]);
             }
         }
 
         return $product->load(['images', 'variants', 'category']);
+    }
+
+    /**
+     * multipart/form-data orqali kelgan JSON string'ni array'ga aylantirish.
+     * Allaqachon array bo'lsa o'zgartirmaydi.
+     */
+    private function decodeIfJsonString(mixed $value): mixed
+    {
+        if (is_string($value) && $value !== '') {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * multipart/form-data boolean values "true"/"false"/"1"/"0" string sifatida
+     * keladi. Eloquent boolean cast bilan ham xato beradi ba'zan.
+     */
+    private function toBool(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_string($value)) {
+            return in_array(strtolower($value), ['true', '1', 'yes', 'on'], true);
+        }
+        return (bool) $value;
     }
 
     public function updateProduct(StoreProduct $product, array $data): StoreProduct
@@ -51,6 +92,16 @@ class StoreProductService
             'category_id', 'name', 'description', 'price', 'compare_price',
             'sku', 'stock_quantity', 'track_stock', 'is_active', 'is_featured', 'metadata',
         ])->toArray();
+
+        // multipart/form-data normalize: bool va JSON string fields
+        foreach (['track_stock', 'is_active', 'is_featured'] as $boolField) {
+            if (array_key_exists($boolField, $updateData)) {
+                $updateData[$boolField] = $this->toBool($updateData[$boolField]);
+            }
+        }
+        if (array_key_exists('metadata', $updateData)) {
+            $updateData['metadata'] = $this->decodeIfJsonString($updateData['metadata']);
+        }
 
         if (isset($data['name']) && $data['name'] !== $product->name) {
             $updateData['slug'] = Str::slug($data['name']) . '-' . Str::random(4);
