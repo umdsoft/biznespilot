@@ -58,20 +58,15 @@
           </div>
         </div>
 
-        <!-- Pricing (Universal) -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 sm:p-6">
-          <div class="flex items-baseline justify-between mb-5">
-            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Narx</h2>
-            <span v-if="hasVariants" class="text-xs text-blue-600 dark:text-blue-400 font-medium">
-              💡 Variantlar mavjud — boshlang'ich narx
-            </span>
-          </div>
+        <!-- Pricing — faqat NON-ecommerce turlar uchun (xizmatlar, kurslar va h.k.).
+             Ecommerce mahsulotlar uchun narx variantlar ichida (ProductFields.vue) belgilanadi
+             va form.price avtomat min(variants.price) bilan to'ldiriladi. -->
+        <div v-if="botType !== 'ecommerce'" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 sm:p-6">
+          <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-5">Narx</h2>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                {{ hasVariants ? "Boshlang'ich narx (so'm) *" : "Narx (so'm) *" }}
-              </label>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Narx (so'm) *</label>
               <input
                 :value="formatPrice(form.price)"
                 @input="onPriceInput($event, 'price')"
@@ -80,9 +75,6 @@
                 placeholder="0"
                 class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
               />
-              <p v-if="hasVariants" class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Mahsulot ro'yxatida shu narx ko'rsatiladi (variantlar tanlangan paytda variant narxi qo'llaniladi)
-              </p>
               <p v-if="form.errors.price" class="mt-1 text-sm text-red-500">{{ form.errors.price }}</p>
             </div>
 
@@ -98,12 +90,15 @@
               />
             </div>
           </div>
+        </div>
 
-          <div class="flex items-center gap-3 mt-5">
+        <!-- Featured toggle — barcha turlar uchun ko'rinadi (ecommerce'da Variantlar tepasida) -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 sm:p-6">
+          <div class="flex items-center gap-3">
             <button
               type="button"
               @click="form.is_featured = !form.is_featured"
-              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0"
               :class="form.is_featured ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'"
             >
               <span
@@ -111,7 +106,14 @@
                 :class="form.is_featured ? 'translate-x-6' : 'translate-x-1'"
               />
             </button>
-            <span class="text-sm text-slate-700 dark:text-slate-300">Tanlangan (bosh sahifada ko'rsatiladi)</span>
+            <div>
+              <span class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Tanlangan mahsulot
+              </span>
+              <span class="block text-xs text-slate-500 dark:text-slate-400">
+                Bosh sahifa va e'tiborli ro'yxatda yuqorida ko'rsatiladi
+              </span>
+            </div>
           </div>
         </div>
 
@@ -258,14 +260,9 @@ const typeFieldsMap = {
 
 const typeFieldsComponent = computed(() => typeFieldsMap[props.botType] || null);
 
-// Pricing section "Narx" labelni dynamic qilish uchun — variantlar mavjudligida
-// "Boshlang'ich narx" deb ko'rsatamiz. Faqat ecommerce turi variantlarni qo'llab-quvvatlaydi.
-const hasVariants = computed(() => {
-  if (props.botType !== 'ecommerce') return false;
-  const variants = form.variants;
-  if (!Array.isArray(variants) || variants.length === 0) return false;
-  return variants.some((v) => v && v.name && String(v.name).trim() !== '');
-});
+// Bot turi shortcut — template'da tezroq tekshirish uchun (ecommerce'da
+// narx Variantlar ichida belgilanadi, top-level Pricing section yashirin).
+const botType = computed(() => props.botType);
 
 const removedImageIds = ref([]);
 
