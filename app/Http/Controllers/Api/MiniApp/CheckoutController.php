@@ -41,9 +41,15 @@ class CheckoutController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'nullable|string|max:100',
-            'customer_phone' => 'nullable|string|max:30',
-            'delivery_address' => 'required|array',
-            'delivery_address.street' => 'required|string|max:500',
+            // Telefon raqami minimal validatsiya — silently overwrite oldini
+            // olish uchun. Format: + bilan boshlanadi yoki kamida 7 raqam.
+            'customer_phone' => 'nullable|string|min:7|max:30|regex:/^[\+\d\s\-\(\)]+$/',
+            // Delivery address — pickup turida shart emas (faqat pickup do'konga
+            // borib oladi). Conditional validation: faqat delivery_type=delivery
+            // bo'lganda majburiy.
+            'delivery_type' => 'nullable|string|in:delivery,pickup',
+            'delivery_address' => 'nullable|array|required_if:delivery_type,delivery',
+            'delivery_address.street' => 'nullable|string|max:500|required_if:delivery_type,delivery',
             'delivery_address.city' => 'nullable|string|max:100',
             'delivery_address.district' => 'nullable|string|max:100',
             'delivery_address.apartment' => 'nullable|string|max:100',
@@ -52,7 +58,6 @@ class CheckoutController extends Controller
             'delivery_address.comment' => 'nullable|string|max:500',
             'delivery_address.latitude' => 'nullable|numeric|between:-90,90',
             'delivery_address.longitude' => 'nullable|numeric|between:-180,180',
-            'delivery_type' => 'nullable|string|in:delivery,pickup',
             'payment_method' => 'required|in:cash,card,payme,click',
             'notes' => 'nullable|string|max:1000',
             'delivery_zone_id' => 'nullable|uuid',

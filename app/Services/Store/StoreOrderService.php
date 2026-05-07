@@ -124,16 +124,29 @@ class StoreOrderService
 
                 $order->items()->create($orderItemData);
 
-                // Decrement using locked instances (not the stale ones from Cart)
+                // Decrement using locked instances (not the stale ones from Cart).
+                // CRITICAL FIX: Frontend product.stock_quantity = sum(variants.stock)
+                // sifatida saqlaydi (ProductFields.vue watch totalStock).
+                // Avval ikki marta dekrement qilingan: product VA variant
+                // — bu har sotuvda 2x stock leak yaratardi.
+                // Endi: variant bor bo'lsa faqat variantni dekrement qilamiz,
+                // product.stock_quantity esa variantlar yig'indisi sifatida
+                // alohida sinx hisoblanadi (frontend yoki cron orqali).
                 $product = $lockedProducts->get($item['product_id']);
-                if ($product && $product->track_stock) {
-                    $product->decrement('stock_quantity', $item['quantity']);
-                }
+                $variant = ! empty($item['variant_id'])
+                    ? $lockedVariants->get($item['variant_id'])
+                    : null;
 
-                if (! empty($item['variant_id'])) {
-                    $variant = $lockedVariants->get($item['variant_id']);
-                    if ($variant && $product && $product->track_stock) {
+                if ($product && $product->track_stock) {
+                    if ($variant) {
+                        // Variantli mahsulot: faqat variant dekrement
                         $variant->decrement('stock_quantity', $item['quantity']);
+                        // Product.stock_quantity ham bir vaqtda yangilanadi
+                        // (variantlar yig'indisi sifatida — frontend mantiq mos)
+                        $product->decrement('stock_quantity', $item['quantity']);
+                    } else {
+                        // Variantsiz mahsulot: faqat product dekrement
+                        $product->decrement('stock_quantity', $item['quantity']);
                     }
                 }
             }
@@ -195,8 +208,11 @@ class StoreOrderService
                 );
             }
 
-            // Handle cancellation — restore stock (product + variant)
-            if ($newStatus === StoreOrder::STATUS_CANCELLED) {
+            // Handle cancellation/refund — restore stock (product + variant).
+            // FIX: Avval faqat CANCELLED stockni qaytarardi — refund'da stock
+            // yo'qolardi (sotuvchi pulni qaytaradi, lekin mahsulot omborga
+            // qaytmasdi). Endi REFUNDED ham stock restore qiladi.
+            if (in_array($newStatus, [StoreOrder::STATUS_CANCELLED, StoreOrder::STATUS_REFUNDED], true)) {
                 $this->restoreStock($order);
             }
         }

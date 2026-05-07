@@ -46,45 +46,78 @@ class StoreCartService
     }
 
     /**
-     * Add item to cart
+     * Add item to cart.
+     *
+     * RACE-SAFE: lockForUpdate transaction orqali ikki parallel "+1" so'rov
+     * lost update qilmaydi (ilgari: ikkala request quantity=1 ko'rib, ikkalasi
+     * 2 ga qo'yardi — natija 2 emas 3 bo'lishi kerak edi).
+     *
+     * Modifier selections (taom modifierlari) JSON solishtirish key-order
+     * ga sezgir bo'lardi (same modifier set, different key order = duplicate
+     * row). Endi selections ksort qilib normalize qilamiz.
      */
     public function addItem(StoreCart $cart, StoreProduct $product, int $quantity = 1, ?StoreProductVariant $variant = null, ?array $selections = null): StoreCartItem
     {
         $price = $variant ? $variant->price : $product->price;
+        $normalizedSelections = $this->normalizeSelections($selections);
 
-        // Build query for matching existing item (including modifier selections)
-        $query = $cart->items()
-            ->where('product_id', $product->id)
-            ->where('variant_id', $variant?->id);
+        return DB::transaction(function () use ($cart, $product, $variant, $quantity, $price, $normalizedSelections) {
+            // Same cart'ning items qatoriga LOCK qo'yamiz — boshqa parallel
+            // request shu cart'da o'zgartira olmaydi.
+            $query = $cart->items()
+                ->where('product_id', $product->id)
+                ->where('variant_id', $variant?->id);
 
-        if ($selections) {
-            // Match by selections JSON — same product with different modifiers = different items
-            $query->where('selections', json_encode($selections));
-        } else {
-            $query->where(function ($q) {
-                $q->whereNull('selections')->orWhere('selections', '[]');
-            });
-        }
+            if ($normalizedSelections !== null) {
+                $query->where('selections', json_encode($normalizedSelections));
+            } else {
+                $query->where(function ($q) {
+                    $q->whereNull('selections')->orWhere('selections', '[]');
+                });
+            }
 
-        $existingItem = $query->first();
+            $existingItem = $query->lockForUpdate()->first();
 
-        if ($existingItem) {
-            $existingItem->update([
-                'quantity' => $existingItem->quantity + $quantity,
+            if ($existingItem) {
+                $existingItem->update([
+                    'quantity' => $existingItem->quantity + $quantity,
+                    'price' => $price,
+                ]);
+
+                return $existingItem->fresh();
+            }
+
+            return StoreCartItem::create([
+                'cart_id' => $cart->id,
+                'product_id' => $product->id,
+                'variant_id' => $variant?->id,
+                'quantity' => $quantity,
                 'price' => $price,
+                'selections' => $normalizedSelections,
             ]);
+        });
+    }
 
-            return $existingItem->fresh();
+    /**
+     * Modifier selections'ni normalize qilish — key tartibidan qat'iy nazar
+     * bir xil modifier to'plami bir xil JSON beradi.
+     */
+    private function normalizeSelections(?array $selections): ?array
+    {
+        if (empty($selections)) {
+            return null;
         }
-
-        return StoreCartItem::create([
-            'cart_id' => $cart->id,
-            'product_id' => $product->id,
-            'variant_id' => $variant?->id,
-            'quantity' => $quantity,
-            'price' => $price,
-            'selections' => $selections,
-        ]);
+        // Recursive ksort — barcha darajalarda kalit tartibini bir xil qilish
+        $sorted = $selections;
+        $sort = function (&$arr) use (&$sort) {
+            if (! is_array($arr)) return;
+            ksort($arr);
+            foreach ($arr as &$v) {
+                if (is_array($v)) $sort($v);
+            }
+        };
+        $sort($sorted);
+        return $sorted;
     }
 
     /**

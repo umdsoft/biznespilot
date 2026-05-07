@@ -24,6 +24,18 @@ export const useStoreInfo = defineStore('storeInfo', () => {
     const telegram = ref('')
     const instagram = ref('')
     const website = ref('')
+    // Do'kon dizayn sozlamalari — sozlamalar > Dizayn dan boshqariladi.
+    // Backend StoreInfoResource theme JSON'ini qaytaradi (primary_color,
+    // secondary_color, accent_color, background_color, text_color, va h.k.).
+    const theme = ref({
+        primary_color: null,
+        secondary_color: null,
+        accent_color: null,
+        background_color: null,
+        text_color: null,
+        header_style: 'default',
+        product_card_style: 'grid',
+    })
     const loading = ref(false)
     const error = ref(null)
 
@@ -54,6 +66,20 @@ export const useStoreInfo = defineStore('storeInfo', () => {
             telegram.value = data.settings?.telegram || ''
             instagram.value = data.settings?.instagram || ''
             website.value = data.settings?.website || ''
+            // Theme — sozlamalardan kelgan ranglar. Backend always yuboradi
+            // (default qiymatlar bilan), agar bo'sh kelsa null qoladi va
+            // App.vue Telegram theme'ga fallback qiladi.
+            if (data.theme) {
+                theme.value = {
+                    primary_color: data.theme.primary_color || null,
+                    secondary_color: data.theme.secondary_color || null,
+                    accent_color: data.theme.accent_color || null,
+                    background_color: data.theme.background_color || null,
+                    text_color: data.theme.text_color || null,
+                    header_style: data.theme.header_style || 'default',
+                    product_card_style: data.theme.product_card_style || 'grid',
+                }
+            }
         } catch (err) {
             error.value = err.message || "Do'kon ma'lumotlarini yuklashda xatolik"
         } finally {
@@ -224,6 +250,7 @@ export const useStoreInfo = defineStore('storeInfo', () => {
         instagram,
         website,
         storeType,
+        theme,
         loading,
         error,
         hasLoaded,

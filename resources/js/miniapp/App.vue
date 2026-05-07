@@ -32,16 +32,30 @@ const showBottomNav = computed(() => {
     return bottomNavRouteNames.value.includes(route.name)
 })
 
+// Theme priority chain (eng yuqoridan pastga):
+//   1. Store admin sozlamalardan tanlagan rang (storeInfo.theme.*)
+//   2. Bot turi bo'yicha default accent (useBotType — fallback)
+//   3. Telegram WebApp ranglari (themeParams)
+//   4. Hardcoded fallback rang
+//
+// Bu BiznesPilot dashboard "Sozlamalar > Dizayn" da rang o'zgartirilganda
+// MiniApp avtomat o'zgarishini ta'minlaydi (cache yo'q — har sahifa
+// yuklanishda fetchStore qaytadan o'qiydi).
 const themeStyles = computed(() => {
-    const accent = accentColor.value
+    const adminPrimary = storeInfo.theme?.primary_color
+    const adminSecondary = storeInfo.theme?.secondary_color
+    const adminBg = storeInfo.theme?.background_color
+    const adminText = storeInfo.theme?.text_color
+    const fallbackAccent = accentColor.value
+
     return {
-        '--tg-theme-bg-color': themeParams.value.bg_color || '#ffffff',
-        '--tg-theme-text-color': themeParams.value.text_color || '#000000',
+        '--tg-theme-bg-color': adminBg || themeParams.value.bg_color || '#ffffff',
+        '--tg-theme-text-color': adminText || themeParams.value.text_color || '#000000',
         '--tg-theme-hint-color': themeParams.value.hint_color || '#999999',
-        '--tg-theme-link-color': themeParams.value.link_color || '#2563eb',
-        '--tg-theme-button-color': accent || themeParams.value.button_color || '#2563eb',
+        '--tg-theme-link-color': adminPrimary || themeParams.value.link_color || '#2563eb',
+        '--tg-theme-button-color': adminPrimary || fallbackAccent || themeParams.value.button_color || '#2563eb',
         '--tg-theme-button-text-color': themeParams.value.button_text_color || '#ffffff',
-        '--tg-theme-secondary-bg-color': themeParams.value.secondary_bg_color || '#f1f5f9',
+        '--tg-theme-secondary-bg-color': adminSecondary || themeParams.value.secondary_bg_color || '#f1f5f9',
     }
 })
 
